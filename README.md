@@ -109,7 +109,7 @@ tbd
 ### Variable declaration
 
 ```rust
-    let [mut] {var_name}: {type} = {expression};
+    let [mut] {var_name}: [{type}] = {expression};
 ```
 
 Variables are immutable by default unless declared with `mut` keyword.
