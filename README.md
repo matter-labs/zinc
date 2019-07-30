@@ -157,17 +157,31 @@ tbd: arithmetic / boolean / mix
 
 ## Todo
 
-### Unsorted
+### Vars
 
 - linear combination optimizations
 - value range meta information
+- when to do range checks
 - var naming
 - var name scoping
 - vector methods
+- `vector<bool, size>.pack()`
 - type inference
 - type conversions
+
+### Unsorted
+
 - modular division, invesrsion
 - exponentiation
+- debug trace
+- bitshift ops
+- literals: dec, hex
+
+### Bellman gadgets
+
+- sha256
+- pedersen
+- sig_verify
 
 ### Code conversion samples
 
