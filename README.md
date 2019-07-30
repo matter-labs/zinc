@@ -61,20 +61,20 @@ Parentheses (`(` and `)`) are used to introduce scoping for operations. Parenthe
 
 **Arithmetics** (yield results of the greatest bit length of the operands):
 
-- +: addition
-- -: subtraction
-- *: multiplication
-- /: inversion
+- `+`: addition
+- `-`: subtraction
+- `*`: multiplication
+- `/`: inversion
 
 Arithmetic operators must perform range checks on the results.
 
 **Comparison** (always yield `bool`):
 
-- ==
-- >
-- <
-- >=
-- <= 
+- `==`
+- `>`
+- `<`
+- `>=`
+- `<=`
 
 **Embedded methods**:
 
@@ -82,9 +82,9 @@ Arithmetic operators must perform range checks on the results.
 
 ### Supported operators for boolean types
 
-- &&: logical and
-- ||: logical or
-- ^^: logical xor
+- `&&`: logical and
+- `||`: logical or
+- `^^`: logical xor
 
 ## Statements
 
