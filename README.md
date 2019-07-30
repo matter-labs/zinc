@@ -4,6 +4,27 @@
 
 The jab language will be used to simplify development of R1CS Zero-Knowledge circuits for generic computation. It will transpile into rust code based on the [bellman](https://github.com/matter-labs/bellman) library.
 
+## Program structure
+
+```rust
+
+ciruit! {
+
+    inputs {
+        {input_name}: {type},
+        ...
+    }
+
+    [witness {
+        {witness_var_name}: {type},
+        ...
+    }]
+
+    {statements...}
+}
+
+```
+
 ## Types
 
 ### Integer types
