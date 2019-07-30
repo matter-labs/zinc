@@ -34,18 +34,27 @@ ciruit! {
 
 ### Integer types
 
-- field: native field element of the elliptic curve; represents an unsigned integer with 253..1024 bit length
-- uint8 .. uint256: unsigned integers of different bitlength (with step 1)
-- int8 .. int256: signed integers
+- field: native field element of the elliptic curve; represents an unsigned integer with 253 or more bit length. Field is defined once for each constraint system.
+- uint8 .. uint{field_bit_length}: unsigned integers of different bitlength (with step 1)
+- int8 .. int{field_bit_length}: signed integers
+
+__Implementation details:__ all integers are reprsented as `field` under the hood.
 
 ### Boolean types
 
 - bool: boolean values
 
+__Implementation details:__ all integers are reprsented as `field` under the hood, which is enforced to only allow values `0` or `1`.
+
 ### Vectors
 
 - memory_vector<T>: array of elements of a given type in memory
 - storage_vector<T>: array of elements of a given type in storage (tbd)
+
+__Implementation details:__ vectors with random index access can have different implementations depending on the vector size and the way it is used. Possible implementations:
+
+- Merkle tree
+- Linear scan
 
 ### Structs
 
@@ -86,6 +95,14 @@ Arithmetic operators must perform range checks on the results.
 - `||`: logical or
 - `^^`: logical xor
 
+### Supported operators for vectors
+
+- `[i]`: access element by index `i` (`i` must be of an unsigned integer type)
+
+## Type conversions
+
+tbd
+
 ## Statements
 
 ### Variable declaration
@@ -93,6 +110,15 @@ Arithmetic operators must perform range checks on the results.
 ```rust
     let [mut] {var_name}: {type} = {expression};
 ```
+
+All variables must be named with scoping: scoping can be recursively introduced by conditionals and loops.
+
+__Implementation details__: variables will have the following meta-information collected by the compiler: 
+
+- current variable (id or name) in the constraint system
+- linear combination to compute the variable (which also includes representation of constant values)
+- expected bit length: bit length which the user __promises__ to respect with regard to witness
+- enforced range: bit length which is __guaranteed__ to have been enforced in the circuit
 
 ### Constraint enforcement
 
@@ -121,6 +147,8 @@ Arithmetic operators must perform range checks on the results.
     }
 ```
 
+`range_start` and `range_end` MUST be integer constants. `range_end` MUST be greater or equal to `range_start`.
+
 ## Expressions
 
 tbd: arithmetic / boolean / mix
@@ -135,6 +163,7 @@ tbd: arithmetic / boolean / mix
 - var name scoping
 - vector methods
 - type inference
+- type conversions
 
 ### Code conversion samples
 
