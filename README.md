@@ -34,22 +34,22 @@ ciruit! {
 
 ### Integer types
 
-- field: native field element of the elliptic curve; represents an unsigned integer with 253 or more bit length. Field is defined once for each constraint system.
-- uint8 .. uint{field_bit_length}: unsigned integers of different bitlength (with step 1)
-- int8 .. int{field_bit_length}: signed integers
+- `field`: native field element of the elliptic curve; represents an unsigned integer with 253 or more bit length. Field is defined once for each constraint system.
+- `uint8` .. `uint{field_bit_length}`: unsigned integers of different bitlength (with step 1)
+- `int8` .. `int{field_bit_length}`: signed integers
 
 __Implementation details:__ all integers are reprsented as `field` under the hood.
 
 ### Boolean types
 
-- bool: boolean values
+- `bool`: boolean values
 
 __Implementation details:__ all integers are reprsented as `field` under the hood, which is enforced to only allow values `0` or `1`.
 
 ### Vectors
 
-- memory_vector<T>: array of elements of a given type in memory
-- storage_vector<T>: array of elements of a given type in storage (tbd)
+- `memory_vector<T, size>`: fixed-sized array of elements of a given type in memory
+- `storage_vector<T, size>`: fixed-sized array of elements of a given type in storage (tbd)
 
 __Implementation details:__ vectors with random index access can have different implementations depending on the vector size and the way it is used. Possible implementations:
 
@@ -58,7 +58,7 @@ __Implementation details:__ vectors with random index access can have different 
 
 ### Structs
 
-- struct: grouping of elements of different types
+- `struct`: grouping of elements of different types
 
 ## Operators
 
@@ -87,7 +87,7 @@ Arithmetic operators must perform range checks on the results.
 
 **Embedded methods**:
 
-- into_bits(): yields `memory_array<bool>`
+- `into_bits()`: yields `memory_array<bool, bit_length>`
 
 ### Supported operators for boolean types
 
@@ -110,6 +110,8 @@ tbd
 ```rust
     let [mut] {var_name}: {type} = {expression};
 ```
+
+Variables are immutable by default unless declared with `mut` keyword.
 
 All variables must be named with scoping: scoping can be recursively introduced by conditionals and loops.
 
