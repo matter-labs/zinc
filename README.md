@@ -2,7 +2,7 @@
 
 ## Overview
 
-The jab language will be used to simplify development of R1CS Zero-Knowledge circuits for generic computation. It will transpile into rust code based on the [bellman](https://github.com/matter-labs/bellman) library.
+The jab language will be used to simplify development of R1CS (see [this primer](http://coders-errand.com/how-to-build-a-quadratic-arithmetic-program/)) Zero-Knowledge circuits for generic computation. It will transpile into rust code based on the [bellman](https://github.com/matter-labs/bellman) library.
 
 ## Compiler
 
