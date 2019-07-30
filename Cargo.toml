@@ -12,6 +12,7 @@ num-bigint = "0.2"
 ff = { package = "ff_ce", version = "0.6.0", features = ["derive"] }
 pairing = { package = "pairing_ce", version = "0.17.0" }
 bellman = { package = "bellman_ce", version = "0.3.0" }
-franklin_crypto = { package = "franklin-crypto", git = "ssh://git@github.com/matter-labs/franklin-crypto.git" }
+# franklin_crypto = { package = "franklin-crypto", git = "ssh://git@github.com/matter-labs/franklin-crypto.git" }
+franklin_crypto = { package = "franklin-crypto", git = "ssh://git@gitlab.mattr.network/matter-labs/franklin-crypto.git" }
 # franklin-crypto = { package = "sapling-crypto_ce", version = "0.0.5" }
 # franklin-crypto = { path = "franklin-crypto" }

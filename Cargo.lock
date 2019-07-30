@@ -60,7 +60,7 @@ version = "0.1.0"
 dependencies = [
  "bellman_ce 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "ff_ce 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "franklin-crypto 0.0.5 (git+ssh://git@github.com/matter-labs/franklin-crypto.git)",
+ "franklin-crypto 0.0.5 (git+ssh://git@gitlab.mattr.network/matter-labs/franklin-crypto.git)",
  "hex 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-bigint 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "pairing_ce 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -174,7 +174,7 @@ dependencies = [
 [[package]]
 name = "franklin-crypto"
 version = "0.0.5"
-source = "git+ssh://git@github.com/matter-labs/franklin-crypto.git#5e5b1292e9aab0d3f5fd32044edf4636f6b24dc2"
+source = "git+ssh://git@gitlab.mattr.network/matter-labs/franklin-crypto.git#5e5b1292e9aab0d3f5fd32044edf4636f6b24dc2"
 dependencies = [
  "bellman_ce 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "blake2-rfc_bellman_edition 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -503,7 +503,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum digest 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)" = "03b072242a8cbaf9c145665af9d250c59af3b958f83ed6824e13533cf76d5b90"
 "checksum ff_ce 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8f6edceb5dc64db5e46acb519af5d994b004bc150230498527c3f9e55c94c842"
 "checksum ff_derive_ce 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "189b37f93ec30f72d7420f1e6f2f07031ed0245073ab46c02b57fba696f4365a"
-"checksum franklin-crypto 0.0.5 (git+ssh://git@github.com/matter-labs/franklin-crypto.git)" = "<none>"
+"checksum franklin-crypto 0.0.5 (git+ssh://git@gitlab.mattr.network/matter-labs/franklin-crypto.git)" = "<none>"
 "checksum fuchsia-cprng 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "a06f77d526c1a601b7c4cdd98f54b5eaabffc14d5f2f0296febdc7f357c6d3ba"
 "checksum futures 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)" = "a2037ec1c6c1c4f79557762eab1f7eae1f64f6cb418ace90fae88f0942b60139"
 "checksum futures-cpupool 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "ab90cde24b3319636588d0c35fe03b1333857621051837ed769faefb4c2162e4"

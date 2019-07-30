@@ -53,7 +53,7 @@ impl Circuit<Bn256> for PreimageCircuit {
     fn synthesize<CS: ConstraintSystem<Bn256>>(self, cs: &mut CS) -> Result<(), SynthesisError> {
         let hash = AllocatedNum::alloc(cs.namespace(||"alloc hash field element"),||Ok(self.hash.grab()?))?;
         hash.inputize(cs.namespace(|| "inputize hash"))?;
-        let _ = into_bits_le_fixed(cs.namespace(|| "take 253 hash_bits and enforce correctness"), &hash, 253)?;
+        let _ = into_bits_le_fixed(cs.namespace(|| "take 253 hash_bits and enforce correctness"), &hash, 253)?; //sometimes we just don't need bits but they are obtained as a side effect of bit_length enforcing
 
         let preimage = AllocatedNum::alloc(cs.namespace(||"alloc preimage field element"),||Ok(self.preimage.grab()?))?;
         let preimage_bits = into_bits_le_fixed(cs.namespace(|| "take 253 hash_bits and enforce correctness"), &preimage, 253)?;
