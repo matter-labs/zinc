@@ -113,7 +113,7 @@ tbd
 
 Variables are immutable by default unless declared with `mut` keyword.
 
-All variables must be named with scoping: scoping can be recursively introduced by conditionals and loops.
+All variables must be named with scoping: scoping can be recursively introduced by conditionals and loops (tbd).
 
 __Implementation details__: variables will have the following meta-information collected by the compiler: 
 
