@@ -97,7 +97,8 @@ Arithmetic operators must perform range checks on the results.
 
 ### Supported operators for vectors
 
-- `[i]`: access element by index `i` (`i` must be of an unsigned integer type)
+- `[c]`: access element by index `c` (where `c` is a constant)
+- `[i]`: access element by index `i` (where `i` is a integer variable)
 
 ## Type conversions
 
