@@ -132,7 +132,7 @@ __Implementation details__: variables will have the following meta-information c
 ### Conditionals
 
 ```rust
-    if {boolean_statement} {
+    if {boolean_expression} {
         {statment};
         ...
     } [else {
