@@ -1,3 +1,87 @@
-# Franklin circuit
+# Jabberwocky (Jab) circuit langauge spec
 
-This project contains prototype for franklin main circuit.  
+## Overview
+
+The jab language will be used to simplify development of R1CS Zero-Knowledge circuits for generic computation. It will transpile into rust code based on the [bellman](https://github.com/matter-labs/bellman) library.
+
+## Types
+
+### Integer types
+
+- field: native field element of the elliptic curve; represents an unsigned integer with 253..1024 bit length
+- uint8 .. uint256: unsigned integers of different bitlength (with step 1)
+- int8 .. int256: signed integers
+
+### Boolean types
+
+- bool: boolean values
+
+### Vectors
+
+- memory_vector<T>: array of elements of a given type in memory
+- storage_vector<T>: array of elements of a given type in storage (tbd)
+
+### Structs
+
+- struct: grouping of elements of different types
+
+## Operators
+
+Operators must perform range checks on the results.
+
+### Supported operators for integer types:
+
+Arithmetics (yield results of the greatest bit length of the operands):
+
+- +: addition
+- -: subtraction
+- *: multiplication
+- /: inversion
+
+Comparison (always yield `bool`):
+
+- ==
+- >
+- <
+- >=
+- <= 
+
+Embedded methods:
+
+- into_bits(): yields `memory_array<bool>`
+
+### Supported operators for boolean types:
+
+- &&: logical and
+- ||: logical or
+- ^^: logical xor
+
+## Todo
+
+### Unsorted
+
+- vector methods
+- type inference
+- 
+
+### Code conversion samples
+
+- [ ] inputs: `inputs { a: type, b: type }`
+- [ ] witness: `witness { a: type, b: type }`
+- [ ] witness generators: `unsafe_witness { /* bellman/rust code */ }`
+- [ ] types: `let [mut] a: {type} = {value};`
+- [ ] operators: LCs, ranges, overflow checks => range check on assignment
+- [ ] require: `require({boolean condition});`
+- [ ] if: conditional assignments, computational reuse optimizations
+- [ ] for: constant range
+- [ ] struct: assignments
+- [ ] functions / gadgets
+- [ ] unsafe_witness{} code
+
+### Optimizations
+
+- [ ] conditional accumulation of heavy functions
+
+### Formal
+
+- [ ] Formal language spec
