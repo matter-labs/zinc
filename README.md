@@ -166,6 +166,8 @@ tbd: arithmetic / boolean / mix
 - vector methods
 - type inference
 - type conversions
+- modular division, invesrsion
+- exponentiation
 
 ### Code conversion samples
 
