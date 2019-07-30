@@ -4,6 +4,10 @@
 
 The jab language will be used to simplify development of R1CS Zero-Knowledge circuits for generic computation. It will transpile into rust code based on the [bellman](https://github.com/matter-labs/bellman) library.
 
+## Compiler
+
+Compiler v1 must transpile rust files with `circuit!` macro invocation into expanded rust files (where the macro contents is replaced with rust code).
+
 ## Program structure
 
 ```rust
@@ -20,7 +24,8 @@ ciruit! {
         ...
     }]
 
-    {statements...}
+    {statement};
+    ...
 }
 
 ```
@@ -48,18 +53,22 @@ ciruit! {
 
 ## Operators
 
-Operators must perform range checks on the results.
+### Scoping with parentheses
 
-### Supported operators for integer types:
+Parentheses (`(` and `)`) are used to introduce scoping for operations. Parentheses have highest priority of all operators.
 
-Arithmetics (yield results of the greatest bit length of the operands):
+### Supported operators for integer types
+
+**Arithmetics** (yield results of the greatest bit length of the operands):
 
 - +: addition
 - -: subtraction
 - *: multiplication
 - /: inversion
 
-Comparison (always yield `bool`):
+Arithmetic operators must perform range checks on the results.
+
+**Comparison** (always yield `bool`):
 
 - ==
 - >
@@ -67,23 +76,65 @@ Comparison (always yield `bool`):
 - >=
 - <= 
 
-Embedded methods:
+**Embedded methods**:
 
 - into_bits(): yields `memory_array<bool>`
 
-### Supported operators for boolean types:
+### Supported operators for boolean types
 
 - &&: logical and
 - ||: logical or
 - ^^: logical xor
 
+## Statements
+
+### Variable declaration
+
+```rust
+    let [mut] {var_name}: {type} = {expression};
+```
+
+### Constraint enforcement
+
+```rust
+    require({boolean_expression});
+```
+
+### Conditionals
+
+```rust
+    if {boolean_statement} {
+        {statment};
+        ...
+    } [else {
+        {statment};
+        ...
+    }]
+```
+
+### Loops
+
+```rust
+    for {var_name} in {range_start}..{range_end} {
+        {statement};
+        ...
+    }
+```
+
+## Expressions
+
+tbd: arithmetic / boolean / mix
+
 ## Todo
 
 ### Unsorted
 
+- linear combination optimizations
+- value range meta information
+- var naming
+- var name scoping
 - vector methods
 - type inference
-- 
 
 ### Code conversion samples
 
