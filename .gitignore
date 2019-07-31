@@ -1,1 +1,5 @@
-target
+# Rust
+/target/
+
+# IDE
+/.idea/
