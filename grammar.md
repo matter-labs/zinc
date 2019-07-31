@@ -1,9 +1,8 @@
-# High level
 program = inputs [ witness ] statement*
 
+# Statements
 statement = (inputs | witness | require | let)
 
-# Statements
 inputs = 'inputs' '{' ( name ':' type ';' )* '}'
 
 witness = 'witness' '{' ( name ':' type ';' )* '}'
