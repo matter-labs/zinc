@@ -176,7 +176,9 @@ tbd: arithmetic / boolean / mix
 - exponentiation
 - debug trace
 - bitshift ops
-- literals: dec, hex
+- string<length>
+- bytes?
+- literals: dec, hex, string, bool, etc?
 
 ### Bellman gadgets
 
