@@ -179,6 +179,7 @@ tbd: arithmetic / boolean / mix
 - string<length>
 - bytes?
 - literals: dec, hex, string, bool, etc?
+- recursion
 
 ### Bellman gadgets
 
