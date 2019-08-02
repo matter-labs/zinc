@@ -170,15 +170,26 @@ tbd: arithmetic / boolean / mix
 - type inference
 - type conversions
 
+## To define
+
+- comments
+- code inclusion
+- string<length>
+- bytes?
+- literals: dec, hex, string, bool, etc?
+- enum
+- functions
+
+### State
+
+- contract variables
+
 ### Unsorted
 
 - modular division, invesrsion
 - exponentiation
 - debug trace
 - bitshift ops
-- string<length>
-- bytes?
-- literals: dec, hex, string, bool, etc?
 - recursion
 
 ### Bellman gadgets
