@@ -1,5 +1,5 @@
 //!
-//! The syntax analyzer type name.
+//! The syntax type name.
 //!
 
 use std::str::FromStr;
@@ -21,6 +21,41 @@ pub enum Name {
     Struct,
     MemoryVector,
     StorageVector,
+}
+
+impl Name {
+    pub fn is_primitive(&self) -> bool {
+        match self {
+            Name::Field => true,
+            Name::Uint8 => true,
+            Name::Int8 => true,
+            Name::Uint16 => true,
+            Name::Int16 => true,
+            Name::Uint32 => true,
+            Name::Int32 => true,
+            Name::Uint64 => true,
+            Name::Int64 => true,
+            Name::Uint128 => true,
+            Name::Int128 => true,
+            Name::Bool => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_complex(&self) -> bool {
+        match self {
+            Name::Struct => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_generic(&self) -> bool {
+        match self {
+            Name::MemoryVector => true,
+            Name::StorageVector => true,
+            _ => false,
+        }
+    }
 }
 
 impl FromStr for Name {

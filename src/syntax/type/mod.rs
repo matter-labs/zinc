@@ -1,5 +1,5 @@
 //!
-//! The syntax analyzer type.
+//! The syntax type.
 //!
 
 mod name;

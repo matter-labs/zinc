@@ -1,11 +1,11 @@
 program = inputs [ witness ] statement*
 
-# Statements
-statement = (inputs | witness | require | let)
-
 inputs = 'inputs' '{' ( name ':' type ';' )* '}'
 
 witness = 'witness' '{' ( name ':' type ';' )* '}'
+
+# Statements
+statement = (require | let | if | for)
 
 require = 'require' '(' bool_expr ')' ';'
 

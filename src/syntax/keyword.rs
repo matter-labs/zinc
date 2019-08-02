@@ -1,5 +1,5 @@
 //!
-//! The syntax analyzer keyword.
+//! The syntax keyword.
 //!
 
 use std::str::FromStr;

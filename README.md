@@ -6,13 +6,12 @@ The jab language will be used to simplify development of R1CS (see [this primer]
 
 ## Compiler
 
-Compiler v1 must transpile rust files with `circuit!` macro invocation into expanded rust files (where the macro contents is replaced with rust code).
+`circuit!` function-like procedural macro invocations are replaced with Rust code.
 
 ## Program structure
 
 ```rust
-
-ciruit! {
+circuit! {
 
     inputs {
         {input_name}: {type},
@@ -27,7 +26,6 @@ ciruit! {
     {statement};
     ...
 }
-
 ```
 
 ## Types
@@ -38,13 +36,13 @@ ciruit! {
 - `uint8` .. `uint{field_bit_length}`: unsigned integers of different bitlength (with step 1)
 - `int8` .. `int{field_bit_length}`: signed integers
 
-__Implementation details:__ all integers are reprsented as `field` under the hood.
+__Implementation details:__ all integers are represented as `field` under the hood.
 
 ### Boolean types
 
 - `bool`: boolean values
 
-__Implementation details:__ all integers are reprsented as `field` under the hood, which is enforced to only allow values `0` or `1`.
+__Implementation details:__ booleans are represented as `field` under the hood, which is enforced to only allow values `0` or `1`.
 
 ### Vectors
 
@@ -73,13 +71,14 @@ Parentheses (`(` and `)`) are used to introduce scoping for operations. Parenthe
 - `+`: addition
 - `-`: subtraction
 - `*`: multiplication
-- `/`: inversion
+- `/`: division
 
 Arithmetic operators must perform range checks on the results.
 
 **Comparison** (always yield `bool`):
 
 - `==`
+- `!=`
 - `>`
 - `<`
 - `>=`
@@ -109,7 +108,7 @@ tbd
 ### Variable declaration
 
 ```rust
-    let [mut] {var_name}: [{type}] = {expression};
+    let [mut] {var_name}: {type} = {expression};
 ```
 
 Variables are immutable by default unless declared with `mut` keyword.
@@ -133,10 +132,10 @@ __Implementation details__: variables will have the following meta-information c
 
 ```rust
     if {boolean_expression} {
-        {statment};
+        {statement};
         ...
     } [else {
-        {statment};
+        {statement};
         ...
     }]
 ```

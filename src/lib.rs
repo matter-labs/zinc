@@ -12,7 +12,7 @@ use self::syntax::Analyzer;
 #[proc_macro]
 pub fn circuit(input: TokenStream) -> TokenStream {
     match Analyzer::new().analyze(input) {
-        Ok(()) => println!("Syntax analysis successful!"),
+        Ok(circuit) => println!("Syntax analysis: {:?}", circuit),
         Err(error) => panic!("Syntax error: {}", error),
     }
 

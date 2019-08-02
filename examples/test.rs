@@ -1,7 +1,3 @@
-//!
-//! The Compiler macro test.
-//!
-
 use compiler::circuit;
 
 fn main() {
