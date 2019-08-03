@@ -124,7 +124,9 @@ Variables will have the following meta-information collected by the compiler:
 
 ## Types
 
-### Native field type
+### Primitive types
+
+#### Native field type
 
 `field` is a native field element of the elliptic curve used in the constraint system. It represents an unsigned integer of bit length equal to the field modulus length (e.g. for BN256 the field modulus length is 254 bit).
 
@@ -132,9 +134,9 @@ Variables will have the following meta-information collected by the compiler:
 All other types are represented using `field` as their basic building block.
 :::
 
-### Integer types
+#### Integer types
 
-- `uint8` .. `uint{field_bit_length-1}`: unsigned integers of different bitlength (step 8 plus largest representable bitlength for the current field e.g. for field length 254 the set will include [8, 16, 24, ... 240, 248, 253])
+- `uint8` .. `uint{field_bit_length-1}`: unsigned integers of different bitlength (with step 1, e.g. for field length 254 the set will include [8, 9, ..., 252, 253])
 - `int8` .. `int{field_bit_length-1}`: signed integers
 
 :::info
@@ -145,6 +147,7 @@ Integer literals:
 
 - decimal: 0, 1, 122, -7 (inferred type: depending on the sign `uint`/`int` of the lowest possible bitlentgh)
 - hexadecimal: 0x0, 0xfa, 0x0001 (inferred type: `uint` of the lowest possible bitlentgh)
+- `unity`: unity of the field (equivalent of 1)
 
 ```rust
 let a = 0; // uint8
@@ -154,9 +157,10 @@ let c = -1;  // int8
 let c = -128; // int16
 let d = 0xff; // uint8
 let e: field = 0; // field
+let u = unity; // field
 ```
 
-### Boolean type
+#### Boolean type
 
 - `bool`: boolean values
 
@@ -174,7 +178,7 @@ let a = true;
 let b: bool = false;
 ```
 
-### Enums
+#### Enums
 
 Jab supports simple enums (lists of constants), following the following restricted rust syntax:
 
@@ -188,7 +192,19 @@ let x = Order::FIRST;
 let y: Order = x;
 ```
 
-### Structs
+#### Complex types
+
+#### Tuples
+
+Tuples follow the rust rules:
+
+```rust
+(uint8, field)
+```
+
+Like in rust, `()` represents the void value.
+
+#### Structs
 
 `struct` is a grouping of elements of different types. `struct` definitions follow the rust rules.
 
@@ -250,18 +266,64 @@ x = x + 1;
 
 Parentheses (`(` and `)`) are used to introduce scoping for operations. Parentheses have highest priority of all operators.
 
-### Supported operators for integer types
+### Operators for integer types
 
-**Arithmetics** (yield results of the greatest bit length of the operands):
+#### Types
+
+Operators for integer types require implicit conversion of both operands to the result type according to the following rules:
+
+|       |uint   |int    |field|
+|uint   |uint   |int    |field|
+|int    |int    |int    |field|
+|field  |field  |field  |field|
+
+Results of types `uint` and `int` have the bitlength of the largest operand (plus one bit for sign if operands are signed and unsigned).
+
+#### Arithmetics
 
 - `+`: addition
 - `-`: subtraction
 - `*`: multiplication
-- `/`: inversion
 
-Arithmetic operators must perform range checks on the results.
+- `/`: integer division
+- `%`: modulus
+- `\`: inversion (for `field` type only)
 
-**Comparison** (always yield `bool`):
+Operators `+` and `-` increase the bitlength of the result by 1:
+
+```rust
+let a: uint8 = 1;
+let b: uint8 = 1;
+let c: int16 = 1;
+
+let x = a + b; // uint9
+let y = a + c; // int17
+```
+
+Operator `*` adds the bitlengths (not counting the sign bit).
+
+```rust
+let a: uint8 = 1;
+let b: uint8 = 1;
+let c: int16 = 1;
+
+let x = a * b; // uint16
+let y = a * c; // int24
+let z = c * c; // int32
+```
+
+Operators `/`, `%` and `\` keep the bitlength of the result unchanged.
+
+Arithmetic operators will perform range checks on the results in two cases:
+
+- whenever the bitlength of the result exceeds the field bitlength
+- whenever the result is assigned to a type with smaller bitlength
+
+#### Comparison
+
+Operands will be converted to the common result type before the comparison.
+
+Comparison always return a result of type `bool`.
 
 - `==`
 - `>`
@@ -269,18 +331,13 @@ Arithmetic operators must perform range checks on the results.
 - `>=`
 - `<=`
 
-### Supported operators for boolean types
+### Operators for boolean types
 
 - `&&`: logical and
 - `||`: logical or
 - `^^`: logical xor
 
-### Constraint enforcement
-
-```rust
-require(a == b); // automatically generates constraint named "a == b"
-require(a == b, "a and b must be equal"); // custom name
-```
+## Control structures
 
 ### Conditionals
 
@@ -291,8 +348,27 @@ require(a == b, "a and b must be equal"); // custom name
     } [else {
         {statment};
         ...
-    }]
+    }];
 ```
+
+:::info
+- both branches are always executed
+- conditionals create a name scope for variables
+- all assignments inside a conditinal block are implemented as conditional assignments
+- heavy function calls must be optimized with a stack (to explain in detail; this is tricky because it must be applied to the nested function calls)
+:::
+
+Conditional blocks can return value, following the rust rules:
+
+```rust
+let max = if a > b { 
+    a 
+} else { 
+    b
+};
+```
+
+Both branches must return the same type in this case.
 
 ### Loops
 
@@ -305,13 +381,80 @@ require(a == b, "a and b must be equal"); // custom name
 
 `range_start` and `range_end` must be integer constants. `range_end` must be greater or equal to `range_start`.
 
-## Expressions
+:::info
+- loop create a name scope for variables on each loop cycle
+:::
 
-tbd: arithmetic / boolean / mix
+### Match
+
+```rust
+let square = match a {
+    1 => { 1 },
+    2 => 4,
+    3 => 9,
+    _ => painc("unexpected value"),
+}
+```
+
+`match` follows the rust rules.
 
 :::info
-TODO: explain optimizations of linear combinations
+`match` will be implemented as a series of conditionals.
 :::
+
+## Functions
+
+```rust
+fn {function_name}({arguments}) [-> {result_type}] {
+    {statement};
+    ...
+    [return] {result_expression}
+}
+```
+
+If the return type is omitted in the declaration, the function returns `()`.
+
+The value is returned only in the last statement. The `return` keyword is optional.
+
+Not allowing returning the value in the middle of the function is a design decision to imply to the user that the function is always evaluated completely.
+
+```rust
+// calculate `x ^ y` for all `y` up to 8
+fn pow(x: uint8, y: uint8) -> uint8 {
+    require(y < 8);
+    let r = 1;
+    for i in 0..8 {
+        if i < y {
+            r = r * x;
+        }
+    };
+    return r 
+}
+
+## Standard library
+
+## Constraint enforcement
+
+### Require
+
+```rust
+require(a == b); // automatically generates constraint named "a == b"
+require(a == b, "a and b must be equal"); // custom name
+```
+
+### Panic
+
+`panic()` is an equivalent of `require()` for convenient use within control structures:
+
+```rust
+if a >= b {
+    // ...
+} else {
+    panic("b should not be greater a");
+}
+```
+
+---
 
 ## Todo
 
@@ -408,8 +551,10 @@ __Implementation details:__ vectors with random index access can have different 
 - if
 - struct
 - fn
+- return
 - bool
 - true
 - false
 - uint8...
 - int8...
+- unity
