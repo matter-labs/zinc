@@ -3,18 +3,26 @@
 //!
 
 mod analyzer;
+mod circuit;
 mod error;
-mod r#type;
+mod inputs;
 mod keyword;
+mod r#type;
 mod variable;
+mod witness;
 
 pub use self::analyzer::Analyzer;
+pub use self::circuit::CircuitProgram;
 pub use self::error::Error;
+pub use self::inputs::Inputs;
 pub use self::keyword::Keyword;
+pub use self::r#type::Keyword as TypeKeyword;
+pub use self::r#type::KeywordError as TypeKeywordError;
+pub use self::r#type::Type;
 pub use self::variable::Name as VariableName;
 pub use self::variable::NameError as VariableNameError;
-pub use self::r#type::Name as TypeName;
+pub use self::witness::Witness;
 
 pub const SEMICOLON: char = ';';
 pub const COLON: char = ':';
-pub const GROUP_DELIMITER: proc_macro::Delimiter = proc_macro::Delimiter::Brace;
+pub const GROUP_DELIMITER: proc_macro2::Delimiter = proc_macro2::Delimiter::Brace;

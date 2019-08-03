@@ -2,6 +2,11 @@
 //! The syntax type.
 //!
 
-mod name;
+mod keyword;
 
-pub use self::name::Name;
+pub use self::keyword::Error as KeywordError;
+pub use self::keyword::Keyword;
+
+pub struct Type {
+    keyword: Keyword,
+}

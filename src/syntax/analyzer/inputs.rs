@@ -5,14 +5,15 @@
 use std::ops::Deref;
 use std::str::FromStr;
 
-use proc_macro::TokenStream;
-use proc_macro::TokenTree;
+use proc_macro2::TokenStream;
+use proc_macro2::TokenTree;
 
 use crate::syntax;
 use crate::syntax::Error;
+use crate::syntax::Inputs;
 use crate::syntax::Keyword;
+use crate::syntax::TypeKeyword;
 use crate::syntax::VariableName;
-use crate::syntax::TypeName;
 
 use super::TokenIterator;
 
@@ -24,6 +25,7 @@ pub enum State {
     ElementColon,
     ElementType,
     ElementSemicolon,
+    End,
 }
 
 impl State {
@@ -43,55 +45,37 @@ pub struct InputsAnalyzer {
     inputs: Inputs,
 }
 
-#[derive(Debug)]
-pub struct Inputs {
-    count: usize,
-}
-
-impl Inputs {
-    pub fn new() -> Self {
-        Self {
-            count: 0,
-        }
-    }
-}
-
 impl InputsAnalyzer {
     pub fn new() -> Self {
         Self {
             state: State::default(),
-            inputs: Inputs::new(),
+            inputs: Inputs::default(),
         }
     }
 
-    pub fn analyze(mut self, mut iterator: TokenIterator) -> Result<(TokenIterator, Inputs), Error> {
+    pub fn analyze(
+        mut self,
+        mut iterator: TokenIterator,
+    ) -> Result<(TokenIterator, Inputs), Error> {
         loop {
-            if self.is_end(iterator.peek()) {
+            if let State::End = self.state {
                 return Ok((iterator, self.inputs));
             }
 
             if let Some(tree) = iterator.next() {
                 self.tree(tree)?;
             } else {
-                return Err(Error::UnexpectedEnd)
+                return Err(Error::UnexpectedEnd);
             }
         }
-    }
-
-    fn is_end(&self, tree: Option<&TokenTree>) -> bool {
-        if let State::ElementVariable = self.state {
-            if let Some(TokenTree::Ident(ref ident)) = tree {
-                if let Ok(Keyword::Witness) = Keyword::from_str(&ident.to_string().deref()) {
-                    return true;
-                }
-            }
-        }
-        false
     }
 
     fn stream(&mut self, stream: TokenStream) -> Result<(), Error> {
         for tree in stream.into_iter() {
             self.tree(tree)?;
+        }
+        if let State::ElementVariable = self.state {
+            self.state = State::End;
         }
         Ok(())
     }
@@ -104,13 +88,14 @@ impl InputsAnalyzer {
             State::ElementColon => self.element_colon(tree),
             State::ElementType => self.element_type(tree),
             State::ElementSemicolon => self.element_semicolon(tree),
+            State::End => unreachable!(),
         }
     }
 
     fn keyword(&mut self, tree: TokenTree) -> Result<(), Error> {
         println!("TRACE keyword: {}", tree);
 
-        const EXPECTED: [&'static str; 1] = ["inputs"];
+        const EXPECTED: [&str; 1] = ["inputs"];
 
         match tree {
             TokenTree::Ident(ref ident) => {
@@ -121,7 +106,7 @@ impl InputsAnalyzer {
                 } else {
                     Err(Error::Expected(EXPECTED.to_vec(), tree.to_string()))
                 }
-            },
+            }
             _ => Err(Error::Expected(EXPECTED.to_vec(), tree.to_string())),
         }
     }
@@ -129,7 +114,7 @@ impl InputsAnalyzer {
     fn bracket(&mut self, tree: TokenTree) -> Result<(), Error> {
         println!("TRACE bracket: {}", tree);
 
-        const EXPECTED: [&'static str; 1] = ["{"];
+        const EXPECTED: [&str; 1] = ["{"];
 
         match tree {
             TokenTree::Group(ref group) => {
@@ -140,7 +125,7 @@ impl InputsAnalyzer {
                 } else {
                     Err(Error::Expected(EXPECTED.to_vec(), tree.to_string()))
                 }
-            },
+            }
             _ => Err(Error::Expected(EXPECTED.to_vec(), tree.to_string())),
         }
     }
@@ -148,7 +133,7 @@ impl InputsAnalyzer {
     fn element_variable(&mut self, tree: TokenTree) -> Result<(), Error> {
         println!("TRACE element_variable: {}", tree);
 
-        const EXPECTED: [&'static str; 2] = ["{variable}", "witness"];
+        const EXPECTED: [&str; 2] = ["{variable}", "witness"];
 
         match tree {
             TokenTree::Ident(ref ident) => {
@@ -157,10 +142,10 @@ impl InputsAnalyzer {
                     Ok(_name) => {
                         self.state = State::ElementColon;
                         Ok(())
-                    },
+                    }
                     Err(error) => Err(Error::InvalidVariableName(ident, error)),
                 }
-            },
+            }
             _ => Err(Error::Expected(EXPECTED.to_vec(), tree.to_string())),
         }
     }
@@ -168,7 +153,7 @@ impl InputsAnalyzer {
     fn element_colon(&mut self, tree: TokenTree) -> Result<(), Error> {
         println!("TRACE element_colon: {}", tree);
 
-        const EXPECTED: [&'static str; 1] = [":"];
+        const EXPECTED: [&str; 1] = [":"];
 
         match tree {
             TokenTree::Punct(ref punct) => {
@@ -178,7 +163,7 @@ impl InputsAnalyzer {
                 } else {
                     Err(Error::Expected(EXPECTED.to_vec(), tree.to_string()))
                 }
-            },
+            }
             _ => Err(Error::Expected(EXPECTED.to_vec(), tree.to_string())),
         }
     }
@@ -186,18 +171,19 @@ impl InputsAnalyzer {
     fn element_type(&mut self, tree: TokenTree) -> Result<(), Error> {
         println!("TRACE element_type: {}", tree);
 
-        const EXPECTED: [&'static str; 1] = ["{type}"];
+        const EXPECTED: [&str; 1] = ["{type}"];
 
         match tree {
             TokenTree::Ident(ref ident) => {
                 let ident = ident.to_string();
-                if let Ok(_type) = TypeName::from_str(&ident.deref()) {
-                    self.state = State::ElementSemicolon;
-                    Ok(())
-                } else {
-                    Err(Error::Expected(EXPECTED.to_vec(), tree.to_string()))
+                match TypeKeyword::from_str(&ident.deref()) {
+                    Ok(_keyword) => {
+                        self.state = State::ElementSemicolon;
+                        Ok(())
+                    }
+                    Err(error) => Err(Error::InvalidTypeKeyword(ident, error)),
                 }
-            },
+            }
             _ => Err(Error::Expected(EXPECTED.to_vec(), tree.to_string())),
         }
     }
@@ -205,7 +191,7 @@ impl InputsAnalyzer {
     fn element_semicolon(&mut self, tree: TokenTree) -> Result<(), Error> {
         println!("TRACE element_semicolon: {}", tree);
 
-        const EXPECTED: [&'static str; 1] = [";"];
+        const EXPECTED: [&str; 1] = [";"];
 
         match tree {
             TokenTree::Punct(ref punct) => {
@@ -217,7 +203,7 @@ impl InputsAnalyzer {
                 } else {
                     Err(Error::Expected(EXPECTED.to_vec(), tree.to_string()))
                 }
-            },
+            }
             _ => Err(Error::Expected(EXPECTED.to_vec(), tree.to_string())),
         }
     }
