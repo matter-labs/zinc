@@ -1,5 +1,5 @@
 //!
-//! The syntax type name.
+//! The syntax type keyword.
 //!
 
 use std::str::FromStr;
@@ -42,7 +42,7 @@ impl FromStr for Keyword {
             return Ok(Keyword::Uint(bitlength));
         }
 
-        if let Some("uint") = string.get(..3) {
+        if let Some("int") = string.get(..3) {
             let bitlength = (&string[3..])
                 .parse::<usize>()
                 .map_err(Error::BitlengthNotNumeric)?;
@@ -59,7 +59,8 @@ impl FromStr for Keyword {
             "enum" => Ok(Keyword::Enum),
             "memory_vector" => Ok(Keyword::MemoryVector),
             "storage_vector" => Ok(Keyword::StorageVector),
-            other => Err(Error::Unknown(other.to_string())),
+
+            unknown => Err(Error::Unknown(unknown.to_string())),
         }
     }
 }

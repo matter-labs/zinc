@@ -2,9 +2,6 @@
 //! The Jab compiler library.
 //!
 
-//pub mod examples;
-//pub mod gadgets;
-
 mod syntax;
 
 use std::str::FromStr;

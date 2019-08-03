@@ -5,14 +5,15 @@
 use std::ops::Deref;
 use std::str::FromStr;
 
+use log::*;
 use proc_macro2::TokenStream;
 use proc_macro2::TokenTree;
 
 use crate::syntax;
 use crate::syntax::Error;
+use crate::syntax::Identificator;
 use crate::syntax::Keyword;
 use crate::syntax::TypeKeyword;
-use crate::syntax::VariableName;
 use crate::syntax::Witness;
 
 use super::TokenIterator;
@@ -20,7 +21,7 @@ use super::TokenIterator;
 #[derive(Debug, Clone, Copy)]
 pub enum State {
     Keyword,
-    Bracket,
+    Group,
     ElementVariable,
     ElementColon,
     ElementType,
@@ -42,24 +43,24 @@ impl Default for State {
 
 pub struct WitnessAnalyzer {
     state: State,
-    witness: Witness,
+    witnesses: Vec<Witness>,
 }
 
 impl WitnessAnalyzer {
     pub fn new() -> Self {
         Self {
             state: State::default(),
-            witness: Witness::default(),
+            witnesses: vec![],
         }
     }
 
     pub fn analyze(
         mut self,
         mut iterator: TokenIterator,
-    ) -> Result<(TokenIterator, Witness), Error> {
+    ) -> Result<(TokenIterator, Vec<Witness>), Error> {
         loop {
             if let State::End = self.state {
-                return Ok((iterator, self.witness));
+                return Ok((iterator, self.witnesses));
             }
 
             if let Some(tree) = iterator.next() {
@@ -83,7 +84,7 @@ impl WitnessAnalyzer {
     fn tree(&mut self, tree: TokenTree) -> Result<(), Error> {
         match self.state {
             State::Keyword => self.keyword(tree),
-            State::Bracket => self.bracket(tree),
+            State::Group => self.group(tree),
             State::ElementVariable => self.element_variable(tree),
             State::ElementColon => self.element_colon(tree),
             State::ElementType => self.element_type(tree),
@@ -93,7 +94,7 @@ impl WitnessAnalyzer {
     }
 
     fn keyword(&mut self, tree: TokenTree) -> Result<(), Error> {
-        println!("TRACE keyword: {}", tree);
+        trace!("keyword: {}", tree);
 
         const EXPECTED: [&str; 1] = ["witness"];
 
@@ -101,7 +102,7 @@ impl WitnessAnalyzer {
             TokenTree::Ident(ref ident) => {
                 let ident = ident.to_string();
                 if let Ok(Keyword::Witness) = Keyword::from_str(&ident.deref()) {
-                    self.state = State::Bracket;
+                    self.state = State::Group;
                     Ok(())
                 } else {
                     Err(Error::Expected(EXPECTED.to_vec(), tree.to_string()))
@@ -111,8 +112,8 @@ impl WitnessAnalyzer {
         }
     }
 
-    pub fn bracket(&mut self, tree: TokenTree) -> Result<(), Error> {
-        println!("TRACE bracket: {}", tree);
+    pub fn group(&mut self, tree: TokenTree) -> Result<(), Error> {
+        trace!("group: {}", tree);
 
         const EXPECTED: [&str; 1] = ["{"];
 
@@ -131,19 +132,19 @@ impl WitnessAnalyzer {
     }
 
     pub fn element_variable(&mut self, tree: TokenTree) -> Result<(), Error> {
-        println!("TRACE element_variable: {}", tree);
+        trace!("element_variable: {}", tree);
 
         const EXPECTED: [&str; 1] = ["{variable}"];
 
         match tree {
             TokenTree::Ident(ref ident) => {
                 let ident = ident.to_string();
-                match VariableName::from_str(&ident.deref()) {
+                match Identificator::from_str(&ident.deref()) {
                     Ok(_variable) => {
                         self.state = State::ElementColon;
                         Ok(())
                     }
-                    Err(error) => Err(Error::InvalidVariableName(ident, error)),
+                    Err(error) => Err(Error::InvalidIdentificator(ident, error)),
                 }
             }
             _ => Err(Error::Expected(EXPECTED.to_vec(), tree.to_string())),
@@ -151,7 +152,7 @@ impl WitnessAnalyzer {
     }
 
     pub fn element_colon(&mut self, tree: TokenTree) -> Result<(), Error> {
-        println!("TRACE element_colon: {}", tree);
+        trace!("element_colon: {}", tree);
 
         const EXPECTED: [&str; 1] = [":"];
 
@@ -169,7 +170,7 @@ impl WitnessAnalyzer {
     }
 
     pub fn element_type(&mut self, tree: TokenTree) -> Result<(), Error> {
-        println!("TRACE element_type: {}", tree);
+        trace!("element_type: {}", tree);
 
         const EXPECTED: [&str; 1] = ["{type}"];
 
@@ -189,14 +190,14 @@ impl WitnessAnalyzer {
     }
 
     pub fn element_semicolon(&mut self, tree: TokenTree) -> Result<(), Error> {
-        println!("TRACE element_semicolon: {}", tree);
+        trace!("element_semicolon: {}", tree);
 
         const EXPECTED: [&str; 1] = [";"];
 
         match tree {
             TokenTree::Punct(ref punct) => {
                 if punct.as_char() == syntax::SEMICOLON {
-                    self.witness.count += 1;
+                    self.witnesses.count += 1;
 
                     self.state = State::ElementVariable;
                     Ok(())

@@ -1,5 +1,5 @@
 //!
-//! The syntax variable name.
+//! The syntax identificator.
 //!
 
 use std::str::FromStr;
@@ -9,7 +9,7 @@ use failure::Fail;
 use crate::syntax::Keyword;
 
 #[derive(Debug)]
-pub struct Name(String);
+pub struct Identificator(String);
 
 #[derive(Debug, Fail)]
 pub enum Error {
@@ -23,7 +23,7 @@ pub enum Error {
     InvalidCharacter(usize, char),
 }
 
-impl FromStr for Name {
+impl FromStr for Identificator {
     type Err = Error;
 
     fn from_str(string: &str) -> Result<Self, Self::Err> {

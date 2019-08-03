@@ -1,12 +1,12 @@
 //!
-//! The syntax witness.
+//! The syntax input.
 //!
 
 use crate::syntax::Identificator;
 use crate::syntax::Type;
 
 #[derive(Debug)]
-pub struct Witness {
+pub struct Input {
     id: Identificator,
     r#type: Type,
 }

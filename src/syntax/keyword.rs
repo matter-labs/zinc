@@ -4,6 +4,8 @@
 
 use std::str::FromStr;
 
+use failure::Fail;
+
 use crate::syntax::TypeKeyword;
 
 #[derive(Debug)]
@@ -27,8 +29,14 @@ pub enum Keyword {
     Type(TypeKeyword),
 }
 
+#[derive(Debug, Fail)]
+pub enum Error {
+    #[fail(display = "Unknown: {}", _0)]
+    Unknown(String),
+}
+
 impl FromStr for Keyword {
-    type Err = String;
+    type Err = Error;
 
     fn from_str(string: &str) -> Result<Self, Self::Err> {
         if let Ok(type_keyword) = TypeKeyword::from_str(string) {
@@ -48,7 +56,7 @@ impl FromStr for Keyword {
             "else" => Ok(Keyword::Else),
             "match" => Ok(Keyword::Match),
 
-            other => Err(other.to_string()),
+            unknown => Err(Error::Unknown(unknown.to_string())),
         }
     }
 }
