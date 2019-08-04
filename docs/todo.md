@@ -21,6 +21,9 @@
 - debug trace
 - bitshift ops
 - recursion
+- [ ] Generics: types built on rust: Option / Result + ? returns
+- [ ] Move once
+- [ ] enum / tuple / match / if let
 
 ### Bellman gadgets
 
