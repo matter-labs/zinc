@@ -1,4 +1,4 @@
-# Jabberwocky (Jab) circuit user guude
+# Jabberwocky (Jab) developer guide
 
 ## Introduction
 
@@ -8,37 +8,55 @@ The jab language is used to simplify development of Quadratic Arithmetic Program
 Implementation details below are highlighted like this.
 :::
 
-## Circuit structure
+## Circuit layout
+
+`simple_math.jab`:
 
 ```rust
-
-// library: export a function
-ciruit! {
-
-    // returns a^3
-    fn cube(x: uint128) -> uint128 {
-        let mut r = x;
-        for i in 0..2 {
-            r = r * x;
-        }
-        return r
+// returns a^3
+pub fn cube(x: uint128) -> uint128 {
+    let mut r = x;
+    for i in 0..2 {
+        r = r * x;
     }
-}
-
-// program: prove a knowledge of a cubic root `r` for a given public input `x`
-ciruit! {
-
-    inputs {
-        x: uint128,
-    }
-
-    witness {
-        r: uint128,
-    }
-
-    require(x == cube(r), "x == r ^ 3");
+    r
 }
 ```
+
+`main.jab`:
+
+```rust
+// program: prove a knowledge of a cubic root `r` for a given public input `x`
+
+use simple_math;
+
+inputs {
+    x: uint128,
+}
+
+witness {
+    r: uint128,
+}
+
+require(x == simple_math::cube(r), "x == r ^ 3");
+```
+
+## Module system and imports
+
+Modules are defined hierarchically in files, following the rust cargo conventions. 
+
+A module can be imported with the `use` keyword following the rust crate/module import rules:
+
+```rust
+use simple_math;
+use simple_math::cube;
+use simple_math::{cube, something_else};
+use simple_math::*;
+```
+
+Only functions and types exposed in the libraries with `pub` keyword are imported.
+
+Modules can be written in pure rust with bellman (tbd).
 
 ## Comments
 
@@ -126,6 +144,8 @@ Variables will have the following meta-information collected by the compiler:
 
 ### Primitive types
 
+All primitive types must be initialized at declaration.
+
 #### Native field type
 
 `field` is a native field element of the elliptic curve used in the constraint system. It represents an unsigned integer of bit length equal to the field modulus length (e.g. for BN256 the field modulus length is 254 bit).
@@ -136,8 +156,10 @@ All other types are represented using `field` as their basic building block.
 
 #### Integer types
 
-- `uint8` .. `uint{field_bit_length-1}`: unsigned integers of different bitlength (with step 1, e.g. for field length 254 the set will include [8, 9, ..., 252, 253])
-- `int8` .. `int{field_bit_length-1}`: signed integers
+- `uint2` .. `uint{field_bit_length-1}`: unsigned integers of different bitlength (with step 1, e.g. for field length 254 the set will include [8, 9, ..., 252, 253])
+- `int2` .. `int{field_bit_length-1}`: signed integers
+
+`uint` and `int` without bits are synonyms for `uint{field_bit_length-1}` and `int{field_bit_length-1}` (largest representable integer values for the current curve).
 
 :::info
 When integers variables are allocated, their bitlength must be enforced in the constraint system.
@@ -147,7 +169,6 @@ Integer literals:
 
 - decimal: 0, 1, 122, -7 (inferred type: depending on the sign `uint`/`int` of the lowest possible bitlentgh)
 - hexadecimal: 0x0, 0xfa, 0x0001 (inferred type: `uint` of the lowest possible bitlentgh)
-- `unity`: unity of the field (equivalent of 1)
 
 ```rust
 let a = 0; // uint8
@@ -157,7 +178,7 @@ let c = -1;  // int8
 let c = -128; // int16
 let d = 0xff; // uint8
 let e: field = 0; // field
-let u = unity; // field
+let f: uint = 0; // uint253 if the field modulus length is 254
 ```
 
 #### Boolean type
@@ -314,10 +335,22 @@ let z = c * c; // int32
 
 Operators `/`, `%` and `\` keep the bitlength of the result unchanged.
 
+#### Range checks
+
 Arithmetic operators will perform range checks on the results in two cases:
 
 - whenever the bitlength of the result exceeds the field bitlength
 - whenever the result is assigned to a type with smaller bitlength
+
+It is possible to switch off range checks for `field` by placing the code in the `unsafe_unchecked` block:
+
+```rust
+let f: field = 0x1fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+
+let sqr = unsafe_unchecked {
+    f * f
+};
+```
 
 #### Comparison
 
@@ -373,17 +406,27 @@ Both branches must return the same type in this case.
 ### Loops
 
 ```rust
-    for {var_name} in {range_start}..{range_end} {
+    for {var_name} in {range_start}..{range_end} [while {condition}] {
         {statement};
         ...
     }
 ```
 
-`range_start` and `range_end` must be integer constants. `range_end` must be greater or equal to `range_start`.
+`range_start` and `range_end` must be integer constants.
 
 :::info
 - loop create a name scope for variables on each loop cycle
 :::
+
+```rust
+for i in 0..7 {
+    // ...
+}
+
+for j in 15..1 while j > n {
+    // ...
+}
+```
 
 ### Match
 
@@ -408,13 +451,13 @@ let square = match a {
 fn {function_name}({arguments}) [-> {result_type}] {
     {statement};
     ...
-    [return] {result_expression}
+    {result_expression}
 }
 ```
 
 If the return type is omitted in the declaration, the function returns `()`.
 
-The value is returned only in the last statement. The `return` keyword is optional.
+The value is returned in the last statement without the trailing semicolon.
 
 Not allowing returning the value in the middle of the function is a design decision to imply to the user that the function is always evaluated completely.
 
@@ -428,12 +471,13 @@ fn pow(x: uint8, y: uint8) -> uint8 {
             r = r * x;
         }
     };
-    return r 
+    r 
 }
+```
+
+Recursion is not supported.
 
 ## Standard library
-
-## Constraint enforcement
 
 ### Require
 
@@ -442,17 +486,11 @@ require(a == b); // automatically generates constraint named "a == b"
 require(a == b, "a and b must be equal"); // custom name
 ```
 
-### Panic
+### Standard packages
 
-`panic()` is an equivalent of `require()` for convenient use within control structures:
-
-```rust
-if a >= b {
-    // ...
-} else {
-    panic("b should not be greater a");
-}
-```
+- hashes: `sha256`, `pedersen`, `poseidon`, `blake2s`
+- signatures: `eddsa_verify`
+- curve primitives: `ecc`
 
 ---
 
@@ -469,16 +507,6 @@ if a >= b {
 - `vector<bool, size>.pack()`
 - type inference
 - type conversions
-
-## To define
-
-- comments
-- code inclusion
-- string<length>
-- bytes?
-- literals: dec, hex, string, bool, etc?
-- enum
-- functions
 
 ### State
 
@@ -558,3 +586,5 @@ __Implementation details:__ vectors with random index access can have different 
 - uint8...
 - int8...
 - unity
+- pub
+- use
