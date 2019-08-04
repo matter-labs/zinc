@@ -3,8 +3,6 @@
 ### Vars
 
 - linear combination optimizations
-- value range meta information
-- when to do range checks
 - var naming
 - var name scoping
 - vector methods
