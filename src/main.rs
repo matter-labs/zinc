@@ -2,6 +2,9 @@
 //! The Jab compiler binary.
 //!
 
+use std::fs::File;
+use std::path::PathBuf;
+
 use actix_web::middleware;
 use actix_web::web;
 use actix_web::web::Payload;
@@ -13,6 +16,68 @@ use bytes::BytesMut;
 use futures::prelude::*;
 use log::*;
 use serde_derive::Serialize;
+use std::io::Read;
+use structopt::StructOpt;
+
+#[derive(Debug, StructOpt)]
+#[structopt(name = "internal")]
+struct Arguments {
+    #[structopt(short = "p", long = "port")]
+    port: Option<u16>,
+    #[structopt(name = "FILE", parse(from_os_str))]
+    files: Vec<PathBuf>,
+}
+
+fn main() {
+    init_logger();
+
+    let args: Arguments = Arguments::from_args();
+
+    if let Some(port) = args.port {
+        let address = format!("0.0.0.0:{}", port);
+        info!("Starting the HTTP server at {}", address);
+
+        HttpServer::new(|| {
+            App::new()
+                .wrap(middleware::Logger::default())
+                .service(web::resource("/compile").to_async(handler))
+        })
+        .bind(address)
+        .expect("Server binding error")
+        .run()
+        .expect("Server running error");
+    }
+
+    if args.files.is_empty() {
+        error!("No files provided");
+        return;
+    }
+
+    let mut code = String::new();
+    for path in args.files.into_iter() {
+        let mut file = match File::open(&path) {
+            Ok(file) => file,
+            Err(error) => {
+                error!("File {:?} opening error: {}", path, error);
+                continue;
+            }
+        };
+
+        if let Err(error) = file.read_to_string(&mut code) {
+            error!("File {:?} reading error: {}", path, error);
+            continue;
+        }
+
+        let result = match compiler::compile(&code) {
+            Ok(circuit) => serde_json::to_string(&circuit).expect("Serialization bug"),
+            Err(error) => error.to_string(),
+        };
+
+        println!("{:?}:", path);
+        println!("{}", result);
+        println!();
+    }
+}
 
 #[derive(Serialize)]
 struct CircuitError {
@@ -40,24 +105,6 @@ fn handler(payload: Payload) -> impl Future<Item = HttpResponse, Error = Error> 
 
             HttpResponse::Ok().body(response)
         })
-}
-
-fn main() {
-    init_logger();
-
-    let port = 80;
-    let address = format!("0.0.0.0:{}", port);
-    info!("Starting the HTTP server at {}", address);
-
-    HttpServer::new(|| {
-        App::new()
-            .wrap(middleware::Logger::default())
-            .service(web::resource("/compile").to_async(handler))
-    })
-    .bind(address)
-    .expect("Server binding error")
-    .run()
-    .expect("Server running error");
 }
 
 fn init_logger() {

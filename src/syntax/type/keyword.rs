@@ -22,9 +22,9 @@ pub enum Keyword {
 #[derive(Debug, Fail, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Error {
-    #[fail(display = "integer bitlength is not numeric: '{}'", _0)]
+    #[fail(display = "integer bitlength '{}' is not numeric", _0)]
     BitlengthNotNumeric(String),
-    #[fail(display = "integer bitlength is out of range [1; 253]: {}", _0)]
+    #[fail(display = "integer bitlength {} is out of range [1; 253]", _0)]
     BitlengthOutOfRange(usize),
     #[fail(display = "unknown")]
     Unknown,

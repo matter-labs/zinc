@@ -27,6 +27,9 @@ impl Analyzer {
         let (iterator, inputs) = InputsAnalyzer::default().analyze(iterator)?;
         let (_iterator, witness) = WitnessAnalyzer::default().analyze(iterator)?;
 
-        Ok(CircuitProgram { inputs, witness })
+        Ok(CircuitProgram {
+            inputs,
+            witnesses: witness,
+        })
     }
 }

@@ -23,7 +23,7 @@ use super::TokenIterator;
 pub enum State {
     Keyword,
     Group,
-    ElementVariable,
+    ElementIdentifier,
     ElementColon,
     ElementType,
     ElementSemicolon,
@@ -82,7 +82,7 @@ impl WitnessAnalyzer {
             }
         }
 
-        if let State::ElementVariable = self.state {
+        if let State::ElementIdentifier = self.state {
             self.state = State::End;
         }
 
@@ -96,7 +96,7 @@ impl WitnessAnalyzer {
         match self.state {
             State::Keyword => self.keyword(tree),
             State::Group => self.group(tree),
-            State::ElementVariable => self.element_variable(tree),
+            State::ElementIdentifier => self.element_identifier(tree),
             State::ElementColon => self.element_colon(tree),
             State::ElementSemicolon => self.element_semicolon(tree),
             _ => unreachable!(),
@@ -130,7 +130,7 @@ impl WitnessAnalyzer {
         match tree {
             TokenTree::Group(ref group) => {
                 if let syntax::GROUP_DELIMITER = group.delimiter() {
-                    self.state = State::ElementVariable;
+                    self.state = State::ElementIdentifier;
                     self.stream(group.stream())?;
                     Ok(())
                 } else {
@@ -141,10 +141,10 @@ impl WitnessAnalyzer {
         }
     }
 
-    pub fn element_variable(&mut self, tree: TokenTree) -> Result<(), Error> {
-        trace!("element_variable: {}", tree);
+    pub fn element_identifier(&mut self, tree: TokenTree) -> Result<(), Error> {
+        trace!("element_identifier: {}", tree);
 
-        const EXPECTED: [&str; 1] = ["{variable}"];
+        const EXPECTED: [&str; 2] = ["{identifier}", "}"];
 
         match tree {
             TokenTree::Ident(ref ident) => {
@@ -192,7 +192,7 @@ impl WitnessAnalyzer {
                     self.witnesses
                         .push(self.builder.build().expect("Input analyzing bug"));
 
-                    self.state = State::ElementVariable;
+                    self.state = State::ElementIdentifier;
                     Ok(())
                 } else {
                     Err(Error::Expected(EXPECTED.to_vec(), tree.to_string()))

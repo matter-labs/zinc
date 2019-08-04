@@ -10,5 +10,5 @@ use crate::syntax::Witness;
 #[derive(Debug, Serialize)]
 pub struct CircuitProgram {
     pub inputs: Vec<Input>,
-    pub witness: Vec<Witness>,
+    pub witnesses: Vec<Witness>,
 }

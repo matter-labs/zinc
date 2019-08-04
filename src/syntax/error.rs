@@ -14,7 +14,7 @@ use crate::syntax::TypeKeywordError;
 pub enum Error {
     #[fail(display = "expected either of: {:?} (got '{}')", _0, _1)]
     Expected(Vec<&'static str>, String),
-    #[fail(display = "invalid variable name '{}': {}", _0, _1)]
+    #[fail(display = "invalid identifier '{}': {}", _0, _1)]
     InvalidIdentifier(String, IdentifierError),
     #[fail(display = "invalid type keyword '{}': {}", _0, _1)]
     InvalidTypeKeyword(String, TypeKeywordError),
