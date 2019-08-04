@@ -213,7 +213,7 @@ let x = Order::FIRST;
 let y: Order = x;
 ```
 
-#### Complex types
+### Complex types
 
 #### Tuples
 
@@ -234,6 +234,30 @@ struct Person {
     age: uint8,
     id: uint64,
 }
+```
+
+#### Fixed-sized arrays
+
+Fixed-sized arrays follor the rust rules:
+
+```rust
+let fibbonaci: [uint8; 5] = [1, 1, 2, 3, 5];
+let mut a: [field, 10]; // initialized with all zeros
+```
+
+Arrays support an index operator:
+
+```rust
+let fib3 = fibbonaci[3];
+a[2] = 1;
+```
+
+__Note:__ accessing array by a constant index or `for` loop index is cheap, while accessing by a variable index incures linear cost of O(N), where N is array length.
+
+Arrays have an embedded `len()` function of the shortest `uint` type possible:
+
+```rust
+let x = fibbonaci.len(); // let x: uint3 = 5;
 ```
 
 ### Type conversions
