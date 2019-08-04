@@ -518,6 +518,8 @@ Jab provides an embedded `debug!()` macro which follows the rust format syntax:
 debug!("a = {}, b = {}", a, b);
 ```
 
+`debug!()` has no effect on constraint and witness generation and can only be used for debugging.
+
 ### Standard packages
 
 - hashes: `sha256`, `pedersen`, `poseidon`, `blake2s`
