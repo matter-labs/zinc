@@ -510,6 +510,14 @@ require(a == b); // automatically generates constraint named "a == b"
 require(a == b, "a and b must be equal"); // custom name
 ```
 
+### Debug traces
+
+Jab provides an embedded `debug!()` macro which follows the rust format syntax:
+
+```rust
+debug!("a = {}, b = {}", a, b);
+```
+
 ### Standard packages
 
 - hashes: `sha256`, `pedersen`, `poseidon`, `blake2s`
