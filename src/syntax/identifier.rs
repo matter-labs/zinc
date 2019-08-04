@@ -1,29 +1,31 @@
 //!
-//! The syntax identificator.
+//! The syntax identifier.
 //!
 
 use std::str::FromStr;
 
 use failure::Fail;
+use serde_derive::Serialize;
 
 use crate::syntax::Keyword;
 
-#[derive(Debug)]
-pub struct Identificator(String);
+#[derive(Debug, Serialize)]
+pub struct Identifier(String);
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Fail, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Error {
-    #[fail(display = "Is empty")]
+    #[fail(display = "is empty")]
     IsEmpty,
-    #[fail(display = "Is keyword: {:?}", _0)]
+    #[fail(display = "is keyword: {:?}", _0)]
     IsKeyword(Keyword),
-    #[fail(display = "Cannot start with: {}", _0)]
+    #[fail(display = "cannot start with: {}", _0)]
     CannotStartWith(char),
-    #[fail(display = "Invalid character at position {}: {}", _0, _1)]
+    #[fail(display = "invalid character at position {}: {}", _0, _1)]
     InvalidCharacter(usize, char),
 }
 
-impl FromStr for Identificator {
+impl FromStr for Identifier {
     type Err = Error;
 
     fn from_str(string: &str) -> Result<Self, Self::Err> {

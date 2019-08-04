@@ -11,10 +11,11 @@ use proc_macro2::TokenTree;
 
 use crate::syntax;
 use crate::syntax::Error;
-use crate::syntax::Identificator;
+use crate::syntax::Identifier;
 use crate::syntax::Keyword;
-use crate::syntax::TypeKeyword;
+use crate::syntax::TypeAnalyzer;
 use crate::syntax::Witness;
+use crate::syntax::WitnessBuilder;
 
 use super::TokenIterator;
 
@@ -29,31 +30,20 @@ pub enum State {
     End,
 }
 
-impl State {
-    pub fn new() -> Self {
+impl Default for State {
+    fn default() -> Self {
         State::Keyword
     }
 }
 
-impl Default for State {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
+#[derive(Default)]
 pub struct WitnessAnalyzer {
     state: State,
     witnesses: Vec<Witness>,
+    builder: WitnessBuilder,
 }
 
 impl WitnessAnalyzer {
-    pub fn new() -> Self {
-        Self {
-            state: State::default(),
-            witnesses: vec![],
-        }
-    }
-
     pub fn analyze(
         mut self,
         mut iterator: TokenIterator,
@@ -71,25 +61,45 @@ impl WitnessAnalyzer {
         }
     }
 
+    ///
+    /// Traverses the internal group token stream.
+    ///
     fn stream(&mut self, stream: TokenStream) -> Result<(), Error> {
-        for tree in stream.into_iter() {
-            self.tree(tree)?;
+        let mut iterator = stream.into_iter().peekable();
+        loop {
+            if let State::ElementType = self.state {
+                let (i, r#type) = TypeAnalyzer::default().analyze(iterator)?;
+                iterator = i;
+                self.builder.set_type(r#type);
+
+                self.state = State::ElementSemicolon;
+            }
+
+            if let Some(tree) = iterator.next() {
+                self.tree(tree)?;
+            } else {
+                break;
+            }
         }
+
         if let State::ElementVariable = self.state {
             self.state = State::End;
         }
+
         Ok(())
     }
 
+    ///
+    /// Traverses the token tree which does not call a recursive parser.
+    ///
     fn tree(&mut self, tree: TokenTree) -> Result<(), Error> {
         match self.state {
             State::Keyword => self.keyword(tree),
             State::Group => self.group(tree),
             State::ElementVariable => self.element_variable(tree),
             State::ElementColon => self.element_colon(tree),
-            State::ElementType => self.element_type(tree),
             State::ElementSemicolon => self.element_semicolon(tree),
-            State::End => unreachable!(),
+            _ => unreachable!(),
         }
     }
 
@@ -139,12 +149,14 @@ impl WitnessAnalyzer {
         match tree {
             TokenTree::Ident(ref ident) => {
                 let ident = ident.to_string();
-                match Identificator::from_str(&ident.deref()) {
-                    Ok(_variable) => {
+                match Identifier::from_str(&ident.deref()) {
+                    Ok(identifier) => {
+                        self.builder.set_identifier(identifier);
+
                         self.state = State::ElementColon;
                         Ok(())
                     }
-                    Err(error) => Err(Error::InvalidIdentificator(ident, error)),
+                    Err(error) => Err(Error::InvalidIdentifier(ident, error)),
                 }
             }
             _ => Err(Error::Expected(EXPECTED.to_vec(), tree.to_string())),
@@ -169,26 +181,6 @@ impl WitnessAnalyzer {
         }
     }
 
-    pub fn element_type(&mut self, tree: TokenTree) -> Result<(), Error> {
-        trace!("element_type: {}", tree);
-
-        const EXPECTED: [&str; 1] = ["{type}"];
-
-        match tree {
-            TokenTree::Ident(ref ident) => {
-                let ident = ident.to_string();
-                match TypeKeyword::from_str(&ident.deref()) {
-                    Ok(_keyword) => {
-                        self.state = State::ElementSemicolon;
-                        Ok(())
-                    }
-                    Err(error) => Err(Error::InvalidTypeKeyword(ident, error)),
-                }
-            }
-            _ => Err(Error::Expected(EXPECTED.to_vec(), tree.to_string())),
-        }
-    }
-
     pub fn element_semicolon(&mut self, tree: TokenTree) -> Result<(), Error> {
         trace!("element_semicolon: {}", tree);
 
@@ -197,7 +189,8 @@ impl WitnessAnalyzer {
         match tree {
             TokenTree::Punct(ref punct) => {
                 if punct.as_char() == syntax::SEMICOLON {
-                    self.witnesses.count += 1;
+                    self.witnesses
+                        .push(self.builder.build().expect("Input analyzing bug"));
 
                     self.state = State::ElementVariable;
                     Ok(())

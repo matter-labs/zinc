@@ -5,8 +5,9 @@
 use std::str::FromStr;
 
 use failure::Fail;
+use serde_derive::Serialize;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum Keyword {
     Uint(usize),
     Int(usize),
@@ -18,14 +19,15 @@ pub enum Keyword {
     StorageVector,
 }
 
-#[derive(Debug, Fail)]
+#[derive(Debug, Fail, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Error {
-    #[fail(display = "Bitlength is not numeric: {}", _0)]
-    BitlengthNotNumeric(std::num::ParseIntError),
-    #[fail(display = "Bitlength out of range: {}", _0)]
+    #[fail(display = "integer bitlength is not numeric: '{}'", _0)]
+    BitlengthNotNumeric(String),
+    #[fail(display = "integer bitlength is out of range [1; 253]: {}", _0)]
     BitlengthOutOfRange(usize),
-    #[fail(display = "Unknown: {}", _0)]
-    Unknown(String),
+    #[fail(display = "unknown")]
+    Unknown,
 }
 
 impl FromStr for Keyword {
@@ -33,9 +35,10 @@ impl FromStr for Keyword {
 
     fn from_str(string: &str) -> Result<Self, Self::Err> {
         if let Some("uint") = string.get(..4) {
-            let bitlength = (&string[4..])
+            let bitlength = &string[4..];
+            let bitlength = bitlength
                 .parse::<usize>()
-                .map_err(Error::BitlengthNotNumeric)?;
+                .map_err(|_| Error::BitlengthNotNumeric(bitlength.to_string()))?;
             if !(1..=253).contains(&bitlength) {
                 return Err(Error::BitlengthOutOfRange(bitlength));
             }
@@ -43,9 +46,10 @@ impl FromStr for Keyword {
         }
 
         if let Some("int") = string.get(..3) {
-            let bitlength = (&string[3..])
+            let bitlength = &string[3..];
+            let bitlength = bitlength
                 .parse::<usize>()
-                .map_err(Error::BitlengthNotNumeric)?;
+                .map_err(|_| Error::BitlengthNotNumeric(bitlength.to_string()))?;
             if !(1..=253).contains(&bitlength) {
                 return Err(Error::BitlengthOutOfRange(bitlength));
             }
@@ -60,7 +64,7 @@ impl FromStr for Keyword {
             "memory_vector" => Ok(Keyword::MemoryVector),
             "storage_vector" => Ok(Keyword::StorageVector),
 
-            unknown => Err(Error::Unknown(unknown.to_string())),
+            _unknown => Err(Error::Unknown),
         }
     }
 }

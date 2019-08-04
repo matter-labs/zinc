@@ -1,0 +1,11 @@
+inputs {
+    a: uint8;
+    b: field;
+    c: bool;
+}
+
+witness {
+    a: uint253;
+    b: field;
+    c: bool;
+}
