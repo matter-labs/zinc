@@ -3,39 +3,94 @@
 ## Calling compiler
 
 ```sh
-jab {file_name or working_dir}
+jab [-p {filename_profiler_output}] [-o {output.rs}] [-m {filename_meta}] {file_name}
 ```
 
-## Output
+Options:
 
-- list of inputs (json)
-- list of outputs (json)
-- witness/circuit generator (rust code)
+- `-p`, `--profile`: run profiler and print cost information
+- `-o`, `--output`: specify output .rs file name
+- `-m`, `--meta`: generate meta info
 
-## Cost profiler
+## Meta info
 
-The cost profiler must output the program statement by statement in the canonical form, adding comments of the number of constraints.
-
-Control statements with blocks must indicate total cost of the block enclosed in `{ ... }`. 
-
-`if` and `for` statements must show the cost of the condition and the total cost separately.
-
-```rust
-let a = 5; let b = a*a;
-
-if a >= b { a = 1; } else { a = 2; }
-```
-
-must convert to:
-
-```rust
-let a: uint8 = 5; // 0
-let b = a*a; // 1
-
-if a >= b // 16 {24019}
-{ // {3}
-    a = 1; // 3
-} else { // {24000}
-    a = sha256(b); // 24000
+```json
+{
+   "inputs":[
+      {
+         "identifier":"a",
+         "type":{
+            "name": "uint",
+            "size": 8
+         }
+      },
+      {
+         "identifier":"b",
+         "type":"field"
+      },
+      {
+         "identifier":"c",
+         "type":"bool"
+      }
+   ],
+   "witness":[
+      {
+         "identifier":"a",
+         "type":{
+            "name": "uint",
+            "size": 8
+         }
+      },
+      {
+         "identifier":"b",
+         "type":"field"
+      },
+      {
+         "identifier":"c",
+         "type":"bool"
+      }
+   ]
 }
 ```
+
+## Cost profiler output
+
+The cost profiler must print number of constraints for each line in the following `json` format:
+
+```json
+{
+    "file": "filename.jab",
+    "md5":  "md5 hash of the file",
+    "constraints": {
+        "1": 2,
+        "2": 0,
+        "3": 1,
+        "4": {"inline": 4, "block": 25},
+    }
+}
+```
+
+Each line must sum up constraints in all statements that **begin** in this line.
+
+If a line contains the beginning of a block enclosed in `{ ... }`, the costs must include the total cost of the block in curly brackets:
+
+```rust
+1: if a == b { // 3 constraints
+2:      t = a * b; // 1 constraints
+3: } else {
+4:     t = a * b * c; // 2 constraint
+5: }
+```
+
+=>
+
+```json
+"constraints": {
+    "1": {"inline": 3, "block": 4},
+    "2": 1,
+    "3": {"inline": 0, "block": 2},
+    "4": 2
+}
+```
+
+This information will be used to visualize the cost with IDE plugins.
