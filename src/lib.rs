@@ -2,6 +2,7 @@
 //! The Jab compiler library.
 //!
 
+mod lexical;
 mod syntax;
 
 pub use self::syntax::Analyzer;

@@ -6,17 +6,11 @@ use std::ops::Deref;
 use std::str::FromStr;
 
 use log::*;
-use proc_macro2::TokenStream;
 use proc_macro2::TokenTree;
 
-use crate::syntax;
 use crate::syntax::Error;
-use crate::syntax::Identifier;
-use crate::syntax::Input;
-use crate::syntax::Keyword;
 use crate::syntax::Type;
 use crate::syntax::TypeBuilder;
-use crate::syntax::TypeBuilderError;
 use crate::syntax::TypeKeyword;
 
 use super::TokenIterator;
