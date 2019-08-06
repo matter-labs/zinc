@@ -8,6 +8,8 @@
 - operators on primitive types
 - `require()`
 - comments
+- `debug!()`
+- interpreter
 
 ## Version 0.2
 
@@ -17,7 +19,6 @@
 
 ## Version 0.3
 
-- `debug!()`
 - standard library (from bellman)
 
 ## Version 0.4
@@ -43,3 +44,4 @@
 - bytes and strings
 - interfaces?
 - `unsafe_rust`?
+- conditional optimization
