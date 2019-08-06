@@ -405,6 +405,7 @@ Operands will be converted to the common result type before the comparison.
 Comparison always return a result of type `bool`.
 
 - `==`
+- `!=`
 - `>`
 - `<`
 - `>=`
@@ -412,6 +413,7 @@ Comparison always return a result of type `bool`.
 
 ### Operators for boolean types
 
+- `!`: logical not
 - `&&`: logical and
 - `||`: logical or
 - `^^`: logical xor
