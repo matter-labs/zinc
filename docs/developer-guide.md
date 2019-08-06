@@ -245,6 +245,23 @@ let fibbonaci: [uint8; 5] = [1, 1, 2, 3, 5];
 let mut a: [field, 10]; // initialized with all zeros
 ```
 
+##### Array functions: len(), reverse()
+
+`len()` function of the shortest `uint` type possible:
+
+```rust
+let x = fibbonaci.len(); // let x: uint3 = 5;
+```
+
+`reverse()` produces a copy of the array in reverse order:
+
+```rust
+let a = [1, 2, 3];
+let b = a.reverse(); // [3, 2, 1]
+```
+
+##### Access by index
+
 Arrays support an index operator:
 
 ```rust
@@ -254,10 +271,15 @@ a[2] = 1;
 
 __Note:__ accessing array by a constant index or `for` loop index is cheap, while accessing by a variable index incures linear cost of O(N), where N is array length.
 
-Arrays have an embedded `len()` function of the shortest `uint` type possible:
+##### Slicing
+
+Using the rust slice syntax arrays can be transformed (producting a copy of the subarray -- by value, not by reference):
 
 ```rust
-let x = fibbonaci.len(); // let x: uint3 = 5;
+let a = [1, 2, 3, 4];
+let b = a[1..2]; // [2, 3]
+let b = a[1..]; // [2, 3, 4]
+let b = a[..2]; // [1, 2, 3]
 ```
 
 ### Type conversions
@@ -501,7 +523,7 @@ fn pow(x: uint8, y: uint8) -> uint8 {
 
 Recursion is not supported.
 
-## Standard library
+## Embedded functions
 
 ### Require (consraint enforcement)
 
@@ -520,9 +542,25 @@ debug!("a = {}, b = {}", a, b);
 
 `debug!()` has no effect on constraint and witness generation and can only be used for debugging.
 
-### Standard packages
+### into_bits / from_bits
+
+Any primitive type and tuple can be converted to and from an array of `bool` bits.
+
+```rust
+// into_bits
+let i: uint16 = 7;
+let i_bits = i.into_bits(); // [bool; 16]
+let x = (1 as uint64, 2 as uint10).into_bits(); // [bool; 74]
+
+// from_bits
+let slice = x[0..10];
+let t: (uint8, bool, bool) = slice.from_bits();
+```
+
+## Standard library
 
 - hashes: `sha256`, `pedersen`, `poseidon`, `blake2s`
+  - hashes can accept array of bits of any length
 - signatures: `eddsa_verify`
 - curve primitives: `ecc`
 
