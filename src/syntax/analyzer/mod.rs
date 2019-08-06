@@ -25,11 +25,8 @@ impl Analyzer {
         let iterator: TokenIterator = stream.into_iter().peekable();
 
         let (iterator, inputs) = InputsAnalyzer::default().analyze(iterator)?;
-        let (_iterator, witness) = WitnessAnalyzer::default().analyze(iterator)?;
+        let (_iterator, witnesses) = WitnessAnalyzer::default().analyze(iterator)?;
 
-        Ok(CircuitProgram {
-            inputs,
-            witnesses: witness,
-        })
+        Ok(CircuitProgram { inputs, witnesses })
     }
 }

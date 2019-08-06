@@ -1,5 +1,5 @@
 //!
-//! The keyword lexeme.
+//! The operator lexeme.
 //!
 
 use std::str::FromStr;
@@ -23,6 +23,7 @@ pub enum Operator {
     BooleanAnd,
     BooleanOr,
     BooleanXor,
+    BooleanNot,
 
     ComparisonEqual,
     ComparisonGreaterEqual,
@@ -57,6 +58,7 @@ impl FromStr for Operator {
             "&&" => Ok(Operator::BooleanAnd),
             "||" => Ok(Operator::BooleanOr),
             "^^" => Ok(Operator::BooleanXor),
+            "!" => Ok(Operator::BooleanNot),
 
             "==" => Ok(Operator::ComparisonEqual),
             ">=" => Ok(Operator::ComparisonGreaterEqual),

@@ -2,11 +2,12 @@
 //! The keyword lexeme.
 //!
 
-use std::str::FromStr;
+use std::convert::TryFrom;
 
 use failure::Fail;
+use serde_derive::Serialize;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum Keyword {
     // domain
     Inputs,
@@ -45,52 +46,52 @@ pub enum Error {
     Unknown,
 }
 
-impl FromStr for Keyword {
-    type Err = Error;
+impl TryFrom<&[u8]> for Keyword {
+    type Error = Error;
 
-    fn from_str(string: &str) -> Result<Self, Self::Err> {
-        if let Some("uint") = string.get(..4) {
-            let bitlength = &string[4..];
+    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+        if let Some(b"uint") = bytes.get(..4) {
+            let bitlength = String::from_utf8_lossy(&bytes[4..]).to_string();
             let bitlength = bitlength
                 .parse::<usize>()
-                .map_err(|_| Error::BitlengthNotNumeric(bitlength.to_string()))?;
+                .map_err(|_| Error::BitlengthNotNumeric(bitlength))?;
             if !(1..=253).contains(&bitlength) {
                 return Err(Error::BitlengthOutOfRange(bitlength));
             }
             return Ok(Keyword::Uint(bitlength));
         }
 
-        if let Some("int") = string.get(..3) {
-            let bitlength = &string[3..];
+        if let Some(b"int") = bytes.get(..3) {
+            let bitlength = String::from_utf8_lossy(&bytes[3..]).to_string();
             let bitlength = bitlength
                 .parse::<usize>()
-                .map_err(|_| Error::BitlengthNotNumeric(bitlength.to_string()))?;
+                .map_err(|_| Error::BitlengthNotNumeric(bitlength))?;
             if !(1..=253).contains(&bitlength) {
                 return Err(Error::BitlengthOutOfRange(bitlength));
             }
             return Ok(Keyword::Int(bitlength));
         }
 
-        match string {
-            "inputs" => Ok(Keyword::Inputs),
-            "witness" => Ok(Keyword::Witness),
-            "require" => Ok(Keyword::Require),
+        match bytes {
+            b"inputs" => Ok(Keyword::Inputs),
+            b"witness" => Ok(Keyword::Witness),
+            b"require" => Ok(Keyword::Require),
 
-            "let" => Ok(Keyword::Let),
-            "mut" => Ok(Keyword::Mut),
-            "type" => Ok(Keyword::Type),
+            b"let" => Ok(Keyword::Let),
+            b"mut" => Ok(Keyword::Mut),
+            b"type" => Ok(Keyword::Type),
 
-            "for" => Ok(Keyword::For),
-            "if" => Ok(Keyword::If),
-            "else" => Ok(Keyword::Else),
-            "match" => Ok(Keyword::Match),
+            b"for" => Ok(Keyword::For),
+            b"if" => Ok(Keyword::If),
+            b"else" => Ok(Keyword::Else),
+            b"match" => Ok(Keyword::Match),
 
-            "field" => Ok(Keyword::Field),
-            "bool" => Ok(Keyword::Bool),
-            "struct" => Ok(Keyword::Struct),
-            "enum" => Ok(Keyword::Enum),
-            "memory_vector" => Ok(Keyword::MemoryVector),
-            "storage_vector" => Ok(Keyword::StorageVector),
+            b"field" => Ok(Keyword::Field),
+            b"bool" => Ok(Keyword::Bool),
+            b"struct" => Ok(Keyword::Struct),
+            b"enum" => Ok(Keyword::Enum),
+            b"memory_vector" => Ok(Keyword::MemoryVector),
+            b"storage_vector" => Ok(Keyword::StorageVector),
 
             _unknown => Err(Error::Unknown),
         }

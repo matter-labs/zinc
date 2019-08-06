@@ -5,12 +5,14 @@
 mod lexical;
 mod syntax;
 
-pub use self::syntax::Analyzer;
+pub use self::lexical::Stream as LexicalStream;
+pub use self::syntax::Analyzer as SyntaxAnalyzer;
 pub use self::syntax::CircuitProgram;
 
 use std::str::FromStr;
 
 use failure::Fail;
+use log::*;
 use proc_macro2::TokenStream;
 use serde_derive::Serialize;
 
@@ -25,8 +27,18 @@ pub enum Error {
 
 pub type CircuitResult = Result<CircuitProgram, Error>;
 
-pub fn compile(input: &str) -> CircuitResult {
+pub fn compile(input: String) -> CircuitResult {
+    let mut stream = LexicalStream::new(input.bytes().collect());
+    while let Some(lexeme) = stream.next() {
+        trace!("{:?}", lexeme);
+    }
+    if let Some(error) = stream.last_error() {
+        error!("Lexical error: {}", error);
+    }
+
     let stream =
         TokenStream::from_str(&input).map_err(|error| Error::Lexical(format!("{:?}", error)))?;
-    Analyzer::default().analyze(stream).map_err(Error::Syntax)
+    SyntaxAnalyzer::default()
+        .analyze(stream)
+        .map_err(Error::Syntax)
 }

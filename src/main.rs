@@ -41,7 +41,7 @@ fn main() {
             continue;
         }
 
-        let result = match compiler::compile(&code) {
+        let result = match compiler::compile(code.to_owned()) {
             Ok(circuit) => serde_json::to_string(&circuit).expect("Serialization bug"),
             Err(error) => error.to_string(),
         };
