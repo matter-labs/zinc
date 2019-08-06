@@ -156,8 +156,8 @@ All other types are represented using `field` as their basic building block.
 
 #### Integer types
 
-- `uint2` .. `uint{field_bit_length-1}`: unsigned integers of different bitlength (with step 1, e.g. for field length 254 the set will include [8, 9, ..., 252, 253])
-- `int2` .. `int{field_bit_length-1}`: signed integers
+- `uint2` .. `uint{floor(field_bitlength/2)}`: unsigned integers of different bitlength (with step 1, e.g. for field length 254 the set will include [8, 9, ..., 125, 126])
+- `int2` .. `int{floor(field_bitlength/2)}`: signed integers
 
 `uint` and `int` without bits are synonyms for `uint{field_bit_length-1}` and `int{field_bit_length-1}` (largest representable integer values for the current curve).
 
@@ -284,23 +284,9 @@ let b = a[..2]; // [1, 2, 3]
 
 ### Type conversions
 
-#### Implicit type conversions
+Jab requires strong typing. Operators on operands of different types require explicit type conversion.
 
-- any integer converts to `field`
-- any `uint` can convert to a `int` of larger bitlength
-
-```rust
-let a = 1; // uint8
-let b: int8 = a; // error: can not convert uint8 to int8
-let c: int16 = a; // ok
-let d = -1; // int8
-let e: uint16 = d; // error: can not implicitly convert int to uint
-let f: field = d; // ok
-```
-
-#### Explicit type coercions
-
-If automatic conversion is not possible, user can coerce type conversions using `as` keyword (following the rust rules):
+Developers can coerce type conversions using `as` keyword (following the rust rules):
 
 - any integer type can be coerced into another integer type of equal or greater bitlength without changes in underlying `field` value
 - any integer type can be coerced into another integer type of lesser bitlength via bit decomposition (without range checks)
@@ -337,14 +323,7 @@ Parentheses (`(` and `)`) are used to introduce scoping for operations. Parenthe
 
 #### Types
 
-Operators for integer types require implicit conversion of both operands to the result type according to the following rules:
-
-|       |uint   |int    |field|
-|uint   |uint   |int    |field|
-|int    |int    |int    |field|
-|field  |field  |field  |field|
-
-Results of types `uint` and `int` have the bitlength of the largest operand (plus one bit for sign if operands are signed and unsigned).
+Jab requires strong typing. Operators on operands of different types require explicit type conversion.
 
 #### Arithmetics
 
@@ -356,34 +335,11 @@ Results of types `uint` and `int` have the bitlength of the largest operand (plu
 - `%`: modulus
 - `\`: inversion (for `field` type only)
 
-Operators `+` and `-` increase the bitlength of the result by 1:
-
-```rust
-let a: uint8 = 1;
-let b: uint8 = 1;
-let c: int16 = 1;
-
-let x = a + b; // uint9
-let y = a + c; // int17
-```
-
-Operator `*` adds the bitlengths (not counting the sign bit).
-
-```rust
-let a: uint8 = 1;
-let b: uint8 = 1;
-let c: int16 = 1;
-
-let x = a * b; // uint16
-let y = a * c; // int24
-let z = c * c; // int32
-```
-
-Operators `/`, `%` and `\` keep the bitlength of the result unchanged.
-
 #### Range checks
 
-Arithmetic operators will perform range checks on the results in two cases:
+When the expression is computed, the expected bitlength of the result must be extended as long as it fits the field. 
+
+Arithmetic operators will perform range checks (and bit adjustment of the result) in two cases:
 
 - whenever the bitlength of the result exceeds the field bitlength
 - whenever the result is assigned to a type with smaller bitlength
