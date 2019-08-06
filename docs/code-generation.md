@@ -25,28 +25,6 @@ These goals led to the following decision decisions:
 
 Speed of compilation matters a lot. Proper architecture must be put in place from the very beginning to allow fast and scalable compilation.
 
-## Variables
-
-- Naming: each variable must get a name derived from its name in the language and the scope.
-- Scope: control structures with block must create nested namespaces.
-
-```rust
-let i = 0;
-if /* some condition */ {
-    let t = 1;
-    // ...
-} else {
-    let t = 2;
-    // ...
-}
-```
-
-must produce the following variables:
-
-- `i`
-- `condition24.then.t` (use the line number of the condition)
-- `condition24.else.t`
-
 ## Operators
 
 - optimization of linear combinations
