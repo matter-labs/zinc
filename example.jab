@@ -1,5 +1,5 @@
 /*
-This is the mega ultra inputs input!
+    This is the mega ultra inputs input!
 */
 inputs {
     a: uint8; // input 1
@@ -8,7 +8,7 @@ inputs {
 }
 
 /*
-This is the mega ultra witness input!
+    This is the mega ultra witness input!
 */
 witness {
     a: uint253; // witness 1

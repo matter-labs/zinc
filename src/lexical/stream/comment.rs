@@ -34,8 +34,9 @@ pub enum Error {
 }
 
 impl Analyzer {
-    pub fn analyze(mut self, bytes: &[u8]) -> Result<(usize, Comment), Error> {
+    pub fn analyze(mut self, bytes: &[u8]) -> Result<(usize, usize, Comment), Error> {
         let mut size = 0;
+        let mut lines = 0;
         while let Some(byte) = bytes.get(size) {
             let byte = *byte;
 
@@ -50,16 +51,15 @@ impl Analyzer {
                     _ => return Err(Error::NotAComment),
                 },
                 State::SingleLine => {
-                    if let b'\n' = byte {
-                        size += 1;
+                    if b'\n' == byte {
                         break;
                     }
                 }
-                State::MultiLine => {
-                    if let b'*' = byte {
-                        self.state = State::MultiLineStar
-                    }
-                }
+                State::MultiLine => match byte {
+                    b'*' => self.state = State::MultiLineStar,
+                    b'\n' => lines += 1,
+                    _ => {}
+                },
                 State::MultiLineStar => match byte {
                     b'/' => {
                         size += 1;
@@ -73,6 +73,6 @@ impl Analyzer {
         }
 
         let comment = Comment(String::from_utf8_lossy(&bytes[..size]).to_string());
-        Ok((size, comment))
+        Ok((size, lines, comment))
     }
 }

@@ -75,6 +75,17 @@ impl Iterator for Stream {
                 continue;
             }
 
+            if byte == b'/' {
+                if let Ok((size, lines, _comment)) =
+                    CommentAnalyzer::default().analyze(&self.input[self.position..])
+                {
+                    self.line += lines;
+                    self.column += size;
+                    self.position += size;
+                    continue;
+                }
+            }
+
             if let Ok(punctuation) = Punctuation::try_from(byte) {
                 let location = Location::new(self.line, self.column);
                 self.column += 1;
@@ -87,15 +98,6 @@ impl Iterator for Stream {
                 self.column += 1;
                 self.position += 1;
                 return Some(Token::new(Lexeme::Delimiter(delimiter), location));
-            }
-
-            if let Ok((size, comment)) =
-                CommentAnalyzer::default().analyze(&self.input[self.position..])
-            {
-                let location = Location::new(self.line, self.column);
-                self.column += size;
-                self.position += size;
-                return Some(Token::new(Lexeme::Comment(comment), location));
             }
 
             match OperatorAnalyzer::default().analyze(&self.input[self.position..]) {
