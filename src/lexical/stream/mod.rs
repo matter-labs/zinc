@@ -2,10 +2,12 @@
 //! The lexeme stream.
 //!
 
+mod comment;
 mod integer;
 mod operator;
 mod word;
 
+pub use self::comment::Analyzer as CommentAnalyzer;
 pub use self::integer::Analyzer as IntegerAnalyzer;
 pub use self::integer::Error as IntegerAnalyzerError;
 pub use self::operator::Analyzer as OperatorAnalyzer;
@@ -85,6 +87,15 @@ impl Iterator for Stream {
                 self.column += 1;
                 self.position += 1;
                 return Some(Token::new(Lexeme::Delimiter(delimiter), location));
+            }
+
+            if let Ok((size, comment)) =
+                CommentAnalyzer::default().analyze(&self.input[self.position..])
+            {
+                let location = Location::new(self.line, self.column);
+                self.column += size;
+                self.position += size;
+                return Some(Token::new(Lexeme::Comment(comment), location));
             }
 
             match OperatorAnalyzer::default().analyze(&self.input[self.position..]) {

@@ -3,6 +3,7 @@
 //!
 
 mod alphabet;
+mod comment;
 mod delimiter;
 mod error;
 mod identifier;
@@ -14,6 +15,7 @@ mod stream;
 mod token;
 
 pub use self::alphabet::Alphabet;
+pub use self::comment::Comment;
 pub use self::delimiter::Delimiter;
 pub use self::error::Error;
 pub use self::identifier::Error as IdentifierError;

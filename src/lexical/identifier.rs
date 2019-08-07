@@ -10,7 +10,7 @@ use serde_derive::Serialize;
 use crate::lexical::Keyword;
 
 #[derive(Debug, Serialize)]
-pub struct Identifier(String);
+pub struct Identifier(pub String);
 
 #[derive(Debug, Fail, Serialize)]
 #[serde(rename_all = "snake_case")]

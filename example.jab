@@ -1,11 +1,17 @@
+/*
+This is the mega ultra inputs input!
+*/
 inputs {
-    a: uint8;
-    b: field;
-    c: bool;
+    a: uint8; // input 1
+    b: field; // input 2
+    c: bool; // input 3
 }
 
+/*
+This is the mega ultra witness input!
+*/
 witness {
-    a: uint253;
-    b: field;
-    c: bool;
+    a: uint253; // witness 1
+    b: field; // witness 2
+    c: bool; // witness 3
 }

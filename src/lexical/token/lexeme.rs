@@ -2,6 +2,7 @@
 //! The token lexeme.
 //!
 
+use crate::lexical::Comment;
 use crate::lexical::Delimiter;
 use crate::lexical::Identifier;
 use crate::lexical::Keyword;
@@ -17,4 +18,5 @@ pub enum Lexeme {
     Punctuation(Punctuation),
     Literal(Literal),
     Operator(Operator),
+    Comment(Comment),
 }
