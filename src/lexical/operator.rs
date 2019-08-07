@@ -2,16 +2,20 @@
 //! The operator lexeme.
 //!
 
-use std::str::FromStr;
+use std::convert::TryFrom;
 
 use failure::Fail;
 
+use crate::lexical::Delimiter;
+
 #[derive(Debug)]
 pub enum Operator {
-    ParenthesesOpen,
-    ParenthesesClose,
+    ParenthesisOpen,
+    ParenthesisClose,
 
     Assignment,
+
+    Dot,
 
     ArithmeticAddition,
     ArithmeticSubtractionOrArithmeticNegation,
@@ -26,10 +30,23 @@ pub enum Operator {
     BooleanNot,
 
     ComparisonEqual,
-    ComparisonGreaterEqual,
-    ComparisonGreater,
+    ComparisonNotEqual,
     ComparisonLesserEqual,
+    ComparisonGreaterEqual,
     ComparisonLesser,
+    ComparisonGreater,
+}
+
+impl Operator {
+    pub fn to_delimiter(&self) -> Option<Delimiter> {
+        Some(match self {
+            Operator::ParenthesisOpen => Delimiter::BracketRoundOpen,
+            Operator::ParenthesisClose => Delimiter::BracketRoundClose,
+            Operator::ComparisonLesser => Delimiter::BracketAngleOpen,
+            Operator::ComparisonGreater => Delimiter::BracketAngleClose,
+            _ => return None,
+        })
+    }
 }
 
 #[derive(Debug, Fail)]
@@ -38,33 +55,36 @@ pub enum Error {
     Unknown,
 }
 
-impl FromStr for Operator {
-    type Err = Error;
+impl TryFrom<&[u8]> for Operator {
+    type Error = Error;
 
-    fn from_str(string: &str) -> Result<Self, Self::Err> {
-        match string {
-            "(" => Ok(Operator::ParenthesesOpen),
-            ")" => Ok(Operator::ParenthesesClose),
+    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+        match bytes {
+            b"(" => Ok(Operator::ParenthesisOpen),
+            b")" => Ok(Operator::ParenthesisClose),
 
-            "=" => Ok(Operator::Assignment),
+            b"=" => Ok(Operator::Assignment),
 
-            "+" => Ok(Operator::ArithmeticAddition),
-            "-" => Ok(Operator::ArithmeticSubtractionOrArithmeticNegation),
-            "*" => Ok(Operator::ArithmeticMultiplication),
-            "/" => Ok(Operator::ArithmeticDivision),
-            "%" => Ok(Operator::ArithmeticRemainder),
-            "\\" => Ok(Operator::ArithmeticInversion),
+            b"." => Ok(Operator::Dot),
 
-            "&&" => Ok(Operator::BooleanAnd),
-            "||" => Ok(Operator::BooleanOr),
-            "^^" => Ok(Operator::BooleanXor),
-            "!" => Ok(Operator::BooleanNot),
+            b"+" => Ok(Operator::ArithmeticAddition),
+            b"-" => Ok(Operator::ArithmeticSubtractionOrArithmeticNegation),
+            b"*" => Ok(Operator::ArithmeticMultiplication),
+            b"/" => Ok(Operator::ArithmeticDivision),
+            b"%" => Ok(Operator::ArithmeticRemainder),
+            b"\\" => Ok(Operator::ArithmeticInversion),
 
-            "==" => Ok(Operator::ComparisonEqual),
-            ">=" => Ok(Operator::ComparisonGreaterEqual),
-            ">" => Ok(Operator::ComparisonGreater),
-            "<=" => Ok(Operator::ComparisonLesserEqual),
-            "<" => Ok(Operator::ComparisonLesser),
+            b"&&" => Ok(Operator::BooleanAnd),
+            b"||" => Ok(Operator::BooleanOr),
+            b"^^" => Ok(Operator::BooleanXor),
+            b"!" => Ok(Operator::BooleanNot),
+
+            b"==" => Ok(Operator::ComparisonEqual),
+            b"!=" => Ok(Operator::ComparisonNotEqual),
+            b"<=" => Ok(Operator::ComparisonLesserEqual),
+            b">=" => Ok(Operator::ComparisonGreaterEqual),
+            b"<" => Ok(Operator::ComparisonLesser),
+            b">" => Ok(Operator::ComparisonGreater),
 
             _unknown => Err(Error::Unknown),
         }

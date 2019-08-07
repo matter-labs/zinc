@@ -29,8 +29,8 @@ pub type CircuitResult = Result<CircuitProgram, Error>;
 
 pub fn compile(input: String) -> CircuitResult {
     let mut stream = LexicalStream::new(input.bytes().collect());
-    while let Some(lexeme) = stream.next() {
-        trace!("{:?}", lexeme);
+    while let Some(token) = stream.next() {
+        trace!("Token: {}", token);
     }
     if let Some(error) = stream.last_error() {
         error!("Lexical error: {}", error);

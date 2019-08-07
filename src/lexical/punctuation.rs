@@ -2,6 +2,8 @@
 //! The punctuation lexeme.
 //!
 
+use std::convert::TryFrom;
+
 #[derive(Debug)]
 pub enum Punctuation {
     Colon,
@@ -9,19 +11,15 @@ pub enum Punctuation {
     Comma,
 }
 
-impl Punctuation {
-    pub fn can_be(byte: u8) -> bool {
-        byte == b':' || byte == b';' || byte == b','
-    }
-}
+impl TryFrom<u8> for Punctuation {
+    type Error = u8;
 
-impl From<u8> for Punctuation {
-    fn from(byte: u8) -> Self {
-        match byte {
+    fn try_from(byte: u8) -> Result<Self, Self::Error> {
+        Ok(match byte {
             b':' => Punctuation::Colon,
             b';' => Punctuation::Semicolon,
             b',' => Punctuation::Comma,
-            _ => panic!("Invalid punctuation"),
-        }
+            another => return Err(another),
+        })
     }
 }

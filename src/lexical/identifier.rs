@@ -20,15 +20,12 @@ pub enum Error {
 }
 
 impl Identifier {
-    pub fn can_start_with(c: u8) -> bool {
-        (b'A' <= c && c <= b'Z') || (b'a' <= c && c <= b'z') || c == b'_'
+    pub fn can_start_with(byte: u8) -> bool {
+        byte.is_ascii_alphabetic() || byte == b'_'
     }
 
-    pub fn can_contain_since_index_1(c: u8) -> bool {
-        (b'0' <= c && c <= b'9')
-            || (b'A' <= c && c <= b'Z')
-            || (b'a' <= c && c <= b'z')
-            || c == b'_'
+    pub fn can_contain_since_index_1(byte: u8) -> bool {
+        byte.is_ascii_alphanumeric() || byte == b'_'
     }
 }
 

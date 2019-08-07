@@ -2,6 +2,10 @@
 //! The delimiter lexeme.
 //!
 
+use std::convert::TryFrom;
+
+use crate::lexical::Operator;
+
 #[derive(Debug)]
 pub enum Delimiter {
     BracketCurlyOpen,
@@ -10,24 +14,36 @@ pub enum Delimiter {
     BracketSquareClose,
     BracketRoundOpen,
     BracketRoundClose,
+    BracketAngleOpen,
+    BracketAngleClose,
 }
 
 impl Delimiter {
-    pub fn can_be(byte: u8) -> bool {
-        byte == b'{' || byte == b'}' || byte == b'[' || byte == b']' || byte == b'(' || byte == b')'
+    pub fn to_operator(&self) -> Option<Operator> {
+        Some(match self {
+            Delimiter::BracketRoundOpen => Operator::ParenthesisOpen,
+            Delimiter::BracketRoundClose => Operator::ParenthesisClose,
+            Delimiter::BracketAngleOpen => Operator::ComparisonLesser,
+            Delimiter::BracketAngleClose => Operator::ComparisonGreater,
+            _ => return None,
+        })
     }
 }
 
-impl From<u8> for Delimiter {
-    fn from(byte: u8) -> Self {
-        match byte {
+impl TryFrom<u8> for Delimiter {
+    type Error = u8;
+
+    fn try_from(byte: u8) -> Result<Self, Self::Error> {
+        Ok(match byte {
             b'{' => Delimiter::BracketCurlyOpen,
             b'}' => Delimiter::BracketCurlyClose,
             b'[' => Delimiter::BracketSquareOpen,
             b']' => Delimiter::BracketSquareClose,
             b'(' => Delimiter::BracketRoundOpen,
             b')' => Delimiter::BracketRoundClose,
-            _ => panic!("Invalid delimiter"),
-        }
+            b'<' => Delimiter::BracketAngleOpen,
+            b'>' => Delimiter::BracketAngleClose,
+            _ => return Err(byte),
+        })
     }
 }

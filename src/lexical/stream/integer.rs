@@ -1,5 +1,5 @@
 //!
-//! The lexical analyzer.
+//! The integer lexical analyzer.
 //!
 
 use failure::Fail;
@@ -28,16 +28,18 @@ pub struct Analyzer {
 #[derive(Debug, Fail, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Error {
-    #[fail(display = "invalid character at position {}", _0)]
-    InvalidDecimalCharacter(usize),
-    #[fail(display = "invalid character at position {}", _0)]
-    InvalidHexadecimalCharacter(usize),
+    #[fail(display = "invalid character '{}' at position {}", _0, _1)]
+    InvalidDecimalCharacter(char, usize),
+    #[fail(display = "hexadecimal integer literals must start with '0x'")]
+    InvalidHexadecimalFormat,
+    #[fail(display = "invalid character '{}' at position {}", _0, _1)]
+    InvalidHexadecimalCharacter(char, usize),
 }
 
 impl Analyzer {
-    pub fn analyze(mut self, bytes: &[u8], start: usize) -> Result<(usize, IntegerLiteral), Error> {
-        let mut end = start;
-        while let Some(byte) = bytes.get(end) {
+    pub fn analyze(mut self, bytes: &[u8]) -> Result<(usize, IntegerLiteral), Error> {
+        let mut size = 0;
+        while let Some(byte) = bytes.get(size) {
             let byte = *byte;
 
             match self.state {
@@ -50,7 +52,7 @@ impl Analyzer {
                 }
                 State::Decimal => {
                     if byte.is_ascii_alphabetic() {
-                        return Err(Error::InvalidDecimalCharacter(end - start));
+                        return Err(Error::InvalidDecimalCharacter(char::from(byte), size + 1));
                     }
 
                     if !byte.is_ascii_digit() && byte != b'_' {
@@ -61,23 +63,27 @@ impl Analyzer {
                     if byte == b'x' {
                         self.state = State::Hexadecimal;
                     } else {
-                        return Err(Error::InvalidHexadecimalCharacter(end - start));
+                        return Err(Error::InvalidHexadecimalFormat);
                     }
                 }
                 State::Hexadecimal => {
                     if !byte.is_ascii_hexdigit() && byte != b'_' {
                         if byte.is_ascii_alphabetic() {
-                            return Err(Error::InvalidDecimalCharacter(end - start));
+                            return Err(Error::InvalidHexadecimalCharacter(
+                                char::from(byte),
+                                size + 1,
+                            ));
                         } else {
                             break;
                         }
                     }
                 }
             }
-            end += 1;
+
+            size += 1;
         }
 
-        let literal = IntegerLiteral::from(&bytes[start..end]);
-        Ok((end, literal))
+        let literal = IntegerLiteral::from(&bytes[..size]);
+        Ok((size, literal))
     }
 }

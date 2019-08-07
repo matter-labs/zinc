@@ -1,5 +1,5 @@
 //!
-//! The lexical analyzer.
+//! The word lexical analyzer.
 //!
 
 use std::convert::TryFrom;
@@ -25,9 +25,9 @@ pub struct Analyzer {
 }
 
 impl Analyzer {
-    pub fn analyze(mut self, bytes: &[u8], start: usize) -> (usize, Lexeme) {
-        let mut end = start;
-        while let Some(byte) = bytes.get(end) {
+    pub fn analyze(mut self, bytes: &[u8]) -> (usize, Lexeme) {
+        let mut size = 0;
+        while let Some(byte) = bytes.get(size) {
             match self.state {
                 State::Start => {
                     if !Identifier::can_start_with(*byte) {
@@ -41,13 +41,14 @@ impl Analyzer {
                     }
                 }
             }
-            end += 1;
+
+            size += 1;
         }
 
-        let lexeme = match Identifier::try_from(&bytes[start..end]) {
+        let lexeme = match Identifier::try_from(&bytes[..size]) {
             Ok(identifier) => Lexeme::Identifier(identifier),
             Err(IdentifierError::IsKeyword(keyword)) => Lexeme::Keyword(keyword),
         };
-        (end, lexeme)
+        (size, lexeme)
     }
 }

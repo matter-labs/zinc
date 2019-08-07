@@ -12,7 +12,7 @@ pub enum Integer {
 
 impl From<&[u8]> for Integer {
     fn from(bytes: &[u8]) -> Self {
-        if bytes[1] == b'x' {
+        if let Some(b'x') = bytes.get(1) {
             Integer::Hexadecimal
         } else {
             Integer::Decimal
