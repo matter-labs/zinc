@@ -10,10 +10,28 @@ use log::*;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "jabc")]
+#[structopt(name = "jabc", about = "The Jabberwocky language compiler")]
 struct Arguments {
-    #[structopt(name = "FILE", parse(from_os_str))]
-    file: PathBuf,
+    #[structopt(
+        short = "p",
+        long = "profile",
+        help = "Runs the profiler and print cost information"
+    )]
+    profile: bool,
+    #[structopt(
+        short = "o",
+        long = "output",
+        name = "OUTPUT",
+        parse(from_os_str),
+        default_value = "output.rs",
+        help = "Specifies the output .rs file name"
+    )]
+    output: PathBuf,
+    #[structopt(short = "m", long = "meta", help = "Generates meta info")]
+    meta: bool,
+
+    #[structopt(name = "INPUT", parse(from_os_str))]
+    input: PathBuf,
 }
 
 fn main() {
@@ -21,26 +39,28 @@ fn main() {
 
     let args: Arguments = Arguments::from_args();
 
-    let mut file = match File::open(&args.file) {
+    let mut file = match File::open(&args.input) {
         Ok(file) => file,
         Err(error) => {
-            error!("File {:?} opening error: {}", args.file, error);
+            error!("File {:?} opening error: {}", args.input, error);
             return;
         }
     };
 
     let mut code = String::with_capacity(1024);
     if let Err(error) = file.read_to_string(&mut code) {
-        error!("File {:?} reading error: {}", args.file, error);
+        error!("File {:?} reading error: {}", args.input, error);
         return;
     }
 
-    let result = match compiler::compile(code.to_owned()) {
+    let metadata = match compiler::compile(code.to_owned()) {
         Ok(circuit) => serde_json::to_string(&circuit).expect("Serialization bug"),
         Err(error) => error.to_string(),
     };
 
-    println!("{}", result);
+    if args.meta {
+        println!("{}", metadata);
+    }
 }
 
 fn init_logger() {
