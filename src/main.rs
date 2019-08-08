@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
 
-use log::*;
+use failure::Fail;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -34,33 +34,32 @@ struct Arguments {
     input: PathBuf,
 }
 
-fn main() {
+#[derive(Debug, Fail)]
+enum Error {
+    #[fail(display = "File opening: {}", _0)]
+    FileOpening(std::io::Error),
+    #[fail(display = "File reading: {}", _0)]
+    FileReading(std::io::Error),
+}
+
+fn main() -> Result<(), Error> {
     init_logger();
 
     let args: Arguments = Arguments::from_args();
 
-    let mut file = match File::open(&args.input) {
-        Ok(file) => file,
-        Err(error) => {
-            error!("File {:?} opening error: {}", args.input, error);
-            return;
-        }
-    };
+    let mut file = File::open(&args.input).map_err(Error::FileOpening)?;
+    let mut code = Vec::with_capacity(1024);
+    file.read_to_end(&mut code).map_err(Error::FileReading)?;
 
-    let mut code = String::with_capacity(1024);
-    if let Err(error) = file.read_to_string(&mut code) {
-        error!("File {:?} reading error: {}", args.input, error);
-        return;
-    }
-
-    let metadata = match compiler::compile(code.to_owned()) {
+    let metadata = match compiler::compile(code) {
         Ok(circuit) => serde_json::to_string(&circuit).expect("Serialization bug"),
         Err(error) => error.to_string(),
     };
-
     if args.meta {
         println!("{}", metadata);
     }
+
+    Ok(())
 }
 
 fn init_logger() {

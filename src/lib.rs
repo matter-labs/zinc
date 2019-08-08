@@ -27,8 +27,8 @@ pub enum Error {
 
 pub type CircuitResult = Result<CircuitProgram, Error>;
 
-pub fn compile(input: String) -> CircuitResult {
-    for result in LexicalStream::new(input.bytes().collect()) {
+pub fn compile(input: Vec<u8>) -> CircuitResult {
+    for result in LexicalStream::new(input.clone()) {
         match result {
             Ok(token) => trace!("Token: {}", token),
             Err(error) => {
@@ -38,8 +38,8 @@ pub fn compile(input: String) -> CircuitResult {
         }
     }
 
-    let stream =
-        TokenStream::from_str(&input).map_err(|error| Error::Lexical(format!("{:?}", error)))?;
+    let stream = TokenStream::from_str(&String::from_utf8_lossy(&input).to_string())
+        .map_err(|error| Error::Lexical(format!("{:?}", error)))?;
     SyntaxAnalyzer::default()
         .analyze(stream)
         .map_err(Error::Syntax)
