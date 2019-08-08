@@ -2,9 +2,7 @@
 //! The syntax input builder.
 //!
 
-use failure::Fail;
-
-use crate::syntax::Identifier;
+use crate::lexical::Identifier;
 use crate::syntax::Input;
 use crate::syntax::Type;
 
@@ -12,14 +10,6 @@ use crate::syntax::Type;
 pub struct Builder {
     identifier: Option<Identifier>,
     r#type: Option<Type>,
-}
-
-#[derive(Debug, Fail)]
-pub enum Error {
-    #[fail(display = "missing identifier")]
-    MissingIdentifier,
-    #[fail(display = "missing type")]
-    MissingType,
 }
 
 impl Builder {
@@ -31,16 +21,16 @@ impl Builder {
         self.r#type = Some(value);
     }
 
-    pub fn build(&mut self) -> Result<Input, Error> {
-        Ok(Input {
+    pub fn build(&mut self) -> Input {
+        Input {
             identifier: match self.identifier.take() {
                 Some(identifier) => identifier,
-                None => return Err(Error::MissingIdentifier),
+                None => panic!("Missing identifier"),
             },
             r#type: match self.r#type.take() {
                 Some(r#type) => r#type,
-                None => return Err(Error::MissingType),
+                None => panic!("Missing type"),
             },
-        })
+        }
     }
 }

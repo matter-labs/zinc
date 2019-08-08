@@ -10,20 +10,17 @@ pub use self::inputs::InputsAnalyzer;
 pub use self::r#type::TypeAnalyzer;
 pub use self::witness::WitnessAnalyzer;
 
-use proc_macro2::TokenStream;
-
+use crate::lexical::Stream as LexicalStream;
 use crate::syntax::CircuitProgram;
-use crate::syntax::Error;
+use crate::Error;
 
-pub type TokenIterator = std::iter::Peekable<proc_macro2::token_stream::IntoIter>;
+pub type TokenIterator = std::iter::Peekable<LexicalStream>;
 
 #[derive(Default)]
 pub struct Analyzer {}
 
 impl Analyzer {
-    pub fn analyze(&mut self, stream: TokenStream) -> Result<CircuitProgram, Error> {
-        let iterator: TokenIterator = stream.into_iter().peekable();
-
+    pub fn analyze(&mut self, iterator: TokenIterator) -> Result<CircuitProgram, Error> {
         let (iterator, inputs) = InputsAnalyzer::default().analyze(iterator)?;
         let (_iterator, witnesses) = WitnessAnalyzer::default().analyze(iterator)?;
 

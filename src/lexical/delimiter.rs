@@ -4,9 +4,11 @@
 
 use std::convert::TryFrom;
 
+use serde_derive::Serialize;
+
 use crate::lexical::Operator;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum Delimiter {
     BracketCurlyOpen,
     BracketCurlyClose,

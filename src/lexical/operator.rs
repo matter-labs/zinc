@@ -5,10 +5,11 @@
 use std::convert::TryFrom;
 
 use failure::Fail;
+use serde_derive::Serialize;
 
 use crate::lexical::Delimiter;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum Operator {
     ParenthesisOpen,
     ParenthesisClose,

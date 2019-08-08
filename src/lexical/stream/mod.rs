@@ -17,6 +17,7 @@ pub use self::word::Analyzer as WordAnalyzer;
 
 use std::convert::TryFrom;
 use std::iter::Iterator;
+use std::iter::Peekable;
 
 use crate::lexical::Alphabet;
 use crate::lexical::Delimiter;
@@ -36,13 +37,14 @@ pub struct Stream {
 }
 
 impl Stream {
-    pub fn new(input: Vec<u8>) -> Self {
+    pub fn new(input: Vec<u8>) -> Peekable<Self> {
         Self {
             input,
             position: 0,
             line: 1,
             column: 1,
         }
+        .peekable()
     }
 }
 
@@ -134,7 +136,7 @@ impl Iterator for Stream {
                 }
             }
 
-            panic!("Must be unreachable and later removed");
+            unreachable!();
         }
 
         None

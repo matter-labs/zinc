@@ -4,7 +4,9 @@
 
 use std::convert::TryFrom;
 
-#[derive(Debug)]
+use serde_derive::Serialize;
+
+#[derive(Debug, Serialize)]
 pub enum Punctuation {
     Colon,
     Semicolon,

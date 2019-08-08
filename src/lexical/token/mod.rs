@@ -12,8 +12,8 @@ use std::fmt;
 
 #[derive(Debug)]
 pub struct Token {
-    lexeme: Lexeme,
-    location: Location,
+    pub lexeme: Lexeme,
+    pub location: Location,
 }
 
 impl Token {
@@ -24,6 +24,6 @@ impl Token {
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {:?}", self.location, self.lexeme)
+        write!(f, "{} {}", self.location, self.lexeme)
     }
 }

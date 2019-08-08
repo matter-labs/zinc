@@ -2,43 +2,22 @@
 //! The syntax type builder.
 //!
 
-use failure::Fail;
-use serde_derive::Serialize;
-
-use crate::syntax::Identifier;
+use crate::lexical::Keyword;
 use crate::syntax::Type;
-use crate::syntax::TypeKeyword;
 
 #[derive(Default)]
 pub struct Builder {
-    keyword: Option<TypeKeyword>,
-    identifier: Option<Identifier>,
-    fields: Option<Vec<(Identifier, Type)>>,
-    variants: Option<Vec<Identifier>>,
-    elements: Option<Vec<Type>>,
-    generic_type: Option<Type>,
-    vector_size: Option<usize>,
-}
-
-#[derive(Debug, Fail, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum Error {
-    #[fail(display = "missing struct identifier")]
-    MissingStructIdentifier,
-    #[fail(display = "missing enum identifier")]
-    MissingEnumIdentifier,
-    #[fail(display = "missing memory vector generic type")]
-    MissingMemoryVectorGenericType,
-    #[fail(display = "missing memory vector size")]
-    MissingMemoryVectorSize,
-    #[fail(display = "missing storage vector generic type")]
-    MissingStorageVectorGenericType,
-    #[fail(display = "missing storage vector size")]
-    MissingStorageVectorSize,
+    keyword: Option<Keyword>,
+    //    identifier: Option<Identifier>,
+    //    fields: Option<Vec<(Identifier, Type)>>,
+    //    variants: Option<Vec<Identifier>>,
+    //    elements: Option<Vec<Type>>,
+    //    generic_type: Option<Type>,
+    //    vector_size: Option<usize>,
 }
 
 impl Builder {
-    pub fn set_keyword(&mut self, value: TypeKeyword) {
+    pub fn set_keyword(&mut self, value: Keyword) {
         self.keyword = Some(value);
     }
 
@@ -75,50 +54,51 @@ impl Builder {
     //        self.vector_size = Some(value);
     //    }
 
-    pub fn finish(self) -> Result<Type, Error> {
+    pub fn finish(self) -> Type {
         match self.keyword {
-            None => match self.elements {
-                Some(elements) => Ok(Type::Tuple(elements)),
-                None => Ok(Type::Void),
-            },
-            Some(TypeKeyword::Uint(bitlength)) => Ok(Type::Uint(bitlength)),
-            Some(TypeKeyword::Int(bitlength)) => Ok(Type::Int(bitlength)),
-            Some(TypeKeyword::Field) => Ok(Type::Field),
-            Some(TypeKeyword::Bool) => Ok(Type::Bool),
-            Some(TypeKeyword::Struct) => match self.identifier {
-                Some(identiifer) => Ok(Type::Struct(identiifer, self.fields.unwrap_or_default())),
-                None => Err(Error::MissingStructIdentifier),
-            },
-            Some(TypeKeyword::Enum) => match self.identifier {
-                Some(identiifer) => Ok(Type::Enum(identiifer, self.variants.unwrap_or_default())),
-                None => Err(Error::MissingEnumIdentifier),
-            },
-            Some(TypeKeyword::MemoryVector) => {
-                let generic_type = match self.generic_type {
-                    Some(generic_type) => generic_type,
-                    None => return Err(Error::MissingMemoryVectorGenericType),
-                };
-
-                let vector_size = match self.vector_size {
-                    Some(vector_size) => vector_size,
-                    None => return Err(Error::MissingMemoryVectorSize),
-                };
-
-                Ok(Type::MemoryVector(Box::new(generic_type), vector_size))
-            }
-            Some(TypeKeyword::StorageVector) => {
-                let generic_type = match self.generic_type {
-                    Some(generic_type) => generic_type,
-                    None => return Err(Error::MissingStorageVectorGenericType),
-                };
-
-                let vector_size = match self.vector_size {
-                    Some(vector_size) => vector_size,
-                    None => return Err(Error::MissingStorageVectorSize),
-                };
-
-                Ok(Type::StorageVector(Box::new(generic_type), vector_size))
-            }
+            //            None => match self.elements {
+            //                Some(elements) => Ok(Type::Tuple(elements)),
+            //                None => Ok(Type::Void),
+            //            },
+            Some(Keyword::Field) => Type::Field,
+            Some(Keyword::Uint(bitlength)) => Type::Uint(bitlength),
+            Some(Keyword::Int(bitlength)) => Type::Int(bitlength),
+            Some(Keyword::Bool) => Type::Bool,
+            //            Some(Keyword::Struct) => match self.identifier {
+            //                Some(identiifer) => Ok(Type::Struct(identiifer, self.fields.unwrap_or_default())),
+            //                None => Err(Error::MissingStructIdentifier),
+            //            },
+            //            Some(Keyword::Enum) => match self.identifier {
+            //                Some(identiifer) => Ok(Type::Enum(identiifer, self.variants.unwrap_or_default())),
+            //                None => Err(Error::MissingEnumIdentifier),
+            //            },
+            //            Some(Keyword::MemoryVector) => {
+            //                let generic_type = match self.generic_type {
+            //                    Some(generic_type) => generic_type,
+            //                    None => return Err(Error::MissingMemoryVectorGenericType),
+            //                };
+            //
+            //                let vector_size = match self.vector_size {
+            //                    Some(vector_size) => vector_size,
+            //                    None => return Err(Error::MissingMemoryVectorSize),
+            //                };
+            //
+            //                Ok(Type::MemoryVector(Box::new(generic_type), vector_size))
+            //            }
+            //            Some(Keyword::StorageVector) => {
+            //                let generic_type = match self.generic_type {
+            //                    Some(generic_type) => generic_type,
+            //                    None => return Err(Error::MissingStorageVectorGenericType),
+            //                };
+            //
+            //                let vector_size = match self.vector_size {
+            //                    Some(vector_size) => vector_size,
+            //                    None => return Err(Error::MissingStorageVectorSize),
+            //                };
+            //
+            //                Ok(Type::StorageVector(Box::new(generic_type), vector_size))
+            //            }
+            _ => unimplemented!(),
         }
     }
 }

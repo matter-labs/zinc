@@ -2,28 +2,25 @@
 //! The syntax analyzer of witnesses.
 //!
 
-use std::ops::Deref;
-use std::str::FromStr;
-
 use log::*;
-use proc_macro2::TokenStream;
-use proc_macro2::TokenTree;
 
-use crate::syntax;
-use crate::syntax::Error;
-use crate::syntax::Identifier;
-use crate::syntax::Keyword;
+use crate::lexical::Delimiter;
+use crate::lexical::Keyword;
+use crate::lexical::Lexeme;
+use crate::lexical::Punctuation;
+use crate::lexical::Token;
+use crate::syntax::Error as SyntaxError;
+use crate::syntax::TokenIterator;
 use crate::syntax::TypeAnalyzer;
 use crate::syntax::Witness;
 use crate::syntax::WitnessBuilder;
-
-use super::TokenIterator;
+use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
     Keyword,
-    Group,
-    ElementIdentifier,
+    BracketOpen,
+    ElementIdentifierOrBracketClose,
     ElementColon,
     ElementType,
     ElementSemicolon,
@@ -49,156 +46,152 @@ impl WitnessAnalyzer {
         mut iterator: TokenIterator,
     ) -> Result<(TokenIterator, Vec<Witness>), Error> {
         loop {
-            if let State::End = self.state {
-                return Ok((iterator, self.witnesses));
-            }
-
-            if let Some(tree) = iterator.next() {
-                self.tree(tree)?;
-            } else {
-                return Err(Error::UnexpectedEnd);
+            match self.state {
+                State::ElementType => {
+                    let (i, r#type) = TypeAnalyzer::default().analyze(iterator)?;
+                    iterator = i;
+                    self.builder.set_type(r#type);
+                    self.state = State::ElementSemicolon;
+                }
+                State::End => {
+                    return Ok((iterator, self.witnesses));
+                }
+                _ => match iterator.next() {
+                    Some(Ok(token)) => self.token(token)?,
+                    Some(Err(error)) => return Err(Error::Lexical(error)),
+                    None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                },
             }
         }
     }
 
     ///
-    /// Traverses the internal group token stream.
+    /// Routes the token to the correct handler.
     ///
-    fn stream(&mut self, stream: TokenStream) -> Result<(), Error> {
-        let mut iterator = stream.into_iter().peekable();
-        loop {
-            if let State::ElementType = self.state {
-                let (i, r#type) = TypeAnalyzer::default().analyze(iterator)?;
-                iterator = i;
-                self.builder.set_type(r#type);
-
-                self.state = State::ElementSemicolon;
-            }
-
-            if let Some(tree) = iterator.next() {
-                self.tree(tree)?;
-            } else {
-                break;
-            }
-        }
-
-        if let State::ElementIdentifier = self.state {
-            self.state = State::End;
-        }
-
-        Ok(())
-    }
-
-    ///
-    /// Traverses the token tree which does not call a recursive parser.
-    ///
-    fn tree(&mut self, tree: TokenTree) -> Result<(), Error> {
+    fn token(&mut self, token: Token) -> Result<(), Error> {
         match self.state {
-            State::Keyword => self.keyword(tree),
-            State::Group => self.group(tree),
-            State::ElementIdentifier => self.element_identifier(tree),
-            State::ElementColon => self.element_colon(tree),
-            State::ElementSemicolon => self.element_semicolon(tree),
+            State::Keyword => self.keyword(token),
+            State::BracketOpen => self.bracket_open(token),
+            State::ElementIdentifierOrBracketClose => {
+                self.element_identifier_or_bracket_close(token)
+            }
+            State::ElementColon => self.element_colon(token),
+            State::ElementSemicolon => self.element_semicolon(token),
             _ => unreachable!(),
         }
     }
 
-    fn keyword(&mut self, tree: TokenTree) -> Result<(), Error> {
-        trace!("keyword: {}", tree);
+    fn keyword(&mut self, token: Token) -> Result<(), Error> {
+        trace!("keyword: {}", token);
 
         const EXPECTED: [&str; 1] = ["witness"];
 
-        match tree {
-            TokenTree::Ident(ref ident) => {
-                let ident = ident.to_string();
-                if let Ok(Keyword::Witness) = Keyword::from_str(&ident.deref()) {
-                    self.state = State::Group;
-                    Ok(())
-                } else {
-                    Err(Error::Expected(EXPECTED.to_vec(), tree.to_string()))
-                }
+        match token {
+            Token {
+                lexeme: Lexeme::Keyword(Keyword::Witness),
+                ..
+            } => {
+                self.state = State::BracketOpen;
+                Ok(())
             }
-            _ => Err(Error::Expected(EXPECTED.to_vec(), tree.to_string())),
+            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
+                location,
+                EXPECTED.to_vec(),
+                lexeme,
+            ))),
         }
     }
 
-    pub fn group(&mut self, tree: TokenTree) -> Result<(), Error> {
-        trace!("group: {}", tree);
+    fn bracket_open(&mut self, token: Token) -> Result<(), Error> {
+        trace!("bracket_open: {}", token);
 
         const EXPECTED: [&str; 1] = ["{"];
 
-        match tree {
-            TokenTree::Group(ref group) => {
-                if let syntax::GROUP_DELIMITER = group.delimiter() {
-                    self.state = State::ElementIdentifier;
-                    self.stream(group.stream())?;
-                    Ok(())
-                } else {
-                    Err(Error::Expected(EXPECTED.to_vec(), tree.to_string()))
-                }
+        match token {
+            Token {
+                lexeme: Lexeme::Delimiter(Delimiter::BracketCurlyOpen),
+                ..
+            } => {
+                self.state = State::ElementIdentifierOrBracketClose;
+                Ok(())
             }
-            _ => Err(Error::Expected(EXPECTED.to_vec(), tree.to_string())),
+            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
+                location,
+                EXPECTED.to_vec(),
+                lexeme,
+            ))),
         }
     }
 
-    pub fn element_identifier(&mut self, tree: TokenTree) -> Result<(), Error> {
-        trace!("element_identifier: {}", tree);
+    fn element_identifier_or_bracket_close(&mut self, token: Token) -> Result<(), Error> {
+        trace!("element_identifier_or_bracket_close: {}", token);
 
         const EXPECTED: [&str; 2] = ["{identifier}", "}"];
 
-        match tree {
-            TokenTree::Ident(ref ident) => {
-                let ident = ident.to_string();
-                match Identifier::from_str(&ident.deref()) {
-                    Ok(identifier) => {
-                        self.builder.set_identifier(identifier);
-
-                        self.state = State::ElementColon;
-                        Ok(())
-                    }
-                    Err(error) => Err(Error::InvalidIdentifier(ident, error)),
-                }
+        match token {
+            Token {
+                lexeme: Lexeme::Delimiter(Delimiter::BracketCurlyClose),
+                ..
+            } => {
+                self.state = State::End;
+                Ok(())
             }
-            _ => Err(Error::Expected(EXPECTED.to_vec(), tree.to_string())),
+            Token {
+                lexeme: Lexeme::Identifier(identifier),
+                ..
+            } => {
+                self.builder.set_identifier(identifier);
+                self.state = State::ElementColon;
+                Ok(())
+            }
+            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
+                location,
+                EXPECTED.to_vec(),
+                lexeme,
+            ))),
         }
     }
 
-    pub fn element_colon(&mut self, tree: TokenTree) -> Result<(), Error> {
-        trace!("element_colon: {}", tree);
+    fn element_colon(&mut self, token: Token) -> Result<(), Error> {
+        trace!("element_colon: {}", token);
 
         const EXPECTED: [&str; 1] = [":"];
 
-        match tree {
-            TokenTree::Punct(ref punct) => {
-                if punct.as_char() == syntax::COLON {
-                    self.state = State::ElementType;
-                    Ok(())
-                } else {
-                    Err(Error::Expected(EXPECTED.to_vec(), tree.to_string()))
-                }
+        match token {
+            Token {
+                lexeme: Lexeme::Punctuation(Punctuation::Colon),
+                ..
+            } => {
+                self.state = State::ElementType;
+                Ok(())
             }
-            _ => Err(Error::Expected(EXPECTED.to_vec(), tree.to_string())),
+            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
+                location,
+                EXPECTED.to_vec(),
+                lexeme,
+            ))),
         }
     }
 
-    pub fn element_semicolon(&mut self, tree: TokenTree) -> Result<(), Error> {
-        trace!("element_semicolon: {}", tree);
+    fn element_semicolon(&mut self, token: Token) -> Result<(), Error> {
+        trace!("element_semicolon: {}", token);
 
         const EXPECTED: [&str; 1] = [";"];
 
-        match tree {
-            TokenTree::Punct(ref punct) => {
-                if punct.as_char() == syntax::SEMICOLON {
-                    self.witnesses
-                        .push(self.builder.build().expect("Input analyzing bug"));
-
-                    self.state = State::ElementIdentifier;
-                    Ok(())
-                } else {
-                    Err(Error::Expected(EXPECTED.to_vec(), tree.to_string()))
-                }
+        match token {
+            Token {
+                lexeme: Lexeme::Punctuation(Punctuation::Semicolon),
+                ..
+            } => {
+                self.witnesses.push(self.builder.build());
+                self.state = State::ElementIdentifierOrBracketClose;
+                Ok(())
             }
-            _ => Err(Error::Expected(EXPECTED.to_vec(), tree.to_string())),
+            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
+                location,
+                EXPECTED.to_vec(),
+                lexeme,
+            ))),
         }
     }
 }
