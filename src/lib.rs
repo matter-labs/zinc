@@ -28,12 +28,14 @@ pub enum Error {
 pub type CircuitResult = Result<CircuitProgram, Error>;
 
 pub fn compile(input: String) -> CircuitResult {
-    let mut stream = LexicalStream::new(input.bytes().collect());
-    while let Some(token) = stream.next() {
-        trace!("Token: {}", token);
-    }
-    if let Some(error) = stream.last_error() {
-        error!("Lexical error: {}", error);
+    for result in LexicalStream::new(input.bytes().collect()) {
+        match result {
+            Ok(token) => trace!("Token: {}", token),
+            Err(error) => {
+                error!("Lexical error: {}", error);
+                break;
+            }
+        }
     }
 
     let stream =

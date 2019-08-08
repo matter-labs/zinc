@@ -13,7 +13,7 @@ use structopt::StructOpt;
 #[structopt(name = "jabc")]
 struct Arguments {
     #[structopt(name = "FILE", parse(from_os_str))]
-    files: Vec<PathBuf>,
+    file: PathBuf,
 }
 
 fn main() {
@@ -21,35 +21,26 @@ fn main() {
 
     let args: Arguments = Arguments::from_args();
 
-    if args.files.is_empty() {
-        error!("No files provided");
+    let mut file = match File::open(&args.file) {
+        Ok(file) => file,
+        Err(error) => {
+            error!("File {:?} opening error: {}", args.file, error);
+            return;
+        }
+    };
+
+    let mut code = String::with_capacity(1024);
+    if let Err(error) = file.read_to_string(&mut code) {
+        error!("File {:?} reading error: {}", args.file, error);
         return;
     }
 
-    let mut code = String::new();
-    for path in args.files.into_iter() {
-        let mut file = match File::open(&path) {
-            Ok(file) => file,
-            Err(error) => {
-                error!("File {:?} opening error: {}", path, error);
-                continue;
-            }
-        };
+    let result = match compiler::compile(code.to_owned()) {
+        Ok(circuit) => serde_json::to_string(&circuit).expect("Serialization bug"),
+        Err(error) => error.to_string(),
+    };
 
-        if let Err(error) = file.read_to_string(&mut code) {
-            error!("File {:?} reading error: {}", path, error);
-            continue;
-        }
-
-        let result = match compiler::compile(code.to_owned()) {
-            Ok(circuit) => serde_json::to_string(&circuit).expect("Serialization bug"),
-            Err(error) => error.to_string(),
-        };
-
-        println!("{:?}:", path);
-        println!("{}", result);
-        println!();
-    }
+    println!("{}", result);
 }
 
 fn init_logger() {

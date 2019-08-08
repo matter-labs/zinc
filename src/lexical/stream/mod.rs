@@ -8,6 +8,7 @@ mod operator;
 mod word;
 
 pub use self::comment::Analyzer as CommentAnalyzer;
+pub use self::comment::Error as CommentAnalyzerError;
 pub use self::integer::Analyzer as IntegerAnalyzer;
 pub use self::integer::Error as IntegerAnalyzerError;
 pub use self::operator::Analyzer as OperatorAnalyzer;
@@ -32,7 +33,6 @@ pub struct Stream {
     position: usize,
     line: usize,
     column: usize,
-    last_error: Option<Error>,
 }
 
 impl Stream {
@@ -42,17 +42,12 @@ impl Stream {
             position: 0,
             line: 1,
             column: 1,
-            last_error: None,
         }
-    }
-
-    pub fn last_error(&self) -> Option<&Error> {
-        self.last_error.as_ref()
     }
 }
 
 impl Iterator for Stream {
-    type Item = Token;
+    type Item = Result<Token, Error>;
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(byte) = self.input.get(self.position) {
@@ -60,8 +55,7 @@ impl Iterator for Stream {
 
             if !Alphabet::contains(byte) {
                 let location = Location::new(self.line, self.column);
-                self.last_error = Some(Error::Forbidden(location, char::from(byte)));
-                return None;
+                return Some(Err(Error::Forbidden(location, char::from(byte))));
             }
 
             if byte.is_ascii_whitespace() {
@@ -90,14 +84,14 @@ impl Iterator for Stream {
                 let location = Location::new(self.line, self.column);
                 self.column += 1;
                 self.position += 1;
-                return Some(Token::new(Lexeme::Punctuation(punctuation), location));
+                return Some(Ok(Token::new(Lexeme::Punctuation(punctuation), location)));
             }
 
             if let Ok(delimiter) = Delimiter::try_from(byte) {
                 let location = Location::new(self.line, self.column);
                 self.column += 1;
                 self.position += 1;
-                return Some(Token::new(Lexeme::Delimiter(delimiter), location));
+                return Some(Ok(Token::new(Lexeme::Delimiter(delimiter), location)));
             }
 
             match OperatorAnalyzer::default().analyze(&self.input[self.position..]) {
@@ -105,13 +99,12 @@ impl Iterator for Stream {
                     let location = Location::new(self.line, self.column);
                     self.column += size;
                     self.position += size;
-                    return Some(Token::new(Lexeme::Operator(operator), location));
+                    return Some(Ok(Token::new(Lexeme::Operator(operator), location)));
                 }
                 Err(OperatorAnalyzerError::NotAnOperator) => {}
                 Err(error) => {
                     let location = Location::new(self.line, self.column);
-                    self.last_error = Some(Error::InvalidOperator(location, error));
-                    return None;
+                    return Some(Err(Error::InvalidOperator(location, error)));
                 }
             }
 
@@ -120,7 +113,7 @@ impl Iterator for Stream {
                 let location = Location::new(self.line, self.column);
                 self.column += size;
                 self.position += size;
-                return Some(Token::new(lexeme, location));
+                return Some(Ok(Token::new(lexeme, location)));
             }
 
             if byte.is_ascii_digit() {
@@ -129,15 +122,14 @@ impl Iterator for Stream {
                         let location = Location::new(self.line, self.column);
                         self.column += size;
                         self.position += size;
-                        return Some(Token::new(
+                        return Some(Ok(Token::new(
                             Lexeme::Literal(Literal::Integer(integer)),
                             location,
-                        ));
+                        )));
                     }
                     Err(error) => {
                         let location = Location::new(self.line, self.column);
-                        self.last_error = Some(Error::InvalidIntegerLiteral(location, error));
-                        return None;
+                        return Some(Err(Error::InvalidIntegerLiteral(location, error)));
                     }
                 }
             }

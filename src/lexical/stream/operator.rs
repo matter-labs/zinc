@@ -36,8 +36,8 @@ pub struct Analyzer {
 pub enum Error {
     #[fail(display = "not an operator")]
     NotAnOperator,
-    #[fail(display = "invalid character '{}' at position {}", _0, _1)]
-    InvalidCharacter(char, usize),
+    #[fail(display = "invalid character '{}' at position {} of '{}'", _0, _1, _2)]
+    InvalidCharacter(char, usize, String),
 }
 
 impl Analyzer {
@@ -91,15 +91,33 @@ impl Analyzer {
                 },
                 State::And => match byte {
                     b'&' => return Ok((size + 1, Operator::BooleanAnd)),
-                    _ => return Err(Error::InvalidCharacter(char::from(byte), size + 1)),
+                    _ => {
+                        return Err(Error::InvalidCharacter(
+                            char::from(byte),
+                            size + 1,
+                            String::from_utf8_lossy(&bytes[..=size]).to_string(),
+                        ))
+                    }
                 },
                 State::Or => match byte {
                     b'|' => return Ok((size + 1, Operator::BooleanOr)),
-                    _ => return Err(Error::InvalidCharacter(char::from(byte), size + 1)),
+                    _ => {
+                        return Err(Error::InvalidCharacter(
+                            char::from(byte),
+                            size + 1,
+                            String::from_utf8_lossy(&bytes[..=size]).to_string(),
+                        ))
+                    }
                 },
                 State::Xor => match byte {
                     b'^' => return Ok((size + 1, Operator::BooleanXor)),
-                    _ => return Err(Error::InvalidCharacter(char::from(byte), size + 1)),
+                    _ => {
+                        return Err(Error::InvalidCharacter(
+                            char::from(byte),
+                            size + 1,
+                            String::from_utf8_lossy(&bytes[..=size]).to_string(),
+                        ))
+                    }
                 },
             }
 
