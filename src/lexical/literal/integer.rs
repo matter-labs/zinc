@@ -4,7 +4,7 @@
 
 use serde_derive::Serialize;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, PartialEq)]
 pub enum Integer {
     Decimal(String),
     Hexadecimal(String),

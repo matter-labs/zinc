@@ -9,7 +9,7 @@ use serde_derive::Serialize;
 
 use crate::lexical::Keyword;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, PartialEq)]
 pub struct Identifier(pub String);
 
 #[derive(Debug, Fail, Serialize)]

@@ -22,10 +22,11 @@ pub enum Error {
     NotAComment,
 }
 
-pub fn parse(bytes: &[u8]) -> Result<(usize, usize, Comment), Error> {
+pub fn parse(bytes: &[u8]) -> Result<(usize, usize, usize, Comment), Error> {
     let mut state = State::Start;
     let mut size = 0;
     let mut lines = 0;
+    let mut column = 0;
 
     while let Some(byte) = bytes.get(size).copied() {
         match state {
@@ -45,7 +46,10 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, usize, Comment), Error> {
             }
             State::MultiLine => match byte {
                 b'*' => state = State::MultiLineStar,
-                b'\n' => lines += 1,
+                b'\n' => {
+                    lines += 1;
+                    column = 1;
+                }
                 _ => {}
             },
             State::MultiLineStar => match byte {
@@ -58,8 +62,9 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, usize, Comment), Error> {
         }
 
         size += 1;
+        column += 1;
     }
 
     let comment = Comment(String::from_utf8_lossy(&bytes[..size]).to_string());
-    Ok((size, lines, comment))
+    Ok((size, lines, column, comment))
 }

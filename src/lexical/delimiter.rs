@@ -8,7 +8,7 @@ use serde_derive::Serialize;
 
 use crate::lexical::Operator;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, PartialEq)]
 pub enum Delimiter {
     BracketCurlyOpen,
     BracketCurlyClose,

@@ -10,7 +10,7 @@ pub use self::location::Location;
 
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Token {
     pub lexeme: Lexeme,
     pub location: Location,

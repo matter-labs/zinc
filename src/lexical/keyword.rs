@@ -3,11 +3,12 @@
 //!
 
 use std::convert::TryFrom;
+use std::ops::RangeInclusive;
 
 use failure::Fail;
 use serde_derive::Serialize;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, PartialEq)]
 pub enum Keyword {
     // domain
     Inputs,
@@ -50,12 +51,14 @@ impl TryFrom<&[u8]> for Keyword {
     type Error = Error;
 
     fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+        const BITLENGTH_RANGE: RangeInclusive<usize> = (1..=126);
+
         if let Some(b"uint") = bytes.get(..4) {
             let bitlength = String::from_utf8_lossy(&bytes[4..]).to_string();
             let bitlength = bitlength
                 .parse::<usize>()
                 .map_err(|_| Error::BitlengthNotNumeric(bitlength))?;
-            if !(1..=253).contains(&bitlength) {
+            if !BITLENGTH_RANGE.contains(&bitlength) {
                 return Err(Error::BitlengthOutOfRange(bitlength));
             }
             return Ok(Keyword::Uint(bitlength));
@@ -66,7 +69,7 @@ impl TryFrom<&[u8]> for Keyword {
             let bitlength = bitlength
                 .parse::<usize>()
                 .map_err(|_| Error::BitlengthNotNumeric(bitlength))?;
-            if !(1..=253).contains(&bitlength) {
+            if !BITLENGTH_RANGE.contains(&bitlength) {
                 return Err(Error::BitlengthOutOfRange(bitlength));
             }
             return Ok(Keyword::Int(bitlength));

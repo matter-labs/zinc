@@ -6,7 +6,7 @@ use serde_derive::Serialize;
 
 use crate::lexical::Delimiter;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, PartialEq)]
 pub enum Operator {
     ParenthesisOpen,
     ParenthesisClose,

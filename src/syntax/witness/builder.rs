@@ -22,15 +22,9 @@ impl Builder {
     }
 
     pub fn build(&mut self) -> Witness {
-        Witness {
-            identifier: match self.identifier.take() {
-                Some(identifier) => identifier,
-                None => panic!("Missing identifier"),
-            },
-            r#type: match self.r#type.take() {
-                Some(r#type) => r#type,
-                None => panic!("Missing type"),
-            },
-        }
+        Witness::new(
+            self.identifier.take().expect("Missing identifier"),
+            self.r#type.take().expect("Missing type"),
+        )
     }
 }

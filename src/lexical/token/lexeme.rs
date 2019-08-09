@@ -14,7 +14,7 @@ use crate::lexical::Literal;
 use crate::lexical::Operator;
 use crate::lexical::Punctuation;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, PartialEq)]
 pub enum Lexeme {
     Keyword(Keyword),
     Identifier(Identifier),

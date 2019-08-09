@@ -22,15 +22,9 @@ impl Builder {
     }
 
     pub fn build(&mut self) -> Input {
-        Input {
-            identifier: match self.identifier.take() {
-                Some(identifier) => identifier,
-                None => panic!("Missing identifier"),
-            },
-            r#type: match self.r#type.take() {
-                Some(r#type) => r#type,
-                None => panic!("Missing type"),
-            },
-        }
+        Input::new(
+            self.identifier.take().expect("Missing identifier"),
+            self.r#type.take().expect("Missing type"),
+        )
     }
 }

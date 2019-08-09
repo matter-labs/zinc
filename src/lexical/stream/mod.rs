@@ -68,9 +68,11 @@ impl Iterator for TokenStream {
             }
 
             if byte == b'/' {
-                if let Ok((size, lines, _comment)) = parse_comment(&self.input[self.position..]) {
+                if let Ok((size, lines, column, _comment)) =
+                    parse_comment(&self.input[self.position..])
+                {
                     self.line += lines;
-                    self.column += size;
+                    self.column = column;
                     self.position += size;
                     continue;
                 }

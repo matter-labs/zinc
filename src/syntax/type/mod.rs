@@ -8,7 +8,7 @@ pub use self::builder::Builder;
 
 use serde_derive::Serialize;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum Type {
     //    Void,
