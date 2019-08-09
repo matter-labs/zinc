@@ -22,12 +22,30 @@ statement =
 
 let = 'let' [ 'mut' ] identifier ':' type '=' expression ';'
 
-require = 'require' '(' expression ')' ';'
+require = 'require' '(' boolean_expression ')' ';'
 
 ## Expressions
-expression = 
-    '(' expression ')'
-  | ( unary_operator expression )
-  | ( expression binary_operator expression )
+arithmetic_expression = 
+  | arithmetic_term ( ('+' | '-') arithmetic_term )*
+
+arithmetic_term =
+  | arithmetic_factor ( ('*' | '/' | '%') arithmetic_factor )*
+
+arithmetic_factor =
   | identifier
   | constant
+  | '-' arithmetic_factor
+  | '(' arithmetic_expression ')'
+
+boolean_expression = 
+  | boolean_term ( '||' boolean_term )*
+
+boolean_term =
+  | boolean_factor ( '&&' boolean_factor )*
+
+boolean_factor =
+  | arithmetic_expression ( '!=' '==' '<=' '>=' '<' '>' ) arithmetic_expression
+  | identifier
+  | constant
+  | '!' boolean_factor
+  | '(' boolean_expression ')'

@@ -35,6 +35,10 @@ pub enum Keyword {
     Enum,
     MemoryVector,
     StorageVector,
+
+    // boolean
+    True,
+    False,
 }
 
 #[derive(Debug, Fail)]
@@ -95,6 +99,9 @@ impl TryFrom<&[u8]> for Keyword {
             b"enum" => Ok(Keyword::Enum),
             b"memory_vector" => Ok(Keyword::MemoryVector),
             b"storage_vector" => Ok(Keyword::StorageVector),
+
+            b"true" => Ok(Keyword::True),
+            b"false" => Ok(Keyword::False),
 
             _unknown => Err(Error::Unknown),
         }
