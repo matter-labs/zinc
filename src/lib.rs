@@ -5,8 +5,7 @@
 mod lexical;
 mod syntax;
 
-pub use self::lexical::Stream as LexicalStream;
-pub use self::syntax::Analyzer as SyntaxAnalyzer;
+pub use self::lexical::TokenStream as LexicalStream;
 pub use self::syntax::CircuitProgram;
 
 use failure::Fail;
@@ -24,5 +23,5 @@ pub enum Error {
 pub type CircuitResult = Result<CircuitProgram, Error>;
 
 pub fn compile(input: Vec<u8>) -> CircuitResult {
-    SyntaxAnalyzer::default().analyze(LexicalStream::new(input))
+    syntax::parse(LexicalStream::new(input))
 }

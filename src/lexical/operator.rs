@@ -2,9 +2,6 @@
 //! The operator lexeme.
 //!
 
-use std::convert::TryFrom;
-
-use failure::Fail;
 use serde_derive::Serialize;
 
 use crate::lexical::Delimiter;
@@ -50,44 +47,36 @@ impl Operator {
     }
 }
 
-#[derive(Debug, Fail)]
-pub enum Error {
-    #[fail(display = "unknown")]
-    Unknown,
-}
-
-impl TryFrom<&[u8]> for Operator {
-    type Error = Error;
-
-    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+impl From<&[u8]> for Operator {
+    fn from(bytes: &[u8]) -> Self {
         match bytes {
-            b"(" => Ok(Operator::ParenthesisOpen),
-            b")" => Ok(Operator::ParenthesisClose),
+            b"(" => Operator::ParenthesisOpen,
+            b")" => Operator::ParenthesisClose,
 
-            b"=" => Ok(Operator::Assignment),
+            b"=" => Operator::Assignment,
 
-            b"." => Ok(Operator::Dot),
+            b"." => Operator::Dot,
 
-            b"+" => Ok(Operator::ArithmeticAddition),
-            b"-" => Ok(Operator::ArithmeticSubtractionOrArithmeticNegation),
-            b"*" => Ok(Operator::ArithmeticMultiplication),
-            b"/" => Ok(Operator::ArithmeticDivision),
-            b"%" => Ok(Operator::ArithmeticRemainder),
-            b"\\" => Ok(Operator::ArithmeticInversion),
+            b"+" => Operator::ArithmeticAddition,
+            b"-" => Operator::ArithmeticSubtractionOrArithmeticNegation,
+            b"*" => Operator::ArithmeticMultiplication,
+            b"/" => Operator::ArithmeticDivision,
+            b"%" => Operator::ArithmeticRemainder,
+            b"\\" => Operator::ArithmeticInversion,
 
-            b"&&" => Ok(Operator::BooleanAnd),
-            b"||" => Ok(Operator::BooleanOr),
-            b"^^" => Ok(Operator::BooleanXor),
-            b"!" => Ok(Operator::BooleanNot),
+            b"&&" => Operator::BooleanAnd,
+            b"||" => Operator::BooleanOr,
+            b"^^" => Operator::BooleanXor,
+            b"!" => Operator::BooleanNot,
 
-            b"==" => Ok(Operator::ComparisonEqual),
-            b"!=" => Ok(Operator::ComparisonNotEqual),
-            b"<=" => Ok(Operator::ComparisonLesserEqual),
-            b">=" => Ok(Operator::ComparisonGreaterEqual),
-            b"<" => Ok(Operator::ComparisonLesser),
-            b">" => Ok(Operator::ComparisonGreater),
+            b"==" => Operator::ComparisonEqual,
+            b"!=" => Operator::ComparisonNotEqual,
+            b"<=" => Operator::ComparisonLesserEqual,
+            b">=" => Operator::ComparisonGreaterEqual,
+            b"<" => Operator::ComparisonLesser,
+            b">" => Operator::ComparisonGreater,
 
-            _unknown => Err(Error::Unknown),
+            _unknown => panic!("State machine bug"),
         }
     }
 }

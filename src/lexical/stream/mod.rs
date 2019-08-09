@@ -7,17 +7,16 @@ mod integer;
 mod operator;
 mod word;
 
-pub use self::comment::Analyzer as CommentAnalyzer;
-pub use self::comment::Error as CommentAnalyzerError;
-pub use self::integer::Analyzer as IntegerAnalyzer;
-pub use self::integer::Error as IntegerAnalyzerError;
-pub use self::operator::Analyzer as OperatorAnalyzer;
-pub use self::operator::Error as OperatorAnalyzerError;
-pub use self::word::Analyzer as WordAnalyzer;
+pub use self::comment::parse as parse_comment;
+pub use self::comment::Error as CommentParserError;
+pub use self::integer::parse as parse_integer;
+pub use self::integer::Error as IntegerParserError;
+pub use self::operator::parse as parse_operator;
+pub use self::operator::Error as OperatorParserError;
+pub use self::word::parse as parse_word;
 
 use std::convert::TryFrom;
 use std::iter::Iterator;
-use std::iter::Peekable;
 
 use crate::lexical::Alphabet;
 use crate::lexical::Delimiter;
@@ -29,32 +28,29 @@ use crate::lexical::Location;
 use crate::lexical::Punctuation;
 use crate::lexical::Token;
 
-pub struct Stream {
+pub struct TokenStream {
     input: Vec<u8>,
     position: usize,
     line: usize,
     column: usize,
 }
 
-impl Stream {
-    pub fn new(input: Vec<u8>) -> Peekable<Self> {
+impl TokenStream {
+    pub fn new(input: Vec<u8>) -> Self {
         Self {
             input,
             position: 0,
             line: 1,
             column: 1,
         }
-        .peekable()
     }
 }
 
-impl Iterator for Stream {
+impl Iterator for TokenStream {
     type Item = Result<Token, Error>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some(byte) = self.input.get(self.position) {
-            let byte = *byte;
-
+        while let Some(byte) = self.input.get(self.position).copied() {
             if !Alphabet::contains(byte) {
                 let location = Location::new(self.line, self.column);
                 return Some(Err(Error::Forbidden(location, char::from(byte))));
@@ -72,9 +68,7 @@ impl Iterator for Stream {
             }
 
             if byte == b'/' {
-                if let Ok((size, lines, _comment)) =
-                    CommentAnalyzer::default().analyze(&self.input[self.position..])
-                {
+                if let Ok((size, lines, _comment)) = parse_comment(&self.input[self.position..]) {
                     self.line += lines;
                     self.column += size;
                     self.position += size;
@@ -96,14 +90,14 @@ impl Iterator for Stream {
                 return Some(Ok(Token::new(Lexeme::Delimiter(delimiter), location)));
             }
 
-            match OperatorAnalyzer::default().analyze(&self.input[self.position..]) {
+            match parse_operator(&self.input[self.position..]) {
                 Ok((size, operator)) => {
                     let location = Location::new(self.line, self.column);
                     self.column += size;
                     self.position += size;
                     return Some(Ok(Token::new(Lexeme::Operator(operator), location)));
                 }
-                Err(OperatorAnalyzerError::NotAnOperator) => {}
+                Err(OperatorParserError::NotAnOperator) => {}
                 Err(error) => {
                     let location = Location::new(self.line, self.column);
                     return Some(Err(Error::InvalidOperator(location, error)));
@@ -111,7 +105,7 @@ impl Iterator for Stream {
             }
 
             if Identifier::can_start_with(byte) {
-                let (size, lexeme) = WordAnalyzer::default().analyze(&self.input[self.position..]);
+                let (size, lexeme) = parse_word(&self.input[self.position..]);
                 let location = Location::new(self.line, self.column);
                 self.column += size;
                 self.position += size;
@@ -119,7 +113,7 @@ impl Iterator for Stream {
             }
 
             if byte.is_ascii_digit() {
-                match IntegerAnalyzer::default().analyze(&self.input[self.position..]) {
+                match parse_integer(&self.input[self.position..]) {
                     Ok((size, integer)) => {
                         let location = Location::new(self.line, self.column);
                         self.column += size;

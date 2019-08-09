@@ -1,5 +1,5 @@
 //!
-//! The syntax analyzer of inputs.
+//! The syntax parser of witnesses.
 //!
 
 use log::*;
@@ -9,11 +9,11 @@ use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
 use crate::lexical::Punctuation;
 use crate::lexical::Token;
+use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
-use crate::syntax::Input;
-use crate::syntax::InputBuilder;
-use crate::syntax::TokenIterator;
-use crate::syntax::TypeAnalyzer;
+use crate::syntax::TypeParser;
+use crate::syntax::Witness;
+use crate::syntax::WitnessBuilder;
 use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
@@ -34,61 +34,65 @@ impl Default for State {
 }
 
 #[derive(Default)]
-pub struct InputsAnalyzer {
+pub struct WitnessParser {
     state: State,
-    inputs: Vec<Input>,
-    builder: InputBuilder,
+    witnesses: Vec<Witness>,
+    builder: WitnessBuilder,
 }
 
-impl InputsAnalyzer {
-    pub fn analyze(
+impl WitnessParser {
+    pub fn parse(
         mut self,
-        mut iterator: TokenIterator,
-    ) -> Result<(TokenIterator, Vec<Input>), Error> {
+        mut iterator: TokenStream,
+    ) -> Result<(TokenStream, Vec<Witness>), Error> {
         loop {
             match self.state {
+                State::Keyword => match iterator.next() {
+                    Some(Ok(token)) => self.keyword(token)?,
+                    Some(Err(error)) => return Err(Error::Lexical(error)),
+                    None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                },
+                State::BracketOpen => match iterator.next() {
+                    Some(Ok(token)) => self.bracket_open(token)?,
+                    Some(Err(error)) => return Err(Error::Lexical(error)),
+                    None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                },
+                State::ElementIdentifierOrBracketClose => match iterator.next() {
+                    Some(Ok(token)) => self.element_identifier_or_bracket_close(token)?,
+                    Some(Err(error)) => return Err(Error::Lexical(error)),
+                    None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                },
+                State::ElementColon => match iterator.next() {
+                    Some(Ok(token)) => self.element_colon(token)?,
+                    Some(Err(error)) => return Err(Error::Lexical(error)),
+                    None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                },
                 State::ElementType => {
-                    let (i, r#type) = TypeAnalyzer::default().analyze(iterator)?;
+                    let (i, r#type) = TypeParser::default().parse(iterator)?;
                     iterator = i;
                     self.builder.set_type(r#type);
                     self.state = State::ElementSemicolon;
                 }
-                State::End => {
-                    return Ok((iterator, self.inputs));
-                }
-                _ => match iterator.next() {
-                    Some(Ok(token)) => self.token(token)?,
+                State::ElementSemicolon => match iterator.next() {
+                    Some(Ok(token)) => self.element_semicolon(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
+                State::End => {
+                    return Ok((iterator, self.witnesses));
+                }
             }
-        }
-    }
-
-    ///
-    /// Routes the token to the correct handler.
-    ///
-    fn token(&mut self, token: Token) -> Result<(), Error> {
-        match self.state {
-            State::Keyword => self.keyword(token),
-            State::BracketOpen => self.bracket_open(token),
-            State::ElementIdentifierOrBracketClose => {
-                self.element_identifier_or_bracket_close(token)
-            }
-            State::ElementColon => self.element_colon(token),
-            State::ElementSemicolon => self.element_semicolon(token),
-            _ => unreachable!(),
         }
     }
 
     fn keyword(&mut self, token: Token) -> Result<(), Error> {
         trace!("keyword: {}", token);
 
-        const EXPECTED: [&str; 1] = ["inputs"];
+        const EXPECTED: [&str; 1] = ["witness"];
 
         match token {
             Token {
-                lexeme: Lexeme::Keyword(Keyword::Inputs),
+                lexeme: Lexeme::Keyword(Keyword::Witness),
                 ..
             } => {
                 self.state = State::BracketOpen;
@@ -183,7 +187,7 @@ impl InputsAnalyzer {
                 lexeme: Lexeme::Punctuation(Punctuation::Semicolon),
                 ..
             } => {
-                self.inputs.push(self.builder.build());
+                self.witnesses.push(self.builder.build());
                 self.state = State::ElementIdentifierOrBracketClose;
                 Ok(())
             }

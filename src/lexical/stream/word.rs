@@ -1,5 +1,5 @@
 //!
-//! The word lexical analyzer.
+//! The word lexical parser.
 //!
 
 use std::convert::TryFrom;
@@ -13,42 +13,31 @@ pub enum State {
     Continue,
 }
 
-impl Default for State {
-    fn default() -> Self {
-        State::Start
-    }
-}
+pub fn parse(bytes: &[u8]) -> (usize, Lexeme) {
+    let mut state = State::Start;
+    let mut size = 0;
 
-#[derive(Default)]
-pub struct Analyzer {
-    state: State,
-}
-
-impl Analyzer {
-    pub fn analyze(mut self, bytes: &[u8]) -> (usize, Lexeme) {
-        let mut size = 0;
-        while let Some(byte) = bytes.get(size) {
-            match self.state {
-                State::Start => {
-                    if !Identifier::can_start_with(*byte) {
-                        break;
-                    }
-                    self.state = State::Continue;
+    while let Some(byte) = bytes.get(size).copied() {
+        match state {
+            State::Start => {
+                if !Identifier::can_start_with(byte) {
+                    break;
                 }
-                State::Continue => {
-                    if !Identifier::can_contain_since_index_1(*byte) {
-                        break;
-                    }
+                state = State::Continue;
+            }
+            State::Continue => {
+                if !Identifier::can_contain_since_index_1(byte) {
+                    break;
                 }
             }
-
-            size += 1;
         }
 
-        let lexeme = match Identifier::try_from(&bytes[..size]) {
-            Ok(identifier) => Lexeme::Identifier(identifier),
-            Err(IdentifierError::IsKeyword(keyword)) => Lexeme::Keyword(keyword),
-        };
-        (size, lexeme)
+        size += 1;
     }
+
+    let lexeme = match Identifier::try_from(&bytes[..size]) {
+        Ok(identifier) => Lexeme::Identifier(identifier),
+        Err(IdentifierError::IsKeyword(keyword)) => Lexeme::Keyword(keyword),
+    };
+    (size, lexeme)
 }
