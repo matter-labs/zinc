@@ -7,26 +7,26 @@ use std::fmt;
 use serde_derive::Serialize;
 
 use crate::lexical::Comment;
-use crate::lexical::Delimiter;
 use crate::lexical::Identifier;
 use crate::lexical::Keyword;
 use crate::lexical::Literal;
-use crate::lexical::Operator;
-use crate::lexical::Punctuation;
+use crate::lexical::Symbol;
 
 #[derive(Debug, Serialize, PartialEq)]
 pub enum Lexeme {
     Keyword(Keyword),
     Identifier(Identifier),
-    Delimiter(Delimiter),
-    Punctuation(Punctuation),
     Literal(Literal),
-    Operator(Operator),
+    Symbol(Symbol),
     Comment(Comment),
 }
 
 impl fmt::Display for Lexeme {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
+        match self {
+            Lexeme::Literal(literal) => write!(f, "{}", literal),
+            Lexeme::Symbol(symbol) => write!(f, "{}", symbol),
+            _ => write!(f, "{:?}", self),
+        }
     }
 }

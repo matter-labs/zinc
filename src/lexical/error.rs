@@ -7,7 +7,7 @@ use serde_derive::Serialize;
 
 use crate::lexical::IntegerParserError;
 use crate::lexical::Location;
-use crate::lexical::OperatorParserError;
+use crate::lexical::SymbolParserError;
 
 #[derive(Debug, Fail, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -16,6 +16,6 @@ pub enum Error {
     Forbidden(Location, char),
     #[fail(display = "{} invalid integer literal: {}", _0, _1)]
     InvalidIntegerLiteral(Location, IntegerParserError),
-    #[fail(display = "{} invalid operator: {}", _0, _1)]
-    InvalidOperator(Location, OperatorParserError),
+    #[fail(display = "{} invalid symbol: {}", _0, _1)]
+    InvalidSymbol(Location, SymbolParserError),
 }

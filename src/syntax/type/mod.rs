@@ -9,11 +9,11 @@ pub use self::builder::Builder;
 use serde_derive::Serialize;
 
 #[derive(Debug, Serialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case", tag = "name")]
 pub enum Type {
     //    Void,
-    Uint(usize),
-    Int(usize),
+    Uint { bitlength: usize },
+    Int { bitlength: usize },
     Field,
     Bool,
     //    Struct(Identifier, Vec<(Identifier, Type)>),

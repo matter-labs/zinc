@@ -1,8 +1,15 @@
 # Syntax grammar rules
 
+root =
+  | program
+  | library
+
 program =
     inputs
     [ witness ]
+    statement*
+
+library =
     statement*
 
 inputs =
@@ -17,7 +24,7 @@ witness =
 
 ## Statements
 statement = 
-    let
+  | let
   | require
 
 let = 'let' [ 'mut' ] identifier ':' type '=' expression ';'
@@ -25,6 +32,27 @@ let = 'let' [ 'mut' ] identifier ':' type '=' expression ';'
 require = 'require' '(' boolean_expression ')' ';'
 
 ## Expressions
+
+expression = 
+  | boolean_expression
+  | arithmetic_expression
+
+boolean_expression = 
+  | boolean_or_term ( '||' boolean_or_term )*
+
+boolean_or_term =
+  | boolean_xor_factor ( '^^' boolean_xor_factor )*
+
+boolean_xor_factor =
+  | boolean_and_factor ( '&&' boolean_and_factor )*
+
+boolean_and_factor =
+  | arithmetic_expression ( '!=' '==' '<=' '>=' '<' '>' ) arithmetic_expression
+  | '(' boolean_expression ')'
+  | '!' boolean_and_factor
+  | literal_boolean
+  | identifier
+
 arithmetic_expression = 
   | arithmetic_term ( ('+' | '-') arithmetic_term )*
 
@@ -32,20 +60,7 @@ arithmetic_term =
   | arithmetic_factor ( ('*' | '/' | '%') arithmetic_factor )*
 
 arithmetic_factor =
-  | identifier
-  | constant
-  | '-' arithmetic_factor
   | '(' arithmetic_expression ')'
-
-boolean_expression = 
-  | boolean_term ( '||' boolean_term )*
-
-boolean_term =
-  | boolean_factor ( '&&' boolean_factor )*
-
-boolean_factor =
-  | arithmetic_expression ( '!=' '==' '<=' '>=' '<' '>' ) arithmetic_expression
+  | '-' arithmetic_factor
+  | literal_integer
   | identifier
-  | constant
-  | '!' boolean_factor
-  | '(' boolean_expression ')'

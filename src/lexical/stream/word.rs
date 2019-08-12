@@ -4,9 +4,11 @@
 
 use std::convert::TryFrom;
 
+use crate::lexical::BooleanLiteral;
 use crate::lexical::Identifier;
 use crate::lexical::IdentifierError;
 use crate::lexical::Lexeme;
+use crate::lexical::Literal;
 
 pub enum State {
     Start,
@@ -37,7 +39,10 @@ pub fn parse(bytes: &[u8]) -> (usize, Lexeme) {
 
     let lexeme = match Identifier::try_from(&bytes[..size]) {
         Ok(identifier) => Lexeme::Identifier(identifier),
-        Err(IdentifierError::IsKeyword(keyword)) => Lexeme::Keyword(keyword),
+        Err(IdentifierError::IsKeyword(keyword)) => match BooleanLiteral::try_from(keyword) {
+            Ok(boolean) => Lexeme::Literal(Literal::Boolean(boolean)),
+            Err(keyword) => Lexeme::Keyword(keyword),
+        },
     };
     (size, lexeme)
 }

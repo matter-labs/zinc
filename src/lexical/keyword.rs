@@ -45,8 +45,8 @@ pub enum Keyword {
 pub enum Error {
     #[fail(display = "integer bitlength '{}' is not numeric", _0)]
     BitlengthNotNumeric(String),
-    #[fail(display = "integer bitlength {} is out of range [1; 253]", _0)]
-    BitlengthOutOfRange(usize),
+    #[fail(display = "integer bitlength {} is out of range {:?}", _0, _1)]
+    BitlengthOutOfRange(usize, RangeInclusive<usize>),
     #[fail(display = "unknown")]
     Unknown,
 }
@@ -63,7 +63,7 @@ impl TryFrom<&[u8]> for Keyword {
                 .parse::<usize>()
                 .map_err(|_| Error::BitlengthNotNumeric(bitlength))?;
             if !BITLENGTH_RANGE.contains(&bitlength) {
-                return Err(Error::BitlengthOutOfRange(bitlength));
+                return Err(Error::BitlengthOutOfRange(bitlength, BITLENGTH_RANGE));
             }
             return Ok(Keyword::Uint(bitlength));
         }
@@ -74,7 +74,7 @@ impl TryFrom<&[u8]> for Keyword {
                 .parse::<usize>()
                 .map_err(|_| Error::BitlengthNotNumeric(bitlength))?;
             if !BITLENGTH_RANGE.contains(&bitlength) {
-                return Err(Error::BitlengthOutOfRange(bitlength));
+                return Err(Error::BitlengthOutOfRange(bitlength, BITLENGTH_RANGE));
             }
             return Ok(Keyword::Int(bitlength));
         }

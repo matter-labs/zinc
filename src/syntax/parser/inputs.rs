@@ -1,15 +1,13 @@
 //!
-//! The syntax parser of inputs.
+//! The inputs syntax parser.
 //!
 
 use log::*;
 
-use crate::lexical::Delimiter;
-use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
-use crate::lexical::Punctuation;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
+use crate::lexical::{Keyword, Symbol};
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::Input;
 use crate::syntax::InputBuilder;
@@ -34,13 +32,13 @@ impl Default for State {
 }
 
 #[derive(Default)]
-pub struct InputsParser {
+pub struct Parser {
     state: State,
     inputs: Vec<Input>,
     builder: InputBuilder,
 }
 
-impl InputsParser {
+impl Parser {
     pub fn parse(mut self, mut iterator: TokenStream) -> Result<(TokenStream, Vec<Input>), Error> {
         loop {
             match self.state {
@@ -110,7 +108,7 @@ impl InputsParser {
 
         match token {
             Token {
-                lexeme: Lexeme::Delimiter(Delimiter::BracketCurlyOpen),
+                lexeme: Lexeme::Symbol(Symbol::BracketCurlyOpen),
                 ..
             } => {
                 self.state = State::ElementIdentifierOrBracketClose;
@@ -131,7 +129,7 @@ impl InputsParser {
 
         match token {
             Token {
-                lexeme: Lexeme::Delimiter(Delimiter::BracketCurlyClose),
+                lexeme: Lexeme::Symbol(Symbol::BracketCurlyClose),
                 ..
             } => {
                 self.state = State::End;
@@ -160,7 +158,7 @@ impl InputsParser {
 
         match token {
             Token {
-                lexeme: Lexeme::Punctuation(Punctuation::Colon),
+                lexeme: Lexeme::Symbol(Symbol::Colon),
                 ..
             } => {
                 self.state = State::ElementType;
@@ -181,7 +179,7 @@ impl InputsParser {
 
         match token {
             Token {
-                lexeme: Lexeme::Punctuation(Punctuation::Semicolon),
+                lexeme: Lexeme::Symbol(Symbol::Semicolon),
                 ..
             } => {
                 self.inputs.push(self.builder.build());

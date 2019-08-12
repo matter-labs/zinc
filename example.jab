@@ -15,3 +15,5 @@ witness {
     e: field; // witness 2
     f: bool; // witness 3
 } /* This is the end of the mega ultra witness input */
+
+true || true && false && true || false && true && false

@@ -2,6 +2,8 @@
 //! The integer literal lexeme.
 //!
 
+use std::fmt;
+
 use serde_derive::Serialize;
 
 #[derive(Debug, Serialize, PartialEq)]
@@ -17,5 +19,18 @@ impl From<&[u8]> for Integer {
         } else {
             Integer::Decimal(String::from_utf8_lossy(bytes).to_string())
         }
+    }
+}
+
+impl fmt::Display for Integer {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Integer::Decimal(string) => string,
+                Integer::Hexadecimal(string) => string,
+            }
+        )
     }
 }

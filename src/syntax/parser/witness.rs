@@ -1,13 +1,12 @@
 //!
-//! The syntax parser of witnesses.
+//! The witness syntax parser.
 //!
 
 use log::*;
 
-use crate::lexical::Delimiter;
 use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
-use crate::lexical::Punctuation;
+use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
@@ -34,17 +33,25 @@ impl Default for State {
 }
 
 #[derive(Default)]
-pub struct WitnessParser {
+pub struct Parser {
     state: State,
     witnesses: Vec<Witness>,
     builder: WitnessBuilder,
 }
 
-impl WitnessParser {
+impl Parser {
     pub fn parse(
         mut self,
         mut iterator: TokenStream,
     ) -> Result<(TokenStream, Vec<Witness>), Error> {
+        match iterator.peek() {
+            Some(Ok(Token {
+                lexeme: Lexeme::Keyword(Keyword::Witness),
+                ..
+            })) => {}
+            _ => return Ok((iterator, self.witnesses)),
+        }
+
         loop {
             match self.state {
                 State::Keyword => match iterator.next() {
@@ -113,7 +120,7 @@ impl WitnessParser {
 
         match token {
             Token {
-                lexeme: Lexeme::Delimiter(Delimiter::BracketCurlyOpen),
+                lexeme: Lexeme::Symbol(Symbol::BracketCurlyOpen),
                 ..
             } => {
                 self.state = State::ElementIdentifierOrBracketClose;
@@ -134,7 +141,7 @@ impl WitnessParser {
 
         match token {
             Token {
-                lexeme: Lexeme::Delimiter(Delimiter::BracketCurlyClose),
+                lexeme: Lexeme::Symbol(Symbol::BracketCurlyClose),
                 ..
             } => {
                 self.state = State::End;
@@ -163,7 +170,7 @@ impl WitnessParser {
 
         match token {
             Token {
-                lexeme: Lexeme::Punctuation(Punctuation::Colon),
+                lexeme: Lexeme::Symbol(Symbol::Colon),
                 ..
             } => {
                 self.state = State::ElementType;
@@ -184,7 +191,7 @@ impl WitnessParser {
 
         match token {
             Token {
-                lexeme: Lexeme::Punctuation(Punctuation::Semicolon),
+                lexeme: Lexeme::Symbol(Symbol::Semicolon),
                 ..
             } => {
                 self.witnesses.push(self.builder.build());

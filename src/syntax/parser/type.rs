@@ -1,5 +1,5 @@
 //!
-//! The syntax parser of type.
+//! The type syntax parser.
 //!
 
 use log::*;
@@ -14,28 +14,28 @@ use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    Keyword,
+    Name,
     End,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::Keyword
+        State::Name
     }
 }
 
 #[derive(Default)]
-pub struct TypeParser {
+pub struct Parser {
     state: State,
     builder: TypeBuilder,
 }
 
-impl TypeParser {
+impl Parser {
     pub fn parse(mut self, mut iterator: TokenStream) -> Result<(TokenStream, Type), Error> {
         loop {
             match self.state {
-                State::Keyword => match iterator.next() {
-                    Some(Ok(token)) => self.keyword(token)?,
+                State::Name => match iterator.next() {
+                    Some(Ok(token)) => self.name(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
@@ -44,17 +44,17 @@ impl TypeParser {
         }
     }
 
-    fn keyword(&mut self, token: Token) -> Result<(), Error> {
-        trace!("keyword: {}", token);
+    fn name(&mut self, token: Token) -> Result<(), Error> {
+        trace!("name: {}", token);
 
-        const EXPECTED: [&str; 1] = ["{keyword}"];
+        const EXPECTED: [&str; 1] = ["{type}"];
 
         match token {
             Token {
                 lexeme: Lexeme::Keyword(keyword),
                 ..
             } => {
-                self.builder.set_keyword(keyword);
+                self.builder.set_name(keyword);
                 self.state = State::End;
                 Ok(())
             }

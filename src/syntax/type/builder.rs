@@ -7,7 +7,7 @@ use crate::syntax::Type;
 
 #[derive(Default)]
 pub struct Builder {
-    keyword: Option<Keyword>,
+    name: Option<Keyword>,
     //    identifier: Option<Identifier>,
     //    fields: Option<Vec<(Identifier, Type)>>,
     //    variants: Option<Vec<Identifier>>,
@@ -17,8 +17,8 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub fn set_keyword(&mut self, value: Keyword) {
-        self.keyword = Some(value);
+    pub fn set_name(&mut self, value: Keyword) {
+        self.name = Some(value);
     }
 
     //    pub fn set_identifier(&mut self, value: Identifier) {
@@ -55,14 +55,14 @@ impl Builder {
     //    }
 
     pub fn finish(self) -> Type {
-        match self.keyword {
+        match self.name {
             //            None => match self.elements {
             //                Some(elements) => Ok(Type::Tuple(elements)),
             //                None => Ok(Type::Void),
             //            },
             Some(Keyword::Field) => Type::Field,
-            Some(Keyword::Uint(bitlength)) => Type::Uint(bitlength),
-            Some(Keyword::Int(bitlength)) => Type::Int(bitlength),
+            Some(Keyword::Uint(bitlength)) => Type::Uint { bitlength },
+            Some(Keyword::Int(bitlength)) => Type::Int { bitlength },
             Some(Keyword::Bool) => Type::Bool,
             //            Some(Keyword::Struct) => match self.identifier {
             //                Some(identiifer) => Ok(Type::Struct(identiifer, self.fields.unwrap_or_default())),

@@ -24,7 +24,7 @@ pub use self::witness::Witness;
 mod tests {
     use super::*;
     use crate::lexical::Identifier;
-    use crate::lexical::TokenStream;
+    use crate::lexical::TokenIterator;
 
     #[test]
     fn success() {
@@ -46,16 +46,16 @@ witness {
     f: bool; // witness 3
 } /* This is the end of the mega ultra witness input */"#;
 
-        let result: CircuitProgram = parse(TokenStream::new(code.to_vec())).unwrap();
+        let result: CircuitProgram = parse(TokenIterator::new(code.to_vec())).unwrap();
 
         let expected: CircuitProgram = CircuitProgram {
             inputs: vec![
-                Input::new(Identifier("a".to_string()), Type::Uint(8)),
+                Input::new(Identifier("a".to_string()), Type::Uint { bitlength: 8 }),
                 Input::new(Identifier("b".to_string()), Type::Field),
                 Input::new(Identifier("c".to_string()), Type::Bool),
             ],
             witnesses: vec![
-                Witness::new(Identifier("d".to_string()), Type::Int(126)),
+                Witness::new(Identifier("d".to_string()), Type::Int { bitlength: 126 }),
                 Witness::new(Identifier("e".to_string()), Type::Field),
                 Witness::new(Identifier("f".to_string()), Type::Bool),
             ],
