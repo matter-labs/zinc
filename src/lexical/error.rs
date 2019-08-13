@@ -9,7 +9,7 @@ use crate::lexical::IntegerParserError;
 use crate::lexical::Location;
 use crate::lexical::SymbolParserError;
 
-#[derive(Debug, Fail, Serialize)]
+#[derive(Debug, Fail, Serialize, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum Error {
     #[fail(display = "{} character '{}' is currently forbidden", _0, _1)]

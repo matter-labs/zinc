@@ -1,5 +1,5 @@
 //!
-//! The syntax type keyword.
+//! The type.
 //!
 
 mod builder;

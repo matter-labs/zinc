@@ -5,14 +5,26 @@
 mod lexeme;
 mod location;
 
+pub use self::lexeme::BooleanLiteral;
+pub use self::lexeme::Comment;
+pub use self::lexeme::Identifier;
+pub use self::lexeme::IdentifierError;
+pub use self::lexeme::IntegerLiteral;
+pub use self::lexeme::Keyword;
+pub use self::lexeme::KeywordError;
 pub use self::lexeme::Lexeme;
+pub use self::lexeme::Literal;
+pub use self::lexeme::Symbol;
 pub use self::location::Location;
 
 use std::fmt;
 
-#[derive(Debug, PartialEq)]
+use serde_derive::Serialize;
+
+#[derive(Debug, Serialize, PartialEq)]
 pub struct Token {
     pub lexeme: Lexeme,
+    #[serde(skip_serializing)]
     pub location: Location,
 }
 

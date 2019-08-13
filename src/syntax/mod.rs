@@ -1,66 +1,25 @@
 //!
-//! The syntax analysis.
+//! The syntax parser.
 //!
 
-mod circuit;
 mod error;
-mod input;
 mod parser;
-mod r#type;
-mod witness;
+mod tests;
+mod tree;
 
-pub use self::circuit::CircuitProgram;
 pub use self::error::Error;
-pub use self::input::Builder as InputBuilder;
-pub use self::input::Input;
 pub use self::parser::parse;
+pub use self::parser::ExpressionParser;
 pub use self::parser::TypeParser;
-pub use self::r#type::Builder as TypeBuilder;
-pub use self::r#type::Type;
-pub use self::witness::Builder as WitnessBuilder;
-pub use self::witness::Witness;
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::lexical::Identifier;
-    use crate::lexical::TokenIterator;
-
-    #[test]
-    fn success() {
-        let code = br#"/*
-    This is the mega ultra inputs input!
-*/
-inputs {
-    a: uint8; // input 1
-    b: field; // input 2
-    c: bool; // input 3
-} /* This is the end of the mega ultra inputs input */
-
-/*
-    This is the mega ultra witness input!
-*/
-witness {
-    d: int126; // witness 1
-    e: field; // witness 2
-    f: bool; // witness 3
-} /* This is the end of the mega ultra witness input */"#;
-
-        let result: CircuitProgram = parse(TokenIterator::new(code.to_vec())).unwrap();
-
-        let expected: CircuitProgram = CircuitProgram {
-            inputs: vec![
-                Input::new(Identifier("a".to_string()), Type::Uint { bitlength: 8 }),
-                Input::new(Identifier("b".to_string()), Type::Field),
-                Input::new(Identifier("c".to_string()), Type::Bool),
-            ],
-            witnesses: vec![
-                Witness::new(Identifier("d".to_string()), Type::Int { bitlength: 126 }),
-                Witness::new(Identifier("e".to_string()), Type::Field),
-                Witness::new(Identifier("f".to_string()), Type::Bool),
-            ],
-        };
-
-        assert_eq!(result, expected);
-    }
-}
+pub use self::tree::CircuitProgram;
+pub use self::tree::Input;
+pub use self::tree::InputBuilder;
+pub use self::tree::Let;
+pub use self::tree::LetBuilder;
+pub use self::tree::Require;
+pub use self::tree::RequireBuilder;
+pub use self::tree::Statement;
+pub use self::tree::Type;
+pub use self::tree::TypeBuilder;
+pub use self::tree::Witness;
+pub use self::tree::WitnessBuilder;

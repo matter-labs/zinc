@@ -1,5 +1,7 @@
 //!
-//! The word lexical parser.
+//! The word parser.
+//!
+//! The word can be a keyword, identifier, or boolean literal.
 //!
 
 use std::convert::TryFrom;

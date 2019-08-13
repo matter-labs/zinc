@@ -8,7 +8,7 @@ use std::ops::RangeInclusive;
 use failure::Fail;
 use serde_derive::Serialize;
 
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize, Clone, PartialEq)]
 pub enum Keyword {
     // domain
     Inputs,

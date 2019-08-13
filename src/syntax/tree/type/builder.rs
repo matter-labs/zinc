@@ -1,5 +1,5 @@
 //!
-//! The syntax type builder.
+//! The type builder.
 //!
 
 use crate::lexical::Keyword;

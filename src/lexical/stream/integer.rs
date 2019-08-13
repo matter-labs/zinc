@@ -1,5 +1,5 @@
 //!
-//! The integer lexical parser.
+//! The integer literal parser.
 //!
 
 use failure::Fail;
@@ -14,7 +14,7 @@ pub enum State {
     Hexadecimal,
 }
 
-#[derive(Debug, Fail, Serialize)]
+#[derive(Debug, Fail, Serialize, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum Error {
     #[fail(display = "not an integer")]

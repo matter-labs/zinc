@@ -4,15 +4,15 @@
 
 mod expression;
 mod inputs;
+mod statement;
 mod r#type;
 mod witness;
 
 pub use self::expression::Parser as ExpressionParser;
 pub use self::inputs::Parser as InputsParser;
 pub use self::r#type::Parser as TypeParser;
+pub use self::statement::Parser as StatementParser;
 pub use self::witness::Parser as WitnessParser;
-
-use log::*;
 
 use crate::lexical::TokenStream;
 use crate::syntax::CircuitProgram;
@@ -22,13 +22,13 @@ pub fn parse(iterator: TokenStream) -> Result<CircuitProgram, Error> {
     let (iterator, inputs) = InputsParser::default().parse(iterator)?;
     let (iterator, witnesses) = WitnessParser::default().parse(iterator)?;
 
-    let (_iterator, expression) = ExpressionParser::default().parse(iterator)?;
-    let rpn = expression
-        .into_iter()
-        .map(|token| token.lexeme.to_string())
-        .collect::<Vec<String>>()
-        .join(" ");
-    info!("{}", rpn);
+    let mut statements = Vec::new();
+    let (_iterator, statement) = StatementParser::default().parse(iterator)?;
+    statements.push(statement);
 
-    Ok(CircuitProgram { inputs, witnesses })
+    Ok(CircuitProgram {
+        inputs,
+        witnesses,
+        statements,
+    })
 }

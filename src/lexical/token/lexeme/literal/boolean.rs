@@ -9,7 +9,8 @@ use serde_derive::Serialize;
 
 use crate::lexical::Keyword;
 
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum Boolean {
     True,
     False,

@@ -6,16 +6,10 @@ mod and_factor;
 mod or_term;
 mod xor_term;
 
-use std::collections::LinkedList;
-
-use log::*;
-
 use crate::lexical::Lexeme;
-use crate::lexical::Literal;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
 use crate::Error;
 
 use self::and_factor::Parser as AndFactorParser;
@@ -38,15 +32,12 @@ impl Default for State {
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    rpn: LinkedList<Token>,
+    rpn: Vec<Token>,
     operator: Option<Token>,
 }
 
 impl Parser {
-    pub fn parse(
-        mut self,
-        mut iterator: TokenStream,
-    ) -> Result<(TokenStream, LinkedList<Token>), Error> {
+    pub fn parse(mut self, mut iterator: TokenStream) -> Result<(TokenStream, Vec<Token>), Error> {
         loop {
             match self.state {
                 State::OrTerm => {
@@ -54,7 +45,7 @@ impl Parser {
                     iterator = i;
                     self.rpn.append(&mut rpn);
                     if let Some(operator) = self.operator.take() {
-                        self.rpn.push_back(operator);
+                        self.rpn.push(operator);
                     }
                     self.state = State::OrOperator;
                 }

@@ -1,18 +1,11 @@
 //!
-//! The boolean term syntax parser.
+//! The boolean XOR term syntax parser.
 //!
 
-use std::collections::LinkedList;
-
-use log::*;
-
-use crate::lexical::BooleanLiteral;
 use crate::lexical::Lexeme;
-use crate::lexical::Literal;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
 use crate::Error;
 
 use super::AndFactorParser;
@@ -33,15 +26,12 @@ impl Default for State {
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    rpn: LinkedList<Token>,
+    rpn: Vec<Token>,
     operator: Option<Token>,
 }
 
 impl Parser {
-    pub fn parse(
-        mut self,
-        mut iterator: TokenStream,
-    ) -> Result<(TokenStream, LinkedList<Token>), Error> {
+    pub fn parse(mut self, mut iterator: TokenStream) -> Result<(TokenStream, Vec<Token>), Error> {
         loop {
             match self.state {
                 State::AndFactor => {
@@ -49,7 +39,7 @@ impl Parser {
                     iterator = i;
                     self.rpn.append(&mut rpn);
                     if let Some(operator) = self.operator.take() {
-                        self.rpn.push_back(operator);
+                        self.rpn.push(operator);
                     }
                     self.state = State::AndOperator;
                 }

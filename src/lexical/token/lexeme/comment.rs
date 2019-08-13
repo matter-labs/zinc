@@ -4,5 +4,5 @@
 
 use serde_derive::Serialize;
 
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Comment(pub String);

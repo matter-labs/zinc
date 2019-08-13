@@ -1,16 +1,11 @@
 //!
-//! The syntax parser of expression.
+//! The expression syntax parser.
 //!
 
 mod boolean;
 
-use std::collections::LinkedList;
-
-use log::*;
-
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
 use crate::Error;
 
 use self::boolean::Parser as BooleanParser;
@@ -19,10 +14,7 @@ use self::boolean::Parser as BooleanParser;
 pub struct Parser {}
 
 impl Parser {
-    pub fn parse(
-        mut self,
-        mut iterator: TokenStream,
-    ) -> Result<(TokenStream, LinkedList<Token>), Error> {
+    pub fn parse(self, iterator: TokenStream) -> Result<(TokenStream, Vec<Token>), Error> {
         BooleanParser::default().parse(iterator)
     }
 }

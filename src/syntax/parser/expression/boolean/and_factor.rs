@@ -1,18 +1,12 @@
 //!
-//! The boolean factor syntax parser.
+//! The boolean AND factor syntax parser.
 //!
 
-use std::collections::LinkedList;
-
-use log::*;
-
-use crate::lexical::BooleanLiteral;
 use crate::lexical::Lexeme;
 use crate::lexical::Literal;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
 use crate::Error;
 
 use super::Parser as ExpressionParser;
@@ -34,15 +28,12 @@ impl Default for State {
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    rpn: LinkedList<Token>,
+    rpn: Vec<Token>,
     operator: Option<Token>,
 }
 
 impl Parser {
-    pub fn parse(
-        mut self,
-        mut iterator: TokenStream,
-    ) -> Result<(TokenStream, LinkedList<Token>), Error> {
+    pub fn parse(mut self, mut iterator: TokenStream) -> Result<(TokenStream, Vec<Token>), Error> {
         loop {
             match self.state {
                 State::Start => match iterator.peek() {
@@ -64,24 +55,26 @@ impl Parser {
                         lexeme: Lexeme::Literal(Literal::Boolean(_)),
                         ..
                     })) => {
-                        self.rpn.push_back(iterator.next().unwrap().unwrap());
+                        self.rpn.push(iterator.next().unwrap().unwrap());
                         return Ok((iterator, self.rpn));
                     }
                     Some(Ok(Token {
                         lexeme: Lexeme::Identifier(_),
                         ..
                     })) => {
-                        self.rpn.push_back(iterator.next().unwrap().unwrap());
+                        self.rpn.push(iterator.next().unwrap().unwrap());
                         return Ok((iterator, self.rpn));
                     }
-                    _ => unimplemented!(),
+                    token => {
+                        log::info!("{:?}", token);
+                        unimplemented!();
+                    }
                 },
                 State::UnaryExpr => {
-                    let (i, mut rpn) = Self::default().parse(iterator)?;
-                    iterator = i;
+                    let (iterator, mut rpn) = Self::default().parse(iterator)?;
                     self.rpn.append(&mut rpn);
                     if let Some(operator) = self.operator.take() {
-                        self.rpn.push_back(operator);
+                        self.rpn.push(operator);
                     }
                     return Ok((iterator, self.rpn));
                 }

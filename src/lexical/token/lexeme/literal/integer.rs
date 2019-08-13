@@ -6,7 +6,8 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum Integer {
     Decimal(String),
     Hexadecimal(String),

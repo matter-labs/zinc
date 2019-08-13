@@ -1,5 +1,5 @@
 //!
-//! The lexeme stream.
+//! The token stream.
 //!
 
 mod comment;

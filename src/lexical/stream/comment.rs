@@ -1,5 +1,5 @@
 //!
-//! The comment lexical parser.
+//! The comment parser.
 //!
 
 use failure::Fail;
