@@ -65,19 +65,19 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, Symbol), Error> {
             },
             State::Equal => match byte {
                 b'=' => return Ok((size + 1, Symbol::ComparisonEqual)),
-                _ => return Ok((size + 1, Symbol::Assignment)),
+                _ => return Ok((size, Symbol::Assignment)),
             },
             State::Exclamation => match byte {
                 b'=' => return Ok((size + 1, Symbol::ComparisonNotEqual)),
-                _ => return Ok((size + 1, Symbol::BooleanNot)),
+                _ => return Ok((size, Symbol::BooleanNot)),
             },
             State::Lesser => match byte {
                 b'=' => return Ok((size + 1, Symbol::ComparisonLesserEqual)),
-                _ => return Ok((size + 1, Symbol::ComparisonLesser)),
+                _ => return Ok((size, Symbol::ComparisonLesser)),
             },
             State::Greater => match byte {
                 b'=' => return Ok((size + 1, Symbol::ComparisonGreaterEqual)),
-                _ => return Ok((size + 1, Symbol::ComparisonGreater)),
+                _ => return Ok((size, Symbol::ComparisonGreater)),
             },
             State::And => match byte {
                 b'&' => return Ok((size + 1, Symbol::BooleanAnd)),

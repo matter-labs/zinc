@@ -3,6 +3,7 @@
 //!
 
 use std::convert::TryFrom;
+use std::fmt;
 
 use failure::Fail;
 use serde_derive::Serialize;
@@ -40,5 +41,11 @@ impl TryFrom<&[u8]> for Identifier {
         Ok(Self {
             0: String::from_utf8_lossy(bytes).to_string(),
         })
+    }
+}
+
+impl fmt::Display for Identifier {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }

@@ -65,7 +65,7 @@ fn main() -> Result<(), Error> {
 fn init_logger() {
     use std::env;
     if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "compiler=trace");
+        env::set_var("RUST_LOG", "compiler=info");
     }
     env_logger::Builder::from_default_env()
         .default_format_timestamp_nanos(true)

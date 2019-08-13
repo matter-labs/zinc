@@ -15,54 +15,52 @@ use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
 use crate::Error;
 
-use super::FactorParser;
+use super::XorTermParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    Factor,
-    Operator,
+    XorTerm,
+    XorOperator,
     End,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::Factor
+        State::XorTerm
     }
 }
 
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    rpn: LinkedList<Lexeme>,
-    operator: Option<Symbol>,
+    rpn: LinkedList<Token>,
+    operator: Option<Token>,
 }
 
 impl Parser {
     pub fn parse(
         mut self,
         mut iterator: TokenStream,
-    ) -> Result<(TokenStream, LinkedList<Lexeme>), Error> {
+    ) -> Result<(TokenStream, LinkedList<Token>), Error> {
         loop {
             match self.state {
-                State::Factor => {
-                    let (i, boolean) = FactorParser::default().parse(iterator)?;
+                State::XorTerm => {
+                    let (i, mut rpn) = XorTermParser::default().parse(iterator)?;
                     iterator = i;
-                    self.rpn
-                        .push_back(Lexeme::Literal(Literal::Boolean(boolean)));
+                    self.rpn.append(&mut rpn);
                     if let Some(operator) = self.operator.take() {
-                        self.rpn.push_back(Lexeme::Symbol(operator));
+                        self.rpn.push_back(operator);
                     }
-                    self.state = State::Operator;
+                    self.state = State::XorOperator;
                 }
-                State::Operator => {
+                State::XorOperator => {
                     if let Some(Ok(Token {
-                        lexeme: Lexeme::Symbol(Symbol::BooleanAnd),
+                        lexeme: Lexeme::Symbol(Symbol::BooleanXor),
                         ..
                     })) = iterator.peek()
                     {
-                        iterator.next();
-                        self.operator = Some(Symbol::BooleanAnd);
-                        self.state = State::Factor;
+                        self.operator = Some(iterator.next().unwrap().unwrap());
+                        self.state = State::XorTerm;
                     } else {
                         self.state = State::End;
                     }

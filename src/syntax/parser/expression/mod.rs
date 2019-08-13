@@ -8,7 +8,6 @@ use std::collections::LinkedList;
 
 use log::*;
 
-use crate::lexical::Lexeme;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
@@ -23,7 +22,7 @@ impl Parser {
     pub fn parse(
         mut self,
         mut iterator: TokenStream,
-    ) -> Result<(TokenStream, LinkedList<Lexeme>), Error> {
+    ) -> Result<(TokenStream, LinkedList<Token>), Error> {
         BooleanParser::default().parse(iterator)
     }
 }

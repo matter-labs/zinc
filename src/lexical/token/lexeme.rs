@@ -26,6 +26,7 @@ impl fmt::Display for Lexeme {
         match self {
             Lexeme::Literal(literal) => write!(f, "{}", literal),
             Lexeme::Symbol(symbol) => write!(f, "{}", symbol),
+            Lexeme::Identifier(identifier) => write!(f, "{}", identifier),
             _ => write!(f, "{:?}", self),
         }
     }

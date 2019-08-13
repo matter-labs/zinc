@@ -1,15 +1,12 @@
 //!
-//! The boolean expression syntax parser.
+//! The boolean term syntax parser.
 //!
-
-mod and_factor;
-mod or_term;
-mod xor_term;
 
 use std::collections::LinkedList;
 
 use log::*;
 
+use crate::lexical::BooleanLiteral;
 use crate::lexical::Lexeme;
 use crate::lexical::Literal;
 use crate::lexical::Symbol;
@@ -18,20 +15,18 @@ use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
 use crate::Error;
 
-use self::and_factor::Parser as AndFactorParser;
-use self::or_term::Parser as OrTermParser;
-use self::xor_term::Parser as XorTermParser;
+use super::AndFactorParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    OrTerm,
-    OrOperator,
+    AndFactor,
+    AndOperator,
     End,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::OrTerm
+        State::AndFactor
     }
 }
 
@@ -49,23 +44,23 @@ impl Parser {
     ) -> Result<(TokenStream, LinkedList<Token>), Error> {
         loop {
             match self.state {
-                State::OrTerm => {
-                    let (i, mut rpn) = OrTermParser::default().parse(iterator)?;
+                State::AndFactor => {
+                    let (i, mut rpn) = AndFactorParser::default().parse(iterator)?;
                     iterator = i;
                     self.rpn.append(&mut rpn);
                     if let Some(operator) = self.operator.take() {
                         self.rpn.push_back(operator);
                     }
-                    self.state = State::OrOperator;
+                    self.state = State::AndOperator;
                 }
-                State::OrOperator => {
+                State::AndOperator => {
                     if let Some(Ok(Token {
-                        lexeme: Lexeme::Symbol(Symbol::BooleanOr),
+                        lexeme: Lexeme::Symbol(Symbol::BooleanAnd),
                         ..
                     })) = iterator.peek()
                     {
                         self.operator = Some(iterator.next().unwrap().unwrap());
-                        self.state = State::OrTerm;
+                        self.state = State::AndFactor;
                     } else {
                         self.state = State::End;
                     }

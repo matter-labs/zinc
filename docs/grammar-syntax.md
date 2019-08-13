@@ -41,9 +41,9 @@ boolean_expression =
   | boolean_or_term ( '||' boolean_or_term )*
 
 boolean_or_term =
-  | boolean_xor_factor ( '^^' boolean_xor_factor )*
+  | boolean_xor_term ( '^^' boolean_xor_term )*
 
-boolean_xor_factor =
+boolean_xor_term =
   | boolean_and_factor ( '&&' boolean_and_factor )*
 
 boolean_and_factor =

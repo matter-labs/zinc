@@ -25,7 +25,7 @@ pub fn parse(iterator: TokenStream) -> Result<CircuitProgram, Error> {
     let (_iterator, expression) = ExpressionParser::default().parse(iterator)?;
     let rpn = expression
         .into_iter()
-        .map(|lexeme| lexeme.to_string())
+        .map(|token| token.lexeme.to_string())
         .collect::<Vec<String>>()
         .join(" ");
     info!("{}", rpn);
