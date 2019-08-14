@@ -15,6 +15,8 @@ pub use self::symbol::parse as parse_symbol;
 pub use self::symbol::Error as SymbolParserError;
 pub use self::word::parse as parse_word;
 
+use std::iter::Iterator;
+
 use crate::lexical::Alphabet;
 use crate::lexical::Error;
 use crate::lexical::Identifier;
@@ -25,109 +27,98 @@ use crate::lexical::Token;
 
 pub struct TokenStream {
     input: Vec<u8>,
-    position: Position,
+    cursor: Cursor,
     peeked: Option<Result<Token, Error>>,
-    backtrack: Option<Position>,
+    fork: Option<Cursor>,
 }
 
 impl TokenStream {
+    ///
+    /// Initializes the stream from the beginning of `input`.
+    ///
     pub fn new(input: Vec<u8>) -> Self {
         Self {
             input,
-            position: Position::new(),
+            cursor: Cursor::new(),
             peeked: None,
-            backtrack: None,
+            fork: None,
         }
     }
 
-    pub fn next(&mut self) -> Option<Result<Token, Error>> {
-        match self.peeked.take() {
-            Some(peeked) => Some(peeked),
-            None => self.advance(),
-        }
-    }
-
-    pub fn peek(&mut self) -> Option<&Result<Token, Error>> {
+    ///
+    /// Peeks the value, stores it in the `self.peeked` and returns a copy of it.
+    ///
+    pub fn peek(&mut self) -> Option<Result<Token, Error>> {
         if self.peeked.is_none() {
             self.peeked = self.advance();
         }
-        self.peeked.as_ref()
-    }
-
-    pub fn set_backtrack(&mut self) {
-        self.backtrack = Some(self.position);
-    }
-
-    pub fn reset_backtrack(&mut self) {
-        if let Some(backtrack) = self.backtrack.take() {
-            self.position = backtrack;
-        }
+        self.peeked.clone()
     }
 
     fn advance(&mut self) -> Option<Result<Token, Error>> {
-        while let Some(byte) = self.input.get(self.position.index).copied() {
+        while let Some(byte) = self.input.get(self.cursor.index).copied() {
             if !Alphabet::contains(byte) {
-                let location = Location::new(self.position.line, self.position.column);
+                let location = Location::new(self.cursor.line, self.cursor.column);
                 return Some(Err(Error::Forbidden(location, char::from(byte))));
             }
 
             if byte.is_ascii_whitespace() {
                 if byte == b'\n' {
-                    self.position.line += 1;
-                    self.position.column = 1;
+                    self.cursor.line += 1;
+                    self.cursor.column = 1;
                 } else if byte != b'\r' {
-                    self.position.column += 1;
+                    self.cursor.column += 1;
                 }
-                self.position.index += 1;
+                self.cursor.index += 1;
                 continue;
             }
 
             if byte == b'/' {
                 if let Ok((size, lines, column, _comment)) =
-                    parse_comment(&self.input[self.position.index..])
+                    parse_comment(&self.input[self.cursor.index..])
                 {
-                    self.position.line += lines;
-                    self.position.column = column;
-                    self.position.index += size;
+                    self.cursor.line += lines;
+                    self.cursor.column = column;
+                    self.cursor.index += size;
                     continue;
                 }
             }
 
-            match parse_symbol(&self.input[self.position.index..]) {
+            match parse_symbol(&self.input[self.cursor.index..]) {
                 Ok((size, symbol)) => {
-                    let location = Location::new(self.position.line, self.position.column);
-                    self.position.column += size;
-                    self.position.index += size;
+                    let location = Location::new(self.cursor.line, self.cursor.column);
+                    self.cursor.column += size;
+                    self.cursor.index += size;
                     return Some(Ok(Token::new(Lexeme::Symbol(symbol), location)));
                 }
                 Err(SymbolParserError::NotASymbol) => {}
                 Err(error) => {
-                    let location = Location::new(self.position.line, self.position.column);
+                    let location = Location::new(self.cursor.line, self.cursor.column);
                     return Some(Err(Error::InvalidSymbol(location, error)));
                 }
             }
 
             if Identifier::can_start_with(byte) {
-                let (size, lexeme) = parse_word(&self.input[self.position.index..]);
-                let location = Location::new(self.position.line, self.position.column);
-                self.position.column += size;
-                self.position.index += size;
+                let (size, lexeme) = parse_word(&self.input[self.cursor.index..]);
+                let location = Location::new(self.cursor.line, self.cursor.column);
+                self.cursor.column += size;
+                self.cursor.index += size;
                 return Some(Ok(Token::new(lexeme, location)));
             }
 
             if byte.is_ascii_digit() {
-                match parse_integer(&self.input[self.position.index..]) {
+                match parse_integer(&self.input[self.cursor.index..]) {
                     Ok((size, integer)) => {
-                        let location = Location::new(self.position.line, self.position.column);
-                        self.position.column += size;
-                        self.position.index += size;
+                        let location = Location::new(self.cursor.line, self.cursor.column);
+                        self.cursor.column += size;
+                        self.cursor.index += size;
                         return Some(Ok(Token::new(
                             Lexeme::Literal(Literal::Integer(integer)),
                             location,
                         )));
                     }
                     Err(error) => {
-                        let location = Location::new(self.position.line, self.position.column);
+                        let location = Location::new(self.cursor.line, self.cursor.column);
                         return Some(Err(Error::InvalidIntegerLiteral(location, error)));
                     }
                 }
@@ -140,14 +131,64 @@ impl TokenStream {
     }
 }
 
+impl Iterator for TokenStream {
+    type Item = Result<Token, Error>;
+
+    ///
+    /// Returns the next token from the stream.
+    ///
+    /// If there is a peeked value, it is returned, otherwise the stream is advanced.
+    ///
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.peeked.take() {
+            Some(peeked) => Some(peeked),
+            None => self.advance(),
+        }
+    }
+}
+
+trait Backtrack {
+    fn fork(&mut self);
+
+    fn commit(&mut self);
+
+    fn rollback(&mut self);
+}
+
+impl Backtrack for TokenStream {
+    ///
+    /// Remembers the current `cursor` position, so the stream can be
+    /// rollbacked to it during error recovery.
+    ///
+    fn fork(&mut self) {
+        self.fork = Some(self.cursor);
+    }
+
+    ///
+    /// Clears the `fork` value so the `cursor` cannot be rollbacked anymore.
+    ///
+    fn commit(&mut self) {
+        self.fork = None;
+    }
+
+    ///
+    /// Rollbacks the cursor to `fork`.
+    ///
+    fn rollback(&mut self) {
+        if let Some(fork) = self.fork.take() {
+            self.cursor = fork;
+        }
+    }
+}
+
 #[derive(Clone, Copy)]
-struct Position {
+struct Cursor {
     index: usize,
     line: usize,
     column: usize,
 }
 
-impl Position {
+impl Cursor {
     pub fn new() -> Self {
         Self {
             index: 0,

@@ -21,7 +21,7 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Token {
     #[serde(flatten)]
     pub lexeme: Lexeme,

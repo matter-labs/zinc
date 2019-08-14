@@ -2,6 +2,9 @@
 //! The let statement parser.
 //!
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
@@ -40,52 +43,50 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, mut stream: TokenStream) -> Result<(TokenStream, Let), Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Let, Error> {
         loop {
             match self.state {
-                State::Keyword => match stream.next() {
+                State::Keyword => match stream.borrow_mut().next() {
                     Some(Ok(token)) => self.keyword(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::MutOrIdentifier => match stream.next() {
+                State::MutOrIdentifier => match stream.borrow_mut().next() {
                     Some(Ok(token)) => self.mut_or_identifier(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::Identifier => match stream.next() {
+                State::Identifier => match stream.borrow_mut().next() {
                     Some(Ok(token)) => self.identifier(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::ColonOrEquals => match stream.next() {
+                State::ColonOrEquals => match stream.borrow_mut().next() {
                     Some(Ok(token)) => self.colon_or_equals(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
                 State::Type => {
-                    let (s, r#type) = TypeParser::default().parse(stream)?;
-                    stream = s;
+                    let r#type = TypeParser::default().parse(stream.clone())?;
                     self.builder.set_type(r#type);
                     self.state = State::Equals;
                 }
-                State::Equals => match stream.next() {
+                State::Equals => match stream.borrow_mut().next() {
                     Some(Ok(token)) => self.equals(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
                 State::Expression => {
-                    let (s, expression) = ExpressionParser::default().parse(stream)?;
-                    stream = s;
+                    let expression = ExpressionParser::default().parse(stream.clone())?;
                     self.builder.set_expression(expression);
                     self.state = State::Semicolon;
                 }
-                State::Semicolon => match stream.next() {
+                State::Semicolon => match stream.borrow_mut().next() {
                     Some(Ok(token)) => self.semicolon(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::End => return Ok((stream, self.builder.finish())),
+                State::End => return Ok(self.builder.finish()),
             }
         }
     }

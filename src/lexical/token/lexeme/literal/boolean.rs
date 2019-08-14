@@ -10,7 +10,7 @@ use serde_derive::Serialize;
 use crate::lexical::Keyword;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case", tag = "value")]
 pub enum Boolean {
     True,
     False,

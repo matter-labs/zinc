@@ -1,5 +1,5 @@
 //!
-//! The Jab compiler binary.
+//! The Jabberwocky compiler binary.
 //!
 
 use std::fs::File;
@@ -35,21 +35,24 @@ struct Arguments {
 }
 
 #[derive(Debug, Fail)]
-enum Error {
-    #[fail(display = "File opening: {}", _0)]
-    FileOpening(std::io::Error),
-    #[fail(display = "File reading: {}", _0)]
-    FileReading(std::io::Error),
+enum FileError {
+    #[fail(display = "Opening: {}", _0)]
+    Opening(std::io::Error),
+    #[fail(display = "Metadata: {}", _0)]
+    Metadata(std::io::Error),
+    #[fail(display = "Reading: {}", _0)]
+    Reading(std::io::Error),
 }
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<(), FileError> {
     init_logger();
 
     let args: Arguments = Arguments::from_args();
 
-    let mut file = File::open(&args.input).map_err(Error::FileOpening)?;
-    let mut code = Vec::with_capacity(1024);
-    file.read_to_end(&mut code).map_err(Error::FileReading)?;
+    let mut file = File::open(&args.input).map_err(FileError::Opening)?;
+    let size = file.metadata().map_err(FileError::Metadata)?.len();
+    let mut code = Vec::with_capacity(size as usize);
+    file.read_to_end(&mut code).map_err(FileError::Reading)?;
 
     let metadata = match compiler::compile(code) {
         Ok(circuit) => serde_json::to_string(&circuit).expect("Serialization bug"),

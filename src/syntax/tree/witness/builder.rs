@@ -1,5 +1,5 @@
 //!
-//! The syntax witness builder.
+//! The witness builder.
 //!
 
 use crate::lexical::Identifier;

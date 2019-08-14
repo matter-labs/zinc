@@ -4,8 +4,11 @@
 
 mod boolean;
 
-use crate::lexical::Token;
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::lexical::TokenStream;
+use crate::syntax::Expression;
 use crate::Error;
 
 use self::boolean::Parser as BooleanParser;
@@ -14,7 +17,7 @@ use self::boolean::Parser as BooleanParser;
 pub struct Parser {}
 
 impl Parser {
-    pub fn parse(self, stream: TokenStream) -> Result<(TokenStream, Vec<Token>), Error> {
+    pub fn parse(self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
         BooleanParser::default().parse(stream)
     }
 }

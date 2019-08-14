@@ -1,5 +1,5 @@
 //!
-//! The syntax input builder.
+//! The input builder.
 //!
 
 use crate::lexical::Identifier;

@@ -1,5 +1,5 @@
 //!
-//! The syntax parser tests.
+//! The syntax tests.
 //!
 
 #![cfg(test)]

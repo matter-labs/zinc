@@ -2,16 +2,16 @@
 //! The require statement builder.
 //!
 
-use crate::lexical::Token;
+use crate::syntax::Expression;
 use crate::syntax::Require;
 
 #[derive(Default)]
 pub struct Builder {
-    expression: Option<Vec<Token>>,
+    expression: Option<Expression>,
 }
 
 impl Builder {
-    pub fn set_expression(&mut self, value: Vec<Token>) {
+    pub fn set_expression(&mut self, value: Expression) {
         self.expression = Some(value);
     }
 

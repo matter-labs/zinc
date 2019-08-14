@@ -7,18 +7,22 @@ use std::fmt;
 use serde_derive::Serialize;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case", tag = "kind")]
 pub enum Integer {
-    Decimal(String),
-    Hexadecimal(String),
+    Decimal { value: String },
+    Hexadecimal { value: String },
 }
 
 impl From<&[u8]> for Integer {
     fn from(bytes: &[u8]) -> Self {
         if let Some(b'x') = bytes.get(1) {
-            Integer::Hexadecimal(String::from_utf8_lossy(bytes).to_string())
+            Integer::Hexadecimal {
+                value: String::from_utf8_lossy(bytes).to_string(),
+            }
         } else {
-            Integer::Decimal(String::from_utf8_lossy(bytes).to_string())
+            Integer::Decimal {
+                value: String::from_utf8_lossy(bytes).to_string(),
+            }
         }
     }
 }
@@ -29,8 +33,8 @@ impl fmt::Display for Integer {
             f,
             "{}",
             match self {
-                Integer::Decimal(string) => string,
-                Integer::Hexadecimal(string) => string,
+                Integer::Decimal { value } => value,
+                Integer::Hexadecimal { value } => value,
             }
         )
     }

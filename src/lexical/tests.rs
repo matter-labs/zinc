@@ -1,5 +1,5 @@
 //!
-//! The lexical parser tests.
+//! The lexical tests.
 //!
 
 #![cfg(test)]

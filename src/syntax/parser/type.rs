@@ -2,6 +2,9 @@
 //! The type parser.
 //!
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::lexical::Lexeme;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
@@ -29,15 +32,15 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, mut stream: TokenStream) -> Result<(TokenStream, Type), Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Type, Error> {
         loop {
             match self.state {
-                State::Name => match stream.next() {
+                State::Name => match stream.borrow_mut().next() {
                     Some(Ok(token)) => self.name(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::End => return Ok((stream, self.builder.finish())),
+                State::End => return Ok(self.builder.finish()),
             }
         }
     }

@@ -2,10 +2,14 @@
 //! The boolean XOR term parser.
 //!
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
+use crate::syntax::Expression;
 use crate::Error;
 
 use super::AndFactorParser;
@@ -26,30 +30,30 @@ impl Default for State {
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    rpn: Vec<Token>,
+    rpn: Expression,
     operator: Option<Token>,
 }
 
 impl Parser {
-    pub fn parse(mut self, mut stream: TokenStream) -> Result<(TokenStream, Vec<Token>), Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
         loop {
             match self.state {
                 State::AndFactor => {
-                    let (s, mut rpn) = AndFactorParser::default().parse(stream)?;
-                    stream = s;
-                    self.rpn.append(&mut rpn);
+                    let rpn = AndFactorParser::default().parse(stream.clone())?;
+                    self.rpn.append(rpn);
                     if let Some(operator) = self.operator.take() {
                         self.rpn.push(operator);
                     }
                     self.state = State::AndOperator;
                 }
                 State::AndOperator => {
+                    let peek = stream.borrow_mut().peek();
                     if let Some(Ok(Token {
                         lexeme: Lexeme::Symbol(Symbol::DoubleAmpersand),
                         ..
-                    })) = stream.peek()
+                    })) = peek
                     {
-                        let token = stream.next().unwrap().unwrap();
+                        let token = stream.borrow_mut().next().unwrap().unwrap();
                         log::trace!("{}", token);
 
                         self.operator = Some(token);
@@ -58,7 +62,7 @@ impl Parser {
                         self.state = State::End;
                     }
                 }
-                State::End => return Ok((stream, self.rpn)),
+                State::End => return Ok(self.rpn),
             }
         }
     }

@@ -3,7 +3,7 @@
 //!
 
 use crate::lexical::Identifier;
-use crate::lexical::Token;
+use crate::syntax::Expression;
 use crate::syntax::Let;
 use crate::syntax::Type;
 
@@ -11,7 +11,7 @@ use crate::syntax::Type;
 pub struct Builder {
     identifier: Option<Identifier>,
     r#type: Option<Type>,
-    expression: Option<Vec<Token>>,
+    expression: Option<Expression>,
     is_mutable: bool,
 }
 
@@ -24,7 +24,7 @@ impl Builder {
         self.r#type = Some(value);
     }
 
-    pub fn set_expression(&mut self, value: Vec<Token>) {
+    pub fn set_expression(&mut self, value: Expression) {
         self.expression = Some(value);
     }
 

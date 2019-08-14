@@ -2,11 +2,16 @@
 //! The boolean AND factor parser.
 //!
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::lexical::Lexeme;
 use crate::lexical::Literal;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
+use crate::syntax::Error as SyntaxError;
+use crate::syntax::Expression;
 use crate::Error;
 
 use super::Parser as ExpressionParser;
@@ -28,83 +33,92 @@ impl Default for State {
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    rpn: Vec<Token>,
+    rpn: Expression,
     operator: Option<Token>,
 }
 
 impl Parser {
-    pub fn parse(mut self, mut stream: TokenStream) -> Result<(TokenStream, Vec<Token>), Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
         loop {
             match self.state {
-                State::Start => match stream.peek() {
-                    Some(Ok(Token {
-                        lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
-                        ..
-                    })) => {
-                        let token = stream.next().unwrap().unwrap();
-                        log::trace!("{}", token);
+                State::Start => {
+                    const EXPECTED: [&str; 5] = ["!", "(", "true", "false", "{identifier}"];
 
-                        self.operator = Some(token);
-                        self.state = State::UnaryExpr;
-                    }
-                    Some(Ok(Token {
-                        lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
-                        ..
-                    })) => {
-                        let token = stream.next().unwrap().unwrap();
-                        log::trace!("{}", token);
+                    let peek = stream.borrow_mut().peek();
+                    match peek {
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
+                            ..
+                        })) => {
+                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            log::trace!("{}", token);
 
-                        self.state = State::ParenthesisExpr;
-                    }
-                    Some(Ok(Token {
-                        lexeme: Lexeme::Literal(Literal::Boolean(_)),
-                        ..
-                    })) => {
-                        let token = stream.next().unwrap().unwrap();
-                        log::trace!("{}", token);
+                            self.operator = Some(token);
+                            self.state = State::UnaryExpr;
+                        }
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
+                            ..
+                        })) => {
+                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            log::trace!("{}", token);
 
-                        self.rpn.push(token);
-                        return Ok((stream, self.rpn));
-                    }
-                    Some(Ok(Token {
-                        lexeme: Lexeme::Identifier(_),
-                        ..
-                    })) => {
-                        let token = stream.next().unwrap().unwrap();
-                        log::trace!("{}", token);
+                            self.state = State::ParenthesisExpr;
+                        }
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Literal(Literal::Boolean(_)),
+                            ..
+                        })) => {
+                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            log::trace!("{}", token);
 
-                        self.rpn.push(token);
-                        return Ok((stream, self.rpn));
+                            self.rpn.push(token);
+                            return Ok(self.rpn);
+                        }
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Identifier(_),
+                            ..
+                        })) => {
+                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            log::trace!("{}", token);
+
+                            self.rpn.push(token);
+                            return Ok(self.rpn);
+                        }
+                        Some(Ok(Token { lexeme, location })) => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location.to_owned(),
+                                EXPECTED.to_vec(),
+                                lexeme.to_owned(),
+                            )))
+                        }
+                        Some(Err(error)) => return Err(Error::Lexical(error.to_owned())),
+                        None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                     }
-                    token => {
-                        log::info!("{:?}", token);
-                        unimplemented!();
-                    }
-                },
+                }
                 State::UnaryExpr => {
-                    let (stream, mut rpn) = Self::default().parse(stream)?;
-                    self.rpn.append(&mut rpn);
+                    let rpn = Self::default().parse(stream.clone())?;
+                    self.rpn.append(rpn);
                     if let Some(operator) = self.operator.take() {
                         self.rpn.push(operator);
                     }
-                    return Ok((stream, self.rpn));
+                    return Ok(self.rpn);
                 }
                 State::ParenthesisExpr => {
-                    let (s, mut rpn) = ExpressionParser::default().parse(stream)?;
-                    stream = s;
-                    self.rpn.append(&mut rpn);
+                    let rpn = ExpressionParser::default().parse(stream.clone())?;
+                    self.rpn.append(rpn);
                     self.state = State::ParenthesisClose;
                 }
                 State::ParenthesisClose => {
                     if let Some(Ok(Token {
                         lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                         ..
-                    })) = stream.peek()
+                    })) = stream.borrow_mut().peek()
                     {
-                        let token = stream.next().unwrap().unwrap();
+                        let token = stream.borrow_mut().next().unwrap().unwrap();
                         log::trace!("{}", token);
 
-                        return Ok((stream, self.rpn));
+                        return Ok(self.rpn);
                     }
                 }
             }

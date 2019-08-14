@@ -1,6 +1,9 @@
 //!
-//! The witness parser.
+//! The witnesses parser.
 //!
+
+use std::cell::RefCell;
+use std::rc::Rc;
 
 use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
@@ -38,51 +41,48 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, mut stream: TokenStream) -> Result<(TokenStream, Vec<Witness>), Error> {
-        match stream.peek() {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Vec<Witness>, Error> {
+        match stream.borrow_mut().peek() {
             Some(Ok(Token {
                 lexeme: Lexeme::Keyword(Keyword::Witness),
                 ..
             })) => {}
-            _ => return Ok((stream, self.witnesses)),
+            _ => return Ok(self.witnesses),
         }
 
         loop {
             match self.state {
-                State::Keyword => match stream.next() {
+                State::Keyword => match stream.borrow_mut().next() {
                     Some(Ok(token)) => self.keyword(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::BracketOpen => match stream.next() {
+                State::BracketOpen => match stream.borrow_mut().next() {
                     Some(Ok(token)) => self.bracket_open(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::ElementIdentifierOrBracketClose => match stream.next() {
+                State::ElementIdentifierOrBracketClose => match stream.borrow_mut().next() {
                     Some(Ok(token)) => self.element_identifier_or_bracket_close(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::ElementColon => match stream.next() {
+                State::ElementColon => match stream.borrow_mut().next() {
                     Some(Ok(token)) => self.element_colon(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
                 State::ElementType => {
-                    let (s, r#type) = TypeParser::default().parse(stream)?;
-                    stream = s;
+                    let r#type = TypeParser::default().parse(stream.clone())?;
                     self.builder.set_type(r#type);
                     self.state = State::ElementSemicolon;
                 }
-                State::ElementSemicolon => match stream.next() {
+                State::ElementSemicolon => match stream.borrow_mut().next() {
                     Some(Ok(token)) => self.element_semicolon(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::End => {
-                    return Ok((stream, self.witnesses));
-                }
+                State::End => return Ok(self.witnesses),
             }
         }
     }

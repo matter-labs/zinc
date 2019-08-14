@@ -3,12 +3,14 @@
 //!
 
 mod circuit;
+mod expression;
 mod input;
 mod statement;
 mod r#type;
 mod witness;
 
 pub use self::circuit::CircuitProgram;
+pub use self::expression::Expression;
 pub use self::input::Builder as InputBuilder;
 pub use self::input::Input;
 pub use self::r#type::Builder as TypeBuilder;

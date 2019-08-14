@@ -1,5 +1,5 @@
 //!
-//! The syntax witness.
+//! The witness.
 //!
 
 mod builder;

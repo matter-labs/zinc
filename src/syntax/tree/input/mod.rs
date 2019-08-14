@@ -1,5 +1,5 @@
 //!
-//! The syntax input.
+//! The input.
 //!
 
 mod builder;
