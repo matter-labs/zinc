@@ -13,7 +13,6 @@ pub use self::error::Error;
 pub use self::stream::CommentParserError;
 pub use self::stream::IntegerParserError;
 pub use self::stream::SymbolParserError;
-pub use self::stream::TokenIterator;
 pub use self::stream::TokenStream;
 pub use self::token::BooleanLiteral;
 pub use self::token::Comment;

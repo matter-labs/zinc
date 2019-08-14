@@ -1,8 +1,6 @@
 //!
-//! The type syntax parser.
+//! The type parser.
 //!
-
-use log::*;
 
 use crate::lexical::Lexeme;
 use crate::lexical::Token;
@@ -31,21 +29,21 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, mut iterator: TokenStream) -> Result<(TokenStream, Type), Error> {
+    pub fn parse(mut self, mut stream: TokenStream) -> Result<(TokenStream, Type), Error> {
         loop {
             match self.state {
-                State::Name => match iterator.next() {
+                State::Name => match stream.next() {
                     Some(Ok(token)) => self.name(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::End => return Ok((iterator, self.builder.finish())),
+                State::End => return Ok((stream, self.builder.finish())),
             }
         }
     }
 
     fn name(&mut self, token: Token) -> Result<(), Error> {
-        trace!("name: {}", token);
+        log::trace!("name: {}", token);
 
         const EXPECTED: [&str; 1] = ["{type}"];
 

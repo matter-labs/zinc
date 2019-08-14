@@ -1,8 +1,6 @@
 //!
-//! The witness syntax parser.
+//! The witness parser.
 //!
-
-use log::*;
 
 use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
@@ -40,60 +38,57 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(
-        mut self,
-        mut iterator: TokenStream,
-    ) -> Result<(TokenStream, Vec<Witness>), Error> {
-        match iterator.peek() {
+    pub fn parse(mut self, mut stream: TokenStream) -> Result<(TokenStream, Vec<Witness>), Error> {
+        match stream.peek() {
             Some(Ok(Token {
                 lexeme: Lexeme::Keyword(Keyword::Witness),
                 ..
             })) => {}
-            _ => return Ok((iterator, self.witnesses)),
+            _ => return Ok((stream, self.witnesses)),
         }
 
         loop {
             match self.state {
-                State::Keyword => match iterator.next() {
+                State::Keyword => match stream.next() {
                     Some(Ok(token)) => self.keyword(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::BracketOpen => match iterator.next() {
+                State::BracketOpen => match stream.next() {
                     Some(Ok(token)) => self.bracket_open(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::ElementIdentifierOrBracketClose => match iterator.next() {
+                State::ElementIdentifierOrBracketClose => match stream.next() {
                     Some(Ok(token)) => self.element_identifier_or_bracket_close(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::ElementColon => match iterator.next() {
+                State::ElementColon => match stream.next() {
                     Some(Ok(token)) => self.element_colon(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
                 State::ElementType => {
-                    let (i, r#type) = TypeParser::default().parse(iterator)?;
-                    iterator = i;
+                    let (s, r#type) = TypeParser::default().parse(stream)?;
+                    stream = s;
                     self.builder.set_type(r#type);
                     self.state = State::ElementSemicolon;
                 }
-                State::ElementSemicolon => match iterator.next() {
+                State::ElementSemicolon => match stream.next() {
                     Some(Ok(token)) => self.element_semicolon(token)?,
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
                 State::End => {
-                    return Ok((iterator, self.witnesses));
+                    return Ok((stream, self.witnesses));
                 }
             }
         }
     }
 
     fn keyword(&mut self, token: Token) -> Result<(), Error> {
-        trace!("keyword: {}", token);
+        log::trace!("keyword: {}", token);
 
         const EXPECTED: [&str; 1] = ["witness"];
 
@@ -114,13 +109,13 @@ impl Parser {
     }
 
     fn bracket_open(&mut self, token: Token) -> Result<(), Error> {
-        trace!("bracket_open: {}", token);
+        log::trace!("bracket_open: {}", token);
 
         const EXPECTED: [&str; 1] = ["{"];
 
         match token {
             Token {
-                lexeme: Lexeme::Symbol(Symbol::BracketCurlyOpen),
+                lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                 ..
             } => {
                 self.state = State::ElementIdentifierOrBracketClose;
@@ -135,13 +130,13 @@ impl Parser {
     }
 
     fn element_identifier_or_bracket_close(&mut self, token: Token) -> Result<(), Error> {
-        trace!("element_identifier_or_bracket_close: {}", token);
+        log::trace!("element_identifier_or_bracket_close: {}", token);
 
         const EXPECTED: [&str; 2] = ["{identifier}", "}"];
 
         match token {
             Token {
-                lexeme: Lexeme::Symbol(Symbol::BracketCurlyClose),
+                lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                 ..
             } => {
                 self.state = State::End;
@@ -164,7 +159,7 @@ impl Parser {
     }
 
     fn element_colon(&mut self, token: Token) -> Result<(), Error> {
-        trace!("element_colon: {}", token);
+        log::trace!("element_colon: {}", token);
 
         const EXPECTED: [&str; 1] = [":"];
 
@@ -185,7 +180,7 @@ impl Parser {
     }
 
     fn element_semicolon(&mut self, token: Token) -> Result<(), Error> {
-        trace!("element_semicolon: {}", token);
+        log::trace!("element_semicolon: {}", token);
 
         const EXPECTED: [&str; 1] = [";"];
 

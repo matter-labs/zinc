@@ -1,5 +1,5 @@
 //!
-//! The expression syntax parser.
+//! The expression parser.
 //!
 
 mod boolean;
@@ -14,7 +14,7 @@ use self::boolean::Parser as BooleanParser;
 pub struct Parser {}
 
 impl Parser {
-    pub fn parse(self, iterator: TokenStream) -> Result<(TokenStream, Vec<Token>), Error> {
-        BooleanParser::default().parse(iterator)
+    pub fn parse(self, stream: TokenStream) -> Result<(TokenStream, Vec<Token>), Error> {
+        BooleanParser::default().parse(stream)
     }
 }

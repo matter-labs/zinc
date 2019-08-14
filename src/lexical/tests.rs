@@ -26,8 +26,8 @@ witness {
     f: bool; // witness 3
 } /* This is the end of the mega ultra witness input */"#;
 
-    let result: Vec<Token> = TokenIterator::new(code.to_vec())
-        .map(|result| result.unwrap())
+    let result: Vec<Token> = TokenStream::new(code.to_vec())
+        .map(|result| result.expect("Token error"))
         .collect();
 
     let expected: Vec<Token> = vec![
@@ -36,7 +36,7 @@ witness {
             location: Location::new(4, 1),
         },
         Token {
-            lexeme: Lexeme::Symbol(Symbol::BracketCurlyOpen),
+            lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
             location: Location::new(4, 8),
         },
         Token {
@@ -88,7 +88,7 @@ witness {
             location: Location::new(7, 12),
         },
         Token {
-            lexeme: Lexeme::Symbol(Symbol::BracketCurlyClose),
+            lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
             location: Location::new(8, 1),
         },
         Token {
@@ -96,7 +96,7 @@ witness {
             location: Location::new(13, 1),
         },
         Token {
-            lexeme: Lexeme::Symbol(Symbol::BracketCurlyOpen),
+            lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
             location: Location::new(13, 9),
         },
         Token {
@@ -148,7 +148,7 @@ witness {
             location: Location::new(16, 12),
         },
         Token {
-            lexeme: Lexeme::Symbol(Symbol::BracketCurlyClose),
+            lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
             location: Location::new(17, 1),
         },
     ];

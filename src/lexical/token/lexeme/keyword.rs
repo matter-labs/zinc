@@ -3,17 +3,20 @@
 //!
 
 use std::convert::TryFrom;
+use std::fmt;
 use std::ops::RangeInclusive;
 
 use failure::Fail;
 use serde_derive::Serialize;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum Keyword {
     // domain
     Inputs,
     Witness,
     Require,
+    Debug,
 
     // declaration
     Let,
@@ -27,8 +30,8 @@ pub enum Keyword {
     Match,
 
     // type
-    Uint(usize),
-    Int(usize),
+    Uint { bitlength: usize },
+    Int { bitlength: usize },
     Field,
     Bool,
     Struct,
@@ -65,7 +68,7 @@ impl TryFrom<&[u8]> for Keyword {
             if !BITLENGTH_RANGE.contains(&bitlength) {
                 return Err(Error::BitlengthOutOfRange(bitlength, BITLENGTH_RANGE));
             }
-            return Ok(Keyword::Uint(bitlength));
+            return Ok(Keyword::Uint { bitlength });
         }
 
         if let Some(b"int") = bytes.get(..3) {
@@ -76,13 +79,14 @@ impl TryFrom<&[u8]> for Keyword {
             if !BITLENGTH_RANGE.contains(&bitlength) {
                 return Err(Error::BitlengthOutOfRange(bitlength, BITLENGTH_RANGE));
             }
-            return Ok(Keyword::Int(bitlength));
+            return Ok(Keyword::Int { bitlength });
         }
 
         match bytes {
             b"inputs" => Ok(Keyword::Inputs),
             b"witness" => Ok(Keyword::Witness),
             b"require" => Ok(Keyword::Require),
+            b"debug" => Ok(Keyword::Debug),
 
             b"let" => Ok(Keyword::Let),
             b"mut" => Ok(Keyword::Mut),
@@ -104,6 +108,38 @@ impl TryFrom<&[u8]> for Keyword {
             b"false" => Ok(Keyword::False),
 
             _unknown => Err(Error::Unknown),
+        }
+    }
+}
+
+impl fmt::Display for Keyword {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Keyword::Inputs => write!(f, "inputs"),
+            Keyword::Witness => write!(f, "witness"),
+            Keyword::Require => write!(f, "require"),
+            Keyword::Debug => write!(f, "debug"),
+
+            Keyword::Let => write!(f, "let"),
+            Keyword::Mut => write!(f, "mut"),
+            Keyword::Type => write!(f, "type"),
+
+            Keyword::For => write!(f, "for"),
+            Keyword::If => write!(f, "if"),
+            Keyword::Else => write!(f, "else"),
+            Keyword::Match => write!(f, "match"),
+
+            Keyword::Uint { bitlength } => write!(f, "uint{}", bitlength),
+            Keyword::Int { bitlength } => write!(f, "int{}", bitlength),
+            Keyword::Field => write!(f, "field"),
+            Keyword::Bool => write!(f, "bool"),
+            Keyword::Struct => write!(f, "struct"),
+            Keyword::Enum => write!(f, "enum"),
+            Keyword::MemoryVector => write!(f, "memory_vector"),
+            Keyword::StorageVector => write!(f, "storage_vector"),
+
+            Keyword::True => write!(f, "true"),
+            Keyword::False => write!(f, "false"),
         }
     }
 }

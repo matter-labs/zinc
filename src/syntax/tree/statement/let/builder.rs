@@ -1,21 +1,43 @@
 //!
-//! The require expression builder.
+//! The let statement builder.
 //!
 
+use crate::lexical::Identifier;
 use crate::lexical::Token;
 use crate::syntax::Let;
+use crate::syntax::Type;
 
 #[derive(Default)]
 pub struct Builder {
+    identifier: Option<Identifier>,
+    r#type: Option<Type>,
     expression: Option<Vec<Token>>,
+    is_mutable: bool,
 }
 
 impl Builder {
+    pub fn set_identifier(&mut self, value: Identifier) {
+        self.identifier = Some(value);
+    }
+
+    pub fn set_type(&mut self, value: Type) {
+        self.r#type = Some(value);
+    }
+
     pub fn set_expression(&mut self, value: Vec<Token>) {
         self.expression = Some(value);
     }
 
+    pub fn set_mutable(&mut self) {
+        self.is_mutable = true;
+    }
+
     pub fn finish(mut self) -> Let {
-        Let::new(self.expression.take().expect("Missing expression"))
+        Let::new(
+            self.identifier.take().expect("Missing identifier"),
+            self.r#type.take(),
+            self.expression.take().expect("Missing expression"),
+            self.is_mutable,
+        )
     }
 }

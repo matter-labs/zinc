@@ -1,9 +1,9 @@
 //!
-//! The require statement builder.
+//! The debug statement builder.
 //!
 
 use crate::lexical::Token;
-use crate::syntax::Require;
+use crate::syntax::Debug;
 
 #[derive(Default)]
 pub struct Builder {
@@ -15,7 +15,7 @@ impl Builder {
         self.expression = Some(value);
     }
 
-    pub fn finish(mut self) -> Require {
-        Require::new(self.expression.take().expect("Missing expression"))
+    pub fn finish(mut self) -> Debug {
+        Debug::new(self.expression.take().expect("Missing expression"))
     }
 }

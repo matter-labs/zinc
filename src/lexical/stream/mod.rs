@@ -15,8 +15,6 @@ pub use self::symbol::parse as parse_symbol;
 pub use self::symbol::Error as SymbolParserError;
 pub use self::word::parse as parse_word;
 
-use std::iter::Iterator;
-
 use crate::lexical::Alphabet;
 use crate::lexical::Error;
 use crate::lexical::Identifier;
@@ -25,94 +23,111 @@ use crate::lexical::Literal;
 use crate::lexical::Location;
 use crate::lexical::Token;
 
-pub struct TokenIterator {
+pub struct TokenStream {
     input: Vec<u8>,
-    position: usize,
-    line: usize,
-    column: usize,
+    position: Position,
+    peeked: Option<Result<Token, Error>>,
+    backtrack: Option<Position>,
 }
 
-pub type TokenStream = std::iter::Peekable<TokenIterator>;
-
-impl TokenIterator {
-    pub fn new(input: Vec<u8>) -> TokenStream {
+impl TokenStream {
+    pub fn new(input: Vec<u8>) -> Self {
         Self {
             input,
-            position: 0,
-            line: 1,
-            column: 1,
+            position: Position::new(),
+            peeked: None,
+            backtrack: None,
         }
-        .peekable()
     }
-}
 
-impl Iterator for TokenIterator {
-    type Item = Result<Token, Error>;
+    pub fn next(&mut self) -> Option<Result<Token, Error>> {
+        match self.peeked.take() {
+            Some(peeked) => Some(peeked),
+            None => self.advance(),
+        }
+    }
 
-    fn next(&mut self) -> Option<Self::Item> {
-        while let Some(byte) = self.input.get(self.position).copied() {
+    pub fn peek(&mut self) -> Option<&Result<Token, Error>> {
+        if self.peeked.is_none() {
+            self.peeked = self.advance();
+        }
+        self.peeked.as_ref()
+    }
+
+    pub fn set_backtrack(&mut self) {
+        self.backtrack = Some(self.position);
+    }
+
+    pub fn reset_backtrack(&mut self) {
+        if let Some(backtrack) = self.backtrack.take() {
+            self.position = backtrack;
+        }
+    }
+
+    fn advance(&mut self) -> Option<Result<Token, Error>> {
+        while let Some(byte) = self.input.get(self.position.index).copied() {
             if !Alphabet::contains(byte) {
-                let location = Location::new(self.line, self.column);
+                let location = Location::new(self.position.line, self.position.column);
                 return Some(Err(Error::Forbidden(location, char::from(byte))));
             }
 
             if byte.is_ascii_whitespace() {
                 if byte == b'\n' {
-                    self.line += 1;
-                    self.column = 1;
+                    self.position.line += 1;
+                    self.position.column = 1;
                 } else if byte != b'\r' {
-                    self.column += 1;
+                    self.position.column += 1;
                 }
-                self.position += 1;
+                self.position.index += 1;
                 continue;
             }
 
             if byte == b'/' {
                 if let Ok((size, lines, column, _comment)) =
-                    parse_comment(&self.input[self.position..])
+                    parse_comment(&self.input[self.position.index..])
                 {
-                    self.line += lines;
-                    self.column = column;
-                    self.position += size;
+                    self.position.line += lines;
+                    self.position.column = column;
+                    self.position.index += size;
                     continue;
                 }
             }
 
-            match parse_symbol(&self.input[self.position..]) {
+            match parse_symbol(&self.input[self.position.index..]) {
                 Ok((size, symbol)) => {
-                    let location = Location::new(self.line, self.column);
-                    self.column += size;
-                    self.position += size;
+                    let location = Location::new(self.position.line, self.position.column);
+                    self.position.column += size;
+                    self.position.index += size;
                     return Some(Ok(Token::new(Lexeme::Symbol(symbol), location)));
                 }
                 Err(SymbolParserError::NotASymbol) => {}
                 Err(error) => {
-                    let location = Location::new(self.line, self.column);
+                    let location = Location::new(self.position.line, self.position.column);
                     return Some(Err(Error::InvalidSymbol(location, error)));
                 }
             }
 
             if Identifier::can_start_with(byte) {
-                let (size, lexeme) = parse_word(&self.input[self.position..]);
-                let location = Location::new(self.line, self.column);
-                self.column += size;
-                self.position += size;
+                let (size, lexeme) = parse_word(&self.input[self.position.index..]);
+                let location = Location::new(self.position.line, self.position.column);
+                self.position.column += size;
+                self.position.index += size;
                 return Some(Ok(Token::new(lexeme, location)));
             }
 
             if byte.is_ascii_digit() {
-                match parse_integer(&self.input[self.position..]) {
+                match parse_integer(&self.input[self.position.index..]) {
                     Ok((size, integer)) => {
-                        let location = Location::new(self.line, self.column);
-                        self.column += size;
-                        self.position += size;
+                        let location = Location::new(self.position.line, self.position.column);
+                        self.position.column += size;
+                        self.position.index += size;
                         return Some(Ok(Token::new(
                             Lexeme::Literal(Literal::Integer(integer)),
                             location,
                         )));
                     }
                     Err(error) => {
-                        let location = Location::new(self.line, self.column);
+                        let location = Location::new(self.position.line, self.position.column);
                         return Some(Err(Error::InvalidIntegerLiteral(location, error)));
                     }
                 }
@@ -122,5 +137,22 @@ impl Iterator for TokenIterator {
         }
 
         None
+    }
+}
+
+#[derive(Clone, Copy)]
+struct Position {
+    index: usize,
+    line: usize,
+    column: usize,
+}
+
+impl Position {
+    pub fn new() -> Self {
+        Self {
+            index: 0,
+            line: 1,
+            column: 1,
+        }
     }
 }

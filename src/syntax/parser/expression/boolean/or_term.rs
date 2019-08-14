@@ -1,5 +1,5 @@
 //!
-//! The boolean OR term syntax parser.
+//! The boolean OR term parser.
 //!
 
 use crate::lexical::Lexeme;
@@ -31,12 +31,12 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, mut iterator: TokenStream) -> Result<(TokenStream, Vec<Token>), Error> {
+    pub fn parse(mut self, mut stream: TokenStream) -> Result<(TokenStream, Vec<Token>), Error> {
         loop {
             match self.state {
                 State::XorTerm => {
-                    let (i, mut rpn) = XorTermParser::default().parse(iterator)?;
-                    iterator = i;
+                    let (s, mut rpn) = XorTermParser::default().parse(stream)?;
+                    stream = s;
                     self.rpn.append(&mut rpn);
                     if let Some(operator) = self.operator.take() {
                         self.rpn.push(operator);
@@ -45,17 +45,20 @@ impl Parser {
                 }
                 State::XorOperator => {
                     if let Some(Ok(Token {
-                        lexeme: Lexeme::Symbol(Symbol::BooleanXor),
+                        lexeme: Lexeme::Symbol(Symbol::DoubleCircumflex),
                         ..
-                    })) = iterator.peek()
+                    })) = stream.peek()
                     {
-                        self.operator = Some(iterator.next().unwrap().unwrap());
+                        let token = stream.next().unwrap().unwrap();
+                        log::trace!("{}", token);
+
+                        self.operator = Some(token);
                         self.state = State::XorTerm;
                     } else {
                         self.state = State::End;
                     }
                 }
-                State::End => return Ok((iterator, self.rpn)),
+                State::End => return Ok((stream, self.rpn)),
             }
         }
     }

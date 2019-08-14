@@ -1,5 +1,5 @@
 //!
-//! The boolean XOR term syntax parser.
+//! The boolean XOR term parser.
 //!
 
 use crate::lexical::Lexeme;
@@ -31,12 +31,12 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, mut iterator: TokenStream) -> Result<(TokenStream, Vec<Token>), Error> {
+    pub fn parse(mut self, mut stream: TokenStream) -> Result<(TokenStream, Vec<Token>), Error> {
         loop {
             match self.state {
                 State::AndFactor => {
-                    let (i, mut rpn) = AndFactorParser::default().parse(iterator)?;
-                    iterator = i;
+                    let (s, mut rpn) = AndFactorParser::default().parse(stream)?;
+                    stream = s;
                     self.rpn.append(&mut rpn);
                     if let Some(operator) = self.operator.take() {
                         self.rpn.push(operator);
@@ -45,17 +45,20 @@ impl Parser {
                 }
                 State::AndOperator => {
                     if let Some(Ok(Token {
-                        lexeme: Lexeme::Symbol(Symbol::BooleanAnd),
+                        lexeme: Lexeme::Symbol(Symbol::DoubleAmpersand),
                         ..
-                    })) = iterator.peek()
+                    })) = stream.peek()
                     {
-                        self.operator = Some(iterator.next().unwrap().unwrap());
+                        let token = stream.next().unwrap().unwrap();
+                        log::trace!("{}", token);
+
+                        self.operator = Some(token);
                         self.state = State::AndFactor;
                     } else {
                         self.state = State::End;
                     }
                 }
-                State::End => return Ok((iterator, self.rpn)),
+                State::End => return Ok((stream, self.rpn)),
             }
         }
     }

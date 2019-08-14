@@ -56,7 +56,7 @@ fn main() -> Result<(), Error> {
         Err(error) => error.to_string(),
     };
     if args.meta {
-        println!("{}", metadata);
+        log::info!("{}", metadata);
     }
 
     Ok(())

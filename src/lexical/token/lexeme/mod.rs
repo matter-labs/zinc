@@ -35,10 +35,11 @@ pub enum Lexeme {
 impl fmt::Display for Lexeme {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            Lexeme::Keyword(keyword) => write!(f, "{}", keyword),
+            Lexeme::Identifier(identifier) => write!(f, "{}", identifier),
             Lexeme::Literal(literal) => write!(f, "{}", literal),
             Lexeme::Symbol(symbol) => write!(f, "{}", symbol),
-            Lexeme::Identifier(identifier) => write!(f, "{}", identifier),
-            _ => write!(f, "{:?}", self),
+            Lexeme::Comment(comment) => write!(f, "{}", comment),
         }
     }
 }

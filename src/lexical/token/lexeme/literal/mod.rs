@@ -13,7 +13,7 @@ use std::fmt;
 use serde_derive::Serialize;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case", tag = "type")]
 pub enum Literal {
     Integer(Integer),
     Boolean(Boolean),

@@ -1,5 +1,5 @@
 //!
-//! The boolean AND factor syntax parser.
+//! The boolean AND factor parser.
 //!
 
 use crate::lexical::Lexeme;
@@ -33,37 +33,48 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, mut iterator: TokenStream) -> Result<(TokenStream, Vec<Token>), Error> {
+    pub fn parse(mut self, mut stream: TokenStream) -> Result<(TokenStream, Vec<Token>), Error> {
         loop {
             match self.state {
-                State::Start => match iterator.peek() {
+                State::Start => match stream.peek() {
                     Some(Ok(Token {
-                        lexeme: Lexeme::Symbol(Symbol::BooleanNot),
+                        lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
                         ..
                     })) => {
-                        self.operator = Some(iterator.next().unwrap().unwrap());
+                        let token = stream.next().unwrap().unwrap();
+                        log::trace!("{}", token);
+
+                        self.operator = Some(token);
                         self.state = State::UnaryExpr;
                     }
                     Some(Ok(Token {
-                        lexeme: Lexeme::Symbol(Symbol::BracketRoundOpen),
+                        lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                         ..
                     })) => {
-                        iterator.next();
+                        let token = stream.next().unwrap().unwrap();
+                        log::trace!("{}", token);
+
                         self.state = State::ParenthesisExpr;
                     }
                     Some(Ok(Token {
                         lexeme: Lexeme::Literal(Literal::Boolean(_)),
                         ..
                     })) => {
-                        self.rpn.push(iterator.next().unwrap().unwrap());
-                        return Ok((iterator, self.rpn));
+                        let token = stream.next().unwrap().unwrap();
+                        log::trace!("{}", token);
+
+                        self.rpn.push(token);
+                        return Ok((stream, self.rpn));
                     }
                     Some(Ok(Token {
                         lexeme: Lexeme::Identifier(_),
                         ..
                     })) => {
-                        self.rpn.push(iterator.next().unwrap().unwrap());
-                        return Ok((iterator, self.rpn));
+                        let token = stream.next().unwrap().unwrap();
+                        log::trace!("{}", token);
+
+                        self.rpn.push(token);
+                        return Ok((stream, self.rpn));
                     }
                     token => {
                         log::info!("{:?}", token);
@@ -71,27 +82,29 @@ impl Parser {
                     }
                 },
                 State::UnaryExpr => {
-                    let (iterator, mut rpn) = Self::default().parse(iterator)?;
+                    let (stream, mut rpn) = Self::default().parse(stream)?;
                     self.rpn.append(&mut rpn);
                     if let Some(operator) = self.operator.take() {
                         self.rpn.push(operator);
                     }
-                    return Ok((iterator, self.rpn));
+                    return Ok((stream, self.rpn));
                 }
                 State::ParenthesisExpr => {
-                    let (i, mut rpn) = ExpressionParser::default().parse(iterator)?;
-                    iterator = i;
+                    let (s, mut rpn) = ExpressionParser::default().parse(stream)?;
+                    stream = s;
                     self.rpn.append(&mut rpn);
                     self.state = State::ParenthesisClose;
                 }
                 State::ParenthesisClose => {
                     if let Some(Ok(Token {
-                        lexeme: Lexeme::Symbol(Symbol::BracketRoundClose),
+                        lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                         ..
-                    })) = iterator.peek()
+                    })) = stream.peek()
                     {
-                        iterator.next();
-                        return Ok((iterator, self.rpn));
+                        let token = stream.next().unwrap().unwrap();
+                        log::trace!("{}", token);
+
+                        return Ok((stream, self.rpn));
                     }
                 }
             }

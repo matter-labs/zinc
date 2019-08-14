@@ -23,6 +23,7 @@ use serde_derive::Serialize;
 
 #[derive(Debug, Serialize, PartialEq)]
 pub struct Token {
+    #[serde(flatten)]
     pub lexeme: Lexeme,
     #[serde(skip_serializing)]
     pub location: Location,

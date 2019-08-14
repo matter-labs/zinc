@@ -1,5 +1,5 @@
 //!
-//! The require statement parser.
+//! The debug statement parser.
 //!
 
 use crate::lexical::Keyword;
@@ -7,10 +7,10 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
+use crate::syntax::Debug;
+use crate::syntax::DebugBuilder;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::ExpressionParser;
-use crate::syntax::Require;
-use crate::syntax::RequireBuilder;
 use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
@@ -32,11 +32,11 @@ impl Default for State {
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    builder: RequireBuilder,
+    builder: DebugBuilder,
 }
 
 impl Parser {
-    pub fn parse(mut self, mut stream: TokenStream) -> Result<(TokenStream, Require), Error> {
+    pub fn parse(mut self, mut stream: TokenStream) -> Result<(TokenStream, Debug), Error> {
         loop {
             match self.state {
                 State::Keyword => match stream.next() {
@@ -73,11 +73,11 @@ impl Parser {
     fn keyword(&mut self, token: Token) -> Result<(), Error> {
         log::trace!("keyword: {}", token);
 
-        const EXPECTED: [&str; 1] = ["require"];
+        const EXPECTED: [&str; 1] = ["debug"];
 
         match token {
             Token {
-                lexeme: Lexeme::Keyword(Keyword::Require),
+                lexeme: Lexeme::Keyword(Keyword::Debug),
                 ..
             } => {
                 self.state = State::BracketOpen;

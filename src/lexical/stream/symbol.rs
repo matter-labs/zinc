@@ -34,24 +34,24 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, Symbol), Error> {
     while let Some(byte) = bytes.get(size).copied() {
         match state {
             State::Start => match byte {
-                b'{' => return Ok((size + 1, Symbol::BracketCurlyOpen)),
-                b'}' => return Ok((size + 1, Symbol::BracketCurlyClose)),
-                b'[' => return Ok((size + 1, Symbol::BracketSquareOpen)),
-                b']' => return Ok((size + 1, Symbol::BracketSquareClose)),
-                b'(' => return Ok((size + 1, Symbol::BracketRoundOpen)),
-                b')' => return Ok((size + 1, Symbol::BracketRoundClose)),
+                b'{' => return Ok((size + 1, Symbol::BracketCurlyLeft)),
+                b'}' => return Ok((size + 1, Symbol::BracketCurlyRight)),
+                b'[' => return Ok((size + 1, Symbol::BracketSquareLeft)),
+                b']' => return Ok((size + 1, Symbol::BracketSquareRight)),
+                b'(' => return Ok((size + 1, Symbol::ParenthesisLeft)),
+                b')' => return Ok((size + 1, Symbol::ParenthesisRight)),
 
                 b'.' => return Ok((size + 1, Symbol::Dot)),
                 b':' => return Ok((size + 1, Symbol::Colon)),
                 b';' => return Ok((size + 1, Symbol::Semicolon)),
                 b',' => return Ok((size + 1, Symbol::Comma)),
 
-                b'+' => return Ok((size + 1, Symbol::ArithmeticAddition)),
-                b'-' => return Ok((size + 1, Symbol::ArithmeticSubtractionOrArithmeticNegation)),
-                b'*' => return Ok((size + 1, Symbol::ArithmeticMultiplication)),
-                b'/' => return Ok((size + 1, Symbol::ArithmeticDivision)),
-                b'%' => return Ok((size + 1, Symbol::ArithmeticRemainder)),
-                b'\\' => return Ok((size + 1, Symbol::ArithmeticInversion)),
+                b'+' => return Ok((size + 1, Symbol::Plus)),
+                b'-' => return Ok((size + 1, Symbol::Minus)),
+                b'*' => return Ok((size + 1, Symbol::Asterisk)),
+                b'/' => return Ok((size + 1, Symbol::Slash)),
+                b'%' => return Ok((size + 1, Symbol::Percent)),
+                b'\\' => return Ok((size + 1, Symbol::Backslash)),
 
                 b'=' => state = State::Equal,
                 b'!' => state = State::Exclamation,
@@ -64,23 +64,23 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, Symbol), Error> {
                 _ => return Err(Error::NotASymbol),
             },
             State::Equal => match byte {
-                b'=' => return Ok((size + 1, Symbol::ComparisonEqual)),
-                _ => return Ok((size, Symbol::Assignment)),
+                b'=' => return Ok((size + 1, Symbol::DoubleEquals)),
+                _ => return Ok((size, Symbol::Equals)),
             },
             State::Exclamation => match byte {
-                b'=' => return Ok((size + 1, Symbol::ComparisonNotEqual)),
-                _ => return Ok((size, Symbol::BooleanNot)),
+                b'=' => return Ok((size + 1, Symbol::ExclamationEquals)),
+                _ => return Ok((size, Symbol::ExclamationMark)),
             },
             State::Lesser => match byte {
-                b'=' => return Ok((size + 1, Symbol::ComparisonLesserEqual)),
-                _ => return Ok((size, Symbol::ComparisonLesser)),
+                b'=' => return Ok((size + 1, Symbol::LesserThanEquals)),
+                _ => return Ok((size, Symbol::LesserThan)),
             },
             State::Greater => match byte {
-                b'=' => return Ok((size + 1, Symbol::ComparisonGreaterEqual)),
-                _ => return Ok((size, Symbol::ComparisonGreater)),
+                b'=' => return Ok((size + 1, Symbol::GreaterThanEquals)),
+                _ => return Ok((size, Symbol::GreaterThan)),
             },
             State::And => match byte {
-                b'&' => return Ok((size + 1, Symbol::BooleanAnd)),
+                b'&' => return Ok((size + 1, Symbol::DoubleAmpersand)),
                 _ => {
                     return Err(Error::InvalidCharacter(
                         char::from(byte),
@@ -90,7 +90,7 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, Symbol), Error> {
                 }
             },
             State::Or => match byte {
-                b'|' => return Ok((size + 1, Symbol::BooleanOr)),
+                b'|' => return Ok((size + 1, Symbol::DoubleVerticalBar)),
                 _ => {
                     return Err(Error::InvalidCharacter(
                         char::from(byte),
@@ -100,7 +100,7 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, Symbol), Error> {
                 }
             },
             State::Xor => match byte {
-                b'^' => return Ok((size + 1, Symbol::BooleanXor)),
+                b'^' => return Ok((size + 1, Symbol::DoubleCircumflex)),
                 _ => {
                     return Err(Error::InvalidCharacter(
                         char::from(byte),

@@ -1,5 +1,5 @@
 //!
-//! The syntax parser.
+//! The syntax tools.
 //!
 
 mod error;
@@ -12,6 +12,8 @@ pub use self::parser::parse;
 pub use self::parser::ExpressionParser;
 pub use self::parser::TypeParser;
 pub use self::tree::CircuitProgram;
+pub use self::tree::Debug;
+pub use self::tree::DebugBuilder;
 pub use self::tree::Input;
 pub use self::tree::InputBuilder;
 pub use self::tree::Let;

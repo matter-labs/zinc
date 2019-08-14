@@ -5,7 +5,7 @@
 #![cfg(test)]
 
 use crate::lexical::Identifier;
-use crate::lexical::TokenIterator;
+use crate::lexical::TokenStream;
 
 use super::*;
 
@@ -29,7 +29,7 @@ witness {
     f: bool; // witness 3
 } /* This is the end of the mega ultra witness input */"#;
 
-    let result: CircuitProgram = parse(TokenIterator::new(code.to_vec())).unwrap();
+    let result: CircuitProgram = parse(TokenStream::new(code.to_vec())).unwrap();
 
     let expected: CircuitProgram = CircuitProgram {
         inputs: vec![

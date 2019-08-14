@@ -1,5 +1,5 @@
 //!
-//! The require statement.
+//! The debug statement.
 //!
 
 mod builder;
@@ -11,11 +11,11 @@ use serde_derive::Serialize;
 use crate::lexical::Token;
 
 #[derive(Debug, Serialize, PartialEq)]
-pub struct Require {
+pub struct Debug {
     expression: Vec<Token>,
 }
 
-impl Require {
+impl Debug {
     pub fn new(expression: Vec<Token>) -> Self {
         Self { expression }
     }

@@ -18,13 +18,20 @@ use crate::lexical::TokenStream;
 use crate::syntax::CircuitProgram;
 use crate::Error;
 
-pub fn parse(iterator: TokenStream) -> Result<CircuitProgram, Error> {
-    let (iterator, inputs) = InputsParser::default().parse(iterator)?;
-    let (iterator, witnesses) = WitnessParser::default().parse(iterator)?;
+pub fn parse(stream: TokenStream) -> Result<CircuitProgram, Error> {
+    let (stream, inputs) = InputsParser::default().parse(stream)?;
+    let (stream, witnesses) = WitnessParser::default().parse(stream)?;
 
     let mut statements = Vec::new();
-    let (_iterator, statement) = StatementParser::default().parse(iterator)?;
-    statements.push(statement);
+    let mut stream = stream;
+    loop {
+        if stream.peek().is_none() {
+            break;
+        }
+        let (s, statement) = StatementParser::default().parse(stream)?;
+        stream = s;
+        statements.push(statement);
+    }
 
     Ok(CircuitProgram {
         inputs,

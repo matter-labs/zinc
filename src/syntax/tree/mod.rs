@@ -13,6 +13,8 @@ pub use self::input::Builder as InputBuilder;
 pub use self::input::Input;
 pub use self::r#type::Builder as TypeBuilder;
 pub use self::r#type::Type;
+pub use self::statement::Debug;
+pub use self::statement::DebugBuilder;
 pub use self::statement::Let;
 pub use self::statement::LetBuilder;
 pub use self::statement::Require;
