@@ -19,30 +19,20 @@ statement =
   | require
   | debug
 let = 'let' [ 'mut' ] identifier [ ':' type ] '=' expression ';'
-require = 'require' '(' boolean_expression ')' ';'
+require = 'require' '(' expression ')' ';'
 debug = 'debug' '(' expression ')' ';'
 
-## Expressions
-expression = 
-  | boolean_expression
-  | arithmetic_expression
-
-boolean_expression = boolean_or_term ( '||' boolean_or_term )*
-boolean_or_term = boolean_xor_term ( '^^' boolean_xor_term )*
-boolean_xor_term = boolean_and_factor ( '&&' boolean_and_factor )*
-boolean_and_factor =
-  | '(' boolean_expression ')'
-  | '!' boolean_and_factor
-  | arithmetic_expression ( '!=' '==' '<=' '>=' '<' '>' ) arithmetic_expression
-  | literal_boolean
-  | identifier
-
-arithmetic_expression = arithmetic_term ( ('+' | '-') arithmetic_term )*
-arithmetic_term = arithmetic_factor ( ('*' | '/' | '%') arithmetic_factor )*
-arithmetic_factor =
-  | '(' arithmetic_expression ')'
-  | '-' arithmetic_factor
-  | literal_integer
+## Expression
+expression = term_logical_or ( '||' term_logical_or )*
+term_logical_or = term_logical_xor ( '^^' term_logical_xor )*
+term_logical_xor = term_logical_and ( '&&' term_logical_and )*
+term_logical_and = term_comparison ( ( '!=' '==' '<=' '>=' '<' '>' ) term_comparison )?
+term_comparison = term_arithmetic_add_sub ( ('+' | '-') term_arithmetic_add_sub )*
+term_arithmetic_add_sub = term_arithmetic_mul_div_rem ( ('*' | '/' | '%') term_arithmetic_mul_div_rem )*
+term_arithmetic_mul_div_rem =
+  | '(' expression ')'
+  | ( '-' | '!' ) term_arithmetic_mul_div_rem
+  | literal
   | identifier
 
 ```
