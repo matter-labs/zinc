@@ -11,6 +11,8 @@ mod witness;
 
 pub use self::circuit::CircuitProgram;
 pub use self::expression::Expression;
+pub use self::expression::Operand as ExpressionOperand;
+pub use self::expression::Operator as ExpressionOperator;
 pub use self::input::Builder as InputBuilder;
 pub use self::input::Input;
 pub use self::r#type::Builder as TypeBuilder;

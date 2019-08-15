@@ -10,6 +10,7 @@ use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Expression;
+use crate::syntax::ExpressionOperator;
 use crate::Error;
 
 use super::XorTermParser;
@@ -30,39 +31,41 @@ impl Default for State {
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    rpn: Expression,
-    operator: Option<Token>,
+    expression: Expression,
+    operator: Option<(ExpressionOperator, Token)>,
 }
 
 impl Parser {
     pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
+        log::trace!("expression boolean OR term");
+
         loop {
             match self.state {
                 State::XorTerm => {
                     let rpn = XorTermParser::default().parse(stream.clone())?;
-                    self.rpn.append(rpn);
+                    self.expression.append(rpn);
                     if let Some(operator) = self.operator.take() {
-                        self.rpn.push(operator);
+                        self.expression.push_operator(operator);
                     }
                     self.state = State::XorOperator;
                 }
                 State::XorOperator => {
                     let peek = stream.borrow_mut().peek();
-                    if let Some(Ok(Token {
-                        lexeme: Lexeme::Symbol(Symbol::DoubleCircumflex),
-                        ..
-                    })) = peek
-                    {
-                        let token = stream.borrow_mut().next().unwrap().unwrap();
-                        log::trace!("{}", token);
+                    match peek {
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::DoubleCircumflex),
+                            ..
+                        })) => {
+                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            log::trace!("{}", token);
 
-                        self.operator = Some(token);
-                        self.state = State::XorTerm;
-                    } else {
-                        self.state = State::End;
+                            self.operator = Some((ExpressionOperator::LogicalXor, token));
+                            self.state = State::XorTerm;
+                        }
+                        _ => self.state = State::End,
                     }
                 }
-                State::End => return Ok(self.rpn),
+                State::End => return Ok(self.expression),
             }
         }
     }

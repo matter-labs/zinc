@@ -9,12 +9,16 @@ mod tree;
 
 pub use self::error::Error;
 pub use self::parser::parse;
+pub use self::parser::ArithmeticExpressionParser;
+pub use self::parser::BooleanExpressionParser;
 pub use self::parser::ExpressionParser;
 pub use self::parser::TypeParser;
 pub use self::tree::CircuitProgram;
 pub use self::tree::Debug;
 pub use self::tree::DebugBuilder;
 pub use self::tree::Expression;
+pub use self::tree::ExpressionOperand;
+pub use self::tree::ExpressionOperator;
 pub use self::tree::Input;
 pub use self::tree::InputBuilder;
 pub use self::tree::Let;

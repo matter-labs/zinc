@@ -11,7 +11,9 @@ use serde_derive::Serialize;
 use crate::lexical::Keyword;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
-pub struct Identifier(pub String);
+pub struct Identifier {
+    name: String,
+}
 
 #[derive(Debug, Fail, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -39,13 +41,13 @@ impl TryFrom<&[u8]> for Identifier {
         }
 
         Ok(Self {
-            0: String::from_utf8_lossy(bytes).to_string(),
+            name: String::from_utf8_lossy(bytes).to_string(),
         })
     }
 }
 
 impl fmt::Display for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self.name)
     }
 }

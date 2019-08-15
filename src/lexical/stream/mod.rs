@@ -29,7 +29,7 @@ pub struct TokenStream {
     input: Vec<u8>,
     cursor: Cursor,
     peeked: Option<Result<Token, Error>>,
-    fork: Option<Cursor>,
+    backtrack: Option<Cursor>,
 }
 
 impl TokenStream {
@@ -41,7 +41,7 @@ impl TokenStream {
             input,
             cursor: Cursor::new(),
             peeked: None,
-            fork: None,
+            backtrack: None,
         }
     }
 
@@ -53,6 +53,24 @@ impl TokenStream {
             self.peeked = self.advance();
         }
         self.peeked.clone()
+    }
+
+    ///
+    /// Remembers the current `cursor` position, so the stream can be
+    /// rollbacked to it during error recovery.
+    ///
+    pub fn backtrack(&mut self) {
+        self.backtrack = Some(self.cursor);
+    }
+
+    ///
+    /// Rollbacks the cursor to `backtrack`. Also clears the `peeked` value.
+    ///
+    pub fn rollback(&mut self) {
+        if let Some(backtrack) = self.backtrack.take() {
+            self.cursor = backtrack;
+        }
+        self.peeked = None;
     }
 
     fn advance(&mut self) -> Option<Result<Token, Error>> {
@@ -143,40 +161,6 @@ impl Iterator for TokenStream {
         match self.peeked.take() {
             Some(peeked) => Some(peeked),
             None => self.advance(),
-        }
-    }
-}
-
-trait Backtrack {
-    fn fork(&mut self);
-
-    fn commit(&mut self);
-
-    fn rollback(&mut self);
-}
-
-impl Backtrack for TokenStream {
-    ///
-    /// Remembers the current `cursor` position, so the stream can be
-    /// rollbacked to it during error recovery.
-    ///
-    fn fork(&mut self) {
-        self.fork = Some(self.cursor);
-    }
-
-    ///
-    /// Clears the `fork` value so the `cursor` cannot be rollbacked anymore.
-    ///
-    fn commit(&mut self) {
-        self.fork = None;
-    }
-
-    ///
-    /// Rollbacks the cursor to `fork`.
-    ///
-    fn rollback(&mut self) {
-        if let Some(fork) = self.fork.take() {
-            self.cursor = fork;
         }
     }
 }

@@ -8,6 +8,8 @@ mod statement;
 mod r#type;
 mod witnesses;
 
+pub use self::expression::ArithmeticParser as ArithmeticExpressionParser;
+pub use self::expression::BooleanParser as BooleanExpressionParser;
 pub use self::expression::Parser as ExpressionParser;
 pub use self::inputs::Parser as InputsParser;
 pub use self::r#type::Parser as TypeParser;

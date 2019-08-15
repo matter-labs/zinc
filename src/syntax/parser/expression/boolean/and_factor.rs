@@ -6,12 +6,14 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::lexical::Lexeme;
-use crate::lexical::Literal;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
+use crate::syntax::ArithmeticExpressionParser;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::Expression;
+use crate::syntax::ExpressionOperand;
+use crate::syntax::ExpressionOperator;
 use crate::Error;
 
 use super::Parser as ExpressionParser;
@@ -22,6 +24,8 @@ pub enum State {
     UnaryExpr,
     ParenthesisExpr,
     ParenthesisClose,
+    ComparisonOperator,
+    SecondArithmeticExpr,
 }
 
 impl Default for State {
@@ -33,12 +37,14 @@ impl Default for State {
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    rpn: Expression,
-    operator: Option<Token>,
+    expression: Expression,
+    operator: Option<(ExpressionOperator, Token)>,
 }
 
 impl Parser {
     pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
+        log::trace!("expression boolean AND factor");
+
         loop {
             match self.state {
                 State::Start => {
@@ -53,7 +59,7 @@ impl Parser {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
                             log::trace!("{}", token);
 
-                            self.operator = Some(token);
+                            self.operator = Some((ExpressionOperator::LogicalNot, token));
                             self.state = State::UnaryExpr;
                         }
                         Some(Ok(Token {
@@ -66,60 +72,187 @@ impl Parser {
                             self.state = State::ParenthesisExpr;
                         }
                         Some(Ok(Token {
-                            lexeme: Lexeme::Literal(Literal::Boolean(_)),
+                            lexeme: Lexeme::Literal(literal),
                             ..
                         })) => {
+                            stream.borrow_mut().backtrack();
+                            match ArithmeticExpressionParser::default().parse(stream.clone()) {
+                                Ok(rpn) => {
+                                    self.expression.append(rpn);
+                                    self.state = State::ComparisonOperator;
+                                    continue;
+                                }
+                                Err(_error) => {
+                                    log::trace!("expression boolean AND factor ROLLBACK");
+                                    stream.borrow_mut().rollback()
+                                }
+                            }
+
                             let token = stream.borrow_mut().next().unwrap().unwrap();
                             log::trace!("{}", token);
 
-                            self.rpn.push(token);
-                            return Ok(self.rpn);
+                            self.expression
+                                .push_operand((ExpressionOperand::Literal(literal), token));
+                            return Ok(self.expression);
                         }
                         Some(Ok(Token {
-                            lexeme: Lexeme::Identifier(_),
+                            lexeme: Lexeme::Identifier(identifier),
                             ..
                         })) => {
+                            stream.borrow_mut().backtrack();
+                            match ArithmeticExpressionParser::default().parse(stream.clone()) {
+                                Ok(rpn) => {
+                                    self.expression.append(rpn);
+                                    self.state = State::ComparisonOperator;
+                                    continue;
+                                }
+                                Err(_error) => {
+                                    log::trace!("expression boolean AND factor ROLLBACK");
+                                    stream.borrow_mut().rollback()
+                                }
+                            }
+
                             let token = stream.borrow_mut().next().unwrap().unwrap();
                             log::trace!("{}", token);
 
-                            self.rpn.push(token);
-                            return Ok(self.rpn);
+                            self.expression
+                                .push_operand((ExpressionOperand::Identifier(identifier), token));
+                            return Ok(self.expression);
                         }
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
-                                location.to_owned(),
+                                location,
                                 EXPECTED.to_vec(),
-                                lexeme.to_owned(),
+                                lexeme,
                             )))
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error.to_owned())),
+                        Some(Err(error)) => return Err(Error::Lexical(error)),
                         None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                     }
                 }
                 State::UnaryExpr => {
                     let rpn = Self::default().parse(stream.clone())?;
-                    self.rpn.append(rpn);
+                    self.expression.append(rpn);
                     if let Some(operator) = self.operator.take() {
-                        self.rpn.push(operator);
+                        self.expression.push_operator(operator);
                     }
-                    return Ok(self.rpn);
+                    return Ok(self.expression);
                 }
                 State::ParenthesisExpr => {
                     let rpn = ExpressionParser::default().parse(stream.clone())?;
-                    self.rpn.append(rpn);
+                    self.expression.append(rpn);
                     self.state = State::ParenthesisClose;
                 }
                 State::ParenthesisClose => {
-                    if let Some(Ok(Token {
-                        lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
-                        ..
-                    })) = stream.borrow_mut().peek()
-                    {
-                        let token = stream.borrow_mut().next().unwrap().unwrap();
-                        log::trace!("{}", token);
+                    const EXPECTED: [&str; 1] = [")"];
 
-                        return Ok(self.rpn);
+                    let peek = stream.borrow_mut().peek();
+                    match peek {
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
+                            ..
+                        })) => {
+                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            log::trace!("{}", token);
+
+                            return Ok(self.expression);
+                        }
+                        Some(Ok(Token { lexeme, location })) => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                EXPECTED.to_vec(),
+                                lexeme,
+                            )))
+                        }
+                        Some(Err(error)) => return Err(Error::Lexical(error)),
+                        None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                     }
+                }
+                State::ComparisonOperator => {
+                    const EXPECTED: [&str; 6] = ["==", "!=", ">=", "<=", ">", "<"];
+
+                    let peek = stream.borrow_mut().peek();
+                    match peek {
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::DoubleEquals),
+                            ..
+                        })) => {
+                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            log::trace!("{}", token);
+
+                            self.operator = Some((ExpressionOperator::ComparisonEqual, token));
+                            self.state = State::SecondArithmeticExpr;
+                        }
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::ExclamationEquals),
+                            ..
+                        })) => {
+                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            log::trace!("{}", token);
+
+                            self.operator = Some((ExpressionOperator::ComparisonNotEqual, token));
+                            self.state = State::SecondArithmeticExpr;
+                        }
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::GreaterThanEquals),
+                            ..
+                        })) => {
+                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            log::trace!("{}", token);
+
+                            self.operator =
+                                Some((ExpressionOperator::ComparisonGreaterEqual, token));
+                            self.state = State::SecondArithmeticExpr;
+                        }
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::LesserThanEquals),
+                            ..
+                        })) => {
+                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            log::trace!("{}", token);
+
+                            self.operator =
+                                Some((ExpressionOperator::ComparisonLesserEqual, token));
+                            self.state = State::SecondArithmeticExpr;
+                        }
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::GreaterThan),
+                            ..
+                        })) => {
+                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            log::trace!("{}", token);
+
+                            self.operator = Some((ExpressionOperator::ComparisonGreater, token));
+                            self.state = State::SecondArithmeticExpr;
+                        }
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::LesserThan),
+                            ..
+                        })) => {
+                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            log::trace!("{}", token);
+
+                            self.operator = Some((ExpressionOperator::ComparisonLesser, token));
+                            self.state = State::SecondArithmeticExpr;
+                        }
+                        Some(Ok(Token { lexeme, location })) => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                EXPECTED.to_vec(),
+                                lexeme,
+                            )))
+                        }
+                        Some(Err(error)) => return Err(Error::Lexical(error)),
+                        None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                    }
+                }
+                State::SecondArithmeticExpr => {
+                    let rpn = ArithmeticExpressionParser::default().parse(stream.clone())?;
+                    self.expression.append(rpn);
+                    if let Some(operator) = self.operator.take() {
+                        self.expression.push_operator(operator);
+                    }
+                    return Ok(self.expression);
                 }
             }
         }
