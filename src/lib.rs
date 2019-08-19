@@ -15,9 +15,9 @@ use self::lexical::TokenStream;
 #[derive(Debug, Fail, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Error {
-    #[fail(display = "lexical: {}", _0)]
+    #[fail(display = "lexical error: {}", _0)]
     Lexical(lexical::Error),
-    #[fail(display = "syntax: {}", _0)]
+    #[fail(display = "syntax error: {}", _0)]
     Syntax(syntax::Error),
 }
 

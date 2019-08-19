@@ -16,8 +16,5 @@ witness {
     f: bool; // witness 3
 } /* This is the end of the mega ultra witness input */
 
-let mut boolean_test: bool = a || b ^^ (c || d) && !e;
-require(boolean_test);
-
-let mut integer_test: uint64 = a + b;
-debug(integer_test);
+let expression = 7 + 5 >= 12 && (true ^^ 5 != 4);
+debug(expression);

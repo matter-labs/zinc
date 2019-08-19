@@ -68,7 +68,7 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, Symbol), Error> {
                 _ => return Ok((size, Symbol::Equals)),
             },
             State::Exclamation => match byte {
-                b'=' => return Ok((size + 1, Symbol::ExclamationEquals)),
+                b'=' => return Ok((size + 1, Symbol::ExclamationMarkEquals)),
                 _ => return Ok((size, Symbol::ExclamationMark)),
             },
             State::Lesser => match byte {

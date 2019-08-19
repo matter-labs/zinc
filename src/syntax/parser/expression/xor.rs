@@ -1,5 +1,5 @@
 //!
-//! The boolean XOR term parser.
+//! The logical XOR operand parser.
 //!
 
 use std::cell::RefCell;
@@ -13,18 +13,18 @@ use crate::syntax::Expression;
 use crate::syntax::ExpressionOperator;
 use crate::Error;
 
-use super::AndFactorParser;
+use super::LogicalAndOperandParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    AndFactor,
-    AndOperator,
+    LogicalAndOperand,
+    LogicalAndOperator,
     End,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::AndFactor
+        State::LogicalAndOperand
     }
 }
 
@@ -37,19 +37,17 @@ pub struct Parser {
 
 impl Parser {
     pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
-        log::trace!("expression boolean XOR term");
-
         loop {
             match self.state {
-                State::AndFactor => {
-                    let rpn = AndFactorParser::default().parse(stream.clone())?;
+                State::LogicalAndOperand => {
+                    let rpn = LogicalAndOperandParser::default().parse(stream.clone())?;
                     self.expression.append(rpn);
                     if let Some(operator) = self.operator.take() {
                         self.expression.push_operator(operator);
                     }
-                    self.state = State::AndOperator;
+                    self.state = State::LogicalAndOperator;
                 }
-                State::AndOperator => {
+                State::LogicalAndOperator => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
                         Some(Ok(Token {
@@ -60,7 +58,7 @@ impl Parser {
                             log::trace!("{}", token);
 
                             self.operator = Some((ExpressionOperator::LogicalAnd, token));
-                            self.state = State::AndFactor;
+                            self.state = State::LogicalAndOperand;
                         }
                         _ => self.state = State::End,
                     }

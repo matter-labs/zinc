@@ -1,5 +1,5 @@
 //!
-//! The arithmetic factor parser.
+//! The multiplication/division/remainder operand parser.
 //!
 
 use std::cell::RefCell;
@@ -20,8 +20,8 @@ use super::Parser as ExpressionParser;
 #[derive(Debug, Clone, Copy)]
 pub enum State {
     Start,
-    UnaryExpr,
-    ParenthesisExpr,
+    UnaryMulDivRemOperand,
+    ParenthesisExpression,
     ParenthesisClose,
 }
 
@@ -40,15 +40,23 @@ pub struct Parser {
 
 impl Parser {
     pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
-        log::trace!("expression arithmetic factor");
-
         loop {
             match self.state {
                 State::Start => {
-                    const EXPECTED: [&str; 4] = ["-", "(", "{integer}", "{identifier}"];
+                    const EXPECTED: [&str; 5] = ["!", "-", "(", "{literal}", "{identifier}"];
 
                     let peek = stream.borrow_mut().peek();
                     match peek {
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
+                            ..
+                        })) => {
+                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            log::trace!("{}", token);
+
+                            self.operator = Some((ExpressionOperator::LogicalNot, token));
+                            self.state = State::UnaryMulDivRemOperand;
+                        }
                         Some(Ok(Token {
                             lexeme: Lexeme::Symbol(Symbol::Minus),
                             ..
@@ -57,7 +65,7 @@ impl Parser {
                             log::trace!("{}", token);
 
                             self.operator = Some((ExpressionOperator::Negation, token));
-                            self.state = State::UnaryExpr;
+                            self.state = State::UnaryMulDivRemOperand;
                         }
                         Some(Ok(Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
@@ -66,7 +74,7 @@ impl Parser {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
                             log::trace!("{}", token);
 
-                            self.state = State::ParenthesisExpr;
+                            self.state = State::ParenthesisExpression;
                         }
                         Some(Ok(Token {
                             lexeme: Lexeme::Literal(literal),
@@ -101,7 +109,7 @@ impl Parser {
                         None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                     }
                 }
-                State::UnaryExpr => {
+                State::UnaryMulDivRemOperand => {
                     let rpn = Self::default().parse(stream.clone())?;
                     self.expression.append(rpn);
                     if let Some(operator) = self.operator.take() {
@@ -109,7 +117,7 @@ impl Parser {
                     }
                     return Ok(self.expression);
                 }
-                State::ParenthesisExpr => {
+                State::ParenthesisExpression => {
                     let rpn = ExpressionParser::default().parse(stream.clone())?;
                     self.expression.append(rpn);
                     self.state = State::ParenthesisClose;

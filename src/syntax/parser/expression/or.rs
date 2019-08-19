@@ -1,9 +1,6 @@
 //!
-//! The arithmetic expression parser.
+//! The logical OR operand parser.
 //!
-
-mod factor;
-mod term;
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -16,19 +13,18 @@ use crate::syntax::Expression;
 use crate::syntax::ExpressionOperator;
 use crate::Error;
 
-use self::factor::Parser as FactorParser;
-use self::term::Parser as TermParser;
+use super::LogicalXorOperandParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    Term,
-    Operator,
+    LogicalXorOperand,
+    LogicalXorOperator,
     End,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::Term
+        State::LogicalXorOperand
     }
 }
 
@@ -41,40 +37,28 @@ pub struct Parser {
 
 impl Parser {
     pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
-        log::trace!("expression arithmetic");
-
         loop {
             match self.state {
-                State::Term => {
-                    let rpn = TermParser::default().parse(stream.clone())?;
+                State::LogicalXorOperand => {
+                    let rpn = LogicalXorOperandParser::default().parse(stream.clone())?;
                     self.expression.append(rpn);
                     if let Some(operator) = self.operator.take() {
                         self.expression.push_operator(operator);
                     }
-                    self.state = State::Operator;
+                    self.state = State::LogicalXorOperator;
                 }
-                State::Operator => {
+                State::LogicalXorOperator => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
                         Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::Plus),
+                            lexeme: Lexeme::Symbol(Symbol::DoubleCircumflex),
                             ..
                         })) => {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
                             log::trace!("{}", token);
 
-                            self.operator = Some((ExpressionOperator::Addition, token));
-                            self.state = State::Term;
-                        }
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::Minus),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
-                            self.operator = Some((ExpressionOperator::Subtraction, token));
-                            self.state = State::Term;
+                            self.operator = Some((ExpressionOperator::LogicalXor, token));
+                            self.state = State::LogicalXorOperand;
                         }
                         _ => self.state = State::End,
                     }

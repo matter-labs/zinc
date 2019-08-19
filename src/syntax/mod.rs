@@ -9,8 +9,6 @@ mod tree;
 
 pub use self::error::Error;
 pub use self::parser::parse;
-pub use self::parser::ArithmeticExpressionParser;
-pub use self::parser::BooleanExpressionParser;
 pub use self::parser::ExpressionParser;
 pub use self::parser::TypeParser;
 pub use self::tree::CircuitProgram;

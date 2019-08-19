@@ -1,5 +1,5 @@
 //!
-//! The arithmetic term parser.
+//! The addition/subtraction operand parser.
 //!
 
 use std::cell::RefCell;
@@ -13,18 +13,18 @@ use crate::syntax::Expression;
 use crate::syntax::ExpressionOperator;
 use crate::Error;
 
-use super::FactorParser;
+use super::MulDivRemOperandParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    Factor,
-    Operator,
+    MulDivRemOperand,
+    MulDivRemOperator,
     End,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::Factor
+        State::MulDivRemOperand
     }
 }
 
@@ -37,19 +37,17 @@ pub struct Parser {
 
 impl Parser {
     pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
-        log::trace!("expression arithmetic term");
-
         loop {
             match self.state {
-                State::Factor => {
-                    let rpn = FactorParser::default().parse(stream.clone())?;
+                State::MulDivRemOperand => {
+                    let rpn = MulDivRemOperandParser::default().parse(stream.clone())?;
                     self.expression.append(rpn);
                     if let Some(operator) = self.operator.take() {
                         self.expression.push_operator(operator);
                     }
-                    self.state = State::Operator;
+                    self.state = State::MulDivRemOperator;
                 }
-                State::Operator => {
+                State::MulDivRemOperator => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
                         Some(Ok(Token {
@@ -60,7 +58,7 @@ impl Parser {
                             log::trace!("{}", token);
 
                             self.operator = Some((ExpressionOperator::Multiplication, token));
-                            self.state = State::Factor;
+                            self.state = State::MulDivRemOperand;
                         }
                         Some(Ok(Token {
                             lexeme: Lexeme::Symbol(Symbol::Slash),
@@ -70,7 +68,7 @@ impl Parser {
                             log::trace!("{}", token);
 
                             self.operator = Some((ExpressionOperator::Division, token));
-                            self.state = State::Factor;
+                            self.state = State::MulDivRemOperand;
                         }
                         Some(Ok(Token {
                             lexeme: Lexeme::Symbol(Symbol::Percent),
@@ -80,7 +78,7 @@ impl Parser {
                             log::trace!("{}", token);
 
                             self.operator = Some((ExpressionOperator::Remainder, token));
-                            self.state = State::Factor;
+                            self.state = State::MulDivRemOperand;
                         }
                         _ => self.state = State::End,
                     }

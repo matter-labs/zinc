@@ -1,10 +1,6 @@
 //!
-//! The boolean expression parser.
+//! The comparison operand parser.
 //!
-
-mod and_factor;
-mod or_term;
-mod xor_term;
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -17,20 +13,18 @@ use crate::syntax::Expression;
 use crate::syntax::ExpressionOperator;
 use crate::Error;
 
-use self::and_factor::Parser as AndFactorParser;
-use self::or_term::Parser as OrTermParser;
-use self::xor_term::Parser as XorTermParser;
+use super::AddSubOperandParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    OrTerm,
-    OrOperator,
+    AddSubOperand,
+    AddSubOperator,
     End,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::OrTerm
+        State::AddSubOperand
     }
 }
 
@@ -43,30 +37,38 @@ pub struct Parser {
 
 impl Parser {
     pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
-        log::trace!("expression boolean");
-
         loop {
             match self.state {
-                State::OrTerm => {
-                    let rpn = OrTermParser::default().parse(stream.clone())?;
+                State::AddSubOperand => {
+                    let rpn = AddSubOperandParser::default().parse(stream.clone())?;
                     self.expression.append(rpn);
                     if let Some(operator) = self.operator.take() {
                         self.expression.push_operator(operator);
                     }
-                    self.state = State::OrOperator;
+                    self.state = State::AddSubOperator;
                 }
-                State::OrOperator => {
+                State::AddSubOperator => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
                         Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::DoubleVerticalBar),
+                            lexeme: Lexeme::Symbol(Symbol::Plus),
                             ..
                         })) => {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
                             log::trace!("{}", token);
 
-                            self.operator = Some((ExpressionOperator::LogicalOr, token));
-                            self.state = State::OrTerm;
+                            self.operator = Some((ExpressionOperator::Addition, token));
+                            self.state = State::AddSubOperand;
+                        }
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::Minus),
+                            ..
+                        })) => {
+                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            log::trace!("{}", token);
+
+                            self.operator = Some((ExpressionOperator::Subtraction, token));
+                            self.state = State::AddSubOperand;
                         }
                         _ => self.state = State::End,
                     }

@@ -29,7 +29,6 @@ pub struct TokenStream {
     input: Vec<u8>,
     cursor: Cursor,
     peeked: Option<Result<Token, Error>>,
-    backtrack: Option<Cursor>,
 }
 
 impl TokenStream {
@@ -41,7 +40,6 @@ impl TokenStream {
             input,
             cursor: Cursor::new(),
             peeked: None,
-            backtrack: None,
         }
     }
 
@@ -53,24 +51,6 @@ impl TokenStream {
             self.peeked = self.advance();
         }
         self.peeked.clone()
-    }
-
-    ///
-    /// Remembers the current `cursor` position, so the stream can be
-    /// rollbacked to it during error recovery.
-    ///
-    pub fn backtrack(&mut self) {
-        self.backtrack = Some(self.cursor);
-    }
-
-    ///
-    /// Rollbacks the cursor to `backtrack`. Also clears the `peeked` value.
-    ///
-    pub fn rollback(&mut self) {
-        if let Some(backtrack) = self.backtrack.take() {
-            self.cursor = backtrack;
-        }
-        self.peeked = None;
     }
 
     fn advance(&mut self) -> Option<Result<Token, Error>> {

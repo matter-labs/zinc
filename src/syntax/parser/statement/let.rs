@@ -47,22 +47,79 @@ impl Parser {
         loop {
             match self.state {
                 State::Keyword => match stream.borrow_mut().next() {
-                    Some(Ok(token)) => self.keyword(token)?,
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Keyword(Keyword::Let),
+                        ..
+                    })) => self.state = State::MutOrIdentifier,
+                    Some(Ok(Token { lexeme, location })) => {
+                        return Err(Error::Syntax(SyntaxError::Expected(
+                            location,
+                            ["let"].to_vec(),
+                            lexeme,
+                        )));
+                    }
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
                 State::MutOrIdentifier => match stream.borrow_mut().next() {
-                    Some(Ok(token)) => self.mut_or_identifier(token)?,
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Keyword(Keyword::Mut),
+                        ..
+                    })) => {
+                        self.builder.set_mutable();
+                        self.state = State::Identifier;
+                    }
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Identifier(identifier),
+                        ..
+                    })) => {
+                        self.builder.set_identifier(identifier);
+                        self.state = State::ColonOrEquals;
+                    }
+                    Some(Ok(Token { lexeme, location })) => {
+                        return Err(Error::Syntax(SyntaxError::Expected(
+                            location,
+                            ["mut", "{identifier}"].to_vec(),
+                            lexeme,
+                        )));
+                    }
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
                 State::Identifier => match stream.borrow_mut().next() {
-                    Some(Ok(token)) => self.identifier(token)?,
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Identifier(identifier),
+                        ..
+                    })) => {
+                        self.builder.set_identifier(identifier);
+                        self.state = State::ColonOrEquals;
+                    }
+                    Some(Ok(Token { lexeme, location })) => {
+                        return Err(Error::Syntax(SyntaxError::Expected(
+                            location,
+                            ["{identifier}"].to_vec(),
+                            lexeme,
+                        )));
+                    }
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
                 State::ColonOrEquals => match stream.borrow_mut().next() {
-                    Some(Ok(token)) => self.colon_or_equals(token)?,
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Symbol(Symbol::Colon),
+                        ..
+                    })) => self.state = State::Type,
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Symbol(Symbol::Equals),
+                        ..
+                    })) => self.state = State::Expression,
+                    Some(Ok(Token { lexeme, location })) => {
+                        return Err(Error::Syntax(SyntaxError::Expected(
+                            location,
+                            [":", "="].to_vec(),
+                            lexeme,
+                        )));
+                    }
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
@@ -72,7 +129,17 @@ impl Parser {
                     self.state = State::Equals;
                 }
                 State::Equals => match stream.borrow_mut().next() {
-                    Some(Ok(token)) => self.equals(token)?,
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Symbol(Symbol::Equals),
+                        ..
+                    })) => self.state = State::Expression,
+                    Some(Ok(Token { lexeme, location })) => {
+                        return Err(Error::Syntax(SyntaxError::Expected(
+                            location,
+                            ["="].to_vec(),
+                            lexeme,
+                        )));
+                    }
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
@@ -82,155 +149,22 @@ impl Parser {
                     self.state = State::Semicolon;
                 }
                 State::Semicolon => match stream.borrow_mut().next() {
-                    Some(Ok(token)) => self.semicolon(token)?,
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Symbol(Symbol::Semicolon),
+                        ..
+                    })) => self.state = State::End,
+                    Some(Ok(Token { lexeme, location })) => {
+                        return Err(Error::Syntax(SyntaxError::Expected(
+                            location,
+                            [";"].to_vec(),
+                            lexeme,
+                        )));
+                    }
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
                 State::End => return Ok(self.builder.finish()),
             }
-        }
-    }
-
-    fn keyword(&mut self, token: Token) -> Result<(), Error> {
-        log::trace!("keyword: {}", token);
-
-        const EXPECTED: [&str; 1] = ["let"];
-
-        match token {
-            Token {
-                lexeme: Lexeme::Keyword(Keyword::Let),
-                ..
-            } => {
-                self.state = State::MutOrIdentifier;
-                Ok(())
-            }
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                location,
-                EXPECTED.to_vec(),
-                lexeme,
-            ))),
-        }
-    }
-
-    fn mut_or_identifier(&mut self, token: Token) -> Result<(), Error> {
-        log::trace!("mut_or_identifier: {}", token);
-
-        const EXPECTED: [&str; 2] = ["mut", "{identifier}"];
-
-        match token {
-            Token {
-                lexeme: Lexeme::Keyword(Keyword::Mut),
-                ..
-            } => {
-                self.builder.set_mutable();
-                self.state = State::Identifier;
-                Ok(())
-            }
-            Token {
-                lexeme: Lexeme::Identifier(identifier),
-                ..
-            } => {
-                self.builder.set_identifier(identifier);
-                self.state = State::ColonOrEquals;
-                Ok(())
-            }
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                location,
-                EXPECTED.to_vec(),
-                lexeme,
-            ))),
-        }
-    }
-
-    fn identifier(&mut self, token: Token) -> Result<(), Error> {
-        log::trace!("identifier: {}", token);
-
-        const EXPECTED: [&str; 1] = ["{identifier}"];
-
-        match token {
-            Token {
-                lexeme: Lexeme::Identifier(identifier),
-                ..
-            } => {
-                self.builder.set_identifier(identifier);
-                self.state = State::ColonOrEquals;
-                Ok(())
-            }
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                location,
-                EXPECTED.to_vec(),
-                lexeme,
-            ))),
-        }
-    }
-
-    fn colon_or_equals(&mut self, token: Token) -> Result<(), Error> {
-        log::trace!("colon_or_equals: {}", token);
-
-        const EXPECTED: [&str; 2] = [":", "="];
-
-        match token {
-            Token {
-                lexeme: Lexeme::Symbol(Symbol::Colon),
-                ..
-            } => {
-                self.state = State::Type;
-                Ok(())
-            }
-            Token {
-                lexeme: Lexeme::Symbol(Symbol::Equals),
-                ..
-            } => {
-                self.state = State::Expression;
-                Ok(())
-            }
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                location,
-                EXPECTED.to_vec(),
-                lexeme,
-            ))),
-        }
-    }
-
-    fn equals(&mut self, token: Token) -> Result<(), Error> {
-        log::trace!("equals: {}", token);
-
-        const EXPECTED: [&str; 1] = ["="];
-
-        match token {
-            Token {
-                lexeme: Lexeme::Symbol(Symbol::Equals),
-                ..
-            } => {
-                self.state = State::Expression;
-                Ok(())
-            }
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                location,
-                EXPECTED.to_vec(),
-                lexeme,
-            ))),
-        }
-    }
-
-    fn semicolon(&mut self, token: Token) -> Result<(), Error> {
-        log::trace!("semicolon: {}", token);
-
-        const EXPECTED: [&str; 1] = [";"];
-
-        match token {
-            Token {
-                lexeme: Lexeme::Symbol(Symbol::Semicolon),
-                ..
-            } => {
-                self.state = State::End;
-                Ok(())
-            }
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                location,
-                EXPECTED.to_vec(),
-                lexeme,
-            ))),
         }
     }
 }

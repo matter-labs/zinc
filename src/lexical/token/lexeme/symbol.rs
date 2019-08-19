@@ -32,7 +32,7 @@ pub enum Symbol {
     GreaterThan,
 
     DoubleEquals,
-    ExclamationEquals,
+    ExclamationMarkEquals,
     LesserThanEquals,
     GreaterThanEquals,
     DoubleAmpersand,
@@ -66,7 +66,7 @@ impl From<&[u8]> for Symbol {
             b">" => Symbol::GreaterThan,
 
             b"==" => Symbol::DoubleEquals,
-            b"!=" => Symbol::ExclamationEquals,
+            b"!=" => Symbol::ExclamationMarkEquals,
             b"<=" => Symbol::LesserThanEquals,
             b">=" => Symbol::GreaterThanEquals,
             b"&&" => Symbol::DoubleAmpersand,
@@ -107,7 +107,7 @@ impl fmt::Display for Symbol {
                 Symbol::GreaterThan => ">",
 
                 Symbol::DoubleEquals => "==",
-                Symbol::ExclamationEquals => "!=",
+                Symbol::ExclamationMarkEquals => "!=",
                 Symbol::LesserThanEquals => "<=",
                 Symbol::GreaterThanEquals => ">=",
                 Symbol::DoubleAmpersand => "&&",

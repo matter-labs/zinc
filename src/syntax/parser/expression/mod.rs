@@ -2,35 +2,81 @@
 //! The expression parser.
 //!
 
-mod arithmetic;
-mod boolean;
-
-pub use self::arithmetic::Parser as ArithmeticParser;
-pub use self::boolean::Parser as BooleanParser;
+mod add_sub;
+mod and;
+mod comparison;
+mod mul_div_rem;
+mod or;
+mod xor;
 
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::lexical::Lexeme;
+use crate::lexical::Symbol;
+use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Expression;
+use crate::syntax::ExpressionOperator;
 use crate::Error;
 
+use self::add_sub::Parser as AddSubOperandParser;
+use self::and::Parser as LogicalAndOperandParser;
+use self::comparison::Parser as ComparisonOperandParser;
+use self::mul_div_rem::Parser as MulDivRemOperandParser;
+use self::or::Parser as LogicalOrOperandParser;
+use self::xor::Parser as LogicalXorOperandParser;
+
+#[derive(Debug, Clone, Copy)]
+pub enum State {
+    LogicalOrOperand,
+    LogicalOrOperator,
+    End,
+}
+
+impl Default for State {
+    fn default() -> Self {
+        State::LogicalOrOperand
+    }
+}
+
 #[derive(Default)]
-pub struct Parser {}
+pub struct Parser {
+    state: State,
+    expression: Expression,
+    operator: Option<(ExpressionOperator, Token)>,
+}
 
 impl Parser {
-    pub fn parse(self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
-        log::trace!("expression");
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
+        loop {
+            match self.state {
+                State::LogicalOrOperand => {
+                    let rpn = LogicalOrOperandParser::default().parse(stream.clone())?;
+                    self.expression.append(rpn);
+                    if let Some(operator) = self.operator.take() {
+                        self.expression.push_operator(operator);
+                    }
+                    self.state = State::LogicalOrOperator;
+                }
+                State::LogicalOrOperator => {
+                    let peek = stream.borrow_mut().peek();
+                    match peek {
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::DoubleVerticalBar),
+                            ..
+                        })) => {
+                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            log::trace!("{}", token);
 
-        stream.borrow_mut().backtrack();
-        match BooleanParser::default().parse(stream.clone()) {
-            Ok(expression) => return Ok(expression),
-            Err(error) => {
-                log::trace!("expression ROLLBACK: {}", error);
-                stream.borrow_mut().rollback();
+                            self.operator = Some((ExpressionOperator::LogicalOr, token));
+                            self.state = State::LogicalOrOperand;
+                        }
+                        _ => self.state = State::End,
+                    }
+                }
+                State::End => return Ok(self.expression),
             }
         }
-
-        ArithmeticParser::default().parse(stream)
     }
 }

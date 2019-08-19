@@ -68,7 +68,7 @@ fn main() -> Result<(), FileError> {
 fn init_logger() {
     use std::env;
     if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "compiler=info");
+        env::set_var("RUST_LOG", "compiler=info,jabc=info");
     }
     env_logger::Builder::from_default_env()
         .default_format_timestamp_nanos(true)

@@ -44,22 +44,69 @@ impl Parser {
         loop {
             match self.state {
                 State::Keyword => match stream.borrow_mut().next() {
-                    Some(Ok(token)) => self.keyword(token)?,
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Keyword(Keyword::Inputs),
+                        ..
+                    })) => self.state = State::BracketOpen,
+                    Some(Ok(Token { lexeme, location })) => {
+                        return Err(Error::Syntax(SyntaxError::Expected(
+                            location,
+                            ["inputs"].to_vec(),
+                            lexeme,
+                        )));
+                    }
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
                 State::BracketOpen => match stream.borrow_mut().next() {
-                    Some(Ok(token)) => self.bracket_open(token)?,
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
+                        ..
+                    })) => self.state = State::ElementIdentifierOrBracketClose,
+                    Some(Ok(Token { lexeme, location })) => {
+                        return Err(Error::Syntax(SyntaxError::Expected(
+                            location,
+                            ["{"].to_vec(),
+                            lexeme,
+                        )));
+                    }
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
                 State::ElementIdentifierOrBracketClose => match stream.borrow_mut().next() {
-                    Some(Ok(token)) => self.element_identifier_or_bracket_close(token)?,
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
+                        ..
+                    })) => self.state = State::End,
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Identifier(identifier),
+                        ..
+                    })) => {
+                        self.builder.set_identifier(identifier);
+                        self.state = State::ElementColon;
+                    }
+                    Some(Ok(Token { lexeme, location })) => {
+                        return Err(Error::Syntax(SyntaxError::Expected(
+                            location,
+                            ["{identifier}", "}"].to_vec(),
+                            lexeme,
+                        )));
+                    }
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
                 State::ElementColon => match stream.borrow_mut().next() {
-                    Some(Ok(token)) => self.element_colon(token)?,
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Symbol(Symbol::Colon),
+                        ..
+                    })) => self.state = State::ElementType,
+                    Some(Ok(Token { lexeme, location })) => {
+                        return Err(Error::Syntax(SyntaxError::Expected(
+                            location,
+                            [":"].to_vec(),
+                            lexeme,
+                        )));
+                    }
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
@@ -69,126 +116,25 @@ impl Parser {
                     self.state = State::ElementSemicolon;
                 }
                 State::ElementSemicolon => match stream.borrow_mut().next() {
-                    Some(Ok(token)) => self.element_semicolon(token)?,
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Symbol(Symbol::Semicolon),
+                        ..
+                    })) => {
+                        self.inputs.push(self.builder.build());
+                        self.state = State::ElementIdentifierOrBracketClose;
+                    }
+                    Some(Ok(Token { lexeme, location })) => {
+                        return Err(Error::Syntax(SyntaxError::Expected(
+                            location,
+                            [";"].to_vec(),
+                            lexeme,
+                        )));
+                    }
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
                 State::End => return Ok(self.inputs),
             }
-        }
-    }
-
-    fn keyword(&mut self, token: Token) -> Result<(), Error> {
-        log::trace!("keyword: {}", token);
-
-        const EXPECTED: [&str; 1] = ["inputs"];
-
-        match token {
-            Token {
-                lexeme: Lexeme::Keyword(Keyword::Inputs),
-                ..
-            } => {
-                self.state = State::BracketOpen;
-                Ok(())
-            }
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                location,
-                EXPECTED.to_vec(),
-                lexeme,
-            ))),
-        }
-    }
-
-    fn bracket_open(&mut self, token: Token) -> Result<(), Error> {
-        log::trace!("bracket_open: {}", token);
-
-        const EXPECTED: [&str; 1] = ["{"];
-
-        match token {
-            Token {
-                lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
-                ..
-            } => {
-                self.state = State::ElementIdentifierOrBracketClose;
-                Ok(())
-            }
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                location,
-                EXPECTED.to_vec(),
-                lexeme,
-            ))),
-        }
-    }
-
-    fn element_identifier_or_bracket_close(&mut self, token: Token) -> Result<(), Error> {
-        log::trace!("element_identifier_or_bracket_close: {}", token);
-
-        const EXPECTED: [&str; 2] = ["{identifier}", "}"];
-
-        match token {
-            Token {
-                lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
-                ..
-            } => {
-                self.state = State::End;
-                Ok(())
-            }
-            Token {
-                lexeme: Lexeme::Identifier(identifier),
-                ..
-            } => {
-                self.builder.set_identifier(identifier);
-                self.state = State::ElementColon;
-                Ok(())
-            }
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                location,
-                EXPECTED.to_vec(),
-                lexeme,
-            ))),
-        }
-    }
-
-    fn element_colon(&mut self, token: Token) -> Result<(), Error> {
-        log::trace!("element_colon: {}", token);
-
-        const EXPECTED: [&str; 1] = [":"];
-
-        match token {
-            Token {
-                lexeme: Lexeme::Symbol(Symbol::Colon),
-                ..
-            } => {
-                self.state = State::ElementType;
-                Ok(())
-            }
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                location,
-                EXPECTED.to_vec(),
-                lexeme,
-            ))),
-        }
-    }
-
-    fn element_semicolon(&mut self, token: Token) -> Result<(), Error> {
-        log::trace!("element_semicolon: {}", token);
-
-        const EXPECTED: [&str; 1] = [";"];
-
-        match token {
-            Token {
-                lexeme: Lexeme::Symbol(Symbol::Semicolon),
-                ..
-            } => {
-                self.inputs.push(self.builder.build());
-                self.state = State::ElementIdentifierOrBracketClose;
-                Ok(())
-            }
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                location,
-                EXPECTED.to_vec(),
-                lexeme,
-            ))),
         }
     }
 }
