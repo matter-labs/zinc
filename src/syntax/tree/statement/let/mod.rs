@@ -6,6 +6,8 @@ mod builder;
 
 pub use self::builder::Builder;
 
+use std::fmt;
+
 use serde_derive::Serialize;
 
 use crate::lexical::Identifier;
@@ -33,5 +35,22 @@ impl Let {
             expression,
             is_mutable,
         }
+    }
+}
+
+impl fmt::Display for Let {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "let{} {}{} = ( {} )",
+            if self.is_mutable { " mut" } else { "" },
+            self.identifier,
+            if let Some(ref r#type) = self.r#type {
+                format!(": {}", r#type)
+            } else {
+                "".to_string()
+            },
+            self.expression,
+        )
     }
 }

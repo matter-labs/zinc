@@ -54,12 +54,19 @@ fn main() -> Result<(), FileError> {
     let mut code = Vec::with_capacity(size as usize);
     file.read_to_end(&mut code).map_err(FileError::Reading)?;
 
-    let metadata = match compiler::compile(code) {
-        Ok(circuit) => serde_json::to_string(&circuit).expect("Serialization bug"),
-        Err(error) => error.to_string(),
-    };
+    let circuit = compiler::compile(code);
+    if let Ok(ref circuit) = circuit {
+        for statement in circuit.statements.iter() {
+            log::debug!("{}", statement);
+        }
+    }
+
     if args.meta {
-        log::info!("{}", metadata);
+        let metadata = match circuit {
+            Ok(circuit) => serde_json::to_string(&circuit).expect("Serialization bug"),
+            Err(error) => error.to_string(),
+        };
+        println!("{}", metadata);
     }
 
     Ok(())

@@ -34,11 +34,18 @@ keyword =
   | 'else'
   | 'match'
   
-  // types
+  // type
   | 'field'
   | ('uint1' ... 'uint126')
   | ('int1' ... 'int126')
   | 'bool'
+
+  // literal
+  | 'true'
+  | 'false'
+
+  // operator
+  | 'as'
 
 literal =
   | literal_integer

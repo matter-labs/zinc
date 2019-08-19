@@ -55,8 +55,6 @@ impl Parser {
                             ..
                         })) => {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
                             self.operator = Some((ExpressionOperator::Multiplication, token));
                             self.state = State::MulDivRemOperand;
                         }
@@ -65,8 +63,6 @@ impl Parser {
                             ..
                         })) => {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
                             self.operator = Some((ExpressionOperator::Division, token));
                             self.state = State::MulDivRemOperand;
                         }
@@ -75,8 +71,6 @@ impl Parser {
                             ..
                         })) => {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
                             self.operator = Some((ExpressionOperator::Remainder, token));
                             self.state = State::MulDivRemOperand;
                         }

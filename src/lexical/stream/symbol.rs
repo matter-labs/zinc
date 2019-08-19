@@ -21,7 +21,7 @@ pub enum State {
 #[derive(Debug, Fail, Serialize, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum Error {
-    #[fail(display = "not an symbol")]
+    #[fail(display = "not a symbol")]
     NotASymbol,
     #[fail(display = "invalid character '{}' at position {} of '{}'", _0, _1, _2)]
     InvalidCharacter(char, usize, String),

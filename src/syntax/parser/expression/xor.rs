@@ -1,5 +1,5 @@
 //!
-//! The logical XOR operand parser.
+//! The XOR operand parser.
 //!
 
 use std::cell::RefCell;
@@ -13,7 +13,7 @@ use crate::syntax::Expression;
 use crate::syntax::ExpressionOperator;
 use crate::Error;
 
-use super::LogicalAndOperandParser;
+use super::AndOperandParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -40,7 +40,7 @@ impl Parser {
         loop {
             match self.state {
                 State::LogicalAndOperand => {
-                    let rpn = LogicalAndOperandParser::default().parse(stream.clone())?;
+                    let rpn = AndOperandParser::default().parse(stream.clone())?;
                     self.expression.append(rpn);
                     if let Some(operator) = self.operator.take() {
                         self.expression.push_operator(operator);
@@ -55,9 +55,7 @@ impl Parser {
                             ..
                         })) => {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
-                            self.operator = Some((ExpressionOperator::LogicalAnd, token));
+                            self.operator = Some((ExpressionOperator::And, token));
                             self.state = State::LogicalAndOperand;
                         }
                         _ => self.state = State::End,

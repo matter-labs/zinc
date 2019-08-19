@@ -12,5 +12,6 @@ use crate::syntax::Witness;
 pub struct CircuitProgram {
     pub inputs: Vec<Input>,
     pub witnesses: Vec<Witness>,
+    #[serde(skip_serializing)]
     pub statements: Vec<Statement>,
 }

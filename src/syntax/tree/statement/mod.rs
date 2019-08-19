@@ -13,6 +13,8 @@ pub use self::r#let::Let;
 pub use self::require::Builder as RequireBuilder;
 pub use self::require::Require;
 
+use std::fmt;
+
 use serde_derive::Serialize;
 
 #[derive(Debug, Serialize, PartialEq)]
@@ -21,4 +23,14 @@ pub enum Statement {
     Require(Require),
     Let(Let),
     Debug(Debug),
+}
+
+impl fmt::Display for Statement {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Statement::Require(require) => write!(f, "{}", require),
+            Statement::Let(r#let) => write!(f, "{}", r#let),
+            Statement::Debug(debug) => write!(f, "{}", debug),
+        }
+    }
 }

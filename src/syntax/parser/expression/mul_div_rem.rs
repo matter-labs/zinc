@@ -5,29 +5,29 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
+use crate::syntax::TypeParser;
 use crate::Error;
 
-use super::Parser as ExpressionParser;
+use super::CastingOperandParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    Start,
-    UnaryMulDivRemOperand,
-    ParenthesisExpression,
-    ParenthesisClose,
+    CastingFirstOperand,
+    CastingOperator,
+    CastingSecondOperand,
+    End,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::Start
+        State::CastingFirstOperand
     }
 }
 
@@ -42,111 +42,40 @@ impl Parser {
     pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
         loop {
             match self.state {
-                State::Start => {
-                    const EXPECTED: [&str; 5] = ["!", "-", "(", "{literal}", "{identifier}"];
-
-                    let peek = stream.borrow_mut().peek();
-                    match peek {
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
-                            self.operator = Some((ExpressionOperator::LogicalNot, token));
-                            self.state = State::UnaryMulDivRemOperand;
-                        }
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::Minus),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
-                            self.operator = Some((ExpressionOperator::Negation, token));
-                            self.state = State::UnaryMulDivRemOperand;
-                        }
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
-                            self.state = State::ParenthesisExpression;
-                        }
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Literal(literal),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
-                            self.expression
-                                .push_operand((ExpressionOperand::Literal(literal), token));
-                            return Ok(self.expression);
-                        }
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Identifier(identifier),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
-                            self.expression
-                                .push_operand((ExpressionOperand::Identifier(identifier), token));
-                            return Ok(self.expression);
-                        }
-                        Some(Ok(Token { lexeme, location })) => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                EXPECTED.to_vec(),
-                                lexeme,
-                            )))
-                        }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
-                    }
-                }
-                State::UnaryMulDivRemOperand => {
-                    let rpn = Self::default().parse(stream.clone())?;
+                State::CastingFirstOperand => {
+                    let rpn = CastingOperandParser::default().parse(stream.clone())?;
                     self.expression.append(rpn);
                     if let Some(operator) = self.operator.take() {
                         self.expression.push_operator(operator);
                     }
-                    return Ok(self.expression);
+                    self.state = State::CastingOperator;
                 }
-                State::ParenthesisExpression => {
-                    let rpn = ExpressionParser::default().parse(stream.clone())?;
-                    self.expression.append(rpn);
-                    self.state = State::ParenthesisClose;
-                }
-                State::ParenthesisClose => {
-                    const EXPECTED: [&str; 1] = [")"];
-
+                State::CastingOperator => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
                         Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
+                            lexeme: Lexeme::Keyword(Keyword::As),
                             ..
                         })) => {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
-                            return Ok(self.expression);
+                            self.operator = Some((ExpressionOperator::Casting, token));
+                            self.state = State::CastingSecondOperand;
                         }
-                        Some(Ok(Token { lexeme, location })) => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                EXPECTED.to_vec(),
-                                lexeme,
-                            )))
-                        }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                        _ => self.state = State::End,
                     }
                 }
+                State::CastingSecondOperand => {
+                    let token = stream.borrow_mut().peek().unwrap().unwrap();
+
+                    let r#type = TypeParser::default().parse(stream.clone())?;
+                    self.expression
+                        .push_operand((ExpressionOperand::Type(r#type), token));
+                    if let Some(operator) = self.operator.take() {
+                        self.expression.push_operator(operator);
+                    }
+                    self.state = State::CastingOperator;
+                }
+                State::End => return Ok(self.expression),
             }
         }
     }

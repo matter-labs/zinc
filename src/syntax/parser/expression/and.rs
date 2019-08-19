@@ -1,5 +1,5 @@
 //!
-//! The logical AND operand parser.
+//! The AND operand parser.
 //!
 
 use std::cell::RefCell;
@@ -53,9 +53,7 @@ impl Parser {
                             ..
                         })) => {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
-                            self.operator = Some((ExpressionOperator::ComparisonEqual, token));
+                            self.operator = Some((ExpressionOperator::Equal, token));
                             self.state = State::ComparisonSecondOperand;
                         }
                         Some(Ok(Token {
@@ -63,9 +61,7 @@ impl Parser {
                             ..
                         })) => {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
-                            self.operator = Some((ExpressionOperator::ComparisonNotEqual, token));
+                            self.operator = Some((ExpressionOperator::NotEqual, token));
                             self.state = State::ComparisonSecondOperand;
                         }
                         Some(Ok(Token {
@@ -73,10 +69,7 @@ impl Parser {
                             ..
                         })) => {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
-                            self.operator =
-                                Some((ExpressionOperator::ComparisonGreaterEqual, token));
+                            self.operator = Some((ExpressionOperator::GreaterEqual, token));
                             self.state = State::ComparisonSecondOperand;
                         }
                         Some(Ok(Token {
@@ -84,10 +77,7 @@ impl Parser {
                             ..
                         })) => {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
-                            self.operator =
-                                Some((ExpressionOperator::ComparisonLesserEqual, token));
+                            self.operator = Some((ExpressionOperator::LesserEqual, token));
                             self.state = State::ComparisonSecondOperand;
                         }
                         Some(Ok(Token {
@@ -95,9 +85,7 @@ impl Parser {
                             ..
                         })) => {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
-                            self.operator = Some((ExpressionOperator::ComparisonGreater, token));
+                            self.operator = Some((ExpressionOperator::Greater, token));
                             self.state = State::ComparisonSecondOperand;
                         }
                         Some(Ok(Token {
@@ -105,9 +93,7 @@ impl Parser {
                             ..
                         })) => {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
-                            self.operator = Some((ExpressionOperator::ComparisonLesser, token));
+                            self.operator = Some((ExpressionOperator::Lesser, token));
                             self.state = State::ComparisonSecondOperand;
                         }
                         _ => self.state = State::End,

@@ -55,8 +55,6 @@ impl Parser {
                             ..
                         })) => {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
                             self.operator = Some((ExpressionOperator::Addition, token));
                             self.state = State::AddSubOperand;
                         }
@@ -65,8 +63,6 @@ impl Parser {
                             ..
                         })) => {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
                             self.operator = Some((ExpressionOperator::Subtraction, token));
                             self.state = State::AddSubOperand;
                         }

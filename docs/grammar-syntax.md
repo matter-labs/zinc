@@ -22,8 +22,9 @@ operand_xor = operand_and ( '&&' operand_and )*
 operand_and = operand_comparison ( ( '==' | '!=' | '>=' | '<=' | '>' | '<' ) operand_comparison )?
 operand_comparison = operand_add_sub ( ('+' | '-') operand_add_sub )*
 operand_add_sub = operand_mul_div_rem ( ('*' | '/' | '%') operand_mul_div_rem )*
-operand_mul_div_rem =
-  | ( '-' | '!' ) operand_mul_div_rem
+operand_mul_div_rem = operand_as ( 'as' type )+
+operand_as =
+  | ( '-' | '!' ) operand_as
   | '(' expression ')'
   | literal
   | identifier

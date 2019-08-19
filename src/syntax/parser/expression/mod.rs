@@ -4,6 +4,7 @@
 
 mod add_sub;
 mod and;
+mod casting;
 mod comparison;
 mod mul_div_rem;
 mod or;
@@ -21,11 +22,12 @@ use crate::syntax::ExpressionOperator;
 use crate::Error;
 
 use self::add_sub::Parser as AddSubOperandParser;
-use self::and::Parser as LogicalAndOperandParser;
+use self::and::Parser as AndOperandParser;
+use self::casting::Parser as CastingOperandParser;
 use self::comparison::Parser as ComparisonOperandParser;
 use self::mul_div_rem::Parser as MulDivRemOperandParser;
-use self::or::Parser as LogicalOrOperandParser;
-use self::xor::Parser as LogicalXorOperandParser;
+use self::or::Parser as OrOperandParser;
+use self::xor::Parser as XorOperandParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -52,7 +54,7 @@ impl Parser {
         loop {
             match self.state {
                 State::LogicalOrOperand => {
-                    let rpn = LogicalOrOperandParser::default().parse(stream.clone())?;
+                    let rpn = OrOperandParser::default().parse(stream.clone())?;
                     self.expression.append(rpn);
                     if let Some(operator) = self.operator.take() {
                         self.expression.push_operator(operator);
@@ -67,9 +69,7 @@ impl Parser {
                             ..
                         })) => {
                             let token = stream.borrow_mut().next().unwrap().unwrap();
-                            log::trace!("{}", token);
-
-                            self.operator = Some((ExpressionOperator::LogicalOr, token));
+                            self.operator = Some((ExpressionOperator::Or, token));
                             self.state = State::LogicalOrOperand;
                         }
                         _ => self.state = State::End,

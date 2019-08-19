@@ -39,9 +39,12 @@ pub enum Keyword {
     MemoryVector,
     StorageVector,
 
-    // boolean
+    // literal
     True,
     False,
+
+    // operator
+    As,
 }
 
 #[derive(Debug, Fail)]
@@ -107,6 +110,8 @@ impl TryFrom<&[u8]> for Keyword {
             b"true" => Ok(Keyword::True),
             b"false" => Ok(Keyword::False),
 
+            b"as" => Ok(Keyword::As),
+
             _unknown => Err(Error::Unknown),
         }
     }
@@ -140,6 +145,8 @@ impl fmt::Display for Keyword {
 
             Keyword::True => write!(f, "true"),
             Keyword::False => write!(f, "false"),
+
+            Keyword::As => write!(f, "as"),
         }
     }
 }

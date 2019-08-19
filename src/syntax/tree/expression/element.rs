@@ -2,6 +2,8 @@
 //! The expression element.
 //!
 
+use std::fmt;
+
 use serde_derive::Serialize;
 
 use crate::lexical::Token;
@@ -19,5 +21,11 @@ pub struct Element {
 impl Element {
     pub fn new(object: Object, token: Token) -> Self {
         Self { object, token }
+    }
+}
+
+impl fmt::Display for Element {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.object)
     }
 }
