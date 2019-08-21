@@ -13,9 +13,8 @@ use crate::syntax::Error as SyntaxError;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
+use crate::syntax::ExpressionParser;
 use crate::Error;
-
-use super::Parser as ExpressionParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {

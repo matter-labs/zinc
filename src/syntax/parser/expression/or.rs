@@ -11,9 +11,8 @@ use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionOperator;
+use crate::syntax::XorOperandParser;
 use crate::Error;
-
-use super::XorOperandParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {

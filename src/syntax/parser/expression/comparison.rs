@@ -9,11 +9,10 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
+use crate::syntax::AddSubOperandParser;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionOperator;
 use crate::Error;
-
-use super::AddSubOperandParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {

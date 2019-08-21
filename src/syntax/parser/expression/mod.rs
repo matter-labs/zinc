@@ -10,6 +10,14 @@ mod mul_div_rem;
 mod or;
 mod xor;
 
+pub use self::add_sub::Parser as AddSubOperandParser;
+pub use self::and::Parser as AndOperandParser;
+pub use self::casting::Parser as CastingOperandParser;
+pub use self::comparison::Parser as ComparisonOperandParser;
+pub use self::mul_div_rem::Parser as MulDivRemOperandParser;
+pub use self::or::Parser as OrOperandParser;
+pub use self::xor::Parser as XorOperandParser;
+
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -20,14 +28,6 @@ use crate::lexical::TokenStream;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionOperator;
 use crate::Error;
-
-use self::add_sub::Parser as AddSubOperandParser;
-use self::and::Parser as AndOperandParser;
-use self::casting::Parser as CastingOperandParser;
-use self::comparison::Parser as ComparisonOperandParser;
-use self::mul_div_rem::Parser as MulDivRemOperandParser;
-use self::or::Parser as OrOperandParser;
-use self::xor::Parser as XorOperandParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {

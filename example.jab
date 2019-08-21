@@ -5,7 +5,7 @@ inputs {
     a: uint8; // input 1
     b: field; // input 2
     c: bool; // input 3
-} /* This is the end of the mega ultra inputs input */
+} /* This is the end of the mega ultra inputs input! */
 
 /*
     This is the mega ultra witness input!
@@ -14,7 +14,6 @@ witness {
     d: int126; // witness 1
     e: field; // witness 2
     f: bool; // witness 3
-} /* This is the end of the mega ultra witness input */
+} /* This is the end of the mega ultra witness input! */
 
-let mut expression: field = 7 + 5 >= 12 as int64 && (true ^^ 5 != 4 as field);
-debug(expression);
+debug(25 + 34 / 2 - 54 % 8 + 78 * 2);

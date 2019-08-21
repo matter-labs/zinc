@@ -8,7 +8,14 @@ mod statement;
 mod r#type;
 mod witnesses;
 
+pub use self::expression::AddSubOperandParser;
+pub use self::expression::AndOperandParser;
+pub use self::expression::CastingOperandParser;
+pub use self::expression::ComparisonOperandParser;
+pub use self::expression::MulDivRemOperandParser;
+pub use self::expression::OrOperandParser;
 pub use self::expression::Parser as ExpressionParser;
+pub use self::expression::XorOperandParser;
 pub use self::inputs::Parser as InputsParser;
 pub use self::r#type::Parser as TypeParser;
 pub use self::statement::Parser as StatementParser;

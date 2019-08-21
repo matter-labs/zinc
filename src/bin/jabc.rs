@@ -9,6 +9,8 @@ use std::path::PathBuf;
 use failure::Fail;
 use structopt::StructOpt;
 
+use compiler::Statement;
+
 #[derive(Debug, StructOpt)]
 #[structopt(name = "jabc", about = "The Jabberwocky language compiler")]
 struct Arguments {
@@ -55,18 +57,28 @@ fn main() -> Result<(), FileError> {
     file.read_to_end(&mut code).map_err(FileError::Reading)?;
 
     let circuit = compiler::compile(code);
-    if let Ok(ref circuit) = circuit {
-        for statement in circuit.statements.iter() {
-            log::debug!("{}", statement);
-        }
-    }
 
     if args.meta {
         let metadata = match circuit {
-            Ok(circuit) => serde_json::to_string(&circuit).expect("Serialization bug"),
-            Err(error) => error.to_string(),
+            Ok(ref circuit) => serde_json::to_string(circuit).expect("Serialization bug"),
+            Err(ref error) => error.to_string(),
         };
         println!("{}", metadata);
+    }
+
+    match circuit {
+        Ok(circuit) => {
+            for statement in circuit.statements.into_iter() {
+                log::debug!("{}", statement);
+                if let Statement::Debug(debug) = statement {
+                    match compiler::execute(debug.expression) {
+                        Ok(field) => println!("{}", field.value),
+                        Err(error) => log::error!("{}", error),
+                    }
+                }
+            }
+        }
+        Err(error) => log::error!("{}", error),
     }
 
     Ok(())

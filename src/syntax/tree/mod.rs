@@ -10,7 +10,9 @@ mod r#type;
 mod witness;
 
 pub use self::circuit::CircuitProgram;
+pub use self::expression::Element as ExpressionElement;
 pub use self::expression::Expression;
+pub use self::expression::Object as ExpressionObject;
 pub use self::expression::Operand as ExpressionOperand;
 pub use self::expression::Operator as ExpressionOperator;
 pub use self::input::Builder as InputBuilder;

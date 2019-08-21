@@ -9,13 +9,12 @@ use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
+use crate::syntax::CastingOperandParser;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
 use crate::syntax::TypeParser;
 use crate::Error;
-
-use super::CastingOperandParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
