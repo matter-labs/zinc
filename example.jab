@@ -11,9 +11,9 @@ inputs {
     This is the mega ultra witness input!
 */
 witness {
-    d: int126; // witness 1
+    d: uint253; // witness 1
     e: field; // witness 2
     f: bool; // witness 3
 } /* This is the end of the mega ultra witness input! */
 
-debug(!false);
+debug(true != 2);

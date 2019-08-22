@@ -61,7 +61,7 @@ impl TryFrom<&[u8]> for Keyword {
     type Error = Error;
 
     fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
-        const BITLENGTH_RANGE: RangeInclusive<usize> = (1..=126);
+        const BITLENGTH_RANGE: RangeInclusive<usize> = (2..=253);
 
         if let Some(b"uint") = bytes.get(..4) {
             let bitlength = String::from_utf8_lossy(&bytes[4..]).to_string();

@@ -1,10 +1,6 @@
 //!
-//! The executor.
+//! The interpreter executor.
 //!
-
-use num_bigint::BigInt;
-use num_traits::One;
-use num_traits::Zero;
 
 use crate::interpreter::Error;
 use crate::interpreter::Field;
@@ -12,7 +8,6 @@ use crate::syntax::Expression;
 use crate::syntax::ExpressionObject;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
-use crate::syntax::Type;
 
 pub struct Executor {
     stack: Vec<Field>,
@@ -39,185 +34,140 @@ impl Executor {
                     ExpressionOperand::Identifier(_identifier) => unimplemented!(),
                     ExpressionOperand::Type(r#_type) => unimplemented!(),
                 }),
-                ExpressionObject::Operator(operator @ ExpressionOperator::Addition) => {
+                ExpressionObject::Operator(ExpressionOperator::Addition) => {
                     let operand_2 = self.stack.pop().expect("Stack bug");
                     let operand_1 = self.stack.pop().expect("Stack bug");
-
-                    if !operand_1.value_type.can_be_first_operand(operator) {
-                        return Err(Error::first_operand_operator_not_available(
-                            element.token.location,
-                            operator,
-                            operand_1,
-                        ));
-                    }
-                    if !operand_2.value_type.can_be_second_operand(operator) {
-                        return Err(Error::second_operand_operator_not_available(
-                            element.token.location,
-                            operator,
-                            operand_2,
-                        ));
-                    }
-                    if operand_1.value_type != operand_2.value_type {
-                        return Err(Error::operand_type_mismatch(
-                            element.token.location,
-                            operand_2.value_type,
-                            operand_1.value_type,
-                        ));
-                    }
-
-                    let result = operand_1.value + operand_2.value;
-                    self.stack.push(Field::new(result, Type::Field));
+                    let result = operand_1
+                        .addition(operand_2)
+                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                    self.stack.push(result);
                 }
-                ExpressionObject::Operator(operator @ ExpressionOperator::Subtraction) => {
+                ExpressionObject::Operator(ExpressionOperator::Subtraction) => {
                     let operand_2 = self.stack.pop().expect("Stack bug");
                     let operand_1 = self.stack.pop().expect("Stack bug");
-
-                    if !operand_1.value_type.can_be_first_operand(operator) {
-                        return Err(Error::first_operand_operator_not_available(
-                            element.token.location,
-                            operator,
-                            operand_1,
-                        ));
-                    }
-                    if !operand_2.value_type.can_be_second_operand(operator) {
-                        return Err(Error::second_operand_operator_not_available(
-                            element.token.location,
-                            operator,
-                            operand_2,
-                        ));
-                    }
-                    if operand_1.value_type != operand_2.value_type {
-                        return Err(Error::operand_type_mismatch(
-                            element.token.location,
-                            operand_2.value_type,
-                            operand_1.value_type,
-                        ));
-                    }
-
-                    let result = operand_1.value - operand_2.value;
-                    self.stack.push(Field::new(result, Type::Field));
+                    let result = operand_1
+                        .subtraction(operand_2)
+                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                    self.stack.push(result);
                 }
-                ExpressionObject::Operator(operator @ ExpressionOperator::Multiplication) => {
+                ExpressionObject::Operator(ExpressionOperator::Multiplication) => {
                     let operand_2 = self.stack.pop().expect("Stack bug");
                     let operand_1 = self.stack.pop().expect("Stack bug");
-
-                    if !operand_1.value_type.can_be_first_operand(operator) {
-                        return Err(Error::first_operand_operator_not_available(
-                            element.token.location,
-                            operator,
-                            operand_1,
-                        ));
-                    }
-                    if !operand_2.value_type.can_be_second_operand(operator) {
-                        return Err(Error::second_operand_operator_not_available(
-                            element.token.location,
-                            operator,
-                            operand_2,
-                        ));
-                    }
-                    if operand_1.value_type != operand_2.value_type {
-                        return Err(Error::operand_type_mismatch(
-                            element.token.location,
-                            operand_2.value_type,
-                            operand_1.value_type,
-                        ));
-                    }
-
-                    let result = operand_1.value * operand_2.value;
-                    self.stack.push(Field::new(result, Type::Field));
+                    let result = operand_1
+                        .multiplication(operand_2)
+                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                    self.stack.push(result);
                 }
-                ExpressionObject::Operator(operator @ ExpressionOperator::Division) => {
+                ExpressionObject::Operator(ExpressionOperator::Division) => {
                     let operand_2 = self.stack.pop().expect("Stack bug");
                     let operand_1 = self.stack.pop().expect("Stack bug");
-
-                    if !operand_1.value_type.can_be_first_operand(operator) {
-                        return Err(Error::first_operand_operator_not_available(
-                            element.token.location,
-                            operator,
-                            operand_1,
-                        ));
-                    }
-                    if !operand_2.value_type.can_be_second_operand(operator) {
-                        return Err(Error::second_operand_operator_not_available(
-                            element.token.location,
-                            operator,
-                            operand_2,
-                        ));
-                    }
-                    if operand_1.value_type != operand_2.value_type {
-                        return Err(Error::operand_type_mismatch(
-                            element.token.location,
-                            operand_2.value_type,
-                            operand_1.value_type,
-                        ));
-                    }
-
-                    let result = operand_1.value / operand_2.value;
-                    self.stack.push(Field::new(result, Type::Field));
+                    let result = operand_1
+                        .division(operand_2)
+                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                    self.stack.push(result);
                 }
-                ExpressionObject::Operator(operator @ ExpressionOperator::Remainder) => {
+                ExpressionObject::Operator(ExpressionOperator::Remainder) => {
                     let operand_2 = self.stack.pop().expect("Stack bug");
                     let operand_1 = self.stack.pop().expect("Stack bug");
-
-                    if !operand_1.value_type.can_be_first_operand(operator) {
-                        return Err(Error::first_operand_operator_not_available(
-                            element.token.location,
-                            operator,
-                            operand_1,
-                        ));
-                    }
-                    if !operand_2.value_type.can_be_second_operand(operator) {
-                        return Err(Error::second_operand_operator_not_available(
-                            element.token.location,
-                            operator,
-                            operand_2,
-                        ));
-                    }
-                    if operand_1.value_type != operand_2.value_type {
-                        return Err(Error::operand_type_mismatch(
-                            element.token.location,
-                            operand_2.value_type,
-                            operand_1.value_type,
-                        ));
-                    }
-
-                    let result = operand_1.value % operand_2.value;
-                    self.stack.push(Field::new(result, Type::Field));
+                    let result = operand_1
+                        .remainder(operand_2)
+                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                    self.stack.push(result);
                 }
-                ExpressionObject::Operator(operator @ ExpressionOperator::Negation) => {
+                ExpressionObject::Operator(ExpressionOperator::Negation) => {
                     let operand = self.stack.pop().expect("Stack bug");
-
-                    if !operand.value_type.can_be_first_operand(operator) {
-                        return Err(Error::first_operand_operator_not_available(
-                            element.token.location,
-                            operator,
-                            operand,
-                        ));
-                    }
-
-                    let result = -operand.value;
-                    self.stack.push(Field::new(result, Type::Field));
+                    let result = operand
+                        .negation()
+                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                    self.stack.push(result);
                 }
-                ExpressionObject::Operator(operator @ ExpressionOperator::Not) => {
+                ExpressionObject::Operator(ExpressionOperator::Equal) => {
+                    let operand_2 = self.stack.pop().expect("Stack bug");
+                    let operand_1 = self.stack.pop().expect("Stack bug");
+                    let result = operand_1
+                        .equal(operand_2)
+                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                    self.stack.push(result);
+                }
+                ExpressionObject::Operator(ExpressionOperator::NotEqual) => {
+                    let operand_2 = self.stack.pop().expect("Stack bug");
+                    let operand_1 = self.stack.pop().expect("Stack bug");
+                    let result = operand_1
+                        .not_equal(operand_2)
+                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                    self.stack.push(result);
+                }
+                ExpressionObject::Operator(ExpressionOperator::GreaterEqual) => {
+                    let operand_2 = self.stack.pop().expect("Stack bug");
+                    let operand_1 = self.stack.pop().expect("Stack bug");
+                    let result = operand_1
+                        .greater_equal(operand_2)
+                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                    self.stack.push(result);
+                }
+                ExpressionObject::Operator(ExpressionOperator::LesserEqual) => {
+                    let operand_2 = self.stack.pop().expect("Stack bug");
+                    let operand_1 = self.stack.pop().expect("Stack bug");
+                    let result = operand_1
+                        .lesser_equal(operand_2)
+                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                    self.stack.push(result);
+                }
+                ExpressionObject::Operator(ExpressionOperator::Greater) => {
+                    let operand_2 = self.stack.pop().expect("Stack bug");
+                    let operand_1 = self.stack.pop().expect("Stack bug");
+                    let result = operand_1
+                        .greater(operand_2)
+                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                    self.stack.push(result);
+                }
+                ExpressionObject::Operator(ExpressionOperator::Lesser) => {
+                    let operand_2 = self.stack.pop().expect("Stack bug");
+                    let operand_1 = self.stack.pop().expect("Stack bug");
+                    let result = operand_1
+                        .lesser(operand_2)
+                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                    self.stack.push(result);
+                }
+                ExpressionObject::Operator(ExpressionOperator::Or) => {
+                    let operand_2 = self.stack.pop().expect("Stack bug");
+                    let operand_1 = self.stack.pop().expect("Stack bug");
+                    let result = operand_1
+                        .or(operand_2)
+                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                    self.stack.push(result);
+                }
+                ExpressionObject::Operator(ExpressionOperator::Xor) => {
+                    let operand_2 = self.stack.pop().expect("Stack bug");
+                    let operand_1 = self.stack.pop().expect("Stack bug");
+                    let result = operand_1
+                        .xor(operand_2)
+                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                    self.stack.push(result);
+                }
+                ExpressionObject::Operator(ExpressionOperator::And) => {
+                    let operand_2 = self.stack.pop().expect("Stack bug");
+                    let operand_1 = self.stack.pop().expect("Stack bug");
+                    let result = operand_1
+                        .and(operand_2)
+                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                    self.stack.push(result);
+                }
+                ExpressionObject::Operator(ExpressionOperator::Not) => {
                     let operand = self.stack.pop().expect("Stack bug");
-
-                    if !operand.value_type.can_be_first_operand(operator) {
-                        return Err(Error::first_operand_operator_not_available(
-                            element.token.location,
-                            operator,
-                            operand,
-                        ));
-                    }
-
-                    let result = if operand.value.is_zero() {
-                        BigInt::one()
-                    } else if operand.value.is_one() {
-                        BigInt::zero()
-                    } else {
-                        panic!("Invalid boolean value");
-                    };
-                    self.stack.push(Field::new(result, Type::Field));
+                    let result = operand
+                        .not()
+                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                    self.stack.push(result);
                 }
+                //                ExpressionObject::Operator(ExpressionOperator::Casting) => {
+                //                    let operand = self.stack.pop().expect("Stack bug");
+                //                    let operand = self.stack.pop().expect("Stack bug");
+                //                    let result = operand
+                //                        .casting()
+                //                        .map_err(move |error| Error::Field(element.token.location, error))?;
+                //                    self.stack.push(result);
+                //                }
                 _ => unimplemented!(),
             }
         }

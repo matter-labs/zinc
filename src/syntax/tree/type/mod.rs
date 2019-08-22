@@ -86,6 +86,9 @@ impl Type {
             (Self::Field, ExpressionOperator::Greater) => true,
             (Self::Field, ExpressionOperator::Lesser) => true,
 
+            (Self::Bool, ExpressionOperator::Equal) => true,
+            (Self::Bool, ExpressionOperator::NotEqual) => true,
+
             (Self::Bool, ExpressionOperator::Or) => true,
             (Self::Bool, ExpressionOperator::Xor) => true,
             (Self::Bool, ExpressionOperator::And) => true,
@@ -136,6 +139,9 @@ impl Type {
             (Self::Field, ExpressionOperator::LesserEqual) => true,
             (Self::Field, ExpressionOperator::Greater) => true,
             (Self::Field, ExpressionOperator::Lesser) => true,
+
+            (Self::Bool, ExpressionOperator::Equal) => true,
+            (Self::Bool, ExpressionOperator::NotEqual) => true,
 
             (Self::Bool, ExpressionOperator::Or) => true,
             (Self::Bool, ExpressionOperator::Xor) => true,
