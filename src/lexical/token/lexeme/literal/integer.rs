@@ -13,29 +13,25 @@ pub enum Integer {
     Hexadecimal { value: String },
 }
 
-impl From<&[u8]> for Integer {
-    fn from(bytes: &[u8]) -> Self {
-        if let Some(b"0x") = bytes.get(0..2) {
-            Integer::Hexadecimal {
-                value: String::from_utf8_lossy(&bytes[2..]).to_string(),
-            }
-        } else {
-            Integer::Decimal {
-                value: String::from_utf8_lossy(bytes).to_string(),
-            }
+impl Integer {
+    pub fn decimal(bytes: Vec<u8>) -> Self {
+        Self::Decimal {
+            value: String::from_utf8_lossy(&bytes).to_string(),
+        }
+    }
+
+    pub fn hexadecimal(bytes: Vec<u8>) -> Self {
+        Self::Hexadecimal {
+            value: String::from_utf8_lossy(&bytes).to_string(),
         }
     }
 }
 
 impl fmt::Display for Integer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Integer::Decimal { value } => value,
-                Integer::Hexadecimal { value } => value,
-            }
-        )
+        match self {
+            Integer::Decimal { value } => write!(f, "{}", value),
+            Integer::Hexadecimal { value } => write!(f, "{}", value),
+        }
     }
 }

@@ -30,10 +30,10 @@ pub enum Keyword {
     Match,
 
     // type
+    Bool,
     Uint { bitlength: usize },
     Int { bitlength: usize },
     Field,
-    Bool,
     Struct,
     Enum,
     MemoryVector,
@@ -100,8 +100,8 @@ impl TryFrom<&[u8]> for Keyword {
             b"else" => Ok(Keyword::Else),
             b"match" => Ok(Keyword::Match),
 
-            b"field" => Ok(Keyword::Field),
             b"bool" => Ok(Keyword::Bool),
+            b"field" => Ok(Keyword::Field),
             b"struct" => Ok(Keyword::Struct),
             b"enum" => Ok(Keyword::Enum),
             b"memory_vector" => Ok(Keyword::MemoryVector),
@@ -134,10 +134,10 @@ impl fmt::Display for Keyword {
             Keyword::Else => write!(f, "else"),
             Keyword::Match => write!(f, "match"),
 
+            Keyword::Bool => write!(f, "bool"),
             Keyword::Uint { bitlength } => write!(f, "uint{}", bitlength),
             Keyword::Int { bitlength } => write!(f, "int{}", bitlength),
             Keyword::Field => write!(f, "field"),
-            Keyword::Bool => write!(f, "bool"),
             Keyword::Struct => write!(f, "struct"),
             Keyword::Enum => write!(f, "enum"),
             Keyword::MemoryVector => write!(f, "memory_vector"),

@@ -12,8 +12,8 @@ use crate::lexical::Keyword;
 #[derive(Debug, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case", tag = "value")]
 pub enum Boolean {
-    True,
     False,
+    True,
 }
 
 impl TryFrom<Keyword> for Boolean {
@@ -21,9 +21,8 @@ impl TryFrom<Keyword> for Boolean {
 
     fn try_from(keyword: Keyword) -> Result<Self, Self::Error> {
         Ok(match keyword {
-            Keyword::True => Boolean::True,
             Keyword::False => Boolean::False,
-
+            Keyword::True => Boolean::True,
             unknown => return Err(unknown),
         })
     }
@@ -31,13 +30,9 @@ impl TryFrom<Keyword> for Boolean {
 
 impl fmt::Display for Boolean {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Boolean::True => "true",
-                Boolean::False => "false",
-            }
-        )
+        match self {
+            Boolean::False => write!(f, "false"),
+            Boolean::True => write!(f, "true"),
+        }
     }
 }

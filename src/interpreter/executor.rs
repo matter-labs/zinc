@@ -3,15 +3,11 @@
 //!
 
 use num_bigint::BigInt;
-use num_traits::Num;
 use num_traits::One;
 use num_traits::Zero;
 
 use crate::interpreter::Error;
 use crate::interpreter::Field;
-use crate::lexical::BooleanLiteral;
-use crate::lexical::IntegerLiteral;
-use crate::lexical::Literal;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionObject;
 use crate::syntax::ExpressionOperand;
@@ -39,26 +35,7 @@ impl Executor {
         for element in expression.elements.into_iter() {
             match element.object {
                 ExpressionObject::Operand(operand) => self.stack.push(match operand {
-                    ExpressionOperand::Literal(Literal::Boolean(BooleanLiteral::False)) => {
-                        Field::new(BigInt::zero(), Type::Bool)
-                    }
-                    ExpressionOperand::Literal(Literal::Boolean(BooleanLiteral::True)) => {
-                        Field::new(BigInt::one(), Type::Bool)
-                    }
-                    ExpressionOperand::Literal(Literal::Integer(IntegerLiteral::Decimal {
-                        value,
-                    })) => {
-                        let value = BigInt::from_str_radix(value.as_str(), 10)
-                            .expect("Integer literal parsing bug");
-                        Field::new(value, Type::Field)
-                    }
-                    ExpressionOperand::Literal(Literal::Integer(IntegerLiteral::Hexadecimal {
-                        value,
-                    })) => {
-                        let value = BigInt::from_str_radix(value.as_str(), 16)
-                            .expect("Integer literal parsing bug");
-                        Field::new(value, Type::Field)
-                    }
+                    ExpressionOperand::Literal(literal) => Field::from(literal),
                     ExpressionOperand::Identifier(_identifier) => unimplemented!(),
                     ExpressionOperand::Type(r#_type) => unimplemented!(),
                 }),
@@ -219,6 +196,26 @@ impl Executor {
                     }
 
                     let result = -operand.value;
+                    self.stack.push(Field::new(result, Type::Field));
+                }
+                ExpressionObject::Operator(operator @ ExpressionOperator::Not) => {
+                    let operand = self.stack.pop().expect("Stack bug");
+
+                    if !operand.value_type.can_be_first_operand(operator) {
+                        return Err(Error::first_operand_operator_not_available(
+                            element.token.location,
+                            operator,
+                            operand,
+                        ));
+                    }
+
+                    let result = if operand.value.is_zero() {
+                        BigInt::one()
+                    } else if operand.value.is_one() {
+                        BigInt::zero()
+                    } else {
+                        panic!("Invalid boolean value");
+                    };
                     self.stack.push(Field::new(result, Type::Field));
                 }
                 _ => unimplemented!(),

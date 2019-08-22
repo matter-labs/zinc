@@ -57,7 +57,7 @@ impl TokenStream {
         while let Some(byte) = self.input.get(self.cursor.index).copied() {
             if !Alphabet::contains(byte) {
                 let location = Location::new(self.cursor.line, self.cursor.column);
-                return Some(Err(Error::Forbidden(location, char::from(byte))));
+                return Some(Err(Error::InvalidCharacter(location, char::from(byte))));
             }
 
             if byte.is_ascii_whitespace() {

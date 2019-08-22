@@ -65,6 +65,6 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, usize, usize, Comment), Error> {
         column += 1;
     }
 
-    let comment = Comment(String::from_utf8_lossy(&bytes[..size]).to_string());
+    let comment = Comment::new(String::from_utf8_lossy(&bytes[..size]).to_string());
     Ok((size, lines, column, comment))
 }

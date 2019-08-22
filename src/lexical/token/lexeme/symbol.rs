@@ -9,13 +9,13 @@ use serde_derive::Serialize;
 #[derive(Debug, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum Symbol {
+    // simple
     ParenthesisLeft,
     ParenthesisRight,
     BracketSquareLeft,
     BracketSquareRight,
     BracketCurlyLeft,
     BracketCurlyRight,
-
     Dot,
     Colon,
     Semicolon,
@@ -31,6 +31,7 @@ pub enum Symbol {
     LesserThan,
     GreaterThan,
 
+    // complex
     DoubleEquals,
     ExclamationMarkEquals,
     LesserThanEquals,
@@ -49,7 +50,6 @@ impl From<&[u8]> for Symbol {
             b"]" => Symbol::BracketSquareRight,
             b"{" => Symbol::BracketCurlyLeft,
             b"}" => Symbol::BracketCurlyRight,
-
             b"." => Symbol::Dot,
             b":" => Symbol::Colon,
             b";" => Symbol::Semicolon,
@@ -80,40 +80,35 @@ impl From<&[u8]> for Symbol {
 
 impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Symbol::ParenthesisLeft => "(",
-                Symbol::ParenthesisRight => ")",
-                Symbol::BracketSquareLeft => "[",
-                Symbol::BracketSquareRight => "]",
-                Symbol::BracketCurlyLeft => "{",
-                Symbol::BracketCurlyRight => "}",
+        match self {
+            Symbol::ParenthesisLeft => write!(f, "("),
+            Symbol::ParenthesisRight => write!(f, ")"),
+            Symbol::BracketSquareLeft => write!(f, "["),
+            Symbol::BracketSquareRight => write!(f, "]"),
+            Symbol::BracketCurlyLeft => write!(f, "{{"),
+            Symbol::BracketCurlyRight => write!(f, "}}"),
+            Symbol::Dot => write!(f, "."),
+            Symbol::Colon => write!(f, ":"),
+            Symbol::Semicolon => write!(f, ";"),
+            Symbol::Comma => write!(f, ","),
+            Symbol::Equals => write!(f, "="),
+            Symbol::Plus => write!(f, "+"),
+            Symbol::Minus => write!(f, "-"),
+            Symbol::Asterisk => write!(f, "*"),
+            Symbol::Slash => write!(f, "/"),
+            Symbol::Percent => write!(f, "%"),
+            Symbol::Backslash => write!(f, "\\"),
+            Symbol::ExclamationMark => write!(f, "!"),
+            Symbol::LesserThan => write!(f, "<"),
+            Symbol::GreaterThan => write!(f, ">"),
 
-                Symbol::Dot => ".",
-                Symbol::Colon => ":",
-                Symbol::Semicolon => ";",
-                Symbol::Comma => ",",
-                Symbol::Equals => "=",
-                Symbol::Plus => "+",
-                Symbol::Minus => "-",
-                Symbol::Asterisk => "*",
-                Symbol::Slash => "/",
-                Symbol::Percent => "%",
-                Symbol::Backslash => "\\",
-                Symbol::ExclamationMark => "!",
-                Symbol::LesserThan => "<",
-                Symbol::GreaterThan => ">",
-
-                Symbol::DoubleEquals => "==",
-                Symbol::ExclamationMarkEquals => "!=",
-                Symbol::LesserThanEquals => "<=",
-                Symbol::GreaterThanEquals => ">=",
-                Symbol::DoubleAmpersand => "&&",
-                Symbol::DoubleVerticalBar => "||",
-                Symbol::DoubleCircumflex => "^^",
-            }
-        )
+            Symbol::DoubleEquals => write!(f, "=="),
+            Symbol::ExclamationMarkEquals => write!(f, "!="),
+            Symbol::LesserThanEquals => write!(f, "<="),
+            Symbol::GreaterThanEquals => write!(f, ">="),
+            Symbol::DoubleAmpersand => write!(f, "&&"),
+            Symbol::DoubleVerticalBar => write!(f, "||"),
+            Symbol::DoubleCircumflex => write!(f, "^^"),
+        }
     }
 }

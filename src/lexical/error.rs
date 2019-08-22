@@ -13,9 +13,9 @@ use crate::lexical::SymbolParserError;
 #[serde(rename_all = "snake_case")]
 pub enum Error {
     #[fail(display = "{} character '{}' is currently forbidden", _0, _1)]
-    Forbidden(Location, char),
-    #[fail(display = "{} invalid integer literal: {}", _0, _1)]
-    InvalidIntegerLiteral(Location, IntegerParserError),
+    InvalidCharacter(Location, char),
     #[fail(display = "{} invalid symbol: {}", _0, _1)]
     InvalidSymbol(Location, SymbolParserError),
+    #[fail(display = "{} invalid integer literal: {}", _0, _1)]
+    InvalidIntegerLiteral(Location, IntegerParserError),
 }

@@ -15,19 +15,15 @@ use serde_derive::Serialize;
 #[derive(Debug, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum Literal {
-    Integer(Integer),
     Boolean(Boolean),
+    Integer(Integer),
 }
 
 impl fmt::Display for Literal {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Literal::Integer(integer) => integer.to_string(),
-                Literal::Boolean(boolean) => boolean.to_string(),
-            }
-        )
+        match self {
+            Literal::Boolean(boolean) => write!(f, "{}", boolean),
+            Literal::Integer(integer) => write!(f, "{}", integer),
+        }
     }
 }
