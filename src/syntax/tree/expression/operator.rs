@@ -42,28 +42,28 @@ pub enum Operator {
 impl fmt::Display for Operator {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Operator::Or => write!(f, "||"),
-            Operator::Xor => write!(f, "^^"),
-            Operator::And => write!(f, "&&"),
+            Self::Or => write!(f, "||"),
+            Self::Xor => write!(f, "^^"),
+            Self::And => write!(f, "&&"),
 
-            Operator::Equal => write!(f, "=="),
-            Operator::NotEqual => write!(f, "!="),
-            Operator::GreaterEqual => write!(f, ">="),
-            Operator::LesserEqual => write!(f, "<="),
-            Operator::Greater => write!(f, ">"),
-            Operator::Lesser => write!(f, "<"),
+            Self::Equal => write!(f, "=="),
+            Self::NotEqual => write!(f, "!="),
+            Self::GreaterEqual => write!(f, ">="),
+            Self::LesserEqual => write!(f, "<="),
+            Self::Greater => write!(f, ">"),
+            Self::Lesser => write!(f, "<"),
 
-            Operator::Addition => write!(f, "+"),
-            Operator::Subtraction => write!(f, "-"),
-            Operator::Multiplication => write!(f, "*"),
-            Operator::Division => write!(f, "/"),
-            Operator::Remainder => write!(f, "%"),
+            Self::Addition => write!(f, "+"),
+            Self::Subtraction => write!(f, "-"),
+            Self::Multiplication => write!(f, "*"),
+            Self::Division => write!(f, "/"),
+            Self::Remainder => write!(f, "%"),
 
-            Operator::Casting => write!(f, "as"),
+            Self::Casting => write!(f, "as"),
 
-            Operator::Not => write!(f, "!"),
+            Self::Not => write!(f, "!"),
 
-            Operator::Negation => write!(f, "-"),
+            Self::Negation => write!(f, "-"),
         }
     }
 }

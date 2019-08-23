@@ -64,11 +64,13 @@ impl Parser {
                 State::LogicalOrOperator => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::DoubleVerticalBar),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Symbol(Symbol::DoubleVerticalBar),
+                                ..
+                            },
+                        )) => {
+                            stream.borrow_mut().next();
                             self.operator = Some((ExpressionOperator::Or, token));
                             self.state = State::LogicalOrOperand;
                         }

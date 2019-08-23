@@ -17,6 +17,8 @@ pub enum State {
 #[derive(Debug, Fail, Serialize, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum Error {
+    #[fail(display = "unexpected end")]
+    UnexpectedEnd,
     #[fail(display = "not an integer")]
     NotAnInteger,
     #[fail(
@@ -45,9 +47,11 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, IntegerLiteral), Error> {
             State::Start => {
                 if byte == b'0' {
                     value.push(byte);
+                    size += 1;
                     state = State::ZeroOrHexadecimal;
                 } else if byte.is_ascii_digit() {
                     value.push(byte);
+                    size += 1;
                     state = State::Decimal;
                 } else {
                     return Err(Error::NotAnInteger);
@@ -55,6 +59,7 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, IntegerLiteral), Error> {
             }
             State::ZeroOrHexadecimal => {
                 if byte == b'x' {
+                    size += 1;
                     state = State::Hexadecimal;
                 } else if byte.is_ascii_alphabetic() {
                     return Err(Error::InvalidDecimalCharacter(
@@ -69,6 +74,7 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, IntegerLiteral), Error> {
             State::Decimal => {
                 if byte.is_ascii_digit() {
                     value.push(byte);
+                    size += 1;
                 } else if byte.is_ascii_alphabetic() {
                     return Err(Error::InvalidDecimalCharacter(
                         char::from(byte),
@@ -82,6 +88,7 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, IntegerLiteral), Error> {
             State::Hexadecimal => {
                 if byte.is_ascii_hexdigit() {
                     value.push(byte);
+                    size += 1;
                 } else if byte != b'_' && (byte.is_ascii_alphabetic() || size <= 2) {
                     return Err(Error::InvalidHexadecimalCharacter(
                         char::from(byte),
@@ -93,9 +100,7 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, IntegerLiteral), Error> {
                 }
             }
         }
-
-        size += 1;
     }
 
-    unreachable!();
+    Err(Error::UnexpectedEnd)
 }

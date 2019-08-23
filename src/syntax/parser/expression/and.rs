@@ -47,51 +47,63 @@ impl Parser {
                 State::ComparisonOperator => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::DoubleEquals),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Symbol(Symbol::DoubleEquals),
+                                ..
+                            },
+                        )) => {
+                            stream.borrow_mut().next();
                             self.operator = Some((ExpressionOperator::Equal, token));
                             self.state = State::ComparisonSecondOperand;
                         }
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::ExclamationMarkEquals),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Symbol(Symbol::ExclamationMarkEquals),
+                                ..
+                            },
+                        )) => {
+                            stream.borrow_mut().next();
                             self.operator = Some((ExpressionOperator::NotEqual, token));
                             self.state = State::ComparisonSecondOperand;
                         }
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::GreaterThanEquals),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Symbol(Symbol::GreaterThanEquals),
+                                ..
+                            },
+                        )) => {
+                            stream.borrow_mut().next();
                             self.operator = Some((ExpressionOperator::GreaterEqual, token));
                             self.state = State::ComparisonSecondOperand;
                         }
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::LesserThanEquals),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Symbol(Symbol::LesserThanEquals),
+                                ..
+                            },
+                        )) => {
+                            stream.borrow_mut().next();
                             self.operator = Some((ExpressionOperator::LesserEqual, token));
                             self.state = State::ComparisonSecondOperand;
                         }
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::GreaterThan),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Symbol(Symbol::GreaterThan),
+                                ..
+                            },
+                        )) => {
+                            stream.borrow_mut().next();
                             self.operator = Some((ExpressionOperator::Greater, token));
                             self.state = State::ComparisonSecondOperand;
                         }
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::LesserThan),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Symbol(Symbol::LesserThan),
+                                ..
+                            },
+                        )) => {
+                            stream.borrow_mut().next();
                             self.operator = Some((ExpressionOperator::Lesser, token));
                             self.state = State::ComparisonSecondOperand;
                         }

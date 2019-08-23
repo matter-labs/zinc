@@ -8,9 +8,10 @@ use crate::syntax::Expression;
 use crate::syntax::ExpressionObject;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
+use crate::syntax::Type;
 
 pub struct Executor {
-    stack: Vec<Field>,
+    stack: Vec<StackElement>,
 }
 
 impl Default for Executor {
@@ -30,148 +31,252 @@ impl Executor {
         for element in expression.elements.into_iter() {
             match element.object {
                 ExpressionObject::Operand(operand) => self.stack.push(match operand {
-                    ExpressionOperand::Literal(literal) => Field::from(literal),
+                    ExpressionOperand::Literal(literal) => {
+                        StackElement::Field(Field::from(literal))
+                    }
+                    ExpressionOperand::Type(r#type) => StackElement::Type(r#type),
                     ExpressionOperand::Identifier(_identifier) => unimplemented!(),
-                    ExpressionOperand::Type(r#_type) => unimplemented!(),
                 }),
                 ExpressionObject::Operator(ExpressionOperator::Addition) => {
-                    let operand_2 = self.stack.pop().expect("Stack bug");
-                    let operand_1 = self.stack.pop().expect("Stack bug");
-                    let result = operand_1
-                        .addition(operand_2)
-                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                    self.stack.push(result);
+                    if let (
+                        Some(StackElement::Field(field_2)),
+                        Some(StackElement::Field(field_1)),
+                    ) = (self.stack.pop(), self.stack.pop())
+                    {
+                        let result = field_1
+                            .add(field_2)
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Subtraction) => {
-                    let operand_2 = self.stack.pop().expect("Stack bug");
-                    let operand_1 = self.stack.pop().expect("Stack bug");
-                    let result = operand_1
-                        .subtraction(operand_2)
-                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                    self.stack.push(result);
+                    if let (
+                        Some(StackElement::Field(field_2)),
+                        Some(StackElement::Field(field_1)),
+                    ) = (self.stack.pop(), self.stack.pop())
+                    {
+                        let result = field_1
+                            .subtract(field_2)
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Multiplication) => {
-                    let operand_2 = self.stack.pop().expect("Stack bug");
-                    let operand_1 = self.stack.pop().expect("Stack bug");
-                    let result = operand_1
-                        .multiplication(operand_2)
-                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                    self.stack.push(result);
+                    if let (
+                        Some(StackElement::Field(field_2)),
+                        Some(StackElement::Field(field_1)),
+                    ) = (self.stack.pop(), self.stack.pop())
+                    {
+                        let result = field_1
+                            .multiply(field_2)
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Division) => {
-                    let operand_2 = self.stack.pop().expect("Stack bug");
-                    let operand_1 = self.stack.pop().expect("Stack bug");
-                    let result = operand_1
-                        .division(operand_2)
-                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                    self.stack.push(result);
+                    if let (
+                        Some(StackElement::Field(field_2)),
+                        Some(StackElement::Field(field_1)),
+                    ) = (self.stack.pop(), self.stack.pop())
+                    {
+                        let result = field_1
+                            .divide(field_2)
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Remainder) => {
-                    let operand_2 = self.stack.pop().expect("Stack bug");
-                    let operand_1 = self.stack.pop().expect("Stack bug");
-                    let result = operand_1
-                        .remainder(operand_2)
-                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                    self.stack.push(result);
+                    if let (
+                        Some(StackElement::Field(field_2)),
+                        Some(StackElement::Field(field_1)),
+                    ) = (self.stack.pop(), self.stack.pop())
+                    {
+                        let result = field_1
+                            .modulo(field_2)
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Negation) => {
-                    let operand = self.stack.pop().expect("Stack bug");
-                    let result = operand
-                        .negation()
-                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                    self.stack.push(result);
+                    if let Some(StackElement::Field(field)) = self.stack.pop() {
+                        let result = field
+                            .negate()
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Equal) => {
-                    let operand_2 = self.stack.pop().expect("Stack bug");
-                    let operand_1 = self.stack.pop().expect("Stack bug");
-                    let result = operand_1
-                        .equal(operand_2)
-                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                    self.stack.push(result);
+                    if let (
+                        Some(StackElement::Field(field_2)),
+                        Some(StackElement::Field(field_1)),
+                    ) = (self.stack.pop(), self.stack.pop())
+                    {
+                        let result = field_1
+                            .equal(field_2)
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::NotEqual) => {
-                    let operand_2 = self.stack.pop().expect("Stack bug");
-                    let operand_1 = self.stack.pop().expect("Stack bug");
-                    let result = operand_1
-                        .not_equal(operand_2)
-                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                    self.stack.push(result);
+                    if let (
+                        Some(StackElement::Field(field_2)),
+                        Some(StackElement::Field(field_1)),
+                    ) = (self.stack.pop(), self.stack.pop())
+                    {
+                        let result = field_1
+                            .not_equal(field_2)
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::GreaterEqual) => {
-                    let operand_2 = self.stack.pop().expect("Stack bug");
-                    let operand_1 = self.stack.pop().expect("Stack bug");
-                    let result = operand_1
-                        .greater_equal(operand_2)
-                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                    self.stack.push(result);
+                    if let (
+                        Some(StackElement::Field(field_2)),
+                        Some(StackElement::Field(field_1)),
+                    ) = (self.stack.pop(), self.stack.pop())
+                    {
+                        let result = field_1
+                            .greater_equal(field_2)
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::LesserEqual) => {
-                    let operand_2 = self.stack.pop().expect("Stack bug");
-                    let operand_1 = self.stack.pop().expect("Stack bug");
-                    let result = operand_1
-                        .lesser_equal(operand_2)
-                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                    self.stack.push(result);
+                    if let (
+                        Some(StackElement::Field(field_2)),
+                        Some(StackElement::Field(field_1)),
+                    ) = (self.stack.pop(), self.stack.pop())
+                    {
+                        let result = field_1
+                            .lesser_equal(field_2)
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Greater) => {
-                    let operand_2 = self.stack.pop().expect("Stack bug");
-                    let operand_1 = self.stack.pop().expect("Stack bug");
-                    let result = operand_1
-                        .greater(operand_2)
-                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                    self.stack.push(result);
+                    if let (
+                        Some(StackElement::Field(field_2)),
+                        Some(StackElement::Field(field_1)),
+                    ) = (self.stack.pop(), self.stack.pop())
+                    {
+                        let result = field_1
+                            .greater(field_2)
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Lesser) => {
-                    let operand_2 = self.stack.pop().expect("Stack bug");
-                    let operand_1 = self.stack.pop().expect("Stack bug");
-                    let result = operand_1
-                        .lesser(operand_2)
-                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                    self.stack.push(result);
+                    if let (
+                        Some(StackElement::Field(field_2)),
+                        Some(StackElement::Field(field_1)),
+                    ) = (self.stack.pop(), self.stack.pop())
+                    {
+                        let result = field_1
+                            .lesser(field_2)
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Or) => {
-                    let operand_2 = self.stack.pop().expect("Stack bug");
-                    let operand_1 = self.stack.pop().expect("Stack bug");
-                    let result = operand_1
-                        .or(operand_2)
-                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                    self.stack.push(result);
+                    if let (
+                        Some(StackElement::Field(field_2)),
+                        Some(StackElement::Field(field_1)),
+                    ) = (self.stack.pop(), self.stack.pop())
+                    {
+                        let result = field_1
+                            .or(field_2)
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Xor) => {
-                    let operand_2 = self.stack.pop().expect("Stack bug");
-                    let operand_1 = self.stack.pop().expect("Stack bug");
-                    let result = operand_1
-                        .xor(operand_2)
-                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                    self.stack.push(result);
+                    if let (
+                        Some(StackElement::Field(field_2)),
+                        Some(StackElement::Field(field_1)),
+                    ) = (self.stack.pop(), self.stack.pop())
+                    {
+                        let result = field_1
+                            .xor(field_2)
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::And) => {
-                    let operand_2 = self.stack.pop().expect("Stack bug");
-                    let operand_1 = self.stack.pop().expect("Stack bug");
-                    let result = operand_1
-                        .and(operand_2)
-                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                    self.stack.push(result);
+                    if let (
+                        Some(StackElement::Field(field_2)),
+                        Some(StackElement::Field(field_1)),
+                    ) = (self.stack.pop(), self.stack.pop())
+                    {
+                        let result = field_1
+                            .and(field_2)
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Not) => {
-                    let operand = self.stack.pop().expect("Stack bug");
-                    let result = operand
-                        .not()
-                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                    self.stack.push(result);
+                    if let Some(StackElement::Field(field)) = self.stack.pop() {
+                        let result = field
+                            .not()
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
                 }
-                //                ExpressionObject::Operator(ExpressionOperator::Casting) => {
-                //                    let operand = self.stack.pop().expect("Stack bug");
-                //                    let operand = self.stack.pop().expect("Stack bug");
-                //                    let result = operand
-                //                        .casting()
-                //                        .map_err(move |error| Error::Field(element.token.location, error))?;
-                //                    self.stack.push(result);
-                //                }
-                _ => unimplemented!(),
+                ExpressionObject::Operator(ExpressionOperator::Casting) => {
+                    if let (Some(StackElement::Type(r#type)), Some(StackElement::Field(field))) =
+                        (self.stack.pop(), self.stack.pop())
+                    {
+                        let result = field
+                            .cast(r#type)
+                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Field(result));
+                    } else {
+                        unreachable!();
+                    }
+                }
             }
         }
 
-        Ok(self.stack.pop().expect("Stack bug"))
+        if let Some(StackElement::Field(field)) = self.stack.pop() {
+            Ok(field)
+        } else {
+            unreachable!();
+        }
     }
+}
+
+enum StackElement {
+    Field(Field),
+    Type(Type),
 }

@@ -49,11 +49,13 @@ impl Parser {
                 State::LogicalAndOperator => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::DoubleAmpersand),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Symbol(Symbol::DoubleAmpersand),
+                                ..
+                            },
+                        )) => {
+                            stream.borrow_mut().next();
                             self.operator = Some((ExpressionOperator::And, token));
                             self.state = State::LogicalAndOperand;
                         }

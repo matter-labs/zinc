@@ -44,19 +44,23 @@ impl Parser {
                 State::Start => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
+                                ..
+                            },
+                        )) => {
+                            stream.borrow_mut().next();
                             self.operator = Some((ExpressionOperator::Not, token));
                             self.state = State::UnaryMulDivRemOperand;
                         }
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::Minus),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Symbol(Symbol::Minus),
+                                ..
+                            },
+                        )) => {
+                            stream.borrow_mut().next();
                             self.operator = Some((ExpressionOperator::Negation, token));
                             self.state = State::UnaryMulDivRemOperand;
                         }
@@ -71,7 +75,12 @@ impl Parser {
                             lexeme: Lexeme::Literal(literal),
                             ..
                         })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            let token = match stream.borrow_mut().next() {
+                                Some(Ok(token)) => token,
+                                Some(Err(error)) => return Err(Error::Lexical(error)),
+                                None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                            };
+
                             self.expression
                                 .push_operand((ExpressionOperand::Literal(literal), token));
                             return Ok(self.expression);
@@ -80,7 +89,12 @@ impl Parser {
                             lexeme: Lexeme::Identifier(identifier),
                             ..
                         })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                            let token = match stream.borrow_mut().next() {
+                                Some(Ok(token)) => token,
+                                Some(Err(error)) => return Err(Error::Lexical(error)),
+                                None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                            };
+
                             self.expression
                                 .push_operand((ExpressionOperand::Identifier(identifier), token));
                             return Ok(self.expression);

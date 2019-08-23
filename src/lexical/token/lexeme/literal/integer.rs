@@ -30,8 +30,8 @@ impl Integer {
 impl fmt::Display for Integer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Integer::Decimal { value } => write!(f, "{}", value),
-            Integer::Hexadecimal { value } => write!(f, "{}", value),
+            Self::Decimal { value } => write!(f, "{}", value),
+            Self::Hexadecimal { value } => write!(f, "{}", value),
         }
     }
 }

@@ -49,19 +49,23 @@ impl Parser {
                 State::AddSubOperator => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::Plus),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Symbol(Symbol::Plus),
+                                ..
+                            },
+                        )) => {
+                            stream.borrow_mut().next();
                             self.operator = Some((ExpressionOperator::Addition, token));
                             self.state = State::AddSubOperand;
                         }
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::Minus),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Symbol(Symbol::Minus),
+                                ..
+                            },
+                        )) => {
+                            stream.borrow_mut().next();
                             self.operator = Some((ExpressionOperator::Subtraction, token));
                             self.state = State::AddSubOperand;
                         }

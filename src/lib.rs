@@ -28,11 +28,11 @@ pub enum Error {
     Semantic(interpreter::Error),
 }
 
-pub fn compile(input: Vec<u8>) -> Result<CircuitProgram, Error> {
+pub fn parse(input: Vec<u8>) -> Result<CircuitProgram, Error> {
     syntax::parse(TokenStream::new(input))
 }
 
-pub fn execute(expression: Expression) -> Result<Field, Error> {
+pub fn evaluate(expression: Expression) -> Result<Field, Error> {
     Executor::default()
         .execute(expression)
         .map_err(Error::Semantic)

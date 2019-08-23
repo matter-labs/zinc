@@ -29,7 +29,8 @@ impl Field {
         Self { value, value_type }
     }
 
-    pub fn addition(self, other: Field) -> Result<Field, Error> {
+    #[allow(clippy::should_implement_trait)]
+    pub fn add(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Addition;
 
         if !self.value_type.can_be_first_operand(OPERATOR) {
@@ -52,7 +53,7 @@ impl Field {
         Ok(Field::new(value, value_type))
     }
 
-    pub fn subtraction(self, other: Field) -> Result<Field, Error> {
+    pub fn subtract(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Subtraction;
 
         if !self.value_type.can_be_first_operand(OPERATOR) {
@@ -75,7 +76,7 @@ impl Field {
         Ok(Field::new(value, value_type))
     }
 
-    pub fn multiplication(self, other: Field) -> Result<Field, Error> {
+    pub fn multiply(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Multiplication;
 
         if !self.value_type.can_be_first_operand(OPERATOR) {
@@ -98,7 +99,7 @@ impl Field {
         Ok(Field::new(value, value_type))
     }
 
-    pub fn division(self, other: Field) -> Result<Field, Error> {
+    pub fn divide(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Division;
 
         if !self.value_type.can_be_first_operand(OPERATOR) {
@@ -121,7 +122,7 @@ impl Field {
         Ok(Field::new(value, value_type))
     }
 
-    pub fn remainder(self, other: Field) -> Result<Field, Error> {
+    pub fn modulo(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Remainder;
 
         if !self.value_type.can_be_first_operand(OPERATOR) {
@@ -144,7 +145,7 @@ impl Field {
         Ok(Field::new(value, value_type))
     }
 
-    pub fn negation(self) -> Result<Field, Error> {
+    pub fn negate(self) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Negation;
 
         if !self.value_type.can_be_first_operand(OPERATOR) {
@@ -152,7 +153,11 @@ impl Field {
         }
 
         let value = -self.value;
-        let value_type = self.value_type;
+        let value_type = if let Type::Uint { bitlength } = self.value_type {
+            Type::Int { bitlength }
+        } else {
+            self.value_type
+        };
         Ok(Field::new(value, value_type))
     }
 
@@ -246,10 +251,8 @@ impl Field {
 
         let value = if self.value.is_zero() {
             BigInt::one()
-        } else if self.value.is_one() {
-            BigInt::zero()
         } else {
-            panic!("Invalid boolean value");
+            BigInt::zero()
         };
         Ok(Field::new(value, Type::Bool))
     }
@@ -410,15 +413,15 @@ impl Field {
         Ok(Field::new(value, Type::Bool))
     }
 
-    //    pub fn casting(self, r#type: Type) -> Result<Field, Error> {
-    //        const OPERATOR: ExpressionOperator = ExpressionOperator::Casting;
-    //
-    //        if !self.value_type.can_be_first_operand(OPERATOR) {
-    //            return Err(Error::first_operand_operator_not_available(OPERATOR, self));
-    //        }
-    //
-    //        Ok(Field::new(self.value, r#type))
-    //    }
+    pub fn cast(self, r#type: Type) -> Result<Field, Error> {
+        const OPERATOR: ExpressionOperator = ExpressionOperator::Casting;
+
+        if !self.value_type.can_be_first_operand(OPERATOR) {
+            return Err(Error::first_operand_operator_not_available(OPERATOR, self));
+        }
+
+        Ok(Field::new(self.value, r#type))
+    }
 }
 
 impl From<Literal> for Field {
@@ -463,14 +466,15 @@ impl From<IntegerLiteral> for Field {
                 Self::new(value, value_type)
             }
             IntegerLiteral::Hexadecimal { value } => {
-                let first_not_zero = value.find(|c: char| c != '0').unwrap_or(0);
-                let bitlength = match value.chars().nth(first_not_zero).expect("Unreachable") {
-                    '1'..='3' => value.len() * 4 - 3,
-                    '4'..='7' => value.len() * 4 - 2,
-                    '8'..='9' | 'a'..='b' => value.len() * 4 - 1,
-                    'c'..='f' => value.len() * 4,
-                    _ => unreachable!(),
-                };
+                //                let first_not_zero = value.find(|c: char| c != '0').unwrap_or(0);
+                //                let bitlength = match value.chars().nth(first_not_zero).expect("Unreachable") {
+                //                    '1'..='3' => value.len() * 4 - 3,
+                //                    '4'..='7' => value.len() * 4 - 2,
+                //                    '8'..='9' | 'a'..='b' => value.len() * 4 - 1,
+                //                    'c'..='f' => value.len() * 4,
+                //                    _ => unreachable!(),
+                //                };
+                let bitlength = value.len() * 4;
 
                 let value = BigInt::from_str_radix(value.as_str(), 16)
                     .expect("Hexadecimal integer literal parsing bug");

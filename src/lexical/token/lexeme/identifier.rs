@@ -18,11 +18,19 @@ pub struct Identifier {
 #[derive(Debug, Fail, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Error {
+    #[fail(display = "is empty")]
+    IsEmpty,
     #[fail(display = "is keyword: {:?}", _0)]
     IsKeyword(Keyword),
 }
 
 impl Identifier {
+    pub fn new(name: &str) -> Self {
+        Self {
+            name: name.to_owned(),
+        }
+    }
+
     pub fn can_start_with(byte: u8) -> bool {
         byte.is_ascii_alphabetic() || byte == b'_'
     }
@@ -36,6 +44,10 @@ impl TryFrom<&[u8]> for Identifier {
     type Error = Error;
 
     fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+        if bytes.is_empty() {
+            return Err(Error::IsEmpty);
+        }
+
         if let Ok(keyword) = Keyword::try_from(bytes) {
             return Err(Error::IsKeyword(keyword));
         }

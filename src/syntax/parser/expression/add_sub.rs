@@ -49,27 +49,33 @@ impl Parser {
                 State::MulDivRemOperator => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::Asterisk),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Symbol(Symbol::Asterisk),
+                                ..
+                            },
+                        )) => {
+                            stream.borrow_mut().next();
                             self.operator = Some((ExpressionOperator::Multiplication, token));
                             self.state = State::MulDivRemOperand;
                         }
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::Slash),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Symbol(Symbol::Slash),
+                                ..
+                            },
+                        )) => {
+                            stream.borrow_mut().next();
                             self.operator = Some((ExpressionOperator::Division, token));
                             self.state = State::MulDivRemOperand;
                         }
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::Percent),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Symbol(Symbol::Percent),
+                                ..
+                            },
+                        )) => {
+                            stream.borrow_mut().next();
                             self.operator = Some((ExpressionOperator::Remainder, token));
                             self.state = State::MulDivRemOperand;
                         }

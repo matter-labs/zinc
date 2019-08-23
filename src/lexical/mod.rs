@@ -14,6 +14,7 @@ pub use self::stream::CommentParserError;
 pub use self::stream::IntegerParserError;
 pub use self::stream::SymbolParserError;
 pub use self::stream::TokenStream;
+pub use self::stream::WordParserError;
 pub use self::token::BooleanLiteral;
 pub use self::token::Comment;
 pub use self::token::Identifier;

@@ -19,8 +19,8 @@ pub enum Object {
 impl fmt::Display for Object {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Object::Operator(operator) => write!(f, "{}", operator),
-            Object::Operand(operand) => write!(f, "{}", operand),
+            Self::Operator(operator) => write!(f, "{}", operator),
+            Self::Operand(operand) => write!(f, "{}", operand),
         }
     }
 }

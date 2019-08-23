@@ -35,10 +35,10 @@ keyword =
   | 'match'
   
   // type
-  | 'field'
-  | ('uint1' ... 'uint126')
-  | ('int1' ... 'int126')
   | 'bool'
+  | ('uint' | 'uint2' ... 'uint253')
+  | ('int' | 'int2' ... 'int253')
+  | 'field'
 
   // literal
   | 'true'

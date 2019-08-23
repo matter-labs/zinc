@@ -28,9 +28,9 @@ pub enum Statement {
 impl fmt::Display for Statement {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Statement::Require(require) => write!(f, "{}", require),
-            Statement::Let(r#let) => write!(f, "{}", r#let),
-            Statement::Debug(debug) => write!(f, "{}", debug),
+            Self::Require(require) => write!(f, "{}", require),
+            Self::Let(r#let) => write!(f, "{}", r#let),
+            Self::Debug(debug) => write!(f, "{}", debug),
         }
     }
 }

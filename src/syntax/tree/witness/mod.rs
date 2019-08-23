@@ -13,8 +13,8 @@ use crate::syntax::Type;
 
 #[derive(Debug, Serialize, PartialEq)]
 pub struct Witness {
-    identifier: Identifier,
-    r#type: Type,
+    pub identifier: Identifier,
+    pub r#type: Type,
 }
 
 impl Witness {

@@ -16,10 +16,10 @@ use crate::syntax::Type;
 
 #[derive(Debug, Serialize, PartialEq)]
 pub struct Let {
-    identifier: Identifier,
-    r#type: Option<Type>,
-    expression: Expression,
-    is_mutable: bool,
+    pub identifier: Identifier,
+    pub r#type: Option<Type>,
+    pub expression: Expression,
+    pub is_mutable: bool,
 }
 
 impl Let {

@@ -10,6 +10,7 @@ use crate::lexical::Lexeme;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::CastingOperandParser;
+use crate::syntax::Error as SyntaxError;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
@@ -52,11 +53,13 @@ impl Parser {
                 State::CastingOperator => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Keyword(Keyword::As),
-                            ..
-                        })) => {
-                            let token = stream.borrow_mut().next().unwrap().unwrap();
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Keyword(Keyword::As),
+                                ..
+                            },
+                        )) => {
+                            stream.borrow_mut().next();
                             self.operator = Some((ExpressionOperator::Casting, token));
                             self.state = State::CastingSecondOperand;
                         }
@@ -64,7 +67,11 @@ impl Parser {
                     }
                 }
                 State::CastingSecondOperand => {
-                    let token = stream.borrow_mut().peek().unwrap().unwrap();
+                    let token = match stream.borrow_mut().peek() {
+                        Some(Ok(token)) => token,
+                        Some(Err(error)) => return Err(Error::Lexical(error)),
+                        None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                    };
 
                     let r#type = TypeParser::default().parse(stream.clone())?;
                     self.expression

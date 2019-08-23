@@ -18,6 +18,8 @@ pub enum State {
 #[derive(Debug, Fail, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Error {
+    #[fail(display = "unexpected end")]
+    UnexpectedEnd,
     #[fail(display = "not a comment")]
     NotAComment,
 }
@@ -41,7 +43,8 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, usize, usize, Comment), Error> {
             },
             State::SingleLine => {
                 if b'\n' == byte {
-                    break;
+                    let comment = Comment::new(String::from_utf8_lossy(&bytes[..size]).to_string());
+                    return Ok((size, lines, column, comment));
                 }
             }
             State::MultiLine => match byte {
@@ -55,7 +58,8 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, usize, usize, Comment), Error> {
             State::MultiLineStar => match byte {
                 b'/' => {
                     size += 1;
-                    break;
+                    let comment = Comment::new(String::from_utf8_lossy(&bytes[..size]).to_string());
+                    return Ok((size, lines, column, comment));
                 }
                 _ => state = State::MultiLine,
             },
@@ -65,6 +69,5 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, usize, usize, Comment), Error> {
         column += 1;
     }
 
-    let comment = Comment::new(String::from_utf8_lossy(&bytes[..size]).to_string());
-    Ok((size, lines, column, comment))
+    Err(Error::UnexpectedEnd)
 }

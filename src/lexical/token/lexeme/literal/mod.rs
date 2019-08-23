@@ -22,8 +22,8 @@ pub enum Literal {
 impl fmt::Display for Literal {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Literal::Boolean(boolean) => write!(f, "{}", boolean),
-            Literal::Integer(integer) => write!(f, "{}", integer),
+            Self::Boolean(boolean) => write!(f, "{}", boolean),
+            Self::Integer(integer) => write!(f, "{}", integer),
         }
     }
 }

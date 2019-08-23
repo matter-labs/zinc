@@ -21,8 +21,8 @@ impl TryFrom<Keyword> for Boolean {
 
     fn try_from(keyword: Keyword) -> Result<Self, Self::Error> {
         Ok(match keyword {
-            Keyword::False => Boolean::False,
-            Keyword::True => Boolean::True,
+            Keyword::False => Self::False,
+            Keyword::True => Self::True,
             unknown => return Err(unknown),
         })
     }
@@ -31,8 +31,8 @@ impl TryFrom<Keyword> for Boolean {
 impl fmt::Display for Boolean {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Boolean::False => write!(f, "false"),
-            Boolean::True => write!(f, "true"),
+            Self::False => write!(f, "false"),
+            Self::True => write!(f, "true"),
         }
     }
 }

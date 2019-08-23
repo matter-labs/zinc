@@ -21,9 +21,9 @@ pub enum Operand {
 impl fmt::Display for Operand {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Operand::Literal(literal) => write!(f, "{}", literal),
-            Operand::Identifier(identifier) => write!(f, "{}", identifier),
-            Operand::Type(r#type) => write!(f, "{}", r#type),
+            Self::Literal(literal) => write!(f, "{}", literal),
+            Self::Identifier(identifier) => write!(f, "{}", identifier),
+            Self::Type(r#type) => write!(f, "{}", r#type),
         }
     }
 }

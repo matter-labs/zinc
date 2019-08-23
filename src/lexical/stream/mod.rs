@@ -14,6 +14,7 @@ pub use self::integer::Error as IntegerParserError;
 pub use self::symbol::parse as parse_symbol;
 pub use self::symbol::Error as SymbolParserError;
 pub use self::word::parse as parse_word;
+pub use self::word::Error as WordParserError;
 
 use std::iter::Iterator;
 
@@ -97,11 +98,18 @@ impl TokenStream {
             }
 
             if Identifier::can_start_with(byte) {
-                let (size, lexeme) = parse_word(&self.input[self.cursor.index..]);
-                let location = Location::new(self.cursor.line, self.cursor.column);
-                self.cursor.column += size;
-                self.cursor.index += size;
-                return Some(Ok(Token::new(lexeme, location)));
+                match parse_word(&self.input[self.cursor.index..]) {
+                    Ok((size, lexeme)) => {
+                        let location = Location::new(self.cursor.line, self.cursor.column);
+                        self.cursor.column += size;
+                        self.cursor.index += size;
+                        return Some(Ok(Token::new(lexeme, location)));
+                    }
+                    Err(error) => {
+                        let location = Location::new(self.cursor.line, self.cursor.column);
+                        return Some(Err(Error::InvalidWord(location, error)));
+                    }
+                }
             }
 
             if byte.is_ascii_digit() {

@@ -1,5 +1,5 @@
 //!
-//! The Jabberwocky compiler binary.
+//! The Jabberwocky interpreter binary.
 //!
 
 use std::fs::File;
@@ -9,27 +9,11 @@ use std::path::PathBuf;
 use failure::Fail;
 use structopt::StructOpt;
 
-#[derive(Debug, StructOpt)]
-#[structopt(name = "jabc", about = "The Jabberwocky language compiler")]
-struct Arguments {
-    #[structopt(
-        short = "p",
-        long = "profile",
-        help = "Runs the profiler and print cost information"
-    )]
-    profile: bool,
-    #[structopt(
-        short = "o",
-        long = "output",
-        name = "OUTPUT",
-        parse(from_os_str),
-        default_value = "output.rs",
-        help = "Specifies the output .rs file name"
-    )]
-    output: PathBuf,
-    #[structopt(short = "m", long = "meta", help = "Generates meta info")]
-    meta: bool,
+use compiler::Statement;
 
+#[derive(Debug, StructOpt)]
+#[structopt(name = "jabi", about = "The Jabberwocky language interpreter")]
+struct Arguments {
     #[structopt(name = "INPUT", parse(from_os_str))]
     input: PathBuf,
 }
@@ -56,12 +40,19 @@ fn main() -> Result<(), FileError> {
 
     let circuit = compiler::parse(code);
 
-    if args.meta {
-        let metadata = match circuit {
-            Ok(ref circuit) => serde_json::to_string(circuit).expect("Serialization bug"),
-            Err(ref error) => error.to_string(),
-        };
-        println!("{}", metadata);
+    match circuit {
+        Ok(circuit) => {
+            for statement in circuit.statements.into_iter() {
+                log::debug!("{}", statement);
+                if let Statement::Debug(debug) = statement {
+                    match compiler::evaluate(debug.expression) {
+                        Ok(field) => log::info!("{}", field),
+                        Err(error) => log::error!("{}", error),
+                    }
+                }
+            }
+        }
+        Err(error) => log::error!("{}", error),
     }
 
     Ok(())
@@ -70,7 +61,7 @@ fn main() -> Result<(), FileError> {
 fn init_logger() {
     use std::env;
     if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "compiler=info,jabc=info");
+        env::set_var("RUST_LOG", "compiler=info,jabi=info");
     }
     env_logger::Builder::from_default_env()
         .default_format_timestamp_nanos(true)

@@ -6,6 +6,9 @@
 
 use std::convert::TryFrom;
 
+use failure::Fail;
+use serde_derive::Serialize;
+
 use crate::lexical::BooleanLiteral;
 use crate::lexical::Identifier;
 use crate::lexical::IdentifierError;
@@ -17,7 +20,14 @@ pub enum State {
     Continue,
 }
 
-pub fn parse(bytes: &[u8]) -> (usize, Lexeme) {
+#[derive(Debug, Fail, Serialize, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum Error {
+    #[fail(display = "empty identifier")]
+    EmptyIdentifier,
+}
+
+pub fn parse(bytes: &[u8]) -> Result<(usize, Lexeme), Error> {
     let mut state = State::Start;
     let mut size = 0;
 
@@ -45,6 +55,7 @@ pub fn parse(bytes: &[u8]) -> (usize, Lexeme) {
             Ok(boolean) => Lexeme::Literal(Literal::Boolean(boolean)),
             Err(keyword) => Lexeme::Keyword(keyword),
         },
+        Err(IdentifierError::IsEmpty) => return Err(Error::EmptyIdentifier),
     };
-    (size, lexeme)
+    Ok((size, lexeme))
 }

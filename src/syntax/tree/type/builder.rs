@@ -61,8 +61,8 @@ impl Builder {
             //                None => Ok(Type::Void),
             //            },
             Some(Keyword::Field) => Type::Field,
-            Some(Keyword::Uint { bitlength }) => Type::Uint { bitlength },
-            Some(Keyword::Int { bitlength }) => Type::Int { bitlength },
+            Some(Keyword::Uint { bitlength }) => Type::uint(bitlength),
+            Some(Keyword::Int { bitlength }) => Type::int(bitlength),
             Some(Keyword::Bool) => Type::Bool,
             //            Some(Keyword::Struct) => match self.identifier {
             //                Some(identiifer) => Ok(Type::Struct(identiifer, self.fields.unwrap_or_default())),

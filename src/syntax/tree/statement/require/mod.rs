@@ -14,7 +14,7 @@ use crate::syntax::Expression;
 
 #[derive(Debug, Serialize, PartialEq)]
 pub struct Require {
-    expression: Expression,
+    pub expression: Expression,
 }
 
 impl Require {
