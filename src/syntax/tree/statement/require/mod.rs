@@ -25,6 +25,6 @@ impl Require {
 
 impl fmt::Display for Require {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "require ( {} )", self.expression,)
+        write!(f, "require ( {} )", self.expression)
     }
 }

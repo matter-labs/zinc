@@ -12,4 +12,10 @@ use crate::lexical::Location;
 pub enum Error {
     #[fail(display = "{} operator: {}", _0, _1)]
     Operator(Location, OperatorError),
+    #[fail(display = "{} undeclared variable: {}", _0, _1)]
+    UndeclaredVariable(Location, String),
+    #[fail(display = "redeclared variable: {}", _0)]
+    RedeclaredVariable(String),
+    #[fail(display = "require failure")]
+    RequireFailure,
 }

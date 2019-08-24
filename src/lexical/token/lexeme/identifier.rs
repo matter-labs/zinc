@@ -31,6 +31,10 @@ impl Identifier {
         }
     }
 
+    pub fn name(&self) -> &str {
+        self.name.as_str()
+    }
+
     pub fn can_start_with(byte: u8) -> bool {
         byte.is_ascii_alphabetic() || byte == b'_'
     }

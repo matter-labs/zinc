@@ -9,8 +9,6 @@ use std::path::PathBuf;
 use failure::Fail;
 use structopt::StructOpt;
 
-use compiler::Statement;
-
 #[derive(Debug, StructOpt)]
 #[structopt(name = "jabi", about = "The Jabberwocky language interpreter")]
 struct Arguments {
@@ -19,41 +17,29 @@ struct Arguments {
 }
 
 #[derive(Debug, Fail)]
-enum FileError {
-    #[fail(display = "Opening: {}", _0)]
-    Opening(std::io::Error),
-    #[fail(display = "Metadata: {}", _0)]
-    Metadata(std::io::Error),
-    #[fail(display = "Reading: {}", _0)]
-    Reading(std::io::Error),
+enum Error {
+    #[fail(display = "Input opening: {}", _0)]
+    InputOpening(std::io::Error),
+    #[fail(display = "Input metadata: {}", _0)]
+    InputMetadata(std::io::Error),
+    #[fail(display = "Input reading: {}", _0)]
+    InputReading(std::io::Error),
+    #[fail(display = "Parsing: {}", _0)]
+    Parsing(compiler::Error),
 }
 
-fn main() -> Result<(), FileError> {
+fn main() -> Result<(), Error> {
     init_logger();
 
     let args: Arguments = Arguments::from_args();
 
-    let mut file = File::open(&args.input).map_err(FileError::Opening)?;
-    let size = file.metadata().map_err(FileError::Metadata)?.len();
+    let mut file = File::open(&args.input).map_err(Error::InputOpening)?;
+    let size = file.metadata().map_err(Error::InputMetadata)?.len();
     let mut code = Vec::with_capacity(size as usize);
-    file.read_to_end(&mut code).map_err(FileError::Reading)?;
+    file.read_to_end(&mut code).map_err(Error::InputReading)?;
 
-    let circuit = compiler::parse(code);
-
-    match circuit {
-        Ok(circuit) => {
-            for statement in circuit.statements.into_iter() {
-                log::debug!("{}", statement);
-                if let Statement::Debug(debug) = statement {
-                    match compiler::evaluate(debug.expression) {
-                        Ok(field) => log::info!("{}", field),
-                        Err(error) => log::error!("{}", error),
-                    }
-                }
-            }
-        }
-        Err(error) => log::error!("{}", error),
-    }
+    let program = compiler::parse(code).map_err(Error::Parsing)?;
+    compiler::interpret(program);
 
     Ok(())
 }

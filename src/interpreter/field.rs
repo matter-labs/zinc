@@ -17,7 +17,7 @@ use crate::lexical::Literal;
 use crate::syntax::ExpressionOperator;
 use crate::syntax::Type;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Field {
     #[serde(skip_serializing)]
     pub value: BigInt,

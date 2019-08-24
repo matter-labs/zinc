@@ -6,11 +6,8 @@ mod interpreter;
 mod lexical;
 mod syntax;
 
-pub use self::interpreter::Executor;
-pub use self::interpreter::Field;
+pub use self::interpreter::interpret;
 pub use self::syntax::CircuitProgram;
-pub use self::syntax::Expression;
-pub use self::syntax::Statement;
 
 use failure::Fail;
 use serde_derive::Serialize;
@@ -30,10 +27,4 @@ pub enum Error {
 
 pub fn parse(input: Vec<u8>) -> Result<CircuitProgram, Error> {
     syntax::parse(TokenStream::new(input))
-}
-
-pub fn evaluate(expression: Expression) -> Result<Field, Error> {
-    Executor::default()
-        .execute(expression)
-        .map_err(Error::Semantic)
 }

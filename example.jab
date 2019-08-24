@@ -5,15 +5,17 @@ inputs {
     a: uint8; // input 1
     b: field; // input 2
     c: bool; // input 3
-} /* This is the end of the mega ultra inputs input! */
+}
 
 /*
     This is the mega ultra witness input!
 */
 witness {
-    d: uint253; // witness 1
-    e: field; // witness 2
-    f: bool; // witness 3
-} /* This is the end of the mega ultra witness input! */
+    d: uint253; /* witness 1 */
+    e: field; /* witness 2 */
+    f: bool; /* witness 3 */
+}
 
-debug(true as field + (64 + ((true || false) as uint7)) as field);
+let a: uint8 = 164;
+let a: uint8 = 52;
+debug(a + c);

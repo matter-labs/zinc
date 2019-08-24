@@ -12,7 +12,7 @@ use serde_derive::Serialize;
 
 use crate::syntax::ExpressionOperator;
 
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize, Clone, Copy, PartialEq)]
 #[serde(rename_all = "snake_case", tag = "name")]
 pub enum Type {
     Void,
