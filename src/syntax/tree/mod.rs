@@ -4,6 +4,7 @@
 
 mod circuit;
 mod expression;
+mod identifier;
 mod input;
 mod statement;
 mod r#type;
@@ -15,10 +16,12 @@ pub use self::expression::Expression;
 pub use self::expression::Object as ExpressionObject;
 pub use self::expression::Operand as ExpressionOperand;
 pub use self::expression::Operator as ExpressionOperator;
+pub use self::identifier::Identifier;
 pub use self::input::Builder as InputBuilder;
 pub use self::input::Input;
 pub use self::r#type::Builder as TypeBuilder;
 pub use self::r#type::Type;
+pub use self::r#type::Variant as TypeVariant;
 pub use self::statement::Debug;
 pub use self::statement::DebugBuilder;
 pub use self::statement::Let;

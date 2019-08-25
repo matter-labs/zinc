@@ -12,7 +12,7 @@ use crate::lexical::Keyword;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Identifier {
-    name: String,
+    pub name: String,
 }
 
 #[derive(Debug, Fail, Serialize)]
@@ -29,10 +29,6 @@ impl Identifier {
         Self {
             name: name.to_owned(),
         }
-    }
-
-    pub fn name(&self) -> &str {
-        self.name.as_str()
     }
 
     pub fn can_start_with(byte: u8) -> bool {

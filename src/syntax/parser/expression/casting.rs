@@ -14,6 +14,7 @@ use crate::syntax::Expression;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
 use crate::syntax::ExpressionParser;
+use crate::syntax::Identifier;
 use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
@@ -87,7 +88,7 @@ impl Parser {
                         }
                         Some(Ok(Token {
                             lexeme: Lexeme::Identifier(identifier),
-                            ..
+                            location,
                         })) => {
                             let token = match stream.borrow_mut().next() {
                                 Some(Ok(token)) => token,
@@ -95,6 +96,7 @@ impl Parser {
                                 None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                             };
 
+                            let identifier = Identifier::new(location, identifier.name);
                             self.expression
                                 .push_operand((ExpressionOperand::Identifier(identifier), token));
                             return Ok(self.expression);

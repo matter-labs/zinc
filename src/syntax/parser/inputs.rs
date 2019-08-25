@@ -10,6 +10,7 @@ use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::lexical::{Keyword, Symbol};
 use crate::syntax::Error as SyntaxError;
+use crate::syntax::Identifier;
 use crate::syntax::Input;
 use crate::syntax::InputBuilder;
 use crate::syntax::TypeParser;
@@ -80,8 +81,9 @@ impl Parser {
                     })) => self.state = State::End,
                     Some(Ok(Token {
                         lexeme: Lexeme::Identifier(identifier),
-                        ..
+                        location,
                     })) => {
+                        let identifier = Identifier::new(location, identifier.name);
                         self.builder.set_identifier(identifier);
                         self.state = State::ElementColon;
                     }

@@ -8,7 +8,7 @@ pub use self::builder::Builder;
 
 use serde_derive::Serialize;
 
-use crate::lexical::Identifier;
+use crate::syntax::Identifier;
 use crate::syntax::Type;
 
 #[derive(Debug, Serialize, PartialEq)]

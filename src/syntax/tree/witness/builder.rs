@@ -2,7 +2,7 @@
 //! The witness builder.
 //!
 
-use crate::lexical::Identifier;
+use crate::syntax::Identifier;
 use crate::syntax::Type;
 use crate::syntax::Witness;
 

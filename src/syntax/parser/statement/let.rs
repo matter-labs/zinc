@@ -12,6 +12,7 @@ use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::ExpressionParser;
+use crate::syntax::Identifier;
 use crate::syntax::Let;
 use crate::syntax::LetBuilder;
 use crate::syntax::TypeParser;
@@ -49,8 +50,11 @@ impl Parser {
                 State::Keyword => match stream.borrow_mut().next() {
                     Some(Ok(Token {
                         lexeme: Lexeme::Keyword(Keyword::Let),
-                        ..
-                    })) => self.state = State::MutOrIdentifier,
+                        location,
+                    })) => {
+                        self.builder.set_location(location);
+                        self.state = State::MutOrIdentifier;
+                    }
                     Some(Ok(Token { lexeme, location })) => {
                         return Err(Error::Syntax(SyntaxError::Expected(
                             location,
@@ -71,8 +75,9 @@ impl Parser {
                     }
                     Some(Ok(Token {
                         lexeme: Lexeme::Identifier(identifier),
-                        ..
+                        location,
                     })) => {
+                        let identifier = Identifier::new(location, identifier.name);
                         self.builder.set_identifier(identifier);
                         self.state = State::ColonOrEquals;
                     }
@@ -89,8 +94,9 @@ impl Parser {
                 State::Identifier => match stream.borrow_mut().next() {
                     Some(Ok(Token {
                         lexeme: Lexeme::Identifier(identifier),
-                        ..
+                        location,
                     })) => {
+                        let identifier = Identifier::new(location, identifier.name);
                         self.builder.set_identifier(identifier);
                         self.state = State::ColonOrEquals;
                     }

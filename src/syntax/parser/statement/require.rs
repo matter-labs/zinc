@@ -45,8 +45,11 @@ impl Parser {
                 State::Keyword => match stream.borrow_mut().next() {
                     Some(Ok(Token {
                         lexeme: Lexeme::Keyword(Keyword::Require),
-                        ..
-                    })) => self.state = State::BracketOpen,
+                        location,
+                    })) => {
+                        self.builder.set_location(location);
+                        self.state = State::BracketOpen;
+                    }
                     Some(Ok(Token { lexeme, location })) => {
                         return Err(Error::Syntax(SyntaxError::Expected(
                             location,

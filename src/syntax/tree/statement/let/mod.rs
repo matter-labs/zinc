@@ -10,12 +10,14 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
-use crate::lexical::Identifier;
+use crate::lexical::Location;
 use crate::syntax::Expression;
+use crate::syntax::Identifier;
 use crate::syntax::Type;
 
 #[derive(Debug, Serialize, PartialEq)]
 pub struct Let {
+    pub location: Location,
     pub identifier: Identifier,
     pub r#type: Option<Type>,
     pub expression: Expression,
@@ -24,12 +26,14 @@ pub struct Let {
 
 impl Let {
     pub fn new(
+        location: Location,
         identifier: Identifier,
         r#type: Option<Type>,
         expression: Expression,
         is_mutable: bool,
     ) -> Self {
         Self {
+            location,
             identifier,
             r#type,
             expression,

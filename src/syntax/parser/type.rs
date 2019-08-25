@@ -38,9 +38,10 @@ impl Parser {
                 State::Name => match stream.borrow_mut().next() {
                     Some(Ok(Token {
                         lexeme: Lexeme::Keyword(keyword),
-                        ..
+                        location,
                     })) => {
-                        self.builder.set_name(keyword);
+                        self.builder.set_location(location);
+                        self.builder.set_keyword(keyword);
                         self.state = State::End;
                     }
                     Some(Ok(Token { lexeme, location })) => {

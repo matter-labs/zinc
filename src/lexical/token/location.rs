@@ -8,8 +8,8 @@ use serde_derive::Serialize;
 
 #[derive(Debug, Serialize, Clone, Copy, PartialEq)]
 pub struct Location {
-    line: usize,
-    column_start: usize,
+    pub line: usize,
+    pub column_start: usize,
 }
 
 impl Location {

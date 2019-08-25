@@ -3,11 +3,14 @@
 //!
 
 use crate::lexical::Keyword;
+use crate::lexical::Location;
 use crate::syntax::Type;
+use crate::syntax::TypeVariant;
 
 #[derive(Default)]
 pub struct Builder {
-    name: Option<Keyword>,
+    location: Option<Location>,
+    keyword: Option<Keyword>,
     //    identifier: Option<Identifier>,
     //    fields: Option<Vec<(Identifier, Type)>>,
     //    variants: Option<Vec<Identifier>>,
@@ -17,8 +20,12 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub fn set_name(&mut self, value: Keyword) {
-        self.name = Some(value);
+    pub fn set_location(&mut self, value: Location) {
+        self.location = Some(value);
+    }
+
+    pub fn set_keyword(&mut self, value: Keyword) {
+        self.keyword = Some(value);
     }
 
     //    pub fn set_identifier(&mut self, value: Identifier) {
@@ -55,15 +62,16 @@ impl Builder {
     //    }
 
     pub fn finish(self) -> Type {
-        match self.name {
+        let location = self.location.expect("Missing location");
+        let variant = match self.keyword {
             //            None => match self.elements {
             //                Some(elements) => Ok(Type::Tuple(elements)),
             //                None => Ok(Type::Void),
             //            },
-            Some(Keyword::Field) => Type::Field,
-            Some(Keyword::Uint { bitlength }) => Type::uint(bitlength),
-            Some(Keyword::Int { bitlength }) => Type::int(bitlength),
-            Some(Keyword::Bool) => Type::Bool,
+            Some(Keyword::Field) => TypeVariant::Field,
+            Some(Keyword::Uint { bitlength }) => TypeVariant::uint(bitlength),
+            Some(Keyword::Int { bitlength }) => TypeVariant::int(bitlength),
+            Some(Keyword::Bool) => TypeVariant::Bool,
             //            Some(Keyword::Struct) => match self.identifier {
             //                Some(identiifer) => Ok(Type::Struct(identiifer, self.fields.unwrap_or_default())),
             //                None => Err(Error::MissingStructIdentifier),
@@ -99,6 +107,8 @@ impl Builder {
             //                Ok(Type::StorageVector(Box::new(generic_type), vector_size))
             //            }
             _ => unimplemented!(),
-        }
+        };
+
+        Type { location, variant }
     }
 }

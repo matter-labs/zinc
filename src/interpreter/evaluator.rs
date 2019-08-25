@@ -38,12 +38,12 @@ impl Evaluator {
                     }
                     ExpressionOperand::Type(r#type) => StackElement::Type(r#type),
                     ExpressionOperand::Identifier(identifier) => {
-                        match variables.get(identifier.name()) {
+                        match variables.get(&identifier.name) {
                             Some(value) => StackElement::Field(value.clone()),
                             None => {
                                 return Err(Error::UndeclaredVariable(
                                     element.token.location,
-                                    identifier.name().to_owned(),
+                                    identifier.name.to_owned(),
                                 ))
                             }
                         }
@@ -270,7 +270,7 @@ impl Evaluator {
                         (self.stack.pop(), self.stack.pop())
                     {
                         let result = field
-                            .cast(r#type)
+                            .cast(r#type.variant)
                             .map_err(move |error| Error::Operator(element.token.location, error))?;
                         self.stack.push(StackElement::Field(result));
                     } else {

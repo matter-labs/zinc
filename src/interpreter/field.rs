@@ -15,167 +15,170 @@ use crate::lexical::BooleanLiteral;
 use crate::lexical::IntegerLiteral;
 use crate::lexical::Literal;
 use crate::syntax::ExpressionOperator;
-use crate::syntax::Type;
+use crate::syntax::TypeVariant;
 
 #[derive(Debug, Serialize, Clone)]
 pub struct Field {
     #[serde(skip_serializing)]
     pub value: BigInt,
-    pub value_type: Type,
+    pub type_variant: TypeVariant,
 }
 
 impl Field {
-    pub fn new(value: BigInt, value_type: Type) -> Self {
-        Self { value, value_type }
+    pub fn new(value: BigInt, type_variant: TypeVariant) -> Self {
+        Self {
+            value,
+            type_variant,
+        }
     }
 
     #[allow(clippy::should_implement_trait)]
     pub fn add(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Addition;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
-        if !other.value_type.can_be_second_operand(OPERATOR) {
+        if !other.type_variant.can_be_second_operand(OPERATOR) {
             return Err(Error::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
-        if self.value_type != other.value_type {
+        if self.type_variant != other.type_variant {
             return Err(Error::operand_type_mismatch(
-                other.value_type,
-                self.value_type,
+                other.type_variant,
+                self.type_variant,
             ));
         }
 
         let value = self.value + other.value;
-        let value_type = self.value_type;
-        Ok(Field::new(value, value_type))
+        let type_variant = self.type_variant;
+        Ok(Field::new(value, type_variant))
     }
 
     pub fn subtract(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Subtraction;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
-        if !other.value_type.can_be_second_operand(OPERATOR) {
+        if !other.type_variant.can_be_second_operand(OPERATOR) {
             return Err(Error::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
-        if self.value_type != other.value_type {
+        if self.type_variant != other.type_variant {
             return Err(Error::operand_type_mismatch(
-                other.value_type,
-                self.value_type,
+                other.type_variant,
+                self.type_variant,
             ));
         }
 
         let value = self.value - other.value;
-        let value_type = self.value_type;
-        Ok(Field::new(value, value_type))
+        let type_variant = self.type_variant;
+        Ok(Field::new(value, type_variant))
     }
 
     pub fn multiply(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Multiplication;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
-        if !other.value_type.can_be_second_operand(OPERATOR) {
+        if !other.type_variant.can_be_second_operand(OPERATOR) {
             return Err(Error::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
-        if self.value_type != other.value_type {
+        if self.type_variant != other.type_variant {
             return Err(Error::operand_type_mismatch(
-                other.value_type,
-                self.value_type,
+                other.type_variant,
+                self.type_variant,
             ));
         }
 
         let value = self.value * other.value;
-        let value_type = self.value_type;
-        Ok(Field::new(value, value_type))
+        let type_variant = self.type_variant;
+        Ok(Field::new(value, type_variant))
     }
 
     pub fn divide(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Division;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
-        if !other.value_type.can_be_second_operand(OPERATOR) {
+        if !other.type_variant.can_be_second_operand(OPERATOR) {
             return Err(Error::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
-        if self.value_type != other.value_type {
+        if self.type_variant != other.type_variant {
             return Err(Error::operand_type_mismatch(
-                other.value_type,
-                self.value_type,
+                other.type_variant,
+                self.type_variant,
             ));
         }
 
         let value = self.value / other.value;
-        let value_type = self.value_type;
-        Ok(Field::new(value, value_type))
+        let type_variant = self.type_variant;
+        Ok(Field::new(value, type_variant))
     }
 
     pub fn modulo(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Remainder;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
-        if !other.value_type.can_be_second_operand(OPERATOR) {
+        if !other.type_variant.can_be_second_operand(OPERATOR) {
             return Err(Error::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
-        if self.value_type != other.value_type {
+        if self.type_variant != other.type_variant {
             return Err(Error::operand_type_mismatch(
-                other.value_type,
-                self.value_type,
+                other.type_variant,
+                self.type_variant,
             ));
         }
 
         let value = self.value % other.value;
-        let value_type = self.value_type;
-        Ok(Field::new(value, value_type))
+        let type_variant = self.type_variant;
+        Ok(Field::new(value, type_variant))
     }
 
     pub fn negate(self) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Negation;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
 
         let value = -self.value;
-        let value_type = if let Type::Uint { bitlength } = self.value_type {
-            Type::Int { bitlength }
+        let type_variant = if let TypeVariant::Uint { bitlength } = self.type_variant {
+            TypeVariant::Int { bitlength }
         } else {
-            self.value_type
+            self.type_variant
         };
-        Ok(Field::new(value, value_type))
+        Ok(Field::new(value, type_variant))
     }
 
     pub fn or(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Or;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
-        if !other.value_type.can_be_second_operand(OPERATOR) {
+        if !other.type_variant.can_be_second_operand(OPERATOR) {
             return Err(Error::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
-        if self.value_type != other.value_type {
+        if self.type_variant != other.type_variant {
             return Err(Error::operand_type_mismatch(
-                other.value_type,
-                self.value_type,
+                other.type_variant,
+                self.type_variant,
             ));
         }
 
@@ -184,24 +187,24 @@ impl Field {
         } else {
             BigInt::zero()
         };
-        Ok(Field::new(value, Type::Bool))
+        Ok(Field::new(value, TypeVariant::Bool))
     }
 
     pub fn xor(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Xor;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
-        if !other.value_type.can_be_second_operand(OPERATOR) {
+        if !other.type_variant.can_be_second_operand(OPERATOR) {
             return Err(Error::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
-        if self.value_type != other.value_type {
+        if self.type_variant != other.type_variant {
             return Err(Error::operand_type_mismatch(
-                other.value_type,
-                self.value_type,
+                other.type_variant,
+                self.type_variant,
             ));
         }
 
@@ -212,24 +215,24 @@ impl Field {
         } else {
             BigInt::zero()
         };
-        Ok(Field::new(value, Type::Bool))
+        Ok(Field::new(value, TypeVariant::Bool))
     }
 
     pub fn and(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::And;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
-        if !other.value_type.can_be_second_operand(OPERATOR) {
+        if !other.type_variant.can_be_second_operand(OPERATOR) {
             return Err(Error::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
-        if self.value_type != other.value_type {
+        if self.type_variant != other.type_variant {
             return Err(Error::operand_type_mismatch(
-                other.value_type,
-                self.value_type,
+                other.type_variant,
+                self.type_variant,
             ));
         }
 
@@ -238,14 +241,14 @@ impl Field {
         } else {
             BigInt::zero()
         };
-        Ok(Field::new(value, Type::Bool))
+        Ok(Field::new(value, TypeVariant::Bool))
     }
 
     #[allow(clippy::should_implement_trait)]
     pub fn not(self) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Not;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
 
@@ -254,24 +257,24 @@ impl Field {
         } else {
             BigInt::zero()
         };
-        Ok(Field::new(value, Type::Bool))
+        Ok(Field::new(value, TypeVariant::Bool))
     }
 
     pub fn equal(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Equal;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
-        if !other.value_type.can_be_second_operand(OPERATOR) {
+        if !other.type_variant.can_be_second_operand(OPERATOR) {
             return Err(Error::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
-        if self.value_type != other.value_type {
+        if self.type_variant != other.type_variant {
             return Err(Error::operand_type_mismatch(
-                other.value_type,
-                self.value_type,
+                other.type_variant,
+                self.type_variant,
             ));
         }
 
@@ -280,24 +283,24 @@ impl Field {
         } else {
             BigInt::zero()
         };
-        Ok(Field::new(value, Type::Bool))
+        Ok(Field::new(value, TypeVariant::Bool))
     }
 
     pub fn not_equal(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::NotEqual;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
-        if !other.value_type.can_be_second_operand(OPERATOR) {
+        if !other.type_variant.can_be_second_operand(OPERATOR) {
             return Err(Error::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
-        if self.value_type != other.value_type {
+        if self.type_variant != other.type_variant {
             return Err(Error::operand_type_mismatch(
-                other.value_type,
-                self.value_type,
+                other.type_variant,
+                self.type_variant,
             ));
         }
 
@@ -306,24 +309,24 @@ impl Field {
         } else {
             BigInt::zero()
         };
-        Ok(Field::new(value, Type::Bool))
+        Ok(Field::new(value, TypeVariant::Bool))
     }
 
     pub fn greater_equal(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::GreaterEqual;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
-        if !other.value_type.can_be_second_operand(OPERATOR) {
+        if !other.type_variant.can_be_second_operand(OPERATOR) {
             return Err(Error::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
-        if self.value_type != other.value_type {
+        if self.type_variant != other.type_variant {
             return Err(Error::operand_type_mismatch(
-                other.value_type,
-                self.value_type,
+                other.type_variant,
+                self.type_variant,
             ));
         }
 
@@ -332,24 +335,24 @@ impl Field {
         } else {
             BigInt::zero()
         };
-        Ok(Field::new(value, Type::Bool))
+        Ok(Field::new(value, TypeVariant::Bool))
     }
 
     pub fn lesser_equal(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::LesserEqual;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
-        if !other.value_type.can_be_second_operand(OPERATOR) {
+        if !other.type_variant.can_be_second_operand(OPERATOR) {
             return Err(Error::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
-        if self.value_type != other.value_type {
+        if self.type_variant != other.type_variant {
             return Err(Error::operand_type_mismatch(
-                other.value_type,
-                self.value_type,
+                other.type_variant,
+                self.type_variant,
             ));
         }
 
@@ -358,24 +361,24 @@ impl Field {
         } else {
             BigInt::zero()
         };
-        Ok(Field::new(value, Type::Bool))
+        Ok(Field::new(value, TypeVariant::Bool))
     }
 
     pub fn greater(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Greater;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
-        if !other.value_type.can_be_second_operand(OPERATOR) {
+        if !other.type_variant.can_be_second_operand(OPERATOR) {
             return Err(Error::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
-        if self.value_type != other.value_type {
+        if self.type_variant != other.type_variant {
             return Err(Error::operand_type_mismatch(
-                other.value_type,
-                self.value_type,
+                other.type_variant,
+                self.type_variant,
             ));
         }
 
@@ -384,24 +387,24 @@ impl Field {
         } else {
             BigInt::zero()
         };
-        Ok(Field::new(value, Type::Bool))
+        Ok(Field::new(value, TypeVariant::Bool))
     }
 
     pub fn lesser(self, other: Field) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Lesser;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
-        if !other.value_type.can_be_second_operand(OPERATOR) {
+        if !other.type_variant.can_be_second_operand(OPERATOR) {
             return Err(Error::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
-        if self.value_type != other.value_type {
+        if self.type_variant != other.type_variant {
             return Err(Error::operand_type_mismatch(
-                other.value_type,
-                self.value_type,
+                other.type_variant,
+                self.type_variant,
             ));
         }
 
@@ -410,17 +413,17 @@ impl Field {
         } else {
             BigInt::zero()
         };
-        Ok(Field::new(value, Type::Bool))
+        Ok(Field::new(value, TypeVariant::Bool))
     }
 
-    pub fn cast(self, r#type: Type) -> Result<Field, Error> {
+    pub fn cast(self, type_variant: TypeVariant) -> Result<Field, Error> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Casting;
 
-        if !self.value_type.can_be_first_operand(OPERATOR) {
+        if !self.type_variant.can_be_first_operand(OPERATOR) {
             return Err(Error::first_operand_operator_not_available(OPERATOR, self));
         }
 
-        Ok(Field::new(self.value, r#type))
+        Ok(Field::new(self.value, type_variant))
     }
 }
 
@@ -436,8 +439,8 @@ impl From<Literal> for Field {
 impl From<BooleanLiteral> for Field {
     fn from(boolean: BooleanLiteral) -> Self {
         match boolean {
-            BooleanLiteral::False => Self::new(BigInt::zero(), Type::Bool),
-            BooleanLiteral::True => Self::new(BigInt::one(), Type::Bool),
+            BooleanLiteral::False => Self::new(BigInt::zero(), TypeVariant::Bool),
+            BooleanLiteral::True => Self::new(BigInt::one(), TypeVariant::Bool),
         }
     }
 }
@@ -455,15 +458,15 @@ impl From<IntegerLiteral> for Field {
                     bitlength += 1;
                 }
 
-                let value_type = if 2 <= bitlength && bitlength <= 253 {
-                    Type::Uint { bitlength }
+                let type_variant = if 2 <= bitlength && bitlength <= 253 {
+                    TypeVariant::Uint { bitlength }
                 } else if bitlength == 254 {
-                    Type::Field
+                    TypeVariant::Field
                 } else {
                     unreachable!();
                 };
 
-                Self::new(value, value_type)
+                Self::new(value, type_variant)
             }
             IntegerLiteral::Hexadecimal { value } => {
                 //                let first_not_zero = value.find(|c: char| c != '0').unwrap_or(0);
@@ -478,15 +481,15 @@ impl From<IntegerLiteral> for Field {
 
                 let value = BigInt::from_str_radix(value.as_str(), 16)
                     .expect("Hexadecimal integer literal parsing bug");
-                let value_type = if 2 <= bitlength && bitlength <= 253 {
-                    Type::Uint { bitlength }
+                let type_variant = if 2 <= bitlength && bitlength <= 253 {
+                    TypeVariant::Uint { bitlength }
                 } else if bitlength == 254 {
-                    Type::Field
+                    TypeVariant::Field
                 } else {
                     unreachable!();
                 };
 
-                Self::new(value, value_type)
+                Self::new(value, type_variant)
             }
         }
     }
@@ -494,7 +497,7 @@ impl From<IntegerLiteral> for Field {
 
 impl fmt::Display for Field {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}: {}", self.value, self.value_type)
+        write!(f, "{}: {}", self.value, self.type_variant)
     }
 }
 
@@ -517,7 +520,10 @@ pub enum Error {
         field: Field,
     },
     #[fail(display = "operand type mismatch: got {}, expected {}", got, expected)]
-    OperandTypesMismatch { got: Type, expected: Type },
+    OperandTypesMismatch {
+        got: TypeVariant,
+        expected: TypeVariant,
+    },
 }
 
 impl Error {
@@ -535,7 +541,7 @@ impl Error {
         Self::SecondOperandOperatorNotAvaiable { operator, field }
     }
 
-    pub fn operand_type_mismatch(got: Type, expected: Type) -> Self {
+    pub fn operand_type_mismatch(got: TypeVariant, expected: TypeVariant) -> Self {
         Self::OperandTypesMismatch { got, expected }
     }
 }

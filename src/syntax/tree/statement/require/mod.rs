@@ -10,16 +10,21 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
+use crate::lexical::Location;
 use crate::syntax::Expression;
 
 #[derive(Debug, Serialize, PartialEq)]
 pub struct Require {
+    pub location: Location,
     pub expression: Expression,
 }
 
 impl Require {
-    pub fn new(expression: Expression) -> Self {
-        Self { expression }
+    pub fn new(location: Location, expression: Expression) -> Self {
+        Self {
+            location,
+            expression,
+        }
     }
 }
 

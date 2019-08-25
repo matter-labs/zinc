@@ -2,7 +2,7 @@
 //! The input builder.
 //!
 
-use crate::lexical::Identifier;
+use crate::syntax::Identifier;
 use crate::syntax::Input;
 use crate::syntax::Type;
 

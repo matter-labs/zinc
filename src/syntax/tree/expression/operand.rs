@@ -6,8 +6,8 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
-use crate::lexical::Identifier;
 use crate::lexical::Literal;
+use crate::syntax::Identifier;
 use crate::syntax::Type;
 
 #[derive(Debug, Serialize, PartialEq)]

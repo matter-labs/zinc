@@ -8,7 +8,7 @@ use serde_derive::Serialize;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Comment {
-    text: String,
+    pub text: String,
 }
 
 impl Comment {

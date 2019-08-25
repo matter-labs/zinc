@@ -26,25 +26,27 @@ impl Executor {
                 Ok(())
             }
             Statement::Let(r#let) => {
-                if self.variables.contains_key(r#let.identifier.name()) {
+                if self.variables.contains_key(&r#let.identifier.name) {
                     return Err(Error::RedeclaredVariable(
-                        r#let.identifier.name().to_owned(),
+                        r#let.identifier.location,
+                        r#let.identifier.name.to_owned(),
                     ));
                 }
                 let mut result = self.evaluator.evaluate(r#let.expression, &self.variables)?;
                 if let Some(r#type) = r#let.r#type {
-                    result.value_type = r#type;
+                    result.type_variant = r#type.variant;
                 }
                 self.variables
-                    .insert(r#let.identifier.name().to_owned(), result);
+                    .insert(r#let.identifier.name.to_owned(), result);
                 Ok(())
             }
             Statement::Require(require) => {
+                let location = require.location;
                 let result = self
                     .evaluator
                     .evaluate(require.expression, &self.variables)?;
                 if result.value.is_zero() {
-                    return Err(Error::RequireFailure);
+                    return Err(Error::RequireFailure(location));
                 }
                 Ok(())
             }

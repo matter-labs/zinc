@@ -17,5 +17,6 @@ witness {
 }
 
 let a: uint8 = 164;
-let a: uint8 = 52;
-debug(a + c);
+let b: uint8 = 52;
+let c = 52;
+debug(a + c as uint8);
