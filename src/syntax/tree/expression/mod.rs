@@ -53,7 +53,7 @@ impl fmt::Display for Expression {
                 .iter()
                 .map(|element| element.to_string())
                 .collect::<Vec<String>>()
-                .join(" ")
+                .join(" "),
         )
     }
 }

@@ -1,9 +1,8 @@
 //!
-//! The Jabberwocky compiler server binary.
+//! The Jabberwocky server binary.
 //!
 
-use failure::Fail;
-use structopt::StructOpt;
+use std::str;
 
 use actix_web::middleware;
 use actix_web::web;
@@ -13,12 +12,15 @@ use actix_web::Error;
 use actix_web::HttpResponse;
 use actix_web::HttpServer;
 use bytes::BytesMut;
+use failure::Fail;
 use futures::prelude::*;
+use serde_derive::Serialize;
+use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "jabserver", about = "The Jabberwocky language compiler server")]
+#[structopt(name = "jabserver", about = "The Jabberwocky language server")]
 struct Arguments {
-    #[structopt(short = "p", long = "port", default_value = 80)]
+    #[structopt(short = "p", long = "port", default_value = "80")]
     port: u16,
 }
 
@@ -35,8 +37,8 @@ fn main() -> Result<(), ServerError> {
 
     let args: Arguments = Arguments::from_args();
 
-    let address = format!("0.0.0.0:{}", port);
-    info!("Starting the HTTP server at {}", address);
+    let address = format!("0.0.0.0:{}", args.port);
+    log::info!("Starting the HTTP server at {}", address);
 
     HttpServer::new(|| {
         App::new()
@@ -62,10 +64,9 @@ fn handler(payload: Payload) -> impl Future<Item = HttpResponse, Error = Error> 
             Ok::<_, Error>(body)
         })
         .and_then(|body| {
-            let code = String::from_utf8_lossy(&body.to_vec()).to_string();
-            info!("Received: {:?}", code);
-
-            let response = match compiler::compile(&code) {
+            let input = body.to_vec();
+            log::info!("Received: {}", unsafe { str::from_utf8_unchecked(&input) });
+            let response = match compiler::parse(input) {
                 Ok(circuit) => serde_json::to_vec(&circuit),
                 Err(error) => serde_json::to_vec(&CircuitError {
                     error: error.to_string(),
@@ -80,7 +81,7 @@ fn handler(payload: Payload) -> impl Future<Item = HttpResponse, Error = Error> 
 fn init_logger() {
     use std::env;
     if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "compiler=info");
+        env::set_var("RUST_LOG", "compiler=info,jabserver=info");
     }
     env_logger::Builder::from_default_env()
         .default_format_timestamp_nanos(true)

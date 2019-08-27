@@ -43,7 +43,7 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, usize, usize, Comment), Error> {
             },
             State::SingleLine => {
                 if b'\n' == byte {
-                    let comment = Comment::new(String::from_utf8_lossy(&bytes[..size]).to_string());
+                    let comment = Comment::new(bytes[..size].to_vec());
                     return Ok((size, lines, column, comment));
                 }
             }
@@ -58,7 +58,7 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, usize, usize, Comment), Error> {
             State::MultiLineStar => match byte {
                 b'/' => {
                     size += 1;
-                    let comment = Comment::new(String::from_utf8_lossy(&bytes[..size]).to_string());
+                    let comment = Comment::new(bytes[..size].to_vec());
                     return Ok((size, lines, column, comment));
                 }
                 _ => state = State::MultiLine,

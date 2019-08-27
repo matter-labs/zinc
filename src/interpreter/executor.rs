@@ -3,6 +3,7 @@
 //!
 
 use std::collections::HashMap;
+use std::str;
 
 use num_traits::Zero;
 
@@ -14,7 +15,7 @@ use crate::syntax::Statement;
 #[derive(Default)]
 pub struct Executor {
     evaluator: Evaluator,
-    variables: HashMap<String, Field>,
+    variables: HashMap<Vec<u8>, Field>,
 }
 
 impl Executor {
@@ -23,13 +24,14 @@ impl Executor {
             Statement::Debug(debug) => {
                 let result = self.evaluator.evaluate(debug.expression, &self.variables)?;
                 log::debug!("{}", result);
+                println!("{}", result.value);
                 Ok(())
             }
             Statement::Let(r#let) => {
                 if self.variables.contains_key(&r#let.identifier.name) {
                     return Err(Error::RedeclaredVariable(
                         r#let.identifier.location,
-                        r#let.identifier.name.to_owned(),
+                        unsafe { str::from_utf8_unchecked(&r#let.identifier.name) }.to_owned(),
                     ));
                 }
                 let mut result = self.evaluator.evaluate(r#let.expression, &self.variables)?;

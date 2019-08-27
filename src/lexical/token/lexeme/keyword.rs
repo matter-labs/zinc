@@ -5,6 +5,7 @@
 use std::convert::TryFrom;
 use std::fmt;
 use std::ops::RangeInclusive;
+use std::str;
 
 use failure::Fail;
 use serde_derive::Serialize;
@@ -76,13 +77,13 @@ impl TryFrom<&[u8]> for Keyword {
         const BITLENGTH_RANGE: RangeInclusive<usize> = (BITLENGTH_MIN..=BITLENGTH_MAX);
 
         if let Some(b"uint") = bytes.get(..4) {
-            let bitlength = String::from_utf8_lossy(&bytes[4..]).to_string();
+            let bitlength = unsafe { str::from_utf8_unchecked(&bytes[4..]) };
             if bitlength.is_empty() {
                 return Ok(Self::uint(BITLENGTH_MAX));
             }
             let bitlength = bitlength
                 .parse::<usize>()
-                .map_err(|_| Error::BitlengthNotNumeric(bitlength))?;
+                .map_err(|_| Error::BitlengthNotNumeric(bitlength.to_owned()))?;
             if !BITLENGTH_RANGE.contains(&bitlength) {
                 return Err(Error::BitlengthOutOfRange(bitlength, BITLENGTH_RANGE));
             }
@@ -90,13 +91,13 @@ impl TryFrom<&[u8]> for Keyword {
         }
 
         if let Some(b"int") = bytes.get(..3) {
-            let bitlength = String::from_utf8_lossy(&bytes[3..]).to_string();
+            let bitlength = unsafe { str::from_utf8_unchecked(&bytes[3..]) };
             if bitlength.is_empty() {
                 return Ok(Self::int(BITLENGTH_MAX));
             }
             let bitlength = bitlength
                 .parse::<usize>()
-                .map_err(|_| Error::BitlengthNotNumeric(bitlength))?;
+                .map_err(|_| Error::BitlengthNotNumeric(bitlength.to_owned()))?;
             if !BITLENGTH_RANGE.contains(&bitlength) {
                 return Err(Error::BitlengthOutOfRange(bitlength, BITLENGTH_RANGE));
             }

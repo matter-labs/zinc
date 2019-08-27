@@ -2,6 +2,8 @@
 //! The symbol parser.
 //!
 
+use std::str;
+
 use failure::Fail;
 use serde_derive::Serialize;
 
@@ -85,7 +87,7 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, Symbol), Error> {
                     return Err(Error::InvalidCharacter(
                         char::from(byte),
                         size + 1,
-                        String::from_utf8_lossy(&bytes[..=size]).to_string(),
+                        unsafe { str::from_utf8_unchecked(&bytes[..=size]) }.to_owned(),
                     ))
                 }
             },
@@ -95,7 +97,7 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, Symbol), Error> {
                     return Err(Error::InvalidCharacter(
                         char::from(byte),
                         size + 1,
-                        String::from_utf8_lossy(&bytes[..=size]).to_string(),
+                        unsafe { str::from_utf8_unchecked(&bytes[..=size]) }.to_owned(),
                     ))
                 }
             },
@@ -105,7 +107,7 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, Symbol), Error> {
                     return Err(Error::InvalidCharacter(
                         char::from(byte),
                         size + 1,
-                        String::from_utf8_lossy(&bytes[..=size]).to_string(),
+                        unsafe { str::from_utf8_unchecked(&bytes[..=size]) }.to_owned(),
                     ))
                 }
             },

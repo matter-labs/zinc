@@ -3,6 +3,7 @@
 //!
 
 use std::collections::HashMap;
+use std::str;
 
 use crate::interpreter::Error;
 use crate::interpreter::Field;
@@ -28,7 +29,7 @@ impl Evaluator {
     pub fn evaluate(
         &mut self,
         expression: Expression,
-        variables: &HashMap<String, Field>,
+        variables: &HashMap<Vec<u8>, Field>,
     ) -> Result<Field, Error> {
         for element in expression.elements.into_iter() {
             match element.object {
@@ -43,7 +44,8 @@ impl Evaluator {
                             None => {
                                 return Err(Error::UndeclaredVariable(
                                     element.token.location,
-                                    identifier.name.to_owned(),
+                                    unsafe { str::from_utf8_unchecked(&identifier.name) }
+                                        .to_owned(),
                                 ))
                             }
                         }

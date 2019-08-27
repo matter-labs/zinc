@@ -40,6 +40,7 @@ pub fn parse(stream: TokenStream) -> Result<CircuitProgram, Error> {
             break;
         }
         let statement = StatementParser::default().parse(stream.clone())?;
+        log::trace!("Statement: {:?}", statement);
         statements.push(statement);
     }
 

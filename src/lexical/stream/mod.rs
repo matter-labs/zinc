@@ -146,10 +146,12 @@ impl Iterator for TokenStream {
     /// If there is a peeked value, it is returned, otherwise the stream is advanced.
     ///
     fn next(&mut self) -> Option<Self::Item> {
-        match self.peeked.take() {
+        let item = match self.peeked.take() {
             Some(peeked) => Some(peeked),
             None => self.advance(),
-        }
+        };
+        log::trace!("Token: {:?}", item);
+        item
     }
 }
 

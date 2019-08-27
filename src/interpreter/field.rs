@@ -3,6 +3,7 @@
 //!
 
 use std::fmt;
+use std::str;
 
 use failure::Fail;
 use num_bigint::BigInt;
@@ -449,7 +450,7 @@ impl From<IntegerLiteral> for Field {
     fn from(integer: IntegerLiteral) -> Self {
         match integer {
             IntegerLiteral::Decimal { value } => {
-                let value = BigInt::from_str_radix(value.as_str(), 10)
+                let value = BigInt::from_str_radix(unsafe { str::from_utf8_unchecked(&value) }, 10)
                     .expect("Decimal integer literal parsing bug");
                 let mut bitlength = 2;
                 let mut exponent = BigInt::from(4);
@@ -479,7 +480,7 @@ impl From<IntegerLiteral> for Field {
                 //                };
                 let bitlength = value.len() * 4;
 
-                let value = BigInt::from_str_radix(value.as_str(), 16)
+                let value = BigInt::from_str_radix(unsafe { str::from_utf8_unchecked(&value) }, 16)
                     .expect("Hexadecimal integer literal parsing bug");
                 let type_variant = if 2 <= bitlength && bitlength <= 253 {
                     TypeVariant::Uint { bitlength }

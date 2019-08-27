@@ -122,7 +122,9 @@ impl Parser {
                         lexeme: Lexeme::Symbol(Symbol::Semicolon),
                         ..
                     })) => {
-                        self.inputs.push(self.builder.build());
+                        let input = self.builder.build();
+                        log::trace!("Input: {:?}", input);
+                        self.inputs.push(input);
                         self.state = State::ElementIdentifierOrBracketClose;
                     }
                     Some(Ok(Token { lexeme, location })) => {

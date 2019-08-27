@@ -4,6 +4,7 @@
 
 use std::convert::TryFrom;
 use std::fmt;
+use std::str;
 
 use failure::Fail;
 use serde_derive::Serialize;
@@ -12,7 +13,7 @@ use crate::lexical::Keyword;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Identifier {
-    pub name: String,
+    pub name: Vec<u8>,
 }
 
 #[derive(Debug, Fail, Serialize)]
@@ -25,7 +26,7 @@ pub enum Error {
 }
 
 impl Identifier {
-    pub fn new(name: &str) -> Self {
+    pub fn new(name: &[u8]) -> Self {
         Self {
             name: name.to_owned(),
         }
@@ -53,13 +54,13 @@ impl TryFrom<&[u8]> for Identifier {
         }
 
         Ok(Self {
-            name: String::from_utf8_lossy(bytes).to_string(),
+            name: bytes.to_owned(),
         })
     }
 }
 
 impl fmt::Display for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.name)
+        write!(f, "{}", unsafe { str::from_utf8_unchecked(&self.name) })
     }
 }

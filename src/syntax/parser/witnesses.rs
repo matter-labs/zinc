@@ -131,7 +131,9 @@ impl Parser {
                         lexeme: Lexeme::Symbol(Symbol::Semicolon),
                         ..
                     })) => {
-                        self.witnesses.push(self.builder.build());
+                        let witness = self.builder.build();
+                        log::trace!("Witness: {:?}", witness);
+                        self.witnesses.push(witness);
                         self.state = State::ElementIdentifierOrBracketClose;
                     }
                     Some(Ok(Token { lexeme, location })) => {
