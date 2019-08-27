@@ -14,8 +14,4 @@ pub enum Error {
     Operator(Location, OperatorError),
     #[fail(display = "{} undeclared variable: {}", _0, _1)]
     UndeclaredVariable(Location, String),
-    #[fail(display = "{} redeclared variable: {}", _0, _1)]
-    RedeclaredVariable(Location, String),
-    #[fail(display = "{} require failure", _0)]
-    RequireFailure(Location),
 }

@@ -10,6 +10,7 @@ use num_traits::Zero;
 use crate::interpreter::Error;
 use crate::interpreter::Evaluator;
 use crate::interpreter::Field;
+use crate::interpreter::Warning;
 use crate::syntax::Statement;
 
 #[derive(Default)]
@@ -23,16 +24,17 @@ impl Executor {
         match statement {
             Statement::Debug(debug) => {
                 let result = self.evaluator.evaluate(debug.expression, &self.variables)?;
-                log::debug!("{}", result);
-                println!("{}", result.value);
-                Ok(())
+                println!("{}", result);
             }
             Statement::Let(r#let) => {
                 if self.variables.contains_key(&r#let.identifier.name) {
-                    return Err(Error::RedeclaredVariable(
-                        r#let.identifier.location,
-                        unsafe { str::from_utf8_unchecked(&r#let.identifier.name) }.to_owned(),
-                    ));
+                    log::warn!(
+                        "{}",
+                        Warning::RedeclaredVariable(
+                            r#let.identifier.location,
+                            unsafe { str::from_utf8_unchecked(&r#let.identifier.name) }.to_owned(),
+                        )
+                    );
                 }
                 let mut result = self.evaluator.evaluate(r#let.expression, &self.variables)?;
                 if let Some(r#type) = r#let.r#type {
@@ -40,7 +42,6 @@ impl Executor {
                 }
                 self.variables
                     .insert(r#let.identifier.name.to_owned(), result);
-                Ok(())
             }
             Statement::Require(require) => {
                 let location = require.location;
@@ -48,10 +49,10 @@ impl Executor {
                     .evaluator
                     .evaluate(require.expression, &self.variables)?;
                 if result.value.is_zero() {
-                    return Err(Error::RequireFailure(location));
+                    panic!("Require failed at line {}", location.line);
                 }
-                Ok(())
             }
         }
+        Ok(())
     }
 }

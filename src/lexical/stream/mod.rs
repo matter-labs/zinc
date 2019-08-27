@@ -4,6 +4,7 @@
 
 mod comment;
 mod integer;
+mod string;
 mod symbol;
 mod word;
 
@@ -11,6 +12,8 @@ pub use self::comment::parse as parse_comment;
 pub use self::comment::Error as CommentParserError;
 pub use self::integer::parse as parse_integer;
 pub use self::integer::Error as IntegerParserError;
+pub use self::string::parse as parse_string;
+pub use self::string::Error as StringParserError;
 pub use self::symbol::parse as parse_symbol;
 pub use self::symbol::Error as SymbolParserError;
 pub use self::word::parse as parse_word;
@@ -58,7 +61,7 @@ impl TokenStream {
         while let Some(byte) = self.input.get(self.cursor.index).copied() {
             if !Alphabet::contains(byte) {
                 let location = Location::new(self.cursor.line, self.cursor.column);
-                return Some(Err(Error::InvalidCharacter(location, char::from(byte))));
+                return Some(Err(Error::UnknownCharacter(location, char::from(byte))));
             }
 
             if byte.is_ascii_whitespace() {
@@ -73,13 +76,37 @@ impl TokenStream {
             }
 
             if byte == b'/' {
-                if let Ok((size, lines, column, _comment)) =
-                    parse_comment(&self.input[self.cursor.index..])
-                {
-                    self.cursor.line += lines;
-                    self.cursor.column = column;
-                    self.cursor.index += size;
-                    continue;
+                match parse_comment(&self.input[self.cursor.index..]) {
+                    Ok((size, lines, column, _comment)) => {
+                        self.cursor.line += lines;
+                        self.cursor.column = column;
+                        self.cursor.index += size;
+                        continue;
+                    }
+                    Err(CommentParserError::UnexpectedEnd) => {
+                        let location = Location::new(self.cursor.line, self.cursor.column);
+                        return Some(Err(Error::UnexpectedEnd(location)));
+                    }
+                    Err(CommentParserError::NotAComment) => {}
+                }
+            }
+
+            if byte == b'\"' {
+                match parse_string(&self.input[self.cursor.index..]) {
+                    Ok((size, string)) => {
+                        let location = Location::new(self.cursor.line, self.cursor.column);
+                        self.cursor.column += size;
+                        self.cursor.index += size;
+                        return Some(Ok(Token::new(
+                            Lexeme::Literal(Literal::String(string)),
+                            location,
+                        )));
+                    }
+                    Err(StringParserError::UnexpectedEnd) => {
+                        let location = Location::new(self.cursor.line, self.cursor.column);
+                        return Some(Err(Error::UnexpectedEnd(location)));
+                    }
+                    Err(StringParserError::NotAString) => {}
                 }
             }
 
@@ -90,25 +117,14 @@ impl TokenStream {
                     self.cursor.index += size;
                     return Some(Ok(Token::new(Lexeme::Symbol(symbol), location)));
                 }
+                Err(SymbolParserError::UnexpectedEnd) => {
+                    let location = Location::new(self.cursor.line, self.cursor.column);
+                    return Some(Err(Error::UnexpectedEnd(location)));
+                }
                 Err(SymbolParserError::NotASymbol) => {}
                 Err(error) => {
                     let location = Location::new(self.cursor.line, self.cursor.column);
                     return Some(Err(Error::InvalidSymbol(location, error)));
-                }
-            }
-
-            if Identifier::can_start_with(byte) {
-                match parse_word(&self.input[self.cursor.index..]) {
-                    Ok((size, lexeme)) => {
-                        let location = Location::new(self.cursor.line, self.cursor.column);
-                        self.cursor.column += size;
-                        self.cursor.index += size;
-                        return Some(Ok(Token::new(lexeme, location)));
-                    }
-                    Err(error) => {
-                        let location = Location::new(self.cursor.line, self.cursor.column);
-                        return Some(Err(Error::InvalidWord(location, error)));
-                    }
                 }
             }
 
@@ -123,9 +139,29 @@ impl TokenStream {
                             location,
                         )));
                     }
+                    Err(IntegerParserError::UnexpectedEnd) => {
+                        let location = Location::new(self.cursor.line, self.cursor.column);
+                        return Some(Err(Error::UnexpectedEnd(location)));
+                    }
+                    Err(IntegerParserError::NotAnInteger) => {}
                     Err(error) => {
                         let location = Location::new(self.cursor.line, self.cursor.column);
                         return Some(Err(Error::InvalidIntegerLiteral(location, error)));
+                    }
+                }
+            }
+
+            if Identifier::can_start_with(byte) {
+                match parse_word(&self.input[self.cursor.index..]) {
+                    Ok((size, lexeme)) => {
+                        let location = Location::new(self.cursor.line, self.cursor.column);
+                        self.cursor.column += size;
+                        self.cursor.index += size;
+                        return Some(Ok(Token::new(lexeme, location)));
+                    }
+                    Err(error) => {
+                        let location = Location::new(self.cursor.line, self.cursor.column);
+                        return Some(Err(Error::InvalidWord(location, error)));
                     }
                 }
             }

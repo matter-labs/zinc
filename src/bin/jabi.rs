@@ -26,6 +26,8 @@ enum Error {
     InputReading(std::io::Error),
     #[fail(display = "Parsing: {}", _0)]
     Parsing(compiler::Error),
+    #[fail(display = "Interpreting: {}", _0)]
+    Interpreting(compiler::Error),
 }
 
 fn main() -> Result<(), Error> {
@@ -38,8 +40,14 @@ fn main() -> Result<(), Error> {
     let mut code = Vec::with_capacity(size as usize);
     file.read_to_end(&mut code).map_err(Error::InputReading)?;
 
-    let program = compiler::parse(code).map_err(Error::Parsing)?;
-    compiler::interpret(program);
+    let program = compiler::parse(code).map_err(|error| {
+        log::error!("{}", error);
+        Error::Parsing(error)
+    })?;
+    compiler::interpret(program).map_err(|error| {
+        log::error!("{}", error);
+        Error::Interpreting(error)
+    })?;
 
     Ok(())
 }

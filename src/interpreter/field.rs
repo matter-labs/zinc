@@ -433,6 +433,7 @@ impl From<Literal> for Field {
         match literal {
             Literal::Boolean(boolean) => Self::from(boolean),
             Literal::Integer(integer) => Self::from(integer),
+            Literal::String(string) => panic!("Field from string '{}' casting bug", string),
         }
     }
 }

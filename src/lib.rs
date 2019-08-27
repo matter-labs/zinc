@@ -6,7 +6,6 @@ mod interpreter;
 mod lexical;
 mod syntax;
 
-pub use self::interpreter::interpret;
 pub use self::syntax::CircuitProgram;
 
 use failure::Fail;
@@ -27,4 +26,8 @@ pub enum Error {
 
 pub fn parse(input: Vec<u8>) -> Result<CircuitProgram, Error> {
     syntax::parse(TokenStream::new(input))
+}
+
+pub fn interpret(program: CircuitProgram) -> Result<(), Error> {
+    interpreter::interpret(program).map_err(Error::Semantic)
 }

@@ -17,6 +17,7 @@ use serde_derive::Serialize;
 pub enum Literal {
     Boolean(Boolean),
     Integer(Integer),
+    String(String),
 }
 
 impl fmt::Display for Literal {
@@ -24,6 +25,7 @@ impl fmt::Display for Literal {
         match self {
             Self::Boolean(boolean) => write!(f, "{}", boolean),
             Self::Integer(integer) => write!(f, "{}", integer),
+            Self::String(string) => write!(f, "{}", string),
         }
     }
 }
