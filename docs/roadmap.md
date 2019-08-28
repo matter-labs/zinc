@@ -13,6 +13,7 @@
 
 ## Version 0.2
 
+- [highlighting grammar](https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide) for VS code
 - mutability
 - conditionals
 - `for` loops (without `while`)
