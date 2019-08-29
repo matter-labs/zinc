@@ -11,10 +11,16 @@ lexeme =
 comment =
   | single_line_comment
   | multi_line_comment
-single_line_comment = '//' (!\n .)* \n
-multi_line_comment = '/*' (!'*/' .)* '*/'
+single_line_comment = // [!\n .]* \n
+multi_line_comment = /* [!'*/' .]* */
 
-identifier = !keyword ([A-Za-z_][A-Za-z_0-9])*
+identifier = !keyword [A-Za-z_][A-Za-z_0-9]*
+
+type =
+  | 'bool'
+  | ('uint1' ... 'uint253')
+  | ('int1' ... 'int253')
+  | 'field'
 
 keyword =
   // domain
@@ -36,8 +42,8 @@ keyword =
   
   // type
   | 'bool'
-  | ('uint' | 'uint2' ... 'uint253')
-  | ('int' | 'int2' ... 'int253')
+  | ('uint1' ... 'uint253')
+  | ('int1' ... 'int253')
   | 'field'
 
   // literal
@@ -54,12 +60,12 @@ literal =
 literal_integer =
   | '0'
   | [1-9][0-9]*
-  | 0x[0-9a-fA-F]+
+  | '0x' [0-9a-fA-F]+
 literal_boolean =
   | 'true'
   | 'false'
 literal_string =
-  | ".*"
+  | '" [!'"' \" .]* "'
 
 symbol =
   // simple

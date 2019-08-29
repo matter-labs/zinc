@@ -7,7 +7,7 @@
 use super::*;
 
 #[test]
-fn success() {
+fn ok() {
     let code = br#"
 /*
     This is the mega ultra test application!

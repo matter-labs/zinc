@@ -60,10 +60,12 @@ impl Keyword {
 
 #[derive(Debug, Fail)]
 pub enum Error {
+    #[fail(display = "integer bitlength is empty")]
+    IntegerBitlengthIsEmpty,
     #[fail(display = "integer bitlength '{}' is not numeric", _0)]
-    BitlengthNotNumeric(String),
+    IntegerBitlengthIsNotNumeric(String),
     #[fail(display = "integer bitlength {} is out of range {:?}", _0, _1)]
-    BitlengthOutOfRange(usize, RangeInclusive<usize>),
+    IntegerBitlengthIsOutOfRange(usize, RangeInclusive<usize>),
     #[fail(display = "unknown")]
     Unknown,
 }
@@ -79,13 +81,16 @@ impl TryFrom<&[u8]> for Keyword {
         if let Some(b"uint") = bytes.get(..4) {
             let bitlength = unsafe { str::from_utf8_unchecked(&bytes[4..]) };
             if bitlength.is_empty() {
-                return Ok(Self::uint(BITLENGTH_MAX));
+                return Err(Error::IntegerBitlengthIsEmpty);
             }
             let bitlength = bitlength
                 .parse::<usize>()
-                .map_err(|_| Error::BitlengthNotNumeric(bitlength.to_owned()))?;
+                .map_err(|_| Error::IntegerBitlengthIsNotNumeric(bitlength.to_owned()))?;
             if !BITLENGTH_RANGE.contains(&bitlength) {
-                return Err(Error::BitlengthOutOfRange(bitlength, BITLENGTH_RANGE));
+                return Err(Error::IntegerBitlengthIsOutOfRange(
+                    bitlength,
+                    BITLENGTH_RANGE,
+                ));
             }
             return Ok(Self::uint(bitlength));
         }
@@ -93,13 +98,16 @@ impl TryFrom<&[u8]> for Keyword {
         if let Some(b"int") = bytes.get(..3) {
             let bitlength = unsafe { str::from_utf8_unchecked(&bytes[3..]) };
             if bitlength.is_empty() {
-                return Ok(Self::int(BITLENGTH_MAX));
+                return Err(Error::IntegerBitlengthIsEmpty);
             }
             let bitlength = bitlength
                 .parse::<usize>()
-                .map_err(|_| Error::BitlengthNotNumeric(bitlength.to_owned()))?;
+                .map_err(|_| Error::IntegerBitlengthIsNotNumeric(bitlength.to_owned()))?;
             if !BITLENGTH_RANGE.contains(&bitlength) {
-                return Err(Error::BitlengthOutOfRange(bitlength, BITLENGTH_RANGE));
+                return Err(Error::IntegerBitlengthIsOutOfRange(
+                    bitlength,
+                    BITLENGTH_RANGE,
+                ));
             }
             return Ok(Self::int(bitlength));
         }

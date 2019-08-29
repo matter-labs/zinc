@@ -14,7 +14,7 @@ use crate::lexical::Token;
 use crate::lexical::TokenStream;
 
 #[test]
-fn success() {
+fn ok() {
     let code = br#"
 inputs {
     a: uint1;
