@@ -10,10 +10,9 @@ use serde_derive::Serialize;
 pub enum State {
     DoubleQuoteOpen,
     Character,
-    DoubleQuoteClose,
 }
 
-#[derive(Debug, Fail, Serialize)]
+#[derive(Debug, Fail, Serialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum Error {
     #[fail(display = "unexpected end")]
@@ -29,22 +28,52 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, String), Error> {
     while let Some(byte) = bytes.get(size).copied() {
         match state {
             State::DoubleQuoteOpen => match byte {
-                b'\"' => state = State::Character,
+                b'\"' => {
+                    size += 1;
+                    state = State::Character;
+                }
                 _ => return Err(Error::NotAString),
             },
             State::Character => {
-                if let b'\"' = byte {
-                    state = State::DoubleQuoteClose;
+                size += 1;
+                if byte == b'\"' {
+                    let string =
+                        unsafe { str::from_utf8_unchecked(&bytes[1..size - 1]) }.to_owned();
+                    return Ok((size, string));
                 }
             }
-            State::DoubleQuoteClose => {
-                let string = unsafe { str::from_utf8_unchecked(&bytes[1..size - 1]) }.to_owned();
-                return Ok((size, string));
-            }
         }
-
-        size += 1;
     }
 
     Err(Error::UnexpectedEnd)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse;
+    use super::Error;
+
+    #[test]
+    fn ok() {
+        let input = b"\"some string\"";
+        let expected = Ok((13, "some string".to_string()));
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn err_unexpected_end() {
+        let input = b"\"some string";
+        let expected = Err(Error::UnexpectedEnd);
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn err_not_a_string() {
+        let input = b"no double quote here";
+        let expected = Err(Error::NotAString);
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
 }

@@ -77,7 +77,6 @@ impl Variant {
             (Self::Field, ExpressionOperator::Multiplication) => true,
             (Self::Field, ExpressionOperator::Division) => true,
             (Self::Field, ExpressionOperator::Remainder) => true,
-            (Self::Field, ExpressionOperator::Casting) => true,
             (Self::Field, ExpressionOperator::Negation) => true,
 
             (Self::Bool, ExpressionOperator::Or) => true,
@@ -85,7 +84,6 @@ impl Variant {
             (Self::Bool, ExpressionOperator::And) => true,
             (Self::Bool, ExpressionOperator::Equal) => true,
             (Self::Bool, ExpressionOperator::NotEqual) => true,
-            (Self::Bool, ExpressionOperator::Casting) => true,
             (Self::Bool, ExpressionOperator::Not) => true,
 
             _ => false,

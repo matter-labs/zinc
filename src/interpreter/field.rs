@@ -14,7 +14,6 @@ use serde_derive::Serialize;
 
 use crate::lexical::BooleanLiteral;
 use crate::lexical::IntegerLiteral;
-use crate::lexical::Literal;
 use crate::syntax::ExpressionOperator;
 use crate::syntax::TypeVariant;
 
@@ -428,16 +427,6 @@ impl Field {
     }
 }
 
-impl From<Literal> for Field {
-    fn from(literal: Literal) -> Self {
-        match literal {
-            Literal::Boolean(boolean) => Self::from(boolean),
-            Literal::Integer(integer) => Self::from(integer),
-            Literal::String(string) => panic!("Field from string '{}' casting bug", string),
-        }
-    }
-}
-
 impl From<BooleanLiteral> for Field {
     fn from(boolean: BooleanLiteral) -> Self {
         match boolean {
@@ -471,14 +460,6 @@ impl From<IntegerLiteral> for Field {
                 Self::new(value, type_variant)
             }
             IntegerLiteral::Hexadecimal { value } => {
-                //                let first_not_zero = value.find(|c: char| c != '0').unwrap_or(0);
-                //                let bitlength = match value.chars().nth(first_not_zero).expect("Unreachable") {
-                //                    '1'..='3' => value.len() * 4 - 3,
-                //                    '4'..='7' => value.len() * 4 - 2,
-                //                    '8'..='9' | 'a'..='b' => value.len() * 4 - 1,
-                //                    'c'..='f' => value.len() * 4,
-                //                    _ => unreachable!(),
-                //                };
                 let bitlength = value.len() * 4;
 
                 let value = BigInt::from_str_radix(unsafe { str::from_utf8_unchecked(&value) }, 16)

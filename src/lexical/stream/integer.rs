@@ -16,7 +16,7 @@ pub enum State {
     Hexadecimal,
 }
 
-#[derive(Debug, Fail, Serialize, Clone)]
+#[derive(Debug, Fail, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum Error {
     #[fail(display = "unexpected end")]
@@ -62,6 +62,7 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, IntegerLiteral), Error> {
             State::ZeroOrHexadecimal => {
                 if byte == b'x' {
                     size += 1;
+                    value.clear();
                     state = State::Hexadecimal;
                 } else if byte.is_ascii_alphabetic() {
                     return Err(Error::InvalidDecimalCharacter(
@@ -83,7 +84,9 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, IntegerLiteral), Error> {
                         size + 1,
                         unsafe { str::from_utf8_unchecked(&bytes[..=size]) }.to_owned(),
                     ));
-                } else if !byte.is_ascii_digit() && byte != b'_' {
+                } else if byte == b'_' {
+                    size += 1;
+                } else {
                     return Ok((size, IntegerLiteral::decimal(value)));
                 }
             }
@@ -97,6 +100,8 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, IntegerLiteral), Error> {
                         size + 1,
                         unsafe { str::from_utf8_unchecked(&bytes[..=size]) }.to_owned(),
                     ));
+                } else if byte == b'_' {
+                    size += 1;
                 } else {
                     return Ok((size, IntegerLiteral::hexadecimal(value)));
                 }
@@ -105,4 +110,51 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, IntegerLiteral), Error> {
     }
 
     Err(Error::UnexpectedEnd)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse;
+    use super::Error;
+    use crate::lexical::IntegerLiteral;
+
+    #[test]
+    fn ok_decimal_zero() {
+        let input = b"0\n";
+        let expected = Ok((1, IntegerLiteral::decimal(b"0".to_vec())));
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_decimal() {
+        let input = b"666\n";
+        let expected = Ok((3, IntegerLiteral::decimal(b"666".to_vec())));
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_hexadecimal_lowercase() {
+        let input = b"0xDEAD_666_BEEF\n";
+        let expected = Ok((15, IntegerLiteral::hexadecimal(b"DEAD666BEEF".to_vec())));
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_hexadecimal_uppercase() {
+        let input = b"0xdead_666_beef\n";
+        let expected = Ok((15, IntegerLiteral::hexadecimal(b"dead666beef".to_vec())));
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn err_unexpected_end() {
+        let input = b"555";
+        let expected = Err(Error::UnexpectedEnd);
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
 }

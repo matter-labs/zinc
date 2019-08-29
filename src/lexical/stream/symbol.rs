@@ -20,7 +20,7 @@ pub enum State {
     Xor,
 }
 
-#[derive(Debug, Fail, Serialize, Clone)]
+#[derive(Debug, Fail, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum Error {
     #[fail(display = "unexpected end")]
@@ -57,13 +57,34 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, Symbol), Error> {
                 b'%' => return Ok((size + 1, Symbol::Percent)),
                 b'\\' => return Ok((size + 1, Symbol::Backslash)),
 
-                b'=' => state = State::Equal,
-                b'!' => state = State::Exclamation,
-                b'<' => state = State::Lesser,
-                b'>' => state = State::Greater,
-                b'&' => state = State::And,
-                b'|' => state = State::Or,
-                b'^' => state = State::Xor,
+                b'=' => {
+                    size += 1;
+                    state = State::Equal;
+                }
+                b'!' => {
+                    size += 1;
+                    state = State::Exclamation;
+                }
+                b'<' => {
+                    size += 1;
+                    state = State::Lesser;
+                }
+                b'>' => {
+                    size += 1;
+                    state = State::Greater;
+                }
+                b'&' => {
+                    size += 1;
+                    state = State::And;
+                }
+                b'|' => {
+                    size += 1;
+                    state = State::Or;
+                }
+                b'^' => {
+                    size += 1;
+                    state = State::Xor;
+                }
 
                 _ => return Err(Error::NotASymbol),
             },
@@ -114,9 +135,46 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, Symbol), Error> {
                 }
             },
         }
-
-        size += 1;
     }
 
     Err(Error::UnexpectedEnd)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse;
+    use super::Error;
+    use crate::lexical::Symbol;
+
+    #[test]
+    fn ok() {
+        let input = b"==";
+        let expected = Ok((2, Symbol::DoubleEquals));
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn err_unexpected_end() {
+        let input = b"|";
+        let expected = Err(Error::UnexpectedEnd);
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn err_not_a_symbol() {
+        let input = b"5";
+        let expected = Err(Error::NotASymbol);
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn err_invalid_character() {
+        let input = b"|5";
+        let expected = Err(Error::InvalidCharacter('5', 2, "|5".to_string()));
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
 }

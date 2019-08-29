@@ -72,7 +72,7 @@ impl TryFrom<&[u8]> for Keyword {
     type Error = Error;
 
     fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
-        const BITLENGTH_MIN: usize = 2;
+        const BITLENGTH_MIN: usize = 1;
         const BITLENGTH_MAX: usize = 253;
         const BITLENGTH_RANGE: RangeInclusive<usize> = (BITLENGTH_MIN..=BITLENGTH_MAX);
 

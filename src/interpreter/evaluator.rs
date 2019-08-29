@@ -7,6 +7,7 @@ use std::str;
 
 use crate::interpreter::Error;
 use crate::interpreter::Field;
+use crate::lexical::Literal;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionObject;
 use crate::syntax::ExpressionOperand;
@@ -34,8 +35,14 @@ impl Evaluator {
         for element in expression.elements.into_iter() {
             match element.object {
                 ExpressionObject::Operand(operand) => self.stack.push(match operand {
-                    ExpressionOperand::Literal(literal) => {
+                    ExpressionOperand::Literal(Literal::Boolean(literal)) => {
                         StackElement::Field(Field::from(literal))
+                    }
+                    ExpressionOperand::Literal(Literal::Integer(literal)) => {
+                        StackElement::Field(Field::from(literal))
+                    }
+                    ExpressionOperand::Literal(Literal::String(_literal)) => {
+                        panic!("String literals in expressions are not supported");
                     }
                     ExpressionOperand::Type(r#type) => StackElement::Type(r#type),
                     ExpressionOperand::Identifier(identifier) => {
