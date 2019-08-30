@@ -8,7 +8,7 @@ use serde_derive::Serialize;
 use crate::lexical::Lexeme;
 use crate::lexical::Location;
 
-#[derive(Debug, Fail, Serialize)]
+#[derive(Debug, Fail, Serialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum Error {
     #[fail(display = "{} expected either of: {:?} (got {})", _0, _1, _2)]

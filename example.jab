@@ -18,7 +18,5 @@ witness {
 
 let a: uint8 = 164;
 let b = 52;
-let b = 91;
-debug(a + b as uint8);
-require(a + b as uint8 == 255, "test");
-require(a + b as uint8 == 255);
+debug(a + (b as uint8));
+require(a + b as uint8 == 216, "test");

@@ -17,7 +17,7 @@ use crate::lexical::IntegerLiteral;
 use crate::syntax::ExpressionOperator;
 use crate::syntax::TypeVariant;
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Field {
     #[serde(skip_serializing)]
     pub value: BigInt,
@@ -484,7 +484,7 @@ impl fmt::Display for Field {
     }
 }
 
-#[derive(Debug, Fail, Serialize)]
+#[derive(Debug, Fail, Serialize, PartialEq)]
 pub enum Error {
     #[fail(
         display = "operator {} is not available for the first operand: [ {} ]",

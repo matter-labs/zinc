@@ -115,3 +115,46 @@ impl Parser {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    use super::Parser;
+    use crate::lexical::IntegerLiteral;
+    use crate::lexical::Lexeme;
+    use crate::lexical::Literal;
+    use crate::lexical::Location;
+    use crate::lexical::Token;
+    use crate::lexical::TokenStream;
+    use crate::syntax::Debug;
+    use crate::syntax::Expression;
+    use crate::syntax::ExpressionElement;
+    use crate::syntax::ExpressionObject;
+    use crate::syntax::ExpressionOperand;
+
+    #[test]
+    fn ok() {
+        let code = br#"debug(42);"#;
+
+        let expected = Debug::new(
+            Location::new(1, 1),
+            Expression::new(vec![ExpressionElement::new(
+                ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Integer(
+                    IntegerLiteral::decimal(b"42".to_vec()),
+                ))),
+                Token::new(
+                    Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"42".to_vec()))),
+                    Location::new(1, 7),
+                ),
+            )]),
+        );
+
+        let result = Parser::default()
+            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_vec()))))
+            .expect("Syntax error");
+
+        assert_eq!(expected, result);
+    }
+}

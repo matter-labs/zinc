@@ -13,7 +13,7 @@ use serde_derive::Serialize;
 
 use self::lexical::TokenStream;
 
-#[derive(Debug, Fail, Serialize)]
+#[derive(Debug, Fail, Serialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum Error {
     #[fail(display = "Lexical error: {}", _0)]

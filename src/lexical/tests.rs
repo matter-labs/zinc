@@ -4,7 +4,18 @@
 
 #![cfg(test)]
 
-use super::*;
+use crate::lexical::Error;
+use crate::lexical::Identifier;
+use crate::lexical::IntegerLiteral;
+use crate::lexical::IntegerParserError;
+use crate::lexical::Keyword;
+use crate::lexical::Lexeme;
+use crate::lexical::Literal;
+use crate::lexical::Location;
+use crate::lexical::Symbol;
+use crate::lexical::SymbolParserError;
+use crate::lexical::Token;
+use crate::lexical::TokenStream;
 
 #[test]
 fn ok() {
@@ -125,6 +136,76 @@ let mut c: uint228 = 2 + 2;
     let result: Vec<Token> = TokenStream::new(code.to_vec())
         .map(|result| result.expect("Lexical error"))
         .collect();
+
+    assert_eq!(expected, result);
+}
+
+#[test]
+fn err_unexpected_end() {
+    let code = b"&";
+
+    let expected = Err(Error::UnexpectedEnd(Location::new(1, 1)));
+
+    let result = TokenStream::new(code.to_vec())
+        .next()
+        .expect("Must contain a token")
+        .to_owned();
+
+    assert_eq!(expected, result);
+}
+
+#[test]
+fn err_unknown_character() {
+    let code = b"#";
+
+    let expected = Err(Error::UnknownCharacter(Location::new(1, 1), '#'));
+
+    let result = TokenStream::new(code.to_vec())
+        .next()
+        .expect("Must contain a token")
+        .to_owned();
+
+    assert_eq!(expected, result);
+}
+
+#[test]
+fn err_invalid_symbol() {
+    let code = b"|#";
+
+    let expected = Err(Error::InvalidSymbol(
+        Location::new(1, 1),
+        SymbolParserError::InvalidCharacter('#', 2, "|#".to_string()),
+    ));
+
+    let result = TokenStream::new(code.to_vec())
+        .next()
+        .expect("Must contain a token")
+        .to_owned();
+
+    assert_eq!(expected, result);
+}
+
+#[test]
+#[should_panic]
+fn err_invalid_word() {
+    let _ = TokenStream::new(b"".to_vec())
+        .next()
+        .expect("Must contain a token");
+}
+
+#[test]
+fn err_invalid_integer_literal() {
+    let code = b"0xCRAP";
+
+    let expected = Err(Error::InvalidIntegerLiteral(
+        Location::new(1, 1),
+        IntegerParserError::InvalidHexadecimalCharacter('R', 4, "0xCR".to_string()),
+    ));
+
+    let result = TokenStream::new(code.to_vec())
+        .next()
+        .expect("Must contain a token")
+        .to_owned();
 
     assert_eq!(expected, result);
 }

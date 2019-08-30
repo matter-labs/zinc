@@ -32,7 +32,7 @@ impl Evaluator {
         expression: Expression,
         variables: &HashMap<Vec<u8>, Field>,
     ) -> Result<Field, Error> {
-        for element in expression.elements.into_iter() {
+        for element in expression.into_iter() {
             match element.object {
                 ExpressionObject::Operand(operand) => self.stack.push(match operand {
                     ExpressionOperand::Literal(Literal::Boolean(literal)) => {

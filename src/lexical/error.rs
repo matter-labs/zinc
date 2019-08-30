@@ -10,7 +10,7 @@ use crate::lexical::Location;
 use crate::lexical::SymbolParserError;
 use crate::lexical::WordParserError;
 
-#[derive(Debug, Fail, Serialize, Clone)]
+#[derive(Debug, Fail, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum Error {
     #[fail(display = "unexpected end of input when parsing token at {}", _0)]

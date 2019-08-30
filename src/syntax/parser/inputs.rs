@@ -142,3 +142,37 @@ impl Parser {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    use super::Parser;
+    use crate::lexical::Location;
+    use crate::lexical::TokenStream;
+    use crate::syntax::Identifier;
+    use crate::syntax::Input;
+    use crate::syntax::Type;
+    use crate::syntax::TypeVariant;
+
+    #[test]
+    fn ok() {
+        let code = br#"
+    inputs {
+        a: uint228;
+    }
+"#;
+
+        let expected = vec![Input::new(
+            Identifier::new(Location::new(3, 9), b"a".to_vec()),
+            Type::new(Location::new(3, 12), TypeVariant::Uint { bitlength: 228 }),
+        )];
+
+        let result = Parser::default()
+            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_vec()))))
+            .expect("Syntax error");
+
+        assert_eq!(expected, result);
+    }
+}

@@ -21,10 +21,14 @@ use crate::lexical::Token;
 
 #[derive(Debug, Default, Serialize, PartialEq)]
 pub struct Expression {
-    pub elements: Vec<Element>,
+    elements: Vec<Element>,
 }
 
 impl Expression {
+    pub fn new(elements: Vec<Element>) -> Self {
+        Self { elements }
+    }
+
     pub fn push_operand(&mut self, (operand, token): (Operand, Token)) {
         self.elements
             .push(Element::new(Object::Operand(operand), token));
@@ -41,6 +45,15 @@ impl Expression {
 
     pub fn location(&self) -> Location {
         self.elements[0].token.location
+    }
+}
+
+impl IntoIterator for Expression {
+    type Item = Element;
+    type IntoIter = ::std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.elements.into_iter()
     }
 }
 

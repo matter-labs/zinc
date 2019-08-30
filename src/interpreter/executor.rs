@@ -49,7 +49,7 @@ impl Executor {
                     .evaluator
                     .evaluate(require.expression, &self.variables)?;
                 if result.value.is_zero() {
-                    panic!("Require failed at line {}", location.line);
+                    panic!("Require {} failed at line {}", require.id, location.line);
                 }
             }
         }

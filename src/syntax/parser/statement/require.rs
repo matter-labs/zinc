@@ -155,3 +155,47 @@ impl Parser {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    use super::Parser;
+    use crate::lexical::BooleanLiteral;
+    use crate::lexical::Lexeme;
+    use crate::lexical::Literal;
+    use crate::lexical::Location;
+    use crate::lexical::Token;
+    use crate::lexical::TokenStream;
+    use crate::syntax::Expression;
+    use crate::syntax::ExpressionElement;
+    use crate::syntax::ExpressionObject;
+    use crate::syntax::ExpressionOperand;
+    use crate::syntax::Require;
+
+    #[test]
+    fn ok() {
+        let code = br#"require(true, "test");"#;
+
+        let expected = Require::new(
+            Location::new(1, 1),
+            Expression::new(vec![ExpressionElement::new(
+                ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Boolean(
+                    BooleanLiteral::True,
+                ))),
+                Token::new(
+                    Lexeme::Literal(Literal::Boolean(BooleanLiteral::True)),
+                    Location::new(1, 9),
+                ),
+            )]),
+            Some("test".to_string()),
+        );
+
+        let result = Parser::default()
+            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_vec()))))
+            .expect("Syntax error");
+
+        assert_eq!(expected, result);
+    }
+}

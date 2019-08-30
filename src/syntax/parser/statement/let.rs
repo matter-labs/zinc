@@ -174,3 +174,52 @@ impl Parser {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    use super::Parser;
+    use crate::lexical::IntegerLiteral;
+    use crate::lexical::Lexeme;
+    use crate::lexical::Literal;
+    use crate::lexical::Location;
+    use crate::lexical::Token;
+    use crate::lexical::TokenStream;
+    use crate::syntax::Expression;
+    use crate::syntax::ExpressionElement;
+    use crate::syntax::ExpressionObject;
+    use crate::syntax::ExpressionOperand;
+    use crate::syntax::Identifier;
+    use crate::syntax::Let;
+    use crate::syntax::Type;
+    use crate::syntax::TypeVariant;
+
+    #[test]
+    fn ok() {
+        let code = br#"let mut a: uint228 = 42;"#;
+
+        let expected = Let::new(
+            Location::new(1, 1),
+            Identifier::new(Location::new(1, 9), b"a".to_vec()),
+            Some(Type::new(Location::new(1, 12), TypeVariant::uint(228))),
+            Expression::new(vec![ExpressionElement::new(
+                ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Integer(
+                    IntegerLiteral::decimal(b"42".to_vec()),
+                ))),
+                Token::new(
+                    Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"42".to_vec()))),
+                    Location::new(1, 22),
+                ),
+            )]),
+            true,
+        );
+
+        let result = Parser::default()
+            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_vec()))))
+            .expect("Syntax error");
+
+        assert_eq!(expected, result);
+    }
+}

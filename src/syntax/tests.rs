@@ -4,7 +4,6 @@
 
 #![cfg(test)]
 
-use super::*;
 use crate::lexical::IntegerLiteral;
 use crate::lexical::Lexeme;
 use crate::lexical::Literal;
@@ -12,6 +11,21 @@ use crate::lexical::Location;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
+use crate::syntax;
+use crate::syntax::CircuitProgram;
+use crate::syntax::Error;
+use crate::syntax::Expression;
+use crate::syntax::ExpressionElement;
+use crate::syntax::ExpressionObject;
+use crate::syntax::ExpressionOperand;
+use crate::syntax::ExpressionOperator;
+use crate::syntax::Identifier;
+use crate::syntax::Input;
+use crate::syntax::Let;
+use crate::syntax::Statement;
+use crate::syntax::Type;
+use crate::syntax::TypeVariant;
+use crate::syntax::Witness;
 
 #[test]
 fn ok() {
@@ -43,45 +57,74 @@ let mut c: uint228 = 2 + 2;
                 Location::new(10, 12),
                 TypeVariant::Uint { bitlength: 228 },
             )),
-            expression: Expression {
-                elements: vec![
-                    ExpressionElement::new(
-                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Integer(
-                            IntegerLiteral::Decimal {
-                                value: b"2".to_vec(),
-                            },
-                        ))),
-                        Token::new(
-                            Lexeme::Literal(Literal::Integer(IntegerLiteral::Decimal {
-                                value: b"2".to_vec(),
-                            })),
-                            Location::new(10, 22),
-                        ),
+            expression: Expression::new(vec![
+                ExpressionElement::new(
+                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Integer(
+                        IntegerLiteral::Decimal {
+                            value: b"2".to_vec(),
+                        },
+                    ))),
+                    Token::new(
+                        Lexeme::Literal(Literal::Integer(IntegerLiteral::Decimal {
+                            value: b"2".to_vec(),
+                        })),
+                        Location::new(10, 22),
                     ),
-                    ExpressionElement::new(
-                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Integer(
-                            IntegerLiteral::Decimal {
-                                value: b"2".to_vec(),
-                            },
-                        ))),
-                        Token::new(
-                            Lexeme::Literal(Literal::Integer(IntegerLiteral::Decimal {
-                                value: b"2".to_vec(),
-                            })),
-                            Location::new(10, 26),
-                        ),
+                ),
+                ExpressionElement::new(
+                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Integer(
+                        IntegerLiteral::Decimal {
+                            value: b"2".to_vec(),
+                        },
+                    ))),
+                    Token::new(
+                        Lexeme::Literal(Literal::Integer(IntegerLiteral::Decimal {
+                            value: b"2".to_vec(),
+                        })),
+                        Location::new(10, 26),
                     ),
-                    ExpressionElement::new(
-                        ExpressionObject::Operator(ExpressionOperator::Addition),
-                        Token::new(Lexeme::Symbol(Symbol::Plus), Location::new(10, 24)),
-                    ),
-                ],
-            },
+                ),
+                ExpressionElement::new(
+                    ExpressionObject::Operator(ExpressionOperator::Addition),
+                    Token::new(Lexeme::Symbol(Symbol::Plus), Location::new(10, 24)),
+                ),
+            ]),
             is_mutable: true,
         })],
     };
 
-    let result: CircuitProgram = parse(TokenStream::new(code.to_vec())).expect("Syntax error");
+    let result: CircuitProgram =
+        syntax::parse(TokenStream::new(code.to_vec())).expect("Syntax error");
+
+    assert_eq!(expected, result);
+}
+
+#[test]
+fn err_unexpected_end() {
+    use crate::Error as MainError;
+
+    let code = b"inputs";
+
+    let result: Result<CircuitProgram, MainError> = syntax::parse(TokenStream::new(code.to_vec()));
+
+    let expected: Result<CircuitProgram, MainError> = Err(MainError::Syntax(Error::UnexpectedEnd));
+
+    assert_eq!(expected, result);
+}
+
+#[test]
+fn err_expected() {
+    use crate::Error as MainError;
+
+    let code = b"inputs ! ";
+
+    let result: Result<CircuitProgram, MainError> = syntax::parse(TokenStream::new(code.to_vec()));
+
+    let expected: Result<CircuitProgram, MainError> = Err(MainError::Syntax(Error::Expected(
+        Location::new(1, 8),
+        vec!["{"],
+        Lexeme::Symbol(Symbol::ExclamationMark),
+    )));
 
     assert_eq!(expected, result);
 }
