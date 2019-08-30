@@ -1,24 +1,3 @@
-/*
-use jab::prelude::*;
-
-fn main() {
-
-    let xor: BellmanCircuit = circuit! {
-        inputs {
-            c: bool;
-        };
-
-        witness {
-            a: bool;
-            b: bool;
-        };
-
-        require(c == a && b);
-    }?;
-
-}
-*/
-
 use crate::gadgets::*;
 use bellman::{Circuit, ConstraintSystem, SynthesisError};
 use ff::Field;
@@ -56,4 +35,3 @@ impl Circuit<Bn256> for XorCircuit {
         Ok(())
     }
 }
-

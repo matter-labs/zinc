@@ -42,12 +42,12 @@ impl Evaluator {
                         StackElement::Field(Field::from(literal))
                     }
                     ExpressionOperand::Literal(Literal::String(_literal)) => {
-                        panic!("String literals in expressions are not supported");
+                        panic!("String literals in expressions are not supported!");
                     }
                     ExpressionOperand::Type(r#type) => StackElement::Type(r#type),
                     ExpressionOperand::Identifier(identifier) => {
                         match variables.get(&identifier.name) {
-                            Some(value) => StackElement::Field(value.clone()),
+                            Some(value) => StackElement::Field(value.to_owned()),
                             None => {
                                 return Err(Error::UndeclaredVariable(
                                     element.token.location,

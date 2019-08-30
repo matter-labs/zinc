@@ -174,7 +174,7 @@ fn err_invalid_symbol() {
 
     let expected = Err(Error::InvalidSymbol(
         Location::new(1, 1),
-        SymbolParserError::InvalidCharacter('#', 2, "|#".to_string()),
+        SymbolParserError::InvalidCharacter('#', 2, "|#".to_owned()),
     ));
 
     let result = TokenStream::new(code.to_vec())
@@ -199,7 +199,7 @@ fn err_invalid_integer_literal() {
 
     let expected = Err(Error::InvalidIntegerLiteral(
         Location::new(1, 1),
-        IntegerParserError::InvalidHexadecimalCharacter('R', 4, "0xCR".to_string()),
+        IntegerParserError::InvalidHexadecimalCharacter('R', 4, "0xCR".to_owned()),
     ));
 
     let result = TokenStream::new(code.to_vec())

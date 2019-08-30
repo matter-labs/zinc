@@ -173,7 +173,7 @@ mod tests {
     #[test]
     fn err_invalid_character() {
         let input = b"|5";
-        let expected = Err(Error::InvalidCharacter('5', 2, "|5".to_string()));
+        let expected = Err(Error::InvalidCharacter('5', 2, "|5".to_owned()));
         let result = parse(input);
         assert_eq!(expected, result);
     }

@@ -52,7 +52,7 @@ impl fmt::Display for Let {
             if let Some(ref r#type) = self.r#type {
                 format!(": {}", r#type)
             } else {
-                "".to_string()
+                "".to_owned()
             },
             self.expression,
         )

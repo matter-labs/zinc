@@ -22,7 +22,6 @@ pub enum State {
     BracketOpen,
     Expression,
     BracketClose,
-    Semicolon,
     End,
 }
 
@@ -84,26 +83,11 @@ impl Parser {
                     Some(Ok(Token {
                         lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                         ..
-                    })) => self.state = State::Semicolon,
-                    Some(Ok(Token { lexeme, location })) => {
-                        return Err(Error::Syntax(SyntaxError::Expected(
-                            location,
-                            [")"].to_vec(),
-                            lexeme,
-                        )));
-                    }
-                    Some(Err(error)) => return Err(Error::Lexical(error)),
-                    None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
-                },
-                State::Semicolon => match stream.borrow_mut().next() {
-                    Some(Ok(Token {
-                        lexeme: Lexeme::Symbol(Symbol::Semicolon),
-                        ..
                     })) => self.state = State::End,
                     Some(Ok(Token { lexeme, location })) => {
                         return Err(Error::Syntax(SyntaxError::Expected(
                             location,
-                            [";"].to_vec(),
+                            [")"].to_vec(),
                             lexeme,
                         )));
                     }

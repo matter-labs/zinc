@@ -40,8 +40,7 @@ impl Executor {
                 if let Some(r#type) = r#let.r#type {
                     result.type_variant = r#type.variant;
                 }
-                self.variables
-                    .insert(r#let.identifier.name.to_owned(), result);
+                self.variables.insert(r#let.identifier.name.clone(), result);
             }
             Statement::Require(require) => {
                 let location = require.location;
@@ -49,7 +48,7 @@ impl Executor {
                     .evaluator
                     .evaluate(require.expression, &self.variables)?;
                 if result.value.is_zero() {
-                    panic!("Require {} failed at line {}", require.id, location.line);
+                    panic!("Require {} failed at line {}!", require.id, location.line);
                 }
             }
         }

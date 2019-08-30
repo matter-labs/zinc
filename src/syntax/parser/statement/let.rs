@@ -27,7 +27,6 @@ pub enum State {
     Type,
     Equals,
     Expression,
-    Semicolon,
     End,
 }
 
@@ -152,23 +151,8 @@ impl Parser {
                 State::Expression => {
                     let expression = ExpressionParser::default().parse(stream.clone())?;
                     self.builder.set_expression(expression);
-                    self.state = State::Semicolon;
+                    self.state = State::End;
                 }
-                State::Semicolon => match stream.borrow_mut().next() {
-                    Some(Ok(Token {
-                        lexeme: Lexeme::Symbol(Symbol::Semicolon),
-                        ..
-                    })) => self.state = State::End,
-                    Some(Ok(Token { lexeme, location })) => {
-                        return Err(Error::Syntax(SyntaxError::Expected(
-                            location,
-                            [";"].to_vec(),
-                            lexeme,
-                        )));
-                    }
-                    Some(Err(error)) => return Err(Error::Lexical(error)),
-                    None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
-                },
                 State::End => return Ok(self.builder.finish()),
             }
         }

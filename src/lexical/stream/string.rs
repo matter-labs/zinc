@@ -56,7 +56,7 @@ mod tests {
     #[test]
     fn ok() {
         let input = b"\"some string\"";
-        let expected = Ok((13, "some string".to_string()));
+        let expected = Ok((13, "some string".to_owned()));
         let result = parse(input);
         assert_eq!(expected, result);
     }
