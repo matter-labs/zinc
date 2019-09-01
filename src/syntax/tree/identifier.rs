@@ -9,7 +9,7 @@ use serde_derive::Serialize;
 
 use crate::lexical::Location;
 
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Identifier {
     pub location: Location,
     pub name: Vec<u8>,

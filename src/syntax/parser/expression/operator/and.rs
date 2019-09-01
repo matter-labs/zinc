@@ -9,7 +9,7 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::ComparisonOperandParser;
+use crate::syntax::ComparisonOperatorOperandParser;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionOperator;
 use crate::Error;
@@ -40,7 +40,7 @@ impl Parser {
         loop {
             match self.state {
                 State::ComparisonFirstOperand => {
-                    let rpn = ComparisonOperandParser::default().parse(stream.clone())?;
+                    let rpn = ComparisonOperatorOperandParser::default().parse(stream.clone())?;
                     self.expression.append(rpn);
                     self.state = State::ComparisonOperator;
                 }
@@ -111,7 +111,7 @@ impl Parser {
                     }
                 }
                 State::ComparisonSecondOperand => {
-                    let rpn = ComparisonOperandParser::default().parse(stream.clone())?;
+                    let rpn = ComparisonOperatorOperandParser::default().parse(stream.clone())?;
                     self.expression.append(rpn);
                     if let Some(operator) = self.operator.take() {
                         self.expression.push_operator(operator);

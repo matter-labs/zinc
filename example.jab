@@ -16,7 +16,6 @@ witness {
     f: bool; /* witness 3 */
 }
 
-let a: uint8 = 164;
-let b = 52;
-debug(a + (b as uint8));
-require(a + b as uint8 == 216, "test");
+let a: field = b = 5;
+debug(a);
+require(a as int17 >= 256 as field);

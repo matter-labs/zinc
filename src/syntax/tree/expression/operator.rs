@@ -9,6 +9,9 @@ use serde_derive::Serialize;
 #[derive(Debug, Serialize, Clone, Copy, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum Operator {
+    // assignment
+    Assignment,
+
     // binary logical
     Or,
     Xor,
@@ -42,6 +45,8 @@ pub enum Operator {
 impl fmt::Display for Operator {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            Self::Assignment => write!(f, "="),
+
             Self::Or => write!(f, "||"),
             Self::Xor => write!(f, "^^"),
             Self::And => write!(f, "&&"),

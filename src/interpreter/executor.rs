@@ -9,14 +9,14 @@ use num_traits::Zero;
 
 use crate::interpreter::Error;
 use crate::interpreter::Evaluator;
-use crate::interpreter::Field;
+use crate::interpreter::Value;
 use crate::interpreter::Warning;
 use crate::syntax::Statement;
 
 #[derive(Default)]
 pub struct Executor {
     evaluator: Evaluator,
-    variables: HashMap<Vec<u8>, Field>,
+    variables: HashMap<Vec<u8>, Value>,
 }
 
 impl Executor {
@@ -38,7 +38,9 @@ impl Executor {
                 }
                 let mut result = self.evaluator.evaluate(r#let.expression, &self.variables)?;
                 if let Some(r#type) = r#let.r#type {
-                    result.type_variant = r#type.variant;
+                    result = result
+                        .cast(r#type.variant)
+                        .map_err(|error| Error::Operator(r#type.location, error))?
                 }
                 self.variables.insert(r#let.identifier.name.clone(), result);
             }
@@ -48,7 +50,7 @@ impl Executor {
                     .evaluator
                     .evaluate(require.expression, &self.variables)?;
                 if result.value.is_zero() {
-                    panic!("Require {} failed at line {}!", require.id, location.line);
+                    return Err(Error::RequireFailure(location, require.id));
                 }
             }
         }

@@ -1,33 +1,47 @@
 //!
-//! The multiplication/division/remainder operand parser.
+//! The expression parser.
 //!
+
+mod add_sub;
+mod and;
+mod assignment;
+mod casting;
+mod comparison;
+mod mul_div_rem;
+mod or;
+mod xor;
+
+pub use self::add_sub::Parser as AddSubOperandParser;
+pub use self::and::Parser as AndOperandParser;
+pub use self::assignment::Parser as AssignmentOperandParser;
+pub use self::casting::Parser as CastingOperandParser;
+pub use self::comparison::Parser as ComparisonOperandParser;
+pub use self::mul_div_rem::Parser as MulDivRemOperandParser;
+pub use self::or::Parser as OrOperandParser;
+pub use self::xor::Parser as XorOperandParser;
 
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
+use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::CastingOperandParser;
-use crate::syntax::Error as SyntaxError;
 use crate::syntax::Expression;
-use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
-use crate::syntax::TypeParser;
 use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    CastingFirstOperand,
-    CastingOperator,
-    CastingSecondOperand,
+    AssignmentFirstOperand,
+    AssignmentOperator,
+    AssignmentSecondOperand,
     End,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::CastingFirstOperand
+        State::AssignmentFirstOperand
     }
 }
 
@@ -42,44 +56,34 @@ impl Parser {
     pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
         loop {
             match self.state {
-                State::CastingFirstOperand => {
-                    let rpn = CastingOperandParser::default().parse(stream.clone())?;
+                State::AssignmentFirstOperand => {
+                    let rpn = AssignmentOperandParser::default().parse(stream.clone())?;
                     self.expression.append(rpn);
-                    if let Some(operator) = self.operator.take() {
-                        self.expression.push_operator(operator);
-                    }
-                    self.state = State::CastingOperator;
+                    self.state = State::AssignmentOperator;
                 }
-                State::CastingOperator => {
+                State::AssignmentOperator => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
                         Some(Ok(
                             token @ Token {
-                                lexeme: Lexeme::Keyword(Keyword::As),
+                                lexeme: Lexeme::Symbol(Symbol::Equals),
                                 ..
                             },
                         )) => {
                             stream.borrow_mut().next();
-                            self.operator = Some((ExpressionOperator::Casting, token));
-                            self.state = State::CastingSecondOperand;
+                            self.operator = Some((ExpressionOperator::Assignment, token));
+                            self.state = State::AssignmentSecondOperand;
                         }
                         _ => self.state = State::End,
                     }
                 }
-                State::CastingSecondOperand => {
-                    let token = match stream.borrow_mut().peek() {
-                        Some(Ok(token)) => token,
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
-                    };
-
-                    let r#type = TypeParser::default().parse(stream.clone())?;
-                    self.expression
-                        .push_operand((ExpressionOperand::Type(r#type), token));
+                State::AssignmentSecondOperand => {
+                    let rpn = AssignmentOperandParser::default().parse(stream.clone())?;
+                    self.expression.append(rpn);
                     if let Some(operator) = self.operator.take() {
                         self.expression.push_operator(operator);
                     }
-                    self.state = State::CastingOperator;
+                    self.state = State::End;
                 }
                 State::End => return Ok(self.expression),
             }
@@ -93,11 +97,11 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::lexical::IntegerLiteral;
-    use crate::lexical::Keyword;
+    use crate::lexical::BooleanLiteral;
     use crate::lexical::Lexeme;
     use crate::lexical::Literal;
     use crate::lexical::Location;
+    use crate::lexical::Symbol;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Expression;
@@ -105,33 +109,36 @@ mod tests {
     use crate::syntax::ExpressionObject;
     use crate::syntax::ExpressionOperand;
     use crate::syntax::ExpressionOperator;
-    use crate::syntax::Type;
-    use crate::syntax::TypeVariant;
 
     #[test]
     fn ok() {
-        let code = br#"42 as field "#;
+        let code = br#"true || false"#;
 
         let expected = Expression::new(vec![
             ExpressionElement::new(
-                ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Integer(
-                    IntegerLiteral::decimal(b"42".to_vec()),
+                ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Boolean(
+                    BooleanLiteral::True,
                 ))),
                 Token::new(
-                    Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"42".to_vec()))),
+                    Lexeme::Literal(Literal::Boolean(BooleanLiteral::True)),
                     Location::new(1, 1),
                 ),
             ),
             ExpressionElement::new(
-                ExpressionObject::Operand(ExpressionOperand::Type(Type::new(
-                    Location::new(1, 7),
-                    TypeVariant::Field,
+                ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Boolean(
+                    BooleanLiteral::False,
                 ))),
-                Token::new(Lexeme::Keyword(Keyword::Field), Location::new(1, 7)),
+                Token::new(
+                    Lexeme::Literal(Literal::Boolean(BooleanLiteral::False)),
+                    Location::new(1, 9),
+                ),
             ),
             ExpressionElement::new(
-                ExpressionObject::Operator(ExpressionOperator::Casting),
-                Token::new(Lexeme::Keyword(Keyword::As), Location::new(1, 4)),
+                ExpressionObject::Operator(ExpressionOperator::Or),
+                Token::new(
+                    Lexeme::Symbol(Symbol::DoubleVerticalBar),
+                    Location::new(1, 6),
+                ),
             ),
         ]);
 

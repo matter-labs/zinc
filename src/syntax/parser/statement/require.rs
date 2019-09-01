@@ -160,7 +160,7 @@ mod tests {
 
     #[test]
     fn ok() {
-        let code = br#"require(true, "test");"#;
+        let code = br#"require(true, "test")"#;
 
         let expected = Require::new(
             Location::new(1, 1),

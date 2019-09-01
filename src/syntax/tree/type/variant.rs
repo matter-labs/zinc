@@ -16,11 +16,6 @@ pub enum Variant {
     Int { bitlength: usize },
     Field,
     Bool,
-    //    Struct(Identifier, Vec<(Identifier, Type)>),
-    //    Enum(Identifier, Vec<Identifier>),
-    //    Tuple(Vec<Type>),
-    //    MemoryVector(Box<Type>, usize),
-    //    StorageVector(Box<Type>, usize),
 }
 
 impl Variant {

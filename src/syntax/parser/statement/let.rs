@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn ok() {
-        let code = br#"let mut a: uint228 = 42;"#;
+        let code = br#"let mut a: uint228 = 42 "#;
 
         let expected = Let::new(
             Location::new(1, 1),

@@ -10,6 +10,7 @@ use serde_derive::Serialize;
 pub enum State {
     DoubleQuoteOpen,
     Character,
+    EscapedCharacter,
 }
 
 #[derive(Debug, Fail, Serialize, PartialEq)]
@@ -24,6 +25,7 @@ pub enum Error {
 pub fn parse(bytes: &[u8]) -> Result<(usize, String), Error> {
     let mut state = State::DoubleQuoteOpen;
     let mut size = 0;
+    let mut value = Vec::with_capacity(64);
 
     while let Some(byte) = bytes.get(size).copied() {
         match state {
@@ -34,13 +36,25 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, String), Error> {
                 }
                 _ => return Err(Error::NotAString),
             },
-            State::Character => {
-                size += 1;
-                if byte == b'\"' {
-                    let string =
-                        unsafe { str::from_utf8_unchecked(&bytes[1..size - 1]) }.to_owned();
+            State::Character => match byte {
+                b'\"' => {
+                    size += 1;
+                    let string = unsafe { str::from_utf8_unchecked(&value) }.to_owned();
                     return Ok((size, string));
                 }
+                b'\\' => {
+                    size += 1;
+                    state = State::EscapedCharacter;
+                }
+                _ => {
+                    value.push(byte);
+                    size += 1;
+                }
+            },
+            State::EscapedCharacter => {
+                value.push(byte);
+                size += 1;
+                state = State::Character;
             }
         }
     }

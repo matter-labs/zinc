@@ -10,3 +10,4 @@
 | &&              |  left to right  |
 | ^^              |  left to right  |
 | ⎮⎮            |  left to right  |
+| =               |     single      |

@@ -120,7 +120,7 @@ mod tests {
 
     #[test]
     fn ok() {
-        let code = br#"debug(42);"#;
+        let code = br#"debug(42)"#;
 
         let expected = Debug::new(
             Location::new(1, 1),

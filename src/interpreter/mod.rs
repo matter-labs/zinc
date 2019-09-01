@@ -5,14 +5,16 @@
 mod error;
 mod evaluator;
 mod executor;
-mod field;
+mod place;
+mod value;
 mod warning;
 
 pub use self::error::Error;
+pub use self::error::OperatorError;
 pub use self::evaluator::Evaluator;
 pub use self::executor::Executor;
-pub use self::field::Error as OperatorError;
-pub use self::field::Field;
+pub use self::place::Place;
+pub use self::value::Value;
 pub use self::warning::Warning;
 
 use crate::syntax::CircuitProgram;

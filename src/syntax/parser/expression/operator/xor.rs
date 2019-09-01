@@ -1,5 +1,5 @@
 //!
-//! The OR operand parser.
+//! The XOR operand parser.
 //!
 
 use std::cell::RefCell;
@@ -9,21 +9,21 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
+use crate::syntax::AndOperatorOperandParser;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionOperator;
-use crate::syntax::XorOperandParser;
 use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    LogicalXorOperand,
-    LogicalXorOperator,
+    LogicalAndOperand,
+    LogicalAndOperator,
     End,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::LogicalXorOperand
+        State::LogicalAndOperand
     }
 }
 
@@ -38,26 +38,26 @@ impl Parser {
     pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
         loop {
             match self.state {
-                State::LogicalXorOperand => {
-                    let rpn = XorOperandParser::default().parse(stream.clone())?;
+                State::LogicalAndOperand => {
+                    let rpn = AndOperatorOperandParser::default().parse(stream.clone())?;
                     self.expression.append(rpn);
                     if let Some(operator) = self.operator.take() {
                         self.expression.push_operator(operator);
                     }
-                    self.state = State::LogicalXorOperator;
+                    self.state = State::LogicalAndOperator;
                 }
-                State::LogicalXorOperator => {
+                State::LogicalAndOperator => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
                         Some(Ok(
                             token @ Token {
-                                lexeme: Lexeme::Symbol(Symbol::DoubleCircumflex),
+                                lexeme: Lexeme::Symbol(Symbol::DoubleAmpersand),
                                 ..
                             },
                         )) => {
                             stream.borrow_mut().next();
-                            self.operator = Some((ExpressionOperator::Xor, token));
-                            self.state = State::LogicalXorOperand;
+                            self.operator = Some((ExpressionOperator::And, token));
+                            self.state = State::LogicalAndOperand;
                         }
                         _ => self.state = State::End,
                     }
@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn ok() {
-        let code = br#"true ^^ false"#;
+        let code = br#"true && false"#;
 
         let expected = Expression::new(vec![
             ExpressionElement::new(
@@ -111,11 +111,8 @@ mod tests {
                 ),
             ),
             ExpressionElement::new(
-                ExpressionObject::Operator(ExpressionOperator::Xor),
-                Token::new(
-                    Lexeme::Symbol(Symbol::DoubleCircumflex),
-                    Location::new(1, 6),
-                ),
+                ExpressionObject::Operator(ExpressionOperator::And),
+                Token::new(Lexeme::Symbol(Symbol::DoubleAmpersand), Location::new(1, 6)),
             ),
         ]);
 
