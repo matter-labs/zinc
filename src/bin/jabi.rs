@@ -17,6 +17,7 @@ struct Arguments {
 }
 
 #[derive(Debug, Fail)]
+#[allow(clippy::large_enum_variant)]
 enum Error {
     #[fail(display = "Input opening: {}", _0)]
     InputOpening(std::io::Error),

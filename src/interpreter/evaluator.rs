@@ -5,16 +5,19 @@
 use std::collections::HashMap;
 use std::str;
 
+use num_bigint::BigInt;
+use num_traits::Zero;
+
 use crate::interpreter::Error;
 use crate::interpreter::Place;
+use crate::interpreter::StackElement;
 use crate::interpreter::Value;
 use crate::lexical::Literal;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionObject;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
-use crate::syntax::Identifier;
-use crate::syntax::Type;
+use crate::syntax::TypeVariant;
 
 pub struct Evaluator {
     stack: Vec<StackElement>,
@@ -32,10 +35,10 @@ impl Evaluator {
     pub fn evaluate(
         &mut self,
         expression: Expression,
-        variables: &HashMap<Vec<u8>, Value>,
+        variables: &mut HashMap<Vec<u8>, Value>,
     ) -> Result<Value, Error> {
-        for element in expression.into_iter() {
-            match element.object {
+        for expression_element in expression.into_iter() {
+            match expression_element.object {
                 ExpressionObject::Operand(operand) => self.stack.push(match operand {
                     ExpressionOperand::Literal(Literal::Boolean(literal)) => {
                         StackElement::Value(Value::from(literal))
@@ -52,249 +55,205 @@ impl Evaluator {
                             StackElement::Place(Place::new(identifier.clone(), value.clone()))
                         } else {
                             return Err(Error::UndeclaredVariable(
-                                element.token.location,
+                                expression_element.token.location,
                                 unsafe { str::from_utf8_unchecked(&identifier.name) }.to_owned(),
                             ));
                         }
                     }
                 }),
                 ExpressionObject::Operator(ExpressionOperator::Assignment) => {
-                    if let (
-                        Some(StackElement::Place(mut place)),
-                        Some(StackElement::Value(value)),
-                    ) = (self.stack.pop(), self.stack.pop())
+                    if let (Some(_element_2), Some(_element_1)) =
+                        (self.stack.pop(), self.stack.pop())
                     {
-                        place
-                            .assign(value)
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
+                        self.stack.push(StackElement::Value(Value::new(
+                            BigInt::zero(),
+                            TypeVariant::Void,
+                        )));
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Or) => {
-                    if let (
-                        Some(StackElement::Value(value_2)),
-                        Some(StackElement::Value(value_1)),
-                    ) = (self.stack.pop(), self.stack.pop())
+                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
                     {
-                        let result = value_1
-                            .or(value_2)
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                        let result = element_1.or(element_2).map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Xor) => {
-                    if let (
-                        Some(StackElement::Value(value_2)),
-                        Some(StackElement::Value(value_1)),
-                    ) = (self.stack.pop(), self.stack.pop())
+                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
                     {
-                        let result = value_1
-                            .xor(value_2)
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                        let result = element_1.xor(element_2).map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::And) => {
-                    if let (
-                        Some(StackElement::Value(value_2)),
-                        Some(StackElement::Value(value_1)),
-                    ) = (self.stack.pop(), self.stack.pop())
+                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
                     {
-                        let result = value_1
-                            .and(value_2)
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                        let result = element_1.and(element_2).map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Equal) => {
-                    if let (
-                        Some(StackElement::Value(value_2)),
-                        Some(StackElement::Value(value_1)),
-                    ) = (self.stack.pop(), self.stack.pop())
+                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
                     {
-                        let result = value_1
-                            .equal(value_2)
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                        let result = element_1.equal(element_2).map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::NotEqual) => {
-                    if let (
-                        Some(StackElement::Value(value_2)),
-                        Some(StackElement::Value(value_1)),
-                    ) = (self.stack.pop(), self.stack.pop())
+                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
                     {
-                        let result = value_1
-                            .not_equal(value_2)
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                        let result = element_1.not_equal(element_2).map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::GreaterEqual) => {
-                    if let (
-                        Some(StackElement::Value(value_2)),
-                        Some(StackElement::Value(value_1)),
-                    ) = (self.stack.pop(), self.stack.pop())
+                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
                     {
-                        let result = value_1
-                            .greater_equal(value_2)
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                        let result = element_1.greater_equal(element_2).map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::LesserEqual) => {
-                    if let (
-                        Some(StackElement::Value(value_2)),
-                        Some(StackElement::Value(value_1)),
-                    ) = (self.stack.pop(), self.stack.pop())
+                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
                     {
-                        let result = value_1
-                            .lesser_equal(value_2)
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                        let result = element_1.lesser_equal(element_2).map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Greater) => {
-                    if let (
-                        Some(StackElement::Value(value_2)),
-                        Some(StackElement::Value(value_1)),
-                    ) = (self.stack.pop(), self.stack.pop())
+                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
                     {
-                        let result = value_1
-                            .greater(value_2)
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                        let result = element_1.greater(element_2).map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Lesser) => {
-                    if let (
-                        Some(StackElement::Value(value_2)),
-                        Some(StackElement::Value(value_1)),
-                    ) = (self.stack.pop(), self.stack.pop())
+                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
                     {
-                        let result = value_1
-                            .lesser(value_2)
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                        let result = element_1.lesser(element_2).map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Addition) => {
-                    if let (
-                        Some(StackElement::Value(value_2)),
-                        Some(StackElement::Value(value_1)),
-                    ) = (self.stack.pop(), self.stack.pop())
+                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
                     {
-                        let result = value_1
-                            .add(value_2)
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                        let result = element_1.add(element_2).map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Subtraction) => {
-                    if let (
-                        Some(StackElement::Value(value_2)),
-                        Some(StackElement::Value(value_1)),
-                    ) = (self.stack.pop(), self.stack.pop())
+                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
                     {
-                        let result = value_1
-                            .subtract(value_2)
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                        let result = element_1.subtract(element_2).map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Multiplication) => {
-                    if let (
-                        Some(StackElement::Value(value_2)),
-                        Some(StackElement::Value(value_1)),
-                    ) = (self.stack.pop(), self.stack.pop())
+                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
                     {
-                        let result = value_1
-                            .multiply(value_2)
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                        let result = element_1.multiply(element_2).map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Division) => {
-                    if let (
-                        Some(StackElement::Value(value_2)),
-                        Some(StackElement::Value(value_1)),
-                    ) = (self.stack.pop(), self.stack.pop())
+                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
                     {
-                        let result = value_1
-                            .divide(value_2)
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                        let result = element_1.divide(element_2).map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Remainder) => {
-                    if let (
-                        Some(StackElement::Value(value_2)),
-                        Some(StackElement::Value(value_1)),
-                    ) = (self.stack.pop(), self.stack.pop())
+                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
                     {
-                        let result = value_1
-                            .modulo(value_2)
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                        let result = element_1.modulo(element_2).map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Casting) => {
-                    if let (Some(StackElement::Type(r#type)), Some(StackElement::Value(value))) =
-                        (self.stack.pop(), self.stack.pop())
+                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
                     {
-                        let result = value
-                            .cast(r#type.variant)
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                        let result = element_1.cast(element_2).map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Negation) => {
-                    if let Some(StackElement::Value(value)) = self.stack.pop() {
-                        let result = value
-                            .negate()
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                    if let Some(element) = self.stack.pop() {
+                        let result = element.negate().map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Not) => {
-                    if let Some(StackElement::Value(value)) = self.stack.pop() {
-                        let result = value
-                            .not()
-                            .map_err(move |error| Error::Operator(element.token.location, error))?;
-                        self.stack.push(StackElement::Value(result));
+                    if let Some(element) = self.stack.pop() {
+                        let result = element.not().map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        self.stack.push(result);
                     } else {
                         unreachable!();
                     }
@@ -302,16 +261,10 @@ impl Evaluator {
             }
         }
 
-        if let Some(StackElement::Value(value)) = self.stack.pop() {
-            Ok(value)
-        } else {
-            unreachable!();
+        match self.stack.pop() {
+            Some(StackElement::Value(value)) => Ok(value),
+            Some(StackElement::Place(place)) => Ok(place.value),
+            _ => unreachable!(),
         }
     }
-}
-
-enum StackElement {
-    Place(Place),
-    Value(Value),
-    Type(Type),
 }

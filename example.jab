@@ -16,6 +16,7 @@ witness {
     f: bool; /* witness 3 */
 }
 
-let a: field = b = 5;
-debug(a);
-require(a as int17 >= 256 as field);
+let a = 0;
+let b = a = 5;
+let c = b;
+debug(c);

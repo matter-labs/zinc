@@ -23,7 +23,9 @@ impl Executor {
     pub fn execute(&mut self, statement: Statement) -> Result<(), Error> {
         match statement {
             Statement::Debug(debug) => {
-                let result = self.evaluator.evaluate(debug.expression, &self.variables)?;
+                let result = self
+                    .evaluator
+                    .evaluate(debug.expression, &mut self.variables)?;
                 println!("{}", result);
             }
             Statement::Let(r#let) => {
@@ -36,7 +38,9 @@ impl Executor {
                         )
                     );
                 }
-                let mut result = self.evaluator.evaluate(r#let.expression, &self.variables)?;
+                let mut result = self
+                    .evaluator
+                    .evaluate(r#let.expression, &mut self.variables)?;
                 if let Some(r#type) = r#let.r#type {
                     result = result
                         .cast(r#type.variant)
@@ -48,8 +52,8 @@ impl Executor {
                 let location = require.location;
                 let result = self
                     .evaluator
-                    .evaluate(require.expression, &self.variables)?;
-                if result.value.is_zero() {
+                    .evaluate(require.expression, &mut self.variables)?;
+                if result.field.is_zero() {
                     return Err(Error::RequireFailure(location, require.id));
                 }
             }
