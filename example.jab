@@ -6,11 +6,19 @@ witness {
     b: int253;
 }
 
-let mut a: uint5 = 10;
-let mut b: uint5 = 20;
-let t = a;
-a = b;
-b = t;
-
+let a = {
+    let b = {
+        let c = {
+            64 + {
+                debug(228);
+                12 as uint7
+            } - {
+                debug(229);
+                24 as uint7
+            }
+        };
+        c
+    };
+    b
+};
 debug(a);
-debug(b);

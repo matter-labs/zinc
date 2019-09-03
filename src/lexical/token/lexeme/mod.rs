@@ -16,6 +16,7 @@ pub use self::keyword::Keyword;
 pub use self::literal::Boolean as BooleanLiteral;
 pub use self::literal::Integer as IntegerLiteral;
 pub use self::literal::Literal;
+pub use self::literal::String as StringLiteral;
 pub use self::symbol::Symbol;
 
 use std::fmt;

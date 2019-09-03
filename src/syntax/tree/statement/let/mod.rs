@@ -19,25 +19,25 @@ use crate::syntax::Type;
 pub struct Let {
     pub location: Location,
     pub identifier: Identifier,
+    pub is_mutable: bool,
     pub r#type: Option<Type>,
     pub expression: Expression,
-    pub is_mutable: bool,
 }
 
 impl Let {
     pub fn new(
         location: Location,
         identifier: Identifier,
+        is_mutable: bool,
         r#type: Option<Type>,
         expression: Expression,
-        is_mutable: bool,
     ) -> Self {
         Self {
             location,
             identifier,
+            is_mutable,
             r#type,
             expression,
-            is_mutable,
         }
     }
 }

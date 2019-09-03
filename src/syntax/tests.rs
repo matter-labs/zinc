@@ -15,13 +15,14 @@ use crate::syntax;
 use crate::syntax::CircuitProgram;
 use crate::syntax::Error;
 use crate::syntax::Expression;
-use crate::syntax::ExpressionElement;
-use crate::syntax::ExpressionObject;
-use crate::syntax::ExpressionOperand;
-use crate::syntax::ExpressionOperator;
 use crate::syntax::Identifier;
 use crate::syntax::Input;
 use crate::syntax::Let;
+use crate::syntax::OperatorExpression;
+use crate::syntax::OperatorExpressionElement;
+use crate::syntax::OperatorExpressionObject;
+use crate::syntax::OperatorExpressionOperand;
+use crate::syntax::OperatorExpressionOperator;
 use crate::syntax::Statement;
 use crate::syntax::Type;
 use crate::syntax::TypeVariant;
@@ -57,13 +58,13 @@ let mut c: uint228 = 2 + 2;
                 Location::new(10, 12),
                 TypeVariant::Uint { bitlength: 228 },
             )),
-            expression: Expression::new(vec![
-                ExpressionElement::new(
-                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Integer(
-                        IntegerLiteral::Decimal {
+            expression: Expression::Operator(OperatorExpression::new(vec![
+                OperatorExpressionElement::new(
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                        Literal::Integer(IntegerLiteral::Decimal {
                             value: b"2".to_vec(),
-                        },
-                    ))),
+                        }),
+                    )),
                     Token::new(
                         Lexeme::Literal(Literal::Integer(IntegerLiteral::Decimal {
                             value: b"2".to_vec(),
@@ -71,12 +72,12 @@ let mut c: uint228 = 2 + 2;
                         Location::new(10, 22),
                     ),
                 ),
-                ExpressionElement::new(
-                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Integer(
-                        IntegerLiteral::Decimal {
+                OperatorExpressionElement::new(
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                        Literal::Integer(IntegerLiteral::Decimal {
                             value: b"2".to_vec(),
-                        },
-                    ))),
+                        }),
+                    )),
                     Token::new(
                         Lexeme::Literal(Literal::Integer(IntegerLiteral::Decimal {
                             value: b"2".to_vec(),
@@ -84,11 +85,11 @@ let mut c: uint228 = 2 + 2;
                         Location::new(10, 26),
                     ),
                 ),
-                ExpressionElement::new(
-                    ExpressionObject::Operator(ExpressionOperator::Addition),
+                OperatorExpressionElement::new(
+                    OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition),
                     Token::new(Lexeme::Symbol(Symbol::Plus), Location::new(10, 24)),
                 ),
-            ]),
+            ])),
             is_mutable: true,
         })],
     };

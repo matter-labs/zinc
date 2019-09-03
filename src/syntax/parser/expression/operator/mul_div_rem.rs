@@ -11,9 +11,9 @@ use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::CastingOperatorOperandParser;
 use crate::syntax::Error as SyntaxError;
-use crate::syntax::Expression;
-use crate::syntax::ExpressionOperand;
-use crate::syntax::ExpressionOperator;
+use crate::syntax::OperatorExpression;
+use crate::syntax::OperatorExpressionOperand;
+use crate::syntax::OperatorExpressionOperator;
 use crate::syntax::TypeParser;
 use crate::Error;
 
@@ -34,12 +34,12 @@ impl Default for State {
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    expression: Expression,
-    operator: Option<(ExpressionOperator, Token)>,
+    expression: OperatorExpression,
+    operator: Option<(OperatorExpressionOperator, Token)>,
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<OperatorExpression, Error> {
         loop {
             match self.state {
                 State::CastingFirstOperand => {
@@ -60,7 +60,7 @@ impl Parser {
                             },
                         )) => {
                             stream.borrow_mut().next();
-                            self.operator = Some((ExpressionOperator::Casting, token));
+                            self.operator = Some((OperatorExpressionOperator::Casting, token));
                             self.state = State::CastingSecondOperand;
                         }
                         _ => self.state = State::End,
@@ -75,7 +75,7 @@ impl Parser {
 
                     let r#type = TypeParser::default().parse(stream.clone())?;
                     self.expression
-                        .push_operand((ExpressionOperand::Type(r#type), token));
+                        .push_operand((OperatorExpressionOperand::Type(r#type), token));
                     if let Some(operator) = self.operator.take() {
                         self.expression.push_operator(operator);
                     }
@@ -100,11 +100,11 @@ mod tests {
     use crate::lexical::Location;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::ExpressionOperator;
+    use crate::syntax::OperatorExpression;
+    use crate::syntax::OperatorExpressionElement;
+    use crate::syntax::OperatorExpressionObject;
+    use crate::syntax::OperatorExpressionOperand;
+    use crate::syntax::OperatorExpressionOperator;
     use crate::syntax::Type;
     use crate::syntax::TypeVariant;
 
@@ -112,25 +112,25 @@ mod tests {
     fn ok() {
         let code = br#"42 as field "#;
 
-        let expected = Expression::new(vec![
-            ExpressionElement::new(
-                ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Integer(
-                    IntegerLiteral::decimal(b"42".to_vec()),
-                ))),
+        let expected = OperatorExpression::new(vec![
+            OperatorExpressionElement::new(
+                OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                    Literal::Integer(IntegerLiteral::decimal(b"42".to_vec())),
+                )),
                 Token::new(
                     Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"42".to_vec()))),
                     Location::new(1, 1),
                 ),
             ),
-            ExpressionElement::new(
-                ExpressionObject::Operand(ExpressionOperand::Type(Type::new(
+            OperatorExpressionElement::new(
+                OperatorExpressionObject::Operand(OperatorExpressionOperand::Type(Type::new(
                     Location::new(1, 7),
                     TypeVariant::Field,
                 ))),
                 Token::new(Lexeme::Keyword(Keyword::Field), Location::new(1, 7)),
             ),
-            ExpressionElement::new(
-                ExpressionObject::Operator(ExpressionOperator::Casting),
+            OperatorExpressionElement::new(
+                OperatorExpressionObject::Operator(OperatorExpressionOperator::Casting),
                 Token::new(Lexeme::Keyword(Keyword::As), Location::new(1, 4)),
             ),
         ]);

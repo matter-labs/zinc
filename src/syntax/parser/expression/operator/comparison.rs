@@ -10,8 +10,8 @@ use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::AddSubOperatorOperandParser;
-use crate::syntax::Expression;
-use crate::syntax::ExpressionOperator;
+use crate::syntax::OperatorExpression;
+use crate::syntax::OperatorExpressionOperator;
 use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
@@ -30,12 +30,12 @@ impl Default for State {
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    expression: Expression,
-    operator: Option<(ExpressionOperator, Token)>,
+    expression: OperatorExpression,
+    operator: Option<(OperatorExpressionOperator, Token)>,
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<OperatorExpression, Error> {
         loop {
             match self.state {
                 State::AddSubOperand => {
@@ -56,7 +56,7 @@ impl Parser {
                             },
                         )) => {
                             stream.borrow_mut().next();
-                            self.operator = Some((ExpressionOperator::Addition, token));
+                            self.operator = Some((OperatorExpressionOperator::Addition, token));
                             self.state = State::AddSubOperand;
                         }
                         Some(Ok(
@@ -66,7 +66,7 @@ impl Parser {
                             },
                         )) => {
                             stream.borrow_mut().next();
-                            self.operator = Some((ExpressionOperator::Subtraction, token));
+                            self.operator = Some((OperatorExpressionOperator::Subtraction, token));
                             self.state = State::AddSubOperand;
                         }
                         _ => self.state = State::End,
@@ -91,37 +91,37 @@ mod tests {
     use crate::lexical::Symbol;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::ExpressionOperator;
+    use crate::syntax::OperatorExpression;
+    use crate::syntax::OperatorExpressionElement;
+    use crate::syntax::OperatorExpressionObject;
+    use crate::syntax::OperatorExpressionOperand;
+    use crate::syntax::OperatorExpressionOperator;
 
     #[test]
     fn ok() {
         let code = br#"42 + 228 "#;
 
-        let expected = Expression::new(vec![
-            ExpressionElement::new(
-                ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Integer(
-                    IntegerLiteral::decimal(b"42".to_vec()),
-                ))),
+        let expected = OperatorExpression::new(vec![
+            OperatorExpressionElement::new(
+                OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                    Literal::Integer(IntegerLiteral::decimal(b"42".to_vec())),
+                )),
                 Token::new(
                     Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"42".to_vec()))),
                     Location::new(1, 1),
                 ),
             ),
-            ExpressionElement::new(
-                ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Integer(
-                    IntegerLiteral::decimal(b"228".to_vec()),
-                ))),
+            OperatorExpressionElement::new(
+                OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                    Literal::Integer(IntegerLiteral::decimal(b"228".to_vec())),
+                )),
                 Token::new(
                     Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"228".to_vec()))),
                     Location::new(1, 6),
                 ),
             ),
-            ExpressionElement::new(
-                ExpressionObject::Operator(ExpressionOperator::Addition),
+            OperatorExpressionElement::new(
+                OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition),
                 Token::new(Lexeme::Symbol(Symbol::Plus), Location::new(1, 4)),
             ),
         ]);

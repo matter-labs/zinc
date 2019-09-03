@@ -3,7 +3,6 @@
 //!
 
 mod error;
-mod evaluator;
 mod executor;
 mod place;
 mod scope;
@@ -13,7 +12,6 @@ mod warning;
 
 pub use self::error::Error;
 pub use self::error::OperatorError;
-pub use self::evaluator::Evaluator;
 pub use self::executor::Executor;
 pub use self::place::Place;
 pub use self::scope::Scope;

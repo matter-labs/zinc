@@ -9,7 +9,8 @@ use crate::interpreter::Place;
 use crate::interpreter::StackElement;
 use crate::interpreter::Value;
 use crate::lexical::Location;
-use crate::syntax::ExpressionOperator;
+use crate::lexical::StringLiteral;
+use crate::syntax::OperatorExpressionOperator;
 use crate::syntax::Type;
 use crate::syntax::TypeVariant;
 
@@ -20,7 +21,7 @@ pub enum Error {
     #[fail(display = "{} undeclared variable: {}", _0, _1)]
     UndeclaredVariable(Location, String),
     #[fail(display = "{} string literals are not supported: {}", _0, _1)]
-    StringLiteralNotSupported(Location, String),
+    StringLiteralNotSupported(Location, StringLiteral),
     #[fail(display = "{} require failure: {}", _0, _1)]
     RequireFailure(Location, String),
 }
@@ -32,7 +33,7 @@ pub enum OperatorError {
         operator, element
     )]
     FirstOperandOperatorNotAvailable {
-        operator: ExpressionOperator,
+        operator: OperatorExpressionOperator,
         element: StackElement,
     },
     #[fail(
@@ -40,7 +41,7 @@ pub enum OperatorError {
         operator, element
     )]
     SecondOperandOperatorNotAvaiable {
-        operator: ExpressionOperator,
+        operator: OperatorExpressionOperator,
         element: StackElement,
     },
     #[fail(
@@ -48,7 +49,7 @@ pub enum OperatorError {
         got, expected
     )]
     OperandTypesMismatch {
-        operator: ExpressionOperator,
+        operator: OperatorExpressionOperator,
         got: TypeVariant,
         expected: TypeVariant,
     },
@@ -57,7 +58,7 @@ pub enum OperatorError {
         rvalue, operator
     )]
     TypeExpressionOutsideCastingContext {
-        operator: ExpressionOperator,
+        operator: OperatorExpressionOperator,
         rvalue: Type,
     },
     #[fail(
@@ -95,21 +96,21 @@ pub enum OperatorError {
 
 impl OperatorError {
     pub fn first_operand_operator_not_available(
-        operator: ExpressionOperator,
+        operator: OperatorExpressionOperator,
         element: StackElement,
     ) -> Self {
         Self::FirstOperandOperatorNotAvailable { operator, element }
     }
 
     pub fn second_operand_operator_not_available(
-        operator: ExpressionOperator,
+        operator: OperatorExpressionOperator,
         element: StackElement,
     ) -> Self {
         Self::SecondOperandOperatorNotAvaiable { operator, element }
     }
 
     pub fn operand_type_mismatch(
-        operator: ExpressionOperator,
+        operator: OperatorExpressionOperator,
         got: TypeVariant,
         expected: TypeVariant,
     ) -> Self {
@@ -121,7 +122,7 @@ impl OperatorError {
     }
 
     pub fn type_expression_outside_casting_context(
-        operator: ExpressionOperator,
+        operator: OperatorExpressionOperator,
         rvalue: Type,
     ) -> Self {
         Self::TypeExpressionOutsideCastingContext { operator, rvalue }

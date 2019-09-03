@@ -4,9 +4,11 @@
 
 mod boolean;
 mod integer;
+mod string;
 
 pub use self::boolean::Boolean;
 pub use self::integer::Integer;
+pub use self::string::String;
 
 use std::fmt;
 

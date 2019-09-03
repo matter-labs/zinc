@@ -3,6 +3,7 @@
 //!
 
 use crate::lexical::Location;
+use crate::lexical::StringLiteral;
 use crate::syntax::Expression;
 use crate::syntax::Require;
 
@@ -10,7 +11,7 @@ use crate::syntax::Require;
 pub struct Builder {
     location: Option<Location>,
     expression: Option<Expression>,
-    tag: Option<String>,
+    tag: Option<StringLiteral>,
 }
 
 impl Builder {
@@ -22,7 +23,7 @@ impl Builder {
         self.expression = Some(value);
     }
 
-    pub fn set_tag(&mut self, value: String) {
+    pub fn set_tag(&mut self, value: StringLiteral) {
         self.tag = Some(value);
     }
 

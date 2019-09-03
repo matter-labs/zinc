@@ -25,5 +25,6 @@ pub use self::token::KeywordError;
 pub use self::token::Lexeme;
 pub use self::token::Literal;
 pub use self::token::Location;
+pub use self::token::StringLiteral;
 pub use self::token::Symbol;
 pub use self::token::Token;

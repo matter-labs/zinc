@@ -7,18 +7,18 @@ use std::fmt;
 use serde_derive::Serialize;
 
 use crate::lexical::Token;
-use crate::syntax::ExpressionObject;
+use crate::syntax::OperatorExpressionObject;
 
 #[derive(Debug, Serialize, PartialEq)]
 pub struct Element {
     #[serde(flatten)]
-    pub object: ExpressionObject,
+    pub object: OperatorExpressionObject,
     #[serde(skip_serializing)]
     pub token: Token,
 }
 
 impl Element {
-    pub fn new(object: ExpressionObject, token: Token) -> Self {
+    pub fn new(object: OperatorExpressionObject, token: Token) -> Self {
         Self { object, token }
     }
 }

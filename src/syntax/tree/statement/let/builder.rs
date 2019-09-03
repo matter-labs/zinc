@@ -42,9 +42,9 @@ impl Builder {
         Let::new(
             self.location.take().expect("Missing location"),
             self.identifier.take().expect("Missing identifier"),
+            self.is_mutable,
             self.r#type.take(),
             self.expression.take().expect("Missing expression"),
-            self.is_mutable,
         )
     }
 }

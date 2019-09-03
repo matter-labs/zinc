@@ -10,6 +10,7 @@ mod witnesses;
 
 pub use self::expression::AddSubOperatorOperandParser;
 pub use self::expression::AndOperatorOperandParser;
+pub use self::expression::BlockExpressionParser;
 pub use self::expression::CastingOperatorOperandParser;
 pub use self::expression::ComparisonOperatorOperandParser;
 pub use self::expression::MulDivRemOperatorOperandParser;
@@ -27,6 +28,8 @@ use std::rc::Rc;
 
 use crate::lexical::TokenStream;
 use crate::syntax::CircuitProgram;
+use crate::syntax::Error as SyntaxError;
+use crate::syntax::Statement;
 use crate::Error;
 
 pub fn parse(stream: TokenStream) -> Result<CircuitProgram, Error> {
@@ -40,7 +43,16 @@ pub fn parse(stream: TokenStream) -> Result<CircuitProgram, Error> {
         if stream.borrow_mut().peek().is_none() {
             break;
         }
-        let statement = StatementParser::default().parse(stream.clone())?;
+
+        let (statement, is_unterminated) = StatementParser::default().parse(stream.clone())?;
+        if let Statement::Expression(ref expression) = statement {
+            if is_unterminated {
+                return Err(Error::Syntax(
+                    SyntaxError::UnterminatedExpressionOutsideBlock(expression.location()),
+                ));
+            }
+        }
+
         log::trace!("Statement: {:?}", statement);
         statements.push(statement);
     }

@@ -12,7 +12,7 @@ use serde_derive::Serialize;
 use crate::interpreter::OperatorError;
 use crate::interpreter::Place;
 use crate::interpreter::Value;
-use crate::syntax::ExpressionOperator;
+use crate::syntax::OperatorExpressionOperator;
 use crate::syntax::Type;
 use crate::syntax::TypeVariant;
 
@@ -35,7 +35,7 @@ impl fmt::Display for Element {
 
 impl Element {
     pub fn assign(self, other: Self) -> Result<Place, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::Assignment;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Assignment;
 
         let mut place_1 = match self {
             Self::Place(ref place) => place.clone(),
@@ -86,7 +86,7 @@ impl Element {
     }
 
     pub fn or(self, other: Self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::Or;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Or;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),
@@ -137,7 +137,7 @@ impl Element {
     }
 
     pub fn xor(self, other: Self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::Xor;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Xor;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),
@@ -188,7 +188,7 @@ impl Element {
     }
 
     pub fn and(self, other: Self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::And;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::And;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),
@@ -239,7 +239,7 @@ impl Element {
     }
 
     pub fn equal(self, other: Self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::Equal;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Equal;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),
@@ -290,7 +290,7 @@ impl Element {
     }
 
     pub fn not_equal(self, other: Self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::NotEqual;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::NotEqual;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),
@@ -341,7 +341,7 @@ impl Element {
     }
 
     pub fn greater_equal(self, other: Self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::GreaterEqual;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::GreaterEqual;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),
@@ -392,7 +392,7 @@ impl Element {
     }
 
     pub fn lesser_equal(self, other: Self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::LesserEqual;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::LesserEqual;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),
@@ -443,7 +443,7 @@ impl Element {
     }
 
     pub fn greater(self, other: Self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::Greater;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Greater;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),
@@ -494,7 +494,7 @@ impl Element {
     }
 
     pub fn lesser(self, other: Self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::Lesser;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Lesser;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),
@@ -546,7 +546,7 @@ impl Element {
 
     #[allow(clippy::should_implement_trait)]
     pub fn add(self, other: Self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::Addition;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Addition;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),
@@ -593,7 +593,7 @@ impl Element {
     }
 
     pub fn subtract(self, other: Self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::Subtraction;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Subtraction;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),
@@ -640,7 +640,7 @@ impl Element {
     }
 
     pub fn multiply(self, other: Self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::Multiplication;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Multiplication;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),
@@ -687,7 +687,7 @@ impl Element {
     }
 
     pub fn divide(self, other: Self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::Division;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Division;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),
@@ -734,7 +734,7 @@ impl Element {
     }
 
     pub fn modulo(self, other: Self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::Remainder;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Remainder;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),
@@ -781,7 +781,7 @@ impl Element {
     }
 
     pub fn negate(self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::Negation;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Negation;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),
@@ -810,7 +810,7 @@ impl Element {
 
     #[allow(clippy::should_implement_trait)]
     pub fn not(self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::Not;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Not;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),
@@ -837,7 +837,7 @@ impl Element {
     }
 
     pub fn cast(self, other: Self) -> Result<Self, OperatorError> {
-        const OPERATOR: ExpressionOperator = ExpressionOperator::Casting;
+        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Casting;
 
         let value_1 = match self {
             Self::Place(ref place) => place.value.clone(),

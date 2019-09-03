@@ -6,7 +6,7 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
-#[derive(Debug, Serialize, Clone, Copy, PartialEq)]
+#[derive(Debug, Default, Serialize, Clone, Copy, PartialEq)]
 pub struct Location {
     pub line: usize,
     pub column: usize,

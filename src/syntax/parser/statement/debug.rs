@@ -114,9 +114,10 @@ mod tests {
     use crate::lexical::TokenStream;
     use crate::syntax::Debug;
     use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
+    use crate::syntax::OperatorExpression;
+    use crate::syntax::OperatorExpressionElement;
+    use crate::syntax::OperatorExpressionObject;
+    use crate::syntax::OperatorExpressionOperand;
 
     #[test]
     fn ok() {
@@ -124,15 +125,17 @@ mod tests {
 
         let expected = Debug::new(
             Location::new(1, 1),
-            Expression::new(vec![ExpressionElement::new(
-                ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Integer(
-                    IntegerLiteral::decimal(b"42".to_vec()),
-                ))),
-                Token::new(
-                    Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"42".to_vec()))),
-                    Location::new(1, 7),
+            Expression::Operator(OperatorExpression::new(vec![
+                OperatorExpressionElement::new(
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                        Literal::Integer(IntegerLiteral::decimal(b"42".to_vec())),
+                    )),
+                    Token::new(
+                        Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"42".to_vec()))),
+                        Location::new(1, 7),
+                    ),
                 ),
-            )]),
+            ])),
         );
 
         let result = Parser::default()

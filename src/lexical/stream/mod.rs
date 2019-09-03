@@ -27,6 +27,7 @@ use crate::lexical::Identifier;
 use crate::lexical::Lexeme;
 use crate::lexical::Literal;
 use crate::lexical::Location;
+use crate::lexical::StringLiteral;
 use crate::lexical::Token;
 
 pub struct TokenStream {
@@ -93,12 +94,12 @@ impl TokenStream {
 
             if byte == b'\"' {
                 match parse_string(&self.input[self.cursor.index..]) {
-                    Ok((size, string)) => {
+                    Ok((size, value)) => {
                         let location = Location::new(self.cursor.line, self.cursor.column);
                         self.cursor.column += size;
                         self.cursor.index += size;
                         return Some(Ok(Token::new(
-                            Lexeme::Literal(Literal::String(string)),
+                            Lexeme::Literal(Literal::String(StringLiteral::new(value))),
                             location,
                         )));
                     }

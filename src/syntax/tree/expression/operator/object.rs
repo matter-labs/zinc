@@ -6,14 +6,14 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
-use crate::syntax::ExpressionOperand;
-use crate::syntax::ExpressionOperator;
+use crate::syntax::OperatorExpressionOperand;
+use crate::syntax::OperatorExpressionOperator;
 
 #[derive(Debug, Serialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum Object {
-    Operator(ExpressionOperator),
-    Operand(ExpressionOperand),
+    Operator(OperatorExpressionOperator),
+    Operand(OperatorExpressionOperand),
 }
 
 impl fmt::Display for Object {

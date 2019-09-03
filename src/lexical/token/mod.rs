@@ -14,6 +14,7 @@ pub use self::lexeme::Keyword;
 pub use self::lexeme::KeywordError;
 pub use self::lexeme::Lexeme;
 pub use self::lexeme::Literal;
+pub use self::lexeme::StringLiteral;
 pub use self::lexeme::Symbol;
 pub use self::location::Location;
 

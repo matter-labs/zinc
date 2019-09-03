@@ -150,12 +150,14 @@ mod tests {
     use crate::lexical::Lexeme;
     use crate::lexical::Literal;
     use crate::lexical::Location;
+    use crate::lexical::StringLiteral;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
+    use crate::syntax::OperatorExpression;
+    use crate::syntax::OperatorExpressionElement;
+    use crate::syntax::OperatorExpressionObject;
+    use crate::syntax::OperatorExpressionOperand;
     use crate::syntax::Require;
 
     #[test]
@@ -164,16 +166,18 @@ mod tests {
 
         let expected = Require::new(
             Location::new(1, 1),
-            Expression::new(vec![ExpressionElement::new(
-                ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Boolean(
-                    BooleanLiteral::True,
-                ))),
-                Token::new(
-                    Lexeme::Literal(Literal::Boolean(BooleanLiteral::True)),
-                    Location::new(1, 9),
+            Expression::Operator(OperatorExpression::new(vec![
+                OperatorExpressionElement::new(
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                        Literal::Boolean(BooleanLiteral::True),
+                    )),
+                    Token::new(
+                        Lexeme::Literal(Literal::Boolean(BooleanLiteral::True)),
+                        Location::new(1, 9),
+                    ),
                 ),
-            )]),
-            Some("test".to_owned()),
+            ])),
+            Some(StringLiteral::new(b"test".to_vec())),
         );
 
         let result = Parser::default()

@@ -22,7 +22,7 @@ pub enum Error {
     NotAString,
 }
 
-pub fn parse(bytes: &[u8]) -> Result<(usize, String), Error> {
+pub fn parse(bytes: &[u8]) -> Result<(usize, Vec<u8>), Error> {
     let mut state = State::DoubleQuoteOpen;
     let mut size = 0;
     let mut value = Vec::with_capacity(64);
@@ -39,8 +39,7 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, String), Error> {
             State::Character => match byte {
                 b'\"' => {
                     size += 1;
-                    let string = unsafe { str::from_utf8_unchecked(&value) }.to_owned();
-                    return Ok((size, string));
+                    return Ok((size, value));
                 }
                 b'\\' => {
                     size += 1;
@@ -70,7 +69,7 @@ mod tests {
     #[test]
     fn ok() {
         let input = b"\"some string\"";
-        let expected = Ok((13, "some string".to_owned()));
+        let expected = Ok((13, b"some string".to_vec()));
         let result = parse(input);
         assert_eq!(expected, result);
     }

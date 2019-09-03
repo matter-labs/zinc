@@ -172,11 +172,12 @@ mod tests {
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
     use crate::syntax::Identifier;
     use crate::syntax::Let;
+    use crate::syntax::OperatorExpression;
+    use crate::syntax::OperatorExpressionElement;
+    use crate::syntax::OperatorExpressionObject;
+    use crate::syntax::OperatorExpressionOperand;
     use crate::syntax::Type;
     use crate::syntax::TypeVariant;
 
@@ -187,17 +188,19 @@ mod tests {
         let expected = Let::new(
             Location::new(1, 1),
             Identifier::new(Location::new(1, 9), b"a".to_vec()),
-            Some(Type::new(Location::new(1, 12), TypeVariant::uint(228))),
-            Expression::new(vec![ExpressionElement::new(
-                ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Integer(
-                    IntegerLiteral::decimal(b"42".to_vec()),
-                ))),
-                Token::new(
-                    Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"42".to_vec()))),
-                    Location::new(1, 22),
-                ),
-            )]),
             true,
+            Some(Type::new(Location::new(1, 12), TypeVariant::uint(228))),
+            Expression::Operator(OperatorExpression::new(vec![
+                OperatorExpressionElement::new(
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                        Literal::Integer(IntegerLiteral::decimal(b"42".to_vec())),
+                    )),
+                    Token::new(
+                        Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"42".to_vec()))),
+                        Location::new(1, 22),
+                    ),
+                ),
+            ])),
         );
 
         let result = Parser::default()

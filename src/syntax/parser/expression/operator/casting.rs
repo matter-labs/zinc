@@ -9,12 +9,14 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
+use crate::syntax::BlockExpressionParser;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::Expression;
-use crate::syntax::ExpressionOperand;
-use crate::syntax::ExpressionOperator;
 use crate::syntax::ExpressionParser;
 use crate::syntax::Identifier;
+use crate::syntax::OperatorExpression;
+use crate::syntax::OperatorExpressionOperand;
+use crate::syntax::OperatorExpressionOperator;
 use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
@@ -23,6 +25,7 @@ pub enum State {
     UnaryMulDivRemOperand,
     ParenthesisExpression,
     ParenthesisClose,
+    BlockExpression,
 }
 
 impl Default for State {
@@ -34,12 +37,12 @@ impl Default for State {
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    expression: Expression,
-    operator: Option<(ExpressionOperator, Token)>,
+    expression: OperatorExpression,
+    operator: Option<(OperatorExpressionOperator, Token)>,
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<OperatorExpression, Error> {
         loop {
             match self.state {
                 State::Start => {
@@ -52,7 +55,7 @@ impl Parser {
                             },
                         )) => {
                             stream.borrow_mut().next();
-                            self.operator = Some((ExpressionOperator::Not, token));
+                            self.operator = Some((OperatorExpressionOperator::Not, token));
                             self.state = State::UnaryMulDivRemOperand;
                         }
                         Some(Ok(
@@ -62,7 +65,7 @@ impl Parser {
                             },
                         )) => {
                             stream.borrow_mut().next();
-                            self.operator = Some((ExpressionOperator::Negation, token));
+                            self.operator = Some((OperatorExpressionOperator::Negation, token));
                             self.state = State::UnaryMulDivRemOperand;
                         }
                         Some(Ok(Token {
@@ -71,6 +74,12 @@ impl Parser {
                         })) => {
                             stream.borrow_mut().next();
                             self.state = State::ParenthesisExpression;
+                        }
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
+                            ..
+                        })) => {
+                            self.state = State::BlockExpression;
                         }
                         Some(Ok(Token {
                             lexeme: Lexeme::Literal(literal),
@@ -83,7 +92,7 @@ impl Parser {
                             };
 
                             self.expression
-                                .push_operand((ExpressionOperand::Literal(literal), token));
+                                .push_operand((OperatorExpressionOperand::Literal(literal), token));
                             return Ok(self.expression);
                         }
                         Some(Ok(Token {
@@ -97,8 +106,10 @@ impl Parser {
                             };
 
                             let identifier = Identifier::new(location, identifier.name);
-                            self.expression
-                                .push_operand((ExpressionOperand::Identifier(identifier), token));
+                            self.expression.push_operand((
+                                OperatorExpressionOperand::Identifier(identifier),
+                                token,
+                            ));
                             return Ok(self.expression);
                         }
                         Some(Ok(Token { lexeme, location })) => {
@@ -121,8 +132,16 @@ impl Parser {
                     return Ok(self.expression);
                 }
                 State::ParenthesisExpression => {
-                    let rpn = ExpressionParser::default().parse(stream.clone())?;
-                    self.expression.append(rpn);
+                    match ExpressionParser::default().parse(stream.clone())? {
+                        Expression::Operator(rpn) => self.expression.append(rpn),
+                        Expression::Block(block) => {
+                            let location = block.location;
+                            self.expression.push_operand((
+                                OperatorExpressionOperand::Block(block),
+                                Token::new(Lexeme::Symbol(Symbol::BracketCurlyLeft), location),
+                            ))
+                        }
+                    }
                     self.state = State::ParenthesisClose;
                 }
                 State::ParenthesisClose => {
@@ -146,6 +165,15 @@ impl Parser {
                         None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                     }
                 }
+                State::BlockExpression => {
+                    let block = BlockExpressionParser::default().parse(stream.clone())?;
+                    let location = block.location;
+                    self.expression.push_operand((
+                        OperatorExpressionOperand::Block(block),
+                        Token::new(Lexeme::Symbol(Symbol::BracketCurlyLeft), location),
+                    ));
+                    return Ok(self.expression);
+                }
             }
         }
     }
@@ -163,19 +191,19 @@ mod tests {
     use crate::lexical::Location;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
+    use crate::syntax::OperatorExpression;
+    use crate::syntax::OperatorExpressionElement;
+    use crate::syntax::OperatorExpressionObject;
+    use crate::syntax::OperatorExpressionOperand;
 
     #[test]
     fn ok() {
         let code = br#"42 "#;
 
-        let expected = Expression::new(vec![ExpressionElement::new(
-            ExpressionObject::Operand(ExpressionOperand::Literal(Literal::Integer(
-                IntegerLiteral::decimal(b"42".to_vec()),
-            ))),
+        let expected = OperatorExpression::new(vec![OperatorExpressionElement::new(
+            OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                Literal::Integer(IntegerLiteral::decimal(b"42".to_vec())),
+            )),
             Token::new(
                 Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"42".to_vec()))),
                 Location::new(1, 1),
