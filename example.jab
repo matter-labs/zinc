@@ -6,19 +6,10 @@ witness {
     b: int253;
 }
 
-let a = {
-    let b = {
-        let c = {
-            64 + {
-                debug(228);
-                12 as uint7
-            } - {
-                debug(229);
-                24 as uint7
-            }
-        };
-        c
-    };
-    b
+let a: uint8 = {
+    let mut b: uint8 = 25;
+    b = b + 35 as uint8;
+    let c: uint8 = b + 40 as uint8;
+    c + 52 as uint8
 };
-debug(a);
+debug(a + { 2 * 3 } as uint8);

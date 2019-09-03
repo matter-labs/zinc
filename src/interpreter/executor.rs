@@ -40,6 +40,8 @@ impl Executor {
     }
 
     pub fn execute(&mut self, statement: Statement) -> Result<(), Error> {
+        log::debug!("Statement          : {}", statement);
+
         match statement {
             Statement::Debug(debug) => {
                 let result = self.evaluate(debug.expression)?;
@@ -85,6 +87,8 @@ impl Executor {
     }
 
     pub fn evaluate_operator(&mut self, expression: OperatorExpression) -> Result<Value, Error> {
+        log::debug!("Operator expression: {}", expression);
+
         for expression_element in expression.into_iter() {
             match expression_element.object {
                 OperatorExpressionObject::Operand(operand) => {
@@ -337,6 +341,8 @@ impl Executor {
     }
 
     pub fn evaluate_block(&mut self, block: BlockExpression) -> Result<Value, Error> {
+        log::debug!("Block expression   : {}", block);
+
         let mut executor = Executor::new(Scope::new(Some(self.scope.clone())));
         for statement in block.statements {
             executor.execute(statement)?;

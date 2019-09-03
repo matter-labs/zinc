@@ -115,7 +115,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["!", "-", "(", "{literal}", "{identifier}"].to_vec(),
+                                ["!", "-", "(", "{", "{literal}", "{identifier}"].to_vec(),
                                 lexeme,
                             )))
                         }

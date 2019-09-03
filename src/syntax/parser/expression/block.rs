@@ -73,6 +73,10 @@ impl Parser {
                                 Statement::Expression(expression) => {
                                     if is_unterminated {
                                         self.block.expression = Some(Box::new(expression));
+                                    } else {
+                                        self.block
+                                            .statements
+                                            .push(Statement::Expression(expression));
                                     }
                                 }
                                 statement => self.block.statements.push(statement),
