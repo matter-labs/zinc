@@ -2,14 +2,15 @@
 //! The interpreter evaluator.
 //!
 
-use std::collections::HashMap;
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::str;
 
 use num_bigint::BigInt;
 use num_traits::Zero;
 
 use crate::interpreter::Error;
-use crate::interpreter::Place;
+use crate::interpreter::Scope;
 use crate::interpreter::StackElement;
 use crate::interpreter::Value;
 use crate::lexical::Literal;
@@ -19,23 +20,16 @@ use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
 use crate::syntax::TypeVariant;
 
+#[derive(Default)]
 pub struct Evaluator {
     stack: Vec<StackElement>,
-}
-
-impl Default for Evaluator {
-    fn default() -> Self {
-        Self {
-            stack: Vec::with_capacity(1024),
-        }
-    }
 }
 
 impl Evaluator {
     pub fn evaluate(
         &mut self,
         expression: Expression,
-        variables: &mut HashMap<Vec<u8>, Place>,
+        scope: Rc<RefCell<Scope>>,
     ) -> Result<Value, Error> {
         for expression_element in expression.into_iter() {
             match expression_element.object {
@@ -46,19 +40,27 @@ impl Evaluator {
                     ExpressionOperand::Literal(Literal::Integer(literal)) => {
                         StackElement::Value(Value::from(literal))
                     }
-                    ExpressionOperand::Literal(Literal::String(_literal)) => {
-                        panic!("String literals in expressions are not supported!");
+                    ExpressionOperand::Literal(Literal::String(literal)) => {
+                        return Err(Error::StringLiteralNotSupported(
+                            expression_element.token.location,
+                            literal,
+                        ));
                     }
                     ExpressionOperand::Type(r#type) => StackElement::Type(r#type),
                     ExpressionOperand::Identifier(identifier) => {
-                        if let Some(place) = variables.get(&identifier.name).cloned() {
-                            StackElement::Place(place)
-                        } else {
-                            return Err(Error::UndeclaredVariable(
-                                expression_element.token.location,
-                                unsafe { str::from_utf8_unchecked(&identifier.name) }.to_owned(),
-                            ));
-                        }
+                        let location = expression_element.token.location;
+                        scope
+                            .borrow()
+                            .get_variable(&identifier)
+                            .cloned()
+                            .map(StackElement::Place)
+                            .ok_or_else(|| {
+                                Error::UndeclaredVariable(
+                                    location,
+                                    unsafe { str::from_utf8_unchecked(&identifier.name) }
+                                        .to_owned(),
+                                )
+                            })?
                     }
                 }),
                 ExpressionObject::Operator(ExpressionOperator::Assignment) => {
@@ -67,10 +69,10 @@ impl Evaluator {
                         let place = element_1.assign(element_2).map_err(move |error| {
                             Error::Operator(expression_element.token.location, error)
                         })?;
-                        let entry = variables
-                            .get_mut(&place.identifier.name)
-                            .expect("Option state bug");
-                        *entry = place;
+                        scope
+                            .borrow_mut()
+                            .update_variable(place)
+                            .expect("Must have been checked in the operand branch");
                         self.stack.push(StackElement::Value(Value::new(
                             BigInt::zero(),
                             TypeVariant::Void,

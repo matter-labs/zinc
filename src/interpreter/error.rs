@@ -19,6 +19,8 @@ pub enum Error {
     Operator(Location, OperatorError),
     #[fail(display = "{} undeclared variable: {}", _0, _1)]
     UndeclaredVariable(Location, String),
+    #[fail(display = "{} string literals are not supported: {}", _0, _1)]
+    StringLiteralNotSupported(Location, String),
     #[fail(display = "{} require failure: {}", _0, _1)]
     RequireFailure(Location, String),
 }
