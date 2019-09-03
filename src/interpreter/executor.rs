@@ -9,14 +9,14 @@ use num_traits::Zero;
 
 use crate::interpreter::Error;
 use crate::interpreter::Evaluator;
-use crate::interpreter::Value;
+use crate::interpreter::Place;
 use crate::interpreter::Warning;
 use crate::syntax::Statement;
 
 #[derive(Default)]
 pub struct Executor {
     evaluator: Evaluator,
-    variables: HashMap<Vec<u8>, Value>,
+    variables: HashMap<Vec<u8>, Place>,
 }
 
 impl Executor {
@@ -46,16 +46,19 @@ impl Executor {
                         .cast(r#type.variant)
                         .map_err(|error| Error::Operator(r#type.location, error))?
                 }
-                self.variables.insert(r#let.identifier.name.clone(), result);
+                let place = Place::new(r#let.identifier.clone(), result, r#let.is_mutable);
+                self.variables.insert(r#let.identifier.name, place);
             }
             Statement::Require(require) => {
-                let location = require.location;
                 let result = self
                     .evaluator
                     .evaluate(require.expression, &mut self.variables)?;
                 if result.field.is_zero() {
-                    return Err(Error::RequireFailure(location, require.id));
+                    return Err(Error::RequireFailure(require.location, require.id));
                 }
+            }
+            Statement::Expression(expression) => {
+                self.evaluator.evaluate(expression, &mut self.variables)?;
             }
         }
         Ok(())

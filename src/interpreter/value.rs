@@ -32,6 +32,29 @@ impl Value {
     }
 
     pub fn cast(self, type_variant: TypeVariant) -> Result<Self, OperatorError> {
+        match self.type_variant {
+            TypeVariant::Uint { .. } => {}
+            TypeVariant::Int { .. } => {}
+            _ => {
+                return Err(OperatorError::casting_invalid_types(
+                    self.type_variant,
+                    type_variant,
+                ));
+            }
+        }
+
+        match type_variant {
+            TypeVariant::Uint { .. } => {}
+            TypeVariant::Int { .. } => {}
+            TypeVariant::Field => {}
+            _ => {
+                return Err(OperatorError::casting_invalid_types(
+                    self.type_variant,
+                    type_variant,
+                ));
+            }
+        }
+
         match (self.type_variant, type_variant) {
             (TypeVariant::Uint { bitlength: b1 }, TypeVariant::Uint { bitlength: b2 })
                 if b1 > b2 =>
@@ -75,12 +98,7 @@ impl Value {
                     type_variant,
                 ));
             }
-            _ => {
-                return Err(OperatorError::casting_invalid_types(
-                    self.type_variant,
-                    type_variant,
-                ));
-            }
+            _ => {}
         }
 
         Ok(Self::new(self.field, type_variant))

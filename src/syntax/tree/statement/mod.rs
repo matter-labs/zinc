@@ -17,12 +17,15 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
+use crate::syntax::Expression;
+
 #[derive(Debug, Serialize, PartialEq)]
 #[serde(rename_all = "snake_case", tag = "statement")]
 pub enum Statement {
     Require(Require),
     Let(Let),
     Debug(Debug),
+    Expression(Expression),
 }
 
 impl fmt::Display for Statement {
@@ -31,6 +34,7 @@ impl fmt::Display for Statement {
             Self::Require(require) => write!(f, "{}", require),
             Self::Let(r#let) => write!(f, "{}", r#let),
             Self::Debug(debug) => write!(f, "{}", debug),
+            Self::Expression(expression) => write!(f, "{}", expression),
         }
     }
 }

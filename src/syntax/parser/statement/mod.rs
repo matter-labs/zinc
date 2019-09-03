@@ -15,6 +15,7 @@ use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
+use crate::syntax::ExpressionParser;
 use crate::syntax::Statement;
 use crate::Error;
 
@@ -65,13 +66,9 @@ impl Parser {
                         })) => DebugParser::default()
                             .parse(stream.clone())
                             .map(Statement::Debug),
-                        Some(Ok(Token { lexeme, location })) => {
-                            Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                ["let", "require", "debug"].to_vec(),
-                                lexeme,
-                            )))
-                        }
+                        Some(Ok(..)) => ExpressionParser::default()
+                            .parse(stream.clone())
+                            .map(Statement::Expression),
                         Some(Err(error)) => Err(Error::Lexical(error)),
                         None => Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                     }?);

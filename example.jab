@@ -1,22 +1,16 @@
-/*
-    This is the mega ultra inputs input!
-*/
 inputs {
-    a: uint8; // input 1
-    b: field; // input 2
-    c: bool; // input 3
+    a: uint1;
 }
 
-/*
-    This is the mega ultra witness input!
-*/
 witness {
-    d: uint253; /* witness 1 */
-    e: field; /* witness 2 */
-    f: bool; /* witness 3 */
+    b: int253;
 }
 
-let a = 0;
-let b = a = 5;
-let c = b;
-debug(c);
+let mut a: uint5 = 10;
+let mut b: uint5 = 20;
+let t = a;
+a = b;
+b = t;
+
+debug(a);
+debug(b);

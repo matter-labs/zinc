@@ -34,75 +34,92 @@ impl fmt::Display for Element {
 }
 
 impl Element {
-    pub fn assign(self, other: Self) -> Result<(), OperatorError> {
+    pub fn assign(self, other: Self) -> Result<Place, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Assignment;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(..) => {
-                return Err(OperatorError::assignment_to_value_expression(self, other))
+        let mut place_1 = match self {
+            Self::Place(ref place) => place.clone(),
+            Self::Value(value) => {
+                return Err(OperatorError::assignment_to_value_expression(value, other));
             }
-            Self::Type(..) => {
-                return Err(OperatorError::assignment_to_type_expression(self, other))
+            Self::Type(r#type) => {
+                return Err(OperatorError::assignment_to_type_expression(r#type, other));
             }
         };
-        let value_2 = match other.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => return Err(OperatorError::assignment_type_expression(self, other)),
+
+        if !place_1.is_mutable {
+            return Err(OperatorError::assignment_to_immutable_variable(
+                place_1, other,
+            ));
+        }
+
+        let value_2 = match other {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::assignment_type_expression(place_1, r#type))
+            }
         };
-        if !value_1.type_variant.can_be_first_operand(OPERATOR) {
+
+        if !place_1.value.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
             ));
         }
+
         if !value_2.type_variant.can_be_second_operand(OPERATOR) {
             return Err(OperatorError::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
-        if value_1.type_variant != value_2.type_variant {
+
+        if place_1.value.type_variant != value_2.type_variant {
             return Err(OperatorError::operand_type_mismatch(
                 OPERATOR,
                 value_2.type_variant,
-                value_1.type_variant,
+                place_1.value.type_variant,
             ));
         }
 
-        Ok(())
+        place_1.value = value_2;
+        Ok(place_1)
     }
 
     pub fn or(self, other: Self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Or;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ))
             }
         };
-        let value_2 = match other.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, other,
+
+        let value_2 = match other {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ))
             }
         };
+
         if !value_1.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
             ));
         }
+
         if !value_2.type_variant.can_be_second_operand(OPERATOR) {
             return Err(OperatorError::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
+
         if value_1.type_variant != value_2.type_variant {
             return Err(OperatorError::operand_type_mismatch(
                 OPERATOR,
@@ -122,34 +139,38 @@ impl Element {
     pub fn xor(self, other: Self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Xor;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
-        let value_2 = match other.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, other,
+
+        let value_2 = match other {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
+
         if !value_1.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
             ));
         }
+
         if !value_2.type_variant.can_be_second_operand(OPERATOR) {
             return Err(OperatorError::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
+
         if value_1.type_variant != value_2.type_variant {
             return Err(OperatorError::operand_type_mismatch(
                 OPERATOR,
@@ -169,34 +190,38 @@ impl Element {
     pub fn and(self, other: Self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::And;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
-        let value_2 = match other.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, other,
+
+        let value_2 = match other {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
+
         if !value_1.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
             ));
         }
+
         if !value_2.type_variant.can_be_second_operand(OPERATOR) {
             return Err(OperatorError::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
+
         if value_1.type_variant != value_2.type_variant {
             return Err(OperatorError::operand_type_mismatch(
                 OPERATOR,
@@ -216,34 +241,38 @@ impl Element {
     pub fn equal(self, other: Self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Equal;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
-        let value_2 = match other.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, other,
+
+        let value_2 = match other {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
+
         if !value_1.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
             ));
         }
+
         if !value_2.type_variant.can_be_second_operand(OPERATOR) {
             return Err(OperatorError::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
+
         if value_1.type_variant != value_2.type_variant {
             return Err(OperatorError::operand_type_mismatch(
                 OPERATOR,
@@ -263,34 +292,38 @@ impl Element {
     pub fn not_equal(self, other: Self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::NotEqual;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
-        let value_2 = match other.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, other,
+
+        let value_2 = match other {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
+
         if !value_1.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
             ));
         }
+
         if !value_2.type_variant.can_be_second_operand(OPERATOR) {
             return Err(OperatorError::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
+
         if value_1.type_variant != value_2.type_variant {
             return Err(OperatorError::operand_type_mismatch(
                 OPERATOR,
@@ -310,34 +343,38 @@ impl Element {
     pub fn greater_equal(self, other: Self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::GreaterEqual;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
-        let value_2 = match other.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, other,
+
+        let value_2 = match other {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
+
         if !value_1.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
             ));
         }
+
         if !value_2.type_variant.can_be_second_operand(OPERATOR) {
             return Err(OperatorError::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
+
         if value_1.type_variant != value_2.type_variant {
             return Err(OperatorError::operand_type_mismatch(
                 OPERATOR,
@@ -357,34 +394,38 @@ impl Element {
     pub fn lesser_equal(self, other: Self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::LesserEqual;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
-        let value_2 = match other.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, other,
+
+        let value_2 = match other {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
+
         if !value_1.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
             ));
         }
+
         if !value_2.type_variant.can_be_second_operand(OPERATOR) {
             return Err(OperatorError::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
+
         if value_1.type_variant != value_2.type_variant {
             return Err(OperatorError::operand_type_mismatch(
                 OPERATOR,
@@ -404,34 +445,38 @@ impl Element {
     pub fn greater(self, other: Self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Greater;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
-        let value_2 = match other.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, other,
+
+        let value_2 = match other {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
+
         if !value_1.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
             ));
         }
+
         if !value_2.type_variant.can_be_second_operand(OPERATOR) {
             return Err(OperatorError::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
+
         if value_1.type_variant != value_2.type_variant {
             return Err(OperatorError::operand_type_mismatch(
                 OPERATOR,
@@ -451,34 +496,38 @@ impl Element {
     pub fn lesser(self, other: Self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Lesser;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
-        let value_2 = match other.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, other,
+
+        let value_2 = match other {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
+
         if !value_1.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
             ));
         }
+
         if !value_2.type_variant.can_be_second_operand(OPERATOR) {
             return Err(OperatorError::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
+
         if value_1.type_variant != value_2.type_variant {
             return Err(OperatorError::operand_type_mismatch(
                 OPERATOR,
@@ -499,34 +548,38 @@ impl Element {
     pub fn add(self, other: Self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Addition;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
-        let value_2 = match other.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, other,
+
+        let value_2 = match other {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
+
         if !value_1.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
             ));
         }
+
         if !value_2.type_variant.can_be_second_operand(OPERATOR) {
             return Err(OperatorError::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
+
         if value_1.type_variant != value_2.type_variant {
             return Err(OperatorError::operand_type_mismatch(
                 OPERATOR,
@@ -542,34 +595,38 @@ impl Element {
     pub fn subtract(self, other: Self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Subtraction;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
-        let value_2 = match other.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, other,
+
+        let value_2 = match other {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
+
         if !value_1.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
             ));
         }
+
         if !value_2.type_variant.can_be_second_operand(OPERATOR) {
             return Err(OperatorError::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
+
         if value_1.type_variant != value_2.type_variant {
             return Err(OperatorError::operand_type_mismatch(
                 OPERATOR,
@@ -585,34 +642,38 @@ impl Element {
     pub fn multiply(self, other: Self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Multiplication;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
-        let value_2 = match other.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, other,
+
+        let value_2 = match other {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
+
         if !value_1.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
             ));
         }
+
         if !value_2.type_variant.can_be_second_operand(OPERATOR) {
             return Err(OperatorError::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
+
         if value_1.type_variant != value_2.type_variant {
             return Err(OperatorError::operand_type_mismatch(
                 OPERATOR,
@@ -628,34 +689,38 @@ impl Element {
     pub fn divide(self, other: Self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Division;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
-        let value_2 = match other.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, other,
+
+        let value_2 = match other {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
+
         if !value_1.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
             ));
         }
+
         if !value_2.type_variant.can_be_second_operand(OPERATOR) {
             return Err(OperatorError::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
+
         if value_1.type_variant != value_2.type_variant {
             return Err(OperatorError::operand_type_mismatch(
                 OPERATOR,
@@ -671,34 +736,38 @@ impl Element {
     pub fn modulo(self, other: Self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Remainder;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
-        let value_2 = match other.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, other,
+
+        let value_2 = match other {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
+
         if !value_1.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
             ));
         }
+
         if !value_2.type_variant.can_be_second_operand(OPERATOR) {
             return Err(OperatorError::second_operand_operator_not_available(
                 OPERATOR, other,
             ));
         }
+
         if value_1.type_variant != value_2.type_variant {
             return Err(OperatorError::operand_type_mismatch(
                 OPERATOR,
@@ -714,15 +783,16 @@ impl Element {
     pub fn negate(self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Negation;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
+
         if !value_1.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
@@ -742,15 +812,16 @@ impl Element {
     pub fn not(self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Not;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
+
         if !value_1.type_variant.can_be_first_operand(OPERATOR) {
             return Err(OperatorError::first_operand_operator_not_available(
                 OPERATOR, self,
@@ -768,22 +839,28 @@ impl Element {
     pub fn cast(self, other: Self) -> Result<Self, OperatorError> {
         const OPERATOR: ExpressionOperator = ExpressionOperator::Casting;
 
-        let value_1 = match self.clone() {
-            Self::Place(place) => place.value,
-            Self::Value(value) => value,
-            Self::Type(..) => {
-                return Err(OperatorError::type_expression_not_as_the_casting_operand(
-                    OPERATOR, self,
+        let value_1 = match self {
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            Self::Type(r#type) => {
+                return Err(OperatorError::type_expression_outside_casting_context(
+                    OPERATOR, r#type,
                 ));
             }
         };
 
-        let other_type_variant = match other.clone() {
-            Self::Place(..) => {
-                return Err(OperatorError::casting_to_place_expression(self, other));
+        let other_type_variant = match other {
+            Self::Place(ref place) => {
+                return Err(OperatorError::casting_to_place_expression(
+                    self,
+                    place.clone(),
+                ));
             }
-            Self::Value(..) => {
-                return Err(OperatorError::casting_to_value_expression(self, other));
+            Self::Value(ref value) => {
+                return Err(OperatorError::casting_to_value_expression(
+                    self,
+                    value.clone(),
+                ));
             }
             Self::Type(r#type) => r#type.variant,
         };

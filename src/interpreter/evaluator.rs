@@ -35,7 +35,7 @@ impl Evaluator {
     pub fn evaluate(
         &mut self,
         expression: Expression,
-        variables: &mut HashMap<Vec<u8>, Value>,
+        variables: &mut HashMap<Vec<u8>, Place>,
     ) -> Result<Value, Error> {
         for expression_element in expression.into_iter() {
             match expression_element.object {
@@ -51,8 +51,8 @@ impl Evaluator {
                     }
                     ExpressionOperand::Type(r#type) => StackElement::Type(r#type),
                     ExpressionOperand::Identifier(identifier) => {
-                        if let Some(value) = variables.get(&identifier.name) {
-                            StackElement::Place(Place::new(identifier.clone(), value.clone()))
+                        if let Some(place) = variables.get(&identifier.name).cloned() {
+                            StackElement::Place(place)
                         } else {
                             return Err(Error::UndeclaredVariable(
                                 expression_element.token.location,
@@ -62,9 +62,15 @@ impl Evaluator {
                     }
                 }),
                 ExpressionObject::Operator(ExpressionOperator::Assignment) => {
-                    if let (Some(_element_2), Some(_element_1)) =
-                        (self.stack.pop(), self.stack.pop())
+                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
                     {
+                        let place = element_1.assign(element_2).map_err(move |error| {
+                            Error::Operator(expression_element.token.location, error)
+                        })?;
+                        let entry = variables
+                            .get_mut(&place.identifier.name)
+                            .expect("Option state bug");
+                        *entry = place;
                         self.stack.push(StackElement::Value(Value::new(
                             BigInt::zero(),
                             TypeVariant::Void,
