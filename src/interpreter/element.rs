@@ -34,31 +34,31 @@ impl Element {
     pub fn assign(self, other: Self) -> Result<Place, OperatorError> {
         const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Assignment;
 
-        let mut place_1 = match self {
+        let mut place = match self {
             Self::Place(ref place) => place.clone(),
-            _ => {
-                return Err(OperatorError::expected_place_expression(OPERATOR, self));
+            value => {
+                return Err(OperatorError::expected_place_expression(OPERATOR, value));
             }
         };
 
-        if !place_1.is_mutable {
+        if !place.is_mutable {
             return Err(OperatorError::assignment_to_immutable_variable(
-                place_1, other,
+                place, other,
             ));
         }
 
-        let value_2 = match other {
+        let value = match other {
             Self::Place(ref place) => place.value.clone(),
             Self::Value(ref value) => value.clone(),
-            _ => return Err(OperatorError::expected_value_expression(OPERATOR, other)),
+            value => return Err(OperatorError::expected_value_expression(OPERATOR, value)),
         };
 
-        if !place_1.value.has_the_same_type_as(&value_2) {
+        if !place.value.has_the_same_type_as(&value) {
             return Err(OperatorError::operand_type_mismatch(OPERATOR, self, other));
         }
 
-        place_1.value = value_2;
-        Ok(place_1)
+        place.value = value;
+        Ok(place)
     }
 
     pub fn or(self, other: Self) -> Result<Self, OperatorError> {
@@ -140,28 +140,22 @@ impl Element {
         const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Equal;
 
         let value_1 = match self {
-            Self::Place(Place {
-                value: Value::Integer(ref value),
-                ..
-            }) => value.clone(),
-            Self::Value(Value::Integer(ref value)) => value.clone(),
-            value => return Err(OperatorError::expected_integer_value(OPERATOR, value)),
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            value => return Err(OperatorError::expected_value_expression(OPERATOR, value)),
         };
 
         let value_2 = match other {
-            Self::Place(Place {
-                value: Value::Integer(ref value),
-                ..
-            }) => value.clone(),
-            Self::Value(Value::Integer(ref value)) => value.clone(),
-            value => return Err(OperatorError::expected_integer_value(OPERATOR, value)),
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            value => return Err(OperatorError::expected_value_expression(OPERATOR, value)),
         };
 
         if !value_1.has_the_same_type_as(&value_2) {
             return Err(OperatorError::operand_type_mismatch(OPERATOR, self, other));
         }
 
-        let result = value_1.data == value_2.data;
+        let result = value_1 == value_2;
         Ok(Self::Value(Value::Boolean(result)))
     }
 
@@ -169,28 +163,22 @@ impl Element {
         const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::NotEqual;
 
         let value_1 = match self {
-            Self::Place(Place {
-                value: Value::Integer(ref value),
-                ..
-            }) => value.clone(),
-            Self::Value(Value::Integer(ref value)) => value.clone(),
-            value => return Err(OperatorError::expected_integer_value(OPERATOR, value)),
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            value => return Err(OperatorError::expected_value_expression(OPERATOR, value)),
         };
 
         let value_2 = match other {
-            Self::Place(Place {
-                value: Value::Integer(ref value),
-                ..
-            }) => value.clone(),
-            Self::Value(Value::Integer(ref value)) => value.clone(),
-            value => return Err(OperatorError::expected_integer_value(OPERATOR, value)),
+            Self::Place(ref place) => place.value.clone(),
+            Self::Value(ref value) => value.clone(),
+            value => return Err(OperatorError::expected_value_expression(OPERATOR, value)),
         };
 
         if !value_1.has_the_same_type_as(&value_2) {
             return Err(OperatorError::operand_type_mismatch(OPERATOR, self, other));
         }
 
-        let result = value_1.data != value_2.data;
+        let result = value_1 != value_2;
         Ok(Self::Value(Value::Boolean(result)))
     }
 

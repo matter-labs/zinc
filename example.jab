@@ -6,17 +6,5 @@ witness {
     b: int253;
 }
 
-let a: uint8 = {
-    let mut b: uint8 = 25;
-    b = b + 35 as uint8;
-    let c: uint8 = b + 40 as uint8;
-    {
-        c + 52 as uint8
-    }
-};
-debug(a + { 2 * 3 } as uint8);
-
-let test: uint250 = {
-    5 + 6
-};
-debug(test);
+let a: bool = true == (5 == 6);
+debug(a);
