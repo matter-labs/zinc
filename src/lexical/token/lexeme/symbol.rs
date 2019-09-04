@@ -39,6 +39,7 @@ pub enum Symbol {
     DoubleAmpersand,
     DoubleVerticalBar,
     DoubleCircumflex,
+    DoubleDot,
 }
 
 impl From<&[u8]> for Symbol {
@@ -72,6 +73,7 @@ impl From<&[u8]> for Symbol {
             b"&&" => Self::DoubleAmpersand,
             b"||" => Self::DoubleVerticalBar,
             b"^^" => Self::DoubleCircumflex,
+            b".." => Self::DoubleDot,
 
             _ => unreachable!(),
         }
@@ -109,6 +111,7 @@ impl fmt::Display for Symbol {
             Self::DoubleAmpersand => write!(f, "&&"),
             Self::DoubleVerticalBar => write!(f, "||"),
             Self::DoubleCircumflex => write!(f, "^^"),
+            Self::DoubleDot => write!(f, ".."),
         }
     }
 }

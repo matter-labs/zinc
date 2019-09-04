@@ -2,20 +2,22 @@
 //! The interpreter tools.
 //!
 
+mod element;
 mod error;
 mod executor;
 mod place;
 mod scope;
-mod stack;
 mod value;
 mod warning;
 
+pub use self::element::Element;
 pub use self::error::Error;
 pub use self::error::OperatorError;
 pub use self::executor::Executor;
 pub use self::place::Place;
 pub use self::scope::Scope;
-pub use self::stack::Element as StackElement;
+pub use self::value::Integer;
+pub use self::value::IntegerType;
 pub use self::value::Value;
 pub use self::warning::Warning;
 

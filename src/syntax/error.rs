@@ -13,8 +13,8 @@ use crate::lexical::Location;
 pub enum Error {
     #[fail(display = "{} expected either of: {:?} (got '{}')", _0, _1, _2)]
     Expected(Location, Vec<&'static str>, Lexeme),
-    #[fail(display = "{} an expression outside block", _0)]
-    UnterminatedExpressionOutsideBlock(Location),
+    #[fail(display = "{} an expression at the root", _0)]
+    UnterminatedExpressionAtRoot(Location),
     #[fail(display = "unexpected end")]
     UnexpectedEnd,
 }

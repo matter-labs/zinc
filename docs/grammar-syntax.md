@@ -14,6 +14,7 @@ statement =
   | 'let' [ 'mut' ] identifier [ ':' type ] '=' expression ';'
   | 'require' '(' expression ')' ';'
   | 'debug' '(' expression ')' ';'
+  | 'for' identifier 'in' literal '..' literal '{' statement* '}'
 
 ## Expression
 expression =

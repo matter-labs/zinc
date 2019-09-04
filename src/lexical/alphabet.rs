@@ -1,5 +1,5 @@
 //!
-//! The alphabet.
+//! The lexical alphabet.
 //!
 
 pub struct Alphabet;

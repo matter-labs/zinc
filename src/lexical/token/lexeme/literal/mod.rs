@@ -17,6 +17,7 @@ use serde_derive::Serialize;
 #[derive(Debug, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum Literal {
+    Void,
     Boolean(Boolean),
     Integer(Integer),
     String(String),
@@ -25,6 +26,7 @@ pub enum Literal {
 impl fmt::Display for Literal {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            Self::Void => write!(f, "()"),
             Self::Boolean(boolean) => write!(f, "{}", boolean),
             Self::Integer(integer) => write!(f, "{}", integer),
             Self::String(string) => write!(f, "{}", string),

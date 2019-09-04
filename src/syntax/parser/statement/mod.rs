@@ -15,7 +15,6 @@ use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
-use crate::syntax::Expression;
 use crate::syntax::ExpressionParser;
 use crate::syntax::Statement;
 use crate::Error;
@@ -28,7 +27,7 @@ use self::require::Parser as RequireParser;
 pub enum State {
     Statement,
     Semicolon,
-    SemicolonOrEnd,
+    SemicolonOptional,
 }
 
 impl Default for State {
@@ -82,15 +81,8 @@ impl Parser {
                         }
                         Some(Ok(..)) => {
                             let result = ExpressionParser::default().parse(stream.clone())?;
-                            match result {
-                                Expression::Operator(..) => {
-                                    self.state = State::SemicolonOrEnd;
-                                    Statement::Expression(result)
-                                }
-                                Expression::Block(..) => {
-                                    return Ok((Statement::Expression(result), false))
-                                }
-                            }
+                            self.state = State::SemicolonOptional;
+                            Statement::Expression(result)
                         }
                         Some(Err(error)) => return Err(Error::Lexical(error)),
                         None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
@@ -111,7 +103,7 @@ impl Parser {
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::SemicolonOrEnd => {
+                State::SemicolonOptional => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
                         Some(Ok(Token {

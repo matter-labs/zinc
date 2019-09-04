@@ -6,13 +6,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::str;
 
-use num_bigint::BigInt;
-use num_traits::Zero;
-
+use crate::interpreter::Element;
 use crate::interpreter::Error;
 use crate::interpreter::Place;
 use crate::interpreter::Scope;
-use crate::interpreter::StackElement;
 use crate::interpreter::Value;
 use crate::interpreter::Warning;
 use crate::lexical::Literal;
@@ -23,11 +20,10 @@ use crate::syntax::OperatorExpressionObject;
 use crate::syntax::OperatorExpressionOperand;
 use crate::syntax::OperatorExpressionOperator;
 use crate::syntax::Statement;
-use crate::syntax::TypeVariant;
 
 #[derive(Default)]
 pub struct Executor {
-    stack: Vec<StackElement>,
+    stack: Vec<Element>,
     scope: Rc<RefCell<Scope>>,
 }
 
@@ -40,12 +36,12 @@ impl Executor {
     }
 
     pub fn execute(&mut self, statement: Statement) -> Result<(), Error> {
-        log::debug!("Statement          : {}", statement);
+        log::trace!("Statement              : {}", statement);
 
         match statement {
             Statement::Debug(debug) => {
                 let result = self.evaluate(debug.expression)?;
-                println!("{}", result);
+                log::info!("{}", result);
             }
             Statement::Let(r#let) => {
                 if self.scope.borrow().is_variable_declared(&r#let.identifier) {
@@ -58,20 +54,28 @@ impl Executor {
                     );
                 }
                 let mut result = self.evaluate(r#let.expression)?;
-                if let Some(r#type) = r#let.r#type {
-                    result = result
-                        .cast(r#type.variant)
-                        .map_err(|error| Error::Operator(r#type.location, error))?
+                if let (Value::Integer(result), Some(r#type)) = (&mut result, r#let.r#type) {
+                    result
+                        .cast(r#type.variant.into())
+                        .map_err(|error| Error::Operator(r#type.location, error))?;
                 }
+
                 let place = Place::new(r#let.identifier.clone(), result, r#let.is_mutable);
                 self.scope.borrow_mut().declare_variable(place);
             }
-            Statement::Require(require) => {
-                let result = self.evaluate(require.expression)?;
-                if result.field.is_zero() {
-                    return Err(Error::RequireFailure(require.location, require.id));
+            Statement::Require(require) => match self.evaluate(require.expression)? {
+                Value::Boolean(true) => {}
+                Value::Boolean(false) => {
+                    return Err(Error::RequireFailed(require.location, require.id))
                 }
-            }
+                value => {
+                    return Err(Error::RequireExpectedBooleanExpression(
+                        require.location,
+                        require.id,
+                        value,
+                    ))
+                }
+            },
             Statement::Expression(expression) => {
                 self.evaluate(expression)?;
             }
@@ -87,31 +91,37 @@ impl Executor {
     }
 
     pub fn evaluate_operator(&mut self, expression: OperatorExpression) -> Result<Value, Error> {
-        log::debug!("Operator expression: {}", expression);
+        log::trace!("Operator expression    : {}", expression);
 
         for expression_element in expression.into_iter() {
             match expression_element.object {
                 OperatorExpressionObject::Operand(operand) => {
                     let element = match operand {
                         OperatorExpressionOperand::Literal(Literal::Boolean(literal)) => {
-                            StackElement::Value(Value::from(literal))
+                            Element::Value(Value::from(literal))
                         }
                         OperatorExpressionOperand::Literal(Literal::Integer(literal)) => {
-                            StackElement::Value(Value::from(literal))
+                            Element::Value(Value::from(literal))
                         }
-                        OperatorExpressionOperand::Literal(Literal::String(literal)) => {
-                            return Err(Error::StringLiteralNotSupported(
+                        OperatorExpressionOperand::Literal(literal @ Literal::String(..)) => {
+                            return Err(Error::LiteralIsNotSupported(
                                 expression_element.token.location,
                                 literal,
                             ));
                         }
-                        OperatorExpressionOperand::Type(r#type) => StackElement::Type(r#type),
+                        OperatorExpressionOperand::Literal(literal @ Literal::Void) => {
+                            return Err(Error::LiteralIsNotSupported(
+                                expression_element.token.location,
+                                literal,
+                            ));
+                        }
+                        OperatorExpressionOperand::Type(r#type) => Element::Type(r#type),
                         OperatorExpressionOperand::Identifier(identifier) => {
                             let location = expression_element.token.location;
                             self.scope
                                 .borrow()
                                 .get_variable(&identifier)
-                                .map(StackElement::Place)
+                                .map(Element::Place)
                                 .ok_or_else(|| {
                                     Error::UndeclaredVariable(
                                         location,
@@ -121,7 +131,7 @@ impl Executor {
                                 })?
                         }
                         OperatorExpressionOperand::Block(block) => {
-                            StackElement::Value(self.evaluate_block(block)?)
+                            Element::Value(self.evaluate_block(block)?)
                         }
                     };
                     self.stack.push(element);
@@ -137,10 +147,7 @@ impl Executor {
                             panic!("Is checked in the operand branch");
                         }
 
-                        self.stack.push(StackElement::Value(Value::new(
-                            BigInt::zero(),
-                            TypeVariant::Void,
-                        )));
+                        self.stack.push(Element::Value(Value::Void));
                     } else {
                         unreachable!();
                     }
@@ -334,14 +341,14 @@ impl Executor {
         }
 
         match self.stack.pop() {
-            Some(StackElement::Value(value)) => Ok(value),
-            Some(StackElement::Place(place)) => Ok(place.value),
+            Some(Element::Value(value)) => Ok(value),
+            Some(Element::Place(place)) => Ok(place.value),
             _ => unreachable!(),
         }
     }
 
     pub fn evaluate_block(&mut self, block: BlockExpression) -> Result<Value, Error> {
-        log::debug!("Block expression   : {}", block);
+        log::trace!("Block expression       : {}", block);
 
         let mut executor = Executor::new(Scope::new(Some(self.scope.clone())));
         for statement in block.statements {
@@ -350,7 +357,7 @@ impl Executor {
         if let Some(expression) = block.expression {
             executor.evaluate(*expression)
         } else {
-            Ok(Value::new(BigInt::zero(), TypeVariant::Void))
+            Ok(Value::Void)
         }
     }
 }

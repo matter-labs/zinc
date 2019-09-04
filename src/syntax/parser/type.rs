@@ -5,7 +5,9 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
+use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
@@ -15,13 +17,14 @@ use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    Name,
+    KeywordOrParenthesis,
+    ParenthesisRight,
     End,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::Name
+        State::KeywordOrParenthesis
     }
 }
 
@@ -35,19 +38,56 @@ impl Parser {
     pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Type, Error> {
         loop {
             match self.state {
-                State::Name => match stream.borrow_mut().next() {
+                State::KeywordOrParenthesis => match stream.borrow_mut().next() {
                     Some(Ok(Token {
                         lexeme: Lexeme::Keyword(keyword),
                         location,
+                    })) => match keyword {
+                        keyword @ Keyword::Bool
+                        | keyword @ Keyword::Int { .. }
+                        | keyword @ Keyword::Uint { .. }
+                        | keyword @ Keyword::Field => {
+                            self.builder.set_location(location);
+                            self.builder.set_keyword(keyword);
+                            self.state = State::End;
+                        }
+                        _ => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                ["{type}"].to_vec(),
+                                Lexeme::Keyword(keyword),
+                            )))
+                        }
+                    },
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
+                        location,
                     })) => {
                         self.builder.set_location(location);
-                        self.builder.set_keyword(keyword);
-                        self.state = State::End;
+                        self.state = State::ParenthesisRight;
                     }
                     Some(Ok(Token { lexeme, location })) => {
                         return Err(Error::Syntax(SyntaxError::Expected(
                             location,
                             ["{type}"].to_vec(),
+                            lexeme,
+                        )))
+                    }
+                    Some(Err(error)) => return Err(Error::Lexical(error)),
+                    None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                },
+                State::ParenthesisRight => match stream.borrow_mut().next() {
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
+                        ..
+                    })) => {
+                        self.builder.set_void();
+                        self.state = State::End;
+                    }
+                    Some(Ok(Token { lexeme, location })) => {
+                        return Err(Error::Syntax(SyntaxError::Expected(
+                            location,
+                            [")"].to_vec(),
                             lexeme,
                         )))
                     }

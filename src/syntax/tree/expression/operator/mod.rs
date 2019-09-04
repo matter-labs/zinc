@@ -17,7 +17,6 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
-use crate::lexical::Location;
 use crate::lexical::Token;
 
 #[derive(Debug, Default, Serialize, PartialEq)]
@@ -42,10 +41,6 @@ impl Expression {
 
     pub fn append(&mut self, mut expression: Expression) {
         self.elements.append(&mut expression.elements)
-    }
-
-    pub fn location(&self) -> Location {
-        self.elements[0].token.location
     }
 }
 

@@ -5,158 +5,133 @@
 use failure::Fail;
 use serde_derive::Serialize;
 
+use crate::interpreter::Element;
+use crate::interpreter::IntegerType;
 use crate::interpreter::Place;
-use crate::interpreter::StackElement;
 use crate::interpreter::Value;
+use crate::lexical::Literal;
 use crate::lexical::Location;
-use crate::lexical::StringLiteral;
 use crate::syntax::OperatorExpressionOperator;
-use crate::syntax::Type;
-use crate::syntax::TypeVariant;
 
 #[derive(Debug, Fail, Serialize, PartialEq)]
+#[allow(clippy::large_enum_variant)]
 pub enum Error {
     #[fail(display = "{} operator: {}", _0, _1)]
     Operator(Location, OperatorError),
     #[fail(display = "{} undeclared variable: {}", _0, _1)]
     UndeclaredVariable(Location, String),
-    #[fail(display = "{} string literals are not supported: {}", _0, _1)]
-    StringLiteralNotSupported(Location, StringLiteral),
-    #[fail(display = "{} require failure: {}", _0, _1)]
-    RequireFailure(Location, String),
+    #[fail(display = "{} the literal is not supported: {}", _0, _1)]
+    LiteralIsNotSupported(Location, Literal),
+    #[fail(
+        display = "{} require {} expected a boolean expression, but got {}",
+        _0, _1, _2
+    )]
+    RequireExpectedBooleanExpression(Location, String, Value),
+    #[fail(display = "{} require {} failed", _0, _1)]
+    RequireFailed(Location, String),
 }
 
 #[derive(Debug, Fail, Serialize, PartialEq)]
 pub enum OperatorError {
     #[fail(
-        display = "operator {} is not available for the first operand [{}]",
-        operator, element
-    )]
-    FirstOperandOperatorNotAvailable {
-        operator: OperatorExpressionOperator,
-        element: StackElement,
-    },
-    #[fail(
-        display = "operator {} is not available for the second operand [{}]",
-        operator, element
-    )]
-    SecondOperandOperatorNotAvaiable {
-        operator: OperatorExpressionOperator,
-        element: StackElement,
-    },
-    #[fail(
-        display = "operand type mismatch: got [{}], expected [{}]",
-        got, expected
+        display = "operand types mismatch: [{}] and [{}] have different types",
+        first, second
     )]
     OperandTypesMismatch {
         operator: OperatorExpressionOperator,
-        got: TypeVariant,
-        expected: TypeVariant,
+        first: Element,
+        second: Element,
     },
     #[fail(
-        display = "type expression allowed only as the second casting operand, but got [{}] for operator {}",
-        rvalue, operator
+        display = "operator {} expected a boolean value, but got [{}]",
+        operator, got
     )]
-    TypeExpressionOutsideCastingContext {
+    ExpectedBooleanValue {
         operator: OperatorExpressionOperator,
-        rvalue: Type,
+        got: Element,
     },
     #[fail(
-        display = "assignment to a value expression: [{}] to [{}]",
-        rvalue, lvalue
+        display = "operator {} expected an integer value, but got [{}]",
+        operator, got
     )]
-    AssignmentToValueExpression { lvalue: Value, rvalue: StackElement },
+    ExpectedIntegerValue {
+        operator: OperatorExpressionOperator,
+        got: Element,
+    },
+    #[fail(display = "operator {} expected a type, but got [{}]", operator, got)]
+    ExpectedType {
+        operator: OperatorExpressionOperator,
+        got: Element,
+    },
     #[fail(
-        display = "assignment to a type expression: [{}] to [{}]",
-        rvalue, lvalue
+        display = "operator {} expected a place expression, but got [{}]",
+        operator, lvalue
     )]
-    AssignmentToTypeExpression { lvalue: Type, rvalue: StackElement },
-    #[fail(display = "assignment type expression: [{}] to [{}]", rvalue, lvalue)]
-    AssignmentTypeExpression { lvalue: Place, rvalue: Type },
+    ExpectedPlaceExpression {
+        operator: OperatorExpressionOperator,
+        lvalue: Element,
+    },
+    #[fail(
+        display = "operator {} expected a value expression, but got [{}]",
+        rvalue, rvalue
+    )]
+    ExpectedValueExpression {
+        operator: OperatorExpressionOperator,
+        rvalue: Element,
+    },
     #[fail(
         display = "assignment to an immutable variable: [{}] to [{}]",
         rvalue, lvalue
     )]
-    AssignmentToImmutableVariable { lvalue: Place, rvalue: StackElement },
-    #[fail(
-        display = "casting to a place expression: [{}] to [{}]",
-        rvalue, lvalue
-    )]
-    CastingToPlaceExpression { lvalue: StackElement, rvalue: Place },
-    #[fail(
-        display = "casting to a value expression: [{}] to [{}]",
-        rvalue, lvalue
-    )]
-    CastingToValueExpression { lvalue: StackElement, rvalue: Value },
+    AssignmentToImmutableVariable { lvalue: Place, rvalue: Element },
     #[fail(display = "casting to lesser bitlength: [{}] to [{}]", from, to)]
-    CastingToLesserBitlength { from: TypeVariant, to: TypeVariant },
-    #[fail(display = "casting invalid types: [{}] to [{}]", from, to)]
-    CastingInvalidTypes { from: TypeVariant, to: TypeVariant },
+    CastingToLesserBitlength { from: IntegerType, to: IntegerType },
 }
 
 impl OperatorError {
-    pub fn first_operand_operator_not_available(
-        operator: OperatorExpressionOperator,
-        element: StackElement,
-    ) -> Self {
-        Self::FirstOperandOperatorNotAvailable { operator, element }
-    }
-
-    pub fn second_operand_operator_not_available(
-        operator: OperatorExpressionOperator,
-        element: StackElement,
-    ) -> Self {
-        Self::SecondOperandOperatorNotAvaiable { operator, element }
-    }
-
     pub fn operand_type_mismatch(
         operator: OperatorExpressionOperator,
-        got: TypeVariant,
-        expected: TypeVariant,
+        first: Element,
+        second: Element,
     ) -> Self {
         Self::OperandTypesMismatch {
             operator,
-            got,
-            expected,
+            first,
+            second,
         }
     }
 
-    pub fn type_expression_outside_casting_context(
+    pub fn expected_boolean_value(operator: OperatorExpressionOperator, got: Element) -> Self {
+        Self::ExpectedBooleanValue { operator, got }
+    }
+
+    pub fn expected_integer_value(operator: OperatorExpressionOperator, got: Element) -> Self {
+        Self::ExpectedIntegerValue { operator, got }
+    }
+
+    pub fn expected_type(operator: OperatorExpressionOperator, got: Element) -> Self {
+        Self::ExpectedType { operator, got }
+    }
+
+    pub fn expected_place_expression(
         operator: OperatorExpressionOperator,
-        rvalue: Type,
+        lvalue: Element,
     ) -> Self {
-        Self::TypeExpressionOutsideCastingContext { operator, rvalue }
+        Self::ExpectedPlaceExpression { operator, lvalue }
     }
 
-    pub fn assignment_to_value_expression(lvalue: Value, rvalue: StackElement) -> Self {
-        Self::AssignmentToValueExpression { lvalue, rvalue }
+    pub fn expected_value_expression(
+        operator: OperatorExpressionOperator,
+        rvalue: Element,
+    ) -> Self {
+        Self::ExpectedValueExpression { operator, rvalue }
     }
 
-    pub fn assignment_to_type_expression(lvalue: Type, rvalue: StackElement) -> Self {
-        Self::AssignmentToTypeExpression { lvalue, rvalue }
-    }
-
-    pub fn assignment_type_expression(lvalue: Place, rvalue: Type) -> Self {
-        Self::AssignmentTypeExpression { lvalue, rvalue }
-    }
-
-    pub fn assignment_to_immutable_variable(lvalue: Place, rvalue: StackElement) -> Self {
+    pub fn assignment_to_immutable_variable(lvalue: Place, rvalue: Element) -> Self {
         Self::AssignmentToImmutableVariable { lvalue, rvalue }
     }
 
-    pub fn casting_to_value_expression(lvalue: StackElement, rvalue: Value) -> Self {
-        Self::CastingToValueExpression { lvalue, rvalue }
-    }
-
-    pub fn casting_to_place_expression(lvalue: StackElement, rvalue: Place) -> Self {
-        Self::CastingToPlaceExpression { lvalue, rvalue }
-    }
-
-    pub fn casting_to_lesser_bitlength(from: TypeVariant, to: TypeVariant) -> Self {
+    pub fn casting_to_lesser_bitlength(from: IntegerType, to: IntegerType) -> Self {
         Self::CastingToLesserBitlength { from, to }
-    }
-
-    pub fn casting_invalid_types(from: TypeVariant, to: TypeVariant) -> Self {
-        Self::CastingInvalidTypes { from, to }
     }
 }

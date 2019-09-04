@@ -16,21 +16,10 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
-use crate::lexical::Location;
-
 #[derive(Debug, Serialize, PartialEq)]
 pub enum Expression {
     Operator(OperatorExpression),
     Block(BlockExpression),
-}
-
-impl Expression {
-    pub fn location(&self) -> Location {
-        match self {
-            Self::Operator(expression) => expression.location(),
-            Self::Block(expression) => expression.location,
-        }
-    }
 }
 
 impl fmt::Display for Expression {

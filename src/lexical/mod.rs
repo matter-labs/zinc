@@ -1,5 +1,5 @@
 //!
-//! The lexical parser.
+//! The lexical tools.
 //!
 
 mod alphabet;

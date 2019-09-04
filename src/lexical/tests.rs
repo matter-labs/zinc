@@ -158,7 +158,7 @@ fn err_unexpected_end() {
 fn err_unknown_character() {
     let code = b"#";
 
-    let expected = Err(Error::UnknownCharacter(Location::new(1, 1), '#'));
+    let expected = Err(Error::InvalidCharacter(Location::new(1, 1), '#'));
 
     let result = TokenStream::new(code.to_vec())
         .next()

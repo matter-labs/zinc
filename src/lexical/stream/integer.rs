@@ -29,10 +29,6 @@ pub enum Error {
     )]
     InvalidDecimalCharacter(char, usize, String),
     #[fail(
-        display = "hexadecimal integer literals must start with '0x' and have at least one digit"
-    )]
-    InvalidHexadecimalFormat,
-    #[fail(
         display = "invalid hexadecimal digit '{}' at position {} of '{}'",
         _0, _1, _2
     )]

@@ -15,6 +15,7 @@ pub enum State {
     Exclamation,
     Lesser,
     Greater,
+    Dot,
     And,
     Or,
     Xor,
@@ -45,7 +46,6 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, Symbol), Error> {
                 b'(' => return Ok((size + 1, Symbol::ParenthesisLeft)),
                 b')' => return Ok((size + 1, Symbol::ParenthesisRight)),
 
-                b'.' => return Ok((size + 1, Symbol::Dot)),
                 b':' => return Ok((size + 1, Symbol::Colon)),
                 b';' => return Ok((size + 1, Symbol::Semicolon)),
                 b',' => return Ok((size + 1, Symbol::Comma)),
@@ -57,6 +57,10 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, Symbol), Error> {
                 b'%' => return Ok((size + 1, Symbol::Percent)),
                 b'\\' => return Ok((size + 1, Symbol::Backslash)),
 
+                b'.' => {
+                    size += 1;
+                    state = State::Dot;
+                }
                 b'=' => {
                     size += 1;
                     state = State::Equal;
@@ -103,6 +107,10 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, Symbol), Error> {
             State::Greater => match byte {
                 b'=' => return Ok((size + 1, Symbol::GreaterThanEquals)),
                 _ => return Ok((size, Symbol::GreaterThan)),
+            },
+            State::Dot => match byte {
+                b'.' => return Ok((size + 1, Symbol::DoubleDot)),
+                _ => return Ok((size, Symbol::Dot)),
             },
             State::And => match byte {
                 b'&' => return Ok((size + 1, Symbol::DoubleAmpersand)),

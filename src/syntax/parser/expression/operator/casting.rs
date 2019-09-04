@@ -6,6 +6,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::lexical::Lexeme;
+use crate::lexical::Literal;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
@@ -23,8 +24,8 @@ use crate::Error;
 pub enum State {
     Start,
     UnaryMulDivRemOperand,
-    ParenthesisExpression,
-    ParenthesisClose,
+    ParenthesisExpressionOrParenthesisRight,
+    ParenthesisRight,
     BlockExpression,
 }
 
@@ -73,7 +74,7 @@ impl Parser {
                             ..
                         })) => {
                             stream.borrow_mut().next();
-                            self.state = State::ParenthesisExpression;
+                            self.state = State::ParenthesisExpressionOrParenthesisRight;
                         }
                         Some(Ok(Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
@@ -131,20 +132,36 @@ impl Parser {
                     }
                     return Ok(self.expression);
                 }
-                State::ParenthesisExpression => {
-                    match ExpressionParser::default().parse(stream.clone())? {
-                        Expression::Operator(rpn) => self.expression.append(rpn),
-                        Expression::Block(block) => {
-                            let location = block.location;
+                State::ParenthesisExpressionOrParenthesisRight => {
+                    let peek = stream.borrow_mut().peek();
+                    match peek {
+                        Some(Ok(
+                            token @ Token {
+                                lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
+                                ..
+                            },
+                        )) => {
                             self.expression.push_operand((
-                                OperatorExpressionOperand::Block(block),
-                                Token::new(Lexeme::Symbol(Symbol::BracketCurlyLeft), location),
-                            ))
+                                OperatorExpressionOperand::Literal(Literal::Void),
+                                token,
+                            ));
+                            return Ok(self.expression);
                         }
+                        Some(Ok(token)) => {
+                            match ExpressionParser::default().parse(stream.clone())? {
+                                Expression::Operator(rpn) => self.expression.append(rpn),
+                                Expression::Block(block) => self
+                                    .expression
+                                    .push_operand((OperatorExpressionOperand::Block(block), token)),
+                            }
+                        }
+                        Some(Err(error)) => return Err(Error::Lexical(error)),
+                        None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                     }
-                    self.state = State::ParenthesisClose;
+
+                    self.state = State::ParenthesisRight;
                 }
-                State::ParenthesisClose => {
+                State::ParenthesisRight => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
                         Some(Ok(Token {

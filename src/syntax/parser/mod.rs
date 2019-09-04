@@ -40,21 +40,25 @@ pub fn parse(stream: TokenStream) -> Result<CircuitProgram, Error> {
 
     let mut statements = Vec::new();
     loop {
-        if stream.borrow_mut().peek().is_none() {
-            break;
-        }
+        let peek = stream.borrow_mut().peek();
+        match peek {
+            Some(Ok(token)) => {
+                let (statement, is_unterminated) =
+                    StatementParser::default().parse(stream.clone())?;
+                if let Statement::Expression(..) = statement {
+                    if is_unterminated {
+                        return Err(Error::Syntax(SyntaxError::UnterminatedExpressionAtRoot(
+                            token.location,
+                        )));
+                    }
+                }
 
-        let (statement, is_unterminated) = StatementParser::default().parse(stream.clone())?;
-        if let Statement::Expression(ref expression) = statement {
-            if is_unterminated {
-                return Err(Error::Syntax(
-                    SyntaxError::UnterminatedExpressionOutsideBlock(expression.location()),
-                ));
+                log::trace!("Statement: {:?}", statement);
+                statements.push(statement);
             }
+            Some(Err(error)) => return Err(Error::Lexical(error)),
+            None => break,
         }
-
-        log::trace!("Statement: {:?}", statement);
-        statements.push(statement);
     }
 
     Ok(CircuitProgram {
