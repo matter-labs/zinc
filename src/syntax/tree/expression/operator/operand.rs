@@ -11,7 +11,7 @@ use crate::syntax::BlockExpression;
 use crate::syntax::Identifier;
 use crate::syntax::Type;
 
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum Operand {
     Literal(Literal),
@@ -26,7 +26,7 @@ impl fmt::Display for Operand {
             Self::Literal(literal) => write!(f, "{}", literal),
             Self::Identifier(identifier) => write!(f, "{}", identifier),
             Self::Type(r#type) => write!(f, "{}", r#type),
-            Self::Block(block) => write!(f, "{}", block),
+            Self::Block(block) => write!(f, "{{ {} }}", block),
         }
     }
 }

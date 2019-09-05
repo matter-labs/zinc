@@ -22,23 +22,18 @@ pub enum Keyword {
     // declaration
     Let,
     Mut,
-    Type,
 
     // control
     For,
+    In,
     If,
     Else,
-    Match,
 
     // type
     Bool,
     Uint { bitlength: usize },
     Int { bitlength: usize },
     Field,
-    Struct,
-    Enum,
-    MemoryVector,
-    StorageVector,
 
     // literal
     True,
@@ -64,22 +59,25 @@ pub enum Error {
     IntegerBitlengthIsEmpty,
     #[fail(display = "integer bitlength '{}' is not numeric", _0)]
     IntegerBitlengthIsNotNumeric(String),
+    #[fail(display = "integer bitlength {} is not multiple of {}", _0, _1)]
+    IntegerBitlengthInvalidModulo(usize, usize),
     #[fail(display = "integer bitlength {} is out of range {:?}", _0, _1)]
     IntegerBitlengthIsOutOfRange(usize, RangeInclusive<usize>),
     #[fail(display = "unknown")]
     Unknown,
 }
 
-impl TryFrom<&[u8]> for Keyword {
+impl TryFrom<&str> for Keyword {
     type Error = Error;
 
-    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+    fn try_from(input: &str) -> Result<Self, Self::Error> {
         const BITLENGTH_MIN: usize = 1;
         const BITLENGTH_MAX: usize = 253;
+        const BITLENGTH_MODULO: usize = 8;
         const BITLENGTH_RANGE: RangeInclusive<usize> = (BITLENGTH_MIN..=BITLENGTH_MAX);
 
-        if let Some(b"uint") = bytes.get(..4) {
-            let bitlength = unsafe { str::from_utf8_unchecked(&bytes[4..]) };
+        if let Some("uint") = input.get(..4) {
+            let bitlength = &input[4..];
             if bitlength.is_empty() {
                 return Err(Error::IntegerBitlengthIsEmpty);
             }
@@ -90,13 +88,19 @@ impl TryFrom<&[u8]> for Keyword {
                 return Err(Error::IntegerBitlengthIsOutOfRange(
                     bitlength,
                     BITLENGTH_RANGE,
+                ));
+            }
+            if bitlength % BITLENGTH_MODULO != 0 {
+                return Err(Error::IntegerBitlengthInvalidModulo(
+                    bitlength,
+                    BITLENGTH_MODULO,
                 ));
             }
             return Ok(Self::uint(bitlength));
         }
 
-        if let Some(b"int") = bytes.get(..3) {
-            let bitlength = unsafe { str::from_utf8_unchecked(&bytes[3..]) };
+        if let Some("int") = input.get(..3) {
+            let bitlength = &input[3..];
             if bitlength.is_empty() {
                 return Err(Error::IntegerBitlengthIsEmpty);
             }
@@ -109,35 +113,36 @@ impl TryFrom<&[u8]> for Keyword {
                     BITLENGTH_RANGE,
                 ));
             }
+            if bitlength % BITLENGTH_MODULO != 0 {
+                return Err(Error::IntegerBitlengthInvalidModulo(
+                    bitlength,
+                    BITLENGTH_MODULO,
+                ));
+            }
             return Ok(Self::int(bitlength));
         }
 
-        match bytes {
-            b"inputs" => Ok(Self::Inputs),
-            b"witness" => Ok(Self::Witness),
-            b"require" => Ok(Self::Require),
-            b"debug" => Ok(Self::Debug),
+        match input {
+            "inputs" => Ok(Self::Inputs),
+            "witness" => Ok(Self::Witness),
+            "require" => Ok(Self::Require),
+            "debug" => Ok(Self::Debug),
 
-            b"let" => Ok(Self::Let),
-            b"mut" => Ok(Self::Mut),
-            b"type" => Ok(Self::Type),
+            "let" => Ok(Self::Let),
+            "mut" => Ok(Self::Mut),
 
-            b"for" => Ok(Self::For),
-            b"if" => Ok(Self::If),
-            b"else" => Ok(Self::Else),
-            b"match" => Ok(Self::Match),
+            "for" => Ok(Self::For),
+            "in" => Ok(Self::In),
+            "if" => Ok(Self::If),
+            "else" => Ok(Self::Else),
 
-            b"bool" => Ok(Self::Bool),
-            b"field" => Ok(Self::Field),
-            b"struct" => Ok(Self::Struct),
-            b"enum" => Ok(Self::Enum),
-            b"memory_vector" => Ok(Self::MemoryVector),
-            b"storage_vector" => Ok(Self::StorageVector),
+            "bool" => Ok(Self::Bool),
+            "field" => Ok(Self::Field),
 
-            b"true" => Ok(Self::True),
-            b"false" => Ok(Self::False),
+            "true" => Ok(Self::True),
+            "false" => Ok(Self::False),
 
-            b"as" => Ok(Self::As),
+            "as" => Ok(Self::As),
 
             _unknown => Err(Error::Unknown),
         }
@@ -154,21 +159,16 @@ impl fmt::Display for Keyword {
 
             Self::Let => write!(f, "let"),
             Self::Mut => write!(f, "mut"),
-            Self::Type => write!(f, "type"),
 
             Self::For => write!(f, "for"),
+            Self::In => write!(f, "in"),
             Self::If => write!(f, "if"),
             Self::Else => write!(f, "else"),
-            Self::Match => write!(f, "match"),
 
             Self::Bool => write!(f, "bool"),
             Self::Uint { bitlength } => write!(f, "uint{}", bitlength),
             Self::Int { bitlength } => write!(f, "int{}", bitlength),
             Self::Field => write!(f, "field"),
-            Self::Struct => write!(f, "struct"),
-            Self::Enum => write!(f, "enum"),
-            Self::MemoryVector => write!(f, "memory_vector"),
-            Self::StorageVector => write!(f, "storage_vector"),
 
             Self::True => write!(f, "true"),
             Self::False => write!(f, "false"),

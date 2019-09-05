@@ -22,36 +22,36 @@ pub enum Error {
     NotAString,
 }
 
-pub fn parse(bytes: &[u8]) -> Result<(usize, Vec<u8>), Error> {
+pub fn parse(input: &str) -> Result<(usize, String), Error> {
     let mut state = State::DoubleQuoteOpen;
     let mut size = 0;
-    let mut value = Vec::with_capacity(64);
+    let mut value = String::with_capacity(64);
 
-    while let Some(byte) = bytes.get(size).copied() {
+    while let Some(character) = input.chars().nth(size) {
         match state {
-            State::DoubleQuoteOpen => match byte {
-                b'\"' => {
+            State::DoubleQuoteOpen => match character {
+                '\"' => {
                     size += 1;
                     state = State::Character;
                 }
                 _ => return Err(Error::NotAString),
             },
-            State::Character => match byte {
-                b'\"' => {
+            State::Character => match character {
+                '\"' => {
                     size += 1;
                     return Ok((size, value));
                 }
-                b'\\' => {
+                '\\' => {
                     size += 1;
                     state = State::EscapedCharacter;
                 }
                 _ => {
-                    value.push(byte);
+                    value.push(character);
                     size += 1;
                 }
             },
             State::EscapedCharacter => {
-                value.push(byte);
+                value.push(character);
                 size += 1;
                 state = State::Character;
             }
@@ -68,15 +68,15 @@ mod tests {
 
     #[test]
     fn ok() {
-        let input = b"\"some string\"";
-        let expected = Ok((13, b"some string".to_vec()));
+        let input = "\"some string\"";
+        let expected = Ok((13, "some string".to_owned()));
         let result = parse(input);
         assert_eq!(expected, result);
     }
 
     #[test]
     fn err_unexpected_end() {
-        let input = b"\"some string";
+        let input = "\"some string";
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
         assert_eq!(expected, result);
@@ -84,7 +84,7 @@ mod tests {
 
     #[test]
     fn err_not_a_string() {
-        let input = b"no double quote here";
+        let input = "no double quote here";
         let expected = Err(Error::NotAString);
         let result = parse(input);
         assert_eq!(expected, result);

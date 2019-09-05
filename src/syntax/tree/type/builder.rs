@@ -37,7 +37,7 @@ impl Builder {
                 Some(Keyword::Uint { bitlength }) => TypeVariant::uint(bitlength),
                 Some(Keyword::Int { bitlength }) => TypeVariant::int(bitlength),
                 Some(Keyword::Field) => TypeVariant::Field,
-                _ => panic!("Missing type keyword"),
+                _ => panic!("The keyword does not describe a type"),
             }
         };
 

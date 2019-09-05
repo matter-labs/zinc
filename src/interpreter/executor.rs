@@ -3,10 +3,11 @@
 //!
 
 use std::cell::RefCell;
+use std::convert::TryFrom;
 use std::rc::Rc;
-use std::str;
 
 use crate::interpreter::Element;
+use crate::interpreter::ElementError;
 use crate::interpreter::Error;
 use crate::interpreter::Place;
 use crate::interpreter::Scope;
@@ -20,6 +21,7 @@ use crate::syntax::OperatorExpressionObject;
 use crate::syntax::OperatorExpressionOperand;
 use crate::syntax::OperatorExpressionOperator;
 use crate::syntax::Statement;
+use crate::syntax::TypeVariant;
 
 #[derive(Default)]
 pub struct Executor {
@@ -44,28 +46,40 @@ impl Executor {
                 log::info!("{}", result);
             }
             Statement::Let(r#let) => {
-                if self.scope.borrow().is_variable_declared(&r#let.identifier) {
-                    log::warn!(
-                        "{}",
-                        Warning::RedeclaredVariable(
-                            r#let.identifier.location,
-                            unsafe { str::from_utf8_unchecked(&r#let.identifier.name) }.to_owned(),
-                        )
-                    );
-                }
-                let mut result = self.evaluate(r#let.expression)?;
-                if let (Value::Integer(result), Some(r#type)) = (&mut result, r#let.r#type) {
-                    result
-                        .cast(r#type.variant.into())
-                        .map_err(|error| Error::Operator(r#type.location, error))?;
-                }
+                let value = self.evaluate(r#let.expression)?;
+                let value = if let Some(r#type) = r#let.r#type {
+                    match (value, r#type.variant) {
+                        (value @ Value::Void, TypeVariant::Void) => value,
+                        (value @ Value::Boolean(_), TypeVariant::Bool) => value,
+                        (Value::Integer(mut integer), type_variant) => {
+                            integer = integer.cast(type_variant).map_err(|error| {
+                                Error::Element(r#type.location, ElementError::Value(error))
+                            })?;
+                            Value::Integer(integer)
+                        }
+                        (value, type_variant) => {
+                            return Err(Error::LetDeclarationInvalidType(
+                                r#let.location,
+                                value,
+                                type_variant,
+                            ))
+                        }
+                    }
+                } else {
+                    value
+                };
 
-                let place = Place::new(r#let.identifier.clone(), result, r#let.is_mutable);
-                self.scope.borrow_mut().declare_variable(place);
+                let location = r#let.identifier.location;
+                let place = Place::new(r#let.identifier, value, r#let.is_mutable);
+                if let Some(warning) = self.scope.borrow_mut().declare_variable(place) {
+                    log::warn!("{}", Warning::Scope(location, warning));
+                }
             }
             Statement::Require(require) => match self.evaluate(require.expression)? {
-                Value::Boolean(true) => {}
-                Value::Boolean(false) => {
+                Value::Boolean(ref boolean) if boolean.is_true() => {
+                    log::info!("require {} passed", require.id);
+                }
+                Value::Boolean(ref boolean) if boolean.is_false() => {
                     return Err(Error::RequireFailed(require.location, require.id))
                 }
                 value => {
@@ -76,6 +90,86 @@ impl Executor {
                     ))
                 }
             },
+            Statement::Loop(r#loop) => {
+                log::trace!("Loop statement         : {}", r#loop);
+
+                let location = r#loop.location;
+
+                let range_start = match Value::try_from(r#loop.range_start) {
+                    Ok(Value::Integer(integer)) => integer,
+                    Ok(value) => {
+                        return Err(Error::Element(
+                            location,
+                            ElementError::ExpectedIntegerValue(
+                                OperatorExpressionOperator::Range,
+                                Element::Value(value),
+                            ),
+                        ))
+                    }
+                    Err(error) => return Err(Error::Element(location, ElementError::Value(error))),
+                };
+                let range_end = match Value::try_from(r#loop.range_end) {
+                    Ok(Value::Integer(integer)) => integer,
+                    Ok(value) => {
+                        return Err(Error::Element(
+                            location,
+                            ElementError::ExpectedIntegerValue(
+                                OperatorExpressionOperator::Range,
+                                Element::Value(value),
+                            ),
+                        ))
+                    }
+                    Err(error) => return Err(Error::Element(location, ElementError::Value(error))),
+                };
+
+                let mut index = if range_start.has_the_same_type_as(&range_end) {
+                    range_start
+                } else {
+                    range_start
+                        .cast(TypeVariant::uint(range_end.bitlength()))
+                        .map_err(|error| Error::Element(location, ElementError::Value(error)))?
+                };
+
+                if index
+                    .greater(&range_end)
+                    .map_err(|error| Error::Element(location, ElementError::Value(error)))?
+                    .is_true()
+                {
+                    return Err(Error::LoopRangeInvalid(location, index, range_end));
+                }
+
+                let mut warning_logged = false;
+                while index
+                    .lesser(&range_end)
+                    .map_err(|error| Error::Element(location, ElementError::Value(error)))?
+                    .is_true()
+                {
+                    let mut scope = Scope::new(Some(self.scope.clone()));
+                    let place = Place::new(
+                        r#loop.index_identifier.clone(),
+                        Value::Integer(index.clone()),
+                        false,
+                    );
+
+                    if let Some(warning) = scope.declare_variable(place) {
+                        if !warning_logged {
+                            log::warn!("{}", Warning::Scope(location, warning));
+                            warning_logged = true;
+                        }
+                    }
+
+                    let mut executor = Executor::new(scope);
+                    for statement in r#loop.block.statements.clone() {
+                        executor.execute(statement)?;
+                    }
+                    if let Some(expression) = r#loop.block.expression.clone() {
+                        executor.evaluate(*expression)?;
+                    }
+                    index = index
+                        .inc()
+                        .map_err(|error| Error::Element(location, ElementError::Value(error)))?;
+                }
+            }
             Statement::Expression(expression) => {
                 self.evaluate(expression)?;
             }
@@ -97,19 +191,19 @@ impl Executor {
             match expression_element.object {
                 OperatorExpressionObject::Operand(operand) => {
                     let element = match operand {
+                        OperatorExpressionOperand::Literal(Literal::Void) => {
+                            Element::Value(Value::Void)
+                        }
                         OperatorExpressionOperand::Literal(Literal::Boolean(literal)) => {
                             Element::Value(Value::from(literal))
                         }
                         OperatorExpressionOperand::Literal(Literal::Integer(literal)) => {
-                            Element::Value(Value::from(literal))
+                            let location = expression_element.token.location;
+                            Element::Value(Value::try_from(literal).map_err(|error| {
+                                Error::Element(location, ElementError::Value(error))
+                            })?)
                         }
                         OperatorExpressionOperand::Literal(literal @ Literal::String(..)) => {
-                            return Err(Error::LiteralIsNotSupported(
-                                expression_element.token.location,
-                                literal,
-                            ));
-                        }
-                        OperatorExpressionOperand::Literal(literal @ Literal::Void) => {
                             return Err(Error::LiteralIsNotSupported(
                                 expression_element.token.location,
                                 literal,
@@ -122,13 +216,7 @@ impl Executor {
                                 .borrow()
                                 .get_variable(&identifier)
                                 .map(Element::Place)
-                                .ok_or_else(|| {
-                                    Error::UndeclaredVariable(
-                                        location,
-                                        unsafe { str::from_utf8_unchecked(&identifier.name) }
-                                            .to_owned(),
-                                    )
-                                })?
+                                .map_err(|error| Error::Scope(location, error))?
                         }
                         OperatorExpressionOperand::Block(block) => {
                             Element::Value(self.evaluate_block(block)?)
@@ -137,205 +225,176 @@ impl Executor {
                     self.stack.push(element);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Assignment) => {
-                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
-                    {
-                        let place = element_1.assign(element_2).map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-
-                        if !self.scope.borrow_mut().update_variable(place) {
-                            panic!("Is checked in the operand branch");
-                        }
-
-                        self.stack.push(Element::Value(Value::Void));
-                    } else {
-                        unreachable!();
-                    }
+                    let (element_2, element_1) = (
+                        self.stack.pop().expect("Option state bug"),
+                        self.stack.pop().expect("Option state bug"),
+                    );
+                    self.scope
+                        .borrow_mut()
+                        .update_variable(element_1.assign(element_2).map_err(|error| {
+                            Error::Element(expression_element.token.location, error)
+                        })?)
+                        .map_err(|error| Error::Scope(expression_element.token.location, error))?;
+                    self.stack.push(Element::Value(Value::Void));
+                }
+                OperatorExpressionObject::Operator(OperatorExpressionOperator::Range) => {
+                    panic!("The range operator cannot be used in expressions (yet)")
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Or) => {
-                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
-                    {
-                        let result = element_1.or(element_2).map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let (element_2, element_1) = (
+                        self.stack.pop().expect("Option state bug"),
+                        self.stack.pop().expect("Option state bug"),
+                    );
+                    self.stack.push(element_1.or(element_2).map_err(|error| {
+                        Error::Element(expression_element.token.location, error)
+                    })?);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Xor) => {
-                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
-                    {
-                        let result = element_1.xor(element_2).map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let (element_2, element_1) = (
+                        self.stack.pop().expect("Option state bug"),
+                        self.stack.pop().expect("Option state bug"),
+                    );
+                    self.stack.push(element_1.xor(element_2).map_err(|error| {
+                        Error::Element(expression_element.token.location, error)
+                    })?);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::And) => {
-                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
-                    {
-                        let result = element_1.and(element_2).map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let (element_2, element_1) = (
+                        self.stack.pop().expect("Option state bug"),
+                        self.stack.pop().expect("Option state bug"),
+                    );
+                    self.stack.push(element_1.and(element_2).map_err(|error| {
+                        Error::Element(expression_element.token.location, error)
+                    })?);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Equal) => {
-                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
-                    {
-                        let result = element_1.equal(element_2).map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let (element_2, element_1) = (
+                        self.stack.pop().expect("Option state bug"),
+                        self.stack.pop().expect("Option state bug"),
+                    );
+                    self.stack.push(element_1.equal(element_2).map_err(|error| {
+                        Error::Element(expression_element.token.location, error)
+                    })?);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::NotEqual) => {
-                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
-                    {
-                        let result = element_1.not_equal(element_2).map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let (element_2, element_1) = (
+                        self.stack.pop().expect("Option state bug"),
+                        self.stack.pop().expect("Option state bug"),
+                    );
+                    self.stack
+                        .push(element_1.not_equal(element_2).map_err(|error| {
+                            Error::Element(expression_element.token.location, error)
+                        })?);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::GreaterEqual) => {
-                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
-                    {
-                        let result = element_1.greater_equal(element_2).map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let (element_2, element_1) = (
+                        self.stack.pop().expect("Option state bug"),
+                        self.stack.pop().expect("Option state bug"),
+                    );
+                    self.stack
+                        .push(element_1.greater_equal(element_2).map_err(|error| {
+                            Error::Element(expression_element.token.location, error)
+                        })?);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::LesserEqual) => {
-                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
-                    {
-                        let result = element_1.lesser_equal(element_2).map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let (element_2, element_1) = (
+                        self.stack.pop().expect("Option state bug"),
+                        self.stack.pop().expect("Option state bug"),
+                    );
+                    self.stack
+                        .push(element_1.lesser_equal(element_2).map_err(|error| {
+                            Error::Element(expression_element.token.location, error)
+                        })?);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Greater) => {
-                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
-                    {
-                        let result = element_1.greater(element_2).map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let (element_2, element_1) = (
+                        self.stack.pop().expect("Option state bug"),
+                        self.stack.pop().expect("Option state bug"),
+                    );
+                    self.stack
+                        .push(element_1.greater(element_2).map_err(|error| {
+                            Error::Element(expression_element.token.location, error)
+                        })?);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Lesser) => {
-                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
-                    {
-                        let result = element_1.lesser(element_2).map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let (element_2, element_1) = (
+                        self.stack.pop().expect("Option state bug"),
+                        self.stack.pop().expect("Option state bug"),
+                    );
+                    self.stack
+                        .push(element_1.lesser(element_2).map_err(|error| {
+                            Error::Element(expression_element.token.location, error)
+                        })?);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition) => {
-                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
-                    {
-                        let result = element_1.add(element_2).map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let (element_2, element_1) = (
+                        self.stack.pop().expect("Option state bug"),
+                        self.stack.pop().expect("Option state bug"),
+                    );
+                    self.stack.push(element_1.add(element_2).map_err(|error| {
+                        Error::Element(expression_element.token.location, error)
+                    })?);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Subtraction) => {
-                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
-                    {
-                        let result = element_1.subtract(element_2).map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let (element_2, element_1) = (
+                        self.stack.pop().expect("Option state bug"),
+                        self.stack.pop().expect("Option state bug"),
+                    );
+                    self.stack
+                        .push(element_1.subtract(element_2).map_err(|error| {
+                            Error::Element(expression_element.token.location, error)
+                        })?);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Multiplication) => {
-                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
-                    {
-                        let result = element_1.multiply(element_2).map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let (element_2, element_1) = (
+                        self.stack.pop().expect("Option state bug"),
+                        self.stack.pop().expect("Option state bug"),
+                    );
+                    self.stack
+                        .push(element_1.multiply(element_2).map_err(|error| {
+                            Error::Element(expression_element.token.location, error)
+                        })?);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Division) => {
-                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
-                    {
-                        let result = element_1.divide(element_2).map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let (element_2, element_1) = (
+                        self.stack.pop().expect("Option state bug"),
+                        self.stack.pop().expect("Option state bug"),
+                    );
+                    self.stack
+                        .push(element_1.divide(element_2).map_err(|error| {
+                            Error::Element(expression_element.token.location, error)
+                        })?);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Remainder) => {
-                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
-                    {
-                        let result = element_1.modulo(element_2).map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let (element_2, element_1) = (
+                        self.stack.pop().expect("Option state bug"),
+                        self.stack.pop().expect("Option state bug"),
+                    );
+                    self.stack
+                        .push(element_1.modulo(element_2).map_err(|error| {
+                            Error::Element(expression_element.token.location, error)
+                        })?);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Casting) => {
-                    if let (Some(element_2), Some(element_1)) = (self.stack.pop(), self.stack.pop())
-                    {
-                        let result = element_1.cast(element_2).map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let (element_2, element_1) = (
+                        self.stack.pop().expect("Option state bug"),
+                        self.stack.pop().expect("Option state bug"),
+                    );
+                    self.stack.push(element_1.cast(element_2).map_err(|error| {
+                        Error::Element(expression_element.token.location, error)
+                    })?);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Negation) => {
-                    if let Some(element) = self.stack.pop() {
-                        let result = element.negate().map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let element = self.stack.pop().expect("Option state bug");
+                    self.stack.push(element.negate().map_err(|error| {
+                        Error::Element(expression_element.token.location, error)
+                    })?);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Not) => {
-                    if let Some(element) = self.stack.pop() {
-                        let result = element.not().map_err(move |error| {
-                            Error::Operator(expression_element.token.location, error)
-                        })?;
-                        self.stack.push(result);
-                    } else {
-                        unreachable!();
-                    }
+                    let element = self.stack.pop().expect("Option state bug");
+                    self.stack.push(element.not().map_err(|error| {
+                        Error::Element(expression_element.token.location, error)
+                    })?);
                 }
             }
         }
@@ -343,7 +402,7 @@ impl Executor {
         match self.stack.pop() {
             Some(Element::Value(value)) => Ok(value),
             Some(Element::Place(place)) => Ok(place.value),
-            _ => unreachable!(),
+            _ => panic!("Type expressions cannot be evaluated (yet)"),
         }
     }
 

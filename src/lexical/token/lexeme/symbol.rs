@@ -42,40 +42,40 @@ pub enum Symbol {
     DoubleDot,
 }
 
-impl From<&[u8]> for Symbol {
-    fn from(bytes: &[u8]) -> Self {
-        match bytes {
-            b"(" => Self::ParenthesisLeft,
-            b")" => Self::ParenthesisRight,
-            b"[" => Self::BracketSquareLeft,
-            b"]" => Self::BracketSquareRight,
-            b"{" => Self::BracketCurlyLeft,
-            b"}" => Self::BracketCurlyRight,
-            b"." => Self::Dot,
-            b":" => Self::Colon,
-            b";" => Self::Semicolon,
-            b"," => Self::Comma,
-            b"=" => Self::Equals,
-            b"+" => Self::Plus,
-            b"-" => Self::Minus,
-            b"*" => Self::Asterisk,
-            b"/" => Self::Slash,
-            b"%" => Self::Percent,
-            b"\\" => Self::Backslash,
-            b"!" => Self::ExclamationMark,
-            b"<" => Self::LesserThan,
-            b">" => Self::GreaterThan,
+impl From<&str> for Symbol {
+    fn from(input: &str) -> Self {
+        match input {
+            "(" => Self::ParenthesisLeft,
+            ")" => Self::ParenthesisRight,
+            "[" => Self::BracketSquareLeft,
+            "]" => Self::BracketSquareRight,
+            "{" => Self::BracketCurlyLeft,
+            "}" => Self::BracketCurlyRight,
+            "." => Self::Dot,
+            ":" => Self::Colon,
+            ";" => Self::Semicolon,
+            "," => Self::Comma,
+            "=" => Self::Equals,
+            "+" => Self::Plus,
+            "-" => Self::Minus,
+            "*" => Self::Asterisk,
+            "/" => Self::Slash,
+            "%" => Self::Percent,
+            "\\" => Self::Backslash,
+            "!" => Self::ExclamationMark,
+            "<" => Self::LesserThan,
+            ">" => Self::GreaterThan,
 
-            b"==" => Self::DoubleEquals,
-            b"!=" => Self::ExclamationMarkEquals,
-            b"<=" => Self::LesserThanEquals,
-            b">=" => Self::GreaterThanEquals,
-            b"&&" => Self::DoubleAmpersand,
-            b"||" => Self::DoubleVerticalBar,
-            b"^^" => Self::DoubleCircumflex,
-            b".." => Self::DoubleDot,
+            "==" => Self::DoubleEquals,
+            "!=" => Self::ExclamationMarkEquals,
+            "<=" => Self::LesserThanEquals,
+            ">=" => Self::GreaterThanEquals,
+            "&&" => Self::DoubleAmpersand,
+            "||" => Self::DoubleVerticalBar,
+            "^^" => Self::DoubleCircumflex,
+            ".." => Self::DoubleDot,
 
-            _ => unreachable!(),
+            _ => panic!("All the cases have been checked by the state machine"),
         }
     }
 }

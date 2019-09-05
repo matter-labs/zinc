@@ -64,8 +64,8 @@ fn handler(payload: Payload) -> impl Future<Item = HttpResponse, Error = Error> 
             Ok::<_, Error>(body)
         })
         .and_then(|body| {
-            let input = body.to_vec();
-            log::info!("Received: {}", unsafe { str::from_utf8_unchecked(&input) });
+            let input = String::from_utf8_lossy(&body).to_string();
+            log::info!("Received: {}", input);
             let response = match compiler::parse(input) {
                 Ok(circuit) => serde_json::to_vec(&circuit),
                 Err(error) => serde_json::to_vec(&CircuitError {

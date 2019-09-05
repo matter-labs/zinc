@@ -35,20 +35,20 @@ pub enum Error {
     InvalidHexadecimalCharacter(char, usize, String),
 }
 
-pub fn parse(bytes: &[u8]) -> Result<(usize, IntegerLiteral), Error> {
+pub fn parse(input: &str) -> Result<(usize, IntegerLiteral), Error> {
     let mut state = State::Start;
     let mut size = 0;
-    let mut value = Vec::with_capacity(40);
+    let mut value = String::with_capacity(40);
 
-    while let Some(byte) = bytes.get(size).copied() {
+    while let Some(character) = input.chars().nth(size) {
         match state {
             State::Start => {
-                if byte == b'0' {
-                    value.push(byte);
+                if character == '0' {
+                    value.push(character);
                     size += 1;
                     state = State::ZeroOrHexadecimal;
-                } else if byte.is_ascii_digit() {
-                    value.push(byte);
+                } else if character.is_ascii_digit() {
+                    value.push(character);
                     size += 1;
                     state = State::Decimal;
                 } else {
@@ -56,47 +56,47 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, IntegerLiteral), Error> {
                 }
             }
             State::ZeroOrHexadecimal => {
-                if byte == b'x' {
+                if character == 'x' {
                     size += 1;
                     value.clear();
                     state = State::Hexadecimal;
-                } else if byte.is_ascii_alphabetic() {
+                } else if character.is_ascii_alphabetic() {
                     return Err(Error::InvalidDecimalCharacter(
-                        char::from(byte),
+                        character,
                         size + 1,
-                        unsafe { str::from_utf8_unchecked(&bytes[..=size]) }.to_owned(),
+                        input[..=size].to_owned(),
                     ));
                 } else {
                     return Ok((size, IntegerLiteral::decimal(value)));
                 }
             }
             State::Decimal => {
-                if byte.is_ascii_digit() {
-                    value.push(byte);
+                if character.is_ascii_digit() {
+                    value.push(character);
                     size += 1;
-                } else if byte.is_ascii_alphabetic() {
+                } else if character.is_ascii_alphabetic() {
                     return Err(Error::InvalidDecimalCharacter(
-                        char::from(byte),
+                        character,
                         size + 1,
-                        unsafe { str::from_utf8_unchecked(&bytes[..=size]) }.to_owned(),
+                        input[..=size].to_owned(),
                     ));
-                } else if byte == b'_' {
+                } else if character == '_' {
                     size += 1;
                 } else {
                     return Ok((size, IntegerLiteral::decimal(value)));
                 }
             }
             State::Hexadecimal => {
-                if byte.is_ascii_hexdigit() {
-                    value.push(byte);
+                if character.is_ascii_hexdigit() {
+                    value.push(character);
                     size += 1;
-                } else if byte != b'_' && (byte.is_ascii_alphabetic() || size <= 2) {
+                } else if character != '_' && (character.is_ascii_alphabetic() || size <= 2) {
                     return Err(Error::InvalidHexadecimalCharacter(
-                        char::from(byte),
+                        character,
                         size + 1,
-                        unsafe { str::from_utf8_unchecked(&bytes[..=size]) }.to_owned(),
+                        input[..=size].to_owned(),
                     ));
-                } else if byte == b'_' {
+                } else if character == '_' {
                     size += 1;
                 } else {
                     return Ok((size, IntegerLiteral::hexadecimal(value)));
@@ -116,39 +116,39 @@ mod tests {
 
     #[test]
     fn ok_decimal_zero() {
-        let input = b"0\n";
-        let expected = Ok((1, IntegerLiteral::decimal(b"0".to_vec())));
+        let input = "0\n";
+        let expected = Ok((1, IntegerLiteral::decimal("0".to_owned())));
         let result = parse(input);
         assert_eq!(expected, result);
     }
 
     #[test]
     fn ok_decimal() {
-        let input = b"666\n";
-        let expected = Ok((3, IntegerLiteral::decimal(b"666".to_vec())));
+        let input = "666\n";
+        let expected = Ok((3, IntegerLiteral::decimal("666".to_owned())));
         let result = parse(input);
         assert_eq!(expected, result);
     }
 
     #[test]
     fn ok_hexadecimal_lowercase() {
-        let input = b"0xDEAD_666_BEEF\n";
-        let expected = Ok((15, IntegerLiteral::hexadecimal(b"DEAD666BEEF".to_vec())));
+        let input = "0xDEAD_666_BEEF\n";
+        let expected = Ok((15, IntegerLiteral::hexadecimal("DEAD666BEEF".to_owned())));
         let result = parse(input);
         assert_eq!(expected, result);
     }
 
     #[test]
     fn ok_hexadecimal_uppercase() {
-        let input = b"0xdead_666_beef\n";
-        let expected = Ok((15, IntegerLiteral::hexadecimal(b"dead666beef".to_vec())));
+        let input = "0xdead_666_beef\n";
+        let expected = Ok((15, IntegerLiteral::hexadecimal("dead666beef".to_owned())));
         let result = parse(input);
         assert_eq!(expected, result);
     }
 
     #[test]
     fn err_unexpected_end() {
-        let input = b"555";
+        let input = "555";
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
         assert_eq!(expected, result);

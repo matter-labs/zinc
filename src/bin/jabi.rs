@@ -38,8 +38,9 @@ fn main() -> Result<(), Error> {
 
     let mut file = File::open(&args.input).map_err(Error::InputOpening)?;
     let size = file.metadata().map_err(Error::InputMetadata)?.len() as usize;
-    let mut code = Vec::with_capacity(size);
-    file.read_to_end(&mut code).map_err(Error::InputReading)?;
+    let mut code = String::with_capacity(size);
+    file.read_to_string(&mut code)
+        .map_err(Error::InputReading)?;
 
     let program = compiler::parse(code).map_err(|error| {
         log::error!("{}", error);

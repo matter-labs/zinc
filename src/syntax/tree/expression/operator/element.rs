@@ -9,7 +9,7 @@ use serde_derive::Serialize;
 use crate::lexical::Token;
 use crate::syntax::OperatorExpressionObject;
 
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Element {
     #[serde(flatten)]
     pub object: OperatorExpressionObject,

@@ -31,7 +31,7 @@ use crate::lexical::StringLiteral;
 use crate::lexical::Token;
 
 pub struct TokenStream {
-    input: Vec<u8>,
+    input: String,
     cursor: Cursor,
     peeked: Option<Result<Token, Error>>,
 }
@@ -40,7 +40,7 @@ impl TokenStream {
     ///
     /// Initializes the stream from the beginning of `input`.
     ///
-    pub fn new(input: Vec<u8>) -> Self {
+    pub fn new(input: String) -> Self {
         Self {
             input,
             cursor: Cursor::new(),
@@ -59,24 +59,24 @@ impl TokenStream {
     }
 
     fn advance(&mut self) -> Option<Result<Token, Error>> {
-        while let Some(byte) = self.input.get(self.cursor.index).copied() {
-            if !Alphabet::contains(byte) {
+        while let Some(character) = self.input.chars().nth(self.cursor.index) {
+            if !Alphabet::contains(character) {
                 let location = Location::new(self.cursor.line, self.cursor.column);
-                return Some(Err(Error::InvalidCharacter(location, char::from(byte))));
+                return Some(Err(Error::InvalidCharacter(location, character)));
             }
 
-            if byte.is_ascii_whitespace() {
-                if byte == b'\n' {
+            if character.is_ascii_whitespace() {
+                if character == '\n' {
                     self.cursor.line += 1;
                     self.cursor.column = 1;
-                } else if byte != b'\r' {
+                } else if character != '\r' {
                     self.cursor.column += 1;
                 }
                 self.cursor.index += 1;
                 continue;
             }
 
-            if byte == b'/' {
+            if character == '/' {
                 match parse_comment(&self.input[self.cursor.index..]) {
                     Ok((size, lines, column, _comment)) => {
                         self.cursor.line += lines;
@@ -92,7 +92,7 @@ impl TokenStream {
                 }
             }
 
-            if byte == b'\"' {
+            if character == '\"' {
                 match parse_string(&self.input[self.cursor.index..]) {
                     Ok((size, value)) => {
                         let location = Location::new(self.cursor.line, self.cursor.column);
@@ -129,7 +129,7 @@ impl TokenStream {
                 }
             }
 
-            if byte.is_ascii_digit() {
+            if character.is_ascii_digit() {
                 match parse_integer(&self.input[self.cursor.index..]) {
                     Ok((size, integer)) => {
                         let location = Location::new(self.cursor.line, self.cursor.column);
@@ -152,7 +152,7 @@ impl TokenStream {
                 }
             }
 
-            if Identifier::can_start_with(byte) {
+            if Identifier::can_start_with(character) {
                 match parse_word(&self.input[self.cursor.index..]) {
                     Ok((size, lexeme)) => {
                         let location = Location::new(self.cursor.line, self.cursor.column);
@@ -167,7 +167,7 @@ impl TokenStream {
                 }
             }
 
-            unreachable!();
+            panic!("All the cases have been checked by the state machine");
         }
 
         None

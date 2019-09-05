@@ -19,19 +19,19 @@ use crate::lexical::TokenStream;
 
 #[test]
 fn ok() {
-    let code = br#"
+    let code = r#"
 /*
     This is the mega ultra test application!
 */
 inputs {
-    a: uint1; // input 1
+    a: uint8; // input 1
 }
 
 witness {
-    b: int253; /* witness 1 */
+    b: int248; /* witness 1 */
 }
 
-let mut c: uint228 = 2 + 2;
+let mut c: uint232 = 2 + 2;
 "#;
 
     let expected: Vec<Token> = vec![
@@ -44,7 +44,7 @@ let mut c: uint228 = 2 + 2;
             location: Location::new(5, 8),
         },
         Token {
-            lexeme: Lexeme::Identifier(Identifier::new(b"a")),
+            lexeme: Lexeme::Identifier(Identifier::new("a")),
             location: Location::new(6, 5),
         },
         Token {
@@ -52,7 +52,7 @@ let mut c: uint228 = 2 + 2;
             location: Location::new(6, 6),
         },
         Token {
-            lexeme: Lexeme::Keyword(Keyword::uint(1)),
+            lexeme: Lexeme::Keyword(Keyword::uint(8)),
             location: Location::new(6, 8),
         },
         Token {
@@ -72,7 +72,7 @@ let mut c: uint228 = 2 + 2;
             location: Location::new(9, 9),
         },
         Token {
-            lexeme: Lexeme::Identifier(Identifier::new(b"b")),
+            lexeme: Lexeme::Identifier(Identifier::new("b")),
             location: Location::new(10, 5),
         },
         Token {
@@ -80,7 +80,7 @@ let mut c: uint228 = 2 + 2;
             location: Location::new(10, 6),
         },
         Token {
-            lexeme: Lexeme::Keyword(Keyword::int(253)),
+            lexeme: Lexeme::Keyword(Keyword::int(248)),
             location: Location::new(10, 8),
         },
         Token {
@@ -100,7 +100,7 @@ let mut c: uint228 = 2 + 2;
             location: Location::new(13, 5),
         },
         Token {
-            lexeme: Lexeme::Identifier(Identifier::new(b"c")),
+            lexeme: Lexeme::Identifier(Identifier::new("c")),
             location: Location::new(13, 9),
         },
         Token {
@@ -108,7 +108,7 @@ let mut c: uint228 = 2 + 2;
             location: Location::new(13, 10),
         },
         Token {
-            lexeme: Lexeme::Keyword(Keyword::uint(228)),
+            lexeme: Lexeme::Keyword(Keyword::uint(232)),
             location: Location::new(13, 12),
         },
         Token {
@@ -116,7 +116,7 @@ let mut c: uint228 = 2 + 2;
             location: Location::new(13, 20),
         },
         Token {
-            lexeme: Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"2".to_vec()))),
+            lexeme: Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal("2".to_owned()))),
             location: Location::new(13, 22),
         },
         Token {
@@ -124,7 +124,7 @@ let mut c: uint228 = 2 + 2;
             location: Location::new(13, 24),
         },
         Token {
-            lexeme: Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"2".to_vec()))),
+            lexeme: Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal("2".to_owned()))),
             location: Location::new(13, 26),
         },
         Token {
@@ -133,7 +133,7 @@ let mut c: uint228 = 2 + 2;
         },
     ];
 
-    let result: Vec<Token> = TokenStream::new(code.to_vec())
+    let result: Vec<Token> = TokenStream::new(code.to_owned())
         .map(|result| result.expect("Lexical error"))
         .collect();
 
@@ -142,11 +142,11 @@ let mut c: uint228 = 2 + 2;
 
 #[test]
 fn err_unexpected_end() {
-    let code = b"&";
+    let code = "&";
 
     let expected = Err(Error::UnexpectedEnd(Location::new(1, 1)));
 
-    let result = TokenStream::new(code.to_vec())
+    let result = TokenStream::new(code.to_owned())
         .next()
         .expect("Must contain a token")
         .to_owned();
@@ -156,11 +156,11 @@ fn err_unexpected_end() {
 
 #[test]
 fn err_unknown_character() {
-    let code = b"#";
+    let code = "#";
 
     let expected = Err(Error::InvalidCharacter(Location::new(1, 1), '#'));
 
-    let result = TokenStream::new(code.to_vec())
+    let result = TokenStream::new(code.to_owned())
         .next()
         .expect("Must contain a token")
         .to_owned();
@@ -170,14 +170,14 @@ fn err_unknown_character() {
 
 #[test]
 fn err_invalid_symbol() {
-    let code = b"|#";
+    let code = "|#";
 
     let expected = Err(Error::InvalidSymbol(
         Location::new(1, 1),
         SymbolParserError::InvalidCharacter('#', 2, "|#".to_owned()),
     ));
 
-    let result = TokenStream::new(code.to_vec())
+    let result = TokenStream::new(code.to_owned())
         .next()
         .expect("Must contain a token")
         .to_owned();
@@ -188,21 +188,21 @@ fn err_invalid_symbol() {
 #[test]
 #[should_panic]
 fn err_invalid_word() {
-    let _ = TokenStream::new(b"".to_vec())
+    let _ = TokenStream::new("".to_owned())
         .next()
         .expect("Must contain a token");
 }
 
 #[test]
 fn err_invalid_integer_literal() {
-    let code = b"0xCRAP";
+    let code = "0xCRAP";
 
     let expected = Err(Error::InvalidIntegerLiteral(
         Location::new(1, 1),
         IntegerParserError::InvalidHexadecimalCharacter('R', 4, "0xCR".to_owned()),
     ));
 
-    let result = TokenStream::new(code.to_vec())
+    let result = TokenStream::new(code.to_owned())
         .next()
         .expect("Must contain a token")
         .to_owned();

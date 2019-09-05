@@ -16,7 +16,7 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize, Clone, PartialEq)]
 pub enum Expression {
     Operator(OperatorExpression),
     Block(BlockExpression),
@@ -25,8 +25,8 @@ pub enum Expression {
 impl fmt::Display for Expression {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Operator(expression) => write!(f, "{}", expression),
-            Self::Block(expression) => write!(f, "{}", expression),
+            Self::Operator(expression) => write!(f, "( {} )", expression),
+            Self::Block(expression) => write!(f, "{{ {} }}", expression),
         }
     }
 }

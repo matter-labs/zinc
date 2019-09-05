@@ -1,55 +1,44 @@
 # Compiler command line interface
 
-## Calling compiler
+## The interface description
 
-```sh
-jab [-p {filename_profiler_output}] [-o {output.rs}] [-m {filename_meta}] {file_name}
 ```
+jabc 0.1.0
+hedgar2017 <hedgar2017@gmail.com>
+The Jabberwocky language compiler
 
-Options:
+USAGE:
+    jabc [FLAGS] [OPTIONS] <INPUT>
 
-- `-p`, `--profile`: run profiler and print cost information
-- `-o`, `--output`: specify output .rs file name
-- `-m`, `--meta`: generate meta info
+FLAGS:
+    -h, --help       Prints help information
+    -m, --meta       Generates meta info
+    -p, --profile    Runs the profiler and print cost information
+    -V, --version    Prints version information
+
+OPTIONS:
+    -o, --output <OUTPUT>    Specifies the output .rs file name [default: output.rs]
+
+ARGS:
+    <INPUT>
+```
 
 ## Meta info
 
 ```json
 {
-   "inputs":[
-      {
-         "identifier":"a",
-         "type":{
-            "name": "uint",
-            "size": 8
-         }
-      },
-      {
-         "identifier":"b",
-         "type":"field"
-      },
-      {
-         "identifier":"c",
-         "type":"bool"
-      }
-   ],
-   "witness":[
-      {
-         "identifier":"a",
-         "type":{
-            "name": "uint",
-            "size": 8
-         }
-      },
-      {
-         "identifier":"b",
-         "type":"field"
-      },
-      {
-         "identifier":"c",
-         "type":"bool"
-      }
-   ]
+    "inputs": [
+        {
+          "identifier": { "name": "a" },
+          "type": {"name": "uint", "bitlength": 8}
+        }
+    ],
+    "witnesses": [
+        {
+          "identifier": { "name": "b" },
+          "type": {"name": "int", "bitlength": 248}
+        }
+    ]
 }
 ```
 

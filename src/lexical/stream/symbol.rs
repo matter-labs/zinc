@@ -32,113 +32,113 @@ pub enum Error {
     InvalidCharacter(char, usize, String),
 }
 
-pub fn parse(bytes: &[u8]) -> Result<(usize, Symbol), Error> {
+pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
     let mut state = State::Start;
     let mut size = 0;
 
-    while let Some(byte) = bytes.get(size).copied() {
+    while let Some(character) = input.chars().nth(size) {
         match state {
-            State::Start => match byte {
-                b'{' => return Ok((size + 1, Symbol::BracketCurlyLeft)),
-                b'}' => return Ok((size + 1, Symbol::BracketCurlyRight)),
-                b'[' => return Ok((size + 1, Symbol::BracketSquareLeft)),
-                b']' => return Ok((size + 1, Symbol::BracketSquareRight)),
-                b'(' => return Ok((size + 1, Symbol::ParenthesisLeft)),
-                b')' => return Ok((size + 1, Symbol::ParenthesisRight)),
+            State::Start => match character {
+                '{' => return Ok((size + 1, Symbol::BracketCurlyLeft)),
+                '}' => return Ok((size + 1, Symbol::BracketCurlyRight)),
+                '[' => return Ok((size + 1, Symbol::BracketSquareLeft)),
+                ']' => return Ok((size + 1, Symbol::BracketSquareRight)),
+                '(' => return Ok((size + 1, Symbol::ParenthesisLeft)),
+                ')' => return Ok((size + 1, Symbol::ParenthesisRight)),
 
-                b':' => return Ok((size + 1, Symbol::Colon)),
-                b';' => return Ok((size + 1, Symbol::Semicolon)),
-                b',' => return Ok((size + 1, Symbol::Comma)),
+                ':' => return Ok((size + 1, Symbol::Colon)),
+                ';' => return Ok((size + 1, Symbol::Semicolon)),
+                ',' => return Ok((size + 1, Symbol::Comma)),
 
-                b'+' => return Ok((size + 1, Symbol::Plus)),
-                b'-' => return Ok((size + 1, Symbol::Minus)),
-                b'*' => return Ok((size + 1, Symbol::Asterisk)),
-                b'/' => return Ok((size + 1, Symbol::Slash)),
-                b'%' => return Ok((size + 1, Symbol::Percent)),
-                b'\\' => return Ok((size + 1, Symbol::Backslash)),
+                '+' => return Ok((size + 1, Symbol::Plus)),
+                '-' => return Ok((size + 1, Symbol::Minus)),
+                '*' => return Ok((size + 1, Symbol::Asterisk)),
+                '/' => return Ok((size + 1, Symbol::Slash)),
+                '%' => return Ok((size + 1, Symbol::Percent)),
+                '\\' => return Ok((size + 1, Symbol::Backslash)),
 
-                b'.' => {
+                '.' => {
                     size += 1;
                     state = State::Dot;
                 }
-                b'=' => {
+                '=' => {
                     size += 1;
                     state = State::Equal;
                 }
-                b'!' => {
+                '!' => {
                     size += 1;
                     state = State::Exclamation;
                 }
-                b'<' => {
+                '<' => {
                     size += 1;
                     state = State::Lesser;
                 }
-                b'>' => {
+                '>' => {
                     size += 1;
                     state = State::Greater;
                 }
-                b'&' => {
+                '&' => {
                     size += 1;
                     state = State::And;
                 }
-                b'|' => {
+                '|' => {
                     size += 1;
                     state = State::Or;
                 }
-                b'^' => {
+                '^' => {
                     size += 1;
                     state = State::Xor;
                 }
 
                 _ => return Err(Error::NotASymbol),
             },
-            State::Equal => match byte {
-                b'=' => return Ok((size + 1, Symbol::DoubleEquals)),
+            State::Equal => match character {
+                '=' => return Ok((size + 1, Symbol::DoubleEquals)),
                 _ => return Ok((size, Symbol::Equals)),
             },
-            State::Exclamation => match byte {
-                b'=' => return Ok((size + 1, Symbol::ExclamationMarkEquals)),
+            State::Exclamation => match character {
+                '=' => return Ok((size + 1, Symbol::ExclamationMarkEquals)),
                 _ => return Ok((size, Symbol::ExclamationMark)),
             },
-            State::Lesser => match byte {
-                b'=' => return Ok((size + 1, Symbol::LesserThanEquals)),
+            State::Lesser => match character {
+                '=' => return Ok((size + 1, Symbol::LesserThanEquals)),
                 _ => return Ok((size, Symbol::LesserThan)),
             },
-            State::Greater => match byte {
-                b'=' => return Ok((size + 1, Symbol::GreaterThanEquals)),
+            State::Greater => match character {
+                '=' => return Ok((size + 1, Symbol::GreaterThanEquals)),
                 _ => return Ok((size, Symbol::GreaterThan)),
             },
-            State::Dot => match byte {
-                b'.' => return Ok((size + 1, Symbol::DoubleDot)),
+            State::Dot => match character {
+                '.' => return Ok((size + 1, Symbol::DoubleDot)),
                 _ => return Ok((size, Symbol::Dot)),
             },
-            State::And => match byte {
-                b'&' => return Ok((size + 1, Symbol::DoubleAmpersand)),
+            State::And => match character {
+                '&' => return Ok((size + 1, Symbol::DoubleAmpersand)),
                 _ => {
                     return Err(Error::InvalidCharacter(
-                        char::from(byte),
+                        character,
                         size + 1,
-                        unsafe { str::from_utf8_unchecked(&bytes[..=size]) }.to_owned(),
+                        input[..=size].to_owned(),
                     ))
                 }
             },
-            State::Or => match byte {
-                b'|' => return Ok((size + 1, Symbol::DoubleVerticalBar)),
+            State::Or => match character {
+                '|' => return Ok((size + 1, Symbol::DoubleVerticalBar)),
                 _ => {
                     return Err(Error::InvalidCharacter(
-                        char::from(byte),
+                        character,
                         size + 1,
-                        unsafe { str::from_utf8_unchecked(&bytes[..=size]) }.to_owned(),
+                        input[..=size].to_owned(),
                     ))
                 }
             },
-            State::Xor => match byte {
-                b'^' => return Ok((size + 1, Symbol::DoubleCircumflex)),
+            State::Xor => match character {
+                '^' => return Ok((size + 1, Symbol::DoubleCircumflex)),
                 _ => {
                     return Err(Error::InvalidCharacter(
-                        char::from(byte),
+                        character,
                         size + 1,
-                        unsafe { str::from_utf8_unchecked(&bytes[..=size]) }.to_owned(),
+                        input[..=size].to_owned(),
                     ))
                 }
             },
@@ -156,7 +156,7 @@ mod tests {
 
     #[test]
     fn ok() {
-        let input = b"==";
+        let input = "==";
         let expected = Ok((2, Symbol::DoubleEquals));
         let result = parse(input);
         assert_eq!(expected, result);
@@ -164,7 +164,7 @@ mod tests {
 
     #[test]
     fn err_unexpected_end() {
-        let input = b"|";
+        let input = "|";
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
         assert_eq!(expected, result);
@@ -172,7 +172,7 @@ mod tests {
 
     #[test]
     fn err_not_a_symbol() {
-        let input = b"5";
+        let input = "5";
         let expected = Err(Error::NotASymbol);
         let result = parse(input);
         assert_eq!(expected, result);
@@ -180,7 +180,7 @@ mod tests {
 
     #[test]
     fn err_invalid_character() {
-        let input = b"|5";
+        let input = "|5";
         let expected = Err(Error::InvalidCharacter('5', 2, "|5".to_owned()));
         let result = parse(input);
         assert_eq!(expected, result);

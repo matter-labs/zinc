@@ -30,44 +30,44 @@ use crate::syntax::Witness;
 
 #[test]
 fn ok() {
-    let code = br#"
+    let code = r#"
 inputs {
-    a: uint1;
+    a: uint8;
 }
 
 witness {
-    b: int253;
+    b: int248;
 }
 
-let mut c: uint228 = 2 + 2;
+let mut c: uint232 = 2 + 2;
 "#;
 
     let expected: CircuitProgram = CircuitProgram {
         inputs: vec![Input::new(
-            Identifier::new(Location::new(3, 5), b"a".to_vec()),
-            Type::new(Location::new(3, 8), TypeVariant::Uint { bitlength: 1 }),
+            Identifier::new(Location::new(3, 5), "a".to_owned()),
+            Type::new(Location::new(3, 8), TypeVariant::Uint { bitlength: 8 }),
         )],
         witnesses: vec![Witness::new(
-            Identifier::new(Location::new(7, 5), b"b".to_vec()),
-            Type::new(Location::new(7, 8), TypeVariant::Int { bitlength: 253 }),
+            Identifier::new(Location::new(7, 5), "b".to_owned()),
+            Type::new(Location::new(7, 8), TypeVariant::Int { bitlength: 248 }),
         )],
         statements: vec![Statement::Let(Let {
             location: Location::new(10, 1),
-            identifier: Identifier::new(Location::new(10, 9), b"c".to_vec()),
+            identifier: Identifier::new(Location::new(10, 9), "c".to_owned()),
             r#type: Some(Type::new(
                 Location::new(10, 12),
-                TypeVariant::Uint { bitlength: 228 },
+                TypeVariant::Uint { bitlength: 232 },
             )),
             expression: Expression::Operator(OperatorExpression::new(vec![
                 OperatorExpressionElement::new(
                     OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
                         Literal::Integer(IntegerLiteral::Decimal {
-                            value: b"2".to_vec(),
+                            value: "2".to_owned(),
                         }),
                     )),
                     Token::new(
                         Lexeme::Literal(Literal::Integer(IntegerLiteral::Decimal {
-                            value: b"2".to_vec(),
+                            value: "2".to_owned(),
                         })),
                         Location::new(10, 22),
                     ),
@@ -75,12 +75,12 @@ let mut c: uint228 = 2 + 2;
                 OperatorExpressionElement::new(
                     OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
                         Literal::Integer(IntegerLiteral::Decimal {
-                            value: b"2".to_vec(),
+                            value: "2".to_owned(),
                         }),
                     )),
                     Token::new(
                         Lexeme::Literal(Literal::Integer(IntegerLiteral::Decimal {
-                            value: b"2".to_vec(),
+                            value: "2".to_owned(),
                         })),
                         Location::new(10, 26),
                     ),
@@ -95,7 +95,7 @@ let mut c: uint228 = 2 + 2;
     };
 
     let result: CircuitProgram =
-        syntax::parse(TokenStream::new(code.to_vec())).expect("Syntax error");
+        syntax::parse(TokenStream::new(code.to_owned())).expect("Syntax error");
 
     assert_eq!(expected, result);
 }
@@ -104,9 +104,10 @@ let mut c: uint228 = 2 + 2;
 fn err_unexpected_end() {
     use crate::Error as MainError;
 
-    let code = b"inputs";
+    let code = "inputs";
 
-    let result: Result<CircuitProgram, MainError> = syntax::parse(TokenStream::new(code.to_vec()));
+    let result: Result<CircuitProgram, MainError> =
+        syntax::parse(TokenStream::new(code.to_owned()));
 
     let expected: Result<CircuitProgram, MainError> = Err(MainError::Syntax(Error::UnexpectedEnd));
 
@@ -117,9 +118,10 @@ fn err_unexpected_end() {
 fn err_expected() {
     use crate::Error as MainError;
 
-    let code = b"inputs ! ";
+    let code = "inputs ! ";
 
-    let result: Result<CircuitProgram, MainError> = syntax::parse(TokenStream::new(code.to_vec()));
+    let result: Result<CircuitProgram, MainError> =
+        syntax::parse(TokenStream::new(code.to_owned()));
 
     let expected: Result<CircuitProgram, MainError> = Err(MainError::Syntax(Error::Expected(
         Location::new(1, 8),

@@ -19,7 +19,7 @@ use serde_derive::Serialize;
 
 use crate::lexical::Token;
 
-#[derive(Debug, Default, Serialize, PartialEq)]
+#[derive(Debug, Default, Serialize, Clone, PartialEq)]
 pub struct Expression {
     elements: Vec<Element>,
 }

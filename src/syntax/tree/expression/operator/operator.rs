@@ -12,6 +12,9 @@ pub enum Operator {
     // assignment
     Assignment,
 
+    // range
+    Range,
+
     // binary logical
     Or,
     Xor,
@@ -46,6 +49,8 @@ impl fmt::Display for Operator {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Assignment => write!(f, "="),
+
+            Self::Range => write!(f, ".."),
 
             Self::Or => write!(f, "||"),
             Self::Xor => write!(f, "^^"),

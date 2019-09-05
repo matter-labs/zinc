@@ -113,12 +113,12 @@ mod tests {
 
     #[test]
     fn ok() {
-        let code = b"uint228";
+        let code = "uint232";
 
-        let expected = Type::new(Location::new(1, 1), TypeVariant::uint(228));
+        let expected = Type::new(Location::new(1, 1), TypeVariant::uint(232));
 
         let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_vec()))))
+            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
             .expect("Syntax error");
 
         assert_eq!(expected, result);

@@ -110,15 +110,15 @@ mod tests {
 
     #[test]
     fn ok() {
-        let code = br#"42 as field "#;
+        let code = r#"42 as field "#;
 
         let expected = OperatorExpression::new(vec![
             OperatorExpressionElement::new(
                 OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                    Literal::Integer(IntegerLiteral::decimal(b"42".to_vec())),
+                    Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
                 )),
                 Token::new(
-                    Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"42".to_vec()))),
+                    Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal("42".to_owned()))),
                     Location::new(1, 1),
                 ),
             ),
@@ -136,7 +136,7 @@ mod tests {
         ]);
 
         let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_vec()))))
+            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
             .expect("Syntax error");
 
         assert_eq!(expected, result);

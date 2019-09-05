@@ -4,7 +4,6 @@
 
 use std::convert::TryFrom;
 use std::fmt;
-use std::str;
 
 use failure::Fail;
 use serde_derive::Serialize;
@@ -13,7 +12,7 @@ use crate::lexical::Keyword;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Identifier {
-    pub name: Vec<u8>,
+    pub name: String,
 }
 
 #[derive(Debug, Fail, Serialize)]
@@ -26,41 +25,41 @@ pub enum Error {
 }
 
 impl Identifier {
-    pub fn new(name: &[u8]) -> Self {
+    pub fn new(name: &str) -> Self {
         Self {
             name: name.to_owned(),
         }
     }
 
-    pub fn can_start_with(byte: u8) -> bool {
-        byte.is_ascii_alphabetic() || byte == b'_'
+    pub fn can_start_with(character: char) -> bool {
+        character.is_ascii_alphabetic() || character == '_'
     }
 
-    pub fn can_contain_since_index_1(byte: u8) -> bool {
-        byte.is_ascii_alphanumeric() || byte == b'_'
+    pub fn can_contain_since_index_1(character: char) -> bool {
+        character.is_ascii_alphanumeric() || character == '_'
     }
 }
 
-impl TryFrom<&[u8]> for Identifier {
+impl TryFrom<&str> for Identifier {
     type Error = Error;
 
-    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
-        if bytes.is_empty() {
+    fn try_from(input: &str) -> Result<Self, Self::Error> {
+        if input.is_empty() {
             return Err(Error::IsEmpty);
         }
 
-        if let Ok(keyword) = Keyword::try_from(bytes) {
+        if let Ok(keyword) = Keyword::try_from(input) {
             return Err(Error::IsKeyword(keyword));
         }
 
         Ok(Self {
-            name: bytes.to_owned(),
+            name: input.to_owned(),
         })
     }
 }
 
 impl fmt::Display for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", unsafe { str::from_utf8_unchecked(&self.name) })
+        write!(f, "{}", self.name)
     }
 }

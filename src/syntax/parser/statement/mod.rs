@@ -4,6 +4,7 @@
 
 mod debug;
 mod r#let;
+mod r#loop;
 mod require;
 
 use std::cell::RefCell;
@@ -21,6 +22,7 @@ use crate::Error;
 
 use self::debug::Parser as DebugParser;
 use self::r#let::Parser as LetParser;
+use self::r#loop::Parser as LoopParser;
 use self::require::Parser as RequireParser;
 
 #[derive(Debug, Clone, Copy)]
@@ -79,6 +81,16 @@ impl Parser {
                             self.state = State::Semicolon;
                             result
                         }
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Keyword(Keyword::For),
+                            ..
+                        })) => {
+                            let result = LoopParser::default()
+                                .parse(stream.clone())
+                                .map(Statement::Loop)?;
+                            self.state = State::Semicolon;
+                            result
+                        }
                         Some(Ok(..)) => {
                             let result = ExpressionParser::default().parse(stream.clone())?;
                             self.state = State::SemicolonOptional;
@@ -117,7 +129,9 @@ impl Parser {
                             return Ok((self.statement.take().expect("Option state bug"), true));
                         }
                         Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                        None => {
+                            return Ok((self.statement.take().expect("Option state bug"), true))
+                        }
                     }
                 }
             }
@@ -137,6 +151,7 @@ mod tests {
     use crate::lexical::Location;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
+    use crate::syntax::BlockExpression;
     use crate::syntax::Expression;
     use crate::syntax::Identifier;
     use crate::syntax::Let;
@@ -149,29 +164,66 @@ mod tests {
     use crate::syntax::TypeVariant;
 
     #[test]
-    fn ok() {
-        let code = br#"let mut a: uint228 = 42;"#;
+    fn ok_not_unterminated() {
+        let code = r#"let mut a: uint232 = 42;"#;
 
-        let expected = Statement::Let(Let::new(
-            Location::new(1, 1),
-            Identifier::new(Location::new(1, 9), b"a".to_vec()),
-            true,
-            Some(Type::new(Location::new(1, 12), TypeVariant::uint(228))),
-            Expression::Operator(OperatorExpression::new(vec![
-                OperatorExpressionElement::new(
-                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                        Literal::Integer(IntegerLiteral::decimal(b"42".to_vec())),
-                    )),
-                    Token::new(
-                        Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"42".to_vec()))),
-                        Location::new(1, 22),
+        let expected = (
+            Statement::Let(Let::new(
+                Location::new(1, 1),
+                Identifier::new(Location::new(1, 9), "a".to_owned()),
+                true,
+                Some(Type::new(Location::new(1, 12), TypeVariant::uint(232))),
+                Expression::Operator(OperatorExpression::new(vec![
+                    OperatorExpressionElement::new(
+                        OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                            Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
+                        )),
+                        Token::new(
+                            Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(
+                                "42".to_owned(),
+                            ))),
+                            Location::new(1, 22),
+                        ),
                     ),
-                ),
-            ])),
-        ));
+                ])),
+            )),
+            false,
+        );
 
-        let (result, _is_unterminated) = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_vec()))))
+        let result = Parser::default()
+            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
+            .expect("Syntax error");
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_unterminated() {
+        let code = r#"{ 42 } "#;
+
+        let expected = (
+            Statement::Expression(Expression::Block(BlockExpression {
+                location: Location::new(1, 1),
+                statements: vec![],
+                expression: Some(Box::new(Expression::Operator(OperatorExpression::new(
+                    vec![OperatorExpressionElement::new(
+                        OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                            Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
+                        )),
+                        Token::new(
+                            Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(
+                                "42".to_owned(),
+                            ))),
+                            Location::new(1, 3),
+                        ),
+                    )],
+                )))),
+            })),
+            true,
+        );
+
+        let result = Parser::default()
+            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
             .expect("Syntax error");
 
         assert_eq!(expected, result);

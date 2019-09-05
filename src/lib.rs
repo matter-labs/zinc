@@ -24,7 +24,7 @@ pub enum Error {
     Semantic(interpreter::Error),
 }
 
-pub fn parse(input: Vec<u8>) -> Result<CircuitProgram, Error> {
+pub fn parse(input: String) -> Result<CircuitProgram, Error> {
     syntax::parse(TokenStream::new(input))
 }
 

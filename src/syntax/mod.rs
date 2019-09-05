@@ -31,6 +31,8 @@ pub use self::tree::Input;
 pub use self::tree::InputBuilder;
 pub use self::tree::Let;
 pub use self::tree::LetBuilder;
+pub use self::tree::Loop;
+pub use self::tree::LoopBuilder;
 pub use self::tree::OperatorExpression;
 pub use self::tree::OperatorExpressionElement;
 pub use self::tree::OperatorExpressionObject;

@@ -51,8 +51,8 @@ fn main() -> Result<(), FileError> {
 
     let mut file = File::open(&args.input).map_err(FileError::Opening)?;
     let size = file.metadata().map_err(FileError::Metadata)?.len();
-    let mut code = Vec::with_capacity(size as usize);
-    file.read_to_end(&mut code).map_err(FileError::Reading)?;
+    let mut code = String::with_capacity(size as usize);
+    file.read_to_string(&mut code).map_err(FileError::Reading)?;
 
     let circuit = compiler::parse(code);
 

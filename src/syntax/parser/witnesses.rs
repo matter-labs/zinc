@@ -167,19 +167,19 @@ mod tests {
 
     #[test]
     fn ok() {
-        let code = br#"
+        let code = r#"
     witness {
-        a: uint228;
+        a: uint232;
     }
 "#;
 
         let expected = vec![Witness::new(
-            Identifier::new(Location::new(3, 9), b"a".to_vec()),
-            Type::new(Location::new(3, 12), TypeVariant::Uint { bitlength: 228 }),
+            Identifier::new(Location::new(3, 9), "a".to_owned()),
+            Type::new(Location::new(3, 12), TypeVariant::Uint { bitlength: 232 }),
         )];
 
         let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_vec()))))
+            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
             .expect("Syntax error");
 
         assert_eq!(expected, result);

@@ -112,7 +112,7 @@ mod tests {
 
     #[test]
     fn ok() {
-        let code = br#"true || false"#;
+        let code = r#"true || false"#;
 
         let expected = OperatorExpression::new(vec![
             OperatorExpressionElement::new(
@@ -143,7 +143,7 @@ mod tests {
         ]);
 
         let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_vec()))))
+            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
             .expect("Syntax error");
 
         assert_eq!(expected, result);

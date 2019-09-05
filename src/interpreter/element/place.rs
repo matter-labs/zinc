@@ -7,6 +7,7 @@ use std::fmt;
 use serde_derive::Serialize;
 
 use crate::interpreter::Value;
+use crate::interpreter::ValueError;
 use crate::syntax::Identifier;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
@@ -23,6 +24,14 @@ impl Place {
             value,
             is_mutable,
         }
+    }
+
+    pub fn assign(self, other: Value) -> Result<Self, ValueError> {
+        if !self.value.has_the_same_type_as(&other) {
+            return Err(ValueError::OperandTypesMismatch(self.value, other));
+        }
+
+        Ok(Self::new(self.identifier, other, self.is_mutable))
     }
 }
 

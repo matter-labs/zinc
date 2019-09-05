@@ -162,7 +162,7 @@ mod tests {
 
     #[test]
     fn ok() {
-        let code = br#"require(true, "test")"#;
+        let code = r#"require(true, "test")"#;
 
         let expected = Require::new(
             Location::new(1, 1),
@@ -177,11 +177,11 @@ mod tests {
                     ),
                 ),
             ])),
-            Some(StringLiteral::new(b"test".to_vec())),
+            Some(StringLiteral::new("test".to_owned())),
         );
 
         let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_vec()))))
+            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
             .expect("Syntax error");
 
         assert_eq!(expected, result);

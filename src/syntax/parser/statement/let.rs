@@ -183,20 +183,20 @@ mod tests {
 
     #[test]
     fn ok() {
-        let code = br#"let mut a: uint228 = 42 "#;
+        let code = r#"let mut a: uint232 = 42 "#;
 
         let expected = Let::new(
             Location::new(1, 1),
-            Identifier::new(Location::new(1, 9), b"a".to_vec()),
+            Identifier::new(Location::new(1, 9), "a".to_owned()),
             true,
-            Some(Type::new(Location::new(1, 12), TypeVariant::uint(228))),
+            Some(Type::new(Location::new(1, 12), TypeVariant::uint(232))),
             Expression::Operator(OperatorExpression::new(vec![
                 OperatorExpressionElement::new(
                     OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                        Literal::Integer(IntegerLiteral::decimal(b"42".to_vec())),
+                        Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
                     )),
                     Token::new(
-                        Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"42".to_vec()))),
+                        Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal("42".to_owned()))),
                         Location::new(1, 22),
                     ),
                 ),
@@ -204,7 +204,7 @@ mod tests {
         );
 
         let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_vec()))))
+            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
             .expect("Syntax error");
 
         assert_eq!(expected, result);

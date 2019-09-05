@@ -19,6 +19,7 @@ use crate::Error;
 pub enum State {
     BracketOpen,
     StatementOrBracketClose,
+    BracketClose,
     End,
 }
 
@@ -73,6 +74,7 @@ impl Parser {
                                 Statement::Expression(expression) => {
                                     if is_unterminated {
                                         self.block.expression = Some(Box::new(expression));
+                                        self.state = State::BracketClose;
                                     } else {
                                         self.block
                                             .statements
@@ -86,6 +88,23 @@ impl Parser {
                         None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                     }
                 }
+                State::BracketClose => match stream.borrow_mut().next() {
+                    Some(Ok(Token {
+                        lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
+                        ..
+                    })) => {
+                        self.state = State::End;
+                    }
+                    Some(Ok(Token { lexeme, location })) => {
+                        return Err(Error::Syntax(SyntaxError::Expected(
+                            location,
+                            ["}"].to_vec(),
+                            lexeme,
+                        )));
+                    }
+                    Some(Err(error)) => return Err(Error::Lexical(error)),
+                    None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                },
                 State::End => return Ok(self.block),
             }
         }

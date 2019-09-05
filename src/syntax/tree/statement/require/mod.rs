@@ -14,7 +14,7 @@ use crate::lexical::Location;
 use crate::lexical::StringLiteral;
 use crate::syntax::Expression;
 
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Require {
     pub location: Location,
     pub id: String,
@@ -40,6 +40,6 @@ impl Require {
 
 impl fmt::Display for Require {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "require {} ( {} )", self.id, self.expression)
+        write!(f, "require ({}, {})", self.expression, self.id)
     }
 }

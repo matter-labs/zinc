@@ -18,8 +18,8 @@ identifier = ~keyword [A-Za-z_][A-Za-z_0-9]*
 
 type =
   | 'bool'
-  | ['uint1' ..= 'uint253']
-  | ['int1' ..= 'int253']
+  | ['uint8' 'uint16' ... 'uint240' 'uint248']
+  | ['int8' 'int16' ... 'int240' 'int248']
   | 'field'
 
 keyword =
@@ -32,18 +32,17 @@ keyword =
   // declaration
   | 'let'
   | 'mut'
-  | 'type'
   
   // control
   | 'for'
+  | 'in'
   | 'if'
   | 'else'
-  | 'match'
   
   // type
   | 'bool'
-  | ['uint1' ..= 'uint253']
-  | ['int1' ..= 'int253']
+  | ['uint8' 'uint16' ... 'uint240' 'uint248']
+  | ['int8' 'int16' ... 'int240' 'int248']
   | 'field'
 
   // literal
@@ -98,5 +97,6 @@ symbol =
   | '&&'
   | '||'
   | '^^'
+  | '..'
 
 ```

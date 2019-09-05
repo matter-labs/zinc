@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The jab language is used to simplify development of Quadratic Arithmetic Programs (see [this primer](http://coders-errand.com/how-to-build-a-quadratic-arithmetic-program/)). It converts a jab program into an R1CS circuit (a list of linbear constraints over finite fields) using the [bellman](https://github.com/matter-labs/bellman) library. This allows generation of Zero Knowledge Proofs for any proof system supported by bellman (such as Groth16 or Sonic).
+The jab language is used to simplify development of Quadratic Arithmetic Programs (see [this example](http://coders-errand.com/how-to-build-a-quadratic-arithmetic-program/)). It converts a jab program into an R1CS circuit (a list of linbear constraints over finite fields) using the [bellman](https://github.com/matter-labs/bellman) library. This allows generation of Zero Knowledge Proofs for any proof system supported by bellman (such as Groth16 or Sonic).
 
 :::info
 Implementation details below are highlighted like this.
@@ -31,11 +31,11 @@ pub fn cube(x: uint128) -> uint128 {
 use simple_math;
 
 inputs {
-    x: uint128,
+    x: uint128;
 }
 
 witness {
-    r: uint128,
+    r: uint128;
 }
 
 require(x == simple_math::cube(r), "x == r ^ 3");
@@ -156,10 +156,8 @@ All other types are represented using `field` as their basic building block.
 
 #### Integer types
 
-- `uint2` .. `uint{floor(field_bitlength/2)}`: unsigned integers of different bitlength (with step 1, e.g. for field length 254 the set will include [8, 9, ..., 125, 126])
-- `int2` .. `int{floor(field_bitlength/2)}`: signed integers
-
-`uint` and `int` without bits are synonyms for `uint{field_bit_length-1}` and `int{field_bit_length-1}` (largest representable integer values for the current curve).
+- `uint8` .. `uint248`: unsigned integers of different bitlength (with step 1, e.g. for field length 254 the set will include [8, 9, ..., 125, 126])
+- `int8` .. `int248`: signed integers
 
 :::info
 When integers variables are allocated, their bitlength must be enforced in the constraint system.
@@ -167,7 +165,7 @@ When integers variables are allocated, their bitlength must be enforced in the c
 
 Integer literals:
 
-- decimal: 0, 1, 122, -7 (inferred type: depending on the sign `uint`/`int` of the lowest possible bitlentgh)
+- decimal: 0, 1, 122, -7 (inferred type `uint`, but can be casted to `int` using the negation operator `-`)
 - hexadecimal: 0x0, 0xfa, 0x0001 (inferred type: `uint` of the lowest possible bitlentgh)
 
 ```rust

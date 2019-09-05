@@ -16,7 +16,9 @@ use crate::lexical::Location;
 
 #[derive(Debug, Serialize, Clone, Copy, PartialEq)]
 pub struct Type {
+    #[serde(skip_serializing)]
     pub location: Location,
+    #[serde(flatten)]
     pub variant: Variant,
 }
 

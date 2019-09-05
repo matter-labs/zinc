@@ -10,16 +10,23 @@ witnesses = 'witness' '{' witness* '}'
 witness = identifier ':' type ';'
 
 ## Statements
-statement = 
-  | 'let' [ 'mut' ] identifier [ ':' type ] '=' expression ';'
-  | 'require' '(' expression ')' ';'
-  | 'debug' '(' expression ')' ';'
-  | 'for' identifier 'in' literal '..' literal '{' statement* '}'
+statement = (
+    | let_statement
+    | require_statement
+    | debug_statement
+    | loop_statement
+  ) ';'
+
+let_statement = 'let' [ 'mut' ] identifier [ ':' type ] '=' expression
+require_statement = 'require' '(' expression ')'
+debug_statement = 'debug' '(' expression ')'
+loop_statement = 'for' identifier 'in' literal_integer '..' literal_integer block_expression
 
 ## Expression
 expression =
   | operator_expression
   | block_expression
+  | conditional_expression
 
 operator_expression = operand_or ( '||' operand_or )*
 operand_or = operand_xor ( '^^' operand_xor )*
@@ -30,11 +37,14 @@ operand_add_sub = operand_mul_div_rem ( ('*' | '/' | '%') operand_mul_div_rem )*
 operand_mul_div_rem = operand_as ( 'as' type )*
 operand_as =
   | ( '-' | '!' ) operand_as
+  | '(' ')'
   | '(' expression ')'
   | block_expression
   | literal
   | identifier
 
 block_expression = '{' statement* expression? '}'
+
+conditional_expression = 'if' expression block_expression [ 'else' ( conditional_expression | block_expression ) ]
 
 ```

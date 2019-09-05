@@ -24,38 +24,38 @@ pub enum Error {
     NotAComment,
 }
 
-pub fn parse(bytes: &[u8]) -> Result<(usize, usize, usize, Comment), Error> {
+pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
     let mut state = State::Start;
     let mut size = 0;
     let mut lines = 0;
     let mut column = 1;
 
-    while let Some(byte) = bytes.get(size).copied() {
+    while let Some(character) = input.chars().nth(size) {
         match state {
-            State::Start => match byte {
-                b'/' => {
+            State::Start => match character {
+                '/' => {
                     size += 1;
                     column += 1;
                     state = State::Slash;
                 }
                 _ => return Err(Error::NotAComment),
             },
-            State::Slash => match byte {
-                b'/' => {
+            State::Slash => match character {
+                '/' => {
                     size += 1;
                     column += 1;
                     state = State::SingleLine;
                 }
-                b'*' => {
+                '*' => {
                     size += 1;
                     column += 1;
                     state = State::MultiLine;
                 }
                 _ => return Err(Error::NotAComment),
             },
-            State::SingleLine => match byte {
-                b'\n' => {
-                    let comment = Comment::new(bytes[2..size].to_vec());
+            State::SingleLine => match character {
+                '\n' => {
+                    let comment = Comment::new(input[2..size].to_owned());
                     return Ok((size, lines, column, comment));
                 }
                 _ => {
@@ -63,13 +63,13 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, usize, usize, Comment), Error> {
                     column += 1;
                 }
             },
-            State::MultiLine => match byte {
-                b'*' => {
+            State::MultiLine => match character {
+                '*' => {
                     size += 1;
                     column += 1;
                     state = State::MultiLineStar;
                 }
-                b'\n' => {
+                '\n' => {
                     size += 1;
                     column = 1;
                     lines += 1;
@@ -79,11 +79,11 @@ pub fn parse(bytes: &[u8]) -> Result<(usize, usize, usize, Comment), Error> {
                     column += 1;
                 }
             },
-            State::MultiLineStar => match byte {
-                b'/' => {
+            State::MultiLineStar => match character {
+                '/' => {
                     size += 1;
                     column += 1;
-                    let comment = Comment::new(bytes[2..size - 2].to_vec());
+                    let comment = Comment::new(input[2..size - 2].to_owned());
                     return Ok((size, lines, column, comment));
                 }
                 _ => {
@@ -106,15 +106,20 @@ mod tests {
 
     #[test]
     fn single_line_ok() {
-        let input = b"//mega ultra comment text\n";
-        let expected = Ok((25, 0, 26, Comment::new(b"mega ultra comment text".to_vec())));
+        let input = "//mega ultra comment text\n";
+        let expected = Ok((
+            25,
+            0,
+            26,
+            Comment::new("mega ultra comment text".to_owned()),
+        ));
         let result = parse(input);
         assert_eq!(expected, result);
     }
 
     #[test]
     fn single_line_err_unexpected_end() {
-        let input = b"//mega ultra comment text";
+        let input = "//mega ultra comment text";
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
         assert_eq!(expected, result);
@@ -122,14 +127,14 @@ mod tests {
 
     #[test]
     fn multi_line_ok() {
-        let input = br#"/*
+        let input = r#"/*
     This is the mega ultra test application!
 */"#;
         let expected = Ok((
             50,
             2,
             3,
-            Comment::new(b"\n    This is the mega ultra test application!\n".to_vec()),
+            Comment::new("\n    This is the mega ultra test application!\n".to_owned()),
         ));
         let result = parse(input);
         assert_eq!(expected, result);
@@ -137,7 +142,7 @@ mod tests {
 
     #[test]
     fn multi_line_err_unexpected_end() {
-        let input = br#"/* This is the mega ultra test application!"#;
+        let input = r#"/* This is the mega ultra test application!"#;
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
         assert_eq!(expected, result);
@@ -145,7 +150,7 @@ mod tests {
 
     #[test]
     fn err_not_a_comment() {
-        let input = b"not a comment text";
+        let input = "not a comment text";
         let expected = Err(Error::NotAComment);
         let result = parse(input);
         assert_eq!(expected, result);
@@ -153,7 +158,7 @@ mod tests {
 
     #[test]
     fn err_not_a_comment_one_slash() {
-        let input = b"/almost a comment text";
+        let input = "/almost a comment text";
         let expected = Err(Error::NotAComment);
         let result = parse(input);
         assert_eq!(expected, result);

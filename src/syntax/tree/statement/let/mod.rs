@@ -15,7 +15,7 @@ use crate::syntax::Expression;
 use crate::syntax::Identifier;
 use crate::syntax::Type;
 
-#[derive(Debug, Serialize, PartialEq)]
+#[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Let {
     pub location: Location,
     pub identifier: Identifier,
@@ -46,7 +46,7 @@ impl fmt::Display for Let {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "let{} {}{} = ( {} )",
+            "let{} {}{} = {}",
             if self.is_mutable { " mut" } else { "" },
             self.identifier,
             if let Some(ref r#type) = self.r#type {

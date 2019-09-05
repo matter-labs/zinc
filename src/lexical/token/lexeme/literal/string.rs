@@ -3,24 +3,23 @@
 //!
 
 use std::fmt;
-use std::str;
 
 use serde_derive::Serialize;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case", tag = "value")]
 pub struct String {
-    pub value: Vec<u8>,
+    pub value: std::string::String,
 }
 
 impl String {
-    pub fn new(value: Vec<u8>) -> Self {
+    pub fn new(value: std::string::String) -> Self {
         Self { value }
     }
 }
 
 impl fmt::Display for String {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", unsafe { str::from_utf8_unchecked(&self.value) })
+        write!(f, "{}", self.value)
     }
 }

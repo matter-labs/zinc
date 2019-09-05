@@ -1,10 +1,30 @@
 inputs {
-    a: uint1;
+    a: uint8;
 }
 
 witness {
-    b: int253;
+    b: int248;
 }
 
-let a: bool = true == (5 == 6);
-debug(a);
+let mut pyramid = {
+    1 + {
+        2 + {
+            3 + 4
+        } + 2
+    } + 1
+};
+require(pyramid == 13);
+
+pyramid = {
+    1 + {
+        2 + {
+            3 + pyramid
+        } + 2
+    } + 1
+};
+debug(pyramid);
+
+for i in 0..4 {
+    pyramid = pyramid + i;
+    debug(pyramid);
+};

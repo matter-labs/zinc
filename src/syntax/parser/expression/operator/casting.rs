@@ -141,6 +141,7 @@ impl Parser {
                                 ..
                             },
                         )) => {
+                            stream.borrow_mut().next();
                             self.expression.push_operand((
                                 OperatorExpressionOperand::Literal(Literal::Void),
                                 token,
@@ -154,12 +155,11 @@ impl Parser {
                                     .expression
                                     .push_operand((OperatorExpressionOperand::Block(block), token)),
                             }
+                            self.state = State::ParenthesisRight;
                         }
                         Some(Err(error)) => return Err(Error::Lexical(error)),
                         None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                     }
-
-                    self.state = State::ParenthesisRight;
                 }
                 State::ParenthesisRight => {
                     let peek = stream.borrow_mut().peek();
@@ -215,20 +215,20 @@ mod tests {
 
     #[test]
     fn ok() {
-        let code = br#"42 "#;
+        let code = r#"42 "#;
 
         let expected = OperatorExpression::new(vec![OperatorExpressionElement::new(
             OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                Literal::Integer(IntegerLiteral::decimal(b"42".to_vec())),
+                Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
             )),
             Token::new(
-                Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(b"42".to_vec()))),
+                Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal("42".to_owned()))),
                 Location::new(1, 1),
             ),
         )]);
 
         let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_vec()))))
+            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
             .expect("Syntax error");
 
         assert_eq!(expected, result);
