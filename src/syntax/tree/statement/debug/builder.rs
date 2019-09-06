@@ -3,7 +3,7 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::Debug;
+use crate::syntax::DebugStatement;
 use crate::syntax::Expression;
 
 #[derive(Default)]
@@ -21,8 +21,8 @@ impl Builder {
         self.expression = Some(value);
     }
 
-    pub fn finish(mut self) -> Debug {
-        Debug::new(
+    pub fn finish(mut self) -> DebugStatement {
+        DebugStatement::new(
             self.location.take().expect("Missing location"),
             self.expression.take().expect("Missing expression"),
         )

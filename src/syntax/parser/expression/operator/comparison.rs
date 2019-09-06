@@ -18,7 +18,6 @@ use crate::Error;
 pub enum State {
     AddSubOperand,
     AddSubOperator,
-    End,
 }
 
 impl Default for State {
@@ -69,10 +68,9 @@ impl Parser {
                             self.operator = Some((OperatorExpressionOperator::Subtraction, token));
                             self.state = State::AddSubOperand;
                         }
-                        _ => self.state = State::End,
+                        _ => return Ok(self.expression),
                     }
                 }
-                State::End => return Ok(self.expression),
             }
         }
     }

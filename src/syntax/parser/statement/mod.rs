@@ -7,6 +7,11 @@ mod r#let;
 mod r#loop;
 mod require;
 
+pub use self::debug::Parser as DebugParser;
+pub use self::r#let::Parser as LetParser;
+pub use self::r#loop::Parser as LoopParser;
+pub use self::require::Parser as RequireParser;
+
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -19,11 +24,6 @@ use crate::syntax::Error as SyntaxError;
 use crate::syntax::ExpressionParser;
 use crate::syntax::Statement;
 use crate::Error;
-
-use self::debug::Parser as DebugParser;
-use self::r#let::Parser as LetParser;
-use self::r#loop::Parser as LoopParser;
-use self::require::Parser as RequireParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -154,7 +154,7 @@ mod tests {
     use crate::syntax::BlockExpression;
     use crate::syntax::Expression;
     use crate::syntax::Identifier;
-    use crate::syntax::Let;
+    use crate::syntax::LetStatement;
     use crate::syntax::OperatorExpression;
     use crate::syntax::OperatorExpressionElement;
     use crate::syntax::OperatorExpressionObject;
@@ -168,7 +168,7 @@ mod tests {
         let code = r#"let mut a: uint232 = 42;"#;
 
         let expected = (
-            Statement::Let(Let::new(
+            Statement::Let(LetStatement::new(
                 Location::new(1, 1),
                 Identifier::new(Location::new(1, 9), "a".to_owned()),
                 true,

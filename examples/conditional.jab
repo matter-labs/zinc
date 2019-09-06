@@ -1,0 +1,15 @@
+/*
+    The factorial algorithm test
+*/
+
+inputs {
+    dummy: field;
+}
+
+debug(if false {
+    1
+} else if false {
+    2
+} else {
+    3
+});

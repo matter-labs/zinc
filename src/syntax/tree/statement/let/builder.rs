@@ -5,7 +5,7 @@
 use crate::lexical::Location;
 use crate::syntax::Expression;
 use crate::syntax::Identifier;
-use crate::syntax::Let;
+use crate::syntax::LetStatement;
 use crate::syntax::Type;
 
 #[derive(Default)]
@@ -38,8 +38,8 @@ impl Builder {
         self.is_mutable = true;
     }
 
-    pub fn finish(mut self) -> Let {
-        Let::new(
+    pub fn finish(mut self) -> LetStatement {
+        LetStatement::new(
             self.location.take().expect("Missing location"),
             self.identifier.take().expect("Missing identifier"),
             self.is_mutable,

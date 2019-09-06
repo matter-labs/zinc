@@ -19,18 +19,17 @@ use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    Keyword,
+    KeywordWitness,
     BracketOpen,
     ElementIdentifierOrBracketClose,
     ElementColon,
     ElementType,
     ElementSemicolon,
-    End,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::Keyword
+        State::KeywordWitness
     }
 }
 
@@ -53,7 +52,7 @@ impl Parser {
 
         loop {
             match self.state {
-                State::Keyword => match stream.borrow_mut().next() {
+                State::KeywordWitness => match stream.borrow_mut().next() {
                     Some(Ok(Token {
                         lexeme: Lexeme::Keyword(Keyword::Witness),
                         ..
@@ -87,12 +86,12 @@ impl Parser {
                     Some(Ok(Token {
                         lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                         ..
-                    })) => self.state = State::End,
+                    })) => return Ok(self.witnesses),
                     Some(Ok(Token {
                         lexeme: Lexeme::Identifier(identifier),
                         location,
                     })) => {
-                        let identifier = Identifier::new(location, identifier.name);
+                        let identifier = Identifier::new(location, identifier.name().to_owned());
                         self.builder.set_identifier(identifier);
                         self.state = State::ElementColon;
                     }
@@ -146,7 +145,6 @@ impl Parser {
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::End => return Ok(self.witnesses),
             }
         }
     }

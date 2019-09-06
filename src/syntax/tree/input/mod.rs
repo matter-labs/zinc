@@ -13,8 +13,8 @@ use crate::syntax::Type;
 
 #[derive(Debug, Serialize, PartialEq)]
 pub struct Input {
-    pub identifier: Identifier,
-    pub r#type: Type,
+    identifier: Identifier,
+    r#type: Type,
 }
 
 impl Input {

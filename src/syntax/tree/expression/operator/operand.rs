@@ -8,6 +8,7 @@ use serde_derive::Serialize;
 
 use crate::lexical::Literal;
 use crate::syntax::BlockExpression;
+use crate::syntax::ConditionalExpression;
 use crate::syntax::Identifier;
 use crate::syntax::Type;
 
@@ -18,15 +19,17 @@ pub enum Operand {
     Identifier(Identifier),
     Type(Type),
     Block(BlockExpression),
+    Conditional(ConditionalExpression),
 }
 
 impl fmt::Display for Operand {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Literal(literal) => write!(f, "{}", literal),
-            Self::Identifier(identifier) => write!(f, "{}", identifier),
-            Self::Type(r#type) => write!(f, "{}", r#type),
-            Self::Block(block) => write!(f, "{{ {} }}", block),
+            Self::Literal(operand) => write!(f, "{}", operand),
+            Self::Identifier(operand) => write!(f, "{}", operand),
+            Self::Type(operand) => write!(f, "{}", operand),
+            Self::Block(operand) => write!(f, "{}", operand),
+            Self::Conditional(operand) => write!(f, "{}", operand),
         }
     }
 }

@@ -12,6 +12,8 @@ mod witness;
 
 pub use self::circuit::CircuitProgram;
 pub use self::expression::BlockExpression;
+pub use self::expression::ConditionalExpression;
+pub use self::expression::ConditionalExpressionBuilder;
 pub use self::expression::Expression;
 pub use self::expression::OperatorExpression;
 pub use self::expression::OperatorExpressionElement;

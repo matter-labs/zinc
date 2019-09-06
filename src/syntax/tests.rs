@@ -11,18 +11,18 @@ use crate::lexical::Location;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax;
 use crate::syntax::CircuitProgram;
 use crate::syntax::Error;
 use crate::syntax::Expression;
 use crate::syntax::Identifier;
 use crate::syntax::Input;
-use crate::syntax::Let;
+use crate::syntax::LetStatement;
 use crate::syntax::OperatorExpression;
 use crate::syntax::OperatorExpressionElement;
 use crate::syntax::OperatorExpressionObject;
 use crate::syntax::OperatorExpressionOperand;
 use crate::syntax::OperatorExpressionOperator;
+use crate::syntax::Parser;
 use crate::syntax::Statement;
 use crate::syntax::Type;
 use crate::syntax::TypeVariant;
@@ -51,7 +51,7 @@ let mut c: uint232 = 2 + 2;
             Identifier::new(Location::new(7, 5), "b".to_owned()),
             Type::new(Location::new(7, 8), TypeVariant::Int { bitlength: 248 }),
         )],
-        statements: vec![Statement::Let(Let {
+        statements: vec![Statement::Let(LetStatement {
             location: Location::new(10, 1),
             identifier: Identifier::new(Location::new(10, 9), "c".to_owned()),
             r#type: Some(Type::new(
@@ -95,7 +95,7 @@ let mut c: uint232 = 2 + 2;
     };
 
     let result: CircuitProgram =
-        syntax::parse(TokenStream::new(code.to_owned())).expect("Syntax error");
+        Parser::parse(TokenStream::new(code.to_owned())).expect("Syntax error");
 
     assert_eq!(expected, result);
 }
@@ -107,7 +107,7 @@ fn err_unexpected_end() {
     let code = "inputs";
 
     let result: Result<CircuitProgram, MainError> =
-        syntax::parse(TokenStream::new(code.to_owned()));
+        Parser::parse(TokenStream::new(code.to_owned()));
 
     let expected: Result<CircuitProgram, MainError> = Err(MainError::Syntax(Error::UnexpectedEnd));
 
@@ -121,7 +121,7 @@ fn err_expected() {
     let code = "inputs ! ";
 
     let result: Result<CircuitProgram, MainError> =
-        syntax::parse(TokenStream::new(code.to_owned()));
+        Parser::parse(TokenStream::new(code.to_owned()));
 
     let expected: Result<CircuitProgram, MainError> = Err(MainError::Syntax(Error::Expected(
         Location::new(1, 8),

@@ -13,40 +13,39 @@ use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::ExpressionParser;
 use crate::syntax::Identifier;
-use crate::syntax::Let;
-use crate::syntax::LetBuilder;
+use crate::syntax::LetStatement;
+use crate::syntax::LetStatementBuilder;
 use crate::syntax::TypeParser;
 use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    Keyword,
+    KeywordLet,
     MutOrIdentifier,
     Identifier,
     ColonOrEquals,
     Type,
     Equals,
     Expression,
-    End,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::Keyword
+        State::KeywordLet
     }
 }
 
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    builder: LetBuilder,
+    builder: LetStatementBuilder,
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Let, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<LetStatement, Error> {
         loop {
             match self.state {
-                State::Keyword => match stream.borrow_mut().next() {
+                State::KeywordLet => match stream.borrow_mut().next() {
                     Some(Ok(Token {
                         lexeme: Lexeme::Keyword(Keyword::Let),
                         location,
@@ -76,7 +75,7 @@ impl Parser {
                         lexeme: Lexeme::Identifier(identifier),
                         location,
                     })) => {
-                        let identifier = Identifier::new(location, identifier.name);
+                        let identifier = Identifier::new(location, identifier.name().to_owned());
                         self.builder.set_identifier(identifier);
                         self.state = State::ColonOrEquals;
                     }
@@ -95,7 +94,7 @@ impl Parser {
                         lexeme: Lexeme::Identifier(identifier),
                         location,
                     })) => {
-                        let identifier = Identifier::new(location, identifier.name);
+                        let identifier = Identifier::new(location, identifier.name().to_owned());
                         self.builder.set_identifier(identifier);
                         self.state = State::ColonOrEquals;
                     }
@@ -151,9 +150,8 @@ impl Parser {
                 State::Expression => {
                     let expression = ExpressionParser::default().parse(stream.clone())?;
                     self.builder.set_expression(expression);
-                    self.state = State::End;
+                    return Ok(self.builder.finish());
                 }
-                State::End => return Ok(self.builder.finish()),
             }
         }
     }
@@ -173,7 +171,7 @@ mod tests {
     use crate::lexical::TokenStream;
     use crate::syntax::Expression;
     use crate::syntax::Identifier;
-    use crate::syntax::Let;
+    use crate::syntax::LetStatement;
     use crate::syntax::OperatorExpression;
     use crate::syntax::OperatorExpressionElement;
     use crate::syntax::OperatorExpressionObject;
@@ -185,7 +183,7 @@ mod tests {
     fn ok() {
         let code = r#"let mut a: uint232 = 42 "#;
 
-        let expected = Let::new(
+        let expected = LetStatement::new(
             Location::new(1, 1),
             Identifier::new(Location::new(1, 9), "a".to_owned()),
             true,

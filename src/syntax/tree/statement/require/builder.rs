@@ -5,7 +5,7 @@
 use crate::lexical::Location;
 use crate::lexical::StringLiteral;
 use crate::syntax::Expression;
-use crate::syntax::Require;
+use crate::syntax::RequireStatement;
 
 #[derive(Default)]
 pub struct Builder {
@@ -27,8 +27,8 @@ impl Builder {
         self.tag = Some(value);
     }
 
-    pub fn finish(mut self) -> Require {
-        Require::new(
+    pub fn finish(mut self) -> RequireStatement {
+        RequireStatement::new(
             self.location.take().expect("Missing location"),
             self.expression.take().expect("Missing expression"),
             self.tag.take(),

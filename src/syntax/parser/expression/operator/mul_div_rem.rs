@@ -22,7 +22,6 @@ pub enum State {
     CastingFirstOperand,
     CastingOperator,
     CastingSecondOperand,
-    End,
 }
 
 impl Default for State {
@@ -63,7 +62,7 @@ impl Parser {
                             self.operator = Some((OperatorExpressionOperator::Casting, token));
                             self.state = State::CastingSecondOperand;
                         }
-                        _ => self.state = State::End,
+                        _ => return Ok(self.expression),
                     }
                 }
                 State::CastingSecondOperand => {
@@ -81,7 +80,6 @@ impl Parser {
                     }
                     self.state = State::CastingOperator;
                 }
-                State::End => return Ok(self.expression),
             }
         }
     }

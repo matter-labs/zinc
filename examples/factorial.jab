@@ -1,0 +1,17 @@
+/*
+    The factorial algorithm test
+*/
+
+inputs {
+    dummy: field;
+}
+
+debug(0 as field);
+let mut fact: field = 1;
+debug(fact);
+for i in 2..42 {
+    fact = fact * i as field;
+    debug(fact);
+};
+
+require(fact == 33452526613163807108170062053440751665152000000000 as field);

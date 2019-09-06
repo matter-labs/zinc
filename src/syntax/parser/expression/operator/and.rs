@@ -19,7 +19,6 @@ pub enum State {
     ComparisonFirstOperand,
     ComparisonOperator,
     ComparisonSecondOperand,
-    End,
 }
 
 impl Default for State {
@@ -107,7 +106,7 @@ impl Parser {
                             self.operator = Some((OperatorExpressionOperator::Lesser, token));
                             self.state = State::ComparisonSecondOperand;
                         }
-                        _ => self.state = State::End,
+                        _ => return Ok(self.expression),
                     }
                 }
                 State::ComparisonSecondOperand => {
@@ -116,9 +115,8 @@ impl Parser {
                     if let Some(operator) = self.operator.take() {
                         self.expression.push_operator(operator);
                     }
-                    self.state = State::End;
+                    return Ok(self.expression);
                 }
-                State::End => return Ok(self.expression),
             }
         }
     }

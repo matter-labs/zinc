@@ -5,6 +5,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
 use crate::lexical::Literal;
 use crate::lexical::Symbol;
@@ -22,16 +23,17 @@ use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    Start,
+    Operand,
     UnaryMulDivRemOperand,
     ParenthesisExpressionOrParenthesisRight,
     ParenthesisRight,
     BlockExpression,
+    ConditionalExpression,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::Start
+        State::Operand
     }
 }
 
@@ -46,7 +48,7 @@ impl Parser {
     pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<OperatorExpression, Error> {
         loop {
             match self.state {
-                State::Start => {
+                State::Operand => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
                         Some(Ok(
@@ -83,6 +85,12 @@ impl Parser {
                             self.state = State::BlockExpression;
                         }
                         Some(Ok(Token {
+                            lexeme: Lexeme::Keyword(Keyword::If),
+                            ..
+                        })) => {
+                            self.state = State::ConditionalExpression;
+                        }
+                        Some(Ok(Token {
                             lexeme: Lexeme::Literal(literal),
                             ..
                         })) => {
@@ -106,7 +114,8 @@ impl Parser {
                                 None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                             };
 
-                            let identifier = Identifier::new(location, identifier.name);
+                            let identifier =
+                                Identifier::new(location, identifier.name().to_owned());
                             self.expression.push_operand((
                                 OperatorExpressionOperand::Identifier(identifier),
                                 token,
@@ -154,6 +163,12 @@ impl Parser {
                                 Expression::Block(block) => self
                                     .expression
                                     .push_operand((OperatorExpressionOperand::Block(block), token)),
+                                Expression::Conditional(conditional) => {
+                                    self.expression.push_operand((
+                                        OperatorExpressionOperand::Conditional(conditional),
+                                        token,
+                                    ))
+                                }
                             }
                             self.state = State::ParenthesisRight;
                         }
@@ -191,6 +206,7 @@ impl Parser {
                     ));
                     return Ok(self.expression);
                 }
+                State::ConditionalExpression => unimplemented!(),
             }
         }
     }

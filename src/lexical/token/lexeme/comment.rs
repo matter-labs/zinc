@@ -8,12 +8,16 @@ use serde_derive::Serialize;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Comment {
-    pub text: String,
+    text: String,
 }
 
 impl Comment {
     pub fn new(text: String) -> Self {
         Self { text }
+    }
+
+    pub fn text(&self) -> &str {
+        self.text.as_str()
     }
 }
 

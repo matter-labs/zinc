@@ -14,7 +14,6 @@ use crate::interpreter::Scope;
 use crate::interpreter::Value;
 use crate::interpreter::Warning;
 use crate::lexical::Literal;
-use crate::syntax::BlockExpression;
 use crate::syntax::Expression;
 use crate::syntax::OperatorExpression;
 use crate::syntax::OperatorExpressionObject;
@@ -22,6 +21,7 @@ use crate::syntax::OperatorExpressionOperand;
 use crate::syntax::OperatorExpressionOperator;
 use crate::syntax::Statement;
 use crate::syntax::TypeVariant;
+use crate::syntax::{BlockExpression, ConditionalExpression};
 
 #[derive(Default)]
 pub struct Executor {
@@ -43,17 +43,17 @@ impl Executor {
         match statement {
             Statement::Debug(debug) => {
                 let result = self.evaluate(debug.expression)?;
-                log::info!("{}", result);
+                println!("{}", result);
             }
             Statement::Let(r#let) => {
                 let value = self.evaluate(r#let.expression)?;
                 let value = if let Some(r#type) = r#let.r#type {
-                    match (value, r#type.variant) {
+                    match (value, r#type.variant()) {
                         (value @ Value::Void, TypeVariant::Void) => value,
                         (value @ Value::Boolean(_), TypeVariant::Bool) => value,
                         (Value::Integer(mut integer), type_variant) => {
                             integer = integer.cast(type_variant).map_err(|error| {
-                                Error::Element(r#type.location, ElementError::Value(error))
+                                Error::Element(r#type.location(), ElementError::Value(error))
                             })?;
                             Value::Integer(integer)
                         }
@@ -69,7 +69,7 @@ impl Executor {
                     value
                 };
 
-                let location = r#let.identifier.location;
+                let location = r#let.identifier.location();
                 let place = Place::new(r#let.identifier, value, r#let.is_mutable);
                 if let Some(warning) = self.scope.borrow_mut().declare_variable(place) {
                     log::warn!("{}", Warning::Scope(location, warning));
@@ -177,14 +177,15 @@ impl Executor {
         Ok(())
     }
 
-    pub fn evaluate(&mut self, expression: Expression) -> Result<Value, Error> {
+    fn evaluate(&mut self, expression: Expression) -> Result<Value, Error> {
         match expression {
             Expression::Operator(expression) => self.evaluate_operator(expression),
             Expression::Block(expression) => self.evaluate_block(expression),
+            Expression::Conditional(expression) => self.evaluate_conditional(expression),
         }
     }
 
-    pub fn evaluate_operator(&mut self, expression: OperatorExpression) -> Result<Value, Error> {
+    fn evaluate_operator(&mut self, expression: OperatorExpression) -> Result<Value, Error> {
         log::trace!("Operator expression    : {}", expression);
 
         for expression_element in expression.into_iter() {
@@ -220,6 +221,9 @@ impl Executor {
                         }
                         OperatorExpressionOperand::Block(block) => {
                             Element::Value(self.evaluate_block(block)?)
+                        }
+                        OperatorExpressionOperand::Conditional(conditional) => {
+                            Element::Value(self.evaluate_conditional(conditional)?)
                         }
                     };
                     self.stack.push(element);
@@ -406,7 +410,7 @@ impl Executor {
         }
     }
 
-    pub fn evaluate_block(&mut self, block: BlockExpression) -> Result<Value, Error> {
+    fn evaluate_block(&mut self, block: BlockExpression) -> Result<Value, Error> {
         log::trace!("Block expression       : {}", block);
 
         let mut executor = Executor::new(Scope::new(Some(self.scope.clone())));
@@ -415,6 +419,33 @@ impl Executor {
         }
         if let Some(expression) = block.expression {
             executor.evaluate(*expression)
+        } else {
+            Ok(Value::Void)
+        }
+    }
+
+    fn evaluate_conditional(&mut self, conditional: ConditionalExpression) -> Result<Value, Error> {
+        log::trace!("Conditional expression : {}", conditional);
+
+        let result = match self.evaluate(*conditional.condition)? {
+            Value::Boolean(boolean) => boolean,
+            value => {
+                return Err(Error::ConditionalExpectedBooleanExpression(
+                    conditional.location,
+                    value,
+                ))
+            }
+        };
+
+        if result.is_true() {
+            let mut executor = Executor::new(Scope::new(Some(self.scope.clone())));
+            executor.evaluate_block(conditional.main_block)
+        } else if let Some(else_if) = conditional.else_if {
+            let mut executor = Executor::new(Scope::new(Some(self.scope.clone())));
+            executor.evaluate_conditional(*else_if)
+        } else if let Some(else_block) = conditional.else_block {
+            let mut executor = Executor::new(Scope::new(Some(self.scope.clone())));
+            executor.evaluate_block(else_block)
         } else {
             Ok(Value::Void)
         }

@@ -42,12 +42,12 @@ impl Scope {
     }
 
     pub fn get_variable(&self, identifier: &Identifier) -> Result<Place, Error> {
-        if let Some(place) = self.variables.get(&identifier.name).cloned() {
+        if let Some(place) = self.variables.get(identifier.name()).cloned() {
             Ok(place)
         } else {
             match self.parent {
                 Some(ref parent) => parent.borrow().get_variable(identifier),
-                None => Err(Error::UndeclaredVariable(identifier.name.to_owned())),
+                None => Err(Error::UndeclaredVariable(identifier.name().to_owned())),
             }
         }
     }
@@ -55,20 +55,21 @@ impl Scope {
     pub fn declare_variable(&mut self, place: Place) -> Option<Warning> {
         let warning = if self.is_variable_declared(&place.identifier) {
             Some(Warning::RedeclaredVariable(
-                place.identifier.name.to_owned(),
+                place.identifier.name().to_owned(),
             ))
         } else {
             None
         };
-        self.variables.insert(place.identifier.name.clone(), place);
+        self.variables
+            .insert(place.identifier.name().to_owned(), place);
         warning
     }
 
     pub fn update_variable(&mut self, place: Place) -> Result<(), Error> {
-        if let Some(inner) = self.variables.get_mut(&place.identifier.name) {
+        if let Some(inner) = self.variables.get_mut(place.identifier.name()) {
             if !inner.is_mutable {
                 return Err(Error::MutatingImmutableVariable(
-                    place.identifier.name.to_owned(),
+                    place.identifier.name().to_owned(),
                 ));
             }
             inner.value = place.value;
@@ -76,13 +77,15 @@ impl Scope {
         } else {
             match self.parent {
                 Some(ref mut parent) => parent.borrow_mut().update_variable(place),
-                None => Err(Error::UndeclaredVariable(place.identifier.name.to_owned())),
+                None => Err(Error::UndeclaredVariable(
+                    place.identifier.name().to_owned(),
+                )),
             }
         }
     }
 
     fn is_variable_declared(&self, identifier: &Identifier) -> bool {
-        if self.variables.contains_key(&identifier.name) {
+        if self.variables.contains_key(identifier.name()) {
             true
         } else {
             match self.parent {

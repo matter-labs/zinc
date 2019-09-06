@@ -19,7 +19,6 @@ use crate::Error;
 pub enum State {
     KeywordOrParenthesis,
     ParenthesisRight,
-    End,
 }
 
 impl Default for State {
@@ -49,7 +48,7 @@ impl Parser {
                         | keyword @ Keyword::Field => {
                             self.builder.set_location(location);
                             self.builder.set_keyword(keyword);
-                            self.state = State::End;
+                            return Ok(self.builder.finish());
                         }
                         _ => {
                             return Err(Error::Syntax(SyntaxError::Expected(
@@ -82,7 +81,7 @@ impl Parser {
                         ..
                     })) => {
                         self.builder.set_void();
-                        self.state = State::End;
+                        return Ok(self.builder.finish());
                     }
                     Some(Ok(Token { lexeme, location })) => {
                         return Err(Error::Syntax(SyntaxError::Expected(
@@ -94,7 +93,6 @@ impl Parser {
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::End => return Ok(self.builder.finish()),
             }
         }
     }

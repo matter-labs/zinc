@@ -13,38 +13,37 @@ use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::ExpressionParser;
-use crate::syntax::Require;
-use crate::syntax::RequireBuilder;
+use crate::syntax::RequireStatement;
+use crate::syntax::RequireStatementBuilder;
 use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    Keyword,
+    KeywordRequire,
     BracketOpen,
     Expression,
     CommaOrBracketClose,
     Tag,
     BracketClose,
-    End,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::Keyword
+        State::KeywordRequire
     }
 }
 
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    builder: RequireBuilder,
+    builder: RequireStatementBuilder,
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Require, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<RequireStatement, Error> {
         loop {
             match self.state {
-                State::Keyword => match stream.borrow_mut().next() {
+                State::KeywordRequire => match stream.borrow_mut().next() {
                     Some(Ok(Token {
                         lexeme: Lexeme::Keyword(Keyword::Require),
                         location,
@@ -90,7 +89,7 @@ impl Parser {
                     Some(Ok(Token {
                         lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                         ..
-                    })) => self.state = State::End,
+                    })) => return Ok(self.builder.finish()),
                     Some(Ok(Token { lexeme, location })) => {
                         return Err(Error::Syntax(SyntaxError::Expected(
                             location,
@@ -123,7 +122,7 @@ impl Parser {
                     Some(Ok(Token {
                         lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                         ..
-                    })) => self.state = State::End,
+                    })) => return Ok(self.builder.finish()),
                     Some(Ok(Token { lexeme, location })) => {
                         return Err(Error::Syntax(SyntaxError::Expected(
                             location,
@@ -134,7 +133,6 @@ impl Parser {
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::End => return Ok(self.builder.finish()),
             }
         }
     }
@@ -158,13 +156,13 @@ mod tests {
     use crate::syntax::OperatorExpressionElement;
     use crate::syntax::OperatorExpressionObject;
     use crate::syntax::OperatorExpressionOperand;
-    use crate::syntax::Require;
+    use crate::syntax::RequireStatement;
 
     #[test]
     fn ok() {
         let code = r#"require(true, "test")"#;
 
-        let expected = Require::new(
+        let expected = RequireStatement::new(
             Location::new(1, 1),
             Expression::Operator(OperatorExpression::new(vec![
                 OperatorExpressionElement::new(

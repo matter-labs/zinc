@@ -36,7 +36,6 @@ pub enum State {
     AssignmentFirstOperand,
     AssignmentOperator,
     AssignmentSecondOperand,
-    End,
 }
 
 impl Default for State {
@@ -74,7 +73,7 @@ impl Parser {
                             self.operator = Some((OperatorExpressionOperator::Assignment, token));
                             self.state = State::AssignmentSecondOperand;
                         }
-                        _ => self.state = State::End,
+                        _ => return Ok(self.expression),
                     }
                 }
                 State::AssignmentSecondOperand => {
@@ -83,9 +82,8 @@ impl Parser {
                     if let Some(operator) = self.operator.take() {
                         self.expression.push_operator(operator);
                     }
-                    self.state = State::End;
+                    return Ok(self.expression);
                 }
-                State::End => return Ok(self.expression),
             }
         }
     }

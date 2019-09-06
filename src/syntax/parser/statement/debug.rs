@@ -10,38 +10,37 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Debug;
-use crate::syntax::DebugBuilder;
+use crate::syntax::DebugStatement;
+use crate::syntax::DebugStatementBuilder;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::ExpressionParser;
 use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    Keyword,
+    KeywordDebug,
     BracketOpen,
     Expression,
     BracketClose,
-    End,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::Keyword
+        State::KeywordDebug
     }
 }
 
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    builder: DebugBuilder,
+    builder: DebugStatementBuilder,
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Debug, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<DebugStatement, Error> {
         loop {
             match self.state {
-                State::Keyword => match stream.borrow_mut().next() {
+                State::KeywordDebug => match stream.borrow_mut().next() {
                     Some(Ok(Token {
                         lexeme: Lexeme::Keyword(Keyword::Debug),
                         location,
@@ -83,7 +82,7 @@ impl Parser {
                     Some(Ok(Token {
                         lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                         ..
-                    })) => self.state = State::End,
+                    })) => return Ok(self.builder.finish()),
                     Some(Ok(Token { lexeme, location })) => {
                         return Err(Error::Syntax(SyntaxError::Expected(
                             location,
@@ -94,7 +93,6 @@ impl Parser {
                     Some(Err(error)) => return Err(Error::Lexical(error)),
                     None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
                 },
-                State::End => return Ok(self.builder.finish()),
             }
         }
     }
@@ -112,7 +110,7 @@ mod tests {
     use crate::lexical::Location;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
-    use crate::syntax::Debug;
+    use crate::syntax::DebugStatement;
     use crate::syntax::Expression;
     use crate::syntax::OperatorExpression;
     use crate::syntax::OperatorExpressionElement;
@@ -123,7 +121,7 @@ mod tests {
     fn ok() {
         let code = r#"debug(42)"#;
 
-        let expected = Debug::new(
+        let expected = DebugStatement::new(
             Location::new(1, 1),
             Expression::Operator(OperatorExpression::new(vec![
                 OperatorExpressionElement::new(

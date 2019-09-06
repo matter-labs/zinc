@@ -24,10 +24,14 @@ pub use self::warning::Warning;
 
 use crate::syntax::CircuitProgram;
 
-pub fn interpret(program: CircuitProgram) -> Result<(), Error> {
-    let mut executor = Executor::default();
-    for statement in program.statements.into_iter() {
-        executor.execute(statement)?;
+pub struct Interpreter {}
+
+impl Interpreter {
+    pub fn interpret(program: CircuitProgram) -> Result<(), Error> {
+        let mut executor = Executor::default();
+        for statement in program.statements.into_iter() {
+            executor.execute(statement)?;
+        }
+        Ok(())
     }
-    Ok(())
 }

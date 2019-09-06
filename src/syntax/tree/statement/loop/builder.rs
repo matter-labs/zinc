@@ -6,7 +6,7 @@ use crate::lexical::IntegerLiteral;
 use crate::lexical::Location;
 use crate::syntax::BlockExpression;
 use crate::syntax::Identifier;
-use crate::syntax::Loop;
+use crate::syntax::LoopStatement;
 
 #[derive(Default)]
 pub struct Builder {
@@ -38,8 +38,8 @@ impl Builder {
         self.block = Some(value);
     }
 
-    pub fn finish(mut self) -> Loop {
-        Loop::new(
+    pub fn finish(mut self) -> LoopStatement {
+        LoopStatement::new(
             self.location.take().expect("Missing location"),
             self.index_identifier
                 .take()

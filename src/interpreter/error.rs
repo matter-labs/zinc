@@ -39,4 +39,9 @@ pub enum Error {
         _0, _1, _2
     )]
     LoopRangeInvalid(Location, Integer, Integer),
+    #[fail(
+        display = "{} conditional expected a boolean expression, but got [{}]",
+        _0, _1
+    )]
+    ConditionalExpectedBooleanExpression(Location, Value),
 }

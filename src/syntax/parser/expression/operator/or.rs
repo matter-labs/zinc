@@ -18,7 +18,6 @@ use crate::Error;
 pub enum State {
     LogicalXorOperand,
     LogicalXorOperator,
-    End,
 }
 
 impl Default for State {
@@ -59,10 +58,9 @@ impl Parser {
                             self.operator = Some((OperatorExpressionOperator::Xor, token));
                             self.state = State::LogicalXorOperand;
                         }
-                        _ => self.state = State::End,
+                        _ => return Ok(self.expression),
                     }
                 }
-                State::End => return Ok(self.expression),
             }
         }
     }

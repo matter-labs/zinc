@@ -8,16 +8,21 @@ use serde_derive::Serialize;
 
 #[derive(Debug, Default, Serialize, Clone, Copy, PartialEq)]
 pub struct Location {
-    pub line: usize,
-    pub column: usize,
+    line: usize,
+    column: usize,
 }
 
 impl Location {
-    pub fn new(line: usize, column_start: usize) -> Self {
-        Self {
-            line,
-            column: column_start,
-        }
+    pub fn new(line: usize, column: usize) -> Self {
+        Self { line, column }
+    }
+
+    pub fn line(&self) -> usize {
+        self.line
+    }
+
+    pub fn column(&self) -> usize {
+        self.column
     }
 }
 
