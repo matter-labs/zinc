@@ -1,0 +1,25 @@
+{
+    "name": "jabberwocky-syntax-highlighting",
+    "displayName": "Jabberwocky Syntax Highlighting",
+    "description": "Jabberwocky Syntax Highlighting",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.38.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "jab",
+            "aliases": ["Jabberwocky", "jab"],
+            "extensions": [".jab"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "jab",
+            "scopeName": "source.jabberwocky",
+            "path": "./syntaxes/jab.tmLanguage.json"
+        }]
+    }
+}

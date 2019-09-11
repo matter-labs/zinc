@@ -1,0 +1,54 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Jabberwocky",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.domain.jab",
+					"match": "\\b(inputs|witness|require|debug)\\b"
+				},
+				{
+					"name": "keyword.declaration.jab",
+					"match": "\\b(let|mut)\\b"
+				},
+				{
+					"name": "keyword.control.jab",
+					"match": "\\b(for|in|if|else)\\b"
+				},
+				{
+					"name": "keyword.type.jab",
+					"match": "\\b(bool|int[0-9]+|uint[0-9]+|field)\\b"
+				},
+				{
+					"name": "keyword.literal.jab",
+					"match": "\\b(true|false)\\b"
+				},
+				{
+					"name": "keyword.operator.jab",
+					"match": "\\b(as)\\b"
+				}
+			]
+		},
+		"strings": {
+			"name": "string.quoted.double.jab",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.jab",
+					"match": "\\\\."
+				}
+			]
+		}
+	},
+	"scopeName": "source.jabberwocky"
+}

@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The jab language is used to simplify development of Quadratic Arithmetic Programs (see [this example](http://coders-errand.com/how-to-build-a-quadratic-arithmetic-program/)). It converts a jab program into an R1CS circuit (a list of linbear constraints over finite fields) using the [bellman](https://github.com/matter-labs/bellman) library. This allows generation of Zero Knowledge Proofs for any proof system supported by bellman (such as Groth16 or Sonic).
+The Jabberwocky language is used to simplify development of Quadratic Arithmetic Programs (see [this example](http://coders-errand.com/how-to-build-a-quadratic-arithmetic-program/)). It converts a jab program into an R1CS circuit (a list of linbear constraints over finite fields) using the [bellman](https://github.com/matter-labs/bellman) library. This allows generation of Zero Knowledge Proofs for any proof system supported by bellman (such as Groth16 or Sonic).
 
 :::info
 Implementation details below are highlighted like this.
@@ -43,9 +43,9 @@ require(x == simple_math::cube(r), "x == r ^ 3");
 
 ## Module system and imports
 
-Modules are defined hierarchically in files, following the rust cargo conventions. 
+Modules are defined hierarchically in files, following the Rust cargo conventions. 
 
-A module can be imported with the `use` keyword following the rust crate/module import rules:
+A module can be imported with the `use` keyword following the Rust crate/module import rules:
 
 ```rust
 use simple_math;
@@ -56,11 +56,11 @@ use simple_math::*;
 
 Only functions and types exposed in the libraries with `pub` keyword are imported.
 
-Modules can be written in pure rust with bellman (tbd).
+Modules can be written in pure Rust with bellman (tbd).
 
 ## Comments
 
-Single line comments (`//`) and multi-line comments (`/*...*/`) are allowed and follow rust rules.
+Single line comments (`//`) and multi-line comments (`/*...*/`) are allowed and follow Rust rules.
 
 ## Public inputs and secret witness
 
@@ -102,25 +102,27 @@ A statement can be on the following:
 
 - variable declaration
 - complex type definition
-- control structure
+- loop control structure
+- semicolon terminated expression
+- built-in functions like `debug(...)` or `require(...)` until they are implemented as genuine functions
 
-Statments must be separated by a semicolon.
+Statements must be separated by a semicolon.
 
-Following the rust convention, if the last statement in a block does not have a trailing semicolon, it returns a value. 
+Following the Rust convention, if the last statement in a block does not have a trailing semicolon, it returns a value. 
 
-Since the circuit can not return a value, the last statement in the circuit programm must always have a trailing semicolon.
+Since the circuit cannot return a value, the last statement in the circuit program must always have a trailing semicolon.
 
 ## Variable declaration
 
 ```rust
-    let [mut] {var_name}: [{type}] = {expression};
+    let [mut] {identifier}[: {type}] = {expression};
 ```
 
 Variables are immutable by default unless declared with `mut` keyword.
 
 Reference declaration is not supported (yet).
 
-Variable names follow the rust rules: they must begin with a symbol and can contain symbols, numbers and underscore.
+Variable names follow the Rust rules: they must begin with a symbol and can contain symbols, numbers and underscore.
 
 Shadowing is allowed:
 
@@ -130,9 +132,9 @@ let x = -1; // this is a different x with a different type
 ```
 
 :::info
-All variables must be named with scoping: scoping can be recursively introduced by conditionals and loops (tbd).
+All variables must be named with scoping: scoping can be recursively introduced by conditionals and loops.
 
-Variables will have the following meta-information collected by the compiler: 
+Variables will have the following meta-information collected by the compiler:
 
 - current variable (id or name) in the constraint system
 - linear combination to compute the variable (which also includes representation of constant values)
@@ -148,7 +150,7 @@ All primitive types must be initialized at declaration.
 
 #### Native field type
 
-`field` is a native field element of the elliptic curve used in the constraint system. It represents an unsigned integer of bit length equal to the field modulus length (e.g. for BN256 the field modulus length is 254 bit).
+`field` is a native field element of the elliptic curve used in the constraint system. It represents an unsigned integer of bitlength equal to the field modulus length (e.g. for BN256 the field modulus length is 254 bit).
 
 :::info
 All other types are represented using `field` as their basic building block.
@@ -156,8 +158,8 @@ All other types are represented using `field` as their basic building block.
 
 #### Integer types
 
-- `uint8` .. `uint248`: unsigned integers of different bitlength (with step 1, e.g. for field length 254 the set will include [8, 9, ..., 125, 126])
-- `int8` .. `int248`: signed integers
+- `uint8` .. `uint248`: unsigned integers of different bitlength (with step 8, e.g. for field length 254 the set will include [8, 16, ..., 240, 248])
+- `int8` .. `int248`: signed integers with the same rules as above
 
 :::info
 When integers variables are allocated, their bitlength must be enforced in the constraint system.
@@ -165,27 +167,25 @@ When integers variables are allocated, their bitlength must be enforced in the c
 
 Integer literals:
 
-- decimal: 0, 1, 122, -7 (inferred type `uint`, but can be casted to `int` using the negation operator `-`)
-- hexadecimal: 0x0, 0xfa, 0x0001 (inferred type: `uint` of the lowest possible bitlentgh)
+- decimal: 0, 1, 122
+- hexadecimal: 0x0, 0xfa, 0x0001
+
+Following the Rust rules, only unsigned integer literals can be expressed, since the unary `-` is not a part of the literal but a standalone operator.
+Thus, an unsigned value can be implicitly casted to a signed value with the unary `-`.
 
 ```rust
 let a = 0; // uint8
 let a: int24 = 0; // int24
 let b = 256; // uint16
 let c = -1;  // int8
-let c = -128; // int16
+let c = -129; // int16
 let d = 0xff; // uint8
 let e: field = 0; // field
-let f: uint = 0; // uint253 if the field modulus length is 254
 ```
 
 #### Boolean type
 
 - `bool`: boolean values
-
-:::info
-When `bool` variables are allocated, they must be enforced to only allow values `0` or `1`.
-:::
 
 Boolean literals:
 
@@ -197,9 +197,17 @@ let a = true;
 let b: bool = false;
 ```
 
+### String type
+
+The string type exists only in the literal form and can only appear as the second argument of the `require(...)` function statement.
+
+```rust
+require(true != false, "mega ultra total global example");
+```
+
 #### Enums
 
-Jab supports simple enums (lists of constants), following the following restricted rust syntax:
+Jab supports simple enums (lists of constants), following the following restricted Rust syntax:
 
 ```rust
 enum Order {
@@ -215,17 +223,17 @@ let y: Order = x;
 
 #### Tuples
 
-Tuples follow the rust rules:
+Tuples follow the Rust rules:
 
 ```rust
 (uint8, field)
 ```
 
-Like in rust, `()` represents the void value.
+Like in Rust, `()` represents the void value.
 
 #### Structs
 
-`struct` is a grouping of elements of different types. `struct` definitions follow the rust rules.
+`struct` is a grouping of elements of different types. `struct` definitions follow the Rust rules.
 
 ```rust
 struct Person {
@@ -236,7 +244,7 @@ struct Person {
 
 #### Fixed-sized arrays
 
-Fixed-sized arrays follor the rust rules:
+Fixed-sized arrays follow the Rust rules:
 
 ```rust
 let fibbonaci: [uint8; 5] = [1, 1, 2, 3, 5];
@@ -271,7 +279,7 @@ __Note:__ accessing array by a constant index or `for` loop index is cheap, whil
 
 ##### Slicing
 
-Using the rust slice syntax arrays can be transformed (producting a copy of the subarray -- by value, not by reference):
+Using the Rust slice syntax arrays can be transformed (producting a copy of the subarray -- by value, not by reference):
 
 ```rust
 let a = [1, 2, 3, 4];
@@ -284,10 +292,9 @@ let b = a[..2]; // [1, 2, 3]
 
 Jab requires strong typing. Operators on operands of different types require explicit type conversion.
 
-Developers can coerce type conversions using `as` keyword (following the rust rules):
+Developers can coerce type conversions using `as` keyword (following the Rust rules):
 
 - any integer type can be coerced into another integer type of equal or greater bitlength without changes in underlying `field` value
-- any integer type can be coerced into another integer type of lesser bitlength via bit decomposition (without range checks)
 - an enum can be converted into an `uint` of enough bitlength
 
 ```rust
@@ -300,7 +307,7 @@ let c: uint8 = Order::FIRST; // ok
 
 Variables are always passed by value to operators, function calls and assignments. In R1CS programs passing by value is natural and cheap, albeit somewhat couner-intuitive: in fact, under the hood all variables are represented as references to immutable values, whereas change a mutable variable technically leads to creating a new variable with a reference to another immutable value.
 
-In contrast to rust, passing by value in jab doesn't "move" the variable.
+In contrast to Rust, passing by value in jab doesn't "move" the variable.
 
 ## Mutability
 
@@ -315,7 +322,7 @@ x = x + 1;
 
 ### Scoping with parentheses
 
-Parentheses (`(` and `)`) are used to introduce scoping for operations. Parentheses have highest priority of all operators.
+Parentheses (`(` and `)`) are used to introduce scoping for operations. Parentheses have highest priority of all expression tokens.
 
 ### Operators for integer types
 
@@ -331,7 +338,7 @@ Jab requires strong typing. Operators on operands of different types require exp
 
 - `/`: integer division
 - `%`: modulus
-- `\`: inversion (for `field` type only)
+- `\`: inversion (for `field` type only) (tbd)
 
 #### Range checks
 
@@ -378,11 +385,14 @@ Comparison always return a result of type `bool`.
 
 ```rust
     if {boolean_expression} {
-        {statment};
-        ...
-    } [else {
-        {statment};
-        ...
+        {statement};*
+        {expression}?
+    } [else if {boolean_expression} {
+        {statement};*
+        {expression}?
+    }] [else {
+        {statement};*
+        {expression}?
     }];
 ```
 
@@ -393,7 +403,7 @@ Comparison always return a result of type `bool`.
 - heavy function calls must be optimized with a stack (to explain in detail; this is tricky because it must be applied to the nested function calls)
 :::
 
-Conditional blocks can return value, following the rust rules:
+Conditional blocks can return value, following the Rust rules:
 
 ```rust
 let max = if a > b { 
@@ -421,11 +431,7 @@ Both branches must return the same type in this case.
 :::
 
 ```rust
-for i in 0..7 {
-    // ...
-}
-
-for j in 15..1 while j > n {
+for i in 0..7 while i > n {
     // ...
 }
 ```
@@ -437,11 +443,11 @@ let square = match a {
     1 => { 1 },
     2 => 4,
     3 => 9,
-    _ => painc("unexpected value"),
+    _ => panic("unexpected value"),
 }
 ```
 
-`match` follows the rust rules.
+`match` follows the Rust rules.
 
 :::info
 `match` will be implemented as a series of conditionals.
@@ -451,9 +457,8 @@ let square = match a {
 
 ```rust
 fn {function_name}({arguments}) [-> {result_type}] {
-    {statement};
-    ...
-    {result_expression}
+    {statement}*    
+    {expression}
 }
 ```
 
@@ -471,7 +476,7 @@ fn pow(x: uint8, y: uint8) -> uint8 {
     for i in 0..8 {
         if i < y {
             r = r * x;
-        }
+        };
     };
     r 
 }
@@ -490,7 +495,7 @@ require(a == b, "a and b must be equal"); // custom name
 
 ### Debug traces
 
-Jab provides an embedded `debug!()` macro which follows the rust format syntax:
+Jab provides an embedded `debug!()` macro which follows the Rust format syntax:
 
 ```rust
 debug!("a = {}, b = {}", a, b);
@@ -521,23 +526,20 @@ let t: (uint8, bool, bool) = slice.from_bits();
 - curve primitives: `ecc`
 
 ## Reserved keywords
-
-- input
+- inputs
 - witness
-- as
+- require
+- debug
+- let
 - mut
 - for
-- while
-- break
+- in
 - if
-- struct
-- fn
-- return
+- else
 - bool
+- uint8 ... uint248
+- int8 ... int248
+- field
 - true
 - false
-- uint8...
-- int8...
-- unity
-- pub
-- use
+- as
