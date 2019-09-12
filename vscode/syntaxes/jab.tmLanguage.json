@@ -7,34 +7,24 @@
 		},
 		{
 			"include": "#strings"
+		},
+		{
+			"include": "#constants"
+		},
+		{
+			"include": "#comments"
 		}
 	],
 	"repository": {
 		"keywords": {
 			"patterns": [
 				{
-					"name": "keyword.domain.jab",
-					"match": "\\b(inputs|witness|require|debug)\\b"
-				},
-				{
-					"name": "keyword.declaration.jab",
-					"match": "\\b(let|mut)\\b"
-				},
-				{
 					"name": "keyword.control.jab",
-					"match": "\\b(for|in|if|else)\\b"
+					"match": "\\b(for|in|if|else|true|false|as)\\b"
 				},
 				{
-					"name": "keyword.type.jab",
-					"match": "\\b(bool|int[0-9]+|uint[0-9]+|field)\\b"
-				},
-				{
-					"name": "keyword.literal.jab",
-					"match": "\\b(true|false)\\b"
-				},
-				{
-					"name": "keyword.operator.jab",
-					"match": "\\b(as)\\b"
+					"name": "keyword.other",
+					"match": "\\b(inputs|witness|require|debug|let|mut|bool|uint[0-9]+|int[0-9]+|field)\\b"
 				}
 			]
 		},
@@ -46,6 +36,28 @@
 				{
 					"name": "constant.character.escape.jab",
 					"match": "\\\\."
+				}
+			]
+		},
+		"constants": {
+			"patterns": [
+				{
+					"name": "constant.numeric.jab",
+					"match": "\\b(0|[1-9][0-9]*|0x[0-9a-fA-F]+)\\b"
+				}
+			]
+		},
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.jab",
+					"begin": "//",
+					"end": "\n"
+				},
+				{
+					"name": "comment.block.jab",
+					"begin": "/\\*",
+					"end": "\\*/"
 				}
 			]
 		}
