@@ -1,0 +1,17 @@
+/*
+    The generated test
+*/
+
+inputs {
+    a: uint8;
+    x: uint8;
+}
+
+witness {
+    b: uint8;
+}
+
+let c = 2 * a + 3 * (b + 15 - 64) - 25 * x;
+2 + 2;
+debug(c);
+require(c, "require_test");

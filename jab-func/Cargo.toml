@@ -1,0 +1,11 @@
+[package]
+name = "jab-func"
+version = "0.1.0"
+authors = ["hedgar2017 <hedgar2017@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+bellman = { package = "bellman_ce", version = "0.3.0" }
+ff = { package = "ff_ce", version = "0.6.0", features = ["derive"] }
+pairing = { package = "pairing_ce", version = "0.17.0" }
+franklin-crypto = { path = "../../franklin-crypto" }
