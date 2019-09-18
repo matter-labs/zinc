@@ -12,6 +12,7 @@ witness {
 }
 
 let c = 2 * a + 3 * (b + 15 - 64) - 25 * x;
-2 + 2;
+let d = 147;
+let cond = c == -d;
 debug(c);
-require(c, "require_test");
+require(cond, "require_test");

@@ -42,13 +42,13 @@ impl Writer {
 
         self.generator.borrow_mut().write_synthesize_header();
         for input in program.inputs.iter() {
-            self.generator.borrow_mut().write_synthesize_input(input);
+            self.generator.borrow_mut().write_allocate_input(input);
         }
         self.generator.borrow_mut().write_empty_line();
         for witness in program.witnesses.iter() {
             self.generator
                 .borrow_mut()
-                .write_synthesize_witness(witness);
+                .write_allocate_witness(witness);
         }
         self.generator.borrow_mut().write_empty_line();
         for statement in program.statements.into_iter() {
@@ -76,20 +76,20 @@ impl Writer {
                 );
             }
             Statement::Require(require) => {
-                let lvalue = format!("expression_{}_result", self.next_sequence());
-                let rvalue = self.evaluate(require.expression)?;
-                self.generator.borrow_mut().write_expression_result(&lvalue, &rvalue);
+                let lvalue = self.evaluate(require.expression)?;
                 self.generator.borrow_mut().write_require(&lvalue, &require.id);
             }
             Statement::Loop(r#loop) => {
                 unimplemented!();
             }
             Statement::Expression(expression) => {
-                let lvalue = format!("expression_{}_result", self.next_sequence());
+                let lvalue = format!("temp_{}", self.next_sequence());
                 let rvalue = self.evaluate(expression)?;
-                self.generator.borrow_mut().write_expression_result(&lvalue, &rvalue);
+                self.generator.borrow_mut().write_expression(&lvalue, &rvalue);
             }
         }
+        self.generator.borrow_mut().write_empty_line();
+
         Ok(())
     }
 
@@ -108,7 +108,19 @@ impl Writer {
             match expression_element.object {
                 OperatorExpressionObject::Operand(operand) => self.stack.push(operand),
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Assignment) => {
-                    unimplemented!();
+                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let result_lvalue = format!("temp_{}", self.next_sequence());
+                    self.generator.borrow_mut().write_assignment(
+                        &operand_1,
+                        &operand_2,
+                    );
+                    self.generator.borrow_mut().write_empty_line();
+
+                    self.stack
+                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                            expression_element.token.location,
+                            result_lvalue,
+                        )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Range) => {
                     panic!("The range operator cannot be used in expressions (yet)")
@@ -123,72 +135,110 @@ impl Writer {
                     unimplemented!();
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Equal) => {
-                    unimplemented!();
+                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let result_lvalue = format!("temp_{}", self.next_sequence());
+                    self.generator.borrow_mut().write_equals(
+                        &result_lvalue,
+                        &operand_1,
+                        &operand_2,
+                    );
+                    self.generator.borrow_mut().write_empty_line();
+
+                    self.stack
+                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                            expression_element.token.location,
+                            result_lvalue,
+                        )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::NotEqual) => {
-                    unimplemented!();
+                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let result_lvalue = format!("temp_{}", self.next_sequence());
+                    self.generator.borrow_mut().write_not_equals(
+                        &result_lvalue,
+                        &operand_1,
+                        &operand_2,
+                    );
+                    self.generator.borrow_mut().write_empty_line();
+
+                    self.stack
+                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                            expression_element.token.location,
+                            result_lvalue,
+                        )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::GreaterEqual) => {
-                    unimplemented!();
+                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let result_lvalue = format!("temp_{}", self.next_sequence());
+                    self.generator.borrow_mut().write_greater_equals(
+                        &result_lvalue,
+                        &operand_1,
+                        &operand_2,
+                    );
+                    self.generator.borrow_mut().write_empty_line();
+
+                    self.stack
+                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                            expression_element.token.location,
+                            result_lvalue,
+                        )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::LesserEqual) => {
-                    unimplemented!();
+                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let result_lvalue = format!("temp_{}", self.next_sequence());
+                    self.generator.borrow_mut().write_lesser_equals(
+                        &result_lvalue,
+                        &operand_1,
+                        &operand_2,
+                    );
+                    self.generator.borrow_mut().write_empty_line();
+
+                    self.stack
+                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                            expression_element.token.location,
+                            result_lvalue,
+                        )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Greater) => {
-                    unimplemented!();
+                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let result_lvalue = format!("temp_{}", self.next_sequence());
+                    self.generator.borrow_mut().write_greater(
+                        &result_lvalue,
+                        &operand_1,
+                        &operand_2,
+                    );
+                    self.generator.borrow_mut().write_empty_line();
+
+                    self.stack
+                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                            expression_element.token.location,
+                            result_lvalue,
+                        )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Lesser) => {
-                    unimplemented!();
+                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let result_lvalue = format!("temp_{}", self.next_sequence());
+                    self.generator.borrow_mut().write_lesser(
+                        &result_lvalue,
+                        &operand_1,
+                        &operand_2,
+                    );
+                    self.generator.borrow_mut().write_empty_line();
+
+                    self.stack
+                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                            expression_element.token.location,
+                            result_lvalue,
+                        )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition) => {
-                    let operand_2 = self.stack.pop().unwrap();
-                    let operand_2_lvalue = format!(
-                        "line_{}_{}_addition_operand_2",
-                        expression_element.token.location.line(),
-                        expression_element.token.location.column()
-                    );
-                    let operand_2_rvalue = Self::stringify_operand(&operand_2);
-                    match &operand_2 {
-                        OperatorExpressionOperand::Literal(..) => self
-                            .generator
-                            .borrow_mut()
-                            .write_alloc_literal(&operand_2_lvalue, &operand_2_rvalue),
-                        OperatorExpressionOperand::Identifier(..) => self
-                            .generator
-                            .borrow_mut()
-                            .write_reassign_identifier(&operand_2_lvalue, &operand_2_rvalue),
-                        _ => unimplemented!(),
-                    }
-
-                    let operand_1 = self.stack.pop().unwrap();
-                    let operand_1_lvalue = format!(
-                        "line_{}_{}_addition_operand_1",
-                        expression_element.token.location.line(),
-                        expression_element.token.location.column()
-                    );
-                    let operand_1_rvalue = Self::stringify_operand(&operand_1);
-                    match &operand_1 {
-                        OperatorExpressionOperand::Literal(..) => self
-                            .generator
-                            .borrow_mut()
-                            .write_alloc_literal(&operand_1_lvalue, &operand_1_rvalue),
-                        OperatorExpressionOperand::Identifier(..) => self
-                            .generator
-                            .borrow_mut()
-                            .write_reassign_identifier(&operand_1_lvalue, &operand_1_rvalue),
-                        _ => unimplemented!(),
-                    }
-
-                    let result_lvalue = format!(
-                        "line_{}_{}_addition_result",
-                        expression_element.token.location.line(),
-                        expression_element.token.location.column()
-                    );
-                    self.generator.borrow_mut().write_sum_result(
+                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let result_lvalue = format!("temp_{}", self.next_sequence());
+                    self.generator.borrow_mut().write_addition(
                         &result_lvalue,
-                        &operand_1_lvalue,
-                        &operand_2_lvalue,
+                        &operand_1,
+                        &operand_2,
                     );
+                    self.generator.borrow_mut().write_empty_line();
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -197,54 +247,14 @@ impl Writer {
                         )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Subtraction) => {
-                    let operand_2 = self.stack.pop().unwrap();
-                    let operand_2_lvalue = format!(
-                        "line_{}_{}_subtraction_operand_2",
-                        expression_element.token.location.line(),
-                        expression_element.token.location.column()
-                    );
-                    let operand_2_rvalue = Self::stringify_operand(&operand_2);
-                    match &operand_2 {
-                        OperatorExpressionOperand::Literal(..) => self
-                            .generator
-                            .borrow_mut()
-                            .write_alloc_literal(&operand_2_lvalue, &operand_2_rvalue),
-                        OperatorExpressionOperand::Identifier(..) => self
-                            .generator
-                            .borrow_mut()
-                            .write_reassign_identifier(&operand_2_lvalue, &operand_2_rvalue),
-                        _ => unimplemented!(),
-                    }
-
-                    let operand_1 = self.stack.pop().unwrap();
-                    let operand_1_lvalue = format!(
-                        "line_{}_{}_subtraction_operand_1",
-                        expression_element.token.location.line(),
-                        expression_element.token.location.column()
-                    );
-                    let operand_1_rvalue = Self::stringify_operand(&operand_1);
-                    match &operand_1 {
-                        OperatorExpressionOperand::Literal(..) => self
-                            .generator
-                            .borrow_mut()
-                            .write_alloc_literal(&operand_1_lvalue, &operand_1_rvalue),
-                        OperatorExpressionOperand::Identifier(..) => self
-                            .generator
-                            .borrow_mut()
-                            .write_reassign_identifier(&operand_1_lvalue, &operand_1_rvalue),
-                        _ => unimplemented!(),
-                    }
-
-                    let result_lvalue = format!(
-                        "line_{}_{}_subtraction_result",
-                        expression_element.token.location.line(),
-                        expression_element.token.location.column()
-                    );
-                    self.generator.borrow_mut().write_diff_result(
+                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let result_lvalue = format!("temp_{}", self.next_sequence());
+                    self.generator.borrow_mut().write_subtraction(
                         &result_lvalue,
-                        &operand_1_lvalue,
-                        &operand_2_lvalue,
+                        &operand_1,
+                        &operand_2,
                     );
+                    self.generator.borrow_mut().write_empty_line();
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -253,54 +263,14 @@ impl Writer {
                         )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Multiplication) => {
-                    let operand_2 = self.stack.pop().unwrap();
-                    let operand_2_lvalue = format!(
-                        "line_{}_{}_multiplication_operand_2",
-                        expression_element.token.location.line(),
-                        expression_element.token.location.column()
-                    );
-                    let operand_2_rvalue = Self::stringify_operand(&operand_2);
-                    match &operand_2 {
-                        OperatorExpressionOperand::Literal(..) => self
-                            .generator
-                            .borrow_mut()
-                            .write_alloc_literal(&operand_2_lvalue, &operand_2_rvalue),
-                        OperatorExpressionOperand::Identifier(..) => self
-                            .generator
-                            .borrow_mut()
-                            .write_reassign_identifier(&operand_2_lvalue, &operand_2_rvalue),
-                        _ => unimplemented!(),
-                    }
-
-                    let operand_1 = self.stack.pop().unwrap();
-                    let operand_1_lvalue = format!(
-                        "line_{}_{}_multiplication_operand_1",
-                        expression_element.token.location.line(),
-                        expression_element.token.location.column()
-                    );
-                    let operand_1_rvalue = Self::stringify_operand(&operand_1);
-                    match &operand_1 {
-                        OperatorExpressionOperand::Literal(..) => self
-                            .generator
-                            .borrow_mut()
-                            .write_alloc_literal(&operand_1_lvalue, &operand_1_rvalue),
-                        OperatorExpressionOperand::Identifier(..) => self
-                            .generator
-                            .borrow_mut()
-                            .write_reassign_identifier(&operand_1_lvalue, &operand_1_rvalue),
-                        _ => unimplemented!(),
-                    }
-
-                    let result_lvalue = format!(
-                        "line_{}_{}_multiplication_result",
-                        expression_element.token.location.line(),
-                        expression_element.token.location.column()
-                    );
-                    self.generator.borrow_mut().write_mul_result(
+                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let result_lvalue = format!("temp_{}", self.next_sequence());
+                    self.generator.borrow_mut().write_multiplication(
                         &result_lvalue,
-                        &operand_1_lvalue,
-                        &operand_2_lvalue,
+                        &operand_1,
+                        &operand_2,
                     );
+                    self.generator.borrow_mut().write_empty_line();
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -318,17 +288,51 @@ impl Writer {
                     unimplemented!();
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Negation) => {
-                    unimplemented!();
+                    let operand_1 = self.get_unary_operand();
+                    let result_lvalue = format!("temp_{}", self.next_sequence());
+                    self.generator.borrow_mut().write_negation(
+                        &result_lvalue,
+                        &operand_1,
+                    );
+                    self.generator.borrow_mut().write_empty_line();
+
+                    self.stack
+                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                            expression_element.token.location,
+                            result_lvalue,
+                        )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Not) => {
-                    unimplemented!();
+                    let operand_1 = self.get_unary_operand();
+                    let result_lvalue = format!("temp_{}", self.next_sequence());
+                    self.generator.borrow_mut().write_not(
+                        &result_lvalue,
+                        &operand_1,
+                    );
+                    self.generator.borrow_mut().write_empty_line();
+
+                    self.stack
+                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                            expression_element.token.location,
+                            result_lvalue,
+                        )));
                 }
             }
         }
 
-        Ok(Self::stringify_operand(
-            &self.stack.pop().expect("Must contain an element"),
-        ))
+        Ok(match self.stack.pop().expect("Must contain an element") {
+            OperatorExpressionOperand::Identifier(ref identifier) => identifier.name().to_owned(),
+            OperatorExpressionOperand::Literal(ref literal) => {
+                let literal = literal.to_string();
+                let operand_1_lvalue = format!("temp_{}", self.next_sequence());
+                self
+                    .generator
+                    .borrow_mut()
+                    .write_allocate(&operand_1_lvalue, &literal);
+                operand_1_lvalue
+            },
+            _ => unimplemented!(),
+        })
     }
 
     fn evaluate_block(&mut self, block: BlockExpression) -> Result<String, Error> {
@@ -380,10 +384,56 @@ impl Writer {
         //        }
     }
 
-    fn stringify_operand(operand: &OperatorExpressionOperand) -> String {
-        match operand {
-            OperatorExpressionOperand::Identifier(identifier) => identifier.name().to_owned(),
-            OperatorExpressionOperand::Literal(literal) => literal.to_string(),
+    fn get_binary_operands(&mut self) -> (String, String) {
+        let operand_1 = match self.stack.pop().unwrap() {
+            OperatorExpressionOperand::Identifier(ref identifier) => {
+                identifier.name().to_owned()
+            },
+            OperatorExpressionOperand::Literal(ref literal) => {
+                let literal = literal.to_string();
+                let operand_1_lvalue = format!("temp_{}", self.next_sequence());
+                self
+                    .generator
+                    .borrow_mut()
+                    .write_allocate(&operand_1_lvalue, &literal);
+                operand_1_lvalue
+            },
+            _ => unimplemented!(),
+        };
+
+        let operand_2 = match self.stack.pop().unwrap() {
+            OperatorExpressionOperand::Identifier(ref identifier) => {
+                identifier.name().to_owned()
+            },
+            OperatorExpressionOperand::Literal(ref literal) => {
+                let literal = literal.to_string();
+                let operand_1_lvalue = format!("temp_{}", self.next_sequence());
+                self
+                    .generator
+                    .borrow_mut()
+                    .write_allocate(&operand_1_lvalue, &literal);
+                operand_1_lvalue
+            },
+            _ => unimplemented!(),
+        };
+
+        (operand_1, operand_2)
+    }
+
+    fn get_unary_operand(&mut self) -> String {
+        match self.stack.pop().unwrap() {
+            OperatorExpressionOperand::Identifier(ref identifier) => {
+                identifier.name().to_owned()
+            },
+            OperatorExpressionOperand::Literal(ref literal) => {
+                let literal = literal.to_string();
+                let operand_1_lvalue = format!("temp_{}", self.next_sequence());
+                self
+                    .generator
+                    .borrow_mut()
+                    .write_allocate(&operand_1_lvalue, &literal);
+                operand_1_lvalue
+            },
             _ => unimplemented!(),
         }
     }

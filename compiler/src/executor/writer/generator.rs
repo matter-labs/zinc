@@ -30,6 +30,130 @@ impl Generator {
         self.offset -= 4;
     }
 
+    pub fn write_let(&mut self, is_mutable: bool, lvalue: &str, rvalue: &str) {
+        let string = format!(
+            "let{} {} = {};",
+            if is_mutable { " mut" } else { "" },
+            lvalue,
+            rvalue,
+        );
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_debug(&mut self, rvalue: &str) {
+        let string = format!(r#"dbg!({}.get_variable());"#, rvalue);
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_require(&mut self, expression: &str, name: &str) {
+        let string = format!(r#"jab::require(&mut cs, &{}, "{}");"#, expression, name);
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_expression(&mut self, lvalue: &str, rvalue: &str) {
+        let string = format!(
+            r#"let {} = {};"#,
+            lvalue, rvalue
+        );
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_assignment(&mut self, lvalue: &str, rvalue: &str) {
+        let string = format!(
+            r#"{} = {};"#,
+            lvalue, rvalue
+        );
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_addition(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
+        let string = format!(
+            r#"let {} = jab::addition(&mut cs, &{}, &{}, "{}", 254)?.0;"#,
+            lvalue, operand_1, operand_2, lvalue
+        );
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_subtraction(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
+        let string = format!(
+            r#"let {} = jab::subtraction(&mut cs, &{}, &{}, "{}", 254)?.0;"#,
+            lvalue, operand_1, operand_2, lvalue
+        );
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_multiplication(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
+        let string = format!(
+            r#"let {} = jab::multiplication(&mut cs, &{}, &{}, "{}", 254)?.0;"#,
+            lvalue, operand_1, operand_2, lvalue
+        );
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_equals(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
+        let string = format!(
+            r#"let {} = jab::equals(&mut cs, &{}, &{}, "{}", 254)?;"#,
+            lvalue, operand_1, operand_2, lvalue
+        );
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_not_equals(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
+        let string = format!(
+            r#"let {} = jab::not_equals(&mut cs, &{}, &{}, "{}", 254)?;"#,
+            lvalue, operand_1, operand_2, lvalue
+        );
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_greater_equals(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
+        let string = format!(
+            r#"let {} = jab::greater_equals(&mut cs, &{}, &{}, "{}", 254)?;"#,
+            lvalue, operand_1, operand_2, lvalue
+        );
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_lesser_equals(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
+        let string = format!(
+            r#"let {} = jab::lesser_equals(&mut cs, &{}, &{}, "{}", 254)?;"#,
+            lvalue, operand_1, operand_2, lvalue
+        );
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_greater(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
+        let string = format!(
+            r#"let {} = jab::greater(&mut cs, &{}, &{}, "{}", 254)?;"#,
+            lvalue, operand_1, operand_2, lvalue
+        );
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_lesser(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
+        let string = format!(
+            r#"let {} = jab::lesser(&mut cs, &{}, &{}, "{}", 254)?;"#,
+            lvalue, operand_1, operand_2, lvalue
+        );
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_negation(&mut self, lvalue: &str, operand_1: &str) {
+        let string = format!(
+            r#"let {} = jab::negation(&mut cs, &{}, "{}", 254)?.0;"#,
+            lvalue, operand_1, lvalue
+        );
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_not(&mut self, lvalue: &str, operand_1: &str) {
+        let string = format!(
+            r#"let {} = jab::not(&mut cs, &{}, "{}")?;"#,
+            lvalue, operand_1, lvalue
+        );
+        self.write_shifted_line(&string);
+    }
+
     pub fn write_imports(&mut self) {
         self.write_line("use bellman::Circuit;");
         self.write_line("use bellman::ConstraintSystem;");
@@ -52,9 +176,9 @@ impl Generator {
         self.write_line("    fn synthesize<CS: ConstraintSystem<Bn256>>(self, mut cs: &mut CS) -> Result<(), SynthesisError> {");
     }
 
-    pub fn write_synthesize_input(&mut self, input: &Input) {
+    pub fn write_allocate_input(&mut self, input: &Input) {
         let bitlength = match input.r#type().variant() {
-            TypeVariant::Void => unimplemented!(),
+            TypeVariant::Void => panic!("Witness must be a numeric value"),
             TypeVariant::Bool => 1,
             TypeVariant::Int { bitlength } => bitlength,
             TypeVariant::Uint { bitlength } => bitlength,
@@ -69,9 +193,9 @@ impl Generator {
         self.write_shifted_line(&string);
     }
 
-    pub fn write_synthesize_witness(&mut self, witness: &Witness) {
+    pub fn write_allocate_witness(&mut self, witness: &Witness) {
         let bitlength = match witness.r#type().variant() {
-            TypeVariant::Void => unimplemented!(),
+            TypeVariant::Void => panic!("Witness must be a numeric value"),
             TypeVariant::Bool => 1,
             TypeVariant::Int { bitlength } => bitlength,
             TypeVariant::Uint { bitlength } => bitlength,
@@ -86,70 +210,12 @@ impl Generator {
         self.write_shifted_line(&string);
     }
 
-    pub fn write_let(&mut self, is_mutable: bool, lvalue: &str, rvalue: &str) {
-        let string = format!(
-            "let{} {} = {};",
-            if is_mutable { " mut" } else { "" },
-            lvalue,
-            rvalue,
-        );
-        self.write_shifted_line(&string);
-    }
-
-    pub fn write_debug(&mut self, rvalue: &str) {
-        let string = format!(r#"dbg!({}.get_variable());"#, rvalue);
-        self.write_shifted_line(&string);
-    }
-
-    pub fn write_require(&mut self, expression: &str, name: &str) {
-        let string = format!(r#"jab::require(&mut cs, {}, "{}");"#, expression, name);
-        self.write_shifted_line(&string);
-    }
-
-    pub fn write_alloc_literal(&mut self, lvalue: &str, rvalue: &str) {
+    pub fn write_allocate(&mut self, lvalue: &str, rvalue: &str) {
         let string = format!(r#"let {} = AllocatedNum::alloc(cs.namespace(|| "{}"), || Ok(Fr::from_str("{}").unwrap()))?;"#, lvalue, lvalue, rvalue);
         self.write_shifted_line(&string);
     }
 
-    pub fn write_reassign_identifier(&mut self, lvalue: &str, rvalue: &str) {
-        let string = format!(r#"let {} = {};"#, lvalue, rvalue);
-        self.write_shifted_line(&string);
-    }
-
-    pub fn write_sum_result(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
-        let string = format!(
-            r#"let {} = jab::sum(&mut cs, &{}, &{}, "{}", 254)?.0;"#,
-            lvalue, operand_1, operand_2, lvalue
-        );
-        self.write_shifted_line(&string);
-    }
-
-    pub fn write_diff_result(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
-        let string = format!(
-            r#"let {} = jab::diff(&mut cs, &{}, &{}, "{}", 254)?.0;"#,
-            lvalue, operand_1, operand_2, lvalue
-        );
-        self.write_shifted_line(&string);
-    }
-
-    pub fn write_mul_result(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
-        let string = format!(
-            r#"let {} = jab::mul(&mut cs, &{}, &{}, "{}", 254)?.0;"#,
-            lvalue, operand_1, operand_2, lvalue
-        );
-        self.write_shifted_line(&string);
-    }
-
-    pub fn write_expression_result(&mut self, lvalue: &str, rvalue: &str) {
-        let string = format!(
-            r#"let {} = {};"#,
-            lvalue, rvalue
-        );
-        self.write_shifted_line(&string);
-    }
-
     pub fn write_synthesize_trailer(&mut self) {
-        self.write_empty_line();
         self.write_line("        Ok(())");
         self.write_line("    }");
         self.write_line("}");
