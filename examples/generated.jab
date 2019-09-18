@@ -11,8 +11,12 @@ witness {
     b: uint8;
 }
 
-let c = 2 * a + 3 * (b + 15 - 64) - 25 * x;
-let d = 147;
+let c = 2 * a + 3 * (b + 15 - 64) - 25 * x + ({ 2 + {5 + 4} });
+let d = 136;
 let cond = c == -d;
 debug(c);
-require(cond, "require_test");
+require(cond || true, "require_test");
+
+for i in 0..10 {
+    debug(i);
+};

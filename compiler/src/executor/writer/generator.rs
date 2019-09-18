@@ -66,25 +66,25 @@ impl Generator {
         self.write_shifted_line(&string);
     }
 
-    pub fn write_addition(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
+    pub fn write_or(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
         let string = format!(
-            r#"let {} = jab::addition(&mut cs, &{}, &{}, "{}", 254)?.0;"#,
+            r#"let {} = jab::or(&mut cs, &{}, &{}, "{}")?;"#,
             lvalue, operand_1, operand_2, lvalue
         );
         self.write_shifted_line(&string);
     }
 
-    pub fn write_subtraction(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
+    pub fn write_xor(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
         let string = format!(
-            r#"let {} = jab::subtraction(&mut cs, &{}, &{}, "{}", 254)?.0;"#,
+            r#"let {} = jab::xor(&mut cs, &{}, &{}, "{}")?;"#,
             lvalue, operand_1, operand_2, lvalue
         );
         self.write_shifted_line(&string);
     }
 
-    pub fn write_multiplication(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
+    pub fn write_and(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
         let string = format!(
-            r#"let {} = jab::multiplication(&mut cs, &{}, &{}, "{}", 254)?.0;"#,
+            r#"let {} = jab::and(&mut cs, &{}, &{}, "{}")?;"#,
             lvalue, operand_1, operand_2, lvalue
         );
         self.write_shifted_line(&string);
@@ -138,6 +138,30 @@ impl Generator {
         self.write_shifted_line(&string);
     }
 
+    pub fn write_addition(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
+        let string = format!(
+            r#"let {} = jab::addition(&mut cs, &{}, &{}, "{}", 254)?.0;"#,
+            lvalue, operand_1, operand_2, lvalue
+        );
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_subtraction(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
+        let string = format!(
+            r#"let {} = jab::subtraction(&mut cs, &{}, &{}, "{}", 254)?.0;"#,
+            lvalue, operand_1, operand_2, lvalue
+        );
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_multiplication(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
+        let string = format!(
+            r#"let {} = jab::multiplication(&mut cs, &{}, &{}, "{}", 254)?.0;"#,
+            lvalue, operand_1, operand_2, lvalue
+        );
+        self.write_shifted_line(&string);
+    }
+
     pub fn write_negation(&mut self, lvalue: &str, operand_1: &str) {
         let string = format!(
             r#"let {} = jab::negation(&mut cs, &{}, "{}", 254)?.0;"#,
@@ -162,6 +186,7 @@ impl Generator {
         self.write_line("use ff::PrimeField;");
         self.write_line("use pairing::bn256::Bn256;");
         self.write_line("use pairing::bn256::Fr;");
+        self.write_line("use franklin_crypto::circuit::boolean::Boolean;");
         self.write_line("use franklin_crypto::circuit::num::AllocatedNum;");
         self.write_empty_line();
     }
@@ -210,8 +235,19 @@ impl Generator {
         self.write_shifted_line(&string);
     }
 
-    pub fn write_allocate(&mut self, lvalue: &str, rvalue: &str) {
+    pub fn write_allocate_boolean(&mut self, lvalue: &str, rvalue: &str) {
+        let string = format!(r#"let {} = Boolean::constant({});"#, lvalue, rvalue);
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_allocate_number_constant(&mut self, lvalue: &str, rvalue: &str) {
         let string = format!(r#"let {} = AllocatedNum::alloc(cs.namespace(|| "{}"), || Ok(Fr::from_str("{}").unwrap()))?;"#, lvalue, lvalue, rvalue);
+        self.write_shifted_line(&string);
+    }
+
+    pub fn write_allocate_number_variable(&mut self, lvalue: &str, rvalue: &str, name: &str) {
+        self.write_shifted_line(&format!(r#"let iter_name = format!("{}_{{}}", {});"#, name, lvalue));
+        let string = format!(r#"let {} = AllocatedNum::alloc(cs.namespace(|| iter_name), || Ok(Fr::from_str({}.to_string().as_str()).unwrap()))?;"#, lvalue, rvalue);
         self.write_shifted_line(&string);
     }
 

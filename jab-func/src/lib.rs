@@ -78,6 +78,60 @@ where
 }
 
 ///
+/// The or logical function.
+///
+/// Transpiles from:
+/// `a || b`
+///
+pub fn or<CS>(
+    system: CS,
+    a: &Boolean,
+    b: &Boolean,
+    _name: &str,
+) -> Result<Boolean, SynthesisError>
+    where
+        CS: ConstraintSystem<Bn256>,
+{
+    Ok(Boolean::and(system, &a.not(), &b.not())?.not())
+}
+
+///
+/// The xor logical function.
+///
+/// Transpiles from:
+/// `a ^^ b`
+///
+pub fn xor<CS>(
+    system: CS,
+    a: &Boolean,
+    b: &Boolean,
+    _name: &str,
+) -> Result<Boolean, SynthesisError>
+    where
+        CS: ConstraintSystem<Bn256>,
+{
+    Ok(Boolean::xor(system, a, b)?)
+}
+
+///
+/// The and logical function.
+///
+/// Transpiles from:
+/// `a && b`
+///
+pub fn and<CS>(
+    system: CS,
+    a: &Boolean,
+    b: &Boolean,
+    _name: &str,
+) -> Result<Boolean, SynthesisError>
+    where
+        CS: ConstraintSystem<Bn256>,
+{
+    Ok(Boolean::and(system, a, b)?)
+}
+
+///
 /// The equals comparison function.
 ///
 /// Transpiles from:
