@@ -26,7 +26,7 @@ impl Require {
         let id = tag
             .as_ref()
             .map(|tag| format!("{}", tag))
-            .unwrap_or_else(|| location.to_string());
+            .unwrap_or_else(|| format!("{}_{}", location.line(), location.column()));
 
         Self {
             location,

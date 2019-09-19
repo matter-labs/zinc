@@ -25,8 +25,6 @@ use crate::syntax::Statement;
 pub struct Writer {
     stack: Vec<OperatorExpressionOperand>,
     generator: Rc<RefCell<Generator>>,
-    id_sequence: usize,
-    loop_index_name_stack: Vec<String>,
 }
 
 impl Writer {
@@ -34,20 +32,19 @@ impl Writer {
         Self {
             stack: Default::default(),
             generator,
-            id_sequence: 0,
-            loop_index_name_stack: Vec::with_capacity(4),
         }
     }
 
     pub fn translate(&mut self, program: CircuitProgram) -> Result<(), Error> {
         self.generator.borrow_mut().write_imports();
-        self.generator.borrow_mut().write_circuit_declaration();
+        self.generator
+            .borrow_mut()
+            .write_circuit_declaration(program.inputs.as_slice(), program.witnesses.as_slice());
 
-        self.generator.borrow_mut().write_synthesize_header();
+        self.generator.borrow_mut().write_circuit_header();
         for input in program.inputs.iter() {
             self.generator.borrow_mut().write_allocate_input(input);
         }
-        self.generator.borrow_mut().write_empty_line();
         for witness in program.witnesses.iter() {
             self.generator.borrow_mut().write_allocate_witness(witness);
         }
@@ -55,7 +52,7 @@ impl Writer {
         for statement in program.statements.into_iter() {
             self.statement(statement)?;
         }
-        self.generator.borrow_mut().write_synthesize_trailer();
+        self.generator.borrow_mut().write_circuit_trailer();
 
         Ok(())
     }
@@ -83,37 +80,29 @@ impl Writer {
                     .write_require(&lvalue, &require.id);
             }
             Statement::Loop(r#loop) => {
-                self.generator.borrow_mut().write_line(&format!(
+                self.generator.borrow_mut().write_line(format!(
                     "for {}_index in {}..{} {{",
                     r#loop.index_identifier, r#loop.range_start, r#loop.range_end
                 ));
                 self.generator.borrow_mut().increase_offset();
-                let name = self.next_id();
-                self.loop_index_name_stack
-                    .push(r#loop.index_identifier.name().to_owned());
                 self.generator
                     .borrow_mut()
-                    .write_allocate_number_loop_index(
-                        r#loop.index_identifier.name(),
-                        &self.loop_index_name_stack,
-                        &name,
-                    );
+                    .enter_loop(r#loop.index_identifier.name());
+                self.generator
+                    .borrow_mut()
+                    .write_allocate_number_loop_index(r#loop.index_identifier.name());
                 for statement in r#loop.block.statements {
                     self.statement(statement)?;
                 }
                 if let Some(expression) = r#loop.block.expression {
                     self.evaluate(*expression)?;
                 }
-                self.loop_index_name_stack.pop();
+                self.generator.borrow_mut().exit_loop();
                 self.generator.borrow_mut().decrease_offset();
-                self.generator.borrow_mut().write_line("}");
+                self.generator.borrow_mut().write_line("}".to_owned());
             }
             Statement::Expression(expression) => {
-                let lvalue = self.next_id();
-                let rvalue = self.evaluate(expression)?;
-                self.generator
-                    .borrow_mut()
-                    .write_expression(&lvalue, &rvalue);
+                self.evaluate(expression)?;
             }
         }
 
@@ -136,7 +125,6 @@ impl Writer {
                 OperatorExpressionObject::Operand(operand) => self.stack.push(operand),
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Assignment) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
-                    let result_lvalue = self.next_id();
                     self.generator
                         .borrow_mut()
                         .write_assignment(&operand_1, &operand_2);
@@ -144,7 +132,7 @@ impl Writer {
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
                             expression_element.token.location,
-                            result_lvalue,
+                            "VOID".to_owned(),
                         )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Range) => {
@@ -152,176 +140,155 @@ impl Writer {
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Or) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
-                    let result_lvalue = self.next_id();
-                    self.generator
-                        .borrow_mut()
-                        .write_or(&result_lvalue, &operand_1, &operand_2);
+                    let id = self.generator.borrow_mut().write_or(&operand_1, &operand_2);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
                             expression_element.token.location,
-                            result_lvalue,
+                            id,
                         )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Xor) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
-                    let result_lvalue = self.next_id();
-                    self.generator
+                    let id = self
+                        .generator
                         .borrow_mut()
-                        .write_xor(&result_lvalue, &operand_1, &operand_2);
+                        .write_xor(&operand_1, &operand_2);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
                             expression_element.token.location,
-                            result_lvalue,
+                            id,
                         )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::And) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
-                    let result_lvalue = self.next_id();
-                    self.generator
+                    let id = self
+                        .generator
                         .borrow_mut()
-                        .write_and(&result_lvalue, &operand_1, &operand_2);
+                        .write_and(&operand_1, &operand_2);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
                             expression_element.token.location,
-                            result_lvalue,
+                            id,
                         )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Equal) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
-                    let result_lvalue = self.next_id();
-                    self.generator.borrow_mut().write_equals(
-                        &result_lvalue,
-                        &operand_1,
-                        &operand_2,
-                    );
+                    let id = self
+                        .generator
+                        .borrow_mut()
+                        .write_equals(&operand_1, &operand_2);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
                             expression_element.token.location,
-                            result_lvalue,
+                            id,
                         )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::NotEqual) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
-                    let result_lvalue = self.next_id();
-                    self.generator.borrow_mut().write_not_equals(
-                        &result_lvalue,
-                        &operand_1,
-                        &operand_2,
-                    );
+                    let id = self
+                        .generator
+                        .borrow_mut()
+                        .write_not_equals(&operand_1, &operand_2);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
                             expression_element.token.location,
-                            result_lvalue,
+                            id,
                         )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::GreaterEqual) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
-                    let result_lvalue = self.next_id();
-                    self.generator.borrow_mut().write_greater_equals(
-                        &result_lvalue,
-                        &operand_1,
-                        &operand_2,
-                    );
+                    let id = self
+                        .generator
+                        .borrow_mut()
+                        .write_greater_equals(&operand_1, &operand_2);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
                             expression_element.token.location,
-                            result_lvalue,
+                            id,
                         )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::LesserEqual) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
-                    let result_lvalue = self.next_id();
-                    self.generator.borrow_mut().write_lesser_equals(
-                        &result_lvalue,
-                        &operand_1,
-                        &operand_2,
-                    );
+                    let id = self
+                        .generator
+                        .borrow_mut()
+                        .write_lesser_equals(&operand_1, &operand_2);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
                             expression_element.token.location,
-                            result_lvalue,
+                            id,
                         )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Greater) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
-                    let result_lvalue = self.next_id();
-                    self.generator.borrow_mut().write_greater(
-                        &result_lvalue,
-                        &operand_1,
-                        &operand_2,
-                    );
+                    let id = self
+                        .generator
+                        .borrow_mut()
+                        .write_greater(&operand_1, &operand_2);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
                             expression_element.token.location,
-                            result_lvalue,
+                            id,
                         )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Lesser) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
-                    let result_lvalue = self.next_id();
-                    self.generator.borrow_mut().write_lesser(
-                        &result_lvalue,
-                        &operand_1,
-                        &operand_2,
-                    );
+                    let id = self
+                        .generator
+                        .borrow_mut()
+                        .write_lesser(&operand_1, &operand_2);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
                             expression_element.token.location,
-                            result_lvalue,
+                            id,
                         )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
-                    let result_lvalue = self.next_id();
-                    self.generator.borrow_mut().write_addition(
-                        &result_lvalue,
-                        &operand_1,
-                        &operand_2,
-                    );
+                    let id = self
+                        .generator
+                        .borrow_mut()
+                        .write_addition(&operand_1, &operand_2);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
                             expression_element.token.location,
-                            result_lvalue,
+                            id,
                         )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Subtraction) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
-                    let result_lvalue = self.next_id();
-                    self.generator.borrow_mut().write_subtraction(
-                        &result_lvalue,
-                        &operand_1,
-                        &operand_2,
-                    );
+                    let id = self
+                        .generator
+                        .borrow_mut()
+                        .write_subtraction(&operand_1, &operand_2);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
                             expression_element.token.location,
-                            result_lvalue,
+                            id,
                         )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Multiplication) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
-                    let result_lvalue = self.next_id();
-                    self.generator.borrow_mut().write_multiplication(
-                        &result_lvalue,
-                        &operand_1,
-                        &operand_2,
-                    );
+                    let id = self
+                        .generator
+                        .borrow_mut()
+                        .write_multiplication(&operand_1, &operand_2);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
                             expression_element.token.location,
-                            result_lvalue,
+                            id,
                         )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Division) => {
@@ -331,32 +298,33 @@ impl Writer {
                     unimplemented!();
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Casting) => {
-                    unimplemented!();
-                }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Negation) => {
-                    let operand_1 = self.get_unary_operand()?;
-                    let result_lvalue = self.next_id();
-                    self.generator
-                        .borrow_mut()
-                        .write_negation(&result_lvalue, &operand_1);
+                    let (operand_1, _type) = self.get_binary_operands()?;
+                    let id = self.generator.borrow_mut().write_casting(&operand_1);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
                             expression_element.token.location,
-                            result_lvalue,
+                            id,
+                        )));
+                }
+                OperatorExpressionObject::Operator(OperatorExpressionOperator::Negation) => {
+                    let operand_1 = self.get_unary_operand()?;
+                    let id = self.generator.borrow_mut().write_negation(&operand_1);
+
+                    self.stack
+                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                            expression_element.token.location,
+                            id,
                         )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Not) => {
                     let operand_1 = self.get_unary_operand()?;
-                    let result_lvalue = self.next_id();
-                    self.generator
-                        .borrow_mut()
-                        .write_not(&result_lvalue, &operand_1);
+                    let id = self.generator.borrow_mut().write_not(&operand_1);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
                             expression_element.token.location,
-                            result_lvalue,
+                            id,
                         )));
                 }
             }
@@ -364,21 +332,7 @@ impl Writer {
 
         Ok(match self.stack.pop().expect("Must contain an element") {
             OperatorExpressionOperand::Identifier(identifier) => identifier.name().to_owned(),
-            OperatorExpressionOperand::Literal(literal) => {
-                let operand_1_lvalue = self.next_id();
-                match literal {
-                    Literal::Boolean(value) => self
-                        .generator
-                        .borrow_mut()
-                        .write_allocate_boolean(&operand_1_lvalue, &value.to_string()),
-                    Literal::Integer(value) => self
-                        .generator
-                        .borrow_mut()
-                        .write_allocate_number_constant(&operand_1_lvalue, &value.to_string()),
-                    _ => panic!("Invalid literal type"),
-                }
-                operand_1_lvalue
-            }
+            OperatorExpressionOperand::Literal(literal) => self.literal(literal),
             _ => panic!("The expression result must be representable"),
         })
     }
@@ -392,10 +346,10 @@ impl Writer {
         }
         let result = if let Some(expression) = block.expression {
             let result = self.evaluate(*expression)?;
-            self.generator.borrow_mut().write_line(&result);
+            self.generator.borrow_mut().write_line(result);
             name
         } else {
-            "VOID".to_owned()
+            panic!("Voids are not implemented yet");
         };
         self.generator.borrow_mut().decrease_offset();
         Ok(result)
@@ -407,65 +361,53 @@ impl Writer {
         panic!("Conditionals are not implemented yet");
     }
 
+    fn literal(&mut self, literal: Literal) -> String {
+        match literal {
+            Literal::Boolean(value) => self
+                .generator
+                .borrow_mut()
+                .write_allocate_boolean(&value.to_string()),
+            Literal::Integer(value) => self
+                .generator
+                .borrow_mut()
+                .write_allocate_number_constant(&value.to_string()),
+            _ => panic!("Invalid literal type"),
+        }
+    }
+
     fn get_binary_operands(&mut self) -> Result<(String, String), Error> {
         let operand_2 = self.stack.pop().unwrap();
         let operand_1 = self.stack.pop().unwrap();
 
         let operand_1 = match operand_1 {
             OperatorExpressionOperand::Identifier(identifier) => identifier.name().to_owned(),
-            OperatorExpressionOperand::Literal(literal) => {
-                let operand_1_lvalue = self.next_id();
-                match literal {
-                    Literal::Boolean(value) => self
-                        .generator
-                        .borrow_mut()
-                        .write_allocate_boolean(&operand_1_lvalue, &value.to_string()),
-                    Literal::Integer(value) => self
-                        .generator
-                        .borrow_mut()
-                        .write_allocate_number_constant(&operand_1_lvalue, &value.to_string()),
-                    _ => panic!("Invalid literal type"),
-                }
-                operand_1_lvalue
-            }
+            OperatorExpressionOperand::Literal(literal) => self.literal(literal),
             OperatorExpressionOperand::Block(expression) => {
-                let lvalue = self.next_id();
+                let (id, _namespace) = self.generator.borrow_mut().next_id_and_namespace();
                 self.generator
                     .borrow_mut()
-                    .write_line(&format!("let {} = {{", lvalue));
-                let result = self.block(expression, lvalue)?;
-                self.generator.borrow_mut().write_line("};");
+                    .write_line(format!("let {} = {{", id));
+                let result = self.block(expression, id)?;
+                self.generator.borrow_mut().write_line("};".to_owned());
                 result
             }
+            OperatorExpressionOperand::Type(r#type) => r#type.to_string(),
             _ => panic!("Conditionals are not implemented yet"),
         };
 
         let operand_2 = match operand_2 {
             OperatorExpressionOperand::Identifier(identifier) => identifier.name().to_owned(),
-            OperatorExpressionOperand::Literal(literal) => {
-                let operand_1_lvalue = self.next_id();
-                match literal {
-                    Literal::Boolean(value) => self
-                        .generator
-                        .borrow_mut()
-                        .write_allocate_boolean(&operand_1_lvalue, &value.to_string()),
-                    Literal::Integer(value) => self
-                        .generator
-                        .borrow_mut()
-                        .write_allocate_number_constant(&operand_1_lvalue, &value.to_string()),
-                    _ => panic!("Invalid literal type"),
-                }
-                operand_1_lvalue
-            }
+            OperatorExpressionOperand::Literal(literal) => self.literal(literal),
             OperatorExpressionOperand::Block(expression) => {
-                let lvalue = self.next_id();
+                let (id, _namespace) = self.generator.borrow_mut().next_id_and_namespace();
                 self.generator
                     .borrow_mut()
-                    .write_line(&format!("let {} = {{", lvalue));
-                let result = self.block(expression, lvalue)?;
-                self.generator.borrow_mut().write_line("};");
+                    .write_line(format!("let {} = {{", id));
+                let result = self.block(expression, id)?;
+                self.generator.borrow_mut().write_line("};".to_owned());
                 result
             }
+            OperatorExpressionOperand::Type(r#type) => r#type.to_string(),
             _ => panic!("Conditionals are not implemented yet"),
         };
 
@@ -475,38 +417,19 @@ impl Writer {
     fn get_unary_operand(&mut self) -> Result<String, Error> {
         let operand_1 = match self.stack.pop().unwrap() {
             OperatorExpressionOperand::Identifier(ref identifier) => identifier.name().to_owned(),
-            OperatorExpressionOperand::Literal(literal) => {
-                let operand_1_lvalue = self.next_id();
-                match literal {
-                    Literal::Boolean(value) => self
-                        .generator
-                        .borrow_mut()
-                        .write_allocate_boolean(&operand_1_lvalue, &value.to_string()),
-                    Literal::Integer(value) => self
-                        .generator
-                        .borrow_mut()
-                        .write_allocate_number_constant(&operand_1_lvalue, &value.to_string()),
-                    _ => panic!("Invalid literal type"),
-                }
-                operand_1_lvalue
-            }
+            OperatorExpressionOperand::Literal(literal) => self.literal(literal),
             OperatorExpressionOperand::Block(expression) => {
-                let lvalue = self.next_id();
+                let (id, _namespace) = self.generator.borrow_mut().next_id_and_namespace();
                 self.generator
                     .borrow_mut()
-                    .write_line(&format!("let {} = {{", lvalue));
-                let result = self.block(expression, lvalue)?;
-                self.generator.borrow_mut().write_line("};");
+                    .write_line(format!("let {} = {{", id));
+                let result = self.block(expression, id)?;
+                self.generator.borrow_mut().write_line("};".to_owned());
                 result
             }
             _ => panic!("Conditionals are not implemented yet"),
         };
 
         Ok(operand_1)
-    }
-
-    fn next_id(&mut self) -> String {
-        self.id_sequence += 1;
-        format!("temp_id_{:06}", self.id_sequence)
     }
 }

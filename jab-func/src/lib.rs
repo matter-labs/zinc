@@ -29,7 +29,7 @@ use pairing::bn256::Fr;
 ///
 /// Transpiles from variable allocations.
 ///
-pub fn allocate<CS>(
+pub fn allocation<CS>(
     mut system: CS,
     name: &str,
     number: &str,
@@ -47,7 +47,7 @@ where
 ///
 /// Transpiles from input declarations.
 ///
-pub fn allocate_input<CS, F>(
+pub fn input_allocation<CS, F>(
     mut system: CS,
     input: F,
     name: &str,
@@ -72,7 +72,7 @@ where
 ///
 /// Transpiles from witness declarations.
 ///
-pub fn allocate_witness<CS, F>(
+pub fn witness_allocation<CS, F>(
     mut system: CS,
     witness: F,
     name: &str,
@@ -439,6 +439,24 @@ where
     let bits = auxiliary::into_bits_le_fixed(system.namespace(|| bits_name), &number, bitlength)?;
 
     Ok((number, bits))
+}
+
+///
+/// The casting function.
+///
+/// Transpiles from:
+/// `a as {type}`
+///
+pub fn casting<CS>(
+    mut system: CS,
+    a: &AllocatedNum<Bn256>,
+    name: &str,
+    _bitlength: usize,
+) -> Result<AllocatedNum<Bn256>, SynthesisError>
+where
+    CS: ConstraintSystem<Bn256>,
+{
+    AllocatedNum::alloc(system.namespace(|| name), || Ok(a.get_value().unwrap()))
 }
 
 ///

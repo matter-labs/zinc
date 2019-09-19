@@ -1,0 +1,19 @@
+/*
+    The Pyramid.
+*/
+
+inputs {}
+
+witness {
+    result: field;
+}
+
+let pyramid = 1 + {
+    2 + {
+        3 + {
+            4
+        } + 3
+    } + 2
+} + 1;
+
+require(pyramid == result);

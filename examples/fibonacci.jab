@@ -1,9 +1,9 @@
 /*
-    The fibonacci algorithm test
+    The Fibonacci.
 */
 
 inputs {
-    dummy: field;
+    result: field;
 }
 
 let mut value_1: field = 0;
@@ -11,11 +11,11 @@ let mut value_2: field = 1;
 let mut fibo = value_1;
 debug(fibo);
 
-for i in 0..42 {
+for i in 0..6 {
     fibo = value_1 + value_2;
     value_1 = value_2;
     value_2 = fibo;
     debug(fibo);
 };
 
-require(fibo == 433494437 as field);
+require(fibo == result);

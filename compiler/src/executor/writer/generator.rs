@@ -13,187 +13,215 @@ use crate::syntax::Witness;
 pub struct Generator {
     file: File,
     offset: usize,
+    id_sequence: usize,
+    loop_stack: Vec<String>,
 }
 
 impl Generator {
     pub fn new(path: PathBuf) -> Self {
         let file = File::create(path).expect("File creating error");
-        Self { file, offset: 0 }
-    }
+        let offset = 0;
+        let id_sequence = 0;
+        let loop_stack = Vec::with_capacity(16);
 
-    pub fn increase_offset(&mut self) {
-        self.offset += 4;
-    }
-
-    pub fn decrease_offset(&mut self) {
-        self.offset -= 4;
+        Self {
+            file,
+            offset,
+            id_sequence,
+            loop_stack,
+        }
     }
 
     pub fn write_let(&mut self, is_mutable: bool, lvalue: &str, rvalue: &str) {
-        let string = format!(
-            "let{} {} = {};",
+        self.write_line(format!(
+            "let{} {} = {}.clone();",
             if is_mutable { " mut" } else { "" },
             lvalue,
             rvalue,
-        );
-        self.write_line(&string);
+        ));
     }
 
     pub fn write_debug(&mut self, rvalue: &str) {
-        let string = format!(r#"dbg!({}.get_variable());"#, rvalue);
-        self.write_line(&string);
+        self.write_line(format!(r#"dbg!({}.get_variable());"#, rvalue));
     }
 
-    pub fn write_require(&mut self, expression: &str, name: &str) {
-        let string = format!(r#"jab::require(&mut cs, &{}, "{}");"#, expression, name);
-        self.write_line(&string);
-    }
-
-    pub fn write_expression(&mut self, lvalue: &str, rvalue: &str) {
-        let string = format!(r#"let {} = {};"#, lvalue, rvalue);
-        self.write_line(&string);
+    pub fn write_require(&mut self, expression: &str, annotation: &str) {
+        self.write_line(format!(
+            r#"jab::require(&mut cs, &{0}, "{1}");"#,
+            expression, annotation
+        ));
     }
 
     pub fn write_assignment(&mut self, lvalue: &str, rvalue: &str) {
-        let string = format!(r#"{} = {};"#, lvalue, rvalue);
-        self.write_line(&string);
+        self.write_line(format!(r#"{} = {}.clone();"#, lvalue, rvalue));
     }
 
-    pub fn write_or(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
-        let string = format!(
-            r#"let {} = jab::or(&mut cs, &{}, &{}, "{}")?;"#,
-            lvalue, operand_1, operand_2, lvalue
-        );
-        self.write_line(&string);
+    pub fn write_or(&mut self, operand_1: &str, operand_2: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::or(&mut cs, &{1}, &{2}, {3})?;"#,
+            id, operand_1, operand_2, namespace
+        ));
+        id
     }
 
-    pub fn write_xor(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
-        let string = format!(
-            r#"let {} = jab::xor(&mut cs, &{}, &{}, "{}")?;"#,
-            lvalue, operand_1, operand_2, lvalue
-        );
-        self.write_line(&string);
+    pub fn write_xor(&mut self, operand_1: &str, operand_2: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::xor(&mut cs, &{1}, &{2}, {3})?;"#,
+            id, operand_1, operand_2, namespace
+        ));
+        id
     }
 
-    pub fn write_and(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
-        let string = format!(
-            r#"let {} = jab::and(&mut cs, &{}, &{}, "{}")?;"#,
-            lvalue, operand_1, operand_2, lvalue
-        );
-        self.write_line(&string);
+    pub fn write_and(&mut self, operand_1: &str, operand_2: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::and(&mut cs, &{1}, &{2}, {3})?;"#,
+            id, operand_1, operand_2, namespace
+        ));
+        id
     }
 
-    pub fn write_equals(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
-        let string = format!(
-            r#"let {} = jab::equals(&mut cs, &{}, &{}, "{}", 254)?;"#,
-            lvalue, operand_1, operand_2, lvalue
-        );
-        self.write_line(&string);
+    pub fn write_equals(&mut self, operand_1: &str, operand_2: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::equals(&mut cs, &{1}, &{2}, {3}, 254)?;"#,
+            id, operand_1, operand_2, namespace
+        ));
+        id
     }
 
-    pub fn write_not_equals(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
-        let string = format!(
-            r#"let {} = jab::not_equals(&mut cs, &{}, &{}, "{}", 254)?;"#,
-            lvalue, operand_1, operand_2, lvalue
-        );
-        self.write_line(&string);
+    pub fn write_not_equals(&mut self, operand_1: &str, operand_2: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::not_equals(&mut cs, &{1}, &{2}, {3}, 254)?;"#,
+            id, operand_1, operand_2, namespace
+        ));
+        id
     }
 
-    pub fn write_greater_equals(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
-        let string = format!(
-            r#"let {} = jab::greater_equals(&mut cs, &{}, &{}, "{}", 254)?;"#,
-            lvalue, operand_1, operand_2, lvalue
-        );
-        self.write_line(&string);
+    pub fn write_greater_equals(&mut self, operand_1: &str, operand_2: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::greater_equals(&mut cs, &{1}, &{2}, {3}, 254)?;"#,
+            id, operand_1, operand_2, namespace
+        ));
+        id
     }
 
-    pub fn write_lesser_equals(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
-        let string = format!(
-            r#"let {} = jab::lesser_equals(&mut cs, &{}, &{}, "{}", 254)?;"#,
-            lvalue, operand_1, operand_2, lvalue
-        );
-        self.write_line(&string);
+    pub fn write_lesser_equals(&mut self, operand_1: &str, operand_2: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::lesser_equals(&mut cs, &{1}, &{2}, {3}, 254)?;"#,
+            id, operand_1, operand_2, namespace
+        ));
+        id
     }
 
-    pub fn write_greater(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
-        let string = format!(
-            r#"let {} = jab::greater(&mut cs, &{}, &{}, "{}", 254)?;"#,
-            lvalue, operand_1, operand_2, lvalue
-        );
-        self.write_line(&string);
+    pub fn write_greater(&mut self, operand_1: &str, operand_2: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::greater(&mut cs, &{1}, &{2}, {3}, 254)?;"#,
+            id, operand_1, operand_2, namespace
+        ));
+        id
     }
 
-    pub fn write_lesser(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
-        let string = format!(
-            r#"let {} = jab::lesser(&mut cs, &{}, &{}, "{}", 254)?;"#,
-            lvalue, operand_1, operand_2, lvalue
-        );
-        self.write_line(&string);
+    pub fn write_lesser(&mut self, operand_1: &str, operand_2: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::lesser(&mut cs, &{1}, &{2}, {3}, 254)?;"#,
+            id, operand_1, operand_2, namespace
+        ));
+        id
     }
 
-    pub fn write_addition(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
-        let string = format!(
-            r#"let {} = jab::addition(&mut cs, &{}, &{}, "{}", 254)?.0;"#,
-            lvalue, operand_1, operand_2, lvalue
-        );
-        self.write_line(&string);
+    pub fn write_addition(&mut self, operand_1: &str, operand_2: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::addition(&mut cs, &{1}, &{2}, {3}, 254)?.0;"#,
+            id, operand_1, operand_2, namespace
+        ));
+        id
     }
 
-    pub fn write_subtraction(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
-        let string = format!(
-            r#"let {} = jab::subtraction(&mut cs, &{}, &{}, "{}", 254)?.0;"#,
-            lvalue, operand_1, operand_2, lvalue
-        );
-        self.write_line(&string);
+    pub fn write_subtraction(&mut self, operand_1: &str, operand_2: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::subtraction(&mut cs, &{1}, &{2}, {3}, 254)?.0;"#,
+            id, operand_1, operand_2, namespace
+        ));
+        id
     }
 
-    pub fn write_multiplication(&mut self, lvalue: &str, operand_1: &str, operand_2: &str) {
-        let string = format!(
-            r#"let {} = jab::multiplication(&mut cs, &{}, &{}, "{}", 254)?.0;"#,
-            lvalue, operand_1, operand_2, lvalue
-        );
-        self.write_line(&string);
+    pub fn write_multiplication(&mut self, operand_1: &str, operand_2: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::multiplication(&mut cs, &{1}, &{2}, {3}, 254)?.0;"#,
+            id, operand_1, operand_2, namespace
+        ));
+        id
     }
 
-    pub fn write_negation(&mut self, lvalue: &str, operand_1: &str) {
-        let string = format!(
-            r#"let {} = jab::negation(&mut cs, &{}, "{}", 254)?.0;"#,
-            lvalue, operand_1, lvalue
-        );
-        self.write_line(&string);
+    pub fn write_casting(&mut self, rvalue: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::casting(&mut cs, &{1}, {2}, 254)?;"#,
+            id, rvalue, namespace
+        ));
+        id
     }
 
-    pub fn write_not(&mut self, lvalue: &str, operand_1: &str) {
-        let string = format!(
-            r#"let {} = jab::not(&mut cs, &{}, "{}")?;"#,
-            lvalue, operand_1, lvalue
-        );
-        self.write_line(&string);
+    pub fn write_negation(&mut self, operand_1: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::negation(&mut cs, &{1}, {2}, 254)?.0;"#,
+            id, operand_1, namespace
+        ));
+        id
+    }
+
+    pub fn write_not(&mut self, operand_1: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::not(&mut cs, &{1}, {2})?;"#,
+            id, operand_1, namespace
+        ));
+        id
     }
 
     pub fn write_imports(&mut self) {
-        self.write_line("use bellman::Circuit;");
-        self.write_line("use bellman::ConstraintSystem;");
-        self.write_line("use bellman::SynthesisError;");
-        self.write_line("use ff::Field;");
-        self.write_line("use ff::PrimeField;");
-        self.write_line("use franklin_crypto::circuit::boolean::Boolean;");
-        self.write_line("use franklin_crypto::circuit::num::AllocatedNum;");
-        self.write_line("use pairing::bn256::Bn256;");
-        self.write_line("use pairing::bn256::Fr;");
+        self.write_line("#![allow(unused_imports)]".to_owned());
+        self.write_empty_line();
+        self.write_line("use bellman::Circuit;".to_owned());
+        self.write_line("use bellman::ConstraintSystem;".to_owned());
+        self.write_line("use bellman::SynthesisError;".to_owned());
+        self.write_line("use franklin_crypto::circuit::boolean::Boolean;".to_owned());
+        self.write_line("use pairing::bn256::Bn256;".to_owned());
+        self.write_line("use pairing::bn256::Fr;".to_owned());
         self.write_empty_line();
     }
 
-    pub fn write_circuit_declaration(&mut self) {
-        self.write_line("#[derive(Default)]");
-        self.write_line("pub struct GeneratedCircuit {}");
-        self.write_empty_line();
-    }
-
-    pub fn write_synthesize_header(&mut self) {
-        self.write_line("impl Circuit<Bn256> for GeneratedCircuit {");
+    pub fn write_circuit_declaration(&mut self, inputs: &[Input], witnesses: &[Witness]) {
+        self.write_line("#[derive(Default)]".to_owned());
+        self.write_line("pub struct GeneratedCircuit {".to_owned());
         self.increase_offset();
-        self.write_line("fn synthesize<CS: ConstraintSystem<Bn256>>(self, mut cs: &mut CS) -> Result<(), SynthesisError> {");
+        for input in inputs.iter() {
+            self.write_line(format!("pub {}: Fr,", input.identifier().name()));
+        }
+        for witness in witnesses.iter() {
+            self.write_line(format!("pub {}: Fr,", witness.identifier().name()));
+        }
+        self.decrease_offset();
+        self.write_line("}".to_owned());
+        self.write_empty_line();
+    }
+
+    pub fn write_circuit_header(&mut self) {
+        self.write_line("impl Circuit<Bn256> for GeneratedCircuit {".to_owned());
+        self.increase_offset();
+        self.write_line("fn synthesize<CS: ConstraintSystem<Bn256>>(self, mut cs: &mut CS) -> Result<(), SynthesisError> {".to_owned());
         self.increase_offset();
     }
 
@@ -205,13 +233,11 @@ impl Generator {
             TypeVariant::Uint { bitlength } => bitlength,
             TypeVariant::Field => 254,
         };
-        let string = format!(
-            r#"let {} = jab::allocate_input(&mut cs, || Ok(Fr::zero()), "{}", {})?.0;"#,
-            input.identifier().name(),
+        self.write_line(format!(
+            r#"let {0} = jab::input_allocation(&mut cs, || Ok(self.{0}), "{0}", {1})?.0;"#,
             input.identifier().name(),
             bitlength,
-        );
-        self.write_line(&string);
+        ));
     }
 
     pub fn write_allocate_witness(&mut self, witness: &Witness) {
@@ -222,64 +248,92 @@ impl Generator {
             TypeVariant::Uint { bitlength } => bitlength,
             TypeVariant::Field => 254,
         };
-        let string = format!(
-            r#"let {} = jab::allocate_witness(&mut cs, || Ok(Fr::zero()), "{}", {})?.0;"#,
-            witness.identifier().name(),
+        self.write_line(format!(
+            r#"let {0} = jab::witness_allocation(&mut cs, || Ok(self.{0}), "{0}", {1})?.0;"#,
             witness.identifier().name(),
             bitlength,
-        );
-        self.write_line(&string);
-    }
-
-    pub fn write_allocate_boolean(&mut self, lvalue: &str, rvalue: &str) {
-        let string = format!(r#"let {} = Boolean::constant({});"#, lvalue, rvalue);
-        self.write_line(&string);
-    }
-
-    pub fn write_allocate_number_constant(&mut self, lvalue: &str, rvalue: &str) {
-        let string = format!(
-            r#"let {} = jab::allocate(&mut cs, "{}", "{}")?;"#,
-            lvalue, lvalue, rvalue
-        );
-        self.write_line(&string);
-    }
-
-    pub fn write_allocate_number_loop_index(
-        &mut self,
-        lvalue: &str,
-        loop_index_stack: &[String],
-        temp_id: &str,
-    ) {
-        let format_placeholder = vec!["{}"; loop_index_stack.len()].join("_");
-        let loop_index_name = loop_index_stack
-            .iter()
-            .map(|id| format!("{}_index", id))
-            .collect::<Vec<String>>()
-            .join(", ");
-        self.write_line(&format!(
-            r#"let iter_name = format!("{}_{}", {});"#,
-            temp_id, format_placeholder, loop_index_name
         ));
-        let string = format!(r#"let {} = AllocatedNum::alloc(cs.namespace(|| iter_name), || Ok(Fr::from_str({}_index.to_string().as_str()).unwrap()))?;"#, lvalue, lvalue);
-        self.write_line(&string);
     }
 
-    pub fn write_synthesize_trailer(&mut self) {
-        self.write_line("Ok(())");
-        self.decrease_offset();
-        self.write_line("}");
-        self.decrease_offset();
-        self.write_line("}");
+    pub fn write_allocate_boolean(&mut self, rvalue: &str) -> String {
+        let (id, _namespace) = self.next_id_and_namespace();
+        self.write_line(format!(r#"let {0} = Boolean::constant({1});"#, id, rvalue));
+        id
     }
 
-    pub fn write_line(&mut self, line: &str) {
-        self.file.write_all(&vec![b' '; self.offset]).unwrap();
+    pub fn write_allocate_number_constant(&mut self, rvalue: &str) -> String {
+        let (id, _namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::allocation(&mut cs, "{0}", "{1}")?;"#,
+            id, rvalue
+        ));
+        id
+    }
+
+    pub fn write_allocate_number_loop_index(&mut self, lvalue: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {} = jab::allocation(&mut cs, {}, {}_index.to_string().as_str())?;"#,
+            lvalue, namespace, lvalue
+        ));
+        id
+    }
+
+    pub fn write_circuit_trailer(&mut self) {
+        self.write_line("Ok(())".to_owned());
+        self.decrease_offset();
+        self.write_line("}".to_owned());
+        self.decrease_offset();
+        self.write_line("}".to_owned());
+    }
+
+    pub fn write_line(&mut self, line: String) {
+        let mut data = Vec::with_capacity(self.offset + line.len() + 1);
+        data.append(&mut vec![b' '; self.offset]);
+        data.append(&mut line.into_bytes());
+        data.push(b'\n');
         self.file
-            .write_all(format!("{}\n", line).as_bytes())
-            .unwrap();
+            .write_all(data.as_slice())
+            .expect("Generator writing error");
     }
 
     pub fn write_empty_line(&mut self) {
-        self.file.write_all(b"\n").unwrap();
+        self.file.write_all(b"\n").expect("Generator writing error");
+    }
+
+    pub fn increase_offset(&mut self) {
+        self.offset += 4;
+    }
+
+    pub fn decrease_offset(&mut self) {
+        self.offset -= 4;
+    }
+
+    pub fn next_id_and_namespace(&mut self) -> (String, String) {
+        self.id_sequence += 1;
+        let id = format!(r#"temp_{0:06}"#, self.id_sequence);
+        let namespace = if self.loop_stack.is_empty() {
+            format!(r#""temp_{:06}""#, self.id_sequence)
+        } else {
+            let indexes = self
+                .loop_stack
+                .iter()
+                .map(|index| format!("{}_index", index))
+                .collect::<Vec<String>>()
+                .join(", ");
+            format!(
+                r#"&format!("temp_{0:06}_{{}}", {1})"#,
+                self.id_sequence, indexes
+            )
+        };
+        (id, namespace)
+    }
+
+    pub fn enter_loop(&mut self, index_name: &str) {
+        self.loop_stack.push(index_name.to_owned());
+    }
+
+    pub fn exit_loop(&mut self) {
+        self.loop_stack.pop();
     }
 }
