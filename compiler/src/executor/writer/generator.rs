@@ -12,23 +12,23 @@ use crate::syntax::Witness;
 
 pub struct Generator {
     file: File,
-    offset: usize,
-    id_sequence: usize,
     loop_stack: Vec<String>,
+    id_sequence: usize,
+    offset: usize,
 }
 
 impl Generator {
     pub fn new(path: PathBuf) -> Self {
         let file = File::create(path).expect("File creating error");
-        let offset = 0;
-        let id_sequence = 0;
         let loop_stack = Vec::with_capacity(16);
+        let id_sequence = 0;
+        let offset = 0;
 
         Self {
             file,
-            offset,
-            id_sequence,
             loop_stack,
+            id_sequence,
+            offset,
         }
     }
 
@@ -206,28 +206,28 @@ impl Generator {
     pub fn write_circuit_declaration(&mut self, inputs: &[Input], witnesses: &[Witness]) {
         self.write_line("#[derive(Default)]".to_owned());
         self.write_line("pub struct GeneratedCircuit {".to_owned());
-        self.increase_offset();
+        self.shift_forward();
         for input in inputs.iter() {
             self.write_line(format!("pub {}: Fr,", input.identifier().name()));
         }
         for witness in witnesses.iter() {
             self.write_line(format!("pub {}: Fr,", witness.identifier().name()));
         }
-        self.decrease_offset();
+        self.shift_backward();
         self.write_line("}".to_owned());
         self.write_empty_line();
     }
 
     pub fn write_circuit_header(&mut self) {
         self.write_line("impl Circuit<Bn256> for GeneratedCircuit {".to_owned());
-        self.increase_offset();
+        self.shift_forward();
         self.write_line("fn synthesize<CS: ConstraintSystem<Bn256>>(self, mut cs: &mut CS) -> Result<(), SynthesisError> {".to_owned());
-        self.increase_offset();
+        self.shift_forward();
     }
 
     pub fn write_allocate_input(&mut self, input: &Input) {
         let bitlength = match input.r#type().variant() {
-            TypeVariant::Void => panic!("Witness must be a numeric value"),
+            TypeVariant::Void => panic!("Must be a numeric value"),
             TypeVariant::Bool => 1,
             TypeVariant::Int { bitlength } => bitlength,
             TypeVariant::Uint { bitlength } => bitlength,
@@ -242,7 +242,7 @@ impl Generator {
 
     pub fn write_allocate_witness(&mut self, witness: &Witness) {
         let bitlength = match witness.r#type().variant() {
-            TypeVariant::Void => panic!("Witness must be a numeric value"),
+            TypeVariant::Void => panic!("Must be a numeric value"),
             TypeVariant::Bool => 1,
             TypeVariant::Int { bitlength } => bitlength,
             TypeVariant::Uint { bitlength } => bitlength,
@@ -279,15 +279,46 @@ impl Generator {
         id
     }
 
+    pub fn write_identifier(&mut self, name: &str) {
+        self.write_line(name.to_owned());
+    }
+
     pub fn write_circuit_trailer(&mut self) {
         self.write_line("Ok(())".to_owned());
-        self.decrease_offset();
+        self.shift_backward();
         self.write_line("}".to_owned());
-        self.decrease_offset();
+        self.shift_backward();
         self.write_line("}".to_owned());
     }
 
-    pub fn write_line(&mut self, line: String) {
+    pub fn enter_block(&mut self) -> String {
+        let (id, _namespace) = self.next_id_and_namespace();
+        self.write_line(format!("let {} = {{", id));
+        self.shift_forward();
+        id
+    }
+
+    pub fn exit_block(&mut self) {
+        self.shift_backward();
+        self.write_line("};".to_owned());
+    }
+
+    pub fn enter_loop(&mut self, index_name: &str, range_start: &str, range_end: &str) {
+        self.write_line(format!(
+            "for {}_index in {}..{} {{",
+            index_name, range_start, range_end
+        ));
+        self.shift_forward();
+        self.loop_stack.push(index_name.to_owned());
+    }
+
+    pub fn exit_loop(&mut self) {
+        self.loop_stack.pop();
+        self.shift_backward();
+        self.write_line("};".to_owned());
+    }
+
+    fn write_line(&mut self, line: String) {
         let mut data = Vec::with_capacity(self.offset + line.len() + 1);
         data.append(&mut vec![b' '; self.offset]);
         data.append(&mut line.into_bytes());
@@ -297,19 +328,11 @@ impl Generator {
             .expect("Generator writing error");
     }
 
-    pub fn write_empty_line(&mut self) {
+    fn write_empty_line(&mut self) {
         self.file.write_all(b"\n").expect("Generator writing error");
     }
 
-    pub fn increase_offset(&mut self) {
-        self.offset += 4;
-    }
-
-    pub fn decrease_offset(&mut self) {
-        self.offset -= 4;
-    }
-
-    pub fn next_id_and_namespace(&mut self) -> (String, String) {
+    fn next_id_and_namespace(&mut self) -> (String, String) {
         self.id_sequence += 1;
         let id = format!(r#"temp_{0:06}"#, self.id_sequence);
         let namespace = if self.loop_stack.is_empty() {
@@ -329,11 +352,11 @@ impl Generator {
         (id, namespace)
     }
 
-    pub fn enter_loop(&mut self, index_name: &str) {
-        self.loop_stack.push(index_name.to_owned());
+    fn shift_forward(&mut self) {
+        self.offset += 4;
     }
 
-    pub fn exit_loop(&mut self) {
-        self.loop_stack.pop();
+    fn shift_backward(&mut self) {
+        self.offset -= 4;
     }
 }

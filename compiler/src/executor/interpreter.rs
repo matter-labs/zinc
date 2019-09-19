@@ -267,7 +267,7 @@ impl Interpreter {
                     self.stack.push(Element::Value(Value::Void));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Range) => {
-                    panic!("The range operator cannot be used in expressions (yet)")
+                    panic!("The range operator cannot be used in expressions")
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Or) => {
                     let (element_2, element_1) = (
@@ -431,7 +431,7 @@ impl Interpreter {
         match self.stack.pop() {
             Some(Element::Value(value)) => Ok(value),
             Some(Element::Place(place)) => Ok(place.value),
-            _ => panic!("Type expressions cannot be evaluated (yet)"),
+            _ => panic!("Type expressions cannot be evaluated"),
         }
     }
 
