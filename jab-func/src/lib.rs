@@ -18,20 +18,36 @@ mod auxiliary;
 use bellman::ConstraintSystem;
 use bellman::SynthesisError;
 use ff::Field;
+use ff::PrimeField;
 use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::num::AllocatedNum;
 use pairing::bn256::Bn256;
 use pairing::bn256::Fr;
 
 ///
+/// Describes an allocated number.
+///
+/// Transpiles from variable allocations.
+///
+pub fn allocate<CS>(
+    mut system: CS,
+    name: &str,
+    number: &str,
+) -> Result<AllocatedNum<Bn256>, SynthesisError>
+where
+    CS: ConstraintSystem<Bn256>,
+{
+    AllocatedNum::alloc(system.namespace(|| name), || {
+        Ok(Fr::from_str(number).unwrap())
+    })
+}
+
+///
 /// Describes an input.
 ///
-/// Transpiles from:
-/// inputs {
-///     {identifier}: {type};
-/// }
+/// Transpiles from input declarations.
 ///
-pub fn alloc_input<CS, F>(
+pub fn allocate_input<CS, F>(
     mut system: CS,
     input: F,
     name: &str,
@@ -54,12 +70,9 @@ where
 ///
 /// Describes a witness.
 ///
-/// Transpiles from:
-/// witness {
-///     {identifier}: {type};
-/// }
+/// Transpiles from witness declarations.
 ///
-pub fn alloc_witness<CS, F>(
+pub fn allocate_witness<CS, F>(
     mut system: CS,
     witness: F,
     name: &str,
@@ -83,14 +96,9 @@ where
 /// Transpiles from:
 /// `a || b`
 ///
-pub fn or<CS>(
-    system: CS,
-    a: &Boolean,
-    b: &Boolean,
-    _name: &str,
-) -> Result<Boolean, SynthesisError>
-    where
-        CS: ConstraintSystem<Bn256>,
+pub fn or<CS>(system: CS, a: &Boolean, b: &Boolean, _name: &str) -> Result<Boolean, SynthesisError>
+where
+    CS: ConstraintSystem<Bn256>,
 {
     Ok(Boolean::and(system, &a.not(), &b.not())?.not())
 }
@@ -101,14 +109,9 @@ pub fn or<CS>(
 /// Transpiles from:
 /// `a ^^ b`
 ///
-pub fn xor<CS>(
-    system: CS,
-    a: &Boolean,
-    b: &Boolean,
-    _name: &str,
-) -> Result<Boolean, SynthesisError>
-    where
-        CS: ConstraintSystem<Bn256>,
+pub fn xor<CS>(system: CS, a: &Boolean, b: &Boolean, _name: &str) -> Result<Boolean, SynthesisError>
+where
+    CS: ConstraintSystem<Bn256>,
 {
     Ok(Boolean::xor(system, a, b)?)
 }
@@ -119,14 +122,9 @@ pub fn xor<CS>(
 /// Transpiles from:
 /// `a && b`
 ///
-pub fn and<CS>(
-    system: CS,
-    a: &Boolean,
-    b: &Boolean,
-    _name: &str,
-) -> Result<Boolean, SynthesisError>
-    where
-        CS: ConstraintSystem<Bn256>,
+pub fn and<CS>(system: CS, a: &Boolean, b: &Boolean, _name: &str) -> Result<Boolean, SynthesisError>
+where
+    CS: ConstraintSystem<Bn256>,
 {
     Ok(Boolean::and(system, a, b)?)
 }
@@ -144,8 +142,8 @@ pub fn equals<CS>(
     name: &str,
     _bitlength: usize,
 ) -> Result<Boolean, SynthesisError>
-    where
-        CS: ConstraintSystem<Bn256>,
+where
+    CS: ConstraintSystem<Bn256>,
 {
     let equals_name = format!("eq_equals_{}", name);
     Ok(Boolean::from(AllocatedNum::equals(
@@ -168,15 +166,16 @@ pub fn not_equals<CS>(
     name: &str,
     _bitlength: usize,
 ) -> Result<Boolean, SynthesisError>
-    where
-        CS: ConstraintSystem<Bn256>,
+where
+    CS: ConstraintSystem<Bn256>,
 {
     let not_equals_name = format!("ne_equals_{}", name);
     Ok(Boolean::from(AllocatedNum::equals(
         system.namespace(|| not_equals_name),
         a,
         b,
-    )?).not())
+    )?)
+    .not())
 }
 
 ///
@@ -192,8 +191,8 @@ pub fn greater_equals<CS>(
     name: &str,
     bitlength: usize,
 ) -> Result<Boolean, SynthesisError>
-    where
-        CS: ConstraintSystem<Bn256>,
+where
+    CS: ConstraintSystem<Bn256>,
 {
     let equals_name = format!("ge_equals_{}", name);
     if let Boolean::Is(bit) = Boolean::from(AllocatedNum::equals(
@@ -207,7 +206,8 @@ pub fn greater_equals<CS>(
     }
 
     let diff_name = format!("ge_diff_{}", name);
-    let (diff_a_b, diff_bits) = subtraction(system.namespace(|| &diff_name), a, b, &diff_name, bitlength)?;
+    let (diff_a_b, diff_bits) =
+        subtraction(system.namespace(|| &diff_name), a, b, &diff_name, bitlength)?;
 
     let repacked_name = format!("ge_repacked_{}", name);
     let diff_a_b_repacked =
@@ -236,8 +236,8 @@ pub fn lesser_equals<CS>(
     name: &str,
     bitlength: usize,
 ) -> Result<Boolean, SynthesisError>
-    where
-        CS: ConstraintSystem<Bn256>,
+where
+    CS: ConstraintSystem<Bn256>,
 {
     let equals_name = format!("le_equals_{}", name);
     if let Boolean::Is(bit) = Boolean::from(AllocatedNum::equals(
@@ -251,7 +251,8 @@ pub fn lesser_equals<CS>(
     }
 
     let diff_name = format!("le_diff_{}", name);
-    let (diff_b_a, diff_bits) = subtraction(system.namespace(|| &diff_name), b, a, &diff_name, bitlength)?;
+    let (diff_b_a, diff_bits) =
+        subtraction(system.namespace(|| &diff_name), b, a, &diff_name, bitlength)?;
 
     let repacked_name = format!("le_repacked_{}", name);
     let diff_b_a_repacked =
@@ -280,11 +281,12 @@ pub fn greater<CS>(
     name: &str,
     bitlength: usize,
 ) -> Result<Boolean, SynthesisError>
-    where
-        CS: ConstraintSystem<Bn256>,
+where
+    CS: ConstraintSystem<Bn256>,
 {
     let diff_name = format!("gt_diff_{}", name);
-    let (diff_a_b, diff_bits) = subtraction(system.namespace(|| &diff_name), a, b, &diff_name, bitlength)?;
+    let (diff_a_b, diff_bits) =
+        subtraction(system.namespace(|| &diff_name), a, b, &diff_name, bitlength)?;
 
     let repacked_name = format!("gt_repacked_{}", name);
     let diff_a_b_repacked =
@@ -313,11 +315,12 @@ pub fn lesser<CS>(
     name: &str,
     bitlength: usize,
 ) -> Result<Boolean, SynthesisError>
-    where
-        CS: ConstraintSystem<Bn256>,
+where
+    CS: ConstraintSystem<Bn256>,
 {
     let diff_name = format!("lt_diff_{}", name);
-    let (diff_b_a, diff_bits) = subtraction(system.namespace(|| &diff_name), b, a, &diff_name, bitlength)?;
+    let (diff_b_a, diff_bits) =
+        subtraction(system.namespace(|| &diff_name), b, a, &diff_name, bitlength)?;
 
     let repacked_name = format!("lt_repacked_{}", name);
     let diff_b_a_repacked =
@@ -346,8 +349,8 @@ pub fn addition<CS>(
     name: &str,
     bitlength: usize,
 ) -> Result<(AllocatedNum<Bn256>, Vec<Boolean>), SynthesisError>
-    where
-        CS: ConstraintSystem<Bn256>,
+where
+    CS: ConstraintSystem<Bn256>,
 {
     let number = AllocatedNum::alloc(system.namespace(|| name), || {
         let mut sum = a.get_value().unwrap();
@@ -381,8 +384,8 @@ pub fn subtraction<CS>(
     name: &str,
     bitlength: usize,
 ) -> Result<(AllocatedNum<Bn256>, Vec<Boolean>), SynthesisError>
-    where
-        CS: ConstraintSystem<Bn256>,
+where
+    CS: ConstraintSystem<Bn256>,
 {
     let number = AllocatedNum::alloc(system.namespace(|| name), || {
         let mut sum = a.get_value().unwrap();
@@ -416,8 +419,8 @@ pub fn multiplication<CS>(
     name: &str,
     bitlength: usize,
 ) -> Result<(AllocatedNum<Bn256>, Vec<Boolean>), SynthesisError>
-    where
-        CS: ConstraintSystem<Bn256>,
+where
+    CS: ConstraintSystem<Bn256>,
 {
     let number = AllocatedNum::alloc(system.namespace(|| name), || {
         let mut mul = a.get_value().unwrap();
@@ -450,8 +453,8 @@ pub fn negation<CS>(
     name: &str,
     bitlength: usize,
 ) -> Result<(AllocatedNum<Bn256>, Vec<Boolean>), SynthesisError>
-    where
-        CS: ConstraintSystem<Bn256>,
+where
+    CS: ConstraintSystem<Bn256>,
 {
     let number = AllocatedNum::alloc(system.namespace(|| name), || {
         let mut negated = Fr::zero();
@@ -478,13 +481,9 @@ pub fn negation<CS>(
 /// Transpiles from:
 /// `!a`
 ///
-pub fn not<CS>(
-    _system: CS,
-    a: &Boolean,
-    _name: &str,
-) -> Result<Boolean, SynthesisError>
-    where
-        CS: ConstraintSystem<Bn256>,
+pub fn not<CS>(_system: CS, a: &Boolean, _name: &str) -> Result<Boolean, SynthesisError>
+where
+    CS: ConstraintSystem<Bn256>,
 {
     Ok(a.not())
 }

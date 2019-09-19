@@ -10,9 +10,9 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::executor::Error;
+use crate::lexical::Literal;
 use crate::syntax::BlockExpression;
 use crate::syntax::CircuitProgram;
-use crate::lexical::Literal;
 use crate::syntax::ConditionalExpression;
 use crate::syntax::Expression;
 use crate::syntax::Identifier;
@@ -26,6 +26,7 @@ pub struct Writer {
     stack: Vec<OperatorExpressionOperand>,
     generator: Rc<RefCell<Generator>>,
     id_sequence: usize,
+    loop_index_name_stack: Vec<String>,
 }
 
 impl Writer {
@@ -34,6 +35,7 @@ impl Writer {
             stack: Default::default(),
             generator,
             id_sequence: 0,
+            loop_index_name_stack: Vec::with_capacity(4),
         }
     }
 
@@ -47,20 +49,18 @@ impl Writer {
         }
         self.generator.borrow_mut().write_empty_line();
         for witness in program.witnesses.iter() {
-            self.generator
-                .borrow_mut()
-                .write_allocate_witness(witness);
+            self.generator.borrow_mut().write_allocate_witness(witness);
         }
         self.generator.borrow_mut().write_empty_line();
         for statement in program.statements.into_iter() {
-            self.execute(statement)?;
+            self.statement(statement)?;
         }
         self.generator.borrow_mut().write_synthesize_trailer();
 
         Ok(())
     }
 
-    pub fn execute(&mut self, statement: Statement) -> Result<(), Error> {
+    fn statement(&mut self, statement: Statement) -> Result<(), Error> {
         log::trace!("Statement              : {}", statement);
 
         match statement {
@@ -78,45 +78,57 @@ impl Writer {
             }
             Statement::Require(require) => {
                 let lvalue = self.evaluate(require.expression)?;
-                self.generator.borrow_mut().write_require(&lvalue, &require.id);
+                self.generator
+                    .borrow_mut()
+                    .write_require(&lvalue, &require.id);
             }
             Statement::Loop(r#loop) => {
-                self.generator.borrow_mut().write_shifted_line(&format!("for {} in {}..{} {{", r#loop.index_identifier, r#loop.range_start, r#loop.range_end));
+                self.generator.borrow_mut().write_line(&format!(
+                    "for {}_index in {}..{} {{",
+                    r#loop.index_identifier, r#loop.range_start, r#loop.range_end
+                ));
                 self.generator.borrow_mut().increase_offset();
                 let name = self.next_id();
-                self
-                    .generator
+                self.loop_index_name_stack
+                    .push(r#loop.index_identifier.name().to_owned());
+                self.generator
                     .borrow_mut()
-                    .write_allocate_number_variable(r#loop.index_identifier.name(), r#loop.index_identifier.name(), &name);
+                    .write_allocate_number_loop_index(
+                        r#loop.index_identifier.name(),
+                        &self.loop_index_name_stack,
+                        &name,
+                    );
                 for statement in r#loop.block.statements {
-                    self.execute(statement)?;
+                    self.statement(statement)?;
                 }
                 if let Some(expression) = r#loop.block.expression {
                     self.evaluate(*expression)?;
                 }
+                self.loop_index_name_stack.pop();
                 self.generator.borrow_mut().decrease_offset();
-                self.generator.borrow_mut().write_shifted_line("}");
+                self.generator.borrow_mut().write_line("}");
             }
             Statement::Expression(expression) => {
                 let lvalue = self.next_id();
                 let rvalue = self.evaluate(expression)?;
-                self.generator.borrow_mut().write_expression(&lvalue, &rvalue);
+                self.generator
+                    .borrow_mut()
+                    .write_expression(&lvalue, &rvalue);
             }
         }
-        self.generator.borrow_mut().write_empty_line();
 
         Ok(())
     }
 
     fn evaluate(&mut self, expression: Expression) -> Result<String, Error> {
         match expression {
-            Expression::Operator(expression) => self.evaluate_operator(expression),
-            Expression::Block(expression) => self.evaluate_block(expression, "UNUSED".to_owned()),
-            Expression::Conditional(expression) => self.evaluate_conditional(expression),
+            Expression::Operator(expression) => self.operator(expression),
+            Expression::Block(expression) => self.block(expression, "UNUSED".to_owned()),
+            Expression::Conditional(expression) => self.conditional(expression),
         }
     }
 
-    fn evaluate_operator(&mut self, expression: OperatorExpression) -> Result<String, Error> {
+    fn operator(&mut self, expression: OperatorExpression) -> Result<String, Error> {
         log::trace!("Operator expression    : {}", expression);
 
         for expression_element in expression.into_iter() {
@@ -125,11 +137,9 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Assignment) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let result_lvalue = self.next_id();
-                    self.generator.borrow_mut().write_assignment(
-                        &operand_1,
-                        &operand_2,
-                    );
-                    self.generator.borrow_mut().write_empty_line();
+                    self.generator
+                        .borrow_mut()
+                        .write_assignment(&operand_1, &operand_2);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -143,12 +153,9 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Or) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let result_lvalue = self.next_id();
-                    self.generator.borrow_mut().write_or(
-                        &result_lvalue,
-                        &operand_1,
-                        &operand_2,
-                    );
-                    self.generator.borrow_mut().write_empty_line();
+                    self.generator
+                        .borrow_mut()
+                        .write_or(&result_lvalue, &operand_1, &operand_2);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -159,12 +166,9 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Xor) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let result_lvalue = self.next_id();
-                    self.generator.borrow_mut().write_xor(
-                        &result_lvalue,
-                        &operand_1,
-                        &operand_2,
-                    );
-                    self.generator.borrow_mut().write_empty_line();
+                    self.generator
+                        .borrow_mut()
+                        .write_xor(&result_lvalue, &operand_1, &operand_2);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -175,12 +179,9 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::And) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let result_lvalue = self.next_id();
-                    self.generator.borrow_mut().write_and(
-                        &result_lvalue,
-                        &operand_1,
-                        &operand_2,
-                    );
-                    self.generator.borrow_mut().write_empty_line();
+                    self.generator
+                        .borrow_mut()
+                        .write_and(&result_lvalue, &operand_1, &operand_2);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -196,7 +197,6 @@ impl Writer {
                         &operand_1,
                         &operand_2,
                     );
-                    self.generator.borrow_mut().write_empty_line();
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -212,7 +212,6 @@ impl Writer {
                         &operand_1,
                         &operand_2,
                     );
-                    self.generator.borrow_mut().write_empty_line();
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -228,7 +227,6 @@ impl Writer {
                         &operand_1,
                         &operand_2,
                     );
-                    self.generator.borrow_mut().write_empty_line();
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -244,7 +242,6 @@ impl Writer {
                         &operand_1,
                         &operand_2,
                     );
-                    self.generator.borrow_mut().write_empty_line();
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -260,7 +257,6 @@ impl Writer {
                         &operand_1,
                         &operand_2,
                     );
-                    self.generator.borrow_mut().write_empty_line();
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -276,7 +272,6 @@ impl Writer {
                         &operand_1,
                         &operand_2,
                     );
-                    self.generator.borrow_mut().write_empty_line();
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -292,7 +287,6 @@ impl Writer {
                         &operand_1,
                         &operand_2,
                     );
-                    self.generator.borrow_mut().write_empty_line();
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -308,7 +302,6 @@ impl Writer {
                         &operand_1,
                         &operand_2,
                     );
-                    self.generator.borrow_mut().write_empty_line();
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -324,7 +317,6 @@ impl Writer {
                         &operand_1,
                         &operand_2,
                     );
-                    self.generator.borrow_mut().write_empty_line();
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -344,11 +336,9 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Negation) => {
                     let operand_1 = self.get_unary_operand()?;
                     let result_lvalue = self.next_id();
-                    self.generator.borrow_mut().write_negation(
-                        &result_lvalue,
-                        &operand_1,
-                    );
-                    self.generator.borrow_mut().write_empty_line();
+                    self.generator
+                        .borrow_mut()
+                        .write_negation(&result_lvalue, &operand_1);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -359,11 +349,9 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Not) => {
                     let operand_1 = self.get_unary_operand()?;
                     let result_lvalue = self.next_id();
-                    self.generator.borrow_mut().write_not(
-                        &result_lvalue,
-                        &operand_1,
-                    );
-                    self.generator.borrow_mut().write_empty_line();
+                    self.generator
+                        .borrow_mut()
+                        .write_not(&result_lvalue, &operand_1);
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -390,21 +378,21 @@ impl Writer {
                     _ => panic!("Invalid literal type"),
                 }
                 operand_1_lvalue
-            },
+            }
             _ => panic!("The expression result must be representable"),
         })
     }
 
-    fn evaluate_block(&mut self, block: BlockExpression, name: String) -> Result<String, Error> {
+    fn block(&mut self, block: BlockExpression, name: String) -> Result<String, Error> {
         log::trace!("Block expression       : {}", block);
 
         self.generator.borrow_mut().increase_offset();
         for statement in block.statements {
-            self.execute(statement)?;
+            self.statement(statement)?;
         }
         let result = if let Some(expression) = block.expression {
             let result = self.evaluate(*expression)?;
-            self.generator.borrow_mut().write_shifted_line(&result);
+            self.generator.borrow_mut().write_line(&result);
             name
         } else {
             "VOID".to_owned()
@@ -413,20 +401,18 @@ impl Writer {
         Ok(result)
     }
 
-    fn evaluate_conditional(
-        &mut self,
-        conditional: ConditionalExpression,
-    ) -> Result<String, Error> {
+    fn conditional(&mut self, conditional: ConditionalExpression) -> Result<String, Error> {
         log::trace!("Conditional expression : {}", conditional);
 
         panic!("Conditionals are not implemented yet");
     }
 
     fn get_binary_operands(&mut self) -> Result<(String, String), Error> {
-        let operand_2 = match self.stack.pop().unwrap() {
-            OperatorExpressionOperand::Identifier(identifier) => {
-                identifier.name().to_owned()
-            },
+        let operand_2 = self.stack.pop().unwrap();
+        let operand_1 = self.stack.pop().unwrap();
+
+        let operand_1 = match operand_1 {
+            OperatorExpressionOperand::Identifier(identifier) => identifier.name().to_owned(),
             OperatorExpressionOperand::Literal(literal) => {
                 let operand_1_lvalue = self.next_id();
                 match literal {
@@ -441,21 +427,21 @@ impl Writer {
                     _ => panic!("Invalid literal type"),
                 }
                 operand_1_lvalue
-            },
+            }
             OperatorExpressionOperand::Block(expression) => {
                 let lvalue = self.next_id();
-                self.generator.borrow_mut().write_shifted_line(&format!("let {} = {{", lvalue));
-                let result = self.evaluate_block(expression, lvalue)?;
-                self.generator.borrow_mut().write_shifted_line("};");
+                self.generator
+                    .borrow_mut()
+                    .write_line(&format!("let {} = {{", lvalue));
+                let result = self.block(expression, lvalue)?;
+                self.generator.borrow_mut().write_line("};");
                 result
-            },
+            }
             _ => panic!("Conditionals are not implemented yet"),
         };
 
-        let operand_1 = match self.stack.pop().unwrap() {
-            OperatorExpressionOperand::Identifier(identifier) => {
-                identifier.name().to_owned()
-            },
+        let operand_2 = match operand_2 {
+            OperatorExpressionOperand::Identifier(identifier) => identifier.name().to_owned(),
             OperatorExpressionOperand::Literal(literal) => {
                 let operand_1_lvalue = self.next_id();
                 match literal {
@@ -470,14 +456,16 @@ impl Writer {
                     _ => panic!("Invalid literal type"),
                 }
                 operand_1_lvalue
-            },
+            }
             OperatorExpressionOperand::Block(expression) => {
                 let lvalue = self.next_id();
-                self.generator.borrow_mut().write_shifted_line(&format!("let {} = {{", lvalue));
-                let result = self.evaluate_block(expression, lvalue)?;
-                self.generator.borrow_mut().write_shifted_line("};");
+                self.generator
+                    .borrow_mut()
+                    .write_line(&format!("let {} = {{", lvalue));
+                let result = self.block(expression, lvalue)?;
+                self.generator.borrow_mut().write_line("};");
                 result
-            },
+            }
             _ => panic!("Conditionals are not implemented yet"),
         };
 
@@ -486,9 +474,7 @@ impl Writer {
 
     fn get_unary_operand(&mut self) -> Result<String, Error> {
         let operand_1 = match self.stack.pop().unwrap() {
-            OperatorExpressionOperand::Identifier(ref identifier) => {
-                identifier.name().to_owned()
-            },
+            OperatorExpressionOperand::Identifier(ref identifier) => identifier.name().to_owned(),
             OperatorExpressionOperand::Literal(literal) => {
                 let operand_1_lvalue = self.next_id();
                 match literal {
@@ -503,14 +489,16 @@ impl Writer {
                     _ => panic!("Invalid literal type"),
                 }
                 operand_1_lvalue
-            },
+            }
             OperatorExpressionOperand::Block(expression) => {
                 let lvalue = self.next_id();
-                self.generator.borrow_mut().write_shifted_line(&format!("let {} = {{", lvalue));
-                let result = self.evaluate_block(expression, lvalue)?;
-                self.generator.borrow_mut().write_shifted_line("};");
+                self.generator
+                    .borrow_mut()
+                    .write_line(&format!("let {} = {{", lvalue));
+                let result = self.block(expression, lvalue)?;
+                self.generator.borrow_mut().write_line("};");
                 result
-            },
+            }
             _ => panic!("Conditionals are not implemented yet"),
         };
 
@@ -519,6 +507,6 @@ impl Writer {
 
     fn next_id(&mut self) -> String {
         self.id_sequence += 1;
-        format!("id_{:06}", self.id_sequence)
+        format!("temp_id_{:06}", self.id_sequence)
     }
 }

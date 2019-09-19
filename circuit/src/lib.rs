@@ -3,79 +3,65 @@ use bellman::ConstraintSystem;
 use bellman::SynthesisError;
 use ff::Field;
 use ff::PrimeField;
-use pairing::bn256::Bn256;
-use pairing::bn256::Fr;
 use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::num::AllocatedNum;
+use pairing::bn256::Bn256;
+use pairing::bn256::Fr;
 
 #[derive(Default)]
 pub struct GeneratedCircuit {}
+
 impl Circuit<Bn256> for GeneratedCircuit {
     fn synthesize<CS: ConstraintSystem<Bn256>>(self, mut cs: &mut CS) -> Result<(), SynthesisError> {
-        let a = jab::alloc_input(&mut cs, || Ok(Fr::zero()), "a", 8)?.0;
-        let x = jab::alloc_input(&mut cs, || Ok(Fr::zero()), "x", 8)?.0;
+        let a = jab::allocate_input(&mut cs, || Ok(Fr::zero()), "a", 8)?.0;
+        let x = jab::allocate_input(&mut cs, || Ok(Fr::zero()), "x", 8)?.0;
 
-        let b = jab::alloc_witness(&mut cs, || Ok(Fr::zero()), "b", 8)?.0;
+        let b = jab::allocate_witness(&mut cs, || Ok(Fr::zero()), "b", 8)?.0;
 
-        let id_000001 = AllocatedNum::alloc(cs.namespace(|| "id_000001"), || Ok(Fr::from_str("2").unwrap()))?;
-        let id_000002 = jab::multiplication(&mut cs, &id_000001, &a, "id_000002", 254)?.0;
-
-        let id_000003 = AllocatedNum::alloc(cs.namespace(|| "id_000003"), || Ok(Fr::from_str("15").unwrap()))?;
-        let id_000004 = jab::addition(&mut cs, &b, &id_000003, "id_000004", 254)?.0;
-
-        let id_000005 = AllocatedNum::alloc(cs.namespace(|| "id_000005"), || Ok(Fr::from_str("64").unwrap()))?;
-        let id_000006 = jab::subtraction(&mut cs, &id_000004, &id_000005, "id_000006", 254)?.0;
-
-        let id_000007 = AllocatedNum::alloc(cs.namespace(|| "id_000007"), || Ok(Fr::from_str("3").unwrap()))?;
-        let id_000008 = jab::multiplication(&mut cs, &id_000007, &id_000006, "id_000008", 254)?.0;
-
-        let id_000009 = jab::addition(&mut cs, &id_000002, &id_000008, "id_000009", 254)?.0;
-
-        let id_000010 = AllocatedNum::alloc(cs.namespace(|| "id_000010"), || Ok(Fr::from_str("25").unwrap()))?;
-        let id_000011 = jab::multiplication(&mut cs, &id_000010, &x, "id_000011", 254)?.0;
-
-        let id_000012 = jab::subtraction(&mut cs, &id_000009, &id_000011, "id_000012", 254)?.0;
-
-        let id_000013 = {
-            let id_000014 = {
-                let id_000015 = AllocatedNum::alloc(cs.namespace(|| "id_000015"), || Ok(Fr::from_str("4").unwrap()))?;
-                let id_000016 = AllocatedNum::alloc(cs.namespace(|| "id_000016"), || Ok(Fr::from_str("5").unwrap()))?;
-                let id_000017 = jab::addition(&mut cs, &id_000016, &id_000015, "id_000017", 254)?.0;
-
-                id_000017
+        let temp_id_000001 = jab::allocate(&mut cs, "temp_id_000001", "2")?;
+        let temp_id_000002 = jab::multiplication(&mut cs, &temp_id_000001, &a, "temp_id_000002", 254)?.0;
+        let temp_id_000003 = jab::allocate(&mut cs, "temp_id_000003", "15")?;
+        let temp_id_000004 = jab::addition(&mut cs, &b, &temp_id_000003, "temp_id_000004", 254)?.0;
+        let temp_id_000005 = jab::allocate(&mut cs, "temp_id_000005", "64")?;
+        let temp_id_000006 = jab::subtraction(&mut cs, &temp_id_000004, &temp_id_000005, "temp_id_000006", 254)?.0;
+        let temp_id_000007 = jab::allocate(&mut cs, "temp_id_000007", "3")?;
+        let temp_id_000008 = jab::multiplication(&mut cs, &temp_id_000007, &temp_id_000006, "temp_id_000008", 254)?.0;
+        let temp_id_000009 = jab::addition(&mut cs, &temp_id_000002, &temp_id_000008, "temp_id_000009", 254)?.0;
+        let temp_id_000010 = jab::allocate(&mut cs, "temp_id_000010", "25")?;
+        let temp_id_000011 = jab::multiplication(&mut cs, &temp_id_000010, &x, "temp_id_000011", 254)?.0;
+        let temp_id_000012 = jab::subtraction(&mut cs, &temp_id_000009, &temp_id_000011, "temp_id_000012", 254)?.0;
+        let temp_id_000013 = {
+            let temp_id_000014 = jab::allocate(&mut cs, "temp_id_000014", "2")?;
+            let temp_id_000015 = {
+                let temp_id_000016 = jab::allocate(&mut cs, "temp_id_000016", "5")?;
+                let temp_id_000017 = jab::allocate(&mut cs, "temp_id_000017", "4")?;
+                let temp_id_000018 = jab::addition(&mut cs, &temp_id_000016, &temp_id_000017, "temp_id_000018", 254)?.0;
+                temp_id_000018
             };
-            let id_000018 = AllocatedNum::alloc(cs.namespace(|| "id_000018"), || Ok(Fr::from_str("2").unwrap()))?;
-            let id_000019 = jab::addition(&mut cs, &id_000018, &id_000014, "id_000019", 254)?.0;
-
-            id_000019
+            let temp_id_000019 = jab::addition(&mut cs, &temp_id_000014, &temp_id_000015, "temp_id_000019", 254)?.0;
+            temp_id_000019
         };
-        let id_000020 = jab::addition(&mut cs, &id_000012, &id_000013, "id_000020", 254)?.0;
-
-        let c = id_000020;
-
-        let id_000021 = AllocatedNum::alloc(cs.namespace(|| "id_000021"), || Ok(Fr::from_str("136").unwrap()))?;
-        let d = id_000021;
-
-        let id_000022 = jab::negation(&mut cs, &d, "id_000022", 254)?.0;
-
-        let id_000023 = jab::equals(&mut cs, &c, &id_000022, "id_000023", 254)?;
-
-        let cond = id_000023;
-
+        let temp_id_000020 = jab::addition(&mut cs, &temp_id_000012, &temp_id_000013, "temp_id_000020", 254)?.0;
+        let c = temp_id_000020;
+        let temp_id_000021 = jab::allocate(&mut cs, "temp_id_000021", "136")?;
+        let d = temp_id_000021;
+        let temp_id_000022 = jab::negation(&mut cs, &d, "temp_id_000022", 254)?.0;
+        let temp_id_000023 = jab::equals(&mut cs, &c, &temp_id_000022, "temp_id_000023", 254)?;
+        let cond = temp_id_000023;
         dbg!(c.get_variable());
-
-        let id_000024 = Boolean::constant(true);
-        let id_000025 = jab::or(&mut cs, &cond, &id_000024, "id_000025")?;
-
-        jab::require(&mut cs, &id_000025, "require_test");
-
-        for i in 0..10 {
-            let iter_name = format!("id_000026_{}", i);
-            let i = AllocatedNum::alloc(cs.namespace(|| iter_name), || Ok(Fr::from_str(i.to_string().as_str()).unwrap()))?;
-            dbg!(i.get_variable());
-
+        let temp_id_000024 = Boolean::constant(true);
+        let temp_id_000025 = jab::or(&mut cs, &cond, &temp_id_000024, "temp_id_000025")?;
+        jab::require(&mut cs, &temp_id_000025, "require_test");
+        for i_index in 0..10 {
+            let iter_name = format!("temp_id_000026_{}", i_index);
+            let i = AllocatedNum::alloc(cs.namespace(|| iter_name), || Ok(Fr::from_str(i_index.to_string().as_str()).unwrap()))?;
+            for j_index in 0..10 {
+                let iter_name = format!("temp_id_000027_{}_{}", i_index, j_index);
+                let j = AllocatedNum::alloc(cs.namespace(|| iter_name), || Ok(Fr::from_str(j_index.to_string().as_str()).unwrap()))?;
+                dbg!(i.get_variable());
+                dbg!(j.get_variable());
+            }
         }
-
         Ok(())
     }
 }

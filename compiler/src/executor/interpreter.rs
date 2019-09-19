@@ -62,7 +62,7 @@ impl Interpreter {
         Ok(())
     }
 
-    pub fn execute(&mut self, statement: Statement) -> Result<(), Error> {
+    fn execute(&mut self, statement: Statement) -> Result<(), Error> {
         log::trace!("Statement              : {}", statement);
 
         match statement {

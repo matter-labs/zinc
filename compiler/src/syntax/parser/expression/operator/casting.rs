@@ -11,7 +11,6 @@ use crate::lexical::Literal;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::{BlockExpressionParser, ConditionalExpressionParser};
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionParser;
@@ -19,6 +18,7 @@ use crate::syntax::Identifier;
 use crate::syntax::OperatorExpression;
 use crate::syntax::OperatorExpressionOperand;
 use crate::syntax::OperatorExpressionOperator;
+use crate::syntax::{BlockExpressionParser, ConditionalExpressionParser};
 use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
@@ -207,14 +207,15 @@ impl Parser {
                     return Ok(self.expression);
                 }
                 State::ConditionalExpression => {
-                    let conditional = ConditionalExpressionParser::default().parse(stream.clone())?;
+                    let conditional =
+                        ConditionalExpressionParser::default().parse(stream.clone())?;
                     let location = conditional.location;
                     self.expression.push_operand((
                         OperatorExpressionOperand::Conditional(conditional),
                         Token::new(Lexeme::Keyword(Keyword::If), location),
                     ));
                     return Ok(self.expression);
-                },
+                }
             }
         }
     }

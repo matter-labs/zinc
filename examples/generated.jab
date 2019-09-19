@@ -18,5 +18,8 @@ debug(c);
 require(cond || true, "require_test");
 
 for i in 0..10 {
-    debug(i);
+    for j in 0..10 {
+        debug(i);
+        debug(j);
+    };
 };

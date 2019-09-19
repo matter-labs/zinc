@@ -15,10 +15,10 @@ use std::rc::Rc;
 use failure::Fail;
 use serde_derive::Serialize;
 
-use self::executor::Interpreter;
 use self::executor::Generator;
-use self::executor::Writer;
+use self::executor::Interpreter;
 use self::executor::Scope;
+use self::executor::Writer;
 use self::lexical::TokenStream;
 use self::syntax::Parser;
 
@@ -39,7 +39,9 @@ pub fn parse(input: String) -> Result<CircuitProgram, Error> {
 
 pub fn interpret(program: CircuitProgram) -> Result<(), Error> {
     let mut interpreter = Interpreter::new(Scope::new(None));
-    interpreter.interpret(program.clone()).map_err(Error::Executor)
+    interpreter
+        .interpret(program.clone())
+        .map_err(Error::Executor)
 }
 
 pub fn generate(program: CircuitProgram) -> Result<(), Error> {
