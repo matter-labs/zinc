@@ -2,6 +2,10 @@
 //! The block expression.
 //!
 
+mod builder;
+
+pub use self::builder::Builder;
+
 use std::fmt;
 
 use serde_derive::Serialize;
@@ -12,6 +16,7 @@ use crate::syntax::Statement;
 
 #[derive(Debug, Default, Serialize, Clone, PartialEq)]
 pub struct Expression {
+    #[serde(skip_serializing)]
     pub location: Location,
     pub statements: Vec<Statement>,
     pub expression: Option<Box<syntax::Expression>>,

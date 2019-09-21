@@ -16,6 +16,7 @@ use crate::syntax::BlockExpression;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Expression {
+    #[serde(skip_serializing)]
     pub location: Location,
     pub condition: Box<syntax::Expression>,
     pub main_block: BlockExpression,

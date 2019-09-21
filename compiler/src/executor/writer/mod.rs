@@ -10,12 +10,13 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::executor::Error;
-use crate::lexical::Literal;
+use crate::lexical;
 use crate::syntax::BlockExpression;
 use crate::syntax::CircuitProgram;
 use crate::syntax::ConditionalExpression;
 use crate::syntax::Expression;
 use crate::syntax::Identifier;
+use crate::syntax::Literal;
 use crate::syntax::OperatorExpression;
 use crate::syntax::OperatorExpressionObject;
 use crate::syntax::OperatorExpressionOperand;
@@ -124,7 +125,10 @@ impl Writer {
                         .write_assignment(&operand_1, &operand_2);
 
                     self.stack
-                        .push(OperatorExpressionOperand::Literal(Literal::Void));
+                        .push(OperatorExpressionOperand::Literal(Literal::new(
+                            expression_element.location,
+                            lexical::Literal::Void,
+                        )));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Range) => {
                     panic!("The range operator cannot be used in expressions")
@@ -135,7 +139,7 @@ impl Writer {
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
-                            expression_element.token.location,
+                            expression_element.location,
                             id,
                         )));
                 }
@@ -148,7 +152,7 @@ impl Writer {
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
-                            expression_element.token.location,
+                            expression_element.location,
                             id,
                         )));
                 }
@@ -161,7 +165,7 @@ impl Writer {
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
-                            expression_element.token.location,
+                            expression_element.location,
                             id,
                         )));
                 }
@@ -174,7 +178,7 @@ impl Writer {
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
-                            expression_element.token.location,
+                            expression_element.location,
                             id,
                         )));
                 }
@@ -187,7 +191,7 @@ impl Writer {
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
-                            expression_element.token.location,
+                            expression_element.location,
                             id,
                         )));
                 }
@@ -200,7 +204,7 @@ impl Writer {
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
-                            expression_element.token.location,
+                            expression_element.location,
                             id,
                         )));
                 }
@@ -213,7 +217,7 @@ impl Writer {
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
-                            expression_element.token.location,
+                            expression_element.location,
                             id,
                         )));
                 }
@@ -226,7 +230,7 @@ impl Writer {
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
-                            expression_element.token.location,
+                            expression_element.location,
                             id,
                         )));
                 }
@@ -239,7 +243,7 @@ impl Writer {
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
-                            expression_element.token.location,
+                            expression_element.location,
                             id,
                         )));
                 }
@@ -252,7 +256,7 @@ impl Writer {
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
-                            expression_element.token.location,
+                            expression_element.location,
                             id,
                         )));
                 }
@@ -265,7 +269,7 @@ impl Writer {
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
-                            expression_element.token.location,
+                            expression_element.location,
                             id,
                         )));
                 }
@@ -278,7 +282,7 @@ impl Writer {
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
-                            expression_element.token.location,
+                            expression_element.location,
                             id,
                         )));
                 }
@@ -294,7 +298,7 @@ impl Writer {
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
-                            expression_element.token.location,
+                            expression_element.location,
                             id,
                         )));
                 }
@@ -304,7 +308,7 @@ impl Writer {
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
-                            expression_element.token.location,
+                            expression_element.location,
                             id,
                         )));
                 }
@@ -314,7 +318,7 @@ impl Writer {
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
-                            expression_element.token.location,
+                            expression_element.location,
                             id,
                         )));
                 }
@@ -340,7 +344,7 @@ impl Writer {
             self.generator.borrow_mut().write_identifier(&result);
             id
         } else {
-            panic!("Voids are not implemented yet");
+            "VOID".to_owned()
         };
         self.generator.borrow_mut().exit_block();
         Ok(result)
@@ -353,17 +357,17 @@ impl Writer {
     }
 
     fn literal(&mut self, literal: Literal) -> String {
-        match literal {
-            Literal::Boolean(value) => self
+        match literal.into_inner() {
+            lexical::Literal::Void => "()".to_owned(),
+            lexical::Literal::Boolean(value) => self
                 .generator
                 .borrow_mut()
                 .write_allocate_boolean(&value.to_string()),
-            Literal::Integer(value) => self
+            lexical::Literal::Integer(value) => self
                 .generator
                 .borrow_mut()
                 .write_allocate_number_constant(&value.to_string()),
-            Literal::Void => "()".to_owned(),
-            Literal::String(..) => panic!("String literals cannot be used in expressions"),
+            lexical::Literal::String(..) => panic!("String literals cannot be used in expressions"),
         }
     }
 

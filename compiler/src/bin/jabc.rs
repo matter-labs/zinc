@@ -15,7 +15,7 @@ struct Arguments {
     #[structopt(
         short = "p",
         long = "profile",
-        help = "Runs the profiler and print cost information"
+        help = "Runs the profiler and prints cost information"
     )]
     profile: bool,
     #[structopt(
@@ -50,8 +50,8 @@ fn main() -> Result<(), FileError> {
     let args: Arguments = Arguments::from_args();
 
     let mut file = File::open(&args.input).map_err(FileError::Opening)?;
-    let size = file.metadata().map_err(FileError::Metadata)?.len();
-    let mut code = String::with_capacity(size as usize);
+    let size = file.metadata().map_err(FileError::Metadata)?.len() as usize;
+    let mut code = String::with_capacity(size);
     file.read_to_string(&mut code).map_err(FileError::Reading)?;
 
     let circuit = compiler::parse(code);

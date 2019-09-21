@@ -2,12 +2,14 @@
 //! The expression.
 //!
 
+mod builder;
 mod element;
 mod object;
 mod operand;
 #[allow(clippy::module_inception)]
 mod operator;
 
+pub use self::builder::Builder;
 pub use self::element::Element;
 pub use self::object::Object;
 pub use self::operand::Operand;
@@ -17,26 +19,28 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
-use crate::lexical::Token;
+use crate::lexical::Location;
 
 #[derive(Debug, Default, Serialize, Clone, PartialEq)]
 pub struct Expression {
+    #[serde(skip_serializing)]
+    location: Location,
     elements: Vec<Element>,
 }
 
 impl Expression {
-    pub fn new(elements: Vec<Element>) -> Self {
-        Self { elements }
+    pub fn new(location: Location, elements: Vec<Element>) -> Self {
+        Self { location, elements }
     }
 
-    pub fn push_operand(&mut self, (operand, token): (Operand, Token)) {
+    pub fn push_operand(&mut self, location: Location, operand: Operand) {
         self.elements
-            .push(Element::new(Object::Operand(operand), token));
+            .push(Element::new(location, Object::Operand(operand)));
     }
 
-    pub fn push_operator(&mut self, (operator, token): (Operator, Token)) {
+    pub fn push_operator(&mut self, location: Location, operator: Operator) {
         self.elements
-            .push(Element::new(Object::Operator(operator), token));
+            .push(Element::new(location, Object::Operator(operator)));
     }
 
     pub fn append(&mut self, mut expression: Expression) {

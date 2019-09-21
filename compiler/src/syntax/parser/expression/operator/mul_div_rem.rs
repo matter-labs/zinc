@@ -7,10 +7,10 @@ use std::rc::Rc;
 
 use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
+use crate::lexical::Location;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::CastingOperatorOperandParser;
-use crate::syntax::Error as SyntaxError;
 use crate::syntax::OperatorExpression;
 use crate::syntax::OperatorExpressionOperand;
 use crate::syntax::OperatorExpressionOperator;
@@ -34,7 +34,7 @@ impl Default for State {
 pub struct Parser {
     state: State,
     expression: OperatorExpression,
-    operator: Option<(OperatorExpressionOperator, Token)>,
+    operator: Option<(Location, OperatorExpressionOperator)>,
 }
 
 impl Parser {
@@ -44,39 +44,31 @@ impl Parser {
                 State::CastingFirstOperand => {
                     let rpn = CastingOperatorOperandParser::default().parse(stream.clone())?;
                     self.expression.append(rpn);
-                    if let Some(operator) = self.operator.take() {
-                        self.expression.push_operator(operator);
+                    if let Some((location, operator)) = self.operator.take() {
+                        self.expression.push_operator(location, operator);
                     }
                     self.state = State::CastingOperator;
                 }
                 State::CastingOperator => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
-                        Some(Ok(
-                            token @ Token {
-                                lexeme: Lexeme::Keyword(Keyword::As),
-                                ..
-                            },
-                        )) => {
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Keyword(Keyword::As),
+                            location,
+                        })) => {
                             stream.borrow_mut().next();
-                            self.operator = Some((OperatorExpressionOperator::Casting, token));
+                            self.operator = Some((location, OperatorExpressionOperator::Casting));
                             self.state = State::CastingSecondOperand;
                         }
                         _ => return Ok(self.expression),
                     }
                 }
                 State::CastingSecondOperand => {
-                    let token = match stream.borrow_mut().peek() {
-                        Some(Ok(token)) => token,
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
-                    };
-
                     let r#type = TypeParser::default().parse(stream.clone())?;
                     self.expression
-                        .push_operand((OperatorExpressionOperand::Type(r#type), token));
-                    if let Some(operator) = self.operator.take() {
-                        self.expression.push_operator(operator);
+                        .push_operand(r#type.location(), OperatorExpressionOperand::Type(r#type));
+                    if let Some((location, operator)) = self.operator.take() {
+                        self.expression.push_operator(location, operator);
                     }
                     self.state = State::CastingOperator;
                 }

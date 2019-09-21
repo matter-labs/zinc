@@ -15,6 +15,7 @@ use crate::syntax::Expression;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Debug {
+    #[serde(skip_serializing)]
     pub location: Location,
     pub expression: Expression,
 }

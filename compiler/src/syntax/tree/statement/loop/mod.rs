@@ -17,6 +17,7 @@ use crate::syntax::Identifier;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Loop {
+    #[serde(skip_serializing)]
     pub location: Location,
     pub index_identifier: Identifier,
     pub range_start: IntegerLiteral,

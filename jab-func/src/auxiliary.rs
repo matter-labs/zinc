@@ -115,5 +115,5 @@ where
 
     system.enforce(|| "unpacking_constraint", |lc| lc, |lc| lc, |_| lc);
 
-    Ok(bits.into_iter().map(|b| Boolean::from(b)).collect())
+    Ok(bits.into_iter().map(Boolean::from).collect())
 }

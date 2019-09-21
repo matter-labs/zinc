@@ -12,7 +12,7 @@ use crate::lexical::Keyword;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Identifier {
-    name: String,
+    pub name: String,
 }
 
 #[derive(Debug, Fail, Serialize)]
@@ -25,14 +25,8 @@ pub enum Error {
 }
 
 impl Identifier {
-    pub fn new(name: &str) -> Self {
-        Self {
-            name: name.to_owned(),
-        }
-    }
-
-    pub fn name(&self) -> &str {
-        self.name.as_str()
+    pub fn new(name: String) -> Self {
+        Self { name }
     }
 
     pub fn can_start_with(character: char) -> bool {

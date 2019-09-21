@@ -6,9 +6,11 @@ mod block;
 mod conditional;
 mod operator;
 
+pub use self::block::Builder as BlockExpressionBuilder;
 pub use self::block::Expression as BlockExpression;
 pub use self::conditional::Builder as ConditionalExpressionBuilder;
 pub use self::conditional::Expression as ConditionalExpression;
+pub use self::operator::Builder as OperatorExpressionBuilder;
 pub use self::operator::Element as OperatorExpressionElement;
 pub use self::operator::Expression as OperatorExpression;
 pub use self::operator::Object as OperatorExpressionObject;

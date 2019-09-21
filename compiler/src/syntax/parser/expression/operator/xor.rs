@@ -6,6 +6,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::lexical::Lexeme;
+use crate::lexical::Location;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
@@ -30,7 +31,7 @@ impl Default for State {
 pub struct Parser {
     state: State,
     expression: OperatorExpression,
-    operator: Option<(OperatorExpressionOperator, Token)>,
+    operator: Option<(Location, OperatorExpressionOperator)>,
 }
 
 impl Parser {
@@ -40,22 +41,20 @@ impl Parser {
                 State::LogicalAndOperand => {
                     let rpn = AndOperatorOperandParser::default().parse(stream.clone())?;
                     self.expression.append(rpn);
-                    if let Some(operator) = self.operator.take() {
-                        self.expression.push_operator(operator);
+                    if let Some((location, operator)) = self.operator.take() {
+                        self.expression.push_operator(location, operator);
                     }
                     self.state = State::LogicalAndOperator;
                 }
                 State::LogicalAndOperator => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
-                        Some(Ok(
-                            token @ Token {
-                                lexeme: Lexeme::Symbol(Symbol::DoubleAmpersand),
-                                ..
-                            },
-                        )) => {
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::DoubleAmpersand),
+                            location,
+                        })) => {
                             stream.borrow_mut().next();
-                            self.operator = Some((OperatorExpressionOperator::And, token));
+                            self.operator = Some((location, OperatorExpressionOperator::And));
                             self.state = State::LogicalAndOperand;
                         }
                         _ => return Ok(self.expression),

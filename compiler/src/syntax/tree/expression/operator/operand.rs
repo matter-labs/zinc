@@ -6,10 +6,10 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
-use crate::lexical::Literal;
 use crate::syntax::BlockExpression;
 use crate::syntax::ConditionalExpression;
 use crate::syntax::Identifier;
+use crate::syntax::Literal;
 use crate::syntax::Type;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]

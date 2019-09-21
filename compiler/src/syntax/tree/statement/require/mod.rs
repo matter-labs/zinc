@@ -16,6 +16,7 @@ use crate::syntax::Expression;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Require {
+    #[serde(skip_serializing)]
     pub location: Location,
     pub id: String,
     pub expression: Expression,

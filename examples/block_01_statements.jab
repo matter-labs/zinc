@@ -1,0 +1,12 @@
+/*
+    The Pyramid.
+*/
+
+inputs {}
+
+let mut inner = 25;
+{
+    inner = 50;
+};
+
+require(inner == 50);

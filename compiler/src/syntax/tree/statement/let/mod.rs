@@ -17,6 +17,7 @@ use crate::syntax::Type;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Let {
+    #[serde(skip_serializing)]
     pub location: Location,
     pub identifier: Identifier,
     pub is_mutable: bool,

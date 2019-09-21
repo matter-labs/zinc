@@ -75,7 +75,7 @@ impl Parser {
                         lexeme: Lexeme::Identifier(identifier),
                         location,
                     })) => {
-                        let identifier = Identifier::new(location, identifier.name().to_owned());
+                        let identifier = Identifier::new(location, identifier.name);
                         self.builder.set_identifier(identifier);
                         self.state = State::ColonOrEquals;
                     }
@@ -94,7 +94,7 @@ impl Parser {
                         lexeme: Lexeme::Identifier(identifier),
                         location,
                     })) => {
-                        let identifier = Identifier::new(location, identifier.name().to_owned());
+                        let identifier = Identifier::new(location, identifier.name);
                         self.builder.set_identifier(identifier);
                         self.state = State::ColonOrEquals;
                     }
