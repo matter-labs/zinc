@@ -9,8 +9,8 @@ use crate::executor::ElementError;
 use crate::executor::Integer;
 use crate::executor::ScopeError;
 use crate::executor::Value;
-use crate::lexical::Literal;
 use crate::lexical::Location;
+use crate::syntax::Literal;
 use crate::syntax::TypeVariant;
 
 #[derive(Debug, Fail, Serialize, PartialEq)]

@@ -12,21 +12,13 @@ use crate::lexical::Location;
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Literal {
     #[serde(skip_serializing)]
-    location: Location,
-    data: lexical::Literal,
+    pub location: Location,
+    pub data: lexical::Literal,
 }
 
 impl Literal {
     pub fn new(location: Location, data: lexical::Literal) -> Self {
         Self { location, data }
-    }
-
-    pub fn location(&self) -> Location {
-        self.location
-    }
-
-    pub fn into_inner(self) -> lexical::Literal {
-        self.data
     }
 }
 

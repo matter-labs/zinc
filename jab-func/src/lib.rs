@@ -1,17 +1,6 @@
 //!
 //! Functions used by generated circuits directly.
 //!
-//! Types
-//! uintX corresponds to (AllocatedNum<Fr>, Vec<Bool>) where Vec lenth is X, field is same where X=Fr::NUM_BITS (equals 254). Those are tuples, whether number or bit representation is used depends on the operation
-//! bool -> Boolean
-//! Vector is generic over other described types
-//! Struct consists of types described above
-//!
-//! Operators
-//! each of operator below should have two versions, checked and unchecked
-//! operation transpiles to checked version according to some logic, initially in case of explicit assignment (let c = a + b), otherwise we proceed with unchecked version to optimize
-//! TODO: what if long expression overflows so much that becomes valid again, we should have some special syntax for ensuring this. Possible solution is to enforce overflow check if result is possible to be greater then 254 bit
-//!
 
 mod auxiliary;
 
@@ -91,10 +80,10 @@ where
 }
 
 ///
-/// The or logical function.
+/// The OR logical function.
 ///
 /// Transpiles from:
-/// `a || b`
+/// `{identifier} || {identifier}`
 ///
 pub fn or<CS>(system: CS, a: &Boolean, b: &Boolean, _name: &str) -> Result<Boolean, SynthesisError>
 where
@@ -104,10 +93,10 @@ where
 }
 
 ///
-/// The xor logical function.
+/// The XOR logical function.
 ///
 /// Transpiles from:
-/// `a ^^ b`
+/// `{identifier} ^^ {identifier}`
 ///
 pub fn xor<CS>(system: CS, a: &Boolean, b: &Boolean, _name: &str) -> Result<Boolean, SynthesisError>
 where
@@ -117,10 +106,10 @@ where
 }
 
 ///
-/// The and logical function.
+/// The AND logical function.
 ///
 /// Transpiles from:
-/// `a && b`
+/// `{identifier} && {identifier}`
 ///
 pub fn and<CS>(system: CS, a: &Boolean, b: &Boolean, _name: &str) -> Result<Boolean, SynthesisError>
 where
@@ -130,10 +119,10 @@ where
 }
 
 ///
-/// The equals comparison function.
+/// The equality comparison function.
 ///
 /// Transpiles from:
-/// `a == b`
+/// `{identifier} == {identifier}`
 ///
 pub fn equals<CS>(
     mut system: CS,
@@ -154,10 +143,10 @@ where
 }
 
 ///
-/// The not equals comparison function.
+/// The non-equality comparison function.
 ///
 /// Transpiles from:
-/// `a != b`
+/// `{identifier} != {identifier}`
 ///
 pub fn not_equals<CS>(
     mut system: CS,
@@ -179,10 +168,10 @@ where
 }
 
 ///
-/// The greater equals comparison function.
+/// The greater-or-equality comparison function.
 ///
 /// Transpiles from:
-/// `a >= b`
+/// `{identifier} >= {identifier}`
 ///
 pub fn greater_equals<CS>(
     mut system: CS,
@@ -224,10 +213,10 @@ where
 }
 
 ///
-/// The lesser equals comparison function.
+/// The lesser-or-equality comparison function.
 ///
 /// Transpiles from:
-/// `a <= b`
+/// `{identifier} <= {identifier}`
 ///
 pub fn lesser_equals<CS>(
     mut system: CS,
@@ -272,7 +261,7 @@ where
 /// The greater comparison function.
 ///
 /// Transpiles from:
-/// `a > b`
+/// `{identifier} > {identifier}`
 ///
 pub fn greater<CS>(
     mut system: CS,
@@ -306,7 +295,7 @@ where
 /// The lesser comparison function.
 ///
 /// Transpiles from:
-/// `a < b`
+/// `{identifier} < {identifier}`
 ///
 pub fn lesser<CS>(
     mut system: CS,
@@ -340,7 +329,7 @@ where
 /// The addition function.
 ///
 /// Transpiles from:
-/// `a + b`
+/// `{identifier} + {identifier}`
 ///
 pub fn addition<CS>(
     mut system: CS,
@@ -375,7 +364,7 @@ where
 /// The subtraction function.
 ///
 /// Transpiles from:
-/// `a - b`
+/// `{identifier} - {identifier}`
 ///
 pub fn subtraction<CS>(
     mut system: CS,
@@ -410,7 +399,7 @@ where
 /// The multiplication function.
 ///
 /// Transpiles from:
-/// `a * b`
+/// `{identifier} * {identifier}`
 ///
 pub fn multiplication<CS>(
     mut system: CS,
@@ -445,7 +434,7 @@ where
 /// The casting function.
 ///
 /// Transpiles from:
-/// `a as {type}`
+/// `{identifier} as {type}`
 ///
 pub fn casting<CS>(
     mut system: CS,
@@ -463,7 +452,7 @@ where
 /// The negation function.
 ///
 /// Transpiles from:
-/// `-a`
+/// `-{identifier}`
 ///
 pub fn negation<CS>(
     mut system: CS,
@@ -494,10 +483,10 @@ where
 }
 
 ///
-/// The not logical function.
+/// The NOT logical function.
 ///
 /// Transpiles from:
-/// `!a`
+/// `!{identifier}`
 ///
 pub fn not<CS>(_system: CS, a: &Boolean, _name: &str) -> Result<Boolean, SynthesisError>
 where
@@ -510,7 +499,7 @@ where
 /// The require function.
 ///
 /// Transpiles from:
-/// `require(expr, annotation);`
+/// `require({expression}, {string});`
 ///
 pub fn require<CS>(mut system: CS, expr: &Boolean, name: &str)
 where
@@ -529,19 +518,22 @@ where
 ///
 /// Transpiles from:
 /// if {expression} {
-///     a = b
+///     {statement}*
+///     {expression}?
 /// } else {
-///     a = c
+///     {statement}*
+///     {expression}?
 /// }
 ///
-pub fn if_else_example<CS: ConstraintSystem<Bn256>>(
+pub fn conditional<CS>(
     mut cs: CS,
-    a: AllocatedNum<Bn256>,
+    a: &AllocatedNum<Bn256>,
     b: &AllocatedNum<Bn256>,
-    c: &AllocatedNum<Bn256>,
-    cond: &Boolean,
-) -> Result<(), SynthesisError> {
-    AllocatedNum::conditionally_select(cs.namespace(|| "select_first_if"), &a, b, cond)?;
-    AllocatedNum::conditionally_select(cs.namespace(|| "select_first_else"), &a, c, &cond.not())?;
-    Ok(())
+    condition: &Boolean,
+    name: &str,
+) -> Result<AllocatedNum<Bn256>, SynthesisError>
+where
+    CS: ConstraintSystem<Bn256>,
+{
+    AllocatedNum::conditionally_select(cs.namespace(|| name), a, b, condition)
 }

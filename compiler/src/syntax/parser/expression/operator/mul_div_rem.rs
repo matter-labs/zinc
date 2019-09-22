@@ -44,7 +44,7 @@ impl Parser {
             match self.state {
                 State::CastingFirstOperand => {
                     let rpn = CastingOperatorOperandParser::default().parse(stream.clone())?;
-                    self.builder.set_location_if_unset(rpn.location());
+                    self.builder.set_location_if_unset(rpn.location);
                     self.builder.append_expression(rpn);
                     if let Some((location, operator)) = self.operator.take() {
                         self.builder.push_operator(location, operator);
@@ -68,7 +68,7 @@ impl Parser {
                 State::CastingSecondOperand => {
                     let r#type = TypeParser::default().parse(stream.clone())?;
                     self.builder
-                        .push_operand(r#type.location(), OperatorExpressionOperand::Type(r#type));
+                        .push_operand(r#type.location, OperatorExpressionOperand::Type(r#type));
                     if let Some((location, operator)) = self.operator.take() {
                         self.builder.push_operator(location, operator);
                     }

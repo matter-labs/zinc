@@ -59,7 +59,7 @@ impl Parser {
             match self.state {
                 State::AssignmentFirstOperand => {
                     let rpn = AssignmentOperandParser::default().parse(stream.clone())?;
-                    self.builder.set_location_if_unset(rpn.location());
+                    self.builder.set_location_if_unset(rpn.location);
                     self.builder.append_expression(rpn);
                     self.state = State::AssignmentOperator;
                 }

@@ -41,7 +41,7 @@ impl Parser {
             match self.state {
                 State::LogicalAndOperand => {
                     let rpn = AndOperatorOperandParser::default().parse(stream.clone())?;
-                    self.builder.set_location_if_unset(rpn.location());
+                    self.builder.set_location_if_unset(rpn.location);
                     self.builder.append_expression(rpn);
                     if let Some((location, operator)) = self.operator.take() {
                         self.builder.push_operator(location, operator);

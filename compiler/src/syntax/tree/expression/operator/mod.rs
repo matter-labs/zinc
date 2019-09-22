@@ -24,17 +24,13 @@ use crate::lexical::Location;
 #[derive(Debug, Default, Serialize, Clone, PartialEq)]
 pub struct Expression {
     #[serde(skip_serializing)]
-    location: Location,
-    elements: Vec<Element>,
+    pub location: Location,
+    pub elements: Vec<Element>,
 }
 
 impl Expression {
     pub fn new(location: Location, elements: Vec<Element>) -> Self {
         Self { location, elements }
-    }
-
-    pub fn location(&self) -> Location {
-        self.location
     }
 }
 

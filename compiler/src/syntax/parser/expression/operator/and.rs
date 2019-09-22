@@ -42,7 +42,7 @@ impl Parser {
             match self.state {
                 State::ComparisonFirstOperand => {
                     let rpn = ComparisonOperatorOperandParser::default().parse(stream.clone())?;
-                    self.builder.set_location_if_unset(rpn.location());
+                    self.builder.set_location_if_unset(rpn.location);
                     self.builder.append_expression(rpn);
                     self.state = State::ComparisonOperator;
                 }

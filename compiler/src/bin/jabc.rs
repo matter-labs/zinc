@@ -73,8 +73,8 @@ fn main() -> Result<(), Error> {
 
     if args.meta {
         let metadata = match circuit {
-            Ok(ref circuit) => serde_json::to_string(circuit).expect("Serialization bug"),
-            Err(ref error) => error.to_string(),
+            Ok(circuit) => serde_json::to_string(&circuit).expect("Serialization bug"),
+            Err(error) => error.to_string(),
         };
         println!("{}", metadata);
     }

@@ -6,10 +6,12 @@ inputs {
     dummy: field;
 }
 
-debug(if false {
+let result = if false {
     1
-} else if false {
+} else if true {
     2
 } else {
     3
-});
+};
+debug(result);
+require(dummy == 0);

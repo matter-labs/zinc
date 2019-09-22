@@ -25,8 +25,7 @@ pub struct Require {
 impl Require {
     pub fn new(location: Location, expression: Expression, tag: Option<StringLiteral>) -> Self {
         let id = tag
-            .as_ref()
-            .map(|tag| format!("{}", tag))
+            .map(|literal| literal.to_string())
             .unwrap_or_else(|| format!("{}_{}", location.line(), location.column()));
 
         Self {

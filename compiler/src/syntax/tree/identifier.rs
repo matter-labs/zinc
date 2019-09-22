@@ -11,21 +11,13 @@ use crate::lexical::Location;
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Identifier {
     #[serde(skip_serializing)]
-    location: Location,
-    name: String,
+    pub location: Location,
+    pub name: String,
 }
 
 impl Identifier {
     pub fn new(location: Location, name: String) -> Self {
         Self { location, name }
-    }
-
-    pub fn location(&self) -> Location {
-        self.location
-    }
-
-    pub fn name(&self) -> &str {
-        self.name.as_str()
     }
 }
 

@@ -17,22 +17,14 @@ use crate::lexical::Location;
 #[derive(Debug, Serialize, Clone, Copy, PartialEq)]
 pub struct Type {
     #[serde(skip_serializing)]
-    location: Location,
+    pub location: Location,
     #[serde(flatten)]
-    variant: Variant,
+    pub variant: Variant,
 }
 
 impl Type {
     pub fn new(location: Location, variant: Variant) -> Self {
         Self { location, variant }
-    }
-
-    pub fn location(&self) -> Location {
-        self.location
-    }
-
-    pub fn variant(&self) -> Variant {
-        self.variant
     }
 }
 

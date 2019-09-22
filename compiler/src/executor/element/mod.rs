@@ -454,7 +454,7 @@ impl Element {
         };
 
         Ok(Self::Value(Value::Integer(
-            value.cast(r#type.variant()).map_err(Error::Value)?,
+            value.cast(r#type.variant).map_err(Error::Value)?,
         )))
     }
 }

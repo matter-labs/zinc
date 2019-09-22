@@ -13,11 +13,12 @@ use crate::executor::Place;
 use crate::executor::Scope;
 use crate::executor::Value;
 use crate::executor::Warning;
-use crate::lexical::Literal;
+use crate::lexical;
 use crate::syntax::BlockExpression;
 use crate::syntax::CircuitProgram;
 use crate::syntax::ConditionalExpression;
 use crate::syntax::Expression;
+use crate::syntax::Literal;
 use crate::syntax::OperatorExpression;
 use crate::syntax::OperatorExpressionObject;
 use crate::syntax::OperatorExpressionOperand;
@@ -41,14 +42,14 @@ impl Interpreter {
 
     pub fn interpret(&mut self, program: CircuitProgram) -> Result<(), Error> {
         for input in program.inputs.into_iter() {
-            let location = input.location();
+            let location = input.location;
             self.scope
                 .borrow_mut()
                 .declare_input(input)
                 .map_err(|error| Error::Scope(location, error))?;
         }
         for witness in program.witnesses.into_iter() {
-            let location = witness.location();
+            let location = witness.location;
             self.scope
                 .borrow_mut()
                 .declare_witness(witness)
@@ -73,12 +74,12 @@ impl Interpreter {
             Statement::Let(r#let) => {
                 let value = self.evaluate(r#let.expression)?;
                 let value = if let Some(r#type) = r#let.r#type {
-                    match (value, r#type.variant()) {
+                    match (value, r#type.variant) {
                         (value @ Value::Void, TypeVariant::Void) => value,
                         (value @ Value::Boolean(_), TypeVariant::Bool) => value,
                         (Value::Integer(mut integer), type_variant) => {
                             integer = integer.cast(type_variant).map_err(|error| {
-                                Error::Element(r#type.location(), ElementError::Value(error))
+                                Error::Element(r#type.location, ElementError::Value(error))
                             })?;
                             Value::Integer(integer)
                         }
@@ -94,18 +95,19 @@ impl Interpreter {
                     value
                 };
 
-                let location = r#let.identifier.location();
+                let location = r#let.identifier.location;
                 let place = Place::new(r#let.identifier, value, r#let.is_mutable);
                 if let Err(warning) = self.scope.borrow_mut().declare_variable(place) {
                     log::warn!("{}", Warning::Scope(location, warning));
                 }
             }
             Statement::Require(require) => match self.evaluate(require.expression)? {
-                Value::Boolean(ref boolean) if boolean.is_true() => {
-                    log::info!("require {} passed", require.id);
-                }
-                Value::Boolean(ref boolean) if boolean.is_false() => {
-                    return Err(Error::RequireFailed(require.location, require.id))
+                Value::Boolean(boolean) => {
+                    if boolean.value {
+                        log::info!("require {} passed", require.id)
+                    } else {
+                        return Err(Error::RequireFailed(require.location, require.id));
+                    }
                 }
                 value => {
                     return Err(Error::RequireExpectedBooleanExpression(
@@ -119,7 +121,6 @@ impl Interpreter {
                 log::trace!("Loop statement         : {}", r#loop);
 
                 let location = r#loop.location;
-
                 let range_start = match Value::try_from(r#loop.range_start) {
                     Ok(Value::Integer(integer)) => integer,
                     Ok(value) => {
@@ -213,29 +214,31 @@ impl Interpreter {
     fn evaluate_operator(&mut self, expression: OperatorExpression) -> Result<Value, Error> {
         log::trace!("Operator expression    : {}", expression);
 
-        for expression_element in expression.into_iter() {
-            match expression_element.object {
+        for element in expression.into_iter() {
+            match element.object {
                 OperatorExpressionObject::Operand(operand) => {
                     let element = match operand {
-                        OperatorExpressionOperand::Literal(literal) => match literal.into_inner() {
-                            Literal::Void => Element::Value(Value::Void),
-                            Literal::Boolean(literal) => Element::Value(Value::from(literal)),
-                            Literal::Integer(literal) => {
-                                let location = expression_element.location;
+                        OperatorExpressionOperand::Literal(literal) => match literal.data {
+                            lexical::Literal::Void => Element::Value(Value::Void),
+                            lexical::Literal::Boolean(literal) => {
+                                Element::Value(Value::from(literal))
+                            }
+                            lexical::Literal::Integer(literal) => {
+                                let location = element.location;
                                 Element::Value(Value::try_from(literal).map_err(|error| {
                                     Error::Element(location, ElementError::Value(error))
                                 })?)
                             }
-                            literal @ Literal::String(..) => {
+                            literal @ lexical::Literal::String(..) => {
                                 return Err(Error::LiteralIsNotSupported(
-                                    expression_element.location,
-                                    literal,
+                                    element.location,
+                                    Literal::new(element.location, literal),
                                 ))
                             }
                         },
                         OperatorExpressionOperand::Type(r#type) => Element::Type(r#type),
                         OperatorExpressionOperand::Identifier(identifier) => {
-                            let location = expression_element.location;
+                            let location = element.location;
                             self.scope
                                 .borrow()
                                 .get_variable(&identifier)
@@ -259,11 +262,11 @@ impl Interpreter {
                     self.scope
                         .borrow_mut()
                         .update_variable(
-                            element_1.assign(element_2).map_err(|error| {
-                                Error::Element(expression_element.location, error)
-                            })?,
+                            element_1
+                                .assign(element_2)
+                                .map_err(|error| Error::Element(element.location, error))?,
                         )
-                        .map_err(|error| Error::Scope(expression_element.location, error))?;
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     self.stack.push(Element::Value(Value::Void));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Range) => {
@@ -277,7 +280,7 @@ impl Interpreter {
                     self.stack.push(
                         element_1
                             .or(element_2)
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Xor) => {
@@ -288,7 +291,7 @@ impl Interpreter {
                     self.stack.push(
                         element_1
                             .xor(element_2)
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::And) => {
@@ -299,7 +302,7 @@ impl Interpreter {
                     self.stack.push(
                         element_1
                             .and(element_2)
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Equal) => {
@@ -310,7 +313,7 @@ impl Interpreter {
                     self.stack.push(
                         element_1
                             .equal(element_2)
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::NotEqual) => {
@@ -321,7 +324,7 @@ impl Interpreter {
                     self.stack.push(
                         element_1
                             .not_equal(element_2)
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::GreaterEqual) => {
@@ -332,7 +335,7 @@ impl Interpreter {
                     self.stack.push(
                         element_1
                             .greater_equal(element_2)
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::LesserEqual) => {
@@ -343,7 +346,7 @@ impl Interpreter {
                     self.stack.push(
                         element_1
                             .lesser_equal(element_2)
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Greater) => {
@@ -354,7 +357,7 @@ impl Interpreter {
                     self.stack.push(
                         element_1
                             .greater(element_2)
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Lesser) => {
@@ -365,7 +368,7 @@ impl Interpreter {
                     self.stack.push(
                         element_1
                             .lesser(element_2)
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition) => {
@@ -376,7 +379,7 @@ impl Interpreter {
                     self.stack.push(
                         element_1
                             .add(element_2)
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Subtraction) => {
@@ -387,7 +390,7 @@ impl Interpreter {
                     self.stack.push(
                         element_1
                             .subtract(element_2)
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Multiplication) => {
@@ -398,7 +401,7 @@ impl Interpreter {
                     self.stack.push(
                         element_1
                             .multiply(element_2)
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Division) => {
@@ -409,7 +412,7 @@ impl Interpreter {
                     self.stack.push(
                         element_1
                             .divide(element_2)
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Remainder) => {
@@ -420,7 +423,7 @@ impl Interpreter {
                     self.stack.push(
                         element_1
                             .modulo(element_2)
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Casting) => {
@@ -431,23 +434,23 @@ impl Interpreter {
                     self.stack.push(
                         element_1
                             .cast(element_2)
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Negation) => {
-                    let element = self.stack.pop().expect("Option state bug");
+                    let element_1 = self.stack.pop().expect("Option state bug");
                     self.stack.push(
-                        element
+                        element_1
                             .negate()
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Not) => {
-                    let element = self.stack.pop().expect("Option state bug");
+                    let element_1 = self.stack.pop().expect("Option state bug");
                     self.stack.push(
-                        element
+                        element_1
                             .not()
-                            .map_err(|error| Error::Element(expression_element.location, error))?,
+                            .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
             }

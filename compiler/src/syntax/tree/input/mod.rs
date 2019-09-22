@@ -15,9 +15,9 @@ use crate::syntax::Type;
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct Input {
     #[serde(skip_serializing)]
-    location: Location,
-    identifier: Identifier,
-    r#type: Type,
+    pub location: Location,
+    pub identifier: Identifier,
+    pub r#type: Type,
 }
 
 impl Input {
@@ -27,17 +27,5 @@ impl Input {
             identifier,
             r#type,
         }
-    }
-
-    pub fn location(&self) -> Location {
-        self.location
-    }
-
-    pub fn identifier(&self) -> &Identifier {
-        &self.identifier
-    }
-
-    pub fn r#type(&self) -> &Type {
-        &self.r#type
     }
 }

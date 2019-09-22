@@ -8,7 +8,7 @@ use serde_derive::Serialize;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub struct Boolean {
-    value: bool,
+    pub value: bool,
 }
 
 impl Default for Boolean {

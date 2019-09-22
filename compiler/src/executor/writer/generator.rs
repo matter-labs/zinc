@@ -32,28 +32,28 @@ impl Generator {
         }
     }
 
-    pub fn write_let(&mut self, is_mutable: bool, lvalue: &str, rvalue: &str) {
+    pub fn write_let(&mut self, is_mutable: bool, name: &str, result: &str) {
         self.write_line(format!(
             "let{} {} = {}.clone();",
             if is_mutable { " mut" } else { "" },
-            lvalue,
-            rvalue,
+            name,
+            result,
         ));
     }
 
-    pub fn write_debug(&mut self, rvalue: &str) {
-        self.write_line(format!(r#"dbg!({}.get_variable());"#, rvalue));
+    pub fn write_debug(&mut self, result: &str) {
+        self.write_line(format!(r#"dbg!({}.get_value());"#, result));
     }
 
-    pub fn write_require(&mut self, expression: &str, annotation: &str) {
+    pub fn write_require(&mut self, result: &str, annotation: &str) {
         self.write_line(format!(
             r#"jab::require(&mut cs, &{0}, "{1}");"#,
-            expression, annotation
+            result, annotation
         ));
     }
 
-    pub fn write_assignment(&mut self, lvalue: &str, rvalue: &str) {
-        self.write_line(format!(r#"{} = {}.clone();"#, lvalue, rvalue));
+    pub fn write_assignment(&mut self, operand_1: &str, operand_2: &str) {
+        self.write_line(format!(r#"{} = {}.clone();"#, operand_1, operand_2));
     }
 
     pub fn write_or(&mut self, operand_1: &str, operand_2: &str) -> String {
@@ -164,11 +164,11 @@ impl Generator {
         id
     }
 
-    pub fn write_casting(&mut self, rvalue: &str) -> String {
+    pub fn write_casting(&mut self, operand_1: &str) -> String {
         let (id, namespace) = self.next_id_and_namespace();
         self.write_line(format!(
             r#"let {0} = jab::casting(&mut cs, &{1}, {2}, 254)?;"#,
-            id, rvalue, namespace
+            id, operand_1, namespace
         ));
         id
     }
@@ -208,10 +208,10 @@ impl Generator {
         self.write_line("pub struct GeneratedCircuit {".to_owned());
         self.shift_forward();
         for input in inputs.iter() {
-            self.write_line(format!("pub {}: Fr,", input.identifier().name()));
+            self.write_line(format!("pub {}: Fr,", input.identifier.name));
         }
         for witness in witnesses.iter() {
-            self.write_line(format!("pub {}: Fr,", witness.identifier().name()));
+            self.write_line(format!("pub {}: Fr,", witness.identifier.name));
         }
         self.shift_backward();
         self.write_line("}".to_owned());
@@ -225,8 +225,8 @@ impl Generator {
         self.shift_forward();
     }
 
-    pub fn write_allocate_input(&mut self, input: &Input) {
-        let bitlength = match input.r#type().variant() {
+    pub fn write_allocate_input(&mut self, input: Input) {
+        let bitlength = match input.r#type.variant {
             TypeVariant::Void => panic!("Must be a numeric value"),
             TypeVariant::Bool => 1,
             TypeVariant::Int { bitlength } => bitlength,
@@ -235,13 +235,12 @@ impl Generator {
         };
         self.write_line(format!(
             r#"let {0} = jab::input_allocation(&mut cs, || Ok(self.{0}), "{0}", {1})?.0;"#,
-            input.identifier().name(),
-            bitlength,
+            input.identifier.name, bitlength,
         ));
     }
 
-    pub fn write_allocate_witness(&mut self, witness: &Witness) {
-        let bitlength = match witness.r#type().variant() {
+    pub fn write_allocate_witness(&mut self, witness: Witness) {
+        let bitlength = match witness.r#type.variant {
             TypeVariant::Void => panic!("Must be a numeric value"),
             TypeVariant::Bool => 1,
             TypeVariant::Int { bitlength } => bitlength,
@@ -250,31 +249,39 @@ impl Generator {
         };
         self.write_line(format!(
             r#"let {0} = jab::witness_allocation(&mut cs, || Ok(self.{0}), "{0}", {1})?.0;"#,
-            witness.identifier().name(),
-            bitlength,
+            witness.identifier.name, bitlength,
         ));
     }
 
-    pub fn write_allocate_boolean(&mut self, rvalue: &str) -> String {
+    pub fn write_allocate_boolean(&mut self, value: &str) -> String {
         let (id, _namespace) = self.next_id_and_namespace();
-        self.write_line(format!(r#"let {0} = Boolean::constant({1});"#, id, rvalue));
+        self.write_line(format!(r#"let {0} = Boolean::constant({1});"#, id, value));
         id
     }
 
-    pub fn write_allocate_number_constant(&mut self, rvalue: &str) -> String {
+    pub fn write_allocate_number_constant(&mut self, value: &str) -> String {
         let (id, _namespace) = self.next_id_and_namespace();
         self.write_line(format!(
             r#"let {0} = jab::allocation(&mut cs, "{0}", "{1}")?;"#,
-            id, rvalue
+            id, value
         ));
         id
     }
 
-    pub fn write_allocate_number_loop_index(&mut self, lvalue: &str) -> String {
+    pub fn write_allocate_number_loop_index(&mut self, name: &str) -> String {
         let (id, namespace) = self.next_id_and_namespace();
         self.write_line(format!(
-            r#"let {} = jab::allocation(&mut cs, {}, {}_index.to_string().as_str())?;"#,
-            lvalue, namespace, lvalue
+            r#"let {0} = jab::allocation(&mut cs, {1}, {0}_index.to_string().as_str())?;"#,
+            name, namespace
+        ));
+        id
+    }
+
+    pub fn write_conditional(&mut self, a: &str, b: &str, cond: &str) -> String {
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::conditional(&mut cs, &{1}, &{2}, &{3}, {4})?;"#,
+            id, a, b, cond, namespace
         ));
         id
     }
