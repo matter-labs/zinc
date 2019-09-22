@@ -64,16 +64,14 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::lexical;
     use crate::lexical::BooleanLiteral;
     use crate::lexical::IntegerLiteral;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Literal;
     use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::BlockExpression;
     use crate::syntax::Expression;
+    use crate::syntax::Literal;
     use crate::syntax::OperatorExpression;
     use crate::syntax::OperatorExpressionElement;
     use crate::syntax::OperatorExpressionObject;
@@ -84,92 +82,83 @@ mod tests {
     fn ok() {
         let code = r#"true || { 2 + 1 == 3 }"#;
 
-        let expected = Expression::Operator(OperatorExpression::new(vec![
-            OperatorExpressionElement::new(
-                OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                    Literal::Boolean(BooleanLiteral::True),
-                )),
-                Token::new(
-                    Lexeme::Literal(Literal::Boolean(BooleanLiteral::True)),
+        let expected = Expression::Operator(OperatorExpression::new(
+            Location::new(1, 1),
+            vec![
+                OperatorExpressionElement::new(
                     Location::new(1, 1),
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                        Literal::new(
+                            Location::new(1, 1),
+                            lexical::Literal::Boolean(BooleanLiteral::True),
+                        ),
+                    )),
                 ),
-            ),
-            OperatorExpressionElement::new(
-                OperatorExpressionObject::Operand(OperatorExpressionOperand::Block(
-                    BlockExpression::new(
-                        Location::new(1, 9),
-                        vec![],
-                        Some(Expression::Operator(OperatorExpression::new(vec![
-                            OperatorExpressionElement::new(
-                                OperatorExpressionObject::Operand(
-                                    OperatorExpressionOperand::Literal(Literal::Integer(
-                                        IntegerLiteral::decimal("2".to_owned()),
-                                    )),
-                                ),
-                                Token::new(
-                                    Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(
-                                        "2".to_owned(),
-                                    ))),
-                                    Location::new(1, 11),
-                                ),
-                            ),
-                            OperatorExpressionElement::new(
-                                OperatorExpressionObject::Operand(
-                                    OperatorExpressionOperand::Literal(Literal::Integer(
-                                        IntegerLiteral::decimal("1".to_owned()),
-                                    )),
-                                ),
-                                Token::new(
-                                    Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(
-                                        "1".to_owned(),
-                                    ))),
-                                    Location::new(1, 15),
-                                ),
-                            ),
-                            OperatorExpressionElement::new(
-                                OperatorExpressionObject::Operator(
-                                    OperatorExpressionOperator::Addition,
-                                ),
-                                Token::new(Lexeme::Symbol(Symbol::Plus), Location::new(1, 13)),
-                            ),
-                            OperatorExpressionElement::new(
-                                OperatorExpressionObject::Operand(
-                                    OperatorExpressionOperand::Literal(Literal::Integer(
-                                        IntegerLiteral::decimal("3".to_owned()),
-                                    )),
-                                ),
-                                Token::new(
-                                    Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(
-                                        "3".to_owned(),
-                                    ))),
-                                    Location::new(1, 20),
-                                ),
-                            ),
-                            OperatorExpressionElement::new(
-                                OperatorExpressionObject::Operator(
-                                    OperatorExpressionOperator::Equal,
-                                ),
-                                Token::new(
-                                    Lexeme::Symbol(Symbol::DoubleEquals),
-                                    Location::new(1, 17),
-                                ),
-                            ),
-                        ]))),
-                    ),
-                )),
-                Token::new(
-                    Lexeme::Symbol(Symbol::BracketCurlyLeft),
+                OperatorExpressionElement::new(
                     Location::new(1, 9),
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Block(
+                        BlockExpression::new(
+                            Location::new(1, 9),
+                            vec![],
+                            Some(Expression::Operator(OperatorExpression::new(
+                                Location::new(1, 11),
+                                vec![
+                                    OperatorExpressionElement::new(
+                                        Location::new(1, 11),
+                                        OperatorExpressionObject::Operand(
+                                            OperatorExpressionOperand::Literal(Literal::new(
+                                                Location::new(1, 11),
+                                                lexical::Literal::Integer(IntegerLiteral::decimal(
+                                                    "2".to_owned(),
+                                                )),
+                                            )),
+                                        ),
+                                    ),
+                                    OperatorExpressionElement::new(
+                                        Location::new(1, 15),
+                                        OperatorExpressionObject::Operand(
+                                            OperatorExpressionOperand::Literal(Literal::new(
+                                                Location::new(1, 15),
+                                                lexical::Literal::Integer(IntegerLiteral::decimal(
+                                                    "1".to_owned(),
+                                                )),
+                                            )),
+                                        ),
+                                    ),
+                                    OperatorExpressionElement::new(
+                                        Location::new(1, 13),
+                                        OperatorExpressionObject::Operator(
+                                            OperatorExpressionOperator::Addition,
+                                        ),
+                                    ),
+                                    OperatorExpressionElement::new(
+                                        Location::new(1, 20),
+                                        OperatorExpressionObject::Operand(
+                                            OperatorExpressionOperand::Literal(Literal::new(
+                                                Location::new(1, 20),
+                                                lexical::Literal::Integer(IntegerLiteral::decimal(
+                                                    "3".to_owned(),
+                                                )),
+                                            )),
+                                        ),
+                                    ),
+                                    OperatorExpressionElement::new(
+                                        Location::new(1, 17),
+                                        OperatorExpressionObject::Operator(
+                                            OperatorExpressionOperator::Equal,
+                                        ),
+                                    ),
+                                ],
+                            ))),
+                        ),
+                    )),
                 ),
-            ),
-            OperatorExpressionElement::new(
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Or),
-                Token::new(
-                    Lexeme::Symbol(Symbol::DoubleVerticalBar),
+                OperatorExpressionElement::new(
                     Location::new(1, 6),
+                    OperatorExpressionObject::Operator(OperatorExpressionOperator::Or),
                 ),
-            ),
-        ]));
+            ],
+        ));
 
         let result = Parser::default()
             .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))

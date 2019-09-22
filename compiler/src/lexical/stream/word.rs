@@ -73,7 +73,7 @@ mod tests {
     #[test]
     fn identifier_ok() {
         let input = "xyz";
-        let expected = Ok((3, Lexeme::Identifier(Identifier::new(input))));
+        let expected = Ok((3, Lexeme::Identifier(Identifier::new(input.to_owned()))));
         let result = parse(input);
         assert_eq!(expected, result);
     }
@@ -81,7 +81,7 @@ mod tests {
     #[test]
     fn identifier_below_field_range_ok() {
         let input = "uint0";
-        let expected = Ok((5, Lexeme::Identifier(Identifier::new(input))));
+        let expected = Ok((5, Lexeme::Identifier(Identifier::new(input.to_owned()))));
         let result = parse(input);
         assert_eq!(expected, result);
     }
@@ -89,7 +89,7 @@ mod tests {
     #[test]
     fn identifier_above_field_range_ok() {
         let input = "uint256";
-        let expected = Ok((7, Lexeme::Identifier(Identifier::new(input))));
+        let expected = Ok((7, Lexeme::Identifier(Identifier::new(input.to_owned()))));
         let result = parse(input);
         assert_eq!(expected, result);
     }
@@ -97,7 +97,7 @@ mod tests {
     #[test]
     fn identifier_invalid_modulo_ok() {
         let input = "uint119";
-        let expected = Ok((7, Lexeme::Identifier(Identifier::new(input))));
+        let expected = Ok((7, Lexeme::Identifier(Identifier::new(input.to_owned()))));
         let result = parse(input);
         assert_eq!(expected, result);
     }

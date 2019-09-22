@@ -29,6 +29,7 @@ use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::OperatorExpression;
+use crate::syntax::OperatorExpressionBuilder;
 use crate::syntax::OperatorExpressionOperator;
 use crate::Error;
 
@@ -48,7 +49,7 @@ impl Default for State {
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    expression: OperatorExpression,
+    builder: OperatorExpressionBuilder,
     operator: Option<(Location, OperatorExpressionOperator)>,
 }
 
@@ -58,7 +59,8 @@ impl Parser {
             match self.state {
                 State::AssignmentFirstOperand => {
                     let rpn = AssignmentOperandParser::default().parse(stream.clone())?;
-                    self.expression.append(rpn);
+                    self.builder.set_location_if_unset(rpn.location());
+                    self.builder.append_expression(rpn);
                     self.state = State::AssignmentOperator;
                 }
                 State::AssignmentOperator => {
@@ -73,16 +75,16 @@ impl Parser {
                                 Some((location, OperatorExpressionOperator::Assignment));
                             self.state = State::AssignmentSecondOperand;
                         }
-                        _ => return Ok(self.expression),
+                        _ => return Ok(self.builder.finish()),
                     }
                 }
                 State::AssignmentSecondOperand => {
                     let rpn = AssignmentOperandParser::default().parse(stream.clone())?;
-                    self.expression.append(rpn);
+                    self.builder.append_expression(rpn);
                     if let Some((location, operator)) = self.operator.take() {
-                        self.expression.push_operator(location, operator);
+                        self.builder.push_operator(location, operator);
                     }
-                    return Ok(self.expression);
+                    return Ok(self.builder.finish());
                 }
             }
         }
@@ -95,13 +97,11 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::lexical;
     use crate::lexical::BooleanLiteral;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Literal;
     use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::Token;
     use crate::lexical::TokenStream;
+    use crate::syntax::Literal;
     use crate::syntax::OperatorExpression;
     use crate::syntax::OperatorExpressionElement;
     use crate::syntax::OperatorExpressionObject;
@@ -112,33 +112,33 @@ mod tests {
     fn ok() {
         let code = r#"true || false"#;
 
-        let expected = OperatorExpression::new(vec![
-            OperatorExpressionElement::new(
-                OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                    Literal::Boolean(BooleanLiteral::True),
-                )),
-                Token::new(
-                    Lexeme::Literal(Literal::Boolean(BooleanLiteral::True)),
+        let expected = OperatorExpression::new(
+            Location::new(1, 1),
+            vec![
+                OperatorExpressionElement::new(
                     Location::new(1, 1),
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                        Literal::new(
+                            Location::new(1, 1),
+                            lexical::Literal::Boolean(BooleanLiteral::True),
+                        ),
+                    )),
                 ),
-            ),
-            OperatorExpressionElement::new(
-                OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                    Literal::Boolean(BooleanLiteral::False),
-                )),
-                Token::new(
-                    Lexeme::Literal(Literal::Boolean(BooleanLiteral::False)),
+                OperatorExpressionElement::new(
                     Location::new(1, 9),
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                        Literal::new(
+                            Location::new(1, 9),
+                            lexical::Literal::Boolean(BooleanLiteral::False),
+                        ),
+                    )),
                 ),
-            ),
-            OperatorExpressionElement::new(
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Or),
-                Token::new(
-                    Lexeme::Symbol(Symbol::DoubleVerticalBar),
+                OperatorExpressionElement::new(
                     Location::new(1, 6),
+                    OperatorExpressionObject::Operator(OperatorExpressionOperator::Or),
                 ),
-            ),
-        ]);
+            ],
+        );
 
         let result = Parser::default()
             .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))

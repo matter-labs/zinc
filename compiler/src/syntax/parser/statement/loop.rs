@@ -168,17 +168,15 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::lexical;
     use crate::lexical::IntegerLiteral;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Literal;
     use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::BlockExpression;
     use crate::syntax::DebugStatement;
     use crate::syntax::Expression;
     use crate::syntax::Identifier;
+    use crate::syntax::Literal;
     use crate::syntax::LoopStatement;
     use crate::syntax::OperatorExpression;
     use crate::syntax::OperatorExpressionElement;
@@ -200,48 +198,54 @@ mod tests {
                 Location::new(1, 15),
                 vec![Statement::Debug(DebugStatement::new(
                     Location::new(1, 17),
-                    Expression::Operator(OperatorExpression::new(vec![
-                        OperatorExpressionElement::new(
+                    Expression::Operator(OperatorExpression::new(
+                        Location::new(1, 23),
+                        vec![OperatorExpressionElement::new(
+                            Location::new(1, 23),
                             OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                                Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
+                                Literal::new(
+                                    Location::new(1, 23),
+                                    lexical::Literal::Integer(IntegerLiteral::decimal(
+                                        "42".to_owned(),
+                                    )),
+                                ),
                             )),
-                            Token::new(
-                                Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(
-                                    "42".to_owned(),
-                                ))),
-                                Location::new(1, 23),
+                        )],
+                    )),
+                ))],
+                Some(Expression::Operator(OperatorExpression::new(
+                    Location::new(1, 28),
+                    vec![
+                        OperatorExpressionElement::new(
+                            Location::new(1, 28),
+                            OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                                Literal::new(
+                                    Location::new(1, 28),
+                                    lexical::Literal::Integer(IntegerLiteral::decimal(
+                                        "2".to_owned(),
+                                    )),
+                                ),
+                            )),
+                        ),
+                        OperatorExpressionElement::new(
+                            Location::new(1, 32),
+                            OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                                Literal::new(
+                                    Location::new(1, 32),
+                                    lexical::Literal::Integer(IntegerLiteral::decimal(
+                                        "1".to_owned(),
+                                    )),
+                                ),
+                            )),
+                        ),
+                        OperatorExpressionElement::new(
+                            Location::new(1, 30),
+                            OperatorExpressionObject::Operator(
+                                OperatorExpressionOperator::Addition,
                             ),
                         ),
-                    ])),
-                ))],
-                Some(Expression::Operator(OperatorExpression::new(vec![
-                    OperatorExpressionElement::new(
-                        OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                            Literal::Integer(IntegerLiteral::decimal("2".to_owned())),
-                        )),
-                        Token::new(
-                            Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(
-                                "2".to_owned(),
-                            ))),
-                            Location::new(1, 28),
-                        ),
-                    ),
-                    OperatorExpressionElement::new(
-                        OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                            Literal::Integer(IntegerLiteral::decimal("1".to_owned())),
-                        )),
-                        Token::new(
-                            Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(
-                                "1".to_owned(),
-                            ))),
-                            Location::new(1, 32),
-                        ),
-                    ),
-                    OperatorExpressionElement::new(
-                        OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition),
-                        Token::new(Lexeme::Symbol(Symbol::Plus), Location::new(1, 30)),
-                    ),
-                ]))),
+                    ],
+                ))),
             ),
         );
 

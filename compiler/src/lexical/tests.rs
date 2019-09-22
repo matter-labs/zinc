@@ -44,7 +44,7 @@ let mut c: uint232 = 2 + 2;
             location: Location::new(5, 8),
         },
         Token {
-            lexeme: Lexeme::Identifier(Identifier::new("a")),
+            lexeme: Lexeme::Identifier(Identifier::new("a".to_owned())),
             location: Location::new(6, 5),
         },
         Token {
@@ -72,7 +72,7 @@ let mut c: uint232 = 2 + 2;
             location: Location::new(9, 9),
         },
         Token {
-            lexeme: Lexeme::Identifier(Identifier::new("b")),
+            lexeme: Lexeme::Identifier(Identifier::new("b".to_owned())),
             location: Location::new(10, 5),
         },
         Token {
@@ -100,7 +100,7 @@ let mut c: uint232 = 2 + 2;
             location: Location::new(13, 5),
         },
         Token {
-            lexeme: Lexeme::Identifier(Identifier::new("c")),
+            lexeme: Lexeme::Identifier(Identifier::new("c".to_owned())),
             location: Location::new(13, 9),
         },
         Token {

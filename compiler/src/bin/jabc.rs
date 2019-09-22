@@ -35,7 +35,14 @@ struct Arguments {
 }
 
 #[derive(Debug, Fail)]
-enum FileError {
+#[allow(clippy::large_enum_variant)]
+enum Error {
+    #[fail(display = "Input: {}", _0)]
+    Input(InputError),
+}
+
+#[derive(Debug, Fail)]
+enum InputError {
     #[fail(display = "Opening: {}", _0)]
     Opening(std::io::Error),
     #[fail(display = "Metadata: {}", _0)]
@@ -44,15 +51,23 @@ enum FileError {
     Reading(std::io::Error),
 }
 
-fn main() -> Result<(), FileError> {
+fn main() -> Result<(), Error> {
     init_logger();
 
     let args: Arguments = Arguments::from_args();
 
-    let mut file = File::open(&args.input).map_err(FileError::Opening)?;
-    let size = file.metadata().map_err(FileError::Metadata)?.len() as usize;
+    let mut file = File::open(&args.input)
+        .map_err(InputError::Opening)
+        .map_err(Error::Input)?;
+    let size = file
+        .metadata()
+        .map_err(InputError::Metadata)
+        .map_err(Error::Input)?
+        .len() as usize;
     let mut code = String::with_capacity(size);
-    file.read_to_string(&mut code).map_err(FileError::Reading)?;
+    file.read_to_string(&mut code)
+        .map_err(InputError::Reading)
+        .map_err(Error::Input)?;
 
     let circuit = compiler::parse(code);
 

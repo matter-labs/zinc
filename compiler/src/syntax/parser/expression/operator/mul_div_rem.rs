@@ -12,6 +12,7 @@ use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::CastingOperatorOperandParser;
 use crate::syntax::OperatorExpression;
+use crate::syntax::OperatorExpressionBuilder;
 use crate::syntax::OperatorExpressionOperand;
 use crate::syntax::OperatorExpressionOperator;
 use crate::syntax::TypeParser;
@@ -33,7 +34,7 @@ impl Default for State {
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    expression: OperatorExpression,
+    builder: OperatorExpressionBuilder,
     operator: Option<(Location, OperatorExpressionOperator)>,
 }
 
@@ -43,9 +44,10 @@ impl Parser {
             match self.state {
                 State::CastingFirstOperand => {
                     let rpn = CastingOperatorOperandParser::default().parse(stream.clone())?;
-                    self.expression.append(rpn);
+                    self.builder.set_location_if_unset(rpn.location());
+                    self.builder.append_expression(rpn);
                     if let Some((location, operator)) = self.operator.take() {
-                        self.expression.push_operator(location, operator);
+                        self.builder.push_operator(location, operator);
                     }
                     self.state = State::CastingOperator;
                 }
@@ -60,15 +62,15 @@ impl Parser {
                             self.operator = Some((location, OperatorExpressionOperator::Casting));
                             self.state = State::CastingSecondOperand;
                         }
-                        _ => return Ok(self.expression),
+                        _ => return Ok(self.builder.finish()),
                     }
                 }
                 State::CastingSecondOperand => {
                     let r#type = TypeParser::default().parse(stream.clone())?;
-                    self.expression
+                    self.builder
                         .push_operand(r#type.location(), OperatorExpressionOperand::Type(r#type));
                     if let Some((location, operator)) = self.operator.take() {
-                        self.expression.push_operator(location, operator);
+                        self.builder.push_operator(location, operator);
                     }
                     self.state = State::CastingOperator;
                 }
@@ -83,13 +85,11 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::lexical;
     use crate::lexical::IntegerLiteral;
-    use crate::lexical::Keyword;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Literal;
     use crate::lexical::Location;
-    use crate::lexical::Token;
     use crate::lexical::TokenStream;
+    use crate::syntax::Literal;
     use crate::syntax::OperatorExpression;
     use crate::syntax::OperatorExpressionElement;
     use crate::syntax::OperatorExpressionObject;
@@ -102,28 +102,31 @@ mod tests {
     fn ok() {
         let code = r#"42 as field "#;
 
-        let expected = OperatorExpression::new(vec![
-            OperatorExpressionElement::new(
-                OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                    Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
-                )),
-                Token::new(
-                    Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal("42".to_owned()))),
+        let expected = OperatorExpression::new(
+            Location::new(1, 1),
+            vec![
+                OperatorExpressionElement::new(
                     Location::new(1, 1),
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                        Literal::new(
+                            Location::new(1, 1),
+                            lexical::Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
+                        ),
+                    )),
                 ),
-            ),
-            OperatorExpressionElement::new(
-                OperatorExpressionObject::Operand(OperatorExpressionOperand::Type(Type::new(
+                OperatorExpressionElement::new(
                     Location::new(1, 7),
-                    TypeVariant::Field,
-                ))),
-                Token::new(Lexeme::Keyword(Keyword::Field), Location::new(1, 7)),
-            ),
-            OperatorExpressionElement::new(
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Casting),
-                Token::new(Lexeme::Keyword(Keyword::As), Location::new(1, 4)),
-            ),
-        ]);
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Type(Type::new(
+                        Location::new(1, 7),
+                        TypeVariant::Field,
+                    ))),
+                ),
+                OperatorExpressionElement::new(
+                    Location::new(1, 4),
+                    OperatorExpressionObject::Operator(OperatorExpressionOperator::Casting),
+                ),
+            ],
+        );
 
         let result = Parser::default()
             .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))

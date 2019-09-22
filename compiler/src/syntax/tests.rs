@@ -4,12 +4,9 @@
 
 #![cfg(test)]
 
+use crate::lexical;
 use crate::lexical::IntegerLiteral;
-use crate::lexical::Lexeme;
-use crate::lexical::Literal;
 use crate::lexical::Location;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::CircuitProgram;
 use crate::syntax::Error;
@@ -17,6 +14,7 @@ use crate::syntax::Expression;
 use crate::syntax::Identifier;
 use crate::syntax::Input;
 use crate::syntax::LetStatement;
+use crate::syntax::Literal;
 use crate::syntax::OperatorExpression;
 use crate::syntax::OperatorExpressionElement;
 use crate::syntax::OperatorExpressionObject;
@@ -60,38 +58,33 @@ let mut c: uint232 = 2 + 2;
                 Location::new(10, 12),
                 TypeVariant::Uint { bitlength: 232 },
             )),
-            expression: Expression::Operator(OperatorExpression::new(vec![
-                OperatorExpressionElement::new(
-                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                        Literal::Integer(IntegerLiteral::Decimal {
-                            value: "2".to_owned(),
-                        }),
-                    )),
-                    Token::new(
-                        Lexeme::Literal(Literal::Integer(IntegerLiteral::Decimal {
-                            value: "2".to_owned(),
-                        })),
+            expression: Expression::Operator(OperatorExpression::new(
+                Location::new(10, 22),
+                vec![
+                    OperatorExpressionElement::new(
                         Location::new(10, 22),
+                        OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                            Literal::new(
+                                Location::new(10, 22),
+                                lexical::Literal::Integer(IntegerLiteral::decimal("2".to_owned())),
+                            ),
+                        )),
                     ),
-                ),
-                OperatorExpressionElement::new(
-                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                        Literal::Integer(IntegerLiteral::Decimal {
-                            value: "2".to_owned(),
-                        }),
-                    )),
-                    Token::new(
-                        Lexeme::Literal(Literal::Integer(IntegerLiteral::Decimal {
-                            value: "2".to_owned(),
-                        })),
+                    OperatorExpressionElement::new(
                         Location::new(10, 26),
+                        OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                            Literal::new(
+                                Location::new(10, 26),
+                                lexical::Literal::Integer(IntegerLiteral::decimal("2".to_owned())),
+                            ),
+                        )),
                     ),
-                ),
-                OperatorExpressionElement::new(
-                    OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition),
-                    Token::new(Lexeme::Symbol(Symbol::Plus), Location::new(10, 24)),
-                ),
-            ])),
+                    OperatorExpressionElement::new(
+                        Location::new(10, 24),
+                        OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition),
+                    ),
+                ],
+            )),
             is_mutable: true,
         })],
     };
@@ -118,6 +111,8 @@ fn err_unexpected_end() {
 
 #[test]
 fn err_expected() {
+    use crate::lexical::Lexeme;
+    use crate::lexical::Symbol;
     use crate::Error as MainError;
 
     let code = "inputs ! ";

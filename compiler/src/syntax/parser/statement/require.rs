@@ -144,14 +144,13 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::lexical;
     use crate::lexical::BooleanLiteral;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Literal;
     use crate::lexical::Location;
     use crate::lexical::StringLiteral;
-    use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Expression;
+    use crate::syntax::Literal;
     use crate::syntax::OperatorExpression;
     use crate::syntax::OperatorExpressionElement;
     use crate::syntax::OperatorExpressionObject;
@@ -164,17 +163,18 @@ mod tests {
 
         let expected = RequireStatement::new(
             Location::new(1, 1),
-            Expression::Operator(OperatorExpression::new(vec![
-                OperatorExpressionElement::new(
+            Expression::Operator(OperatorExpression::new(
+                Location::new(1, 9),
+                vec![OperatorExpressionElement::new(
+                    Location::new(1, 9),
                     OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                        Literal::Boolean(BooleanLiteral::True),
+                        Literal::new(
+                            Location::new(1, 9),
+                            lexical::Literal::Boolean(BooleanLiteral::True),
+                        ),
                     )),
-                    Token::new(
-                        Lexeme::Literal(Literal::Boolean(BooleanLiteral::True)),
-                        Location::new(1, 9),
-                    ),
-                ),
-            ])),
+                )],
+            )),
             Some(StringLiteral::new("test".to_owned())),
         );
 

@@ -12,4 +12,7 @@ export INPUT="${3}"
 export RUST_LOG="compiler=${LOG_LEVEL},${APPLICATION}=${LOG_LEVEL}"
 export RUST_BACKTRACE='0'
 
+cargo fmt --all
+cargo clippy
+cargo test
 cargo run --bin "${APPLICATION}" "${INPUT}"

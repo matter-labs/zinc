@@ -12,6 +12,7 @@ use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::AddSubOperatorOperandParser;
 use crate::syntax::OperatorExpression;
+use crate::syntax::OperatorExpressionBuilder;
 use crate::syntax::OperatorExpressionOperator;
 use crate::Error;
 
@@ -30,7 +31,7 @@ impl Default for State {
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    expression: OperatorExpression,
+    builder: OperatorExpressionBuilder,
     operator: Option<(Location, OperatorExpressionOperator)>,
 }
 
@@ -40,9 +41,10 @@ impl Parser {
             match self.state {
                 State::AddSubOperand => {
                     let rpn = AddSubOperatorOperandParser::default().parse(stream.clone())?;
-                    self.expression.append(rpn);
+                    self.builder.set_location_if_unset(rpn.location());
+                    self.builder.append_expression(rpn);
                     if let Some((location, operator)) = self.operator.take() {
-                        self.expression.push_operator(location, operator);
+                        self.builder.push_operator(location, operator);
                     }
                     self.state = State::AddSubOperator;
                 }
@@ -66,7 +68,7 @@ impl Parser {
                                 Some((location, OperatorExpressionOperator::Subtraction));
                             self.state = State::AddSubOperand;
                         }
-                        _ => return Ok(self.expression),
+                        _ => return Ok(self.builder.finish()),
                     }
                 }
             }
@@ -80,13 +82,11 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::lexical;
     use crate::lexical::IntegerLiteral;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Literal;
     use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::Token;
     use crate::lexical::TokenStream;
+    use crate::syntax::Literal;
     use crate::syntax::OperatorExpression;
     use crate::syntax::OperatorExpressionElement;
     use crate::syntax::OperatorExpressionObject;
@@ -97,30 +97,33 @@ mod tests {
     fn ok() {
         let code = r#"42 + 228 "#;
 
-        let expected = OperatorExpression::new(vec![
-            OperatorExpressionElement::new(
-                OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                    Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
-                )),
-                Token::new(
-                    Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal("42".to_owned()))),
+        let expected = OperatorExpression::new(
+            Location::new(1, 1),
+            vec![
+                OperatorExpressionElement::new(
                     Location::new(1, 1),
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                        Literal::new(
+                            Location::new(1, 1),
+                            lexical::Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
+                        ),
+                    )),
                 ),
-            ),
-            OperatorExpressionElement::new(
-                OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                    Literal::Integer(IntegerLiteral::decimal("228".to_owned())),
-                )),
-                Token::new(
-                    Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal("228".to_owned()))),
+                OperatorExpressionElement::new(
                     Location::new(1, 6),
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                        Literal::new(
+                            Location::new(1, 6),
+                            lexical::Literal::Integer(IntegerLiteral::decimal("228".to_owned())),
+                        ),
+                    )),
                 ),
-            ),
-            OperatorExpressionElement::new(
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition),
-                Token::new(Lexeme::Symbol(Symbol::Plus), Location::new(1, 4)),
-            ),
-        ]);
+                OperatorExpressionElement::new(
+                    Location::new(1, 4),
+                    OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition),
+                ),
+            ],
+        );
 
         let result = Parser::default()
             .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))

@@ -33,18 +33,8 @@ impl Expression {
         Self { location, elements }
     }
 
-    pub fn push_operand(&mut self, location: Location, operand: Operand) {
-        self.elements
-            .push(Element::new(location, Object::Operand(operand)));
-    }
-
-    pub fn push_operator(&mut self, location: Location, operator: Operator) {
-        self.elements
-            .push(Element::new(location, Object::Operator(operator)));
-    }
-
-    pub fn append(&mut self, mut expression: Expression) {
-        self.elements.append(&mut expression.elements)
+    pub fn location(&self) -> Location {
+        self.location
     }
 }
 

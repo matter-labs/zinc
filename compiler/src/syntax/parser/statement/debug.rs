@@ -104,14 +104,13 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::lexical;
     use crate::lexical::IntegerLiteral;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Literal;
     use crate::lexical::Location;
-    use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::DebugStatement;
     use crate::syntax::Expression;
+    use crate::syntax::Literal;
     use crate::syntax::OperatorExpression;
     use crate::syntax::OperatorExpressionElement;
     use crate::syntax::OperatorExpressionObject;
@@ -123,17 +122,18 @@ mod tests {
 
         let expected = DebugStatement::new(
             Location::new(1, 1),
-            Expression::Operator(OperatorExpression::new(vec![
-                OperatorExpressionElement::new(
+            Expression::Operator(OperatorExpression::new(
+                Location::new(1, 7),
+                vec![OperatorExpressionElement::new(
+                    Location::new(1, 7),
                     OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                        Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
+                        Literal::new(
+                            Location::new(1, 7),
+                            lexical::Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
+                        ),
                     )),
-                    Token::new(
-                        Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal("42".to_owned()))),
-                        Location::new(1, 7),
-                    ),
-                ),
-            ])),
+                )],
+            )),
         );
 
         let result = Parser::default()

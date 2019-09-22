@@ -145,16 +145,15 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::lexical;
     use crate::lexical::IntegerLiteral;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Literal;
     use crate::lexical::Location;
-    use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::BlockExpression;
     use crate::syntax::Expression;
     use crate::syntax::Identifier;
     use crate::syntax::LetStatement;
+    use crate::syntax::Literal;
     use crate::syntax::OperatorExpression;
     use crate::syntax::OperatorExpressionElement;
     use crate::syntax::OperatorExpressionObject;
@@ -173,19 +172,18 @@ mod tests {
                 Identifier::new(Location::new(1, 9), "a".to_owned()),
                 true,
                 Some(Type::new(Location::new(1, 12), TypeVariant::uint(232))),
-                Expression::Operator(OperatorExpression::new(vec![
-                    OperatorExpressionElement::new(
+                Expression::Operator(OperatorExpression::new(
+                    Location::new(1, 22),
+                    vec![OperatorExpressionElement::new(
+                        Location::new(1, 22),
                         OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                            Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
+                            Literal::new(
+                                Location::new(1, 22),
+                                lexical::Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
+                            ),
                         )),
-                        Token::new(
-                            Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(
-                                "42".to_owned(),
-                            ))),
-                            Location::new(1, 22),
-                        ),
-                    ),
-                ])),
+                    )],
+                )),
             )),
             false,
         );
@@ -206,16 +204,15 @@ mod tests {
                 location: Location::new(1, 1),
                 statements: vec![],
                 expression: Some(Box::new(Expression::Operator(OperatorExpression::new(
+                    Location::new(1, 3),
                     vec![OperatorExpressionElement::new(
+                        Location::new(1, 3),
                         OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                            Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
+                            Literal::new(
+                                Location::new(1, 3),
+                                lexical::Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
+                            ),
                         )),
-                        Token::new(
-                            Lexeme::Literal(Literal::Integer(IntegerLiteral::decimal(
-                                "42".to_owned(),
-                            ))),
-                            Location::new(1, 3),
-                        ),
                     )],
                 )))),
             })),

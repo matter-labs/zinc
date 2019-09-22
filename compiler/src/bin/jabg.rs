@@ -19,16 +19,22 @@ struct Arguments {
 #[derive(Debug, Fail)]
 #[allow(clippy::large_enum_variant)]
 enum Error {
-    #[fail(display = "Input opening: {}", _0)]
-    InputOpening(std::io::Error),
-    #[fail(display = "Input metadata: {}", _0)]
-    InputMetadata(std::io::Error),
-    #[fail(display = "Input reading: {}", _0)]
-    InputReading(std::io::Error),
+    #[fail(display = "Input: {}", _0)]
+    Input(InputError),
     #[fail(display = "Parsing: {}", _0)]
     Parsing(compiler::Error),
     #[fail(display = "Generating: {}", _0)]
     Generating(compiler::Error),
+}
+
+#[derive(Debug, Fail)]
+enum InputError {
+    #[fail(display = "Opening: {}", _0)]
+    Opening(std::io::Error),
+    #[fail(display = "Metadata: {}", _0)]
+    Metadata(std::io::Error),
+    #[fail(display = "Reading: {}", _0)]
+    Reading(std::io::Error),
 }
 
 fn main() -> Result<(), Error> {
@@ -36,11 +42,18 @@ fn main() -> Result<(), Error> {
 
     let args: Arguments = Arguments::from_args();
 
-    let mut file = File::open(&args.input).map_err(Error::InputOpening)?;
-    let size = file.metadata().map_err(Error::InputMetadata)?.len() as usize;
+    let mut file = File::open(&args.input)
+        .map_err(InputError::Opening)
+        .map_err(Error::Input)?;
+    let size = file
+        .metadata()
+        .map_err(InputError::Metadata)
+        .map_err(Error::Input)?
+        .len() as usize;
     let mut code = String::with_capacity(size);
     file.read_to_string(&mut code)
-        .map_err(Error::InputReading)?;
+        .map_err(InputError::Reading)
+        .map_err(Error::Input)?;
 
     let program = compiler::parse(code).map_err(|error| {
         log::error!("{}", error);
