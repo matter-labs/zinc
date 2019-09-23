@@ -12,29 +12,26 @@ use crate::syntax::Witness;
 
 pub struct Generator {
     file: File,
-    loop_stack: Vec<String>,
     id_sequence: usize,
     offset: usize,
+    loop_stack: Vec<String>,
+    conditional_stack: Vec<(String, bool)>,
 }
 
 impl Generator {
     pub fn new(path: PathBuf) -> Self {
-        let file = File::create(path).expect("File creating error");
-        let loop_stack = Vec::with_capacity(16);
-        let id_sequence = 0;
-        let offset = 0;
-
         Self {
-            file,
-            loop_stack,
-            id_sequence,
-            offset,
+            file: File::create(path).expect("File creating error"),
+            id_sequence: 0,
+            offset: 0,
+            loop_stack: Vec::with_capacity(16),
+            conditional_stack: Vec::with_capacity(16),
         }
     }
 
     pub fn write_let(&mut self, is_mutable: bool, name: &str, result: &str) {
         self.write_line(format!(
-            "let{} {} = {}.clone();",
+            "let{0} {1} = {2};",
             if is_mutable { " mut" } else { "" },
             name,
             result,
@@ -42,7 +39,7 @@ impl Generator {
     }
 
     pub fn write_debug(&mut self, result: &str) {
-        self.write_line(format!(r#"dbg!({}.get_value());"#, result));
+        self.write_line(format!(r#"dbg!({0}.get_value());"#, result));
     }
 
     pub fn write_require(&mut self, result: &str, annotation: &str) {
@@ -53,7 +50,27 @@ impl Generator {
     }
 
     pub fn write_assignment(&mut self, operand_1: &str, operand_2: &str) {
-        self.write_line(format!(r#"{} = {}.clone();"#, operand_1, operand_2));
+        if self.conditional_stack.is_empty() {
+            self.write_line(format!(r#"{0} = {1};"#, operand_1, operand_2));
+        } else {
+            let conditions = self
+                .conditional_stack
+                .iter()
+                .map(|(name, value)| {
+                    format!(
+                        r#"{0}{1}.get_value().unwrap()"#,
+                        if *value { "" } else { "!" },
+                        name
+                    )
+                })
+                .collect::<Vec<String>>()
+                .join(" && ");
+            self.write_line(format!(r#"if {0} {{"#, conditions));
+            self.shift_forward();
+            self.write_line(format!(r#"{0} = {1};"#, operand_1, operand_2));
+            self.shift_backward();
+            self.write_line("}".to_owned());
+        }
     }
 
     pub fn write_or(&mut self, operand_1: &str, operand_2: &str) -> String {
@@ -208,10 +225,10 @@ impl Generator {
         self.write_line("pub struct GeneratedCircuit {".to_owned());
         self.shift_forward();
         for input in inputs.iter() {
-            self.write_line(format!("pub {}: Fr,", input.identifier.name));
+            self.write_line(format!("pub {0}: Fr,", input.identifier.name));
         }
         for witness in witnesses.iter() {
-            self.write_line(format!("pub {}: Fr,", witness.identifier.name));
+            self.write_line(format!("pub {0}: Fr,", witness.identifier.name));
         }
         self.shift_backward();
         self.write_line("}".to_owned());
@@ -300,7 +317,7 @@ impl Generator {
 
     pub fn enter_block(&mut self) -> String {
         let (id, _namespace) = self.next_id_and_namespace();
-        self.write_line(format!("let {} = {{", id));
+        self.write_line(format!("let {0} = {{", id));
         self.shift_forward();
         id
     }
@@ -312,7 +329,7 @@ impl Generator {
 
     pub fn enter_loop(&mut self, index_name: &str, range_start: &str, range_end: &str) {
         self.write_line(format!(
-            "for {}_index in {}..{} {{",
+            "for {0}_index in {1}..{2} {{",
             index_name, range_start, range_end
         ));
         self.shift_forward();
@@ -321,6 +338,21 @@ impl Generator {
 
     pub fn exit_loop(&mut self) {
         self.loop_stack.pop();
+        self.shift_backward();
+        self.write_line("};".to_owned());
+    }
+
+    pub fn enter_conditional(&mut self, condition_name: &str, value: bool) -> String {
+        let (id, _namespace) = self.next_id_and_namespace();
+        self.write_line(format!("let {0} = {{", id));
+        self.shift_forward();
+        self.conditional_stack
+            .push((condition_name.to_owned(), value));
+        id
+    }
+
+    pub fn exit_conditional(&mut self) {
+        self.conditional_stack.pop();
         self.shift_backward();
         self.write_line("};".to_owned());
     }
@@ -343,7 +375,7 @@ impl Generator {
         self.id_sequence += 1;
         let id = format!(r#"temp_{0:06}"#, self.id_sequence);
         let namespace = if self.loop_stack.is_empty() {
-            format!(r#""temp_{:06}""#, self.id_sequence)
+            format!(r#""temp_{0:06}""#, self.id_sequence)
         } else {
             let indexes = self
                 .loop_stack

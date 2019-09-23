@@ -366,7 +366,10 @@ impl Writer {
 
         let condition_result = self.evaluate(*conditional.condition)?;
 
-        let id = self.generator.borrow_mut().enter_block();
+        let id = self
+            .generator
+            .borrow_mut()
+            .enter_conditional(&condition_result, true);
         for statement in conditional.main_block.statements {
             self.statement(statement)?;
         }
@@ -379,10 +382,13 @@ impl Writer {
         } else {
             "()".to_owned()
         };
-        self.generator.borrow_mut().exit_block();
+        self.generator.borrow_mut().exit_conditional();
 
         let else_result = if let Some(else_block) = conditional.else_block {
-            let id = self.generator.borrow_mut().enter_block();
+            let id = self
+                .generator
+                .borrow_mut()
+                .enter_conditional(&condition_result, false);
             for statement in else_block.statements {
                 self.statement(statement)?;
             }
@@ -395,20 +401,23 @@ impl Writer {
             } else {
                 "()".to_owned()
             };
-            self.generator.borrow_mut().exit_block();
+            self.generator.borrow_mut().exit_conditional();
             else_result
         } else if let Some(else_if_block) = conditional.else_if {
             self.conditional(*else_if_block)?
         } else {
-            panic!("Conditionals without the else block are not implemented yet");
+            "()".to_owned()
         };
+
+        if main_result.as_str() == "()" || else_result.as_str() == "()" {
+            return Ok("()".to_owned());
+        }
 
         let result = self.generator.borrow_mut().write_conditional(
             main_result.as_str(),
             else_result.as_str(),
             condition_result.as_str(),
         );
-
         Ok(result)
     }
 
