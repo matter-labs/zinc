@@ -2,7 +2,7 @@
 //! Functions used by generated circuits directly.
 //!
 
-mod auxiliary;
+mod utils;
 
 use bellman::ConstraintSystem;
 use bellman::SynthesisError;
@@ -18,15 +18,11 @@ use pairing::bn256::Fr;
 ///
 /// Transpiles from variable allocations.
 ///
-pub fn allocation<CS>(
-    mut system: CS,
-    name: &str,
-    number: &str,
-) -> Result<AllocatedNum<Bn256>, SynthesisError>
+pub fn allocation<CS>(mut system: CS, number: &str) -> Result<AllocatedNum<Bn256>, SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
-    AllocatedNum::alloc(system.namespace(|| name), || {
+    AllocatedNum::alloc(system.namespace(|| "alloc"), || {
         Ok(Fr::from_str(number).unwrap())
     })
 }
@@ -39,20 +35,19 @@ where
 pub fn input_allocation<CS, F>(
     mut system: CS,
     input: F,
-    name: &str,
     bitlength: usize,
 ) -> Result<(AllocatedNum<Bn256>, Vec<Boolean>), SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
     F: FnOnce() -> Result<Fr, SynthesisError>,
 {
-    let number = AllocatedNum::alloc(system.namespace(|| name), input)?;
-    let inputize_name = format!("inputize_{}", name);
-    number.inputize(system.namespace(|| &inputize_name))?;
-
-    let bits_name = format!("input_bits_{}", name);
-    let bits = auxiliary::into_bits_le_fixed(system.namespace(|| &bits_name), &number, bitlength)?;
-
+    let number = AllocatedNum::alloc(system.namespace(|| "alloc"), input)?;
+    number.inputize(system.namespace(|| "inputize"))?;
+    let bits = utils::into_bits_le_fixed(
+        system.namespace(|| "into_bits_le_fixed"),
+        &number,
+        bitlength,
+    )?;
     Ok((number, bits))
 }
 
@@ -64,18 +59,18 @@ where
 pub fn witness_allocation<CS, F>(
     mut system: CS,
     witness: F,
-    name: &str,
     bitlength: usize,
 ) -> Result<(AllocatedNum<Bn256>, Vec<Boolean>), SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
     F: FnOnce() -> Result<Fr, SynthesisError>,
 {
-    let number = AllocatedNum::alloc(system.namespace(|| name), witness)?;
-
-    let bits_name = format!("witness_bits_{}", name);
-    let bits = auxiliary::into_bits_le_fixed(system.namespace(|| &bits_name), &number, bitlength)?;
-
+    let number = AllocatedNum::alloc(system.namespace(|| "alloc"), witness)?;
+    let bits = utils::into_bits_le_fixed(
+        system.namespace(|| "into_bits_le_fixed"),
+        &number,
+        bitlength,
+    )?;
     Ok((number, bits))
 }
 
@@ -85,7 +80,7 @@ where
 /// Transpiles from:
 /// `{identifier} || {identifier}`
 ///
-pub fn or<CS>(system: CS, a: &Boolean, b: &Boolean, _name: &str) -> Result<Boolean, SynthesisError>
+pub fn or<CS>(system: CS, a: &Boolean, b: &Boolean) -> Result<Boolean, SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
@@ -98,7 +93,7 @@ where
 /// Transpiles from:
 /// `{identifier} ^^ {identifier}`
 ///
-pub fn xor<CS>(system: CS, a: &Boolean, b: &Boolean, _name: &str) -> Result<Boolean, SynthesisError>
+pub fn xor<CS>(system: CS, a: &Boolean, b: &Boolean) -> Result<Boolean, SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
@@ -111,7 +106,7 @@ where
 /// Transpiles from:
 /// `{identifier} && {identifier}`
 ///
-pub fn and<CS>(system: CS, a: &Boolean, b: &Boolean, _name: &str) -> Result<Boolean, SynthesisError>
+pub fn and<CS>(system: CS, a: &Boolean, b: &Boolean) -> Result<Boolean, SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
@@ -128,15 +123,13 @@ pub fn equals<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
     b: &AllocatedNum<Bn256>,
-    name: &str,
     _bitlength: usize,
 ) -> Result<Boolean, SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
-    let equals_name = format!("eq_equals_{}", name);
     Ok(Boolean::from(AllocatedNum::equals(
-        system.namespace(|| equals_name),
+        system.namespace(|| "equals"),
         a,
         b,
     )?))
@@ -152,15 +145,13 @@ pub fn not_equals<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
     b: &AllocatedNum<Bn256>,
-    name: &str,
     _bitlength: usize,
 ) -> Result<Boolean, SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
-    let not_equals_name = format!("ne_equals_{}", name);
     Ok(Boolean::from(AllocatedNum::equals(
-        system.namespace(|| not_equals_name),
+        system.namespace(|| "not_equals"),
         a,
         b,
     )?)
@@ -177,15 +168,13 @@ pub fn greater_equals<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
     b: &AllocatedNum<Bn256>,
-    name: &str,
     bitlength: usize,
 ) -> Result<Boolean, SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
-    let equals_name = format!("ge_equals_{}", name);
     if let Boolean::Is(bit) = Boolean::from(AllocatedNum::equals(
-        system.namespace(|| equals_name),
+        system.namespace(|| "greater_equals_equality"),
         a,
         b,
     )?) {
@@ -194,17 +183,18 @@ where
         }
     }
 
-    let diff_name = format!("ge_diff_{}", name);
-    let (diff_a_b, diff_bits) =
-        subtraction(system.namespace(|| &diff_name), a, b, &diff_name, bitlength)?;
+    let (diff_a_b, diff_bits) = subtraction(
+        system.namespace(|| "greater_equals_subtraction"),
+        a,
+        b,
+        bitlength,
+    )?;
 
-    let repacked_name = format!("ge_repacked_{}", name);
     let diff_a_b_repacked =
-        auxiliary::pack_bits_to_element(system.namespace(|| &repacked_name), &diff_bits)?;
+        utils::pack_bits_to_element(system.namespace(|| "repacked"), &diff_bits)?;
 
-    let equal_to_repacked_name = format!("ge_equal_to_repacked_{}", name);
     let result = Boolean::from(AllocatedNum::equals(
-        system.namespace(|| &equal_to_repacked_name),
+        system.namespace(|| "equals_to_repacked"),
         &diff_a_b,
         &diff_a_b_repacked,
     )?);
@@ -222,15 +212,13 @@ pub fn lesser_equals<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
     b: &AllocatedNum<Bn256>,
-    name: &str,
     bitlength: usize,
 ) -> Result<Boolean, SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
-    let equals_name = format!("le_equals_{}", name);
     if let Boolean::Is(bit) = Boolean::from(AllocatedNum::equals(
-        system.namespace(|| equals_name),
+        system.namespace(|| "lesser_equals_equality"),
         a,
         b,
     )?) {
@@ -239,17 +227,18 @@ where
         }
     }
 
-    let diff_name = format!("le_diff_{}", name);
-    let (diff_b_a, diff_bits) =
-        subtraction(system.namespace(|| &diff_name), b, a, &diff_name, bitlength)?;
+    let (diff_b_a, diff_bits) = subtraction(
+        system.namespace(|| "lesser_equals_subtraction"),
+        b,
+        a,
+        bitlength,
+    )?;
 
-    let repacked_name = format!("le_repacked_{}", name);
     let diff_b_a_repacked =
-        auxiliary::pack_bits_to_element(system.namespace(|| &repacked_name), &diff_bits)?;
+        utils::pack_bits_to_element(system.namespace(|| "repacked"), &diff_bits)?;
 
-    let equal_to_repacked_name = format!("le_equal_to_repacked_{}", name);
     let result = Boolean::from(AllocatedNum::equals(
-        system.namespace(|| &equal_to_repacked_name),
+        system.namespace(|| "equals_to_repacked"),
         &diff_b_a,
         &diff_b_a_repacked,
     )?);
@@ -267,23 +256,19 @@ pub fn greater<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
     b: &AllocatedNum<Bn256>,
-    name: &str,
     bitlength: usize,
 ) -> Result<Boolean, SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
-    let diff_name = format!("gt_diff_{}", name);
     let (diff_a_b, diff_bits) =
-        subtraction(system.namespace(|| &diff_name), a, b, &diff_name, bitlength)?;
+        subtraction(system.namespace(|| "greater_subtraction"), a, b, bitlength)?;
 
-    let repacked_name = format!("gt_repacked_{}", name);
     let diff_a_b_repacked =
-        auxiliary::pack_bits_to_element(system.namespace(|| &repacked_name), &diff_bits)?;
+        utils::pack_bits_to_element(system.namespace(|| "repacked"), &diff_bits)?;
 
-    let equal_to_repacked_name = format!("gt_equal_to_repacked_{}", name);
     let result = Boolean::from(AllocatedNum::equals(
-        system.namespace(|| &equal_to_repacked_name),
+        system.namespace(|| "equals_to_repacked"),
         &diff_a_b,
         &diff_a_b_repacked,
     )?);
@@ -301,23 +286,19 @@ pub fn lesser<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
     b: &AllocatedNum<Bn256>,
-    name: &str,
     bitlength: usize,
 ) -> Result<Boolean, SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
-    let diff_name = format!("lt_diff_{}", name);
     let (diff_b_a, diff_bits) =
-        subtraction(system.namespace(|| &diff_name), b, a, &diff_name, bitlength)?;
+        subtraction(system.namespace(|| "lesser_subtraction"), b, a, bitlength)?;
 
-    let repacked_name = format!("lt_repacked_{}", name);
     let diff_b_a_repacked =
-        auxiliary::pack_bits_to_element(system.namespace(|| &repacked_name), &diff_bits)?;
+        utils::pack_bits_to_element(system.namespace(|| "repacked"), &diff_bits)?;
 
-    let equal_to_repacked_name = format!("lt_equal_to_repacked_{}", name);
     let result = Boolean::from(AllocatedNum::equals(
-        system.namespace(|| &equal_to_repacked_name),
+        system.namespace(|| "equals_to_repacked"),
         &diff_b_a,
         &diff_b_a_repacked,
     )?);
@@ -335,27 +316,28 @@ pub fn addition<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
     b: &AllocatedNum<Bn256>,
-    name: &str,
     bitlength: usize,
 ) -> Result<(AllocatedNum<Bn256>, Vec<Boolean>), SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
-    let number = AllocatedNum::alloc(system.namespace(|| name), || {
+    let number = AllocatedNum::alloc(system.namespace(|| "alloc"), || {
         let mut sum = a.get_value().unwrap();
         sum.add_assign(&b.get_value().unwrap());
         Ok(sum)
     })?;
 
-    let enforce_name = format!("sum_enforce_{}", name);
     system.enforce(
-        || enforce_name,
+        || "enforce",
         |lc| lc + a.get_variable() + b.get_variable(),
         |lc| lc + CS::one(),
         |lc| lc + number.get_variable(),
     );
-    let bits_name = format!("sum_into_bits_{}", name);
-    let bits = auxiliary::into_bits_le_fixed(system.namespace(|| bits_name), &number, bitlength)?;
+    let bits = utils::into_bits_le_fixed(
+        system.namespace(|| "into_bits_le_fixed"),
+        &number,
+        bitlength,
+    )?;
 
     Ok((number, bits))
 }
@@ -370,27 +352,28 @@ pub fn subtraction<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
     b: &AllocatedNum<Bn256>,
-    name: &str,
     bitlength: usize,
 ) -> Result<(AllocatedNum<Bn256>, Vec<Boolean>), SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
-    let number = AllocatedNum::alloc(system.namespace(|| name), || {
+    let number = AllocatedNum::alloc(system.namespace(|| "alloc"), || {
         let mut sum = a.get_value().unwrap();
         sum.sub_assign(&b.get_value().unwrap());
         Ok(sum)
     })?;
 
-    let enforce_name = format!("diff_enforce_{}", name);
     system.enforce(
-        || enforce_name,
+        || "enforce",
         |lc| lc + a.get_variable() - b.get_variable(),
         |lc| lc + CS::one(),
         |lc| lc + number.get_variable(),
     );
-    let bits_name = format!("diff_into_bits_{}", name);
-    let bits = auxiliary::into_bits_le_fixed(system.namespace(|| bits_name), &number, bitlength)?;
+    let bits = utils::into_bits_le_fixed(
+        system.namespace(|| "into_bits_le_fixed"),
+        &number,
+        bitlength,
+    )?;
 
     Ok((number, bits))
 }
@@ -405,27 +388,28 @@ pub fn multiplication<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
     b: &AllocatedNum<Bn256>,
-    name: &str,
     bitlength: usize,
 ) -> Result<(AllocatedNum<Bn256>, Vec<Boolean>), SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
-    let number = AllocatedNum::alloc(system.namespace(|| name), || {
+    let number = AllocatedNum::alloc(system.namespace(|| "alloc"), || {
         let mut mul = a.get_value().unwrap();
         mul.mul_assign(&b.get_value().unwrap());
         Ok(mul)
     })?;
 
-    let enforce_name = format!("mul_enforce_{}", name);
     system.enforce(
-        || enforce_name,
+        || "enforce",
         |lc| lc + a.get_variable(),
         |lc| lc + b.get_variable(),
         |lc| lc + number.get_variable(),
     );
-    let bits_name = format!("mul_into_bits_{}", name);
-    let bits = auxiliary::into_bits_le_fixed(system.namespace(|| bits_name), &number, bitlength)?;
+    let bits = utils::into_bits_le_fixed(
+        system.namespace(|| "into_bits_le_fixed"),
+        &number,
+        bitlength,
+    )?;
 
     Ok((number, bits))
 }
@@ -439,13 +423,12 @@ where
 pub fn casting<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
-    name: &str,
     _bitlength: usize,
 ) -> Result<AllocatedNum<Bn256>, SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
-    AllocatedNum::alloc(system.namespace(|| name), || Ok(a.get_value().unwrap()))
+    AllocatedNum::alloc(system.namespace(|| "alloc"), || Ok(a.get_value().unwrap()))
 }
 
 ///
@@ -457,27 +440,28 @@ where
 pub fn negation<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
-    name: &str,
     bitlength: usize,
 ) -> Result<(AllocatedNum<Bn256>, Vec<Boolean>), SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
-    let number = AllocatedNum::alloc(system.namespace(|| name), || {
+    let number = AllocatedNum::alloc(system.namespace(|| "alloc"), || {
         let mut negated = Fr::zero();
         negated.sub_assign(&a.get_value().unwrap());
         Ok(negated)
     })?;
 
-    let enforce_name = format!("neg_enforce_{}", name);
     system.enforce(
-        || enforce_name,
+        || "enforce",
         |lc| lc + a.get_variable(),
         |lc| lc - CS::one(),
         |lc| lc + number.get_variable(),
     );
-    let bits_name = format!("neg_into_bits_{}", name);
-    let bits = auxiliary::into_bits_le_fixed(system.namespace(|| bits_name), &number, bitlength)?;
+    let bits = utils::into_bits_le_fixed(
+        system.namespace(|| "into_bits_le_fixed"),
+        &number,
+        bitlength,
+    )?;
 
     Ok((number, bits))
 }
@@ -488,7 +472,7 @@ where
 /// Transpiles from:
 /// `!{identifier}`
 ///
-pub fn not<CS>(_system: CS, a: &Boolean, _name: &str) -> Result<Boolean, SynthesisError>
+pub fn not<CS>(_system: CS, a: &Boolean) -> Result<Boolean, SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
@@ -501,13 +485,13 @@ where
 /// Transpiles from:
 /// `require({expression}, {string});`
 ///
-pub fn require<CS>(mut system: CS, expr: &Boolean, name: &str)
+pub fn require<CS>(mut system: CS, value: &Boolean, annotation: &str)
 where
     CS: ConstraintSystem<Bn256>,
 {
     system.enforce(
-        || name,
-        |_| expr.lc(CS::one(), Fr::one()),
+        || annotation,
+        |_| value.lc(CS::one(), Fr::one()),
         |lc| lc + CS::one(),
         |lc| lc + CS::one(),
     );
@@ -530,10 +514,9 @@ pub fn conditional<CS>(
     a: &AllocatedNum<Bn256>,
     b: &AllocatedNum<Bn256>,
     condition: &Boolean,
-    name: &str,
 ) -> Result<AllocatedNum<Bn256>, SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
-    AllocatedNum::conditionally_select(cs.namespace(|| name), a, b, condition)
+    AllocatedNum::conditionally_select(cs.namespace(|| "conditionally_select"), a, b, condition)
 }

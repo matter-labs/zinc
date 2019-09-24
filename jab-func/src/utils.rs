@@ -1,5 +1,5 @@
 //!
-//! Auxiliary functions.
+//! Utility functions.
 //!
 
 use bellman::pairing::ff::BitIterator;
