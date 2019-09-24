@@ -1,18 +1,29 @@
 //!
-//! The interpreter executor.
+//! The interpreter.
 //!
+
+mod element;
+mod error;
+mod scope;
+mod warning;
+
+pub use self::element::Boolean;
+pub use self::element::Element;
+pub use self::element::Error as ElementError;
+pub use self::element::Integer;
+pub use self::element::Place;
+pub use self::element::Value;
+pub use self::element::ValueError;
+pub use self::error::Error;
+pub use self::scope::Error as ScopeError;
+pub use self::scope::Scope;
+pub use self::scope::Warning as ScopeWarning;
+pub use self::warning::Warning;
 
 use std::cell::RefCell;
 use std::convert::TryFrom;
 use std::rc::Rc;
 
-use crate::executor::Element;
-use crate::executor::ElementError;
-use crate::executor::Error;
-use crate::executor::Place;
-use crate::executor::Scope;
-use crate::executor::Value;
-use crate::executor::Warning;
 use crate::lexical;
 use crate::syntax::BlockExpression;
 use crate::syntax::CircuitProgram;

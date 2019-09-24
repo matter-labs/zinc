@@ -6,8 +6,8 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
-use crate::executor::Value;
-use crate::executor::ValueError;
+use crate::interpreter::Value;
+use crate::interpreter::ValueError;
 use crate::syntax::Identifier;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]

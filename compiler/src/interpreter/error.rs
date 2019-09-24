@@ -5,10 +5,10 @@
 use failure::Fail;
 use serde_derive::Serialize;
 
-use crate::executor::ElementError;
-use crate::executor::Integer;
-use crate::executor::ScopeError;
-use crate::executor::Value;
+use crate::interpreter::ElementError;
+use crate::interpreter::Integer;
+use crate::interpreter::ScopeError;
+use crate::interpreter::Value;
 use crate::lexical::Location;
 use crate::syntax::Literal;
 use crate::syntax::TypeVariant;

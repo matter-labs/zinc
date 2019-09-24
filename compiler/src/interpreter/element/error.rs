@@ -5,8 +5,8 @@
 use failure::Fail;
 use serde_derive::Serialize;
 
-use crate::executor::Element;
-use crate::executor::ValueError;
+use crate::interpreter::Element;
+use crate::interpreter::ValueError;
 use crate::syntax::OperatorExpressionOperator;
 
 #[derive(Debug, Fail, Serialize, PartialEq)]

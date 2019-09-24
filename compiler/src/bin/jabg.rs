@@ -21,10 +21,8 @@ struct Arguments {
 enum Error {
     #[fail(display = "Input: {}", _0)]
     Input(InputError),
-    #[fail(display = "Parsing: {}", _0)]
-    Parsing(compiler::Error),
-    #[fail(display = "Generating: {}", _0)]
-    Generating(compiler::Error),
+    #[fail(display = "Compiler: {}", _0)]
+    Compiler(compiler::Error),
 }
 
 #[derive(Debug, Fail)]
@@ -55,13 +53,9 @@ fn main() -> Result<(), Error> {
         .map_err(InputError::Reading)
         .map_err(Error::Input)?;
 
-    let program = compiler::parse(code).map_err(|error| {
+    compiler::generate(code).map_err(|error| {
         log::error!("{}", error);
-        Error::Parsing(error)
-    })?;
-    compiler::generate(program).map_err(|error| {
-        log::error!("{}", error);
-        Error::Generating(error)
+        Error::Compiler(error)
     })?;
 
     Ok(())

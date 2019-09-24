@@ -1,15 +1,17 @@
 //!
-//! The interpreter writer.
+//! The generator.
 //!
 
-mod generator;
+mod error;
+mod writer;
 
-pub use self::generator::Generator;
+pub use self::error::Error;
+pub use self::writer::Writer;
 
 use std::cell::RefCell;
+use std::path::PathBuf;
 use std::rc::Rc;
 
-use crate::executor::Error;
 use crate::lexical;
 use crate::syntax::BlockExpression;
 use crate::syntax::CircuitProgram;
@@ -23,36 +25,36 @@ use crate::syntax::OperatorExpressionOperand;
 use crate::syntax::OperatorExpressionOperator;
 use crate::syntax::Statement;
 
-pub struct Writer {
+pub struct Generator {
     stack: Vec<OperatorExpressionOperand>,
-    generator: Rc<RefCell<Generator>>,
+    writer: Rc<RefCell<Writer>>,
 }
 
-impl Writer {
-    pub fn new(generator: Rc<RefCell<Generator>>) -> Self {
+impl Generator {
+    pub fn new(path: &str) -> Self {
         Self {
             stack: Default::default(),
-            generator,
+            writer: Rc::new(RefCell::new(Writer::new(PathBuf::from(path)))),
         }
     }
 
-    pub fn translate(&mut self, program: CircuitProgram) -> Result<(), Error> {
-        self.generator.borrow_mut().write_imports();
-        self.generator
+    pub fn generate(&mut self, program: CircuitProgram) -> Result<(), Error> {
+        self.writer.borrow_mut().write_imports();
+        self.writer
             .borrow_mut()
             .write_circuit_declaration(program.inputs.as_slice(), program.witnesses.as_slice());
 
-        self.generator.borrow_mut().write_circuit_header();
+        self.writer.borrow_mut().write_circuit_header();
         for input in program.inputs.into_iter() {
-            self.generator.borrow_mut().write_allocate_input(input);
+            self.writer.borrow_mut().write_allocate_input(input);
         }
         for witness in program.witnesses.into_iter() {
-            self.generator.borrow_mut().write_allocate_witness(witness);
+            self.writer.borrow_mut().write_allocate_witness(witness);
         }
         for statement in program.statements.into_iter() {
             self.statement(statement)?;
         }
-        self.generator.borrow_mut().write_circuit_trailer();
+        self.writer.borrow_mut().write_circuit_trailer();
 
         Ok(())
     }
@@ -63,11 +65,11 @@ impl Writer {
         match statement {
             Statement::Debug(debug) => {
                 let result = self.evaluate(debug.expression)?;
-                self.generator.borrow_mut().write_debug(result.as_str());
+                self.writer.borrow_mut().write_debug(result.as_str());
             }
             Statement::Let(r#let) => {
                 let result = self.evaluate(r#let.expression)?;
-                self.generator.borrow_mut().write_let(
+                self.writer.borrow_mut().write_let(
                     r#let.is_mutable,
                     r#let.identifier.name.as_str(),
                     result.as_str(),
@@ -75,17 +77,17 @@ impl Writer {
             }
             Statement::Require(require) => {
                 let result = self.evaluate(require.expression)?;
-                self.generator
+                self.writer
                     .borrow_mut()
                     .write_require(result.as_str(), require.id.as_str());
             }
             Statement::Loop(r#loop) => {
-                self.generator.borrow_mut().enter_loop(
+                self.writer.borrow_mut().enter_loop(
                     r#loop.index_identifier.name.as_str(),
                     r#loop.range_start.to_string().as_str(),
                     r#loop.range_end.to_string().as_str(),
                 );
-                self.generator
+                self.writer
                     .borrow_mut()
                     .write_allocate_number_loop_index(r#loop.index_identifier.name.as_str());
                 for statement in r#loop.block.statements {
@@ -94,7 +96,7 @@ impl Writer {
                 if let Some(expression) = r#loop.block.expression {
                     self.evaluate(*expression)?;
                 }
-                self.generator.borrow_mut().exit_loop();
+                self.writer.borrow_mut().exit_loop();
             }
             Statement::Expression(expression) => {
                 self.evaluate(expression)?;
@@ -120,7 +122,7 @@ impl Writer {
                 OperatorExpressionObject::Operand(operand) => self.stack.push(operand),
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Assignment) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
-                    self.generator
+                    self.writer
                         .borrow_mut()
                         .write_assignment(operand_1.as_str(), operand_2.as_str());
 
@@ -136,7 +138,7 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Or) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
-                        .generator
+                        .writer
                         .borrow_mut()
                         .write_or(operand_1.as_str(), operand_2.as_str());
 
@@ -149,7 +151,7 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Xor) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
-                        .generator
+                        .writer
                         .borrow_mut()
                         .write_xor(operand_1.as_str(), operand_2.as_str());
 
@@ -162,7 +164,7 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::And) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
-                        .generator
+                        .writer
                         .borrow_mut()
                         .write_and(operand_1.as_str(), operand_2.as_str());
 
@@ -175,7 +177,7 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Equal) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
-                        .generator
+                        .writer
                         .borrow_mut()
                         .write_equals(operand_1.as_str(), operand_2.as_str());
 
@@ -188,7 +190,7 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::NotEqual) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
-                        .generator
+                        .writer
                         .borrow_mut()
                         .write_not_equals(operand_1.as_str(), operand_2.as_str());
 
@@ -201,7 +203,7 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::GreaterEqual) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
-                        .generator
+                        .writer
                         .borrow_mut()
                         .write_greater_equals(operand_1.as_str(), operand_2.as_str());
 
@@ -214,7 +216,7 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::LesserEqual) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
-                        .generator
+                        .writer
                         .borrow_mut()
                         .write_lesser_equals(operand_1.as_str(), operand_2.as_str());
 
@@ -227,7 +229,7 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Greater) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
-                        .generator
+                        .writer
                         .borrow_mut()
                         .write_greater(operand_1.as_str(), operand_2.as_str());
 
@@ -240,7 +242,7 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Lesser) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
-                        .generator
+                        .writer
                         .borrow_mut()
                         .write_lesser(operand_1.as_str(), operand_2.as_str());
 
@@ -253,7 +255,7 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
-                        .generator
+                        .writer
                         .borrow_mut()
                         .write_addition(operand_1.as_str(), operand_2.as_str());
 
@@ -266,7 +268,7 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Subtraction) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
-                        .generator
+                        .writer
                         .borrow_mut()
                         .write_subtraction(operand_1.as_str(), operand_2.as_str());
 
@@ -279,7 +281,7 @@ impl Writer {
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Multiplication) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
-                        .generator
+                        .writer
                         .borrow_mut()
                         .write_multiplication(operand_1.as_str(), operand_2.as_str());
 
@@ -297,10 +299,7 @@ impl Writer {
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Casting) => {
                     let (operand_1, _type) = self.get_binary_operands()?;
-                    let id = self
-                        .generator
-                        .borrow_mut()
-                        .write_casting(operand_1.as_str());
+                    let id = self.writer.borrow_mut().write_casting(operand_1.as_str());
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -310,10 +309,7 @@ impl Writer {
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Negation) => {
                     let operand_1 = self.get_unary_operand()?;
-                    let id = self
-                        .generator
-                        .borrow_mut()
-                        .write_negation(operand_1.as_str());
+                    let id = self.writer.borrow_mut().write_negation(operand_1.as_str());
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -323,7 +319,7 @@ impl Writer {
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Not) => {
                     let operand_1 = self.get_unary_operand()?;
-                    let id = self.generator.borrow_mut().write_not(operand_1.as_str());
+                    let id = self.writer.borrow_mut().write_not(operand_1.as_str());
 
                     self.stack
                         .push(OperatorExpressionOperand::Identifier(Identifier::new(
@@ -344,20 +340,18 @@ impl Writer {
     fn block(&mut self, block: BlockExpression) -> Result<String, Error> {
         log::trace!("Block expression       : {}", block);
 
-        let id = self.generator.borrow_mut().enter_block();
+        let id = self.writer.borrow_mut().enter_block();
         for statement in block.statements {
             self.statement(statement)?;
         }
         let result = if let Some(expression) = block.expression {
             let result = self.evaluate(*expression)?;
-            self.generator
-                .borrow_mut()
-                .write_identifier(result.as_str());
+            self.writer.borrow_mut().write_identifier(result.as_str());
             id
         } else {
             "()".to_owned()
         };
-        self.generator.borrow_mut().exit_block();
+        self.writer.borrow_mut().exit_block();
         Ok(result)
     }
 
@@ -367,7 +361,7 @@ impl Writer {
         let condition_result = self.evaluate(*conditional.condition)?;
 
         let id = self
-            .generator
+            .writer
             .borrow_mut()
             .enter_conditional(&condition_result, true);
         for statement in conditional.main_block.statements {
@@ -375,18 +369,16 @@ impl Writer {
         }
         let main_result = if let Some(expression) = conditional.main_block.expression {
             let result = self.evaluate(*expression)?;
-            self.generator
-                .borrow_mut()
-                .write_identifier(result.as_str());
+            self.writer.borrow_mut().write_identifier(result.as_str());
             id
         } else {
             "()".to_owned()
         };
-        self.generator.borrow_mut().exit_conditional();
+        self.writer.borrow_mut().exit_conditional();
 
         let else_result = if let Some(else_block) = conditional.else_block {
             let id = self
-                .generator
+                .writer
                 .borrow_mut()
                 .enter_conditional(&condition_result, false);
             for statement in else_block.statements {
@@ -394,14 +386,12 @@ impl Writer {
             }
             let else_result = if let Some(expression) = else_block.expression {
                 let result = self.evaluate(*expression)?;
-                self.generator
-                    .borrow_mut()
-                    .write_identifier(result.as_str());
+                self.writer.borrow_mut().write_identifier(result.as_str());
                 id
             } else {
                 "()".to_owned()
             };
-            self.generator.borrow_mut().exit_conditional();
+            self.writer.borrow_mut().exit_conditional();
             else_result
         } else if let Some(else_if_block) = conditional.else_if {
             self.conditional(*else_if_block)?
@@ -413,7 +403,7 @@ impl Writer {
             return Ok("()".to_owned());
         }
 
-        let result = self.generator.borrow_mut().write_conditional(
+        let result = self.writer.borrow_mut().write_conditional(
             main_result.as_str(),
             else_result.as_str(),
             condition_result.as_str(),
@@ -425,11 +415,11 @@ impl Writer {
         match literal.data {
             lexical::Literal::Void => "()".to_owned(),
             lexical::Literal::Boolean(value) => self
-                .generator
+                .writer
                 .borrow_mut()
                 .write_allocate_boolean(value.to_string().as_str()),
             lexical::Literal::Integer(value) => self
-                .generator
+                .writer
                 .borrow_mut()
                 .write_allocate_number_constant(value.to_string().as_str()),
             lexical::Literal::String(..) => panic!("String literals cannot be used in expressions"),

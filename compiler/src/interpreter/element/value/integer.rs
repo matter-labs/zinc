@@ -8,9 +8,9 @@ use num_bigint::BigInt;
 use num_traits::One;
 use serde_derive::Serialize;
 
-use crate::executor::Boolean;
-use crate::executor::Value;
-use crate::executor::ValueError;
+use crate::interpreter::Boolean;
+use crate::interpreter::Value;
+use crate::interpreter::ValueError;
 use crate::syntax::TypeVariant;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]

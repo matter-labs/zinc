@@ -5,8 +5,8 @@
 use failure::Fail;
 use serde_derive::Serialize;
 
-use crate::executor::Integer;
-use crate::executor::Value;
+use crate::interpreter::Integer;
+use crate::interpreter::Value;
 use crate::syntax::TypeVariant;
 
 #[derive(Debug, Fail, Serialize, PartialEq)]

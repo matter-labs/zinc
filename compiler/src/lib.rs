@@ -2,23 +2,18 @@
 //! The Jab compiler library.
 //!
 
-mod executor;
+mod generator;
+mod interpreter;
 mod lexical;
 mod syntax;
 
 pub use self::syntax::CircuitProgram;
 
-use std::cell::RefCell;
-use std::path::PathBuf;
-use std::rc::Rc;
-
 use failure::Fail;
 use serde_derive::Serialize;
 
-use self::executor::Generator;
-use self::executor::Interpreter;
-use self::executor::Scope;
-use self::executor::Writer;
+use self::generator::Generator;
+use self::interpreter::Interpreter;
 use self::lexical::TokenStream;
 use self::syntax::Parser;
 
@@ -29,24 +24,24 @@ pub enum Error {
     Lexical(lexical::Error),
     #[fail(display = "Syntax error: {}", _0)]
     Syntax(syntax::Error),
-    #[fail(display = "Executor error: {}", _0)]
-    Executor(executor::Error),
+    #[fail(display = "Interpreter error: {}", _0)]
+    Interpreter(interpreter::Error),
+    #[fail(display = "Generator error: {}", _0)]
+    Generator(generator::Error),
 }
 
 pub fn parse(input: String) -> Result<CircuitProgram, Error> {
     Parser::parse(TokenStream::new(input))
 }
 
-pub fn interpret(program: CircuitProgram) -> Result<(), Error> {
-    let mut interpreter = Interpreter::new(Scope::new(None));
-    interpreter
-        .interpret(program.clone())
-        .map_err(Error::Executor)
+pub fn interpret(input: String) -> Result<(), Error> {
+    Interpreter::default()
+        .interpret(Parser::parse(TokenStream::new(input))?)
+        .map_err(Error::Interpreter)
 }
 
-pub fn generate(program: CircuitProgram) -> Result<(), Error> {
-    let mut writer = Writer::new(Rc::new(RefCell::new(Generator::new(PathBuf::from(
-        "circuit/src/lib.rs",
-    )))));
-    writer.translate(program).map_err(Error::Executor)
+pub fn generate(input: String) -> Result<(), Error> {
+    Generator::new("circuit/src/lib.rs")
+        .generate(Parser::parse(TokenStream::new(input))?)
+        .map_err(Error::Generator)
 }

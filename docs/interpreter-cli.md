@@ -5,7 +5,7 @@
 ```
 jabi 0.1.0
 hedgar2017 <hedgar2017@gmail.com>
-The Jabberwocky language executor
+The Jabberwocky language interpreter
 
 USAGE:
     jabi.exe <INPUT>

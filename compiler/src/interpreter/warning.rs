@@ -5,7 +5,7 @@
 use failure::Fail;
 use serde_derive::Serialize;
 
-use crate::executor::ScopeWarning;
+use crate::interpreter::ScopeWarning;
 use crate::lexical::Location;
 
 #[derive(Debug, Fail, Serialize)]

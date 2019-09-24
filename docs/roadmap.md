@@ -9,7 +9,7 @@
 - `require()`
 - comments
 - `debug!()`
-- executor
+- interpreter
 
 ## Version 0.2
 

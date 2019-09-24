@@ -1,5 +1,5 @@
 //!
-//! The interpreter generator.
+//! The generator writer.
 //!
 
 use std::fs::File;
@@ -10,7 +10,7 @@ use crate::syntax::Input;
 use crate::syntax::TypeVariant;
 use crate::syntax::Witness;
 
-pub struct Generator {
+pub struct Writer {
     file: File,
     id_sequence: usize,
     offset: usize,
@@ -18,7 +18,7 @@ pub struct Generator {
     conditional_stack: Vec<(String, bool)>,
 }
 
-impl Generator {
+impl Writer {
     pub fn new(path: PathBuf) -> Self {
         Self {
             file: File::create(path).expect("File creating error"),

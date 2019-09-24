@@ -13,7 +13,10 @@ pub struct GeneratedCircuit {
 }
 
 impl Circuit<Bn256> for GeneratedCircuit {
-    fn synthesize<CS: ConstraintSystem<Bn256>>(self, mut cs: &mut CS) -> Result<(), SynthesisError> {
+    fn synthesize<CS: ConstraintSystem<Bn256>>(
+        self,
+        mut cs: &mut CS,
+    ) -> Result<(), SynthesisError> {
         let dummy = jab::input_allocation(&mut cs, || Ok(self.dummy), "dummy", 254)?.0;
         let temp_000001 = jab::allocation(&mut cs, "temp_000001", "5")?;
         let mut result = temp_000001;
