@@ -41,8 +41,10 @@
 
 ## Much later
 
+- testing framework with coverage metrics
 - `Option<>`, `Result<>`, etc
 - bytes and strings
 - interfaces?
 - `unsafe_rust`?
 - conditional optimization
+- formal verification
