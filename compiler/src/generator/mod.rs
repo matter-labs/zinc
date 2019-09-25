@@ -31,10 +31,10 @@ pub struct Generator {
 }
 
 impl Generator {
-    pub fn new(path: &str) -> Self {
+    pub fn new(path: PathBuf) -> Self {
         Self {
             stack: Default::default(),
-            writer: Rc::new(RefCell::new(Writer::new(PathBuf::from(path)))),
+            writer: Rc::new(RefCell::new(Writer::new(path))),
         }
     }
 
@@ -90,7 +90,7 @@ impl Generator {
                 self.writer
                     .borrow_mut()
                     .write_allocate_number_loop_index(r#loop.index_identifier.name.as_str());
-                for statement in r#loop.block.statements {
+                for statement in r#loop.block.statements.into_iter() {
                     self.statement(statement)?;
                 }
                 if let Some(expression) = r#loop.block.expression {
@@ -341,7 +341,7 @@ impl Generator {
         log::trace!("Block expression       : {}", block);
 
         let id = self.writer.borrow_mut().enter_block();
-        for statement in block.statements {
+        for statement in block.statements.into_iter() {
             self.statement(statement)?;
         }
         let result = if let Some(expression) = block.expression {
@@ -364,7 +364,7 @@ impl Generator {
             .writer
             .borrow_mut()
             .enter_conditional(&condition_result, true);
-        for statement in conditional.main_block.statements {
+        for statement in conditional.main_block.statements.into_iter() {
             self.statement(statement)?;
         }
         let main_result = if let Some(expression) = conditional.main_block.expression {
@@ -381,7 +381,7 @@ impl Generator {
                 .writer
                 .borrow_mut()
                 .enter_conditional(&condition_result, false);
-            for statement in else_block.statements {
+            for statement in else_block.statements.into_iter() {
                 self.statement(statement)?;
             }
             let else_result = if let Some(expression) = else_block.expression {

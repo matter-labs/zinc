@@ -11,6 +11,7 @@ use serde_derive::Serialize;
 use crate::lexical::Location;
 use crate::syntax::Identifier;
 use crate::syntax::Type;
+use crate::syntax::TypeVariant;
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct Witness {
@@ -26,6 +27,16 @@ impl Witness {
             location,
             identifier,
             r#type,
+        }
+    }
+
+    pub fn bitlength(&self) -> usize {
+        match self.r#type.variant {
+            TypeVariant::Bool => 1,
+            TypeVariant::Uint { bitlength } => bitlength,
+            TypeVariant::Int { bitlength } => bitlength,
+            TypeVariant::Field => 254,
+            _ => 0,
         }
     }
 }

@@ -14,6 +14,8 @@ use structopt::StructOpt;
 struct Arguments {
     #[structopt(name = "INPUT", parse(from_os_str))]
     input: PathBuf,
+    #[structopt(name = "OUTPUT", parse(from_os_str))]
+    output: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -53,7 +55,7 @@ fn main() -> Result<(), Error> {
         .map_err(InputError::Reading)
         .map_err(Error::Input)?;
 
-    compiler::generate(code).map_err(|error| {
+    compiler::generate(code, args.output).map_err(|error| {
         log::error!("{}", error);
         Error::Compiler(error)
     })?;

@@ -4,13 +4,11 @@
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
 use crate::interpreter::Value;
 use crate::interpreter::ValueError;
 use crate::syntax::Identifier;
 
-#[derive(Debug, Serialize, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Place {
     pub identifier: Identifier,
     pub value: Value,

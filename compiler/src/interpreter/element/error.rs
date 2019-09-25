@@ -3,14 +3,15 @@
 //!
 
 use failure::Fail;
-use serde_derive::Serialize;
 
 use crate::interpreter::Element;
 use crate::interpreter::ValueError;
 use crate::syntax::OperatorExpressionOperator;
 
-#[derive(Debug, Fail, Serialize, PartialEq)]
+#[derive(Debug, Fail, PartialEq)]
 pub enum Error {
+    #[fail(display = "synthesis: {}", _0)]
+    Synthesis(String),
     #[fail(display = "value: {}", _0)]
     Value(ValueError),
     #[fail(

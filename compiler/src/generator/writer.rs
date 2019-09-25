@@ -209,12 +209,9 @@ impl Writer {
     }
 
     pub fn write_imports(&mut self) {
-        self.write_line("#![allow(unused_imports)]".to_owned());
-        self.write_empty_line();
         self.write_line("use bellman::Circuit;".to_owned());
         self.write_line("use bellman::ConstraintSystem;".to_owned());
         self.write_line("use bellman::SynthesisError;".to_owned());
-        self.write_line("use franklin_crypto::circuit::boolean::Boolean;".to_owned());
         self.write_line("use pairing::bn256::Bn256;".to_owned());
         self.write_line("use pairing::bn256::Fr;".to_owned());
         self.write_empty_line();
@@ -251,7 +248,7 @@ impl Writer {
             TypeVariant::Field => 254,
         };
         self.write_line(format!(
-            r#"let {0} = jab::input_allocation(cs.namespace(|| "{0}"), || Ok(self.{0}), {1})?.0;"#,
+            r#"let {0} = jab::allocate_input(cs.namespace(|| "{0}"), || Ok(self.{0}), {1})?.0;"#,
             input.identifier.name, bitlength,
         ));
     }
@@ -265,21 +262,24 @@ impl Writer {
             TypeVariant::Field => 254,
         };
         self.write_line(format!(
-            r#"let {0} = jab::witness_allocation(cs.namespace(|| "{0}"), || Ok(self.{0}), {1})?.0;"#,
+            r#"let {0} = jab::allocate_witness(cs.namespace(|| "{0}"), || Ok(self.{0}), {1})?.0;"#,
             witness.identifier.name, bitlength,
         ));
     }
 
     pub fn write_allocate_boolean(&mut self, value: &str) -> String {
-        let (id, _namespace) = self.next_id_and_namespace();
-        self.write_line(format!(r#"let {0} = Boolean::constant({1});"#, id, value));
+        let (id, namespace) = self.next_id_and_namespace();
+        self.write_line(format!(
+            r#"let {0} = jab::allocate_boolean(cs.namespace(|| {1}), {2})?;"#,
+            id, namespace, value
+        ));
         id
     }
 
     pub fn write_allocate_number_constant(&mut self, value: &str) -> String {
         let (id, namespace) = self.next_id_and_namespace();
         self.write_line(format!(
-            r#"let {0} = jab::allocation(cs.namespace(|| {1}), "{2}")?;"#,
+            r#"let {0} = jab::allocate_number(cs.namespace(|| {1}), "{2}")?;"#,
             id, namespace, value
         ));
         id
@@ -289,7 +289,7 @@ impl Writer {
         let (id, namespace) = self.next_id_and_namespace();
         let value = format!("{}_index.to_string().as_str()", name);
         self.write_line(format!(
-            r#"let {0} = jab::allocation(cs.namespace(|| {1}), {2})?;"#,
+            r#"let {0} = jab::allocate_number(cs.namespace(|| {1}), {2})?;"#,
             name, namespace, value,
         ));
         id

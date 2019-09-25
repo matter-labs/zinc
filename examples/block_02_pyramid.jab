@@ -8,7 +8,7 @@ witness {
     result: field;
 }
 
-let pyramid = 1 + {
+let pyramid: field = 1 + {
     2 + {
         3 + {
             4
@@ -16,4 +16,4 @@ let pyramid = 1 + {
     } + 2
 } + 1;
 
-require(pyramid == result);
+require(pyramid == 16 as field);

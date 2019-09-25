@@ -14,25 +14,40 @@ use pairing::bn256::Bn256;
 use pairing::bn256::Fr;
 
 ///
-/// Describes an allocated number.
+/// Allocates a boolean.
 ///
 /// Transpiles from variable allocations.
 ///
-pub fn allocation<CS>(mut system: CS, number: &str) -> Result<AllocatedNum<Bn256>, SynthesisError>
+pub fn allocate_boolean<CS>(_system: CS, value: bool) -> Result<Boolean, SynthesisError>
+where
+    CS: ConstraintSystem<Bn256>,
+{
+    Ok(Boolean::constant(value))
+}
+
+///
+/// Allocates an allocated number.
+///
+/// Transpiles from variable allocations.
+///
+pub fn allocate_number<CS>(
+    mut system: CS,
+    value: &str,
+) -> Result<AllocatedNum<Bn256>, SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
     AllocatedNum::alloc(system.namespace(|| "alloc"), || {
-        Ok(Fr::from_str(number).unwrap())
+        Ok(Fr::from_str(value).unwrap())
     })
 }
 
 ///
-/// Describes an input.
+/// Allocates an input.
 ///
 /// Transpiles from input declarations.
 ///
-pub fn input_allocation<CS, F>(
+pub fn allocate_input<CS, F>(
     mut system: CS,
     input: F,
     bitlength: usize,
@@ -52,11 +67,11 @@ where
 }
 
 ///
-/// Describes a witness.
+/// Allocates a witness.
 ///
 /// Transpiles from witness declarations.
 ///
-pub fn witness_allocation<CS, F>(
+pub fn allocate_witness<CS, F>(
     mut system: CS,
     witness: F,
     bitlength: usize,

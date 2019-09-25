@@ -9,16 +9,16 @@ mod syntax;
 
 pub use self::syntax::CircuitProgram;
 
+use std::path::PathBuf;
+
 use failure::Fail;
-use serde_derive::Serialize;
 
 use self::generator::Generator;
 use self::interpreter::Interpreter;
 use self::lexical::TokenStream;
 use self::syntax::Parser;
 
-#[derive(Debug, Fail, Serialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Fail, PartialEq)]
 pub enum Error {
     #[fail(display = "Lexical error: {}", _0)]
     Lexical(lexical::Error),
@@ -40,8 +40,8 @@ pub fn interpret(input: String) -> Result<(), Error> {
         .map_err(Error::Interpreter)
 }
 
-pub fn generate(input: String) -> Result<(), Error> {
-    Generator::new("circuit/src/lib.rs")
+pub fn generate(input: String, output: PathBuf) -> Result<(), Error> {
+    Generator::new(output)
         .generate(Parser::parse(TokenStream::new(input))?)
         .map_err(Error::Generator)
 }

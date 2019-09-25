@@ -8,10 +8,13 @@ use std::rc::Rc;
 use std::str;
 
 use failure::Fail;
-use serde_derive::Serialize;
+
+use bellman::ConstraintSystem;
+use pairing::bn256::Bn256;
 
 use crate::interpreter::Place;
 use crate::interpreter::Value;
+use crate::interpreter::ValueError;
 use crate::syntax::Identifier;
 use crate::syntax::Input;
 use crate::syntax::Witness;
@@ -22,20 +25,16 @@ pub struct Scope {
     variables: HashMap<String, Place>,
 }
 
-#[derive(Debug, Fail, Serialize, PartialEq)]
+#[derive(Debug, Fail, PartialEq)]
 pub enum Error {
+    #[fail(display = "value: '{}'", _0)]
+    Value(ValueError),
     #[fail(display = "undeclared variable: '{}'", _0)]
     UndeclaredVariable(String),
-    #[fail(display = "the variable is already declared: '{}'", _0)]
-    VariableAlreadyDeclared(String),
-    #[fail(display = "mutating an immutable variable: '{}'", _0)]
-    MutatingImmutableVariable(String),
-}
-
-#[derive(Debug, Fail, Serialize, PartialEq)]
-pub enum Warning {
     #[fail(display = "redeclared variable: '{}'", _0)]
     RedeclaredVariable(String),
+    #[fail(display = "mutating an immutable variable: '{}'", _0)]
+    MutatingImmutableVariable(String),
 }
 
 impl Scope {
@@ -46,29 +45,46 @@ impl Scope {
         }
     }
 
-    pub fn declare_input(&mut self, input: Input) -> Result<(), Error> {
+    pub fn declare_input<S: ConstraintSystem<Bn256>>(
+        &mut self,
+        input: Input,
+        system: &mut S,
+    ) -> Result<(), Error> {
         if self.is_variable_declared(&input.identifier) {
-            return Err(Error::VariableAlreadyDeclared(input.identifier.name));
+            return Err(Error::RedeclaredVariable(input.identifier.name));
         }
         let place = Place::new(
             input.identifier.to_owned(),
-            Value::new_from_type(input.r#type.variant),
+            Value::new_from_type(input.r#type.variant, system).map_err(Error::Value)?,
             false,
         );
         self.variables.insert(input.identifier.name, place);
         Ok(())
     }
 
-    pub fn declare_witness(&mut self, witness: Witness) -> Result<(), Error> {
+    pub fn declare_witness<S: ConstraintSystem<Bn256>>(
+        &mut self,
+        witness: Witness,
+        system: &mut S,
+    ) -> Result<(), Error> {
         if self.is_variable_declared(&witness.identifier) {
-            return Err(Error::VariableAlreadyDeclared(witness.identifier.name));
+            return Err(Error::RedeclaredVariable(witness.identifier.name));
         }
         let place = Place::new(
             witness.identifier.to_owned(),
-            Value::new_from_type(witness.r#type.variant),
+            Value::new_from_type(witness.r#type.variant, system).map_err(Error::Value)?,
             false,
         );
         self.variables.insert(witness.identifier.name, place);
+        Ok(())
+    }
+
+    pub fn declare_variable(&mut self, place: Place) -> Result<(), Error> {
+        if self.is_variable_declared(&place.identifier) {
+            return Err(Error::RedeclaredVariable(place.identifier.name));
+        }
+        self.variables
+            .insert(place.identifier.name.to_owned(), place);
         Ok(())
     }
 
@@ -81,15 +97,6 @@ impl Scope {
                 None => Err(Error::UndeclaredVariable(identifier.name.to_owned())),
             }
         }
-    }
-
-    pub fn declare_variable(&mut self, place: Place) -> Result<(), Warning> {
-        if self.is_variable_declared(&place.identifier) {
-            return Err(Warning::RedeclaredVariable(place.identifier.name));
-        }
-        self.variables
-            .insert(place.identifier.name.to_owned(), place);
-        Ok(())
     }
 
     pub fn update_variable(&mut self, place: Place) -> Result<(), Error> {
