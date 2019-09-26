@@ -8,6 +8,8 @@ mod scope;
 
 pub use self::element::Element;
 pub use self::element::Error as ElementError;
+pub use self::element::Integer;
+pub use self::element::IntegerError;
 pub use self::element::Place;
 pub use self::element::Value;
 pub use self::element::ValueError;
@@ -18,9 +20,8 @@ pub use self::scope::Scope;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use ff::PrimeField;
+use bellman::ConstraintSystem;
 use pairing::bn256::Bn256;
-use pairing::bn256::Fr;
 use sapling_crypto::circuit::test::TestConstraintSystem;
 
 use crate::lexical;
@@ -39,50 +40,57 @@ use crate::syntax::TypeVariant;
 pub struct Interpreter {
     system: TestConstraintSystem<Bn256>,
     scope: Rc<RefCell<Scope>>,
-    stack: Vec<Element>,
+    rpn_stack: Vec<Element>,
+    loop_stack: Rc<RefCell<Vec<String>>>,
+    id_sequence: usize,
 }
 
 impl Default for Interpreter {
     fn default() -> Self {
-        Self::new(Scope::new(None))
+        Self::new(
+            Scope::new(None),
+            Rc::new(RefCell::new(Vec::with_capacity(64))),
+        )
     }
 }
 
 impl Interpreter {
-    pub fn new(scope: Scope) -> Self {
+    pub fn new(scope: Scope, loop_stack: Rc<RefCell<Vec<String>>>) -> Self {
         Self {
             system: TestConstraintSystem::new(),
             scope: Rc::new(RefCell::new(scope)),
-            stack: Vec::new(),
+            rpn_stack: Vec::with_capacity(64),
+            loop_stack,
+            id_sequence: 0,
         }
     }
 
     pub fn interpret(&mut self, program: CircuitProgram) -> Result<(), Error> {
         for input in program.inputs.into_iter() {
             let location = input.location;
+            let namespace = self.system.namespace(|| &input.identifier.name);
             self.scope
                 .borrow_mut()
-                .declare_input(input.clone(), &mut self.system)
+                .declare_variable(Place::new(
+                    input.identifier,
+                    Value::new_input(input.r#type, namespace)
+                        .map_err(|error| Error::Element(location, ElementError::Value(error)))?,
+                    false,
+                ))
                 .map_err(|error| Error::Scope(location, error))?;
-            jab::allocate_input(
-                &mut self.system,
-                || Ok(Fr::from_str("0").expect("Unreachable")),
-                input.bitlength(),
-            )
-            .map_err(|error| Error::Synthesis(location, error.to_string()))?;
         }
         for witness in program.witnesses.into_iter() {
             let location = witness.location;
+            let namespace = self.system.namespace(|| &witness.identifier.name);
             self.scope
                 .borrow_mut()
-                .declare_witness(witness.clone(), &mut self.system)
+                .declare_variable(Place::new(
+                    witness.identifier,
+                    Value::new_witness(witness.r#type, namespace)
+                        .map_err(|error| Error::Element(location, ElementError::Value(error)))?,
+                    false,
+                ))
                 .map_err(|error| Error::Scope(location, error))?;
-            jab::allocate_witness(
-                &mut self.system,
-                || Ok(Fr::from_str("0").expect("Unreachable")),
-                witness.bitlength(),
-            )
-            .map_err(|error| Error::Synthesis(location, error.to_string()))?;
         }
 
         for statement in program.statements.into_iter() {
@@ -96,10 +104,6 @@ impl Interpreter {
         log::trace!("Statement              : {}", statement);
 
         match statement {
-            Statement::Debug(debug) => {
-                let result = self.evaluate(debug.expression)?;
-                println!("{}", result);
-            }
             Statement::Let(r#let) => {
                 let location = r#let.location;
                 let value = self.evaluate(r#let.expression)?;
@@ -107,10 +111,15 @@ impl Interpreter {
                     match (value, r#type.variant) {
                         (value @ Value::Void, TypeVariant::Void) => value,
                         (value @ Value::Boolean(_), TypeVariant::Bool) => value,
-                        (Value::Integer(integer), type_variant) => Value::Integer(
-                            jab::casting(&mut self.system, &integer, 0)
-                                .map_err(|error| Error::Synthesis(location, error.to_string()))?,
-                        ),
+                        (Value::Integer(integer), type_variant) => {
+                            let namespace = r#let.identifier.name.clone();
+                            let namespace = self.system.namespace(|| namespace);
+                            let integer =
+                                integer.cast(type_variant, namespace).map_err(|error| {
+                                    Error::Element(location, ElementError::Integer(error))
+                                })?;
+                            Value::Integer(integer)
+                        }
                         (value, type_variant) => {
                             return Err(Error::LetDeclarationInvalidType(
                                 r#let.location,
@@ -131,7 +140,7 @@ impl Interpreter {
             }
             Statement::Require(require) => match self.evaluate(require.expression)? {
                 Value::Boolean(boolean) => {
-                    if boolean.get_value().expect("BUG SITE #1") {
+                    if boolean.get_value().expect("Always returns a value") {
                         log::info!("require {} passed", require.id)
                     } else {
                         return Err(Error::RequireFailed(require.location, require.id));
@@ -147,22 +156,11 @@ impl Interpreter {
             },
             Statement::Loop(r#loop) => {
                 let location = r#loop.location;
-                let range_start = match Value::new_integer(r#loop.range_start, &mut self.system)
-                    .map_err(|error| Error::Synthesis(location, error.to_string()))?
-                {
-                    Value::Integer(integer) => integer,
-                    value => {
-                        return Err(Error::Element(
-                            location,
-                            ElementError::ExpectedIntegerValue(
-                                OperatorExpressionOperator::Range,
-                                Element::Value(value),
-                            ),
-                        ))
-                    }
-                };
-                let range_end = match Value::new_integer(r#loop.range_end, &mut self.system)
-                    .map_err(|error| Error::Synthesis(location, error.to_string()))?
+
+                let namespace = self.next_temp_namespace();
+                let namespace = self.system.namespace(|| namespace);
+                let range_start = match Value::new_integer(r#loop.range_start, namespace)
+                    .map_err(|error| Error::Element(location, ElementError::Value(error)))?
                 {
                     Value::Integer(integer) => integer,
                     value => {
@@ -176,32 +174,56 @@ impl Interpreter {
                     }
                 };
 
-                let mut index = if true
-                /*range_start.has_the_same_type_as(&range_end)*/
+                let namespace = self.next_temp_namespace();
+                let namespace = self.system.namespace(|| namespace);
+                let range_end = match Value::new_integer(r#loop.range_end, namespace)
+                    .map_err(|error| Error::Element(location, ElementError::Value(error)))?
                 {
+                    Value::Integer(integer) => integer,
+                    value => {
+                        return Err(Error::Element(
+                            location,
+                            ElementError::ExpectedIntegerValue(
+                                OperatorExpressionOperator::Range,
+                                Element::Value(value),
+                            ),
+                        ))
+                    }
+                };
+
+                let mut index = if range_start.has_the_same_type_as(&range_end) {
                     range_start
                 } else {
-                    jab::casting(&mut self.system, &range_start, 0)
-                        .map_err(|error| Error::Synthesis(location, error.to_string()))?
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    range_start
+                        .cast(range_end.type_variant(), namespace)
+                        .map_err(|error| Error::Element(location, ElementError::Integer(error)))?
                 };
 
-                if jab::greater(&mut self.system, &index, &range_end, 0)
-                    .map_err(|error| Error::Synthesis(location, error.to_string()))?
+                let namespace = self.next_temp_namespace();
+                let namespace = self.system.namespace(|| namespace);
+                let is_greater = index
+                    .greater(&range_end, namespace)
+                    .map_err(|error| Error::Element(location, ElementError::Integer(error)))?
                     .get_value()
-                    .expect("BUG SITE #2")
-                {
-                    return Err(Error::LoopRangeInvalid(
-                        location,
-                        Value::Integer(index),
-                        Value::Integer(range_end),
-                    ));
+                    .expect("Always returns a value");
+                if is_greater {
+                    return Err(Error::LoopRangeInvalid(location, index, range_end));
                 }
 
-                while jab::lesser(&mut self.system, &index, &range_end, 0)
-                    .map_err(|error| Error::Synthesis(location, error.to_string()))?
-                    .get_value()
-                    .expect("BUG SITE #3")
-                {
+                loop {
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    let is_greater_or_equals = index
+                        .greater_equals(&range_end, namespace)
+                        .map_err(|error| Error::Element(location, ElementError::Integer(error)))?
+                        .get_value()
+                        .expect("Always returns a value");
+                    if is_greater_or_equals {
+                        break;
+                    }
+
                     let mut scope = Scope::new(Some(self.scope.clone()));
                     let place = Place::new(
                         r#loop.index_identifier.clone(),
@@ -212,22 +234,27 @@ impl Interpreter {
                         .declare_variable(place)
                         .map_err(|error| Error::Scope(location, error))?;
 
-                    let mut executor = Interpreter::new(scope);
-                    for statement in r#loop.block.statements.clone().into_iter() {
-                        executor.execute(statement)?;
+                    let mut executor = Interpreter::new(scope, self.loop_stack.clone());
+                    for statement in r#loop.block.statements.iter() {
+                        executor.execute(statement.to_owned())?;
                     }
-                    if let Some(expression) = r#loop.block.expression.clone() {
-                        executor.evaluate(*expression)?;
+                    if let Some(ref expression) = r#loop.block.expression {
+                        executor.evaluate(*expression.to_owned())?;
                     }
-                    let one = jab::allocate_number(&mut self.system, "1")
-                        .map_err(|error| Error::Synthesis(location, error.to_string()))?;
-                    index = jab::addition(&mut self.system, &index, &one, 0)
-                        .map_err(|error| Error::Synthesis(location, error.to_string()))?
-                        .0;
+
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    index = index
+                        .inc(namespace)
+                        .map_err(|error| Error::Element(location, ElementError::Integer(error)))?;
                 }
             }
             Statement::Expression(expression) => {
                 self.evaluate(expression)?;
+            }
+            Statement::Debug(debug) => {
+                let result = self.evaluate(debug.expression)?;
+                println!("{}", result);
             }
         }
         Ok(())
@@ -252,26 +279,22 @@ impl Interpreter {
                             lexical::Literal::Void => Element::Value(Value::Void),
                             lexical::Literal::Boolean(literal) => {
                                 let location = element.location;
-                                Element::Value(
-                                    Value::new_boolean(literal, &mut self.system).map_err(
-                                        |error| {
-                                            Error::Element(location, ElementError::Value(error))
-                                        },
-                                    )?,
-                                )
+                                let namespace = self.next_temp_namespace();
+                                let namespace = self.system.namespace(|| namespace);
+                                Element::Value(Value::new_boolean(literal, namespace).map_err(
+                                    |error| Error::Element(location, ElementError::Value(error)),
+                                )?)
                             }
                             lexical::Literal::Integer(literal) => {
                                 let location = element.location;
-                                Element::Value(
-                                    Value::new_integer(literal, &mut self.system).map_err(
-                                        |error| {
-                                            Error::Element(location, ElementError::Value(error))
-                                        },
-                                    )?,
-                                )
+                                let namespace = self.next_temp_namespace();
+                                let namespace = self.system.namespace(|| namespace);
+                                Element::Value(Value::new_integer(literal, namespace).map_err(
+                                    |error| Error::Element(location, ElementError::Value(error)),
+                                )?)
                             }
                             literal @ lexical::Literal::String(..) => {
-                                return Err(Error::LiteralIsNotSupported(
+                                return Err(Error::LiteralCannotBeEvaluated(
                                     element.location,
                                     Literal::new(element.location, literal),
                                 ))
@@ -282,7 +305,7 @@ impl Interpreter {
                             let location = element.location;
                             self.scope
                                 .borrow()
-                                .get_variable(&identifier)
+                                .get_variable(&identifier.name)
                                 .map(Element::Place)
                                 .map_err(|error| Error::Scope(location, error))?
                         }
@@ -293,211 +316,245 @@ impl Interpreter {
                             Element::Value(self.evaluate_conditional(conditional)?)
                         }
                     };
-                    self.stack.push(element);
+                    self.rpn_stack.push(element);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Assignment) => {
                     let (element_2, element_1) = (
-                        self.stack.pop().expect("Option state bug"),
-                        self.stack.pop().expect("Option state bug"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
                     );
                     self.scope
                         .borrow_mut()
                         .update_variable(
                             element_1
-                                .assign(element_2, &mut self.system)
+                                .assign(element_2)
                                 .map_err(|error| Error::Element(element.location, error))?,
                         )
                         .map_err(|error| Error::Scope(element.location, error))?;
-                    self.stack.push(Element::Value(Value::Void));
+                    self.rpn_stack.push(Element::Value(Value::Void));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Range) => {
                     panic!("The range operator cannot be used in expressions")
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Or) => {
                     let (element_2, element_1) = (
-                        self.stack.pop().expect("Option state bug"),
-                        self.stack.pop().expect("Option state bug"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
                     );
-                    self.stack.push(
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .or(element_2, &mut self.system)
+                            .or(element_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Xor) => {
                     let (element_2, element_1) = (
-                        self.stack.pop().expect("Option state bug"),
-                        self.stack.pop().expect("Option state bug"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
                     );
-                    self.stack.push(
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .xor(element_2, &mut self.system)
+                            .xor(element_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::And) => {
                     let (element_2, element_1) = (
-                        self.stack.pop().expect("Option state bug"),
-                        self.stack.pop().expect("Option state bug"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
                     );
-                    self.stack.push(
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .and(element_2, &mut self.system)
+                            .and(element_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Equal) => {
                     let (element_2, element_1) = (
-                        self.stack.pop().expect("Option state bug"),
-                        self.stack.pop().expect("Option state bug"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
                     );
-                    self.stack.push(
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .equal(element_2, &mut self.system)
+                            .equals(element_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::NotEqual) => {
                     let (element_2, element_1) = (
-                        self.stack.pop().expect("Option state bug"),
-                        self.stack.pop().expect("Option state bug"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
                     );
-                    self.stack.push(
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .not_equal(element_2, &mut self.system)
+                            .not_equals(element_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::GreaterEqual) => {
                     let (element_2, element_1) = (
-                        self.stack.pop().expect("Option state bug"),
-                        self.stack.pop().expect("Option state bug"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
                     );
-                    self.stack.push(
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .greater_equal(element_2, &mut self.system)
+                            .greater_equals(element_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::LesserEqual) => {
                     let (element_2, element_1) = (
-                        self.stack.pop().expect("Option state bug"),
-                        self.stack.pop().expect("Option state bug"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
                     );
-                    self.stack.push(
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .lesser_equal(element_2, &mut self.system)
+                            .lesser_equals(element_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Greater) => {
                     let (element_2, element_1) = (
-                        self.stack.pop().expect("Option state bug"),
-                        self.stack.pop().expect("Option state bug"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
                     );
-                    self.stack.push(
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .greater(element_2, &mut self.system)
+                            .greater(element_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Lesser) => {
                     let (element_2, element_1) = (
-                        self.stack.pop().expect("Option state bug"),
-                        self.stack.pop().expect("Option state bug"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
                     );
-                    self.stack.push(
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .lesser(element_2, &mut self.system)
+                            .lesser(element_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition) => {
                     let (element_2, element_1) = (
-                        self.stack.pop().expect("Option state bug"),
-                        self.stack.pop().expect("Option state bug"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
                     );
-                    self.stack.push(
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .add(element_2, &mut self.system)
+                            .add(element_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Subtraction) => {
                     let (element_2, element_1) = (
-                        self.stack.pop().expect("Option state bug"),
-                        self.stack.pop().expect("Option state bug"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
                     );
-                    self.stack.push(
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .subtract(element_2, &mut self.system)
+                            .subtract(element_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Multiplication) => {
                     let (element_2, element_1) = (
-                        self.stack.pop().expect("Option state bug"),
-                        self.stack.pop().expect("Option state bug"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
                     );
-                    self.stack.push(
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .multiply(element_2, &mut self.system)
+                            .multiply(element_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Division) => {
                     let (element_2, element_1) = (
-                        self.stack.pop().expect("Option state bug"),
-                        self.stack.pop().expect("Option state bug"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
                     );
-                    self.stack.push(
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .divide(element_2, &mut self.system)
+                            .divide(element_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Remainder) => {
                     let (element_2, element_1) = (
-                        self.stack.pop().expect("Option state bug"),
-                        self.stack.pop().expect("Option state bug"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
                     );
-                    self.stack.push(
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .modulo(element_2, &mut self.system)
+                            .modulo(element_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Casting) => {
                     let (element_2, element_1) = (
-                        self.stack.pop().expect("Option state bug"),
-                        self.stack.pop().expect("Option state bug"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
+                        self.rpn_stack.pop().expect("Always contains an element"),
                     );
-                    self.stack.push(
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .cast(element_2, &mut self.system)
+                            .cast(element_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Negation) => {
-                    let element_1 = self.stack.pop().expect("Option state bug");
-                    self.stack.push(
+                    let element_1 = self.rpn_stack.pop().expect("Always contains an element");
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .negate(&mut self.system)
+                            .negate(namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Not) => {
-                    let element_1 = self.stack.pop().expect("Option state bug");
-                    self.stack.push(
+                    let element_1 = self.rpn_stack.pop().expect("Always contains an element");
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
+                    self.rpn_stack.push(
                         element_1
-                            .not(&mut self.system)
+                            .not(namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
             }
         }
 
-        match self.stack.pop() {
+        match self.rpn_stack.pop() {
             Some(Element::Value(value)) => Ok(value),
             Some(Element::Place(place)) => Ok(place.value),
             _ => panic!("Type expressions cannot be evaluated"),
@@ -507,7 +564,10 @@ impl Interpreter {
     fn evaluate_block(&mut self, block: BlockExpression) -> Result<Value, Error> {
         log::trace!("Block expression       : {}", block);
 
-        let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
+        let mut executor = Interpreter::new(
+            Scope::new(Some(self.scope.clone())),
+            self.loop_stack.clone(),
+        );
         for statement in block.statements.into_iter() {
             executor.execute(statement)?;
         }
@@ -531,17 +591,31 @@ impl Interpreter {
             }
         };
 
-        if result.get_value().expect("BUG SITE #4") {
-            let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
+        if result.get_value().expect("Always returns a value") {
+            let mut executor = Interpreter::new(
+                Scope::new(Some(self.scope.clone())),
+                self.loop_stack.clone(),
+            );
             executor.evaluate_block(conditional.main_block)
         } else if let Some(else_if) = conditional.else_if {
-            let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
+            let mut executor = Interpreter::new(
+                Scope::new(Some(self.scope.clone())),
+                self.loop_stack.clone(),
+            );
             executor.evaluate_conditional(*else_if)
         } else if let Some(else_block) = conditional.else_block {
-            let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
+            let mut executor = Interpreter::new(
+                Scope::new(Some(self.scope.clone())),
+                self.loop_stack.clone(),
+            );
             executor.evaluate_block(else_block)
         } else {
             Ok(Value::Void)
         }
+    }
+
+    fn next_temp_namespace(&mut self) -> String {
+        self.id_sequence += 1;
+        format!("temp_{0:06}", self.id_sequence)
     }
 }

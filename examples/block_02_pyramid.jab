@@ -16,4 +16,5 @@ let pyramid: field = 1 + {
     } + 2
 } + 1;
 
-require(pyramid == 16 as field);
+debug(pyramid);
+// require(pyramid == 16 as field);

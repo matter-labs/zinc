@@ -23,7 +23,8 @@ impl Circuit<Bn256> for GeneratedCircuit {
         };
         dbg!(result.get_value());
         let temp_000005 = jab::allocate_number(cs.namespace(|| "temp_000005"), "5")?;
-        let temp_000006 = jab::equals(cs.namespace(|| "temp_000006"), &result, &temp_000005, 254)?;
+        let temp_000006 =
+            jab::equals_number(cs.namespace(|| "temp_000006"), &result, &temp_000005, 254)?;
         jab::require(cs.namespace(|| "14_1"), &temp_000006, "14_1");
         Ok(())
     }

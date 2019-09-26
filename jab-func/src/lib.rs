@@ -8,6 +8,7 @@ use bellman::ConstraintSystem;
 use bellman::SynthesisError;
 use ff::Field;
 use ff::PrimeField;
+use franklin_crypto::circuit::boolean::AllocatedBit;
 use franklin_crypto::circuit::boolean::Boolean;
 use franklin_crypto::circuit::num::AllocatedNum;
 use pairing::bn256::Bn256;
@@ -18,11 +19,14 @@ use pairing::bn256::Fr;
 ///
 /// Transpiles from variable allocations.
 ///
-pub fn allocate_boolean<CS>(_system: CS, value: bool) -> Result<Boolean, SynthesisError>
+pub fn allocate_boolean<CS>(mut system: CS, value: bool) -> Result<Boolean, SynthesisError>
 where
     CS: ConstraintSystem<Bn256>,
 {
-    Ok(Boolean::constant(value))
+    Ok(Boolean::from(AllocatedBit::alloc(
+        system.namespace(|| "boolean_alloc"),
+        Some(value),
+    )?))
 }
 
 ///
@@ -37,7 +41,7 @@ pub fn allocate_number<CS>(
 where
     CS: ConstraintSystem<Bn256>,
 {
-    AllocatedNum::alloc(system.namespace(|| "alloc"), || {
+    AllocatedNum::alloc(system.namespace(|| "number_alloc"), || {
         Ok(Fr::from_str(value).unwrap())
     })
 }
@@ -56,7 +60,7 @@ where
     CS: ConstraintSystem<Bn256>,
     F: FnOnce() -> Result<Fr, SynthesisError>,
 {
-    let number = AllocatedNum::alloc(system.namespace(|| "alloc"), input)?;
+    let number = AllocatedNum::alloc(system.namespace(|| "number_alloc"), input)?;
     number.inputize(system.namespace(|| "inputize"))?;
     let bits = utils::into_bits_le_fixed(
         system.namespace(|| "into_bits_le_fixed"),
@@ -80,7 +84,7 @@ where
     CS: ConstraintSystem<Bn256>,
     F: FnOnce() -> Result<Fr, SynthesisError>,
 {
-    let number = AllocatedNum::alloc(system.namespace(|| "alloc"), witness)?;
+    let number = AllocatedNum::alloc(system.namespace(|| "number_alloc"), witness)?;
     let bits = utils::into_bits_le_fixed(
         system.namespace(|| "into_bits_le_fixed"),
         &number,
@@ -129,12 +133,12 @@ where
 }
 
 ///
-/// The equality comparison function.
+/// The number equality comparison function.
 ///
 /// Transpiles from:
 /// `{identifier} == {identifier}`
 ///
-pub fn equals<CS>(
+pub fn equals_number<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
     b: &AllocatedNum<Bn256>,
@@ -144,19 +148,39 @@ where
     CS: ConstraintSystem<Bn256>,
 {
     Ok(Boolean::from(AllocatedNum::equals(
-        system.namespace(|| "equals"),
+        system.namespace(|| "equals_number"),
         a,
         b,
     )?))
 }
 
 ///
-/// The non-equality comparison function.
+/// The boolean equality comparison function.
+///
+/// Transpiles from:
+/// `{identifier} == {identifier}`
+///
+pub fn equals_boolean<CS>(
+    mut system: CS,
+    a: &Boolean,
+    b: &Boolean,
+) -> Result<Boolean, SynthesisError>
+where
+    CS: ConstraintSystem<Bn256>,
+{
+    Ok(Boolean::from(AllocatedBit::alloc(
+        system.namespace(|| "equals_boolean"),
+        Some(a.get_value() == b.get_value()),
+    )?))
+}
+
+///
+/// The number non-equality comparison function.
 ///
 /// Transpiles from:
 /// `{identifier} != {identifier}`
 ///
-pub fn not_equals<CS>(
+pub fn not_equals_number<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
     b: &AllocatedNum<Bn256>,
@@ -171,6 +195,26 @@ where
         b,
     )?)
     .not())
+}
+
+///
+/// The boolean non-equality comparison function.
+///
+/// Transpiles from:
+/// `{identifier} == {identifier}`
+///
+pub fn not_equals_boolean<CS>(
+    mut system: CS,
+    a: &Boolean,
+    b: &Boolean,
+) -> Result<Boolean, SynthesisError>
+where
+    CS: ConstraintSystem<Bn256>,
+{
+    Ok(Boolean::from(AllocatedBit::alloc(
+        system.namespace(|| "equals_boolean"),
+        Some(a.get_value() != b.get_value()),
+    )?))
 }
 
 ///
@@ -198,7 +242,7 @@ where
         }
     }
 
-    let (diff_a_b, diff_bits) = subtraction(
+    let (diff_a_b, diff_bits) = subtract(
         system.namespace(|| "greater_equals_subtraction"),
         a,
         b,
@@ -242,7 +286,7 @@ where
         }
     }
 
-    let (diff_b_a, diff_bits) = subtraction(
+    let (diff_b_a, diff_bits) = subtract(
         system.namespace(|| "lesser_equals_subtraction"),
         b,
         a,
@@ -277,7 +321,7 @@ where
     CS: ConstraintSystem<Bn256>,
 {
     let (diff_a_b, diff_bits) =
-        subtraction(system.namespace(|| "greater_subtraction"), a, b, bitlength)?;
+        subtract(system.namespace(|| "greater_subtraction"), a, b, bitlength)?;
 
     let diff_a_b_repacked =
         utils::pack_bits_to_element(system.namespace(|| "repacked"), &diff_bits)?;
@@ -307,7 +351,7 @@ where
     CS: ConstraintSystem<Bn256>,
 {
     let (diff_b_a, diff_bits) =
-        subtraction(system.namespace(|| "lesser_subtraction"), b, a, bitlength)?;
+        subtract(system.namespace(|| "lesser_subtraction"), b, a, bitlength)?;
 
     let diff_b_a_repacked =
         utils::pack_bits_to_element(system.namespace(|| "repacked"), &diff_bits)?;
@@ -327,7 +371,7 @@ where
 /// Transpiles from:
 /// `{identifier} + {identifier}`
 ///
-pub fn addition<CS>(
+pub fn add<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
     b: &AllocatedNum<Bn256>,
@@ -363,7 +407,7 @@ where
 /// Transpiles from:
 /// `{identifier} - {identifier}`
 ///
-pub fn subtraction<CS>(
+pub fn subtract<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
     b: &AllocatedNum<Bn256>,
@@ -399,7 +443,7 @@ where
 /// Transpiles from:
 /// `{identifier} * {identifier}`
 ///
-pub fn multiplication<CS>(
+pub fn multiply<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
     b: &AllocatedNum<Bn256>,
@@ -435,7 +479,7 @@ where
 /// Transpiles from:
 /// `{identifier} as {type}`
 ///
-pub fn casting<CS>(
+pub fn cast<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
     _bitlength: usize,
@@ -452,7 +496,7 @@ where
 /// Transpiles from:
 /// `-{identifier}`
 ///
-pub fn negation<CS>(
+pub fn negate<CS>(
     mut system: CS,
     a: &AllocatedNum<Bn256>,
     bitlength: usize,

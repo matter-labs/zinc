@@ -24,12 +24,15 @@ impl Place {
         }
     }
 
-    pub fn assign(self, other: Value) -> Result<Self, ValueError> {
+    pub fn assign(&mut self, other: Value) -> Result<(), ValueError> {
         if !self.value.has_the_same_type_as(&other) {
-            return Err(ValueError::OperandTypesMismatch(self.value, other));
+            return Err(ValueError::OperandTypesMismatch(
+                self.value.to_owned(),
+                other,
+            ));
         }
-
-        Ok(Self::new(self.identifier, other, self.is_mutable))
+        self.value = other;
+        Ok(())
     }
 }
 
