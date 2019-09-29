@@ -1,25 +1,24 @@
 //!
-//! The expression operand.
+//! The operator expression operand.
 //!
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
+use crate::syntax::ArrayExpression;
 use crate::syntax::BlockExpression;
 use crate::syntax::ConditionalExpression;
 use crate::syntax::Identifier;
 use crate::syntax::Literal;
 use crate::syntax::Type;
 
-#[derive(Debug, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Operand {
     Literal(Literal),
     Identifier(Identifier),
     Type(Type),
     Block(BlockExpression),
     Conditional(ConditionalExpression),
+    Array(ArrayExpression),
 }
 
 impl fmt::Display for Operand {
@@ -30,6 +29,7 @@ impl fmt::Display for Operand {
             Self::Type(operand) => write!(f, "{}", operand),
             Self::Block(operand) => write!(f, "{}", operand),
             Self::Conditional(operand) => write!(f, "{}", operand),
+            Self::Array(operand) => write!(f, "{}", operand),
         }
     }
 }

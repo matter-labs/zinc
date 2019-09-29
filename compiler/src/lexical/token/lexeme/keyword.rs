@@ -8,10 +8,8 @@ use std::ops::RangeInclusive;
 use std::str;
 
 use failure::Fail;
-use serde_derive::Serialize;
 
-#[derive(Debug, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Keyword {
     // domain
     Inputs,
@@ -56,15 +54,15 @@ impl Keyword {
 #[derive(Debug, Fail)]
 pub enum Error {
     #[fail(display = "integer bitlength is empty")]
-    IntegerBitlengthIsEmpty,
+    IntegerBitlengthEmpty,
     #[fail(display = "integer bitlength '{}' is not numeric", _0)]
-    IntegerBitlengthIsNotNumeric(String),
+    IntegerBitlengthNotNumeric(String),
     #[fail(display = "integer bitlength {} is not multiple of {}", _0, _1)]
     IntegerBitlengthInvalidModulo(usize, usize),
     #[fail(display = "integer bitlength {} is out of range {:?}", _0, _1)]
-    IntegerBitlengthIsOutOfRange(usize, RangeInclusive<usize>),
+    IntegerBitlengthOutOfRange(usize, RangeInclusive<usize>),
     #[fail(display = "unknown")]
-    Unknown,
+    Unknown(String),
 }
 
 impl TryFrom<&str> for Keyword {
@@ -79,13 +77,13 @@ impl TryFrom<&str> for Keyword {
         if let Some("uint") = input.get(..4) {
             let bitlength = &input[4..];
             if bitlength.is_empty() {
-                return Err(Error::IntegerBitlengthIsEmpty);
+                return Err(Error::IntegerBitlengthEmpty);
             }
             let bitlength = bitlength
                 .parse::<usize>()
-                .map_err(|_| Error::IntegerBitlengthIsNotNumeric(bitlength.to_owned()))?;
+                .map_err(|_| Error::IntegerBitlengthNotNumeric(bitlength.to_owned()))?;
             if !BITLENGTH_RANGE.contains(&bitlength) {
-                return Err(Error::IntegerBitlengthIsOutOfRange(
+                return Err(Error::IntegerBitlengthOutOfRange(
                     bitlength,
                     BITLENGTH_RANGE,
                 ));
@@ -102,13 +100,13 @@ impl TryFrom<&str> for Keyword {
         if let Some("int") = input.get(..3) {
             let bitlength = &input[3..];
             if bitlength.is_empty() {
-                return Err(Error::IntegerBitlengthIsEmpty);
+                return Err(Error::IntegerBitlengthEmpty);
             }
             let bitlength = bitlength
                 .parse::<usize>()
-                .map_err(|_| Error::IntegerBitlengthIsNotNumeric(bitlength.to_owned()))?;
+                .map_err(|_| Error::IntegerBitlengthNotNumeric(bitlength.to_owned()))?;
             if !BITLENGTH_RANGE.contains(&bitlength) {
-                return Err(Error::IntegerBitlengthIsOutOfRange(
+                return Err(Error::IntegerBitlengthOutOfRange(
                     bitlength,
                     BITLENGTH_RANGE,
                 ));
@@ -144,7 +142,7 @@ impl TryFrom<&str> for Keyword {
 
             "as" => Ok(Self::As),
 
-            _unknown => Err(Error::Unknown),
+            unknown => Err(Error::Unknown(unknown.to_owned())),
         }
     }
 }

@@ -37,9 +37,6 @@ pub struct TokenStream {
 }
 
 impl TokenStream {
-    ///
-    /// Initializes the stream from the beginning of `input`.
-    ///
     pub fn new(input: String) -> Self {
         Self {
             input,
@@ -48,14 +45,15 @@ impl TokenStream {
         }
     }
 
-    ///
-    /// Peeks the value, stores it in the `self.peeked` and returns a copy of it.
-    ///
     pub fn peek(&mut self) -> Option<Result<Token, Error>> {
         if self.peeked.is_none() {
             self.peeked = self.advance();
         }
         self.peeked.clone()
+    }
+
+    pub fn location(&self) -> Location {
+        Location::new(self.cursor.line, self.cursor.column)
     }
 
     fn advance(&mut self) -> Option<Result<Token, Error>> {
@@ -167,7 +165,7 @@ impl TokenStream {
                 }
             }
 
-            panic!("All the cases have been checked by the state machine");
+            panic!("Always processed by statements above and never gets here");
         }
 
         None
@@ -177,11 +175,6 @@ impl TokenStream {
 impl Iterator for TokenStream {
     type Item = Result<Token, Error>;
 
-    ///
-    /// Returns the next token from the stream.
-    ///
-    /// If there is a peeked value, it is returned, otherwise the stream is advanced.
-    ///
     fn next(&mut self) -> Option<Self::Item> {
         let item = match self.peeked.take() {
             Some(peeked) => Some(peeked),

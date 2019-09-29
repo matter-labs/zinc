@@ -4,14 +4,11 @@
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
 use crate::lexical;
 use crate::lexical::Location;
 
-#[derive(Debug, Serialize, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Literal {
-    #[serde(skip_serializing)]
     pub location: Location,
     pub data: lexical::Literal,
 }

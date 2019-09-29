@@ -3,17 +3,15 @@
 //!
 
 use std::fmt;
+use std::string;
 
-use serde_derive::Serialize;
-
-#[derive(Debug, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case", tag = "value")]
+#[derive(Debug, Clone, PartialEq)]
 pub struct String {
-    pub value: std::string::String,
+    pub value: string::String,
 }
 
 impl String {
-    pub fn new(value: std::string::String) -> Self {
+    pub fn new(value: string::String) -> Self {
         Self { value }
     }
 }

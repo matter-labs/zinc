@@ -1,5 +1,5 @@
 //!
-//! The block expression.
+//! The conditional expression.
 //!
 
 mod builder;
@@ -8,15 +8,12 @@ pub use self::builder::Builder;
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
 use crate::lexical::Location;
 use crate::syntax;
 use crate::syntax::BlockExpression;
 
-#[derive(Debug, Serialize, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
-    #[serde(skip_serializing)]
     pub location: Location,
     pub condition: Box<syntax::Expression>,
     pub main_block: BlockExpression,

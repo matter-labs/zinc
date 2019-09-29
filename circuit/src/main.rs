@@ -1,10 +1,9 @@
 #![allow(unused_imports)]
 
-use bellman::Circuit;
-use ff::PrimeField;
-use pairing::bn256::Bn256;
-use pairing::bn256::Fr;
-use sapling_crypto::circuit::test::TestConstraintSystem;
+use r1cs::Bn256;
+use r1cs::Circuit;
+use r1cs::Fr;
+use r1cs::TestConstraintSystem;
 
 use circuit::GeneratedCircuit;
 

@@ -18,14 +18,14 @@ use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    BracketOpen,
-    StatementOrBracketClose,
-    BracketClose,
+    BracketCurlyOpen,
+    StatementOrBracketCurlyClose,
+    BracketCurlyClose,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::BracketOpen
+        State::BracketCurlyOpen
     }
 }
 
@@ -39,25 +39,32 @@ impl Parser {
     pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<BlockExpression, Error> {
         loop {
             match self.state {
-                State::BracketOpen => match stream.borrow_mut().next() {
-                    Some(Ok(Token {
-                        lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
-                        location,
-                    })) => {
-                        self.builder.set_location(location);
-                        self.state = State::StatementOrBracketClose;
-                    }
-                    Some(Ok(Token { lexeme, location })) => {
-                        return Err(Error::Syntax(SyntaxError::Expected(
+                State::BracketCurlyOpen => {
+                    let next = stream.borrow_mut().next();
+                    match next {
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             location,
-                            ["{"].to_vec(),
-                            lexeme,
-                        )));
+                        })) => {
+                            self.builder.set_location(location);
+                            self.state = State::StatementOrBracketCurlyClose;
+                        }
+                        Some(Ok(Token { lexeme, location })) => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                ["{"].to_vec(),
+                                lexeme,
+                            )));
+                        }
+                        Some(Err(error)) => return Err(Error::Lexical(error)),
+                        None => {
+                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
+                                stream.borrow().location(),
+                            )))
+                        }
                     }
-                    Some(Err(error)) => return Err(Error::Lexical(error)),
-                    None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
-                },
-                State::StatementOrBracketClose => {
+                }
+                State::StatementOrBracketCurlyClose => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
                         Some(Ok(Token {
@@ -74,7 +81,7 @@ impl Parser {
                                 Statement::Expression(expression) => {
                                     if is_unterminated {
                                         self.builder.set_expression(expression);
-                                        self.state = State::BracketClose;
+                                        self.state = State::BracketCurlyClose;
                                     } else {
                                         self.builder
                                             .push_statement(Statement::Expression(expression));
@@ -84,24 +91,35 @@ impl Parser {
                             }
                         }
                         Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                        None => {
+                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
+                                stream.borrow().location(),
+                            )))
+                        }
                     }
                 }
-                State::BracketClose => match stream.borrow_mut().next() {
-                    Some(Ok(Token {
-                        lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
-                        ..
-                    })) => return Ok(self.builder.finish()),
-                    Some(Ok(Token { lexeme, location })) => {
-                        return Err(Error::Syntax(SyntaxError::Expected(
-                            location,
-                            ["}"].to_vec(),
-                            lexeme,
-                        )));
+                State::BracketCurlyClose => {
+                    let next = stream.borrow_mut().next();
+                    match next {
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
+                            ..
+                        })) => return Ok(self.builder.finish()),
+                        Some(Ok(Token { lexeme, location })) => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                ["}"].to_vec(),
+                                lexeme,
+                            )));
+                        }
+                        Some(Err(error)) => return Err(Error::Lexical(error)),
+                        None => {
+                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
+                                stream.borrow().location(),
+                            )))
+                        }
                     }
-                    Some(Err(error)) => return Err(Error::Lexical(error)),
-                    None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
-                },
+                }
             }
         }
     }

@@ -12,10 +12,7 @@ pub use self::string::String;
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
-#[derive(Debug, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case", tag = "type")]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Literal {
     Void,
     Boolean(Boolean),

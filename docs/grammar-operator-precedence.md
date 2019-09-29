@@ -2,6 +2,7 @@
 
 |    Operator     |  Associativity  |
 |:---------------:|:---------------:|
+| []              |  left to right  |
 | - !             |      unary      |
 | as              |  left to right  |
 | * / %           |  left to right  |
@@ -10,5 +11,5 @@
 | &&              |  left to right  |
 | ^^              |  left to right  |
 | ⎮⎮            |  left to right  |
-| ..              |     single      |
+| .. ..=          |     single      |
 | =               |     single      |

@@ -1,19 +1,15 @@
 //!
-//! The expression element.
+//! The operator expression element.
 //!
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
 use crate::lexical::Location;
 use crate::syntax::OperatorExpressionObject;
 
-#[derive(Debug, Serialize, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Element {
-    #[serde(skip_serializing)]
     pub location: Location,
-    #[serde(flatten)]
     pub object: OperatorExpressionObject,
 }
 

@@ -5,9 +5,4 @@ authors = ["hedgar2017 <hedgar2017@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-pairing = { package = "pairing_ce", version = "0.17.0" }
-bellman = { package = "bellman_ce", version = "0.3.0" }
-ff = { package = "ff_ce", version = "0.6.0", features = ["derive"] }
-sapling-crypto = { package = "sapling-crypto_ce", version = "0.0.5" }
-franklin-crypto = { git = "https://github.com/matter-labs/franklin-crypto" }
-jab = { package = "jab-func", path = "../jab-func" }
+r1cs = { path = "../r1cs" }

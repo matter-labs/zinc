@@ -4,20 +4,14 @@
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
-#[derive(Debug, Serialize, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Comment {
-    text: String,
+    pub text: String,
 }
 
 impl Comment {
     pub fn new(text: String) -> Self {
         Self { text }
-    }
-
-    pub fn text(&self) -> &str {
-        self.text.as_str()
     }
 }
 

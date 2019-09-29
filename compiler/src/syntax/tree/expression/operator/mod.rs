@@ -1,5 +1,5 @@
 //!
-//! The expression.
+//! The operator expression.
 //!
 
 mod builder;
@@ -17,13 +17,10 @@ pub use self::operator::Operator;
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
 use crate::lexical::Location;
 
-#[derive(Debug, Default, Serialize, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Expression {
-    #[serde(skip_serializing)]
     pub location: Location,
     pub elements: Vec<Element>,
 }

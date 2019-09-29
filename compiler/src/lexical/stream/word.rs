@@ -7,7 +7,6 @@
 use std::convert::TryFrom;
 
 use failure::Fail;
-use serde_derive::Serialize;
 
 use crate::lexical::BooleanLiteral;
 use crate::lexical::Identifier;
@@ -20,8 +19,7 @@ pub enum State {
     Continue,
 }
 
-#[derive(Debug, Fail, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Fail, Clone, PartialEq)]
 pub enum Error {
     #[fail(display = "empty identifier")]
     EmptyIdentifier,

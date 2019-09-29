@@ -437,12 +437,7 @@ dependencies = [
 name = "circuit"
 version = "0.1.0"
 dependencies = [
- "bellman_ce 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ff_ce 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "franklin-crypto 0.0.5 (git+https://github.com/matter-labs/franklin-crypto)",
- "jab-func 0.1.0",
- "pairing_ce 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sapling-crypto_ce 0.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "r1cs 0.1.0",
 ]
 
 [[package]]
@@ -472,19 +467,14 @@ name = "compiler"
 version = "0.1.0"
 dependencies = [
  "actix-web 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "bellman_ce 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "ff_ce 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "franklin-crypto 0.0.5 (git+https://github.com/matter-labs/franklin-crypto)",
  "futures 0.1.29 (registry+https://github.com/rust-lang/crates.io-index)",
- "jab-func 0.1.0",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-bigint 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "pairing_ce 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sapling-crypto_ce 0.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "r1cs 0.1.0",
  "serde 1.0.101 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.101 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.40 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -886,16 +876,6 @@ version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "jab-func"
-version = "0.1.0"
-dependencies = [
- "bellman_ce 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ff_ce 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "franklin-crypto 0.0.5 (git+https://github.com/matter-labs/franklin-crypto)",
- "pairing_ce 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "kernel32-sys"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1202,6 +1182,17 @@ version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "proc-macro2 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "r1cs"
+version = "0.1.0"
+dependencies = [
+ "bellman_ce 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ff_ce 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "franklin-crypto 0.0.5 (git+https://github.com/matter-labs/franklin-crypto)",
+ "pairing_ce 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sapling-crypto_ce 0.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

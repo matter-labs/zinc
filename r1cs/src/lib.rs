@@ -4,15 +4,18 @@
 
 mod utils;
 
-use bellman::ConstraintSystem;
-use bellman::SynthesisError;
+pub use bellman::Circuit;
+pub use bellman::ConstraintSystem;
+pub use bellman::SynthesisError;
+pub use franklin_crypto::circuit::boolean::Boolean;
+pub use franklin_crypto::circuit::num::AllocatedNum;
+pub use pairing::bn256::Bn256;
+pub use pairing::bn256::Fr;
+pub use sapling_crypto::circuit::test::TestConstraintSystem;
+
 use ff::Field;
 use ff::PrimeField;
 use franklin_crypto::circuit::boolean::AllocatedBit;
-use franklin_crypto::circuit::boolean::Boolean;
-use franklin_crypto::circuit::num::AllocatedNum;
-use pairing::bn256::Bn256;
-use pairing::bn256::Fr;
 
 ///
 /// Allocates a boolean.

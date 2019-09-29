@@ -14,6 +14,7 @@ pub struct Builder {
     index_identifier: Option<Identifier>,
     range_start: Option<IntegerLiteral>,
     range_end: Option<IntegerLiteral>,
+    is_range_inclusive: bool,
     block: Option<BlockExpression>,
 }
 
@@ -34,6 +35,10 @@ impl Builder {
         self.range_end = Some(value);
     }
 
+    pub fn set_range_inclusive(&mut self) {
+        self.is_range_inclusive = true;
+    }
+
     pub fn set_block(&mut self, value: BlockExpression) {
         self.block = Some(value);
     }
@@ -44,8 +49,9 @@ impl Builder {
             self.index_identifier
                 .take()
                 .expect("Missing index identifier"),
-            self.range_start.take().expect("Missing range start"),
-            self.range_end.take().expect("Missing range end"),
+            self.range_start.take().expect("Missing range start").into(),
+            self.range_end.take().expect("Missing range end").into(),
+            self.is_range_inclusive,
             self.block.take().expect("Missing block"),
         )
     }

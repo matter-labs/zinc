@@ -5,7 +5,6 @@
 use std::str;
 
 use failure::Fail;
-use serde_derive::Serialize;
 
 use crate::lexical::IntegerLiteral;
 
@@ -16,20 +15,19 @@ pub enum State {
     Hexadecimal,
 }
 
-#[derive(Debug, Fail, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Fail, Clone, PartialEq)]
 pub enum Error {
     #[fail(display = "unexpected end")]
     UnexpectedEnd,
     #[fail(display = "not an integer")]
     NotAnInteger,
     #[fail(
-        display = "invalid decimal digit '{}' at position {} of '{}'",
+        display = "invalid decimal character '{}' at position {} of '{}'",
         _0, _1, _2
     )]
     InvalidDecimalCharacter(char, usize, String),
     #[fail(
-        display = "invalid hexadecimal digit '{}' at position {} of '{}'",
+        display = "invalid hexadecimal character '{}' at position {} of '{}'",
         _0, _1, _2
     )]
     InvalidHexadecimalCharacter(char, usize, String),
@@ -88,7 +86,7 @@ pub fn parse(input: &str) -> Result<(usize, IntegerLiteral), Error> {
             }
             State::Hexadecimal => {
                 if character.is_ascii_hexdigit() {
-                    value.push(character);
+                    value.push(character.to_ascii_lowercase());
                     size += 1;
                 } else if character != '_' && (character.is_ascii_alphabetic() || size <= 2) {
                     return Err(Error::InvalidHexadecimalCharacter(
@@ -132,15 +130,23 @@ mod tests {
 
     #[test]
     fn ok_hexadecimal_lowercase() {
-        let input = "0xDEAD_666_BEEF\n";
-        let expected = Ok((15, IntegerLiteral::hexadecimal("DEAD666BEEF".to_owned())));
+        let input = "0xdead_666_beef\n";
+        let expected = Ok((15, IntegerLiteral::hexadecimal("dead666beef".to_owned())));
         let result = parse(input);
         assert_eq!(expected, result);
     }
 
     #[test]
     fn ok_hexadecimal_uppercase() {
-        let input = "0xdead_666_beef\n";
+        let input = "0xDEAD_666_BEEF\n";
+        let expected = Ok((15, IntegerLiteral::hexadecimal("dead666beef".to_owned())));
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_hexadecimal_mixed_case() {
+        let input = "0xdEaD_666_bEeF\n";
         let expected = Ok((15, IntegerLiteral::hexadecimal("dead666beef".to_owned())));
         let result = parse(input);
         assert_eq!(expected, result);
@@ -150,6 +156,34 @@ mod tests {
     fn err_unexpected_end() {
         let input = "555";
         let expected = Err(Error::UnexpectedEnd);
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn err_not_an_integer() {
+        let input = "xyz\n";
+        let expected = Err(Error::NotAnInteger);
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn err_invalid_decimal_character() {
+        let input = "25x\n";
+        let expected = Err(Error::InvalidDecimalCharacter('x', 3, "25x".to_owned()));
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn err_invalid_hexadecimal_character() {
+        let input = "0xABC_X\n";
+        let expected = Err(Error::InvalidHexadecimalCharacter(
+            'X',
+            7,
+            "0xABC_X".to_owned(),
+        ));
         let result = parse(input);
         assert_eq!(expected, result);
     }

@@ -3,19 +3,17 @@
 //!
 
 use failure::Fail;
-use serde_derive::Serialize;
 
 use crate::lexical::IntegerParserError;
 use crate::lexical::Location;
 use crate::lexical::SymbolParserError;
 use crate::lexical::WordParserError;
 
-#[derive(Debug, Fail, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Fail, Clone, PartialEq)]
 pub enum Error {
-    #[fail(display = "unexpected end of input when parsing token at {}", _0)]
+    #[fail(display = "{} unexpected end of a token", _0)]
     UnexpectedEnd(Location),
-    #[fail(display = "{} character '{}' is invalid yet", _0, _1)]
+    #[fail(display = "{} the character '{}' is invalid (yet)", _0, _1)]
     InvalidCharacter(Location, char),
     #[fail(display = "{} invalid symbol: {}", _0, _1)]
     InvalidSymbol(Location, SymbolParserError),

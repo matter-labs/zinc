@@ -2,10 +2,13 @@
 //! The expression.
 //!
 
+mod array;
 mod block;
 mod conditional;
 mod operator;
 
+pub use self::array::Builder as ArrayExpressionBuilder;
+pub use self::array::Expression as ArrayExpression;
 pub use self::block::Builder as BlockExpressionBuilder;
 pub use self::block::Expression as BlockExpression;
 pub use self::conditional::Builder as ConditionalExpressionBuilder;
@@ -19,9 +22,7 @@ pub use self::operator::Operator as OperatorExpressionOperator;
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
-#[derive(Debug, Serialize, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
     Operator(OperatorExpression),
     Block(BlockExpression),

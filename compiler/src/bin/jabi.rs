@@ -12,12 +12,17 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "jabi", about = "The Jabberwocky language interpreter")]
 struct Arguments {
-    #[structopt(name = "INPUT", parse(from_os_str))]
+    #[structopt(
+        short = "i",
+        long = "input",
+        name = "INPUT",
+        parse(from_os_str),
+        help = "Specifies the input *.jab file name"
+    )]
     input: PathBuf,
 }
 
 #[derive(Debug, Fail)]
-#[allow(clippy::large_enum_variant)]
 enum Error {
     #[fail(display = "Input: {}", _0)]
     Input(InputError),
@@ -53,7 +58,12 @@ fn main() -> Result<(), Error> {
         .map_err(InputError::Reading)
         .map_err(Error::Input)?;
 
-    compiler::interpret(code).map_err(|error| {
+    let circuit = compiler::parse(code).map_err(|error| {
+        log::error!("{}", error);
+        Error::Compiler(error)
+    })?;
+
+    compiler::interpret(circuit).map_err(|error| {
         log::error!("{}", error);
         Error::Compiler(error)
     })?;

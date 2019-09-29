@@ -1,10 +1,8 @@
 /*
-    The Conditional simple.
+    The conditional simple.
 */
 
-inputs {
-    dummy: field;
-}
+inputs {}
 
 let result = if false {
     1
@@ -13,5 +11,6 @@ let result = if false {
 } else {
     3
 };
+
 debug(result);
-require(dummy == 0);
+require(result == 2);

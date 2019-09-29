@@ -8,7 +8,7 @@ use serde_derive::Serialize;
 
 use crate::lexical::Location;
 
-#[derive(Debug, Serialize, Clone, PartialEq)]
+#[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct Identifier {
     #[serde(skip_serializing)]
     pub location: Location,

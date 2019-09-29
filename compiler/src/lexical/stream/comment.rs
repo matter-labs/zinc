@@ -3,7 +3,6 @@
 //!
 
 use failure::Fail;
-use serde_derive::Serialize;
 
 use crate::lexical::Comment;
 
@@ -15,8 +14,7 @@ pub enum State {
     MultiLineStar,
 }
 
-#[derive(Debug, Fail, Serialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Fail, PartialEq)]
 pub enum Error {
     #[fail(display = "unexpected end")]
     UnexpectedEnd,

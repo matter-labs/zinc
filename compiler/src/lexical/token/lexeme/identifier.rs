@@ -6,17 +6,15 @@ use std::convert::TryFrom;
 use std::fmt;
 
 use failure::Fail;
-use serde_derive::Serialize;
 
 use crate::lexical::Keyword;
 
-#[derive(Debug, Serialize, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Identifier {
     pub name: String,
 }
 
-#[derive(Debug, Fail, Serialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Fail)]
 pub enum Error {
     #[fail(display = "is empty")]
     IsEmpty,

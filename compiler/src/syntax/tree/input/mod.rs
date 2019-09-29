@@ -32,10 +32,10 @@ impl Input {
 
     pub fn bitlength(&self) -> usize {
         match self.r#type.variant {
-            TypeVariant::Bool => 1,
+            TypeVariant::Boolean => 1,
             TypeVariant::Uint { bitlength } => bitlength,
             TypeVariant::Int { bitlength } => bitlength,
-            TypeVariant::Field => 254,
+            TypeVariant::Field => crate::SIZE_FIELD,
             _ => 0,
         }
     }

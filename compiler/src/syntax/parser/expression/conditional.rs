@@ -45,24 +45,31 @@ impl Parser {
     ) -> Result<ConditionalExpression, Error> {
         loop {
             match self.state {
-                State::KeywordIf => match stream.borrow_mut().next() {
-                    Some(Ok(Token {
-                        lexeme: Lexeme::Keyword(Keyword::If),
-                        location,
-                    })) => {
-                        self.builder.set_location(location);
-                        self.state = State::Condition;
-                    }
-                    Some(Ok(Token { lexeme, location })) => {
-                        return Err(Error::Syntax(SyntaxError::Expected(
+                State::KeywordIf => {
+                    let next = stream.borrow_mut().next();
+                    match next {
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Keyword(Keyword::If),
                             location,
-                            ["if"].to_vec(),
-                            lexeme,
-                        )));
+                        })) => {
+                            self.builder.set_location(location);
+                            self.state = State::Condition;
+                        }
+                        Some(Ok(Token { lexeme, location })) => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                ["if"].to_vec(),
+                                lexeme,
+                            )));
+                        }
+                        Some(Err(error)) => return Err(Error::Lexical(error)),
+                        None => {
+                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
+                                stream.borrow().location(),
+                            )))
+                        }
                     }
-                    Some(Err(error)) => return Err(Error::Lexical(error)),
-                    None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
-                },
+                }
                 State::Condition => {
                     let expression = ExpressionParser::default().parse(stream.clone())?;
                     self.builder.set_condition(expression);
@@ -85,7 +92,11 @@ impl Parser {
                         }
                         Some(Ok(..)) => return Ok(self.builder.finish()),
                         Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                        None => {
+                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
+                                stream.borrow().location(),
+                            )))
+                        }
                     }
                 }
                 State::KeywordIfOrElseBlock => {
@@ -115,7 +126,11 @@ impl Parser {
                             )));
                         }
                         Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                        None => {
+                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
+                                stream.borrow().location(),
+                            )))
+                        }
                     }
                 }
             }

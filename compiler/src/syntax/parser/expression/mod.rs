@@ -2,10 +2,12 @@
 //! The expression parser.
 //!
 
+mod array;
 mod block;
 mod conditional;
 mod operator;
 
+pub use self::array::Parser as ArrayExpressionParser;
 pub use self::block::Parser as BlockExpressionParser;
 pub use self::conditional::Parser as ConditionalExpressionParser;
 pub use self::operator::AddSubOperandParser as AddSubOperatorOperandParser;
@@ -13,6 +15,7 @@ pub use self::operator::AndOperandParser as AndOperatorOperandParser;
 pub use self::operator::AssignmentOperandParser as AssignmentOperatorOperandParser;
 pub use self::operator::CastingOperandParser as CastingOperatorOperandParser;
 pub use self::operator::ComparisonOperandParser as ComparisonOperatorOperandParser;
+pub use self::operator::IndexingOperandParser as IndexingOperatorOperandParser;
 pub use self::operator::MulDivRemOperandParser as MulDivRemOperatorOperandParser;
 pub use self::operator::OrOperandParser as OrOperatorOperandParser;
 pub use self::operator::Parser as OperatorExpressionParser;
@@ -53,7 +56,9 @@ impl Parser {
                 .parse(stream)
                 .map(Expression::Operator),
             Some(Err(error)) => Err(Error::Lexical(error)),
-            None => Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+            None => Err(Error::Syntax(SyntaxError::UnexpectedEnd(
+                stream.borrow().location(),
+            ))),
         }
     }
 }

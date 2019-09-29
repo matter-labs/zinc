@@ -6,11 +6,14 @@ mod element;
 mod error;
 mod scope;
 
+pub use self::element::Boolean;
+pub use self::element::BooleanError;
 pub use self::element::Element;
 pub use self::element::Error as ElementError;
 pub use self::element::Integer;
 pub use self::element::IntegerError;
 pub use self::element::Place;
+pub use self::element::PlaceError;
 pub use self::element::Value;
 pub use self::element::ValueError;
 pub use self::error::Error;
@@ -20,11 +23,12 @@ pub use self::scope::Scope;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use bellman::ConstraintSystem;
-use pairing::bn256::Bn256;
-use sapling_crypto::circuit::test::TestConstraintSystem;
+use r1cs::Bn256;
+use r1cs::ConstraintSystem;
+use r1cs::TestConstraintSystem;
 
 use crate::lexical;
+use crate::syntax::ArrayExpression;
 use crate::syntax::BlockExpression;
 use crate::syntax::CircuitProgram;
 use crate::syntax::ConditionalExpression;
@@ -35,7 +39,6 @@ use crate::syntax::OperatorExpressionObject;
 use crate::syntax::OperatorExpressionOperand;
 use crate::syntax::OperatorExpressionOperator;
 use crate::syntax::Statement;
-use crate::syntax::TypeVariant;
 
 pub struct Interpreter {
     system: TestConstraintSystem<Bn256>,
@@ -73,7 +76,7 @@ impl Interpreter {
                 .borrow_mut()
                 .declare_variable(Place::new(
                     input.identifier,
-                    Value::new_input(input.r#type, namespace)
+                    Value::new_input(namespace, input.r#type)
                         .map_err(|error| Error::Element(location, ElementError::Value(error)))?,
                     false,
                 ))
@@ -86,7 +89,7 @@ impl Interpreter {
                 .borrow_mut()
                 .declare_variable(Place::new(
                     witness.identifier,
-                    Value::new_witness(witness.r#type, namespace)
+                    Value::new_witness(namespace, witness.r#type)
                         .map_err(|error| Error::Element(location, ElementError::Value(error)))?,
                     false,
                 ))
@@ -109,23 +112,24 @@ impl Interpreter {
                 let value = self.evaluate(r#let.expression)?;
                 let value = if let Some(r#type) = r#let.r#type {
                     match (value, r#type.variant) {
-                        (value @ Value::Void, TypeVariant::Void) => value,
-                        (value @ Value::Boolean(_), TypeVariant::Bool) => value,
                         (Value::Integer(integer), type_variant) => {
                             let namespace = r#let.identifier.name.clone();
                             let namespace = self.system.namespace(|| namespace);
-                            let integer =
-                                integer.cast(type_variant, namespace).map_err(|error| {
-                                    Error::Element(location, ElementError::Integer(error))
-                                })?;
-                            Value::Integer(integer)
+                            integer
+                                .cast(namespace, type_variant)
+                                .map(Value::Integer)
+                                .map_err(|error| Error::LetImplicitCasting(location, error))?
                         }
                         (value, type_variant) => {
-                            return Err(Error::LetDeclarationInvalidType(
-                                r#let.location,
-                                value,
-                                type_variant,
-                            ))
+                            if value.is_of_type(&type_variant) {
+                                value
+                            } else {
+                                return Err(Error::LetInvalidType(
+                                    r#let.location,
+                                    value,
+                                    type_variant,
+                                ));
+                            }
                         }
                     }
                 } else {
@@ -140,7 +144,7 @@ impl Interpreter {
             }
             Statement::Require(require) => match self.evaluate(require.expression)? {
                 Value::Boolean(boolean) => {
-                    if boolean.get_value().expect("Always returns a value") {
+                    if boolean.is_true() {
                         log::info!("require {} passed", require.id)
                     } else {
                         return Err(Error::RequireFailed(require.location, require.id));
@@ -157,77 +161,28 @@ impl Interpreter {
             Statement::Loop(r#loop) => {
                 let location = r#loop.location;
 
-                let namespace = self.next_temp_namespace();
-                let namespace = self.system.namespace(|| namespace);
-                let range_start = match Value::new_integer(r#loop.range_start, namespace)
-                    .map_err(|error| Error::Element(location, ElementError::Value(error)))?
-                {
-                    Value::Integer(integer) => integer,
-                    value => {
-                        return Err(Error::Element(
-                            location,
-                            ElementError::ExpectedIntegerValue(
-                                OperatorExpressionOperator::Range,
-                                Element::Value(value),
-                            ),
-                        ))
-                    }
-                };
-
-                let namespace = self.next_temp_namespace();
-                let namespace = self.system.namespace(|| namespace);
-                let range_end = match Value::new_integer(r#loop.range_end, namespace)
-                    .map_err(|error| Error::Element(location, ElementError::Value(error)))?
-                {
-                    Value::Integer(integer) => integer,
-                    value => {
-                        return Err(Error::Element(
-                            location,
-                            ElementError::ExpectedIntegerValue(
-                                OperatorExpressionOperator::Range,
-                                Element::Value(value),
-                            ),
-                        ))
-                    }
-                };
-
-                let mut index = if range_start.has_the_same_type_as(&range_end) {
-                    range_start
-                } else {
-                    let namespace = self.next_temp_namespace();
-                    let namespace = self.system.namespace(|| namespace);
-                    range_start
-                        .cast(range_end.type_variant(), namespace)
-                        .map_err(|error| Error::Element(location, ElementError::Integer(error)))?
-                };
-
-                let namespace = self.next_temp_namespace();
-                let namespace = self.system.namespace(|| namespace);
-                let is_greater = index
-                    .greater(&range_end, namespace)
-                    .map_err(|error| Error::Element(location, ElementError::Integer(error)))?
-                    .get_value()
-                    .expect("Always returns a value");
-                if is_greater {
-                    return Err(Error::LoopRangeInvalid(location, index, range_end));
-                }
+                let is_reverse = r#loop.range_end < r#loop.range_start;
+                let mut index = r#loop.range_start;
 
                 loop {
-                    let namespace = self.next_temp_namespace();
-                    let namespace = self.system.namespace(|| namespace);
-                    let is_greater_or_equals = index
-                        .greater_equals(&range_end, namespace)
-                        .map_err(|error| Error::Element(location, ElementError::Integer(error)))?
-                        .get_value()
-                        .expect("Always returns a value");
-                    if is_greater_or_equals {
+                    if match (r#loop.is_range_inclusive, is_reverse) {
+                        (true, true) => index < r#loop.range_end,
+                        (true, false) => index > r#loop.range_end,
+                        (false, true) => index <= r#loop.range_end,
+                        (false, false) => index >= r#loop.range_end,
+                    } {
                         break;
                     }
 
                     let mut scope = Scope::new(Some(self.scope.clone()));
+                    let namespace = self.next_temp_namespace();
+                    let namespace = self.system.namespace(|| namespace);
                     let place = Place::new(
                         r#loop.index_identifier.clone(),
-                        Value::Integer(index.clone()),
+                        Value::Integer(
+                            Integer::new_from_usize(namespace, index)
+                                .map_err(|error| Error::LoopIterator(location, error))?,
+                        ),
                         false,
                     );
                     scope
@@ -242,11 +197,11 @@ impl Interpreter {
                         executor.evaluate(*expression.to_owned())?;
                     }
 
-                    let namespace = self.next_temp_namespace();
-                    let namespace = self.system.namespace(|| namespace);
-                    index = index
-                        .inc(namespace)
-                        .map_err(|error| Error::Element(location, ElementError::Integer(error)))?;
+                    if is_reverse {
+                        index -= 1;
+                    } else {
+                        index += 1;
+                    }
                 }
             }
             Statement::Expression(expression) => {
@@ -281,17 +236,21 @@ impl Interpreter {
                                 let location = element.location;
                                 let namespace = self.next_temp_namespace();
                                 let namespace = self.system.namespace(|| namespace);
-                                Element::Value(Value::new_boolean(literal, namespace).map_err(
-                                    |error| Error::Element(location, ElementError::Value(error)),
-                                )?)
+                                Element::Value(
+                                    Value::new_boolean(namespace, literal)
+                                        .map_err(ElementError::Value)
+                                        .map_err(|error| Error::Element(location, error))?,
+                                )
                             }
                             lexical::Literal::Integer(literal) => {
                                 let location = element.location;
                                 let namespace = self.next_temp_namespace();
                                 let namespace = self.system.namespace(|| namespace);
-                                Element::Value(Value::new_integer(literal, namespace).map_err(
-                                    |error| Error::Element(location, ElementError::Value(error)),
-                                )?)
+                                Element::Value(
+                                    Value::new_integer(namespace, literal)
+                                        .map_err(ElementError::Value)
+                                        .map_err(|error| Error::Element(location, error))?,
+                                )
                             }
                             literal @ lexical::Literal::String(..) => {
                                 return Err(Error::LiteralCannotBeEvaluated(
@@ -315,239 +274,204 @@ impl Interpreter {
                         OperatorExpressionOperand::Conditional(conditional) => {
                             Element::Value(self.evaluate_conditional(conditional)?)
                         }
+                        OperatorExpressionOperand::Array(array) => {
+                            Element::Value(self.evaluate_array(array)?)
+                        }
                     };
                     self.rpn_stack.push(element);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Assignment) => {
-                    let (element_2, element_1) = (
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                    );
+                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let place = operand_1
+                        .assign(operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
                     self.scope
                         .borrow_mut()
-                        .update_variable(
-                            element_1
-                                .assign(element_2)
-                                .map_err(|error| Error::Element(element.location, error))?,
-                        )
+                        .update_variable(place)
                         .map_err(|error| Error::Scope(element.location, error))?;
                     self.rpn_stack.push(Element::Value(Value::Void));
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Range) => {
                     panic!("The range operator cannot be used in expressions")
                 }
+                OperatorExpressionObject::Operator(OperatorExpressionOperator::RangeInclusive) => {
+                    panic!("The range inclusive operator cannot be used in expressions")
+                }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Or) => {
-                    let (element_2, element_1) = (
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                    );
+                    let (operand_1, operand_2) = self.get_binary_operands();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
-                            .or(element_2, namespace)
+                        operand_1
+                            .or(operand_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Xor) => {
-                    let (element_2, element_1) = (
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                    );
+                    let (operand_1, operand_2) = self.get_binary_operands();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
-                            .xor(element_2, namespace)
+                        operand_1
+                            .xor(operand_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::And) => {
-                    let (element_2, element_1) = (
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                    );
+                    let (operand_1, operand_2) = self.get_binary_operands();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
-                            .and(element_2, namespace)
+                        operand_1
+                            .and(operand_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Equal) => {
-                    let (element_2, element_1) = (
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                    );
+                    let (operand_1, operand_2) = self.get_binary_operands();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
-                            .equals(element_2, namespace)
+                        operand_1
+                            .equals(operand_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::NotEqual) => {
-                    let (element_2, element_1) = (
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                    );
+                    let (operand_1, operand_2) = self.get_binary_operands();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
-                            .not_equals(element_2, namespace)
+                        operand_1
+                            .not_equals(operand_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::GreaterEqual) => {
-                    let (element_2, element_1) = (
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                    );
+                    let (operand_1, operand_2) = self.get_binary_operands();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
-                            .greater_equals(element_2, namespace)
+                        operand_1
+                            .greater_equals(operand_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::LesserEqual) => {
-                    let (element_2, element_1) = (
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                    );
+                    let (operand_1, operand_2) = self.get_binary_operands();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
-                            .lesser_equals(element_2, namespace)
+                        operand_1
+                            .lesser_equals(operand_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Greater) => {
-                    let (element_2, element_1) = (
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                    );
+                    let (operand_1, operand_2) = self.get_binary_operands();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
-                            .greater(element_2, namespace)
+                        operand_1
+                            .greater(operand_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Lesser) => {
-                    let (element_2, element_1) = (
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                    );
+                    let (operand_1, operand_2) = self.get_binary_operands();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
-                            .lesser(element_2, namespace)
+                        operand_1
+                            .lesser(operand_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition) => {
-                    let (element_2, element_1) = (
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                    );
+                    let (operand_1, operand_2) = self.get_binary_operands();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
-                            .add(element_2, namespace)
+                        operand_1
+                            .add(operand_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Subtraction) => {
-                    let (element_2, element_1) = (
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                    );
+                    let (operand_1, operand_2) = self.get_binary_operands();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
-                            .subtract(element_2, namespace)
+                        operand_1
+                            .subtract(operand_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Multiplication) => {
-                    let (element_2, element_1) = (
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                    );
+                    let (operand_1, operand_2) = self.get_binary_operands();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
-                            .multiply(element_2, namespace)
+                        operand_1
+                            .multiply(operand_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Division) => {
-                    let (element_2, element_1) = (
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                    );
+                    let (operand_1, operand_2) = self.get_binary_operands();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
-                            .divide(element_2, namespace)
+                        operand_1
+                            .divide(operand_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Remainder) => {
-                    let (element_2, element_1) = (
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                    );
+                    let (operand_1, operand_2) = self.get_binary_operands();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
-                            .modulo(element_2, namespace)
+                        operand_1
+                            .modulo(operand_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Casting) => {
-                    let (element_2, element_1) = (
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                        self.rpn_stack.pop().expect("Always contains an element"),
-                    );
+                    let (operand_1, operand_2) = self.get_binary_operands();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
-                            .cast(element_2, namespace)
+                        operand_1
+                            .cast(operand_2, namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Negation) => {
-                    let element_1 = self.rpn_stack.pop().expect("Always contains an element");
+                    let operand_1 = self.get_unary_operand();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
+                        operand_1
                             .negate(namespace)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Not) => {
-                    let element_1 = self.rpn_stack.pop().expect("Always contains an element");
+                    let operand_1 = self.get_unary_operand();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
-                        element_1
+                        operand_1
                             .not(namespace)
+                            .map_err(|error| Error::Element(element.location, error))?,
+                    );
+                }
+                OperatorExpressionObject::Operator(OperatorExpressionOperator::Indexing) => {
+                    let (operand_1, operand_2) = self.get_binary_operands();
+                    self.rpn_stack.push(
+                        operand_1
+                            .index(operand_2)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
@@ -591,7 +515,7 @@ impl Interpreter {
             }
         };
 
-        if result.get_value().expect("Always returns a value") {
+        if result.is_true() {
             let mut executor = Interpreter::new(
                 Scope::new(Some(self.scope.clone())),
                 self.loop_stack.clone(),
@@ -612,6 +536,26 @@ impl Interpreter {
         } else {
             Ok(Value::Void)
         }
+    }
+
+    fn evaluate_array(&mut self, array: ArrayExpression) -> Result<Value, Error> {
+        log::trace!("Array expression       : {}", array);
+
+        let mut values = Vec::with_capacity(array.elements.len());
+        for element in array.elements.into_iter() {
+            values.push(self.evaluate(element)?);
+        }
+        Ok(Value::Array(values))
+    }
+
+    fn get_unary_operand(&mut self) -> Element {
+        self.rpn_stack.pop().expect("Always contains an element")
+    }
+
+    fn get_binary_operands(&mut self) -> (Element, Element) {
+        let operand_2 = self.rpn_stack.pop().expect("Always contains an element");
+        let operand_1 = self.rpn_stack.pop().expect("Always contains an element");
+        (operand_1, operand_2)
     }
 
     fn next_temp_namespace(&mut self) -> String {

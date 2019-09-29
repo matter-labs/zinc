@@ -4,10 +4,7 @@
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
-#[derive(Debug, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case", tag = "kind")]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Integer {
     Decimal { value: String },
     Hexadecimal { value: String },
@@ -20,6 +17,22 @@ impl Integer {
 
     pub fn hexadecimal(input: String) -> Self {
         Self::Hexadecimal { value: input }
+    }
+}
+
+impl Into<String> for Integer {
+    fn into(self) -> String {
+        match self {
+            Self::Decimal { value } => value,
+            Self::Hexadecimal { value } => value,
+        }
+    }
+}
+
+impl Into<usize> for Integer {
+    fn into(self) -> usize {
+        let string: String = self.into();
+        string.parse::<usize>().expect("Always valid")
     }
 }
 

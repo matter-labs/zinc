@@ -8,14 +8,11 @@ pub use self::builder::Builder;
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
 use crate::lexical::Location;
 use crate::syntax::Expression;
 
-#[derive(Debug, Serialize, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Debug {
-    #[serde(skip_serializing)]
     pub location: Location,
     pub expression: Expression,
 }

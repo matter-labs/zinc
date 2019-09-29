@@ -3,10 +3,17 @@
 //!
 
 use failure::Fail;
-use serde_derive::Serialize;
 
-#[derive(Debug, Fail, Serialize, PartialEq)]
+use crate::generator::WriterError;
+
+#[derive(Debug, Fail, PartialEq)]
 pub enum Error {
-    #[fail(display = "Unreachable")]
-    Unreachable,
+    #[fail(display = "writer: {}", _0)]
+    Writer(WriterError),
+}
+
+impl From<WriterError> for Error {
+    fn from(error: WriterError) -> Self {
+        Self::Writer(error)
+    }
 }

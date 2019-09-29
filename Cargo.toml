@@ -1,6 +1,6 @@
 [workspace]
 members = [
     "compiler",
-    "jab-func",
+    "r1cs",
     "circuit",
 ]

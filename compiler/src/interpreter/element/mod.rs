@@ -3,60 +3,49 @@
 //!
 
 mod error;
-mod integer;
 mod place;
 mod value;
 
 pub use self::error::Error;
-pub use self::integer::Error as IntegerError;
-pub use self::integer::Integer;
+pub use self::place::Error as PlaceError;
 pub use self::place::Place;
+pub use self::value::Boolean;
+pub use self::value::BooleanError;
 pub use self::value::Error as ValueError;
+pub use self::value::Integer;
+pub use self::value::IntegerError;
 pub use self::value::Value;
 
 use std::fmt;
 
-use bellman::ConstraintSystem;
-use pairing::bn256::Bn256;
+use r1cs::Bn256;
+use r1cs::ConstraintSystem;
 
-use crate::syntax::OperatorExpressionOperator;
 use crate::syntax::Type;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub enum Element {
     Place(Place),
     Value(Value),
     Type(Type),
 }
 
-impl fmt::Display for Element {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Place(place) => write!(f, "{}", place),
-            Self::Value(value) => write!(f, "{}", value),
-            Self::Type(r#type) => write!(f, "{}", r#type),
-        }
-    }
-}
-
 impl Element {
     pub fn assign(self, other: Self) -> Result<Place, Error> {
-        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Assignment;
-
         let mut place = match self {
             Self::Place(place) => place,
             value => {
-                return Err(Error::ExpectedPlaceExpression(OPERATOR, value));
+                return Err(Error::ExpectedPlaceExpression("assign", value));
             }
         };
 
         let value = match other {
             Self::Place(place) => place.value,
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression(OPERATOR, value)),
+            value => return Err(Error::ExpectedValueExpression("assign", value)),
         };
 
-        place.assign(value).map_err(Error::Value)?;
+        place.assign(value).map_err(Error::Place)?;
         Ok(place)
     }
 
@@ -65,29 +54,22 @@ impl Element {
         other: Self,
         mut system: CS,
     ) -> Result<Self, Error> {
-        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Or;
-
         let value_1 = match self {
-            Self::Place(Place {
-                value: Value::Boolean(value),
-                ..
-            }) => value,
-            Self::Value(Value::Boolean(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("or", value)),
         };
 
         let value_2 = match other {
-            Self::Place(Place {
-                value: Value::Boolean(value),
-                ..
-            }) => value,
-            Self::Value(Value::Boolean(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("or", value)),
         };
 
-        jab::or(system.namespace(|| "or"), &value_1, &value_2)
-            .map(|value| Self::Value(Value::Boolean(value)))
-            .map_err(|error| Error::Synthesis(error.to_string()))
+        value_1
+            .or(system.namespace(|| "element_or"), value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn xor<CS: ConstraintSystem<Bn256>>(
@@ -95,29 +77,22 @@ impl Element {
         other: Self,
         mut system: CS,
     ) -> Result<Self, Error> {
-        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Xor;
-
         let value_1 = match self {
-            Self::Place(Place {
-                value: Value::Boolean(value),
-                ..
-            }) => value,
-            Self::Value(Value::Boolean(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("xor", value)),
         };
 
         let value_2 = match other {
-            Self::Place(Place {
-                value: Value::Boolean(value),
-                ..
-            }) => value,
-            Self::Value(Value::Boolean(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("xor", value)),
         };
 
-        jab::xor(system.namespace(|| "xor"), &value_1, &value_2)
-            .map(|value| Self::Value(Value::Boolean(value)))
-            .map_err(|error| Error::Synthesis(error.to_string()))
+        value_1
+            .xor(system.namespace(|| "element_xor"), value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn and<CS: ConstraintSystem<Bn256>>(
@@ -125,29 +100,22 @@ impl Element {
         other: Self,
         mut system: CS,
     ) -> Result<Self, Error> {
-        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::And;
-
         let value_1 = match self {
-            Self::Place(Place {
-                value: Value::Boolean(value),
-                ..
-            }) => value,
-            Self::Value(Value::Boolean(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("and", value)),
         };
 
         let value_2 = match other {
-            Self::Place(Place {
-                value: Value::Boolean(value),
-                ..
-            }) => value,
-            Self::Value(Value::Boolean(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("and", value)),
         };
 
-        jab::and(system.namespace(|| "and"), &value_1, &value_2)
-            .map(|value| Self::Value(Value::Boolean(value)))
-            .map_err(|error| Error::Synthesis(error.to_string()))
+        value_1
+            .and(system.namespace(|| "element_and"), value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn equals<CS: ConstraintSystem<Bn256>>(
@@ -155,36 +123,22 @@ impl Element {
         other: Self,
         mut system: CS,
     ) -> Result<Self, Error> {
-        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Equal;
-
         let value_1 = match self {
             Self::Place(place) => place.value,
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression(OPERATOR, value)),
+            value => return Err(Error::ExpectedValueExpression("equals", value)),
         };
 
         let value_2 = match other {
             Self::Place(place) => place.value,
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression(OPERATOR, value)),
+            value => return Err(Error::ExpectedValueExpression("equals", value)),
         };
 
-        match (value_1, value_2) {
-            (Value::Boolean(ref value_1), Value::Boolean(ref value_2)) => {
-                jab::equals_boolean(system.namespace(|| "element_equals"), value_1, value_2)
-                    .map(|value| Self::Value(Value::Boolean(value)))
-                    .map_err(|error| Error::Synthesis(error.to_string()))
-            }
-            (Value::Integer(ref value_1), Value::Integer(ref value_2)) => jab::equals_number(
-                system.namespace(|| "element_equals"),
-                &value_1.number,
-                &value_2.number,
-                value_1.bitlength,
-            )
-            .map(|value| Self::Value(Value::Boolean(value)))
-            .map_err(|error| Error::Synthesis(error.to_string())),
-            (value_1, value_2) => Err(Error::ComparingInvalidValues(value_1, value_2)),
-        }
+        value_1
+            .equals(system.namespace(|| "element_equals"), &value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn not_equals<CS: ConstraintSystem<Bn256>>(
@@ -192,36 +146,22 @@ impl Element {
         other: Self,
         mut system: CS,
     ) -> Result<Self, Error> {
-        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::NotEqual;
-
         let value_1 = match self {
             Self::Place(place) => place.value,
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression(OPERATOR, value)),
+            value => return Err(Error::ExpectedValueExpression("not_equals", value)),
         };
 
         let value_2 = match other {
             Self::Place(place) => place.value,
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression(OPERATOR, value)),
+            value => return Err(Error::ExpectedValueExpression("not_equals", value)),
         };
 
-        match (value_1, value_2) {
-            (Value::Boolean(ref value_1), Value::Boolean(ref value_2)) => {
-                jab::not_equals_boolean(system.namespace(|| "element_not_equals"), value_1, value_2)
-                    .map(|value| Self::Value(Value::Boolean(value)))
-                    .map_err(|error| Error::Synthesis(error.to_string()))
-            }
-            (Value::Integer(ref value_1), Value::Integer(ref value_2)) => jab::not_equals_number(
-                system.namespace(|| "element_not_equals"),
-                &value_1.number,
-                &value_2.number,
-                value_1.bitlength,
-            )
-            .map(|value| Self::Value(Value::Boolean(value)))
-            .map_err(|error| Error::Synthesis(error.to_string())),
-            (value_1, value_2) => Err(Error::ComparingInvalidValues(value_1, value_2)),
-        }
+        value_1
+            .not_equals(system.namespace(|| "element_not_equals"), &value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn greater_equals<CS: ConstraintSystem<Bn256>>(
@@ -229,30 +169,22 @@ impl Element {
         other: Self,
         mut system: CS,
     ) -> Result<Self, Error> {
-        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::GreaterEqual;
-
         let value_1 = match self {
-            Self::Place(Place {
-                value: Value::Integer(value),
-                ..
-            }) => value,
-            Self::Value(Value::Integer(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("greater_equals", value)),
         };
 
         let value_2 = match other {
-            Self::Place(Place {
-                value: Value::Integer(value),
-                ..
-            }) => value,
-            Self::Value(Value::Integer(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("greater_equals", value)),
         };
 
         value_1
-            .greater_equals(&value_2, system.namespace(|| "element_greater_equal"))
-            .map(|value| Self::Value(Value::Boolean(value)))
-            .map_err(Error::Integer)
+            .greater_equals(system.namespace(|| "element_greater_equals"), &value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn lesser_equals<CS: ConstraintSystem<Bn256>>(
@@ -260,30 +192,22 @@ impl Element {
         other: Self,
         mut system: CS,
     ) -> Result<Self, Error> {
-        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::LesserEqual;
-
         let value_1 = match self {
-            Self::Place(Place {
-                value: Value::Integer(value),
-                ..
-            }) => value,
-            Self::Value(Value::Integer(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("lesser_equals", value)),
         };
 
         let value_2 = match other {
-            Self::Place(Place {
-                value: Value::Integer(value),
-                ..
-            }) => value,
-            Self::Value(Value::Integer(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("lesser_equals", value)),
         };
 
         value_1
-            .lesser_equals(&value_2, system.namespace(|| "element_lesser_equal"))
-            .map(|value| Self::Value(Value::Boolean(value)))
-            .map_err(Error::Integer)
+            .lesser_equals(system.namespace(|| "element_lesser_equals"), &value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn greater<CS: ConstraintSystem<Bn256>>(
@@ -291,30 +215,22 @@ impl Element {
         other: Self,
         mut system: CS,
     ) -> Result<Self, Error> {
-        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Greater;
-
         let value_1 = match self {
-            Self::Place(Place {
-                value: Value::Integer(value),
-                ..
-            }) => value,
-            Self::Value(Value::Integer(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("greater", value)),
         };
 
         let value_2 = match other {
-            Self::Place(Place {
-                value: Value::Integer(value),
-                ..
-            }) => value,
-            Self::Value(Value::Integer(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("greater", value)),
         };
 
         value_1
-            .greater(&value_2, system.namespace(|| "element_greater"))
-            .map(|value| Self::Value(Value::Boolean(value)))
-            .map_err(Error::Integer)
+            .greater(system.namespace(|| "element_greater"), &value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn lesser<CS: ConstraintSystem<Bn256>>(
@@ -322,62 +238,45 @@ impl Element {
         other: Self,
         mut system: CS,
     ) -> Result<Self, Error> {
-        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Lesser;
-
         let value_1 = match self {
-            Self::Place(Place {
-                value: Value::Integer(value),
-                ..
-            }) => value,
-            Self::Value(Value::Integer(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("lesser", value)),
         };
 
         let value_2 = match other {
-            Self::Place(Place {
-                value: Value::Integer(value),
-                ..
-            }) => value,
-            Self::Value(Value::Integer(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("lesser", value)),
         };
 
         value_1
-            .lesser(&value_2, system.namespace(|| "element_lesser"))
-            .map(|value| Self::Value(Value::Boolean(value)))
-            .map_err(Error::Integer)
+            .lesser(system.namespace(|| "element_lesser"), &value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
-    #[allow(clippy::should_implement_trait)]
     pub fn add<CS: ConstraintSystem<Bn256>>(
         self,
         other: Self,
         mut system: CS,
     ) -> Result<Self, Error> {
-        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Addition;
-
         let value_1 = match self {
-            Self::Place(Place {
-                value: Value::Integer(value),
-                ..
-            }) => value,
-            Self::Value(Value::Integer(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("add", value)),
         };
 
         let value_2 = match other {
-            Self::Place(Place {
-                value: Value::Integer(value),
-                ..
-            }) => value,
-            Self::Value(Value::Integer(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("add", value)),
         };
 
         value_1
-            .add(value_2, system.namespace(|| "element_add"))
-            .map(|value| Self::Value(Value::Integer(value)))
-            .map_err(Error::Integer)
+            .add(system.namespace(|| "element_add"), value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn subtract<CS: ConstraintSystem<Bn256>>(
@@ -385,30 +284,22 @@ impl Element {
         other: Self,
         mut system: CS,
     ) -> Result<Self, Error> {
-        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Subtraction;
-
         let value_1 = match self {
-            Self::Place(Place {
-                value: Value::Integer(value),
-                ..
-            }) => value,
-            Self::Value(Value::Integer(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("subtract", value)),
         };
 
         let value_2 = match other {
-            Self::Place(Place {
-                value: Value::Integer(value),
-                ..
-            }) => value,
-            Self::Value(Value::Integer(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("subtract", value)),
         };
 
         value_1
-            .subtract(value_2, system.namespace(|| "element_subtract"))
-            .map(|value| Self::Value(Value::Integer(value)))
-            .map_err(Error::Integer)
+            .subtract(system.namespace(|| "element_subtract"), value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn multiply<CS: ConstraintSystem<Bn256>>(
@@ -416,30 +307,22 @@ impl Element {
         other: Self,
         mut system: CS,
     ) -> Result<Self, Error> {
-        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Multiplication;
-
         let value_1 = match self {
-            Self::Place(Place {
-                value: Value::Integer(value),
-                ..
-            }) => value,
-            Self::Value(Value::Integer(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("multiply", value)),
         };
 
         let value_2 = match other {
-            Self::Place(Place {
-                value: Value::Integer(value),
-                ..
-            }) => value,
-            Self::Value(Value::Integer(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("multiply", value)),
         };
 
         value_1
-            .multiply(value_2, system.namespace(|| "element_multiply"))
-            .map(|value| Self::Value(Value::Integer(value)))
-            .map_err(Error::Integer)
+            .multiply(system.namespace(|| "element_multiply"), value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn divide<CS: ConstraintSystem<Bn256>>(
@@ -451,20 +334,20 @@ impl Element {
         //
         //        let value_1 = match self {
         //            Self::Place(Place {
-        //                value: Value::Integer(value),
+        //                value,
         //                ..
         //            }) => value,
-        //            Self::Value(Value::Integer(value)) => value,
-        //            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+        //            Self::Value(value) => value,
+        //            value => return Err(Error::ExpectedValueExpression(OPERATOR, value)),
         //        };
         //
         //        let value_2 = match other {
         //            Self::Place(Place {
-        //                value: Value::Integer(value),
+        //                value,
         //                ..
         //            }) => value,
-        //            Self::Value(Value::Integer(value)) => value,
-        //            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+        //            Self::Value(value) => value,
+        //            value => return Err(Error::ExpectedValueExpression(OPERATOR, value)),
         //        };
 
         unimplemented!();
@@ -479,59 +362,49 @@ impl Element {
         //
         //        let value_1 = match self {
         //            Self::Place(Place {
-        //                value: Value::Integer(value),
+        //                value,
         //                ..
         //            }) => value,
-        //            Self::Value(Value::Integer(value)) => value,
-        //            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+        //            Self::Value(value) => value,
+        //            value => return Err(Error::ExpectedValueExpression(OPERATOR, value)),
         //        };
         //
         //        let value_2 = match other {
         //            Self::Place(Place {
-        //                value: Value::Integer(value),
+        //                value,
         //                ..
         //            }) => value,
-        //            Self::Value(Value::Integer(value)) => value,
-        //            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+        //            Self::Value(value) => value,
+        //            value => return Err(Error::ExpectedValueExpression(OPERATOR, value)),
         //        };
 
         unimplemented!();
     }
 
     pub fn negate<CS: ConstraintSystem<Bn256>>(self, mut system: CS) -> Result<Self, Error> {
-        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Negation;
-
         let value = match self {
-            Self::Place(Place {
-                value: Value::Integer(value),
-                ..
-            }) => value,
-            Self::Value(Value::Integer(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("negate", value)),
         };
 
         value
             .negate(system.namespace(|| "element_negate"))
-            .map(|value| Self::Value(Value::Integer(value)))
-            .map_err(Error::Integer)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
-    #[allow(clippy::should_implement_trait)]
     pub fn not<CS: ConstraintSystem<Bn256>>(self, mut system: CS) -> Result<Self, Error> {
-        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Not;
-
         let value = match self {
-            Self::Place(Place {
-                value: Value::Boolean(value),
-                ..
-            }) => value,
-            Self::Value(Value::Boolean(value)) => value,
-            value => return Err(Error::ExpectedBooleanValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("not", value)),
         };
 
-        jab::not(system.namespace(|| "element_not"), &value)
-            .map(|value| Self::Value(Value::Boolean(value)))
-            .map_err(|error| Error::Synthesis(error.to_string()))
+        value
+            .not(system.namespace(|| "element_not"))
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn cast<CS: ConstraintSystem<Bn256>>(
@@ -539,25 +412,55 @@ impl Element {
         other: Self,
         mut system: CS,
     ) -> Result<Self, Error> {
-        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Casting;
-
         let value = match self {
-            Self::Place(Place {
-                value: Value::Integer(value),
-                ..
-            }) => value,
-            Self::Value(Value::Integer(value)) => value,
-            value => return Err(Error::ExpectedIntegerValue(OPERATOR, value)),
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("cast", value)),
         };
 
-        let type_variant = match other {
-            Self::Type(r#type) => r#type.variant,
-            value => return Err(Error::ExpectedTypeExpression(OPERATOR, value)),
+        let r#type = match other {
+            Self::Type(r#type) => r#type,
+            value => return Err(Error::ExpectedTypeExpression("cast", value)),
         };
 
         value
-            .cast(type_variant, system.namespace(|| "element_cast"))
-            .map(|value| Self::Value(Value::Integer(value)))
-            .map_err(Error::Integer)
+            .cast(system.namespace(|| "element_cast"), r#type)
+            .map(Self::Value)
+            .map_err(Error::Value)
+    }
+
+    pub fn index(self, other: Self) -> Result<Self, Error> {
+        let mut place = match self {
+            Self::Place(place) => place,
+            value => return Err(Error::ExpectedPlaceExpression("index", value)),
+        };
+
+        let value = match other {
+            Self::Place(Place { value, .. }) => value,
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("index", value)),
+        };
+
+        place.index(value).map(Self::Value).map_err(Error::Place)
+    }
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Place(place) => write!(f, "{}", place),
+            Self::Value(value) => write!(f, "{}", value),
+            Self::Type(r#type) => write!(f, "{}", r#type),
+        }
+    }
+}
+
+impl fmt::Display for Element {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.fmt(f)
+    }
+}
+
+impl fmt::Debug for Element {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.fmt(f)
     }
 }

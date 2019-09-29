@@ -1,14 +1,13 @@
 /*
-    The Conditional elseless.
+    The conditional elseless.
 */
 
-inputs {
-    dummy: field;
-}
+inputs {}
 
 let mut result = 5;
 if false {
     result = 10;
 };
+
 debug(result);
 require(result == 5);

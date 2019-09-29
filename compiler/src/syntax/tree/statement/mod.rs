@@ -18,12 +18,9 @@ pub use self::require::Require;
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
 use crate::syntax::Expression;
 
-#[derive(Debug, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case", tag = "statement")]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Statement {
     Require(Require),
     Let(Let),

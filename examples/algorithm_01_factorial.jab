@@ -1,19 +1,15 @@
 /*
-    The Factorial algorithm.
+    The algorithm Factorial.
 */
 
 inputs {}
 
-witness {
-    result: field;
-}
-
-debug(0 as field);
 let mut fact: field = 1;
 debug(fact);
+
 for i in 2..6 {
     fact = fact * i as field;
     debug(fact);
 };
 
-require(fact == result);
+require(fact == 120 as field);

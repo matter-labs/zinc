@@ -5,7 +5,6 @@
 use std::str;
 
 use failure::Fail;
-use serde_derive::Serialize;
 
 use crate::lexical::Symbol;
 
@@ -16,13 +15,13 @@ pub enum State {
     Lesser,
     Greater,
     Dot,
+    DoubleDot,
     And,
     Or,
     Xor,
 }
 
-#[derive(Debug, Fail, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Fail, Clone, PartialEq)]
 pub enum Error {
     #[fail(display = "unexpected end")]
     UnexpectedEnd,
@@ -109,8 +108,15 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                 _ => return Ok((size, Symbol::GreaterThan)),
             },
             State::Dot => match character {
-                '.' => return Ok((size + 1, Symbol::DoubleDot)),
+                '.' => {
+                    size += 1;
+                    state = State::DoubleDot;
+                }
                 _ => return Ok((size, Symbol::Dot)),
+            },
+            State::DoubleDot => match character {
+                '=' => return Ok((size + 1, Symbol::DoubleDotEquals)),
+                _ => return Ok((size, Symbol::DoubleDot)),
             },
             State::And => match character {
                 '&' => return Ok((size + 1, Symbol::DoubleAmpersand)),

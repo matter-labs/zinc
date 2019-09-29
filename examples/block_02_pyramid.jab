@@ -1,12 +1,8 @@
 /*
-    The Pyramid block.
+    The block pyramid.
 */
 
 inputs {}
-
-witness {
-    result: field;
-}
 
 let pyramid: field = 1 + {
     2 + {
@@ -17,4 +13,4 @@ let pyramid: field = 1 + {
 } + 1;
 
 debug(pyramid);
-// require(pyramid == 16 as field);
+require(pyramid == 16 as field);

@@ -8,19 +8,17 @@ hedgar2017 <hedgar2017@gmail.com>
 The Jabberwocky language compiler
 
 USAGE:
-    jabc [FLAGS] [OPTIONS] <INPUT>
+    jabc.exe [FLAGS] --input <INPUT> --output <OUTPUT>
 
 FLAGS:
     -h, --help       Prints help information
     -m, --meta       Generates meta info
-    -p, --profile    Runs the profiler and print cost information
+    -p, --profile    Runs the profiler and prints cost information
     -V, --version    Prints version information
 
 OPTIONS:
-    -o, --output <OUTPUT>    Specifies the output .rs file name [default: output.rs]
-
-ARGS:
-    <INPUT>
+    -i, --input <INPUT>      Specifies the input *.jab file name
+    -o, --output <OUTPUT>    Specifies the output *.rs file name
 ```
 
 ## Meta info
@@ -65,7 +63,7 @@ If a line contains the beginning of a block enclosed in `{ ... }`, the costs mus
 
 ```rust
 1: if a == b { // 3 constraints
-2:      t = a * b; // 1 constraints
+2:     t = a * b; // 1 constraints
 3: } else {
 4:     t = a * b * c; // 2 constraint
 5: }

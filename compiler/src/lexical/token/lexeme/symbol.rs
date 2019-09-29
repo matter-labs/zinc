@@ -4,10 +4,7 @@
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
-#[derive(Debug, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Symbol {
     // simple
     ParenthesisLeft,
@@ -40,6 +37,7 @@ pub enum Symbol {
     DoubleVerticalBar,
     DoubleCircumflex,
     DoubleDot,
+    DoubleDotEquals,
 }
 
 impl From<&str> for Symbol {
@@ -74,8 +72,9 @@ impl From<&str> for Symbol {
             "||" => Self::DoubleVerticalBar,
             "^^" => Self::DoubleCircumflex,
             ".." => Self::DoubleDot,
+            "..=" => Self::DoubleDotEquals,
 
-            _ => panic!("All the cases have been checked by the state machine"),
+            _ => panic!("Always processed by branches above and never gets here"),
         }
     }
 }
@@ -112,6 +111,7 @@ impl fmt::Display for Symbol {
             Self::DoubleVerticalBar => write!(f, "||"),
             Self::DoubleCircumflex => write!(f, "^^"),
             Self::DoubleDot => write!(f, ".."),
+            Self::DoubleDotEquals => write!(f, "..="),
         }
     }
 }

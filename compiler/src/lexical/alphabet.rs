@@ -2,7 +2,7 @@
 //! The lexical alphabet.
 //!
 
-pub struct Alphabet;
+pub struct Alphabet {}
 
 impl Alphabet {
     ///

@@ -5,12 +5,9 @@
 use std::convert::TryFrom;
 use std::fmt;
 
-use serde_derive::Serialize;
-
 use crate::lexical::Keyword;
 
-#[derive(Debug, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case", tag = "value")]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Boolean {
     False,
     True,
@@ -25,6 +22,15 @@ impl TryFrom<Keyword> for Boolean {
             Keyword::True => Self::True,
             unknown => return Err(unknown),
         })
+    }
+}
+
+impl Into<bool> for Boolean {
+    fn into(self) -> bool {
+        match self {
+            Self::False => false,
+            Self::True => true,
+        }
     }
 }
 

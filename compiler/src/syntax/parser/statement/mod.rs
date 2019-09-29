@@ -97,24 +97,40 @@ impl Parser {
                             Statement::Expression(result)
                         }
                         Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
+                        None => {
+                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
+                                stream.borrow().location(),
+                            )))
+                        }
                     });
                 }
-                State::Semicolon => match stream.borrow_mut().next() {
-                    Some(Ok(Token {
-                        lexeme: Lexeme::Symbol(Symbol::Semicolon),
-                        ..
-                    })) => return Ok((self.statement.take().expect("Option state bug"), false)),
-                    Some(Ok(Token { lexeme, location })) => {
-                        return Err(Error::Syntax(SyntaxError::Expected(
-                            location,
-                            [";"].to_vec(),
-                            lexeme,
-                        )));
+                State::Semicolon => {
+                    let next = stream.borrow_mut().next();
+                    match next {
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::Semicolon),
+                            ..
+                        })) => {
+                            return Ok((
+                                self.statement.take().expect("Always contains a value"),
+                                false,
+                            ))
+                        }
+                        Some(Ok(Token { lexeme, location })) => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                [";"].to_vec(),
+                                lexeme,
+                            )));
+                        }
+                        Some(Err(error)) => return Err(Error::Lexical(error)),
+                        None => {
+                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
+                                stream.borrow().location(),
+                            )))
+                        }
                     }
-                    Some(Err(error)) => return Err(Error::Lexical(error)),
-                    None => return Err(Error::Syntax(SyntaxError::UnexpectedEnd)),
-                },
+                }
                 State::SemicolonOptional => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
@@ -123,14 +139,23 @@ impl Parser {
                             ..
                         })) => {
                             stream.borrow_mut().next();
-                            return Ok((self.statement.take().expect("Option state bug"), false));
+                            return Ok((
+                                self.statement.take().expect("Always contains a value"),
+                                false,
+                            ));
                         }
                         Some(Ok(..)) => {
-                            return Ok((self.statement.take().expect("Option state bug"), true));
+                            return Ok((
+                                self.statement.take().expect("Always contains a value"),
+                                true,
+                            ));
                         }
                         Some(Err(error)) => return Err(Error::Lexical(error)),
                         None => {
-                            return Ok((self.statement.take().expect("Option state bug"), true))
+                            return Ok((
+                                self.statement.take().expect("Always contains a value"),
+                                true,
+                            ))
                         }
                     }
                 }

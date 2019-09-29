@@ -18,27 +18,32 @@ struct Arguments {
         help = "Runs the profiler and prints cost information"
     )]
     profile: bool,
+    #[structopt(short = "m", long = "meta", help = "Generates meta info")]
+    meta: bool,
+    #[structopt(
+        short = "i",
+        long = "input",
+        name = "INPUT",
+        parse(from_os_str),
+        help = "Specifies the input *.jab file name"
+    )]
+    input: PathBuf,
     #[structopt(
         short = "o",
         long = "output",
         name = "OUTPUT",
         parse(from_os_str),
-        default_value = "output.rs",
-        help = "Specifies the output .rs file name"
+        help = "Specifies the output *.rs file name"
     )]
     output: PathBuf,
-    #[structopt(short = "m", long = "meta", help = "Generates meta info")]
-    meta: bool,
-
-    #[structopt(name = "INPUT", parse(from_os_str))]
-    input: PathBuf,
 }
 
 #[derive(Debug, Fail)]
-#[allow(clippy::large_enum_variant)]
 enum Error {
     #[fail(display = "Input: {}", _0)]
     Input(InputError),
+    #[fail(display = "Compiler: {}", _0)]
+    Compiler(compiler::Error),
 }
 
 #[derive(Debug, Fail)]
@@ -69,15 +74,23 @@ fn main() -> Result<(), Error> {
         .map_err(InputError::Reading)
         .map_err(Error::Input)?;
 
-    let circuit = compiler::parse(code);
+    let circuit = compiler::parse(code).map_err(|error| {
+        log::error!("{}", error);
+        Error::Compiler(error)
+    })?;
+
+    if args.profile {
+        unimplemented!();
+    }
 
     if args.meta {
-        let metadata = match circuit {
-            Ok(circuit) => serde_json::to_string(&circuit).expect("Serialization bug"),
-            Err(error) => error.to_string(),
-        };
-        println!("{}", metadata);
+        println!("{}", serde_json::to_string(&circuit).expect("Always valid"));
     }
+
+    compiler::generate(circuit, args.output).map_err(|error| {
+        log::error!("{}", error);
+        Error::Compiler(error)
+    })?;
 
     Ok(())
 }

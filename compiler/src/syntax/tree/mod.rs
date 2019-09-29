@@ -12,6 +12,8 @@ mod r#type;
 mod witness;
 
 pub use self::circuit::CircuitProgram;
+pub use self::expression::ArrayExpression;
+pub use self::expression::ArrayExpressionBuilder;
 pub use self::expression::BlockExpression;
 pub use self::expression::BlockExpressionBuilder;
 pub use self::expression::ConditionalExpression;

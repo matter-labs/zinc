@@ -148,7 +148,7 @@ fn err_unexpected_end() {
 
     let result = TokenStream::new(code.to_owned())
         .next()
-        .expect("Must contain a token")
+        .expect("Always contains a token")
         .to_owned();
 
     assert_eq!(expected, result);
@@ -162,7 +162,7 @@ fn err_unknown_character() {
 
     let result = TokenStream::new(code.to_owned())
         .next()
-        .expect("Must contain a token")
+        .expect("Always contains a token")
         .to_owned();
 
     assert_eq!(expected, result);
@@ -179,18 +179,10 @@ fn err_invalid_symbol() {
 
     let result = TokenStream::new(code.to_owned())
         .next()
-        .expect("Must contain a token")
+        .expect("Always contains a token")
         .to_owned();
 
     assert_eq!(expected, result);
-}
-
-#[test]
-#[should_panic]
-fn err_invalid_word() {
-    let _ = TokenStream::new("".to_owned())
-        .next()
-        .expect("Must contain a token");
 }
 
 #[test]
@@ -204,7 +196,7 @@ fn err_invalid_integer_literal() {
 
     let result = TokenStream::new(code.to_owned())
         .next()
-        .expect("Must contain a token")
+        .expect("Always contains a token")
         .to_owned();
 
     assert_eq!(expected, result);

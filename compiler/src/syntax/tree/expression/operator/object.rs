@@ -1,16 +1,13 @@
 //!
-//! The expression object.
+//! The operator expression object.
 //!
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
 use crate::syntax::OperatorExpressionOperand;
 use crate::syntax::OperatorExpressionOperator;
 
-#[derive(Debug, Serialize, Clone, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Object {
     Operator(OperatorExpressionOperator),
     Operand(OperatorExpressionOperand),

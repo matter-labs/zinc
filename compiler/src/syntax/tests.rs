@@ -104,7 +104,8 @@ fn err_unexpected_end() {
     let result: Result<CircuitProgram, MainError> =
         Parser::parse(TokenStream::new(code.to_owned()));
 
-    let expected: Result<CircuitProgram, MainError> = Err(MainError::Syntax(Error::UnexpectedEnd));
+    let expected: Result<CircuitProgram, MainError> =
+        Err(MainError::Syntax(Error::UnexpectedEnd(Location::new(1, 7))));
 
     assert_eq!(expected, result);
 }

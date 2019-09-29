@@ -2,6 +2,7 @@
 //! The type builder.
 //!
 
+use crate::lexical::IntegerLiteral;
 use crate::lexical::Keyword;
 use crate::lexical::Location;
 use crate::syntax::Type;
@@ -12,6 +13,8 @@ pub struct Builder {
     location: Option<Location>,
     is_void: bool,
     keyword: Option<Keyword>,
+    array_type: Option<Type>,
+    array_size: Option<IntegerLiteral>,
 }
 
 impl Builder {
@@ -27,18 +30,31 @@ impl Builder {
         self.keyword = Some(value);
     }
 
-    pub fn finish(self) -> Type {
-        let location = self.location.expect("Missing location");
+    pub fn set_array_type(&mut self, value: Type) {
+        self.array_type = Some(value);
+    }
+
+    pub fn set_array_size(&mut self, value: IntegerLiteral) {
+        self.array_size = Some(value);
+    }
+
+    pub fn finish(mut self) -> Type {
+        let location = self.location.take().expect("Missing location");
         let variant = if self.is_void {
             TypeVariant::Void
-        } else {
-            match self.keyword {
-                Some(Keyword::Bool) => TypeVariant::Bool,
-                Some(Keyword::Uint { bitlength }) => TypeVariant::uint(bitlength),
-                Some(Keyword::Int { bitlength }) => TypeVariant::int(bitlength),
-                Some(Keyword::Field) => TypeVariant::Field,
-                _ => panic!("The keyword does not describe a type"),
+        } else if let Some(keyword) = self.keyword.take() {
+            match keyword {
+                Keyword::Bool => TypeVariant::Boolean,
+                Keyword::Uint { bitlength } => TypeVariant::uint(bitlength),
+                Keyword::Int { bitlength } => TypeVariant::int(bitlength),
+                Keyword::Field => TypeVariant::Field,
+                _ => panic!("Always is one of the type keywords above"),
             }
+        } else if let Some(array_type) = self.array_type.take() {
+            let array_size: usize = self.array_size.take().expect("Missing array size").into();
+            TypeVariant::array(array_type, array_size)
+        } else {
+            panic!("Always processed by branches above and never gets here");
         };
 
         Type { location, variant }

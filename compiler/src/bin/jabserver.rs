@@ -72,7 +72,7 @@ fn handler(payload: Payload) -> impl Future<Item = HttpResponse, Error = Error> 
                     error: error.to_string(),
                 }),
             }
-            .expect("Serialization bug");
+            .expect("Always valid");
 
             HttpResponse::Ok().body(response)
         })

@@ -8,15 +8,12 @@ pub use self::builder::Builder;
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
 use crate::lexical::Location;
 use crate::lexical::StringLiteral;
 use crate::syntax::Expression;
 
-#[derive(Debug, Serialize, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Require {
-    #[serde(skip_serializing)]
     pub location: Location,
     pub id: String,
     pub expression: Expression,
@@ -26,7 +23,7 @@ impl Require {
     pub fn new(location: Location, expression: Expression, tag: Option<StringLiteral>) -> Self {
         let id = tag
             .map(|literal| literal.to_string())
-            .unwrap_or_else(|| format!("{}_{}", location.line(), location.column()));
+            .unwrap_or_else(|| format!("L{}", location.line));
 
         Self {
             location,

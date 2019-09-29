@@ -1,19 +1,17 @@
 //!
-//! The expression operator.
+//! The operator expression operator.
 //!
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
-#[derive(Debug, Serialize, Clone, Copy, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Operator {
     // assignment
     Assignment,
 
     // range
     Range,
+    RangeInclusive,
 
     // binary logical
     Or,
@@ -43,6 +41,9 @@ pub enum Operator {
 
     // unary arithmetic
     Negation,
+
+    // indexing
+    Indexing,
 }
 
 impl fmt::Display for Operator {
@@ -51,6 +52,7 @@ impl fmt::Display for Operator {
             Self::Assignment => write!(f, "="),
 
             Self::Range => write!(f, ".."),
+            Self::RangeInclusive => write!(f, "..="),
 
             Self::Or => write!(f, "||"),
             Self::Xor => write!(f, "^^"),
@@ -74,6 +76,8 @@ impl fmt::Display for Operator {
             Self::Not => write!(f, "!"),
 
             Self::Negation => write!(f, "-"),
+
+            Self::Indexing => write!(f, "[]"),
         }
     }
 }

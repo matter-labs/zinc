@@ -10,10 +10,12 @@ mod witnesses;
 
 pub use self::expression::AddSubOperatorOperandParser;
 pub use self::expression::AndOperatorOperandParser;
+pub use self::expression::ArrayExpressionParser;
 pub use self::expression::BlockExpressionParser;
 pub use self::expression::CastingOperatorOperandParser;
 pub use self::expression::ComparisonOperatorOperandParser;
 pub use self::expression::ConditionalExpressionParser;
+pub use self::expression::IndexingOperatorOperandParser;
 pub use self::expression::MulDivRemOperatorOperandParser;
 pub use self::expression::OperatorExpressionParser;
 pub use self::expression::OrOperatorOperandParser;
