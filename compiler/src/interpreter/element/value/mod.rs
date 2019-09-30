@@ -2,10 +2,13 @@
 //! The interpreter value.
 //!
 
+mod array;
 mod boolean;
 mod error;
 mod integer;
 
+pub use self::array::Array;
+pub use self::array::Error as ArrayError;
 pub use self::boolean::Boolean;
 pub use self::boolean::Error as BooleanError;
 pub use self::error::Error;
@@ -30,7 +33,7 @@ pub enum Value {
     Void,
     Boolean(Boolean),
     Integer(Integer),
-    Array(Vec<Value>),
+    Array(Array),
 }
 
 impl Value {
@@ -134,9 +137,10 @@ impl Value {
         match (self, other) {
             (Self::Void, Self::Void) => true,
             (Self::Boolean(..), Self::Boolean(..)) => true,
-            (Self::Integer(integer_1), Self::Integer(integer_2)) => {
-                integer_1.has_the_same_type_as(integer_2)
+            (Self::Integer(value_1), Self::Integer(value_2)) => {
+                value_1.has_the_same_type_as(value_2)
             }
+            (Self::Array(value_1), Self::Array(value_2)) => value_1.has_the_same_type_as(value_2),
             _ => false,
         }
     }
@@ -530,7 +534,7 @@ impl Value {
             Self::Void => write!(f, "()"),
             Self::Boolean(boolean) => write!(f, "{}", boolean),
             Self::Integer(integer) => write!(f, "{}", integer),
-            Self::Array(array) => write!(f, "{:?}", array),
+            Self::Array(array) => write!(f, "{}", array),
         }
     }
 }

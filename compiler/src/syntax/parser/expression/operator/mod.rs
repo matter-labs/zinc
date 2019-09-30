@@ -62,7 +62,7 @@ impl Parser {
                 State::AssignmentFirstOperand => {
                     let rpn = AssignmentOperandParser::default().parse(stream.clone())?;
                     self.builder.set_location_if_unset(rpn.location);
-                    self.builder.append_expression(rpn);
+                    self.builder.extend_with_expression(rpn);
                     self.state = State::AssignmentOperator;
                 }
                 State::AssignmentOperator => {
@@ -82,7 +82,7 @@ impl Parser {
                 }
                 State::AssignmentSecondOperand => {
                     let rpn = AssignmentOperandParser::default().parse(stream.clone())?;
-                    self.builder.append_expression(rpn);
+                    self.builder.extend_with_expression(rpn);
                     if let Some((location, operator)) = self.operator.take() {
                         self.builder.push_operator(location, operator);
                     }

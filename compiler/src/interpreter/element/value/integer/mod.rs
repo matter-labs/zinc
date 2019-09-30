@@ -1,5 +1,5 @@
 //!
-//! The interpreter integer value.
+//! The interpreter integer.
 //!
 
 mod error;
@@ -415,17 +415,13 @@ impl Integer {
     }
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let r#type = match (self.is_signed, self.bitlength) {
-            (false, crate::SIZE_FIELD) => "field".to_owned(),
-            (true, bitlength) => format!("int{}", bitlength),
-            (false, bitlength) => format!("uint{}", bitlength),
-        };
-        write!(
-            f,
-            "{:?}: {}",
-            self.number.get_value().expect("Always returns a value"),
-            r#type
-        )
+        let value = self
+            .number
+            .get_value()
+            .expect("Always returns a value")
+            .to_string();
+        let value = value[5..value.len() - 1].trim_start_matches('0');
+        write!(f, "{}", value)
     }
 }
 

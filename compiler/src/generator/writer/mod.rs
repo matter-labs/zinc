@@ -470,8 +470,8 @@ impl Writer {
 
     fn write_line(&mut self, line: String) -> Result<(), Error> {
         let mut data = Vec::with_capacity(self.offset + line.len() + 1);
-        data.append(&mut vec![b' '; self.offset]);
-        data.append(&mut line.into_bytes());
+        data.extend(vec![b' '; self.offset]);
+        data.extend(line.as_bytes());
         data.push(b'\n');
         self.file.write_all(data.as_slice())?;
         Ok(())

@@ -149,7 +149,9 @@ impl Parser {
                         }
                         Some(Ok(Token { location, .. })) => {
                             match ExpressionParser::default().parse(stream.clone())? {
-                                Expression::Operator(rpn) => self.builder.append_expression(rpn),
+                                Expression::Operator(rpn) => {
+                                    self.builder.extend_with_expression(rpn)
+                                }
                                 Expression::Block(block) => self.builder.push_operand(
                                     location,
                                     OperatorExpressionOperand::Block(block),
@@ -231,7 +233,7 @@ impl Parser {
                 }
                 State::IndexExpression => {
                     match ExpressionParser::default().parse(stream.clone())? {
-                        Expression::Operator(rpn) => self.builder.append_expression(rpn),
+                        Expression::Operator(rpn) => self.builder.extend_with_expression(rpn),
                         Expression::Block(block) => self
                             .builder
                             .push_operand(block.location, OperatorExpressionOperand::Block(block)),

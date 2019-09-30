@@ -32,7 +32,7 @@ impl Parser {
                 stream.borrow_mut().next();
                 self.builder.set_location(location);
                 let rpn = Self::default().parse(stream.clone())?;
-                self.builder.append_expression(rpn);
+                self.builder.extend_with_expression(rpn);
                 self.builder
                     .push_operator(location, OperatorExpressionOperator::Not);
                 Ok(self.builder.finish())
@@ -44,7 +44,7 @@ impl Parser {
                 stream.borrow_mut().next();
                 self.builder.set_location(location);
                 let rpn = Self::default().parse(stream.clone())?;
-                self.builder.append_expression(rpn);
+                self.builder.extend_with_expression(rpn);
                 self.builder
                     .push_operator(location, OperatorExpressionOperator::Negation);
                 Ok(self.builder.finish())
@@ -52,7 +52,7 @@ impl Parser {
             Some(Ok(Token { location, .. })) => {
                 self.builder.set_location(location);
                 let rpn = IndexingOperatorOperandParser::default().parse(stream.clone())?;
-                self.builder.append_expression(rpn);
+                self.builder.extend_with_expression(rpn);
                 Ok(self.builder.finish())
             }
             Some(Err(error)) => Err(Error::Lexical(error)),

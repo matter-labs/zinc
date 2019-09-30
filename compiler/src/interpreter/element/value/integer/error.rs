@@ -1,5 +1,5 @@
 //!
-//! The interpreter value error.
+//! The interpreter integer error.
 //!
 
 use failure::Fail;

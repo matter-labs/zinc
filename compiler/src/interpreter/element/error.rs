@@ -1,5 +1,5 @@
 //!
-//! The interpreter element.
+//! The interpreter element error.
 //!
 
 use failure::Fail;

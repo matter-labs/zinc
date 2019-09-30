@@ -6,6 +6,8 @@ mod element;
 mod error;
 mod scope;
 
+pub use self::element::Array;
+pub use self::element::ArrayError;
 pub use self::element::Boolean;
 pub use self::element::BooleanError;
 pub use self::element::Element;
@@ -28,7 +30,6 @@ use r1cs::ConstraintSystem;
 use r1cs::TestConstraintSystem;
 
 use crate::lexical;
-use crate::syntax::ArrayExpression;
 use crate::syntax::BlockExpression;
 use crate::syntax::CircuitProgram;
 use crate::syntax::ConditionalExpression;
@@ -39,6 +40,7 @@ use crate::syntax::OperatorExpressionObject;
 use crate::syntax::OperatorExpressionOperand;
 use crate::syntax::OperatorExpressionOperator;
 use crate::syntax::Statement;
+use crate::syntax::{ArrayExpression, TypeVariant};
 
 pub struct Interpreter {
     system: TestConstraintSystem<Bn256>,
@@ -71,28 +73,16 @@ impl Interpreter {
     pub fn interpret(&mut self, program: CircuitProgram) -> Result<(), Error> {
         for input in program.inputs.into_iter() {
             let location = input.location;
-            let namespace = self.system.namespace(|| &input.identifier.name);
             self.scope
                 .borrow_mut()
-                .declare_variable(Place::new(
-                    input.identifier,
-                    Value::new_input(namespace, input.r#type)
-                        .map_err(|error| Error::Element(location, ElementError::Value(error)))?,
-                    false,
-                ))
+                .declare_variable(input.identifier.name, Value::Void, false)
                 .map_err(|error| Error::Scope(location, error))?;
         }
         for witness in program.witnesses.into_iter() {
             let location = witness.location;
-            let namespace = self.system.namespace(|| &witness.identifier.name);
             self.scope
                 .borrow_mut()
-                .declare_variable(Place::new(
-                    witness.identifier,
-                    Value::new_witness(namespace, witness.r#type)
-                        .map_err(|error| Error::Element(location, ElementError::Value(error)))?,
-                    false,
-                ))
+                .declare_variable(witness.identifier.name, Value::Void, false)
                 .map_err(|error| Error::Scope(location, error))?;
         }
 
@@ -136,10 +126,9 @@ impl Interpreter {
                     value
                 };
 
-                let place = Place::new(r#let.identifier, value, r#let.is_mutable);
                 self.scope
                     .borrow_mut()
-                    .declare_variable(place)
+                    .declare_variable(r#let.identifier.name, value, r#let.is_mutable)
                     .map_err(|error| Error::Scope(location, error))?;
             }
             Statement::Require(require) => match self.evaluate(require.expression)? {
@@ -177,16 +166,15 @@ impl Interpreter {
                     let mut scope = Scope::new(Some(self.scope.clone()));
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
-                    let place = Place::new(
-                        r#loop.index_identifier.clone(),
-                        Value::Integer(
-                            Integer::new_from_usize(namespace, index)
-                                .map_err(|error| Error::LoopIterator(location, error))?,
-                        ),
-                        false,
-                    );
                     scope
-                        .declare_variable(place)
+                        .declare_variable(
+                            r#loop.index_identifier.name.clone(),
+                            Value::Integer(
+                                Integer::new_from_usize(namespace, index)
+                                    .map_err(|error| Error::LoopIterator(location, error))?,
+                            ),
+                            false,
+                        )
                         .map_err(|error| Error::Scope(location, error))?;
 
                     let mut executor = Interpreter::new(scope, self.loop_stack.clone());
@@ -226,6 +214,7 @@ impl Interpreter {
     fn evaluate_operator(&mut self, expression: OperatorExpression) -> Result<Value, Error> {
         log::trace!("Operator expression    : {}", expression);
 
+        let location = expression.location;
         for element in expression.into_iter() {
             match element.object {
                 OperatorExpressionObject::Operand(operand) => {
@@ -261,12 +250,7 @@ impl Interpreter {
                         },
                         OperatorExpressionOperand::Type(r#type) => Element::Type(r#type),
                         OperatorExpressionOperand::Identifier(identifier) => {
-                            let location = element.location;
-                            self.scope
-                                .borrow()
-                                .get_variable(&identifier.name)
-                                .map(Element::Place)
-                                .map_err(|error| Error::Scope(location, error))?
+                            Element::Place(Place::new(identifier.name))
                         }
                         OperatorExpressionOperand::Block(block) => {
                             Element::Value(self.evaluate_block(block)?)
@@ -282,12 +266,12 @@ impl Interpreter {
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Assignment) => {
                     let (operand_1, operand_2) = self.get_binary_operands();
-                    let place = operand_1
+                    let (place, value) = operand_1
                         .assign(operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.scope
                         .borrow_mut()
-                        .update_variable(place)
+                        .update_value(&place, value)
                         .map_err(|error| Error::Scope(element.location, error))?;
                     self.rpn_stack.push(Element::Value(Value::Void));
                 }
@@ -480,8 +464,13 @@ impl Interpreter {
 
         match self.rpn_stack.pop() {
             Some(Element::Value(value)) => Ok(value),
-            Some(Element::Place(place)) => Ok(place.value),
-            _ => panic!("Type expressions cannot be evaluated"),
+            Some(Element::Place(place)) => self
+                .scope
+                .borrow()
+                .get_value(&place)
+                .map_err(|error| Error::Scope(location, error)),
+            Some(Element::Type(..)) => panic!("Type expression cannot be the expression result"),
+            None => panic!("Always contains an element"),
         }
     }
 
@@ -541,11 +530,11 @@ impl Interpreter {
     fn evaluate_array(&mut self, array: ArrayExpression) -> Result<Value, Error> {
         log::trace!("Array expression       : {}", array);
 
-        let mut values = Vec::with_capacity(array.elements.len());
+        let mut result = Array::with_capacity(TypeVariant::Void, array.elements.len());
         for element in array.elements.into_iter() {
-            values.push(self.evaluate(element)?);
+            result.push(self.evaluate(element)?);
         }
-        Ok(Value::Array(values))
+        Ok(Value::Array(result))
     }
 
     fn get_unary_operand(&mut self) -> Element {

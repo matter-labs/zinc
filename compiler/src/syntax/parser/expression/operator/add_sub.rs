@@ -42,7 +42,7 @@ impl Parser {
                 State::MulDivRemOperand => {
                     let rpn = MulDivRemOperatorOperandParser::default().parse(stream.clone())?;
                     self.builder.set_location_if_unset(rpn.location);
-                    self.builder.append_expression(rpn);
+                    self.builder.extend_with_expression(rpn);
                     if let Some((location, operator)) = self.operator.take() {
                         self.builder.push_operator(location, operator);
                     }

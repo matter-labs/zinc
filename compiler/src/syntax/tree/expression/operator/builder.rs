@@ -40,8 +40,8 @@ impl Builder {
         ));
     }
 
-    pub fn append_expression(&mut self, mut expression: OperatorExpression) {
-        self.elements.append(expression.elements.as_mut())
+    pub fn extend_with_expression(&mut self, expression: OperatorExpression) {
+        self.elements.extend(expression.elements)
     }
 
     pub fn finish(mut self) -> OperatorExpression {

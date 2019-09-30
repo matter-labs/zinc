@@ -1,5 +1,5 @@
 //!
-//! The interpreter integer value.
+//! The interpreter boolean.
 //!
 
 mod error;
