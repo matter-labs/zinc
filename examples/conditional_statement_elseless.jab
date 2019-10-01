@@ -1,5 +1,5 @@
 /*
-    The conditional elseless.
+    Conditional: statement elseless
 */
 
 inputs {}
@@ -9,5 +9,4 @@ if false {
     result = 10;
 };
 
-debug(result);
 require(result == 5);

@@ -24,6 +24,7 @@ pub enum Keyword {
     // control
     For,
     In,
+    While,
     If,
     Else,
 
@@ -131,6 +132,7 @@ impl TryFrom<&str> for Keyword {
 
             "for" => Ok(Self::For),
             "in" => Ok(Self::In),
+            "while" => Ok(Self::While),
             "if" => Ok(Self::If),
             "else" => Ok(Self::Else),
 
@@ -160,6 +162,7 @@ impl fmt::Display for Keyword {
 
             Self::For => write!(f, "for"),
             Self::In => write!(f, "in"),
+            Self::While => write!(f, "while"),
             Self::If => write!(f, "if"),
             Self::Else => write!(f, "else"),
 

@@ -15,9 +15,9 @@ pub enum Error {
     InnerOperation(&'static str, String),
     #[fail(display = "literal is larger than {} bits", _0)]
     LiteralTooLarge(usize),
-    #[fail(display = "operand types mismatch: [{}] and [{}]", _0, _1)]
-    OperandTypesMismatch(Integer, Integer),
-    #[fail(display = "casting to invalid type: from [{}] to '{}'", _0, _1)]
+    #[fail(display = "operand types mismatch: '{}' and '{}'", _0, _1)]
+    OperandTypesMismatch(TypeVariant, TypeVariant),
+    #[fail(display = "casting to invalid type: from '{}' to '{}'", _0, _1)]
     CastingToInvalidType(Integer, TypeVariant),
     #[fail(display = "casting to lesser bitlength: from {} to {}", _0, _1)]
     CastingToLesserOrEqualBitlength(usize, usize),

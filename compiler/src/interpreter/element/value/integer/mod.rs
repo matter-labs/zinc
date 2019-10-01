@@ -125,8 +125,8 @@ impl Integer {
     ) -> Result<Boolean, Error> {
         if !self.has_the_same_type_as(other) {
             return Err(Error::OperandTypesMismatch(
-                self.to_owned(),
-                other.to_owned(),
+                self.type_variant(),
+                other.type_variant(),
             ));
         }
 
@@ -147,8 +147,8 @@ impl Integer {
     ) -> Result<Boolean, Error> {
         if !self.has_the_same_type_as(other) {
             return Err(Error::OperandTypesMismatch(
-                self.to_owned(),
-                other.to_owned(),
+                self.type_variant(),
+                other.type_variant(),
             ));
         }
 
@@ -169,8 +169,8 @@ impl Integer {
     ) -> Result<Boolean, Error> {
         if !self.has_the_same_type_as(other) {
             return Err(Error::OperandTypesMismatch(
-                self.to_owned(),
-                other.to_owned(),
+                self.type_variant(),
+                other.type_variant(),
             ));
         }
 
@@ -191,8 +191,8 @@ impl Integer {
     ) -> Result<Boolean, Error> {
         if !self.has_the_same_type_as(other) {
             return Err(Error::OperandTypesMismatch(
-                self.to_owned(),
-                other.to_owned(),
+                self.type_variant(),
+                other.type_variant(),
             ));
         }
 
@@ -213,8 +213,8 @@ impl Integer {
     ) -> Result<Boolean, Error> {
         if !self.has_the_same_type_as(other) {
             return Err(Error::OperandTypesMismatch(
-                self.to_owned(),
-                other.to_owned(),
+                self.type_variant(),
+                other.type_variant(),
             ));
         }
 
@@ -235,8 +235,8 @@ impl Integer {
     ) -> Result<Boolean, Error> {
         if !self.has_the_same_type_as(other) {
             return Err(Error::OperandTypesMismatch(
-                self.to_owned(),
-                other.to_owned(),
+                self.type_variant(),
+                other.type_variant(),
             ));
         }
 
@@ -257,8 +257,8 @@ impl Integer {
     ) -> Result<Self, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::OperandTypesMismatch(
-                self.to_owned(),
-                other.to_owned(),
+                self.type_variant(),
+                other.type_variant(),
             ));
         }
 
@@ -281,8 +281,8 @@ impl Integer {
     ) -> Result<Self, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::OperandTypesMismatch(
-                self.to_owned(),
-                other.to_owned(),
+                self.type_variant(),
+                other.type_variant(),
             ));
         }
 
@@ -305,8 +305,8 @@ impl Integer {
     ) -> Result<Self, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::OperandTypesMismatch(
-                self.to_owned(),
-                other.to_owned(),
+                self.type_variant(),
+                other.type_variant(),
             ));
         }
 
@@ -329,8 +329,8 @@ impl Integer {
     ) -> Result<Self, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::OperandTypesMismatch(
-                self.to_owned(),
-                other.to_owned(),
+                self.type_variant(),
+                other.type_variant(),
             ));
         }
 
@@ -344,8 +344,8 @@ impl Integer {
     ) -> Result<Self, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::OperandTypesMismatch(
-                self.to_owned(),
-                other.to_owned(),
+                self.type_variant(),
+                other.type_variant(),
             ));
         }
 
@@ -421,7 +421,7 @@ impl Integer {
             .expect("Always returns a value")
             .to_string();
         let value = value[5..value.len() - 1].trim_start_matches('0');
-        write!(f, "{}", value)
+        write!(f, "{}", if value.is_empty() { "0" } else { value })
     }
 }
 

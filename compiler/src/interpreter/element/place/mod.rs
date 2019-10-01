@@ -25,7 +25,10 @@ impl Place {
 
     pub fn index(&mut self, index: Value) -> Result<(), Error> {
         let index = match index {
-            Value::Integer(integer) => integer.to_string().parse::<usize>().expect("Always valid"),
+            Value::Integer(integer) => {
+                usize::from_str_radix(integer.to_string().as_str(), crate::BASE_HEXADECIMAL as u32)
+                    .expect("Always valid")
+            }
             value => return Err(Error::IndexingExpectedIntegerConstant(value)),
         };
 
@@ -39,7 +42,7 @@ impl fmt::Display for Place {
         let indexes = self
             .path
             .iter()
-            .map(|index| format!("[{}]", index))
+            .map(|index| format!("'{}'", index))
             .collect::<Vec<String>>()
             .join("");
         write!(f, "{}{}", self.identifier, indexes)

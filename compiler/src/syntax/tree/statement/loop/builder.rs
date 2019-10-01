@@ -5,6 +5,7 @@
 use crate::lexical::IntegerLiteral;
 use crate::lexical::Location;
 use crate::syntax::BlockExpression;
+use crate::syntax::Expression;
 use crate::syntax::Identifier;
 use crate::syntax::LoopStatement;
 
@@ -15,6 +16,7 @@ pub struct Builder {
     range_start: Option<IntegerLiteral>,
     range_end: Option<IntegerLiteral>,
     is_range_inclusive: bool,
+    while_condition: Option<Expression>,
     block: Option<BlockExpression>,
 }
 
@@ -39,6 +41,10 @@ impl Builder {
         self.is_range_inclusive = true;
     }
 
+    pub fn set_while_condition(&mut self, value: Expression) {
+        self.while_condition = Some(value);
+    }
+
     pub fn set_block(&mut self, value: BlockExpression) {
         self.block = Some(value);
     }
@@ -52,6 +58,7 @@ impl Builder {
             self.range_start.take().expect("Missing range start").into(),
             self.range_end.take().expect("Missing range end").into(),
             self.is_range_inclusive,
+            self.while_condition.take(),
             self.block.take().expect("Missing block"),
         )
     }

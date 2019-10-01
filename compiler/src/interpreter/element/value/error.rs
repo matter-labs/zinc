@@ -18,15 +18,15 @@ pub enum Error {
     Boolean(BooleanError),
     #[fail(display = "integer: {}", _0)]
     Integer(IntegerError),
-    #[fail(display = "operand types mismatch: [{}] and [{}]", _0, _1)]
+    #[fail(display = "operand types mismatch: '{}' and '{}'", _0, _1)]
     OperandTypesMismatch(Value, Value),
     #[fail(
-        display = "operator '{}' expected a boolean value, but got [{}]",
+        display = "operator '{}' expected a boolean value, but got '{}'",
         _0, _1
     )]
     ExpectedBoolean(&'static str, Value),
     #[fail(
-        display = "operator '{}' expected an integer value, but got [{}]",
+        display = "operator '{}' expected an integer value, but got '{}'",
         _0, _1
     )]
     ExpectedInteger(&'static str, Value),

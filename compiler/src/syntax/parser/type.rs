@@ -121,7 +121,7 @@ impl Parser {
                 }
                 State::ArrayType => {
                     let array_type = Self::default().parse(stream.clone())?;
-                    self.builder.set_array_type(array_type);
+                    self.builder.set_array_type_variant(array_type.variant);
                     self.state = State::ArraySemicolon;
                 }
                 State::ArraySemicolon => {

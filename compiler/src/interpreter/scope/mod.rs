@@ -70,6 +70,12 @@ impl Scope {
                     _ => return Err(Error::IndexingNotArray(place.identifier.to_owned())),
                 }
             }
+            if !value.has_the_same_type_as(&new_value) {
+                return Err(Error::AssignmentInvalidType(
+                    new_value.type_variant(),
+                    value.type_variant(),
+                ));
+            }
             *value = new_value;
             Ok(())
         } else {

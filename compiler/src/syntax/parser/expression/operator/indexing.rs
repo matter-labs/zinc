@@ -232,20 +232,35 @@ impl Parser {
                     }
                 }
                 State::IndexExpression => {
-                    match ExpressionParser::default().parse(stream.clone())? {
-                        Expression::Operator(rpn) => self.builder.extend_with_expression(rpn),
-                        Expression::Block(block) => self
-                            .builder
-                            .push_operand(block.location, OperatorExpressionOperand::Block(block)),
-                        Expression::Conditional(conditional) => self.builder.push_operand(
-                            conditional.location,
-                            OperatorExpressionOperand::Conditional(conditional),
-                        ),
+                    let next = stream.borrow_mut().next();
+                    match next {
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Literal(literal @ lexical::Literal::Integer(..)),
+                            location,
+                        })) => {
+                            self.builder.push_operand(
+                                location,
+                                OperatorExpressionOperand::Literal(Literal::new(location, literal)),
+                            );
+                            if let Some((location, operator)) = self.operator.take() {
+                                self.builder.push_operator(location, operator);
+                            }
+                            self.state = State::BracketSquareClose;
+                        }
+                        Some(Ok(Token { lexeme, location })) => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                ["{integer}"].to_vec(),
+                                lexeme,
+                            )))
+                        }
+                        Some(Err(error)) => return Err(Error::Lexical(error)),
+                        None => {
+                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
+                                stream.borrow().location(),
+                            )))
+                        }
                     }
-                    if let Some((location, operator)) = self.operator.take() {
-                        self.builder.push_operator(location, operator);
-                    }
-                    self.state = State::BracketSquareClose;
                 }
                 State::BracketSquareClose => {
                     let next = stream.borrow_mut().next();

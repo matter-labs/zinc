@@ -17,20 +17,20 @@ pub enum Error {
     Value(ValueError),
     #[fail(display = "place: {}", _0)]
     Place(PlaceError),
-    #[fail(display = "comparing invalid values: [{}] and [{}]", _0, _1)]
+    #[fail(display = "comparing invalid values: '{}' and '{}'", _0, _1)]
     ComparingInvalidValues(Value, Value),
     #[fail(
-        display = "operator '{}' expected a place expression, but got [{}]",
+        display = "operator '{}' expected a place expression, but got '{}'",
         _0, _1
     )]
     ExpectedPlaceExpression(&'static str, Element),
     #[fail(
-        display = "operator '{}' expected a value expression, but got [{}]",
+        display = "operator '{}' expected a value expression, but got '{}'",
         _0, _1
     )]
     ExpectedValueExpression(&'static str, Element),
     #[fail(
-        display = "operator '{}' expected a type expression, but got [{}]",
+        display = "operator '{}' expected a type expression, but got '{}'",
         _0, _1
     )]
     ExpectedTypeExpression(&'static str, Element),

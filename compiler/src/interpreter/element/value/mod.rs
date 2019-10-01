@@ -133,6 +133,15 @@ impl Value {
         }
     }
 
+    pub fn type_variant(&self) -> TypeVariant {
+        match self {
+            Self::Void => TypeVariant::Void,
+            Self::Boolean(..) => TypeVariant::Boolean,
+            Self::Integer(integer) => integer.type_variant(),
+            Self::Array(array) => array.type_variant(),
+        }
+    }
+
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Void, Self::Void) => true,
@@ -141,30 +150,6 @@ impl Value {
                 value_1.has_the_same_type_as(value_2)
             }
             (Self::Array(value_1), Self::Array(value_2)) => value_1.has_the_same_type_as(value_2),
-            _ => false,
-        }
-    }
-
-    pub fn is_of_type(&self, r#type: &TypeVariant) -> bool {
-        match (self, r#type) {
-            (Self::Void, TypeVariant::Void) => true,
-            (Self::Boolean(..), TypeVariant::Boolean) => true,
-            (Self::Integer(integer), TypeVariant::Uint { bitlength }) => {
-                integer.bitlength == *bitlength && !integer.is_signed
-            }
-            (Self::Integer(integer), TypeVariant::Int { bitlength }) => {
-                integer.bitlength == *bitlength && integer.is_signed
-            }
-            (Self::Integer(integer), TypeVariant::Field) => {
-                integer.bitlength == crate::SIZE_FIELD && !integer.is_signed
-            }
-            (Self::Array(array), TypeVariant::Array { r#type, size }) => {
-                if let Some(element) = array.get(0) {
-                    element.is_of_type(&r#type.variant) && array.len() == *size
-                } else {
-                    true
-                }
-            }
             _ => false,
         }
     }

@@ -30,6 +30,7 @@ use r1cs::ConstraintSystem;
 use r1cs::TestConstraintSystem;
 
 use crate::lexical;
+use crate::syntax::ArrayExpression;
 use crate::syntax::BlockExpression;
 use crate::syntax::CircuitProgram;
 use crate::syntax::ConditionalExpression;
@@ -40,32 +41,26 @@ use crate::syntax::OperatorExpressionObject;
 use crate::syntax::OperatorExpressionOperand;
 use crate::syntax::OperatorExpressionOperator;
 use crate::syntax::Statement;
-use crate::syntax::{ArrayExpression, TypeVariant};
 
 pub struct Interpreter {
     system: TestConstraintSystem<Bn256>,
     scope: Rc<RefCell<Scope>>,
     rpn_stack: Vec<Element>,
-    loop_stack: Rc<RefCell<Vec<String>>>,
     id_sequence: usize,
 }
 
 impl Default for Interpreter {
     fn default() -> Self {
-        Self::new(
-            Scope::new(None),
-            Rc::new(RefCell::new(Vec::with_capacity(64))),
-        )
+        Self::new(Scope::default())
     }
 }
 
 impl Interpreter {
-    pub fn new(scope: Scope, loop_stack: Rc<RefCell<Vec<String>>>) -> Self {
+    pub fn new(scope: Scope) -> Self {
         Self {
             system: TestConstraintSystem::new(),
             scope: Rc::new(RefCell::new(scope)),
             rpn_stack: Vec::with_capacity(64),
-            loop_stack,
             id_sequence: 0,
         }
     }
@@ -111,7 +106,7 @@ impl Interpreter {
                                 .map_err(|error| Error::LetImplicitCasting(location, error))?
                         }
                         (value, type_variant) => {
-                            if value.is_of_type(&type_variant) {
+                            if value.type_variant() == type_variant {
                                 value
                             } else {
                                 return Err(Error::LetInvalidType(
@@ -177,7 +172,22 @@ impl Interpreter {
                         )
                         .map_err(|error| Error::Scope(location, error))?;
 
-                    let mut executor = Interpreter::new(scope, self.loop_stack.clone());
+                    let mut executor = Interpreter::new(scope);
+                    if let Some(while_condition) = r#loop.while_condition.clone() {
+                        let location = while_condition.location();
+                        match executor.evaluate(while_condition)? {
+                            Value::Boolean(boolean) => {
+                                if boolean.is_false() {
+                                    break;
+                                }
+                            }
+                            value => {
+                                return Err(Error::LoopWhileExpectedBooleanExpression(
+                                    location, value,
+                                ))
+                            }
+                        }
+                    }
                     for statement in r#loop.block.statements.iter() {
                         executor.execute(statement.to_owned())?;
                     }
@@ -265,7 +275,9 @@ impl Interpreter {
                     self.rpn_stack.push(element);
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Assignment) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(false, true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let (place, value) = operand_1
                         .assign(operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
@@ -282,7 +294,9 @@ impl Interpreter {
                     panic!("The range inclusive operator cannot be used in expressions")
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Or) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(true, true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -292,7 +306,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Xor) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(true, true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -302,7 +318,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::And) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(true, true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -312,7 +330,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Equal) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(true, true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -322,7 +342,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::NotEqual) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(true, true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -332,7 +354,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::GreaterEqual) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(true, true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -342,7 +366,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::LesserEqual) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(true, true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -352,7 +378,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Greater) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(true, true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -362,7 +390,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Lesser) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(true, true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -372,7 +402,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(true, true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -382,7 +414,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Subtraction) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(true, true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -392,7 +426,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Multiplication) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(true, true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -402,7 +438,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Division) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(true, true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -412,7 +450,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Remainder) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(true, true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -422,7 +462,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Casting) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(true, false)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -432,7 +474,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Negation) => {
-                    let operand_1 = self.get_unary_operand();
+                    let operand_1 = self
+                        .get_unary_operand(true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -442,7 +486,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Not) => {
-                    let operand_1 = self.get_unary_operand();
+                    let operand_1 = self
+                        .get_unary_operand(true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     self.rpn_stack.push(
@@ -452,7 +498,9 @@ impl Interpreter {
                     );
                 }
                 OperatorExpressionObject::Operator(OperatorExpressionOperator::Indexing) => {
-                    let (operand_1, operand_2) = self.get_binary_operands();
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(false, true)
+                        .map_err(|error| Error::Scope(element.location, error))?;
                     self.rpn_stack.push(
                         operand_1
                             .index(operand_2)
@@ -477,10 +525,7 @@ impl Interpreter {
     fn evaluate_block(&mut self, block: BlockExpression) -> Result<Value, Error> {
         log::trace!("Block expression       : {}", block);
 
-        let mut executor = Interpreter::new(
-            Scope::new(Some(self.scope.clone())),
-            self.loop_stack.clone(),
-        );
+        let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
         for statement in block.statements.into_iter() {
             executor.execute(statement)?;
         }
@@ -505,22 +550,13 @@ impl Interpreter {
         };
 
         if result.is_true() {
-            let mut executor = Interpreter::new(
-                Scope::new(Some(self.scope.clone())),
-                self.loop_stack.clone(),
-            );
+            let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
             executor.evaluate_block(conditional.main_block)
         } else if let Some(else_if) = conditional.else_if {
-            let mut executor = Interpreter::new(
-                Scope::new(Some(self.scope.clone())),
-                self.loop_stack.clone(),
-            );
+            let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
             executor.evaluate_conditional(*else_if)
         } else if let Some(else_block) = conditional.else_block {
-            let mut executor = Interpreter::new(
-                Scope::new(Some(self.scope.clone())),
-                self.loop_stack.clone(),
-            );
+            let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
             executor.evaluate_block(else_block)
         } else {
             Ok(Value::Void)
@@ -530,21 +566,44 @@ impl Interpreter {
     fn evaluate_array(&mut self, array: ArrayExpression) -> Result<Value, Error> {
         log::trace!("Array expression       : {}", array);
 
-        let mut result = Array::with_capacity(TypeVariant::Void, array.elements.len());
+        let location = array.location;
+
+        let mut result = Array::with_capacity(array.elements.len());
         for element in array.elements.into_iter() {
-            result.push(self.evaluate(element)?);
+            result
+                .push(self.evaluate(element)?)
+                .map_err(|error| Error::ArrayLiteral(location, error))?;
         }
         Ok(Value::Array(result))
     }
 
-    fn get_unary_operand(&mut self) -> Element {
-        self.rpn_stack.pop().expect("Always contains an element")
+    fn get_unary_operand(&mut self, resolve: bool) -> Result<Element, ScopeError> {
+        self.get_operand(resolve)
     }
 
-    fn get_binary_operands(&mut self) -> (Element, Element) {
-        let operand_2 = self.rpn_stack.pop().expect("Always contains an element");
-        let operand_1 = self.rpn_stack.pop().expect("Always contains an element");
-        (operand_1, operand_2)
+    fn get_binary_operands(
+        &mut self,
+        resolve_1: bool,
+        resolve_2: bool,
+    ) -> Result<(Element, Element), ScopeError> {
+        let operand_2 = self.get_operand(resolve_2)?;
+        let operand_1 = self.get_operand(resolve_1)?;
+        Ok((operand_1, operand_2))
+    }
+
+    fn get_operand(&mut self, resolve: bool) -> Result<Element, ScopeError> {
+        let operand = self.rpn_stack.pop().expect("Always contains an element");
+        if resolve {
+            match operand {
+                Element::Place(ref place) => {
+                    self.scope.borrow().get_value(place).map(Element::Value)
+                }
+                Element::Value(value) => Ok(Element::Value(value)),
+                Element::Type(..) => panic!("Type expression cannot be resolved"),
+            }
+        } else {
+            Ok(operand)
+        }
     }
 
     fn next_temp_namespace(&mut self) -> String {

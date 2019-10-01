@@ -1,4 +1,4 @@
-#!/bin/bash -Cerx
+#!/bin/bash -Cex
 
 # 'jabc' | 'jabi' | 'jabserver'
 export APPLICATION="${1}"
@@ -13,11 +13,19 @@ export INPUT="${3}"
 export OUTPUT="${4}"
 
 export RUST_LOG="compiler=${LOG_LEVEL},${APPLICATION}=${LOG_LEVEL}"
-export RUST_BACKTRACE='0'
+export RUST_BACKTRACE=1
 
 cargo fmt --all
 cargo clippy
 cargo test
+cargo build --all
 
-cargo run --bin "${APPLICATION}" -- --input "${INPUT}"
-# cargo run --bin "${APPLICATION}" -- --meta --input "${INPUT}" --output "${OUTPUT}"
+if [[ "${APPLICATION}" == 'jabc' ]]; then
+    ./target/debug/jabc --meta --input "${INPUT}" --output "${OUTPUT}"
+fi
+
+if [[ "${APPLICATION}" == 'jabi' ]]; then
+    for file in ./examples/*.jab; do
+        ./target/debug/jabi --input "${file}"
+    done
+fi

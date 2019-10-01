@@ -1,15 +1,13 @@
 /*
-    The algorithm Factorial.
+    Algorithm: Factorial
 */
 
 inputs {}
 
 let mut fact: field = 1;
-debug(fact);
 
 for i in 2..6 {
     fact = fact * i as field;
-    debug(fact);
 };
 
 require(fact == 120 as field);

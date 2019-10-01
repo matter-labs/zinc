@@ -22,11 +22,23 @@ pub use self::operator::Operator as OperatorExpressionOperator;
 
 use std::fmt;
 
+use crate::lexical::Location;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
     Operator(OperatorExpression),
     Block(BlockExpression),
     Conditional(ConditionalExpression),
+}
+
+impl Expression {
+    pub fn location(&self) -> Location {
+        match self {
+            Self::Operator(expression) => expression.location,
+            Self::Block(expression) => expression.location,
+            Self::Conditional(expression) => expression.location,
+        }
+    }
 }
 
 impl fmt::Display for Expression {

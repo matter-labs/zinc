@@ -1,5 +1,5 @@
 /*
-    The conditional simple.
+    Conditional: expression nested
 */
 
 inputs {}
@@ -12,5 +12,4 @@ let result = if false {
     3
 };
 
-debug(result);
 require(result == 2);

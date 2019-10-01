@@ -6,7 +6,7 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
-use crate::syntax::Type;
+use crate::syntax::TypeVariant;
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
@@ -14,10 +14,17 @@ use crate::syntax::Type;
 pub enum Variant {
     Void,
     Boolean,
-    Uint { bitlength: usize },
-    Int { bitlength: usize },
+    Uint {
+        bitlength: usize,
+    },
+    Int {
+        bitlength: usize,
+    },
     Field,
-    Array { r#type: Box<Type>, size: usize },
+    Array {
+        type_variant: Box<Self>,
+        size: usize,
+    },
 }
 
 impl Variant {
@@ -29,9 +36,9 @@ impl Variant {
         Self::Int { bitlength }
     }
 
-    pub fn array(r#type: Type, size: usize) -> Self {
+    pub fn array(type_variant: TypeVariant, size: usize) -> Self {
         Self::Array {
-            r#type: Box::new(r#type),
+            type_variant: Box::new(type_variant),
             size,
         }
     }
@@ -45,7 +52,7 @@ impl fmt::Display for Variant {
             Self::Uint { bitlength } => write!(f, "uint{}", bitlength),
             Self::Int { bitlength } => write!(f, "int{}", bitlength),
             Self::Field => write!(f, "field"),
-            Self::Array { r#type, size } => write!(f, "[{}; {}]", r#type, size),
+            Self::Array { type_variant, size } => write!(f, "[{}; {}]", type_variant, size),
         }
     }
 }

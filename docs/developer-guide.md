@@ -534,6 +534,7 @@ let t: (uint8, bool, bool) = slice.from_bits();
 - mut
 - for
 - in
+- while
 - if
 - else
 - bool

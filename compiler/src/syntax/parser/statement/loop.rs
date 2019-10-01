@@ -13,6 +13,7 @@ use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::BlockExpressionParser;
 use crate::syntax::Error as SyntaxError;
+use crate::syntax::ExpressionParser;
 use crate::syntax::Identifier;
 use crate::syntax::LoopStatement;
 use crate::syntax::LoopStatementBuilder;
@@ -26,6 +27,8 @@ pub enum State {
     RangeStart,
     RangeOperator,
     RangeEnd,
+    BlockExpressionOrKeywordWhile,
+    WhileCondition,
     BlockExpression,
 }
 
@@ -184,7 +187,7 @@ impl Parser {
                             ..
                         })) => {
                             self.builder.set_range_end(integer);
-                            self.state = State::BlockExpression;
+                            self.state = State::BlockExpressionOrKeywordWhile;
                         }
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
@@ -200,6 +203,44 @@ impl Parser {
                             )))
                         }
                     }
+                }
+                State::BlockExpressionOrKeywordWhile => {
+                    let peek = stream.borrow_mut().peek();
+                    match peek {
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
+                            ..
+                        })) => {
+                            let block = BlockExpressionParser::default().parse(stream.clone())?;
+                            self.builder.set_block(block);
+                            return Ok(self.builder.finish());
+                        }
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Keyword(Keyword::While),
+                            ..
+                        })) => {
+                            stream.borrow_mut().next();
+                            self.state = State::WhileCondition;
+                        }
+                        Some(Ok(Token { lexeme, location })) => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                ["{", "while"].to_vec(),
+                                lexeme,
+                            )));
+                        }
+                        Some(Err(error)) => return Err(Error::Lexical(error)),
+                        None => {
+                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
+                                stream.borrow().location(),
+                            )))
+                        }
+                    }
+                }
+                State::WhileCondition => {
+                    let expression = ExpressionParser::default().parse(stream.clone())?;
+                    self.builder.set_while_condition(expression);
+                    self.state = State::BlockExpression;
                 }
                 State::BlockExpression => {
                     let block = BlockExpressionParser::default().parse(stream.clone())?;
@@ -244,6 +285,7 @@ mod tests {
             0,
             4,
             true,
+            None,
             BlockExpression::new(
                 Location::new(1, 16),
                 vec![Statement::Debug(DebugStatement::new(

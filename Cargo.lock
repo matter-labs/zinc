@@ -435,7 +435,7 @@ dependencies = [
 
 [[package]]
 name = "circuit"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "r1cs 0.1.0",
 ]
@@ -464,7 +464,7 @@ dependencies = [
 
 [[package]]
 name = "compiler"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "actix-web 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",

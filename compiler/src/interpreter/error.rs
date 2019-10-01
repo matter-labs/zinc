@@ -4,6 +4,7 @@
 
 use failure::Fail;
 
+use crate::interpreter::ArrayError;
 use crate::interpreter::ElementError;
 use crate::interpreter::IntegerError;
 use crate::interpreter::ScopeError;
@@ -20,20 +21,22 @@ pub enum Error {
     Scope(Location, ScopeError),
     #[fail(display = "{} literal cannot be evaluated: {}", _0, _1)]
     LiteralCannotBeEvaluated(Location, Literal),
+    #[fail(display = "{} array literal: {}", _0, _1)]
+    ArrayLiteral(Location, ArrayError),
     #[fail(
-        display = "{} conditional expected a boolean expression, but got [{}]",
+        display = "{} conditional expected a boolean expression, but got '{}'",
         _0, _1
     )]
     ConditionalExpectedBooleanExpression(Location, Value),
     #[fail(
-        display = "{} let declaration invalid type: [{}] cannot be casted to '{}'",
+        display = "{} let declaration invalid type: '{}' cannot be casted to '{}'",
         _0, _1, _2
     )]
     LetInvalidType(Location, Value, TypeVariant),
     #[fail(display = "{} let declaration invalid implicit casting: {}", _0, _1)]
     LetImplicitCasting(Location, IntegerError),
     #[fail(
-        display = "{} the require '{}' expected a boolean expression, but got [{}]",
+        display = "{} the require '{}' expected a boolean expression, but got '{}'",
         _0, _1, _2
     )]
     RequireExpectedBooleanExpression(Location, String, Value),
@@ -41,4 +44,9 @@ pub enum Error {
     RequireFailed(Location, String),
     #[fail(display = "{} loop iterator: {}", _0, _1)]
     LoopIterator(Location, IntegerError),
+    #[fail(
+        display = "{} loop while condition expected a boolean expression, but got '{}'",
+        _0, _1
+    )]
+    LoopWhileExpectedBooleanExpression(Location, Value),
 }

@@ -13,7 +13,7 @@ pub struct Builder {
     location: Option<Location>,
     is_void: bool,
     keyword: Option<Keyword>,
-    array_type: Option<Type>,
+    array_type_variant: Option<TypeVariant>,
     array_size: Option<IntegerLiteral>,
 }
 
@@ -30,8 +30,8 @@ impl Builder {
         self.keyword = Some(value);
     }
 
-    pub fn set_array_type(&mut self, value: Type) {
-        self.array_type = Some(value);
+    pub fn set_array_type_variant(&mut self, value: TypeVariant) {
+        self.array_type_variant = Some(value);
     }
 
     pub fn set_array_size(&mut self, value: IntegerLiteral) {
@@ -50,7 +50,7 @@ impl Builder {
                 Keyword::Field => TypeVariant::Field,
                 _ => panic!("Always is one of the type keywords above"),
             }
-        } else if let Some(array_type) = self.array_type.take() {
+        } else if let Some(array_type) = self.array_type_variant.take() {
             let array_size: usize = self.array_size.take().expect("Missing array size").into();
             TypeVariant::array(array_type, array_size)
         } else {
