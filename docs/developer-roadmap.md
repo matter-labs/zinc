@@ -25,7 +25,8 @@
 ## Version 0.4 ✘ 
 
 - arrays ✔
-- structs ✘
+- tuples ✘
+- structures ✘
 - `for` loops with `while` ✔
 
 ## Version 0.5

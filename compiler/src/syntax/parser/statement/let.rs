@@ -58,7 +58,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["let"].to_vec(),
+                                vec!["let"],
                                 lexeme,
                             )));
                         }
@@ -91,7 +91,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["mut", "{identifier}"].to_vec(),
+                                vec!["mut", "{identifier}"],
                                 lexeme,
                             )));
                         }
@@ -117,7 +117,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["{identifier}"].to_vec(),
+                                vec!["{identifier}"],
                                 lexeme,
                             )));
                         }
@@ -143,7 +143,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                [":", "="].to_vec(),
+                                vec![":", "="],
                                 lexeme,
                             )));
                         }
@@ -170,7 +170,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["="].to_vec(),
+                                vec!["="],
                                 lexeme,
                             )));
                         }
@@ -200,8 +200,11 @@ mod tests {
     use super::Parser;
     use crate::lexical;
     use crate::lexical::IntegerLiteral;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Symbol;
     use crate::lexical::TokenStream;
+    use crate::syntax::Error as SyntaxError;
     use crate::syntax::Expression;
     use crate::syntax::Identifier;
     use crate::syntax::LetStatement;
@@ -212,12 +215,42 @@ mod tests {
     use crate::syntax::OperatorExpressionOperand;
     use crate::syntax::Type;
     use crate::syntax::TypeVariant;
+    use crate::Error;
 
     #[test]
-    fn ok() {
-        let code = r#"let mut a: uint232 = 42 "#;
+    fn ok_simple() {
+        let code = r#"let a = 42;"#;
 
-        let expected = LetStatement::new(
+        let expected = Ok(LetStatement::new(
+            Location::new(1, 1),
+            Identifier::new(Location::new(1, 5), "a".to_owned()),
+            false,
+            None,
+            Expression::Operator(OperatorExpression::new(
+                Location::new(1, 9),
+                vec![OperatorExpressionElement::new(
+                    Location::new(1, 9),
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                        Literal::new(
+                            Location::new(1, 9),
+                            lexical::Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
+                        ),
+                    )),
+                )],
+            )),
+        ));
+
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_mut_with_type() {
+        let code = r#"let mut a: uint232 = 42;"#;
+
+        let expected = Ok(LetStatement::new(
             Location::new(1, 1),
             Identifier::new(Location::new(1, 9), "a".to_owned()),
             true,
@@ -234,11 +267,26 @@ mod tests {
                     )),
                 )],
             )),
-        );
+        ));
 
-        let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
-            .expect("Syntax error");
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn err_no_value() {
+        let code = r#"let a;"#;
+
+        let expected = Err(Error::Syntax(SyntaxError::Expected(
+            Location::new(1, 6),
+            vec![":", "="],
+            Lexeme::Symbol(Symbol::Semicolon),
+        )));
+
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
 
         assert_eq!(expected, result);
     }

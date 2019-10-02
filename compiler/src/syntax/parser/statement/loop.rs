@@ -61,7 +61,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["for"].to_vec(),
+                                vec!["for"],
                                 lexeme,
                             )));
                         }
@@ -87,7 +87,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["{identifier}"].to_vec(),
+                                vec!["{identifier}"],
                                 lexeme,
                             )));
                         }
@@ -111,7 +111,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["in"].to_vec(),
+                                vec!["in"],
                                 lexeme,
                             )));
                         }
@@ -136,7 +136,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["{integer}"].to_vec(),
+                                vec!["{integer}"],
                                 lexeme,
                             )));
                         }
@@ -167,7 +167,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                [".."].to_vec(),
+                                vec![".."],
                                 lexeme,
                             )));
                         }
@@ -192,7 +192,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["{integer}"].to_vec(),
+                                vec!["{integer}"],
                                 lexeme,
                             )));
                         }
@@ -225,7 +225,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["{", "while"].to_vec(),
+                                vec!["{", "while"],
                                 lexeme,
                             )));
                         }
@@ -260,10 +260,12 @@ mod tests {
     use super::Parser;
     use crate::lexical;
     use crate::lexical::IntegerLiteral;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
     use crate::lexical::TokenStream;
     use crate::syntax::BlockExpression;
     use crate::syntax::DebugStatement;
+    use crate::syntax::Error as SyntaxError;
     use crate::syntax::Expression;
     use crate::syntax::Identifier;
     use crate::syntax::Literal;
@@ -274,12 +276,13 @@ mod tests {
     use crate::syntax::OperatorExpressionOperand;
     use crate::syntax::OperatorExpressionOperator;
     use crate::syntax::Statement;
+    use crate::Error;
 
     #[test]
-    fn ok() {
+    fn ok_with_block() {
         let code = r#"for i in 0..=4 { debug(42); 2 + 1 };"#;
 
-        let expected = LoopStatement::new(
+        let expected = Ok(LoopStatement::new(
             Location::new(1, 1),
             Identifier::new(Location::new(1, 5), "i".to_owned()),
             0,
@@ -339,11 +342,46 @@ mod tests {
                     ],
                 ))),
             ),
-        );
+        ));
 
-        let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
-            .expect("Syntax error");
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_with_empty_block() {
+        let code = r#"for i in 0..4 {};"#;
+
+        let expected = Ok(LoopStatement::new(
+            Location::new(1, 1),
+            Identifier::new(Location::new(1, 5), "i".to_owned()),
+            0,
+            4,
+            false,
+            None,
+            BlockExpression::new(Location::new(1, 15), vec![], None),
+        ));
+
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn err_expected_integer_literal() {
+        let code = r#"for i in 0..n {};"#;
+
+        let expected = Err(Error::Syntax(SyntaxError::Expected(
+            Location::new(1, 13),
+            vec!["{integer}"],
+            Lexeme::Identifier(lexical::Identifier::new("n".to_owned())),
+        )));
+
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
 
         assert_eq!(expected, result);
     }

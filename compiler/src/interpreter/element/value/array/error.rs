@@ -8,6 +8,6 @@ use crate::syntax::TypeVariant;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
-    #[fail(display = "pushing an invalid type '{}', but expected '{}'", _0, _1)]
+    #[fail(display = "pushing a value of type '{}', but expected '{}'", _0, _1)]
     PushingInvalidType(TypeVariant, TypeVariant),
 }

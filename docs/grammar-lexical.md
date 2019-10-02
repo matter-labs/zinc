@@ -27,28 +27,24 @@ keyword =
   | 'inputs'
   | 'witness'
   | 'require'
-  | 'debug'
-  
+  | 'debug'  
   // declaration
   | 'let'
-  | 'mut'
-  
+  | 'mut'  
   // control
   | 'for'
   | 'in'
+  | 'while'
   | 'if'
-  | 'else'
-  
+  | 'else'  
   // type
   | 'bool'
   | ['uint8' 'uint16' ... 'uint240' 'uint248']
   | ['int8' 'int16' ... 'int240' 'int248']
   | 'field'
-
   // literal
   | 'true'
   | 'false'
-
   // operator
   | 'as'
 
@@ -87,8 +83,7 @@ symbol =
   | '\'
   | '!'
   | '<'
-  | '>'
-  
+  | '>'  
   // complex
   | '=='
   | '!='

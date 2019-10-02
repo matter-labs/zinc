@@ -56,7 +56,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["require"].to_vec(),
+                                vec!["require"],
                                 lexeme,
                             )));
                         }
@@ -78,7 +78,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["("].to_vec(),
+                                vec!["("],
                                 lexeme,
                             )));
                         }
@@ -109,7 +109,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                [",", ")"].to_vec(),
+                                vec![",", ")"],
                                 lexeme,
                             )));
                         }
@@ -134,7 +134,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["{string}"].to_vec(),
+                                vec!["{string}"],
                                 lexeme,
                             )));
                         }
@@ -156,7 +156,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                [")"].to_vec(),
+                                vec![")"],
                                 lexeme,
                             )));
                         }
@@ -194,9 +194,36 @@ mod tests {
 
     #[test]
     fn ok() {
+        let code = r#"require(true)"#;
+
+        let expected = Ok(RequireStatement::new(
+            Location::new(1, 1),
+            Expression::Operator(OperatorExpression::new(
+                Location::new(1, 9),
+                vec![OperatorExpressionElement::new(
+                    Location::new(1, 9),
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                        Literal::new(
+                            Location::new(1, 9),
+                            lexical::Literal::Boolean(BooleanLiteral::True),
+                        ),
+                    )),
+                )],
+            )),
+            None,
+        ));
+
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_with_annotation() {
         let code = r#"require(true, "test")"#;
 
-        let expected = RequireStatement::new(
+        let expected = Ok(RequireStatement::new(
             Location::new(1, 1),
             Expression::Operator(OperatorExpression::new(
                 Location::new(1, 9),
@@ -211,11 +238,10 @@ mod tests {
                 )],
             )),
             Some(StringLiteral::new("test".to_owned())),
-        );
+        ));
 
-        let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
-            .expect("Syntax error");
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
 
         assert_eq!(expected, result);
     }

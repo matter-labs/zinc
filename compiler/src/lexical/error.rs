@@ -11,9 +11,9 @@ use crate::lexical::WordParserError;
 
 #[derive(Debug, Fail, Clone, PartialEq)]
 pub enum Error {
-    #[fail(display = "{} unexpected end of a token", _0)]
+    #[fail(display = "{} unexpected end of the token", _0)]
     UnexpectedEnd(Location),
-    #[fail(display = "{} the character '{}' is invalid (yet)", _0, _1)]
+    #[fail(display = "{} the character '{}' is not yet valid", _0, _1)]
     InvalidCharacter(Location, char),
     #[fail(display = "{} invalid symbol: {}", _0, _1)]
     InvalidSymbol(Location, SymbolParserError),

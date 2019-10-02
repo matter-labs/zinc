@@ -33,7 +33,7 @@ pub enum Error {
         _0, _1, _2
     )]
     LetInvalidType(Location, Value, TypeVariant),
-    #[fail(display = "{} let declaration invalid implicit casting: {}", _0, _1)]
+    #[fail(display = "{} let declaration implicit casting: {}", _0, _1)]
     LetImplicitCasting(Location, IntegerError),
     #[fail(
         display = "{} the require '{}' expected a boolean expression, but got '{}'",

@@ -87,7 +87,7 @@ mod tests {
     fn ok() {
         let code = r#"true || { 2 + 1 == 3 }"#;
 
-        let expected = Expression::Operator(OperatorExpression::new(
+        let expected = Ok(Expression::Operator(OperatorExpression::new(
             Location::new(1, 1),
             vec![
                 OperatorExpressionElement::new(
@@ -163,11 +163,10 @@ mod tests {
                     OperatorExpressionObject::Operator(OperatorExpressionOperator::Or),
                 ),
             ],
-        ));
+        )));
 
-        let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
-            .expect("Syntax error");
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
 
         assert_eq!(expected, result);
     }

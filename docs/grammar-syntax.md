@@ -27,7 +27,6 @@ expression =
   | operator_expression
   | block_expression
   | conditional_expression
-  | array_expression
 
 operator_expression = operand_or ( '||' operand_or )*
 operand_or = operand_xor ( '^^' operand_xor )*
@@ -40,12 +39,13 @@ operand_as =
   | ( '-' | '!' ) operand_as
   | operand_index ( '[' expression ']' )*
 operand_index =
+  | literal
+  | identifier
   | '(' expression ')'
   | block_expression
   | conditional_expression
   | array_expression
-  | literal
-  | identifier
+  | tuple_expression
 
 block_expression = '{' statement* expression? '}'
 
@@ -54,6 +54,9 @@ conditional_expression = 'if' expression block_expression [ 'else' ( conditional
 array_expression =
   | '[' [ expression [ ',' expression ]* ]? ']'
   | '[' expression ';' literal_integer ']'
+
+tuple_expression =
+  | '(' expression ',' expression? [ ',' expression ]* ')'
 
 ```
 
@@ -69,6 +72,6 @@ array_expression =
 | == != <= >= < > |   parenthesis   |
 | &&              |  left to right  |
 | ^^              |  left to right  |
-| ⎮⎮            |  left to right  |
+| ⎮⎮              |  left to right  |
 | .. ..=          |     single      |
 | =               |     single      |

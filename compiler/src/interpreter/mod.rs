@@ -5,6 +5,7 @@
 mod element;
 mod error;
 mod scope;
+mod tests;
 
 pub use self::element::Array;
 pub use self::element::ArrayError;

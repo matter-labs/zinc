@@ -102,7 +102,7 @@ mod tests {
     fn ok() {
         let code = r#"42 as field "#;
 
-        let expected = OperatorExpression::new(
+        let expected = Ok(OperatorExpression::new(
             Location::new(1, 1),
             vec![
                 OperatorExpressionElement::new(
@@ -126,11 +126,10 @@ mod tests {
                     OperatorExpressionObject::Operator(OperatorExpressionOperator::Casting),
                 ),
             ],
-        );
+        ));
 
-        let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
-            .expect("Syntax error");
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
 
         assert_eq!(expected, result);
     }

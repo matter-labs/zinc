@@ -63,7 +63,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["witness"].to_vec(),
+                                vec!["witness"],
                                 lexeme,
                             )));
                         }
@@ -85,7 +85,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["{"].to_vec(),
+                                vec!["{"],
                                 lexeme,
                             )));
                         }
@@ -116,7 +116,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["{identifier}", "}"].to_vec(),
+                                vec!["{identifier}", "}"],
                                 lexeme,
                             )));
                         }
@@ -138,7 +138,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                [":"].to_vec(),
+                                vec![":"],
                                 lexeme,
                             )));
                         }
@@ -170,7 +170,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                [";"].to_vec(),
+                                vec![";"],
                                 lexeme,
                             )));
                         }
@@ -193,30 +193,67 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Symbol;
     use crate::lexical::TokenStream;
+    use crate::syntax::Error as SyntaxError;
     use crate::syntax::Identifier;
     use crate::syntax::Type;
     use crate::syntax::TypeVariant;
     use crate::syntax::Witness;
+    use crate::Error;
 
     #[test]
-    fn ok() {
+    fn ok_single() {
         let code = r#"
     witness {
         a: uint232;
     }
 "#;
 
-        let expected = vec![Witness::new(
+        let expected = Ok(vec![Witness::new(
             Location::new(3, 9),
             Identifier::new(Location::new(3, 9), "a".to_owned()),
             Type::new(Location::new(3, 12), TypeVariant::Uint { bitlength: 232 }),
-        )];
+        )]);
 
-        let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
-            .expect("Syntax error");
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_empty() {
+        let code = r#"
+    witness {}
+"#;
+
+        let expected = Ok(Vec::<Witness>::new());
+
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));;
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn err_expected_semicolon() {
+        let code = r#"
+    witness {
+        a: uint232,
+    }
+"#;
+
+        let expected = Err(Error::Syntax(SyntaxError::Expected(
+            Location::new(3, 19),
+            vec![";"],
+            Lexeme::Symbol(Symbol::Comma),
+        )));
+
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
 
         assert_eq!(expected, result);
     }

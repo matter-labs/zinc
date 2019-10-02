@@ -60,7 +60,7 @@ impl Parser {
                             _ => {
                                 return Err(Error::Syntax(SyntaxError::Expected(
                                     location,
-                                    ["{type}"].to_vec(),
+                                    vec!["{type}"],
                                     Lexeme::Keyword(keyword),
                                 )))
                             }
@@ -82,7 +82,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["{type}", "["].to_vec(),
+                                vec!["{type}", "(", "["],
                                 lexeme,
                             )))
                         }
@@ -107,7 +107,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                [")"].to_vec(),
+                                vec![")"],
                                 lexeme,
                             )))
                         }
@@ -136,7 +136,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                [";"].to_vec(),
+                                vec![";"],
                                 lexeme,
                             )))
                         }
@@ -161,7 +161,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["{integer}"].to_vec(),
+                                vec!["{integer}"],
                                 lexeme,
                             )))
                         }
@@ -185,7 +185,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["]"].to_vec(),
+                                vec!["]"],
                                 lexeme,
                             )))
                         }
@@ -208,20 +208,110 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::lexical::Identifier;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Symbol;
     use crate::lexical::TokenStream;
+    use crate::syntax::Error as SyntaxError;
     use crate::syntax::Type;
     use crate::syntax::TypeVariant;
+    use crate::Error;
 
     #[test]
-    fn ok() {
+    fn ok_void() {
+        let code = "()";
+
+        let expected = Ok(Type::new(Location::new(1, 1), TypeVariant::Void));
+
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_integer() {
         let code = "uint232";
 
-        let expected = Type::new(Location::new(1, 1), TypeVariant::uint(232));
+        let expected = Ok(Type::new(Location::new(1, 1), TypeVariant::uint(232)));
 
-        let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
-            .expect("Syntax error");
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_field() {
+        let code = "field";
+
+        let expected = Ok(Type::new(Location::new(1, 1), TypeVariant::Field));
+
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_array() {
+        let code = "[field; 8]";
+
+        let expected = Ok(Type::new(
+            Location::new(1, 1),
+            TypeVariant::array(TypeVariant::Field, 8),
+        ));
+
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_array_double() {
+        let code = "[[field; 8]; 8]";
+
+        let expected = Ok(Type::new(
+            Location::new(1, 1),
+            TypeVariant::array(TypeVariant::array(TypeVariant::Field, 8), 8),
+        ));
+
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn err_integer_not_keyword() {
+        let code = "uint19";
+
+        let expected = Err(Error::Syntax(SyntaxError::Expected(
+            Location::new(1, 1),
+            vec!["{type}", "(", "["],
+            Lexeme::Identifier(Identifier::new("uint19".to_owned())),
+        )));
+
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn err_array_expected_semicolon() {
+        let code = "[field, 8]";
+
+        let expected = Err(Error::Syntax(SyntaxError::Expected(
+            Location::new(1, 7),
+            vec![";"],
+            Lexeme::Symbol(Symbol::Comma),
+        )));
+
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
 
         assert_eq!(expected, result);
     }

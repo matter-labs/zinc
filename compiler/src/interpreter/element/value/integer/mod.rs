@@ -72,8 +72,7 @@ impl Integer {
             IntegerLiteral::Hexadecimal { value } => (value, crate::BASE_HEXADECIMAL as u32),
         };
 
-        let number = BigInt::from_str_radix(&string, base)
-            .expect("Always valid after validation in the lexical parser");
+        let number = BigInt::from_str_radix(&string, base).expect("Always valid");
         let mut bitlength = crate::SIZE_BYTE;
         let mut exponent = BigInt::from(crate::MAX_BYTE);
         while number >= exponent {

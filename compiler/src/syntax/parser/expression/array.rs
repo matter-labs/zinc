@@ -56,7 +56,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["["].to_vec(),
+                                vec!["["],
                                 lexeme,
                             )));
                         }
@@ -130,7 +130,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                [",", "]"].to_vec(),
+                                vec![",", "]"],
                                 lexeme,
                             )));
                         }
@@ -164,7 +164,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                [",", ";", "]"].to_vec(),
+                                vec![",", ";", "]"],
                                 lexeme,
                             )));
                         }
@@ -189,7 +189,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["{integer}"].to_vec(),
+                                vec!["{integer}"],
                                 lexeme,
                             )));
                         }
@@ -211,7 +211,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["]"].to_vec(),
+                                vec!["]"],
                                 lexeme,
                             )));
                         }
@@ -250,7 +250,7 @@ mod tests {
     fn ok() {
         let code = r#"[1, 2, 3]"#;
 
-        let expected = ArrayExpression::new(
+        let expected = Ok(ArrayExpression::new(
             Location::new(1, 1),
             vec![
                 Expression::Operator(OperatorExpression::new(
@@ -290,11 +290,22 @@ mod tests {
                     )],
                 )),
             ],
-        );
+        ));
 
-        let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
-            .expect("Syntax error");
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_empty() {
+        let code = r#"[]"#;
+
+        let expected = Ok(ArrayExpression::new(Location::new(1, 1), vec![]));
+
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
 
         assert_eq!(expected, result);
     }

@@ -119,7 +119,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                [";"].to_vec(),
+                                vec![";"],
                                 lexeme,
                             )));
                         }
@@ -188,10 +188,10 @@ mod tests {
     use crate::syntax::TypeVariant;
 
     #[test]
-    fn ok_not_unterminated() {
+    fn ok_semicolon_terminated() {
         let code = r#"let mut a: uint232 = 42;"#;
 
-        let expected = (
+        let expected = Ok((
             Statement::Let(LetStatement::new(
                 Location::new(1, 1),
                 Identifier::new(Location::new(1, 9), "a".to_owned()),
@@ -211,20 +211,19 @@ mod tests {
                 )),
             )),
             false,
-        );
+        ));
 
-        let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
-            .expect("Syntax error");
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
 
         assert_eq!(expected, result);
     }
 
     #[test]
-    fn ok_unterminated() {
+    fn ok_semicolon_unterminated() {
         let code = r#"{ 42 } "#;
 
-        let expected = (
+        let expected = Ok((
             Statement::Expression(Expression::Block(BlockExpression {
                 location: Location::new(1, 1),
                 statements: vec![],
@@ -242,11 +241,10 @@ mod tests {
                 )))),
             })),
             true,
-        );
+        ));
 
-        let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
-            .expect("Syntax error");
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
 
         assert_eq!(expected, result);
     }

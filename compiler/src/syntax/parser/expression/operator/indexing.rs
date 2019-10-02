@@ -118,7 +118,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["(", "{", "[", "if", "{literal}", "{identifier}"].to_vec(),
+                                vec!["(", "{", "[", "if", "{literal}", "{identifier}"],
                                 lexeme,
                             )))
                         }
@@ -184,7 +184,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                [")"].to_vec(),
+                                vec![")"],
                                 lexeme,
                             )))
                         }
@@ -250,7 +250,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["{integer}"].to_vec(),
+                                vec!["{integer}"],
                                 lexeme,
                             )))
                         }
@@ -274,7 +274,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["]"].to_vec(),
+                                vec!["]"],
                                 lexeme,
                             )))
                         }
@@ -311,7 +311,7 @@ mod tests {
     fn ok() {
         let code = r#"42 "#;
 
-        let expected = OperatorExpression::new(
+        let expected = Ok(OperatorExpression::new(
             Location::new(1, 1),
             vec![OperatorExpressionElement::new(
                 Location::new(1, 1),
@@ -322,11 +322,10 @@ mod tests {
                     ),
                 )),
             )],
-        );
+        ));
 
-        let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
-            .expect("Syntax error");
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
 
         assert_eq!(expected, result);
     }

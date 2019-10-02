@@ -34,7 +34,7 @@ witness {
 let mut c: uint232 = 2 + 2;
 "#;
 
-    let expected: Vec<Token> = vec![
+    let expected = vec![
         Token {
             lexeme: Lexeme::Keyword(Keyword::Inputs),
             location: Location::new(5, 1),
@@ -131,11 +131,14 @@ let mut c: uint232 = 2 + 2;
             lexeme: Lexeme::Symbol(Symbol::Semicolon),
             location: Location::new(13, 27),
         },
-    ];
+    ]
+    .into_iter()
+    .map(Result::Ok)
+    .collect::<Vec<Result<Token, Error>>>();
 
-    let result: Vec<Token> = TokenStream::new(code.to_owned())
-        .map(|result| result.expect("Lexical error"))
-        .collect();
+    let result = TokenStream::new(code.to_owned())
+        .into_iter()
+        .collect::<Vec<Result<Token, Error>>>();
 
     assert_eq!(expected, result);
 }
@@ -144,12 +147,11 @@ let mut c: uint232 = 2 + 2;
 fn err_unexpected_end() {
     let code = "&";
 
-    let expected = Err(Error::UnexpectedEnd(Location::new(1, 1)));
+    let expected: Result<Token, Error> = Err(Error::UnexpectedEnd(Location::new(1, 1)));
 
     let result = TokenStream::new(code.to_owned())
         .next()
-        .expect("Always contains a token")
-        .to_owned();
+        .expect("Always contains an element");
 
     assert_eq!(expected, result);
 }
@@ -158,12 +160,11 @@ fn err_unexpected_end() {
 fn err_unknown_character() {
     let code = "#";
 
-    let expected = Err(Error::InvalidCharacter(Location::new(1, 1), '#'));
+    let expected: Result<Token, Error> = Err(Error::InvalidCharacter(Location::new(1, 1), '#'));
 
     let result = TokenStream::new(code.to_owned())
         .next()
-        .expect("Always contains a token")
-        .to_owned();
+        .expect("Always contains an element");
 
     assert_eq!(expected, result);
 }
@@ -172,15 +173,14 @@ fn err_unknown_character() {
 fn err_invalid_symbol() {
     let code = "|#";
 
-    let expected = Err(Error::InvalidSymbol(
+    let expected: Result<Token, Error> = Err(Error::InvalidSymbol(
         Location::new(1, 1),
         SymbolParserError::InvalidCharacter('#', 2, "|#".to_owned()),
     ));
 
     let result = TokenStream::new(code.to_owned())
         .next()
-        .expect("Always contains a token")
-        .to_owned();
+        .expect("Always contains an element");
 
     assert_eq!(expected, result);
 }
@@ -189,15 +189,14 @@ fn err_invalid_symbol() {
 fn err_invalid_integer_literal() {
     let code = "0xCRAP";
 
-    let expected = Err(Error::InvalidIntegerLiteral(
+    let expected: Result<Token, Error> = Err(Error::InvalidIntegerLiteral(
         Location::new(1, 1),
         IntegerParserError::InvalidHexadecimalCharacter('R', 4, "0xCR".to_owned()),
     ));
 
     let result = TokenStream::new(code.to_owned())
         .next()
-        .expect("Always contains a token")
-        .to_owned();
+        .expect("Always contains an element");
 
     assert_eq!(expected, result);
 }

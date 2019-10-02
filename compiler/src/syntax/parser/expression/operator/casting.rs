@@ -73,32 +73,45 @@ mod tests {
     use crate::lexical::IntegerLiteral;
     use crate::lexical::Location;
     use crate::lexical::TokenStream;
+    use crate::syntax::Identifier;
     use crate::syntax::Literal;
     use crate::syntax::OperatorExpression;
     use crate::syntax::OperatorExpressionElement;
     use crate::syntax::OperatorExpressionObject;
     use crate::syntax::OperatorExpressionOperand;
+    use crate::syntax::OperatorExpressionOperator;
 
     #[test]
     fn ok() {
-        let code = r#"42 "#;
+        let code = r#"array[42] "#;
 
-        let expected = OperatorExpression::new(
+        let expected = Ok(OperatorExpression::new(
             Location::new(1, 1),
-            vec![OperatorExpressionElement::new(
-                Location::new(1, 1),
-                OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                    Literal::new(
-                        Location::new(1, 1),
-                        lexical::Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
-                    ),
-                )),
-            )],
-        );
+            vec![
+                OperatorExpressionElement::new(
+                    Location::new(1, 1),
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Identifier(
+                        Identifier::new(Location::new(1, 1), "array".to_owned()),
+                    )),
+                ),
+                OperatorExpressionElement::new(
+                    Location::new(1, 7),
+                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
+                        Literal::new(
+                            Location::new(1, 7),
+                            lexical::Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
+                        ),
+                    )),
+                ),
+                OperatorExpressionElement::new(
+                    Location::new(1, 6),
+                    OperatorExpressionObject::Operator(OperatorExpressionOperator::Indexing),
+                ),
+            ],
+        ));
 
-        let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
-            .expect("Syntax error");
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
 
         assert_eq!(expected, result);
     }

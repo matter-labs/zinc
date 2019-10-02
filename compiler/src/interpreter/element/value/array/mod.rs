@@ -39,10 +39,7 @@ impl Array {
     }
 
     pub fn type_variant(&self) -> TypeVariant {
-        TypeVariant::Array {
-            type_variant: Box::new(self.type_variant.clone()),
-            size: self.elements.len(),
-        }
+        TypeVariant::array(self.type_variant.clone(), self.elements.len())
     }
 
     pub fn push(&mut self, value: Value) -> Result<(), Error> {
@@ -53,7 +50,7 @@ impl Array {
             if type_variant != self.type_variant {
                 return Err(Error::PushingInvalidType(
                     type_variant,
-                    self.type_variant.to_owned(),
+                    self.type_variant.clone(),
                 ));
             }
         }

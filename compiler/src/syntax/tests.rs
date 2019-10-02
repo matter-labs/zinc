@@ -40,7 +40,7 @@ witness {
 let mut c: uint232 = 2 + 2;
 "#;
 
-    let expected: CircuitProgram = CircuitProgram {
+    let expected = Ok(CircuitProgram {
         inputs: vec![Input::new(
             Location::new(3, 5),
             Identifier::new(Location::new(3, 5), "a".to_owned()),
@@ -87,10 +87,9 @@ let mut c: uint232 = 2 + 2;
             )),
             is_mutable: true,
         })],
-    };
+    });
 
-    let result: CircuitProgram =
-        Parser::parse(TokenStream::new(code.to_owned())).expect("Syntax error");
+    let result = Parser::parse(TokenStream::new(code.to_owned()));
 
     assert_eq!(expected, result);
 }
@@ -116,7 +115,7 @@ fn err_expected() {
     use crate::lexical::Symbol;
     use crate::Error as MainError;
 
-    let code = "inputs ! ";
+    let code = "inputs }";
 
     let result: Result<CircuitProgram, MainError> =
         Parser::parse(TokenStream::new(code.to_owned()));
@@ -124,8 +123,28 @@ fn err_expected() {
     let expected: Result<CircuitProgram, MainError> = Err(MainError::Syntax(Error::Expected(
         Location::new(1, 8),
         vec!["{"],
-        Lexeme::Symbol(Symbol::ExclamationMark),
+        Lexeme::Symbol(Symbol::BracketCurlyRight),
     )));
+
+    assert_eq!(expected, result);
+}
+
+#[test]
+fn err_unexpected_expression_at_root() {
+    use crate::Error as MainError;
+
+    let code = r#"
+    inputs {}
+
+    2 + 2
+"#;
+
+    let result: Result<CircuitProgram, MainError> =
+        Parser::parse(TokenStream::new(code.to_owned()));
+
+    let expected: Result<CircuitProgram, MainError> = Err(MainError::Syntax(
+        Error::UnterminatedExpressionAtRoot(Location::new(4, 5)),
+    ));
 
     assert_eq!(expected, result);
 }

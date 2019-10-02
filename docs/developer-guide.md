@@ -1,4 +1,4 @@
-# Jabberwocky (Jab) developer guide
+# Jabberwocky language developer guide
 
 ## Introduction
 

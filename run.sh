@@ -1,4 +1,4 @@
-#!/bin/bash -Cex
+#!/bin/bash -Ce
 
 # 'jabc' | 'jabi' | 'jabserver'
 export APPLICATION="${1}"

@@ -58,7 +58,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["if"].to_vec(),
+                                vec!["if"],
                                 lexeme,
                             )));
                         }
@@ -121,7 +121,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["if", "{"].to_vec(),
+                                vec!["if", "{"],
                                 lexeme,
                             )));
                         }
@@ -159,10 +159,10 @@ mod tests {
     use crate::syntax::OperatorExpressionOperand;
 
     #[test]
-    fn ok() {
+    fn ok_nested() {
         let code = r#"if true { 1 } else if false { 2 } else { 3 }"#;
 
-        let expected = ConditionalExpression::new(
+        let expected = Ok(ConditionalExpression::new(
             Location::new(1, 1),
             Expression::Operator(OperatorExpression::new(
                 Location::new(1, 4),
@@ -245,11 +245,10 @@ mod tests {
                 )),
             )),
             None,
-        );
+        ));
 
-        let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
-            .expect("Syntax error");
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
 
         assert_eq!(expected, result);
     }

@@ -53,7 +53,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["debug"].to_vec(),
+                                vec!["debug"],
                                 lexeme,
                             )));
                         }
@@ -75,7 +75,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["("].to_vec(),
+                                vec!["("],
                                 lexeme,
                             )));
                         }
@@ -102,7 +102,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                [")"].to_vec(),
+                                vec![")"],
                                 lexeme,
                             )));
                         }
@@ -141,7 +141,7 @@ mod tests {
     fn ok() {
         let code = r#"debug(42)"#;
 
-        let expected = DebugStatement::new(
+        let expected = Ok(DebugStatement::new(
             Location::new(1, 1),
             Expression::Operator(OperatorExpression::new(
                 Location::new(1, 7),
@@ -155,11 +155,10 @@ mod tests {
                     )),
                 )],
             )),
-        );
+        ));
 
-        let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
-            .expect("Syntax error");
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
 
         assert_eq!(expected, result);
     }

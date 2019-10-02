@@ -52,7 +52,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["{"].to_vec(),
+                                vec!["{"],
                                 lexeme,
                             )));
                         }
@@ -108,7 +108,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                ["}"].to_vec(),
+                                vec!["}"],
                                 lexeme,
                             )));
                         }
@@ -147,10 +147,10 @@ mod tests {
     use crate::syntax::Statement;
 
     #[test]
-    fn ok() {
+    fn ok_statements_with_expression() {
         let code = r#"{ debug(42); 2 + 1 }"#;
 
-        let expected = BlockExpression::new(
+        let expected = Ok(BlockExpression::new(
             Location::new(1, 1),
             vec![Statement::Debug(DebugStatement::new(
                 Location::new(1, 3),
@@ -194,11 +194,22 @@ mod tests {
                     ),
                 ],
             ))),
-        );
+        ));
 
-        let result = Parser::default()
-            .parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))))
-            .expect("Syntax error");
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_empty() {
+        let code = r#"{}"#;
+
+        let expected = Ok(BlockExpression::new(Location::new(1, 1), vec![], None));
+
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
 
         assert_eq!(expected, result);
     }

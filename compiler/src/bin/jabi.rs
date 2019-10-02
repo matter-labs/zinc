@@ -45,6 +45,8 @@ fn main() -> Result<(), Error> {
 
     let args: Arguments = Arguments::from_args();
 
+    log::info!("Input: {:?}", args.input);
+
     let mut file = File::open(&args.input)
         .map_err(InputError::Opening)
         .map_err(Error::Input)?;

@@ -21,9 +21,6 @@ pub enum Error {
     AssignmentInvalidType(TypeVariant, TypeVariant),
     #[fail(display = "indexing a not-array variable '{}'", _0)]
     IndexingNotArray(String),
-    #[fail(
-        display = "index {} is out of range of the array variable '{}'",
-        _0, _1
-    )]
+    #[fail(display = "index {} is out of range of '{}'", _0, _1)]
     ArrayIndexOutOfRange(usize, String),
 }
