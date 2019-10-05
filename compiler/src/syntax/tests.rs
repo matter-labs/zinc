@@ -11,15 +11,14 @@ use crate::lexical::TokenStream;
 use crate::syntax::CircuitProgram;
 use crate::syntax::Error;
 use crate::syntax::Expression;
+use crate::syntax::ExpressionElement;
+use crate::syntax::ExpressionObject;
+use crate::syntax::ExpressionOperand;
+use crate::syntax::ExpressionOperator;
 use crate::syntax::Identifier;
 use crate::syntax::Input;
 use crate::syntax::LetStatement;
 use crate::syntax::Literal;
-use crate::syntax::OperatorExpression;
-use crate::syntax::OperatorExpressionElement;
-use crate::syntax::OperatorExpressionObject;
-use crate::syntax::OperatorExpressionOperand;
-use crate::syntax::OperatorExpressionOperator;
 use crate::syntax::Parser;
 use crate::syntax::Statement;
 use crate::syntax::Type;
@@ -28,68 +27,64 @@ use crate::syntax::Witness;
 
 #[test]
 fn ok() {
-    let code = r#"
+    let input = r#"
 inputs {
-    a: uint8;
+    a: u8,
 }
 
 witness {
-    b: int248;
+    b: i248,
 }
 
-let mut c: uint232 = 2 + 2;
+let mut c: u232 = 2 + 2;
 "#;
 
     let expected = Ok(CircuitProgram {
         inputs: vec![Input::new(
             Location::new(3, 5),
             Identifier::new(Location::new(3, 5), "a".to_owned()),
-            Type::new(Location::new(3, 8), TypeVariant::Uint { bitlength: 8 }),
+            Type::new(Location::new(3, 8), TypeVariant::new_integer_unsigned(8)),
         )],
         witnesses: vec![Witness::new(
             Location::new(7, 5),
             Identifier::new(Location::new(7, 5), "b".to_owned()),
-            Type::new(Location::new(7, 8), TypeVariant::Int { bitlength: 248 }),
+            Type::new(Location::new(7, 8), TypeVariant::new_integer_signed(248)),
         )],
         statements: vec![Statement::Let(LetStatement {
             location: Location::new(10, 1),
             identifier: Identifier::new(Location::new(10, 9), "c".to_owned()),
             r#type: Some(Type::new(
                 Location::new(10, 12),
-                TypeVariant::Uint { bitlength: 232 },
+                TypeVariant::new_integer_unsigned(232),
             )),
-            expression: Expression::Operator(OperatorExpression::new(
-                Location::new(10, 22),
+            expression: Expression::new(
+                Location::new(10, 19),
                 vec![
-                    OperatorExpressionElement::new(
-                        Location::new(10, 22),
-                        OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                            Literal::new(
-                                Location::new(10, 22),
-                                lexical::Literal::Integer(IntegerLiteral::decimal("2".to_owned())),
-                            ),
-                        )),
+                    ExpressionElement::new(
+                        Location::new(10, 19),
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(10, 19),
+                            lexical::Literal::Integer(IntegerLiteral::new_decimal("2".to_owned())),
+                        ))),
                     ),
-                    OperatorExpressionElement::new(
-                        Location::new(10, 26),
-                        OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                            Literal::new(
-                                Location::new(10, 26),
-                                lexical::Literal::Integer(IntegerLiteral::decimal("2".to_owned())),
-                            ),
-                        )),
+                    ExpressionElement::new(
+                        Location::new(10, 23),
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(10, 23),
+                            lexical::Literal::Integer(IntegerLiteral::new_decimal("2".to_owned())),
+                        ))),
                     ),
-                    OperatorExpressionElement::new(
-                        Location::new(10, 24),
-                        OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition),
+                    ExpressionElement::new(
+                        Location::new(10, 21),
+                        ExpressionObject::Operator(ExpressionOperator::Addition),
                     ),
                 ],
-            )),
+            ),
             is_mutable: true,
         })],
     });
 
-    let result = Parser::parse(TokenStream::new(code.to_owned()));
+    let result = Parser::parse(TokenStream::new(input.to_owned()));
 
     assert_eq!(expected, result);
 }
@@ -98,10 +93,10 @@ let mut c: uint232 = 2 + 2;
 fn err_unexpected_end() {
     use crate::Error as MainError;
 
-    let code = "inputs";
+    let input = "inputs";
 
     let result: Result<CircuitProgram, MainError> =
-        Parser::parse(TokenStream::new(code.to_owned()));
+        Parser::parse(TokenStream::new(input.to_owned()));
 
     let expected: Result<CircuitProgram, MainError> =
         Err(MainError::Syntax(Error::UnexpectedEnd(Location::new(1, 7))));
@@ -115,10 +110,10 @@ fn err_expected() {
     use crate::lexical::Symbol;
     use crate::Error as MainError;
 
-    let code = "inputs }";
+    let input = "inputs }";
 
     let result: Result<CircuitProgram, MainError> =
-        Parser::parse(TokenStream::new(code.to_owned()));
+        Parser::parse(TokenStream::new(input.to_owned()));
 
     let expected: Result<CircuitProgram, MainError> = Err(MainError::Syntax(Error::Expected(
         Location::new(1, 8),
@@ -133,14 +128,14 @@ fn err_expected() {
 fn err_unexpected_expression_at_root() {
     use crate::Error as MainError;
 
-    let code = r#"
+    let input = r#"
     inputs {}
 
     2 + 2
 "#;
 
     let result: Result<CircuitProgram, MainError> =
-        Parser::parse(TokenStream::new(code.to_owned()));
+        Parser::parse(TokenStream::new(input.to_owned()));
 
     let expected: Result<CircuitProgram, MainError> = Err(MainError::Syntax(
         Error::UnterminatedExpressionAtRoot(Location::new(4, 5)),

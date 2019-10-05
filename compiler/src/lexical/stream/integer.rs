@@ -65,7 +65,7 @@ pub fn parse(input: &str) -> Result<(usize, IntegerLiteral), Error> {
                         input[..=size].to_owned(),
                     ));
                 } else {
-                    return Ok((size, IntegerLiteral::decimal(value)));
+                    return Ok((size, IntegerLiteral::new_decimal(value)));
                 }
             }
             State::Decimal => {
@@ -81,7 +81,7 @@ pub fn parse(input: &str) -> Result<(usize, IntegerLiteral), Error> {
                 } else if character == '_' {
                     size += 1;
                 } else {
-                    return Ok((size, IntegerLiteral::decimal(value)));
+                    return Ok((size, IntegerLiteral::new_decimal(value)));
                 }
             }
             State::Hexadecimal => {
@@ -97,7 +97,7 @@ pub fn parse(input: &str) -> Result<(usize, IntegerLiteral), Error> {
                 } else if character == '_' {
                     size += 1;
                 } else {
-                    return Ok((size, IntegerLiteral::hexadecimal(value)));
+                    return Ok((size, IntegerLiteral::new_hexadecimal(value)));
                 }
             }
         }
@@ -115,7 +115,7 @@ mod tests {
     #[test]
     fn ok_decimal_zero() {
         let input = "0\n";
-        let expected = Ok((1, IntegerLiteral::decimal("0".to_owned())));
+        let expected = Ok((1, IntegerLiteral::new_decimal("0".to_owned())));
         let result = parse(input);
         assert_eq!(expected, result);
     }
@@ -123,7 +123,7 @@ mod tests {
     #[test]
     fn ok_decimal() {
         let input = "666\n";
-        let expected = Ok((3, IntegerLiteral::decimal("666".to_owned())));
+        let expected = Ok((3, IntegerLiteral::new_decimal("666".to_owned())));
         let result = parse(input);
         assert_eq!(expected, result);
     }
@@ -131,7 +131,10 @@ mod tests {
     #[test]
     fn ok_hexadecimal_lowercase() {
         let input = "0xdead_666_beef\n";
-        let expected = Ok((15, IntegerLiteral::hexadecimal("dead666beef".to_owned())));
+        let expected = Ok((
+            15,
+            IntegerLiteral::new_hexadecimal("dead666beef".to_owned()),
+        ));
         let result = parse(input);
         assert_eq!(expected, result);
     }
@@ -139,7 +142,10 @@ mod tests {
     #[test]
     fn ok_hexadecimal_uppercase() {
         let input = "0xDEAD_666_BEEF\n";
-        let expected = Ok((15, IntegerLiteral::hexadecimal("dead666beef".to_owned())));
+        let expected = Ok((
+            15,
+            IntegerLiteral::new_hexadecimal("dead666beef".to_owned()),
+        ));
         let result = parse(input);
         assert_eq!(expected, result);
     }
@@ -147,7 +153,10 @@ mod tests {
     #[test]
     fn ok_hexadecimal_mixed_case() {
         let input = "0xdEaD_666_bEeF\n";
-        let expected = Ok((15, IntegerLiteral::hexadecimal("dead666beef".to_owned())));
+        let expected = Ok((
+            15,
+            IntegerLiteral::new_hexadecimal("dead666beef".to_owned()),
+        ));
         let result = parse(input);
         assert_eq!(expected, result);
     }

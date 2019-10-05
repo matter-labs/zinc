@@ -20,6 +20,8 @@ pub enum Keyword {
     // declaration
     Let,
     Mut,
+    Type,
+    Struct,
 
     // control
     For,
@@ -30,8 +32,8 @@ pub enum Keyword {
 
     // type
     Bool,
-    Uint { bitlength: usize },
-    Int { bitlength: usize },
+    U { bitlength: usize },
+    I { bitlength: usize },
     Field,
 
     // literal
@@ -43,12 +45,12 @@ pub enum Keyword {
 }
 
 impl Keyword {
-    pub fn uint(bitlength: usize) -> Self {
-        Self::Uint { bitlength }
+    pub fn new_integer_unsigned(bitlength: usize) -> Self {
+        Self::U { bitlength }
     }
 
-    pub fn int(bitlength: usize) -> Self {
-        Self::Int { bitlength }
+    pub fn new_integer_signed(bitlength: usize) -> Self {
+        Self::I { bitlength }
     }
 }
 
@@ -75,77 +77,81 @@ impl TryFrom<&str> for Keyword {
         const BITLENGTH_MODULO: usize = 8;
         const BITLENGTH_RANGE: RangeInclusive<usize> = (BITLENGTH_MIN..=BITLENGTH_MAX);
 
-        if let Some("uint") = input.get(..4) {
-            let bitlength = &input[4..];
-            if bitlength.is_empty() {
-                return Err(Error::IntegerBitlengthEmpty);
-            }
-            let bitlength = bitlength
-                .parse::<usize>()
-                .map_err(|_| Error::IntegerBitlengthNotNumeric(bitlength.to_owned()))?;
-            if !BITLENGTH_RANGE.contains(&bitlength) {
-                return Err(Error::IntegerBitlengthOutOfRange(
-                    bitlength,
-                    BITLENGTH_RANGE,
-                ));
-            }
-            if bitlength % BITLENGTH_MODULO != 0 {
-                return Err(Error::IntegerBitlengthInvalidModulo(
-                    bitlength,
-                    BITLENGTH_MODULO,
-                ));
-            }
-            return Ok(Self::uint(bitlength));
-        }
-
-        if let Some("int") = input.get(..3) {
-            let bitlength = &input[3..];
-            if bitlength.is_empty() {
-                return Err(Error::IntegerBitlengthEmpty);
-            }
-            let bitlength = bitlength
-                .parse::<usize>()
-                .map_err(|_| Error::IntegerBitlengthNotNumeric(bitlength.to_owned()))?;
-            if !BITLENGTH_RANGE.contains(&bitlength) {
-                return Err(Error::IntegerBitlengthOutOfRange(
-                    bitlength,
-                    BITLENGTH_RANGE,
-                ));
-            }
-            if bitlength % BITLENGTH_MODULO != 0 {
-                return Err(Error::IntegerBitlengthInvalidModulo(
-                    bitlength,
-                    BITLENGTH_MODULO,
-                ));
-            }
-            return Ok(Self::int(bitlength));
-        }
-
         match input {
-            "inputs" => Ok(Self::Inputs),
-            "witness" => Ok(Self::Witness),
-            "require" => Ok(Self::Require),
-            "debug" => Ok(Self::Debug),
+            "inputs" => return Ok(Self::Inputs),
+            "witness" => return Ok(Self::Witness),
+            "require" => return Ok(Self::Require),
+            "debug" => return Ok(Self::Debug),
 
-            "let" => Ok(Self::Let),
-            "mut" => Ok(Self::Mut),
+            "let" => return Ok(Self::Let),
+            "mut" => return Ok(Self::Mut),
+            "type" => return Ok(Self::Type),
+            "struct" => return Ok(Self::Struct),
 
-            "for" => Ok(Self::For),
-            "in" => Ok(Self::In),
-            "while" => Ok(Self::While),
-            "if" => Ok(Self::If),
-            "else" => Ok(Self::Else),
+            "for" => return Ok(Self::For),
+            "in" => return Ok(Self::In),
+            "while" => return Ok(Self::While),
+            "if" => return Ok(Self::If),
+            "else" => return Ok(Self::Else),
 
-            "bool" => Ok(Self::Bool),
-            "field" => Ok(Self::Field),
+            "bool" => return Ok(Self::Bool),
+            "field" => return Ok(Self::Field),
 
-            "true" => Ok(Self::True),
-            "false" => Ok(Self::False),
+            "true" => return Ok(Self::True),
+            "false" => return Ok(Self::False),
 
-            "as" => Ok(Self::As),
+            "as" => return Ok(Self::As),
 
-            unknown => Err(Error::Unknown(unknown.to_owned())),
+            _ => {}
         }
+
+        if let Some("u") = input.get(..1) {
+            let bitlength = &input[1..];
+            if bitlength.is_empty() {
+                return Err(Error::IntegerBitlengthEmpty);
+            }
+            let bitlength = bitlength
+                .parse::<usize>()
+                .map_err(|_| Error::IntegerBitlengthNotNumeric(bitlength.to_owned()))?;
+            if !BITLENGTH_RANGE.contains(&bitlength) {
+                return Err(Error::IntegerBitlengthOutOfRange(
+                    bitlength,
+                    BITLENGTH_RANGE,
+                ));
+            }
+            if bitlength % BITLENGTH_MODULO != 0 {
+                return Err(Error::IntegerBitlengthInvalidModulo(
+                    bitlength,
+                    BITLENGTH_MODULO,
+                ));
+            }
+            return Ok(Self::new_integer_unsigned(bitlength));
+        }
+
+        if let Some("i") = input.get(..1) {
+            let bitlength = &input[1..];
+            if bitlength.is_empty() {
+                return Err(Error::IntegerBitlengthEmpty);
+            }
+            let bitlength = bitlength
+                .parse::<usize>()
+                .map_err(|_| Error::IntegerBitlengthNotNumeric(bitlength.to_owned()))?;
+            if !BITLENGTH_RANGE.contains(&bitlength) {
+                return Err(Error::IntegerBitlengthOutOfRange(
+                    bitlength,
+                    BITLENGTH_RANGE,
+                ));
+            }
+            if bitlength % BITLENGTH_MODULO != 0 {
+                return Err(Error::IntegerBitlengthInvalidModulo(
+                    bitlength,
+                    BITLENGTH_MODULO,
+                ));
+            }
+            return Ok(Self::new_integer_signed(bitlength));
+        }
+
+        Err(Error::Unknown(input.to_owned()))
     }
 }
 
@@ -159,6 +165,8 @@ impl fmt::Display for Keyword {
 
             Self::Let => write!(f, "let"),
             Self::Mut => write!(f, "mut"),
+            Self::Type => write!(f, "type"),
+            Self::Struct => write!(f, "struct"),
 
             Self::For => write!(f, "for"),
             Self::In => write!(f, "in"),
@@ -167,8 +175,8 @@ impl fmt::Display for Keyword {
             Self::Else => write!(f, "else"),
 
             Self::Bool => write!(f, "bool"),
-            Self::Uint { bitlength } => write!(f, "uint{}", bitlength),
-            Self::Int { bitlength } => write!(f, "int{}", bitlength),
+            Self::U { bitlength } => write!(f, "u{}", bitlength),
+            Self::I { bitlength } => write!(f, "i{}", bitlength),
             Self::Field => write!(f, "field"),
 
             Self::True => write!(f, "true"),

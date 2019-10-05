@@ -18,14 +18,14 @@ use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    BracketCurlyOpen,
-    StatementOrBracketCurlyClose,
-    BracketCurlyClose,
+    BracketCurlyLeft,
+    StatementOrBracketCurlyRight,
+    BracketCurlyRight,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::BracketCurlyOpen
+        State::BracketCurlyLeft
     }
 }
 
@@ -39,7 +39,7 @@ impl Parser {
     pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<BlockExpression, Error> {
         loop {
             match self.state {
-                State::BracketCurlyOpen => {
+                State::BracketCurlyLeft => {
                     let next = stream.borrow_mut().next();
                     match next {
                         Some(Ok(Token {
@@ -47,7 +47,7 @@ impl Parser {
                             location,
                         })) => {
                             self.builder.set_location(location);
-                            self.state = State::StatementOrBracketCurlyClose;
+                            self.state = State::StatementOrBracketCurlyRight;
                         }
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
@@ -64,7 +64,7 @@ impl Parser {
                         }
                     }
                 }
-                State::StatementOrBracketCurlyClose => {
+                State::StatementOrBracketCurlyRight => {
                     let peek = stream.borrow_mut().peek();
                     match peek {
                         Some(Ok(Token {
@@ -81,7 +81,7 @@ impl Parser {
                                 Statement::Expression(expression) => {
                                     if is_unterminated {
                                         self.builder.set_expression(expression);
-                                        self.state = State::BracketCurlyClose;
+                                        self.state = State::BracketCurlyRight;
                                     } else {
                                         self.builder
                                             .push_statement(Statement::Expression(expression));
@@ -98,7 +98,7 @@ impl Parser {
                         }
                     }
                 }
-                State::BracketCurlyClose => {
+                State::BracketCurlyRight => {
                     let next = stream.borrow_mut().next();
                     match next {
                         Some(Ok(Token {
@@ -138,78 +138,71 @@ mod tests {
     use crate::syntax::BlockExpression;
     use crate::syntax::DebugStatement;
     use crate::syntax::Expression;
+    use crate::syntax::ExpressionElement;
+    use crate::syntax::ExpressionObject;
+    use crate::syntax::ExpressionOperand;
+    use crate::syntax::ExpressionOperator;
     use crate::syntax::Literal;
-    use crate::syntax::OperatorExpression;
-    use crate::syntax::OperatorExpressionElement;
-    use crate::syntax::OperatorExpressionObject;
-    use crate::syntax::OperatorExpressionOperand;
-    use crate::syntax::OperatorExpressionOperator;
     use crate::syntax::Statement;
 
     #[test]
     fn ok_statements_with_expression() {
-        let code = r#"{ debug(42); 2 + 1 }"#;
+        let input = r#"{ debug(42); 2 + 1 }"#;
 
         let expected = Ok(BlockExpression::new(
             Location::new(1, 1),
             vec![Statement::Debug(DebugStatement::new(
                 Location::new(1, 3),
-                Expression::Operator(OperatorExpression::new(
+                Expression::new(
                     Location::new(1, 9),
-                    vec![OperatorExpressionElement::new(
+                    vec![ExpressionElement::new(
                         Location::new(1, 9),
-                        OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                            Literal::new(
-                                Location::new(1, 9),
-                                lexical::Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
-                            ),
-                        )),
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(1, 9),
+                            lexical::Literal::Integer(IntegerLiteral::new_decimal("42".to_owned())),
+                        ))),
                     )],
-                )),
+                ),
             ))],
-            Some(Expression::Operator(OperatorExpression::new(
+            Some(Expression::new(
                 Location::new(1, 14),
                 vec![
-                    OperatorExpressionElement::new(
+                    ExpressionElement::new(
                         Location::new(1, 14),
-                        OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                            Literal::new(
-                                Location::new(1, 14),
-                                lexical::Literal::Integer(IntegerLiteral::decimal("2".to_owned())),
-                            ),
-                        )),
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(1, 14),
+                            lexical::Literal::Integer(IntegerLiteral::new_decimal("2".to_owned())),
+                        ))),
                     ),
-                    OperatorExpressionElement::new(
+                    ExpressionElement::new(
                         Location::new(1, 18),
-                        OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                            Literal::new(
-                                Location::new(1, 18),
-                                lexical::Literal::Integer(IntegerLiteral::decimal("1".to_owned())),
-                            ),
-                        )),
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(1, 18),
+                            lexical::Literal::Integer(IntegerLiteral::new_decimal("1".to_owned())),
+                        ))),
                     ),
-                    OperatorExpressionElement::new(
+                    ExpressionElement::new(
                         Location::new(1, 16),
-                        OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition),
+                        ExpressionObject::Operator(ExpressionOperator::Addition),
                     ),
                 ],
-            ))),
+            )),
         ));
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
 
         assert_eq!(expected, result);
     }
 
     #[test]
     fn ok_empty() {
-        let code = r#"{}"#;
+        let input = r#"{}"#;
 
         let expected = Ok(BlockExpression::new(Location::new(1, 1), vec![], None));
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
 
         assert_eq!(expected, result);
     }

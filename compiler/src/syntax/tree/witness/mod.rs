@@ -33,10 +33,10 @@ impl Witness {
     pub fn bitlength(&self) -> usize {
         match self.r#type.variant {
             TypeVariant::Boolean => 1,
-            TypeVariant::Uint { bitlength } => bitlength,
-            TypeVariant::Int { bitlength } => bitlength,
+            TypeVariant::IntegerUnsigned { bitlength } => bitlength,
+            TypeVariant::IntegerSigned { bitlength } => bitlength,
             TypeVariant::Field => crate::SIZE_FIELD,
-            _ => 0,
+            _ => panic!("Always checked by the branches above"),
         }
     }
 }

@@ -6,10 +6,14 @@ mod debug;
 mod r#let;
 mod r#loop;
 mod require;
+mod r#struct;
+mod r#type;
 
 pub use self::debug::Parser as DebugParser;
 pub use self::r#let::Parser as LetParser;
 pub use self::r#loop::Parser as LoopParser;
+pub use self::r#struct::Parser as StructParser;
+pub use self::r#type::Parser as TypeParser;
 pub use self::require::Parser as RequireParser;
 
 use std::cell::RefCell;
@@ -52,14 +56,11 @@ impl Parser {
                     let peek = stream.borrow_mut().peek();
                     self.statement = Some(match peek {
                         Some(Ok(Token {
-                            lexeme: Lexeme::Keyword(Keyword::Let),
+                            lexeme: Lexeme::Symbol(Symbol::Semicolon),
                             ..
                         })) => {
-                            let result = LetParser::default()
-                                .parse(stream.clone())
-                                .map(Statement::Let)?;
-                            self.state = State::Semicolon;
-                            result
+                            stream.borrow_mut().next();
+                            return Ok((Statement::Empty, false));
                         }
                         Some(Ok(Token {
                             lexeme: Lexeme::Keyword(Keyword::Require),
@@ -72,12 +73,12 @@ impl Parser {
                             result
                         }
                         Some(Ok(Token {
-                            lexeme: Lexeme::Keyword(Keyword::Debug),
+                            lexeme: Lexeme::Keyword(Keyword::Let),
                             ..
                         })) => {
-                            let result = DebugParser::default()
+                            let result = LetParser::default()
                                 .parse(stream.clone())
-                                .map(Statement::Debug)?;
+                                .map(Statement::Let)?;
                             self.state = State::Semicolon;
                             result
                         }
@@ -88,6 +89,36 @@ impl Parser {
                             let result = LoopParser::default()
                                 .parse(stream.clone())
                                 .map(Statement::Loop)?;
+                            self.state = State::Semicolon;
+                            result
+                        }
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Keyword(Keyword::Type),
+                            ..
+                        })) => {
+                            let result = TypeParser::default()
+                                .parse(stream.clone())
+                                .map(Statement::Type)?;
+                            self.state = State::Semicolon;
+                            result
+                        }
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Keyword(Keyword::Struct),
+                            ..
+                        })) => {
+                            let result = StructParser::default()
+                                .parse(stream.clone())
+                                .map(Statement::Struct)?;
+                            self.state = State::Semicolon;
+                            result
+                        }
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Keyword(Keyword::Debug),
+                            ..
+                        })) => {
+                            let result = DebugParser::default()
+                                .parse(stream.clone())
+                                .map(Statement::Debug)?;
                             self.state = State::Semicolon;
                             result
                         }
@@ -176,75 +207,95 @@ mod tests {
     use crate::lexical::TokenStream;
     use crate::syntax::BlockExpression;
     use crate::syntax::Expression;
+    use crate::syntax::ExpressionElement;
+    use crate::syntax::ExpressionObject;
+    use crate::syntax::ExpressionOperand;
     use crate::syntax::Identifier;
     use crate::syntax::LetStatement;
     use crate::syntax::Literal;
-    use crate::syntax::OperatorExpression;
-    use crate::syntax::OperatorExpressionElement;
-    use crate::syntax::OperatorExpressionObject;
-    use crate::syntax::OperatorExpressionOperand;
     use crate::syntax::Statement;
     use crate::syntax::Type;
     use crate::syntax::TypeVariant;
 
     #[test]
+    fn ok_empty() {
+        let input = r#";"#;
+
+        let expected = Ok((Statement::Empty, false));
+
+        let result =
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
     fn ok_semicolon_terminated() {
-        let code = r#"let mut a: uint232 = 42;"#;
+        let input = r#"let mut a: u232 = 42;"#;
 
         let expected = Ok((
             Statement::Let(LetStatement::new(
                 Location::new(1, 1),
                 Identifier::new(Location::new(1, 9), "a".to_owned()),
                 true,
-                Some(Type::new(Location::new(1, 12), TypeVariant::uint(232))),
-                Expression::Operator(OperatorExpression::new(
-                    Location::new(1, 22),
-                    vec![OperatorExpressionElement::new(
-                        Location::new(1, 22),
-                        OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                            Literal::new(
-                                Location::new(1, 22),
-                                lexical::Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
-                            ),
-                        )),
-                    )],
+                Some(Type::new(
+                    Location::new(1, 12),
+                    TypeVariant::new_integer_unsigned(232),
                 )),
+                Expression::new(
+                    Location::new(1, 19),
+                    vec![ExpressionElement::new(
+                        Location::new(1, 19),
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(1, 19),
+                            lexical::Literal::Integer(IntegerLiteral::new_decimal("42".to_owned())),
+                        ))),
+                    )],
+                ),
             )),
             false,
         ));
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
 
         assert_eq!(expected, result);
     }
 
     #[test]
     fn ok_semicolon_unterminated() {
-        let code = r#"{ 42 } "#;
+        let input = r#"{ 42 } "#;
 
         let expected = Ok((
-            Statement::Expression(Expression::Block(BlockExpression {
-                location: Location::new(1, 1),
-                statements: vec![],
-                expression: Some(Box::new(Expression::Operator(OperatorExpression::new(
-                    Location::new(1, 3),
-                    vec![OperatorExpressionElement::new(
-                        Location::new(1, 3),
-                        OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                            Literal::new(
+            Statement::Expression(Expression::new(
+                Location::new(1, 1),
+                vec![ExpressionElement::new(
+                    Location::new(1, 1),
+                    ExpressionObject::Operand(ExpressionOperand::Block(BlockExpression::new(
+                        Location::new(1, 1),
+                        vec![],
+                        Some(Expression::new(
+                            Location::new(1, 3),
+                            vec![ExpressionElement::new(
                                 Location::new(1, 3),
-                                lexical::Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
-                            ),
+                                ExpressionObject::Operand(ExpressionOperand::Literal(
+                                    Literal::new(
+                                        Location::new(1, 3),
+                                        lexical::Literal::Integer(IntegerLiteral::new_decimal(
+                                            "42".to_owned(),
+                                        )),
+                                    ),
+                                )),
+                            )],
                         )),
-                    )],
-                )))),
-            })),
+                    ))),
+                )],
+            )),
             true,
         ));
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
 
         assert_eq!(expected, result);
     }

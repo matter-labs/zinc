@@ -19,9 +19,9 @@ use crate::Error;
 #[derive(Debug, Clone, Copy)]
 pub enum State {
     KeywordDebug,
-    BracketOpen,
+    ParenthesisLeft,
     Expression,
-    BracketClose,
+    ParenthesisRight,
 }
 
 impl Default for State {
@@ -48,7 +48,7 @@ impl Parser {
                             location,
                         })) => {
                             self.builder.set_location(location);
-                            self.state = State::BracketOpen;
+                            self.state = State::ParenthesisLeft;
                         }
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
@@ -65,7 +65,7 @@ impl Parser {
                         }
                     }
                 }
-                State::BracketOpen => {
+                State::ParenthesisLeft => {
                     let next = stream.borrow_mut().next();
                     match next {
                         Some(Ok(Token {
@@ -90,9 +90,9 @@ impl Parser {
                 State::Expression => {
                     let expression = ExpressionParser::default().parse(stream.clone())?;
                     self.builder.set_expression(expression);
-                    self.state = State::BracketClose;
+                    self.state = State::ParenthesisRight;
                 }
-                State::BracketClose => {
+                State::ParenthesisRight => {
                     let next = stream.borrow_mut().next();
                     match next {
                         Some(Ok(Token {
@@ -131,34 +131,31 @@ mod tests {
     use crate::lexical::TokenStream;
     use crate::syntax::DebugStatement;
     use crate::syntax::Expression;
+    use crate::syntax::ExpressionElement;
+    use crate::syntax::ExpressionObject;
+    use crate::syntax::ExpressionOperand;
     use crate::syntax::Literal;
-    use crate::syntax::OperatorExpression;
-    use crate::syntax::OperatorExpressionElement;
-    use crate::syntax::OperatorExpressionObject;
-    use crate::syntax::OperatorExpressionOperand;
 
     #[test]
     fn ok() {
-        let code = r#"debug(42)"#;
+        let input = r#"debug(42);"#;
 
         let expected = Ok(DebugStatement::new(
             Location::new(1, 1),
-            Expression::Operator(OperatorExpression::new(
+            Expression::new(
                 Location::new(1, 7),
-                vec![OperatorExpressionElement::new(
+                vec![ExpressionElement::new(
                     Location::new(1, 7),
-                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                        Literal::new(
-                            Location::new(1, 7),
-                            lexical::Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
-                        ),
-                    )),
+                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                        Location::new(1, 7),
+                        lexical::Literal::Integer(IntegerLiteral::new_decimal("42".to_owned())),
+                    ))),
                 )],
-            )),
+            ),
         ));
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
 
         assert_eq!(expected, result);
     }

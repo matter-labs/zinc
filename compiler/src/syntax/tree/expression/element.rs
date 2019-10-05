@@ -1,20 +1,20 @@
 //!
-//! The operator expression element.
+//! The expression element.
 //!
 
 use std::fmt;
 
 use crate::lexical::Location;
-use crate::syntax::OperatorExpressionObject;
+use crate::syntax::ExpressionObject;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Element {
     pub location: Location,
-    pub object: OperatorExpressionObject,
+    pub object: ExpressionObject,
 }
 
 impl Element {
-    pub fn new(location: Location, object: OperatorExpressionObject) -> Self {
+    pub fn new(location: Location, object: ExpressionObject) -> Self {
         Self { location, object }
     }
 }

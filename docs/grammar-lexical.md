@@ -18,8 +18,8 @@ identifier = ~keyword [A-Za-z_][A-Za-z_0-9]*
 
 type =
   | 'bool'
-  | ['uint8' 'uint16' ... 'uint240' 'uint248']
-  | ['int8' 'int16' ... 'int240' 'int248']
+  | ['u8' 'u16' ... 'u240' 'u248']
+  | ['i8' 'i16' ... 'i240' 'i248']
   | 'field'
 
 keyword =
@@ -27,24 +27,31 @@ keyword =
   | 'inputs'
   | 'witness'
   | 'require'
-  | 'debug'  
+  | 'debug'
+
   // declaration
   | 'let'
-  | 'mut'  
+  | 'mut'
+  | 'type'
+  | 'struct'
+
   // control
   | 'for'
   | 'in'
   | 'while'
   | 'if'
-  | 'else'  
+  | 'else'
+
   // type
   | 'bool'
-  | ['uint8' 'uint16' ... 'uint240' 'uint248']
-  | ['int8' 'int16' ... 'int240' 'int248']
+  | ['u8' 'u16' ... 'u240' 'u248']
+  | ['i8' 'i16' ... 'i240' 'i248']
   | 'field'
+
   // literal
   | 'true'
   | 'false'
+
   // operator
   | 'as'
 
@@ -83,15 +90,16 @@ symbol =
   | '\'
   | '!'
   | '<'
-  | '>'  
+  | '>'
+
   // complex
   | '=='
   | '!='
   | '<='
   | '>='  
   | '&&'
-  | '||'
   | '^^'
+  | '||'
   | '..'
   | '..='
 

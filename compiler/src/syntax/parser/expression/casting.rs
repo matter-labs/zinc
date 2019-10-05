@@ -9,20 +9,20 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
+use crate::syntax::AccessOperandParser;
 use crate::syntax::Error as SyntaxError;
-use crate::syntax::IndexingOperatorOperandParser;
-use crate::syntax::OperatorExpression;
-use crate::syntax::OperatorExpressionBuilder;
-use crate::syntax::OperatorExpressionOperator;
+use crate::syntax::Expression;
+use crate::syntax::ExpressionBuilder;
+use crate::syntax::ExpressionOperator;
 use crate::Error;
 
 #[derive(Default)]
 pub struct Parser {
-    builder: OperatorExpressionBuilder,
+    builder: ExpressionBuilder,
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<OperatorExpression, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
         let peek = stream.borrow_mut().peek();
         match peek {
             Some(Ok(Token {
@@ -34,7 +34,7 @@ impl Parser {
                 let rpn = Self::default().parse(stream.clone())?;
                 self.builder.extend_with_expression(rpn);
                 self.builder
-                    .push_operator(location, OperatorExpressionOperator::Not);
+                    .push_operator(location, ExpressionOperator::Not);
                 Ok(self.builder.finish())
             }
             Some(Ok(Token {
@@ -46,12 +46,12 @@ impl Parser {
                 let rpn = Self::default().parse(stream.clone())?;
                 self.builder.extend_with_expression(rpn);
                 self.builder
-                    .push_operator(location, OperatorExpressionOperator::Negation);
+                    .push_operator(location, ExpressionOperator::Negation);
                 Ok(self.builder.finish())
             }
             Some(Ok(Token { location, .. })) => {
                 self.builder.set_location(location);
-                let rpn = IndexingOperatorOperandParser::default().parse(stream.clone())?;
+                let rpn = AccessOperandParser::default().parse(stream.clone())?;
                 self.builder.extend_with_expression(rpn);
                 Ok(self.builder.finish())
             }
@@ -73,45 +73,44 @@ mod tests {
     use crate::lexical::IntegerLiteral;
     use crate::lexical::Location;
     use crate::lexical::TokenStream;
+    use crate::syntax::Expression;
+    use crate::syntax::ExpressionElement;
+    use crate::syntax::ExpressionObject;
+    use crate::syntax::ExpressionOperand;
+    use crate::syntax::ExpressionOperator;
     use crate::syntax::Identifier;
     use crate::syntax::Literal;
-    use crate::syntax::OperatorExpression;
-    use crate::syntax::OperatorExpressionElement;
-    use crate::syntax::OperatorExpressionObject;
-    use crate::syntax::OperatorExpressionOperand;
-    use crate::syntax::OperatorExpressionOperator;
 
     #[test]
     fn ok() {
-        let code = r#"array[42] "#;
+        let input = r#"array[42] "#;
 
-        let expected = Ok(OperatorExpression::new(
+        let expected = Ok(Expression::new(
             Location::new(1, 1),
             vec![
-                OperatorExpressionElement::new(
+                ExpressionElement::new(
                     Location::new(1, 1),
-                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Identifier(
-                        Identifier::new(Location::new(1, 1), "array".to_owned()),
-                    )),
+                    ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
+                        Location::new(1, 1),
+                        "array".to_owned(),
+                    ))),
                 ),
-                OperatorExpressionElement::new(
+                ExpressionElement::new(
                     Location::new(1, 7),
-                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                        Literal::new(
-                            Location::new(1, 7),
-                            lexical::Literal::Integer(IntegerLiteral::decimal("42".to_owned())),
-                        ),
-                    )),
+                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                        Location::new(1, 7),
+                        lexical::Literal::Integer(IntegerLiteral::new_decimal("42".to_owned())),
+                    ))),
                 ),
-                OperatorExpressionElement::new(
+                ExpressionElement::new(
                     Location::new(1, 6),
-                    OperatorExpressionObject::Operator(OperatorExpressionOperator::Indexing),
+                    ExpressionObject::Operator(ExpressionOperator::Indexing),
                 ),
             ],
         ));
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
 
         assert_eq!(expected, result);
     }

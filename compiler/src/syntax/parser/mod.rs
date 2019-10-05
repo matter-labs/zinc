@@ -8,19 +8,20 @@ mod statement;
 mod r#type;
 mod witnesses;
 
-pub use self::expression::AddSubOperatorOperandParser;
-pub use self::expression::AndOperatorOperandParser;
+pub use self::expression::AccessOperandParser;
+pub use self::expression::AddSubOperandParser;
+pub use self::expression::AndOperandParser;
 pub use self::expression::ArrayExpressionParser;
 pub use self::expression::BlockExpressionParser;
-pub use self::expression::CastingOperatorOperandParser;
-pub use self::expression::ComparisonOperatorOperandParser;
+pub use self::expression::CastingOperandParser;
+pub use self::expression::ComparisonOperandParser;
 pub use self::expression::ConditionalExpressionParser;
-pub use self::expression::IndexingOperatorOperandParser;
-pub use self::expression::MulDivRemOperatorOperandParser;
-pub use self::expression::OperatorExpressionParser;
-pub use self::expression::OrOperatorOperandParser;
+pub use self::expression::MulDivRemOperandParser;
+pub use self::expression::OrOperandParser;
 pub use self::expression::Parser as ExpressionParser;
-pub use self::expression::XorOperatorOperandParser;
+pub use self::expression::StructureExpressionParser;
+pub use self::expression::TupleExpressionParser;
+pub use self::expression::XorOperandParser;
 pub use self::inputs::Parser as InputsParser;
 pub use self::r#type::Parser as TypeParser;
 pub use self::statement::DebugParser as DebugStatementParser;
@@ -28,7 +29,7 @@ pub use self::statement::LetParser as LetStatementParser;
 pub use self::statement::LoopParser as LoopStatementParser;
 pub use self::statement::Parser as StatementParser;
 pub use self::statement::RequireParser as RequireStatementParser;
-pub use self::witnesses::Parser as WitnessParser;
+pub use self::witnesses::Parser as WitnessesParser;
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -46,7 +47,7 @@ impl Parser {
         let stream = Rc::new(RefCell::new(stream));
 
         let inputs = InputsParser::default().parse(stream.clone())?;
-        let witnesses = WitnessParser::default().parse(stream.clone())?;
+        let witnesses = WitnessesParser::default().parse(stream.clone())?;
 
         let mut statements = Vec::new();
         loop {

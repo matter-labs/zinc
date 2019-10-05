@@ -287,6 +287,7 @@ impl Writer {
     }
 
     pub fn write_attributes(&mut self) -> Result<(), Error> {
+        self.write_line("#![allow(unused_imports)]".to_owned())?;
         self.write_line("#![allow(unused_variables)]".to_owned())?;
         self.write_empty_line()?;
         Ok(())
@@ -332,12 +333,15 @@ impl Writer {
 
     pub fn write_allocate_input(&mut self, input: Input) -> Result<(), Error> {
         let bitlength = match input.r#type.variant {
-            TypeVariant::Void => panic!("Always is a numeric value"),
+            TypeVariant::Unit => panic!("Always is a numeric value"),
             TypeVariant::Boolean => 1,
-            TypeVariant::Int { bitlength } => bitlength,
-            TypeVariant::Uint { bitlength } => bitlength,
+            TypeVariant::IntegerSigned { bitlength } => bitlength,
+            TypeVariant::IntegerUnsigned { bitlength } => bitlength,
             TypeVariant::Field => crate::SIZE_FIELD,
             TypeVariant::Array { .. } => unimplemented!(),
+            TypeVariant::Tuple { .. } => unimplemented!(),
+            TypeVariant::Structure { .. } => unimplemented!(),
+            TypeVariant::Alias { .. } => unimplemented!(),
         };
         self.write_line(format!(
             r#"let {0} = r1cs::allocate_input(system.namespace(|| "{0}"), || Ok(self.{0}), {1})?.0;"#,
@@ -348,12 +352,15 @@ impl Writer {
 
     pub fn write_allocate_witness(&mut self, witness: Witness) -> Result<(), Error> {
         let bitlength = match witness.r#type.variant {
-            TypeVariant::Void => panic!("Always is a numeric value"),
+            TypeVariant::Unit => panic!("Always is a numeric value"),
             TypeVariant::Boolean => 1,
-            TypeVariant::Int { bitlength } => bitlength,
-            TypeVariant::Uint { bitlength } => bitlength,
+            TypeVariant::IntegerSigned { bitlength } => bitlength,
+            TypeVariant::IntegerUnsigned { bitlength } => bitlength,
             TypeVariant::Field => crate::SIZE_FIELD,
             TypeVariant::Array { .. } => unimplemented!(),
+            TypeVariant::Tuple { .. } => unimplemented!(),
+            TypeVariant::Structure { .. } => unimplemented!(),
+            TypeVariant::Alias { .. } => unimplemented!(),
         };
         self.write_line(format!(
             r#"let {0} = r1cs::allocate_witness(system.namespace(|| "{0}"), || Ok(self.{0}), {1})?.0;"#,

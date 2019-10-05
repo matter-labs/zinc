@@ -10,4 +10,9 @@ use crate::interpreter::Value;
 pub enum Error {
     #[fail(display = "indexing requires an integer constant, but got '{}'", _0)]
     IndexingExpectedIntegerConstant(Value),
+    #[fail(
+        display = "tuple access requires an integer constant, but got '{}'",
+        _0
+    )]
+    TupleAccessExpectedIntegerConstant(Value),
 }

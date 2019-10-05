@@ -14,7 +14,7 @@ Implementation details below are highlighted like this.
 
 ```rust
 // returns a^3
-pub fn cube(x: uint128) -> uint128 {
+pub fn cube(x: u128) -> u128 {
     let mut r = x;
     for i in 0..2 {
         r = r * x;
@@ -31,11 +31,11 @@ pub fn cube(x: uint128) -> uint128 {
 use simple_math;
 
 inputs {
-    x: uint128;
+    x: u128;
 }
 
 witness {
-    r: uint128;
+    r: u128;
 }
 
 require(x == simple_math::cube(r), "x == r ^ 3");
@@ -86,12 +86,12 @@ Each circuit must have 0 or more input arguments. It can have 0 or more witness 
 
 ```rust
     input {
-        x: uint128,
+        x: u128,
         ...
     }
 
     witness {
-        cubic_root: uint128,
+        cubic_root: u128,
         ...
     }
 ```
@@ -158,8 +158,8 @@ All other types are represented using `field` as their basic building block.
 
 #### Integer types
 
-- `uint8` .. `uint248`: unsigned integers of different bitlength (with step 8, e.g. for field length 254 the set will include [8, 16, ..., 240, 248])
-- `int8` .. `int248`: signed integers with the same rules as above
+- `u8` .. `u248`: unsigned integers of different bitlength (with step 8, e.g. for field length 254 the set will include [8, 16, ..., 240, 248])
+- `i8` .. `i248`: signed integers with the same rules as above
 
 :::info
 When integers variables are allocated, their bitlength must be enforced in the constraint system.
@@ -174,12 +174,12 @@ Following the Rust rules, only unsigned integer literals can be expressed, since
 Thus, an unsigned value can be implicitly casted to a signed value with the unary `-`.
 
 ```rust
-let a = 0; // uint8
-let a: int24 = 0; // int24
-let b = 256; // uint16
-let c = -1;  // int8
-let c = -129; // int16
-let d = 0xff; // uint8
+let a = 0; // u8
+let a: i24 = 0; // i24
+let b = 256; // u16
+let c = -1;  // i8
+let c = -129; // i16
+let d = 0xff; // u8
 let e: field = 0; // field
 ```
 
@@ -226,7 +226,7 @@ let y: Order = x;
 Tuples follow the Rust rules:
 
 ```rust
-(uint8, field)
+(u8, field)
 ```
 
 Like in Rust, `()` represents the void value.
@@ -237,8 +237,8 @@ Like in Rust, `()` represents the void value.
 
 ```rust
 struct Person {
-    age: uint8,
-    id: uint64,
+    age: u8,
+    id: u64,
 }
 ```
 
@@ -247,16 +247,16 @@ struct Person {
 Fixed-sized arrays follow the Rust rules:
 
 ```rust
-let fibbonaci: [uint8; 5] = [1, 1, 2, 3, 5];
+let fibbonaci: [u8; 5] = [1, 1, 2, 3, 5];
 let mut a: [field, 10]; // initialized with all zeros
 ```
 
 ##### Array functions: len(), reverse()
 
-`len()` function of the shortest `uint` type possible:
+`len()` function of the shortest unsigned integer type possible:
 
 ```rust
-let x = fibbonaci.len(); // let x: uint3 = 5;
+let x = fibbonaci.len(); // let x: u3 = 5;
 ```
 
 `reverse()` produces a copy of the array in reverse order:
@@ -295,12 +295,12 @@ Jab requires strong typing. Operators on operands of different types require exp
 Developers can coerce type conversions using `as` keyword (following the Rust rules):
 
 - any integer type can be coerced into another integer type of equal or greater bitlength without changes in underlying `field` value
-- an enum can be converted into an `uint` of enough bitlength
+- an enum can be converted into an unsigned integer of enough bitlength
 
 ```rust
-let a = -1; // int8
-let b: uint8 = a as uint8; // ok
-let c: uint8 = Order::FIRST; // ok
+let a = -1; // i8
+let b: u8 = a as u8; // ok
+let c: u8 = Order::FIRST; // ok
 ```
 
 ## Passing by value
@@ -470,7 +470,7 @@ Not allowing returning the value in the middle of the function is a design decis
 
 ```rust
 // calculate `x ^ y` for all `y` up to 8
-fn pow(x: uint8, y: uint8) -> uint8 {
+fn pow(x: u8, y: u8) -> u8 {
     require(y < 8);
     let r = 1;
     for i in 0..8 {
@@ -509,13 +509,13 @@ Any primitive type and tuple can be converted to and from an array of `bool` bit
 
 ```rust
 // into_bits
-let i: uint16 = 7;
+let i: u16 = 7;
 let i_bits = i.into_bits(); // [bool; 16]
-let x = (1 as uint64, 2 as uint10).into_bits(); // [bool; 74]
+let x = (1 as u64, 2 as u16).into_bits(); // [bool; 74]
 
 // from_bits
 let slice = x[0..10];
-let t: (uint8, bool, bool) = slice.from_bits();
+let t: (u8, bool, bool) = slice.from_bits();
 ```
 
 ## Standard library
@@ -538,8 +538,8 @@ let t: (uint8, bool, bool) = slice.from_bits();
 - if
 - else
 - bool
-- uint8 ... uint248
-- int8 ... int248
+- u8 ... u248
+- i8 ... i248
 - field
 - true
 - false

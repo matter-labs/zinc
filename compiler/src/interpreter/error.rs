@@ -8,6 +8,7 @@ use crate::interpreter::ArrayError;
 use crate::interpreter::ElementError;
 use crate::interpreter::IntegerError;
 use crate::interpreter::ScopeError;
+use crate::interpreter::StructureError;
 use crate::interpreter::Value;
 use crate::lexical::Location;
 use crate::syntax::Literal;
@@ -23,6 +24,8 @@ pub enum Error {
     LiteralCannotBeEvaluated(Location, Literal),
     #[fail(display = "{} array literal: {}", _0, _1)]
     ArrayLiteral(Location, ArrayError),
+    #[fail(display = "{} structure literal: {}", _0, _1)]
+    StructureLiteral(Location, StructureError),
     #[fail(
         display = "{} conditional expected a boolean expression, but got '{}'",
         _0, _1
@@ -32,7 +35,7 @@ pub enum Error {
         display = "{} let declaration invalid type: '{}' cannot be casted to '{}'",
         _0, _1, _2
     )]
-    LetInvalidType(Location, Value, TypeVariant),
+    LetInvalidType(Location, TypeVariant, TypeVariant),
     #[fail(display = "{} let declaration implicit casting: {}", _0, _1)]
     LetImplicitCasting(Location, IntegerError),
     #[fail(

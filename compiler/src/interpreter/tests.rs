@@ -10,7 +10,7 @@ use crate::Error;
 
 #[test]
 fn algorithm_factorial() {
-    let code = r#"
+    let input = r#"
 inputs {}
 
 let mut fact: field = 1;
@@ -24,14 +24,14 @@ require(fact == 120 as field);
 
     let expected = Ok(());
 
-    let result = crate::interpret(crate::parse(code.to_owned()).expect("Syntax error"));
+    let result = crate::interpret(crate::parse(input.to_owned()).expect("Syntax error"));
 
     assert_eq!(expected, result);
 }
 
 #[test]
 fn algorithm_fibonacci() {
-    let code = r#"
+    let input = r#"
 inputs {}
 
 let mut value_1: field = 0;
@@ -49,17 +49,17 @@ require(fibo == 13 as field);
 
     let expected = Ok(());
 
-    let result = crate::interpret(crate::parse(code.to_owned()).expect("Syntax error"));
+    let result = crate::interpret(crate::parse(input.to_owned()).expect("Syntax error"));
 
     assert_eq!(expected, result);
 }
 
 #[test]
 fn array_double() {
-    let code = r#"
+    let input = r#"
 inputs {}
 
-let mut array_double: [[uint8; 4]; 4] = [
+let mut array_double: [[u8; 4]; 4] = [
     [1, 2, 3, 4],
     [5, 6, 7, 8],
     [9, 10, 11, 12],
@@ -77,14 +77,14 @@ require(array_double[3][1] == 255);
 
     let expected = Ok(());
 
-    let result = crate::interpret(crate::parse(code.to_owned()).expect("Syntax error"));
+    let result = crate::interpret(crate::parse(input.to_owned()).expect("Syntax error"));
 
     assert_eq!(expected, result);
 }
 
 #[test]
 fn array_filling() {
-    let code = r#"
+    let input = r#"
 inputs {}
 
 let original = [2, 1, 0, 3];
@@ -111,14 +111,72 @@ require(3 == array[3]);
 
     let expected = Ok(());
 
-    let result = crate::interpret(crate::parse(code.to_owned()).expect("Syntax error"));
+    let result = crate::interpret(crate::parse(input.to_owned()).expect("Syntax error"));
+
+    assert_eq!(expected, result);
+}
+
+#[test]
+fn tuple_nested() {
+    let input = r#"
+inputs {}
+
+let mut tuple_nested: ((u8, u8), (u8, u8)) = (
+    (1, 2),
+    (3, 4),
+);
+
+tuple_nested.0.0 = 42;
+tuple_nested.1.1 = 111;
+
+require(tuple_nested.0.0 == 42);
+require(tuple_nested.0.1 == 2);
+require(tuple_nested.1.0 == 3);
+require(tuple_nested.1.1 == 111);
+"#;
+
+    let expected = Ok(());
+
+    let result = crate::interpret(crate::parse(input.to_owned()).expect("Syntax error"));
+
+    assert_eq!(expected, result);
+}
+
+#[test]
+fn structure_mutating() {
+    let input = r#"
+inputs {}
+
+struct Test {
+    x: u8,
+    y: u8,
+    z: u8,
+};
+
+let mut test = Test {
+    x: 1,
+    y: 2,
+    z: 3,
+};
+
+test.x = 5;
+test.y = 7;
+test.z = 9;
+require(test.x == 5);
+require(test.y == 7);
+require(test.z == 9);
+"#;
+
+    let expected = Ok(());
+
+    let result = crate::interpret(crate::parse(input.to_owned()).expect("Syntax error"));
 
     assert_eq!(expected, result);
 }
 
 #[test]
 fn block_expresssion_pyramid() {
-    let code = r#"
+    let input = r#"
 inputs {}
 
 let pyramid = 1 + {
@@ -134,14 +192,14 @@ require(pyramid == 16);
 
     let expected = Ok(());
 
-    let result = crate::interpret(crate::parse(code.to_owned()).expect("Syntax error"));
+    let result = crate::interpret(crate::parse(input.to_owned()).expect("Syntax error"));
 
     assert_eq!(expected, result);
 }
 
 #[test]
 fn block_statement_mutating() {
-    let code = r#"
+    let input = r#"
 inputs {}
 
 let mut inner = 25;
@@ -154,14 +212,14 @@ require(inner == 50);
 
     let expected = Ok(());
 
-    let result = crate::interpret(crate::parse(code.to_owned()).expect("Syntax error"));
+    let result = crate::interpret(crate::parse(input.to_owned()).expect("Syntax error"));
 
     assert_eq!(expected, result);
 }
 
 #[test]
 fn conditional_expression_nested() {
-    let code = r#"
+    let input = r#"
 inputs {}
 
 let result = if false {
@@ -177,14 +235,14 @@ require(result == 2);
 
     let expected = Ok(());
 
-    let result = crate::interpret(crate::parse(code.to_owned()).expect("Syntax error"));
+    let result = crate::interpret(crate::parse(input.to_owned()).expect("Syntax error"));
 
     assert_eq!(expected, result);
 }
 
 #[test]
 fn conditional_statement_elseless() {
-    let code = r#"
+    let input = r#"
 inputs {}
 
 let mut result = 5;
@@ -197,74 +255,74 @@ require(result == 5);
 
     let expected = Ok(());
 
-    let result = crate::interpret(crate::parse(code.to_owned()).expect("Syntax error"));
+    let result = crate::interpret(crate::parse(input.to_owned()).expect("Syntax error"));
 
     assert_eq!(expected, result);
 }
 
 #[test]
 fn loop_inclusive() {
-    let code = r#"
+    let input = r#"
 inputs {}
 
-let mut sum: uint64 = 0;
+let mut sum: u64 = 0;
 for i in 0..=10 {
     sum = sum + i;
 };
 
-require(sum == 55 as uint64);
+require(sum == 55 as u64);
 "#;
 
     let expected = Ok(());
 
-    let result = crate::interpret(crate::parse(code.to_owned()).expect("Syntax error"));
+    let result = crate::interpret(crate::parse(input.to_owned()).expect("Syntax error"));
 
     assert_eq!(expected, result);
 }
 
 #[test]
 fn loop_reverted() {
-    let code = r#"
+    let input = r#"
 inputs {}
 
-let mut sum: uint64 = 0;
+let mut sum: u64 = 0;
 for i in 10..0 {
     sum = sum + i;
 };
 
-require(sum == 55 as uint64);
+require(sum == 55 as u64);
 "#;
 
     let expected = Ok(());
 
-    let result = crate::interpret(crate::parse(code.to_owned()).expect("Syntax error"));
+    let result = crate::interpret(crate::parse(input.to_owned()).expect("Syntax error"));
 
     assert_eq!(expected, result);
 }
 
 #[test]
 fn loop_with_while() {
-    let code = r#"
+    let input = r#"
 inputs {}
 
-let mut sum: uint64 = 0;
-for i in 0..1_000_000 while i < 10 as uint64 {
+let mut sum: u64 = 0;
+for i in 0..1_000_000 while i < 10 as u64 {
     sum = sum + i;
 };
 
-require(sum == 55 as uint64);
+require(sum == 55 as u64);
 "#;
 
     let expected = Ok(());
 
-    let result = crate::interpret(crate::parse(code.to_owned()).expect("Syntax error"));
+    let result = crate::interpret(crate::parse(input.to_owned()).expect("Syntax error"));
 
     assert_eq!(expected, result);
 }
 
 #[test]
 fn require_fail() {
-    let code = r#"
+    let input = r#"
 inputs {}
 
 let value = 42;
@@ -277,7 +335,7 @@ require(value != 42);
         "L6".to_owned(),
     )));
 
-    let result = crate::interpret(crate::parse(code.to_owned()).expect("Syntax error"));
+    let result = crate::interpret(crate::parse(input.to_owned()).expect("Syntax error"));
 
     assert_eq!(expected, result);
 }

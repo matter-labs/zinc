@@ -2,6 +2,8 @@
 //! The Jabberwocky interpreter binary.
 //!
 
+#![allow(clippy::large_enum_variant)]
+
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
@@ -55,12 +57,12 @@ fn main() -> Result<(), Error> {
         .map_err(InputError::Metadata)
         .map_err(Error::Input)?
         .len() as usize;
-    let mut code = String::with_capacity(size);
-    file.read_to_string(&mut code)
+    let mut input = String::with_capacity(size);
+    file.read_to_string(&mut input)
         .map_err(InputError::Reading)
         .map_err(Error::Input)?;
 
-    let circuit = compiler::parse(code).map_err(|error| {
+    let circuit = compiler::parse(input).map_err(|error| {
         log::error!("{}", error);
         Error::Compiler(error)
     })?;
@@ -79,6 +81,6 @@ fn init_logger() {
         env::set_var("RUST_LOG", "compiler=info,jabi=info");
     }
     env_logger::Builder::from_default_env()
-        .default_format_timestamp_nanos(true)
+        .format_timestamp_nanos()
         .init();
 }

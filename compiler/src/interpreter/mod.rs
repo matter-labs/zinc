@@ -16,7 +16,11 @@ pub use self::element::Error as ElementError;
 pub use self::element::Integer;
 pub use self::element::IntegerError;
 pub use self::element::Place;
+pub use self::element::PlaceElement;
 pub use self::element::PlaceError;
+pub use self::element::Structure;
+pub use self::element::StructureError;
+pub use self::element::Tuple;
 pub use self::element::Value;
 pub use self::element::ValueError;
 pub use self::error::Error;
@@ -24,6 +28,7 @@ pub use self::scope::Error as ScopeError;
 pub use self::scope::Scope;
 
 use std::cell::RefCell;
+use std::collections::BTreeMap;
 use std::rc::Rc;
 
 use r1cs::Bn256;
@@ -36,12 +41,14 @@ use crate::syntax::BlockExpression;
 use crate::syntax::CircuitProgram;
 use crate::syntax::ConditionalExpression;
 use crate::syntax::Expression;
+use crate::syntax::ExpressionObject;
+use crate::syntax::ExpressionOperand;
+use crate::syntax::ExpressionOperator;
 use crate::syntax::Literal;
-use crate::syntax::OperatorExpression;
-use crate::syntax::OperatorExpressionObject;
-use crate::syntax::OperatorExpressionOperand;
-use crate::syntax::OperatorExpressionOperator;
 use crate::syntax::Statement;
+use crate::syntax::StructureExpression;
+use crate::syntax::TupleExpression;
+use crate::syntax::TypeVariant;
 
 pub struct Interpreter {
     system: TestConstraintSystem<Bn256>,
@@ -71,14 +78,14 @@ impl Interpreter {
             let location = input.location;
             self.scope
                 .borrow_mut()
-                .declare_variable(input.identifier.name, Value::Void, false)
+                .declare_variable(input.identifier.name, Value::Unit, false)
                 .map_err(|error| Error::Scope(location, error))?;
         }
         for witness in program.witnesses.into_iter() {
             let location = witness.location;
             self.scope
                 .borrow_mut()
-                .declare_variable(witness.identifier.name, Value::Void, false)
+                .declare_variable(witness.identifier.name, Value::Unit, false)
                 .map_err(|error| Error::Scope(location, error))?;
         }
 
@@ -93,40 +100,7 @@ impl Interpreter {
         log::trace!("Statement              : {}", statement);
 
         match statement {
-            Statement::Let(r#let) => {
-                let location = r#let.location;
-                let value = self.evaluate(r#let.expression)?;
-                let value = if let Some(r#type) = r#let.r#type {
-                    match (value, r#type.variant) {
-                        (Value::Integer(integer), type_variant) => {
-                            let namespace = r#let.identifier.name.clone();
-                            let namespace = self.system.namespace(|| namespace);
-                            integer
-                                .cast(namespace, type_variant)
-                                .map(Value::Integer)
-                                .map_err(|error| Error::LetImplicitCasting(location, error))?
-                        }
-                        (value, type_variant) => {
-                            if value.type_variant() == type_variant {
-                                value
-                            } else {
-                                return Err(Error::LetInvalidType(
-                                    r#let.location,
-                                    value,
-                                    type_variant,
-                                ));
-                            }
-                        }
-                    }
-                } else {
-                    value
-                };
-
-                self.scope
-                    .borrow_mut()
-                    .declare_variable(r#let.identifier.name, value, r#let.is_mutable)
-                    .map_err(|error| Error::Scope(location, error))?;
-            }
+            Statement::Empty => {}
             Statement::Require(require) => match self.evaluate(require.expression)? {
                 Value::Boolean(boolean) => {
                     if boolean.is_true() {
@@ -143,6 +117,52 @@ impl Interpreter {
                     ))
                 }
             },
+            Statement::Let(r#let) => {
+                let location = r#let.location;
+                let value = self.evaluate(r#let.expression)?;
+                let value = if let Some(r#type) = r#let.r#type {
+                    let type_variant = match r#type.variant {
+                        TypeVariant::Alias { identifier } => {
+                            let location = r#type.location;
+                            self.scope
+                                .borrow()
+                                .resolve_type(&identifier)
+                                .map_err(|error| Error::Scope(location, error))?
+                        }
+                        type_variant => type_variant,
+                    };
+
+                    match (value, type_variant) {
+                        (Value::Integer(integer), type_variant) => {
+                            let namespace = r#let.identifier.name.clone();
+                            let namespace = self.system.namespace(|| namespace);
+                            integer
+                                .cast(namespace, type_variant)
+                                .map(Value::Integer)
+                                .map_err(|error| Error::LetImplicitCasting(location, error))?
+                        }
+                        (value, type_variant) => {
+                            let value_type_variant = value.type_variant();
+                            if value_type_variant == type_variant {
+                                value
+                            } else {
+                                return Err(Error::LetInvalidType(
+                                    r#let.location,
+                                    value_type_variant,
+                                    type_variant,
+                                ));
+                            }
+                        }
+                    }
+                } else {
+                    value
+                };
+
+                self.scope
+                    .borrow_mut()
+                    .declare_variable(r#let.identifier.name, value, r#let.is_mutable)
+                    .map_err(|error| Error::Scope(location, error))?;
+            }
             Statement::Loop(r#loop) => {
                 let location = r#loop.location;
 
@@ -175,7 +195,7 @@ impl Interpreter {
 
                     let mut executor = Interpreter::new(scope);
                     if let Some(while_condition) = r#loop.while_condition.clone() {
-                        let location = while_condition.location();
+                        let location = while_condition.location;
                         match executor.evaluate(while_condition)? {
                             Value::Boolean(boolean) => {
                                 if boolean.is_false() {
@@ -203,35 +223,49 @@ impl Interpreter {
                     }
                 }
             }
-            Statement::Expression(expression) => {
-                self.evaluate(expression)?;
+            Statement::Type(r#type) => {
+                let location = r#type.location;
+                self.scope
+                    .borrow_mut()
+                    .declare_type(r#type.identifier.name, r#type.r#type.variant)
+                    .map_err(|error| Error::Scope(location, error))?;
+            }
+            Statement::Struct(r#struct) => {
+                let location = r#struct.location;
+                let type_variant = TypeVariant::new_structure(
+                    r#struct.identifier.name.clone(),
+                    r#struct
+                        .fields
+                        .into_iter()
+                        .map(|(key, r#type)| (key.name, r#type.variant))
+                        .collect::<BTreeMap<String, TypeVariant>>(),
+                );
+                self.scope
+                    .borrow_mut()
+                    .declare_type(r#struct.identifier.name, type_variant)
+                    .map_err(|error| Error::Scope(location, error))?;
             }
             Statement::Debug(debug) => {
                 let result = self.evaluate(debug.expression)?;
                 println!("{}", result);
+            }
+            Statement::Expression(expression) => {
+                self.evaluate(expression)?;
             }
         }
         Ok(())
     }
 
     fn evaluate(&mut self, expression: Expression) -> Result<Value, Error> {
-        match expression {
-            Expression::Operator(expression) => self.evaluate_operator(expression),
-            Expression::Block(expression) => self.evaluate_block(expression),
-            Expression::Conditional(expression) => self.evaluate_conditional(expression),
-        }
-    }
-
-    fn evaluate_operator(&mut self, expression: OperatorExpression) -> Result<Value, Error> {
         log::trace!("Operator expression    : {}", expression);
 
         let location = expression.location;
         for element in expression.into_iter() {
             match element.object {
-                OperatorExpressionObject::Operand(operand) => {
+                ExpressionObject::Operand(operand) => {
                     let element = match operand {
-                        OperatorExpressionOperand::Literal(literal) => match literal.data {
-                            lexical::Literal::Void => Element::Value(Value::Void),
+                        ExpressionOperand::Literal(literal) => match literal.data {
+                            lexical::Literal::Unit => Element::Value(Value::Unit),
                             lexical::Literal::Boolean(literal) => {
                                 let location = element.location;
                                 let namespace = self.next_temp_namespace();
@@ -259,23 +293,29 @@ impl Interpreter {
                                 ))
                             }
                         },
-                        OperatorExpressionOperand::Type(r#type) => Element::Type(r#type),
-                        OperatorExpressionOperand::Identifier(identifier) => {
+                        ExpressionOperand::Type(r#type) => Element::Type(r#type),
+                        ExpressionOperand::Identifier(identifier) => {
                             Element::Place(Place::new(identifier.name))
                         }
-                        OperatorExpressionOperand::Block(block) => {
+                        ExpressionOperand::Block(block) => {
                             Element::Value(self.evaluate_block(block)?)
                         }
-                        OperatorExpressionOperand::Conditional(conditional) => {
+                        ExpressionOperand::Conditional(conditional) => {
                             Element::Value(self.evaluate_conditional(conditional)?)
                         }
-                        OperatorExpressionOperand::Array(array) => {
+                        ExpressionOperand::Array(array) => {
                             Element::Value(self.evaluate_array(array)?)
+                        }
+                        ExpressionOperand::Tuple(tuple) => {
+                            Element::Value(self.evaluate_tuple(tuple)?)
+                        }
+                        ExpressionOperand::Structure(structure) => {
+                            Element::Value(self.evaluate_structure(structure)?)
                         }
                     };
                     self.rpn_stack.push(element);
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Assignment) => {
+                ExpressionObject::Operator(ExpressionOperator::Assignment) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(false, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -286,15 +326,15 @@ impl Interpreter {
                         .borrow_mut()
                         .update_value(&place, value)
                         .map_err(|error| Error::Scope(element.location, error))?;
-                    self.rpn_stack.push(Element::Value(Value::Void));
+                    self.rpn_stack.push(Element::Value(Value::Unit));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Range) => {
+                ExpressionObject::Operator(ExpressionOperator::Range) => {
                     panic!("The range operator cannot be used in expressions")
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::RangeInclusive) => {
+                ExpressionObject::Operator(ExpressionOperator::RangeInclusive) => {
                     panic!("The range inclusive operator cannot be used in expressions")
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Or) => {
+                ExpressionObject::Operator(ExpressionOperator::Or) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -306,7 +346,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Xor) => {
+                ExpressionObject::Operator(ExpressionOperator::Xor) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -318,7 +358,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::And) => {
+                ExpressionObject::Operator(ExpressionOperator::And) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -330,7 +370,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Equal) => {
+                ExpressionObject::Operator(ExpressionOperator::Equal) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -342,7 +382,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::NotEqual) => {
+                ExpressionObject::Operator(ExpressionOperator::NotEqual) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -354,7 +394,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::GreaterEqual) => {
+                ExpressionObject::Operator(ExpressionOperator::GreaterEqual) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -366,7 +406,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::LesserEqual) => {
+                ExpressionObject::Operator(ExpressionOperator::LesserEqual) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -378,7 +418,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Greater) => {
+                ExpressionObject::Operator(ExpressionOperator::Greater) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -390,7 +430,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Lesser) => {
+                ExpressionObject::Operator(ExpressionOperator::Lesser) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -402,7 +442,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition) => {
+                ExpressionObject::Operator(ExpressionOperator::Addition) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -414,7 +454,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Subtraction) => {
+                ExpressionObject::Operator(ExpressionOperator::Subtraction) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -426,7 +466,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Multiplication) => {
+                ExpressionObject::Operator(ExpressionOperator::Multiplication) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -438,7 +478,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Division) => {
+                ExpressionObject::Operator(ExpressionOperator::Division) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -450,7 +490,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Remainder) => {
+                ExpressionObject::Operator(ExpressionOperator::Remainder) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -462,7 +502,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Casting) => {
+                ExpressionObject::Operator(ExpressionOperator::Casting) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, false)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -474,7 +514,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Negation) => {
+                ExpressionObject::Operator(ExpressionOperator::Negation) => {
                     let operand_1 = self
                         .get_unary_operand(true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -486,7 +526,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Not) => {
+                ExpressionObject::Operator(ExpressionOperator::Not) => {
                     let operand_1 = self
                         .get_unary_operand(true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -498,13 +538,23 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Indexing) => {
+                ExpressionObject::Operator(ExpressionOperator::Indexing) => {
                     let (operand_1, operand_2) = self
-                        .get_binary_operands(false, true)
+                        .get_binary_operands(false, false)
                         .map_err(|error| Error::Scope(element.location, error))?;
                     self.rpn_stack.push(
                         operand_1
                             .index(operand_2)
+                            .map_err(|error| Error::Element(element.location, error))?,
+                    );
+                }
+                ExpressionObject::Operator(ExpressionOperator::Field) => {
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(false, false)
+                        .map_err(|error| Error::Scope(element.location, error))?;
+                    self.rpn_stack.push(
+                        operand_1
+                            .field(operand_2)
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
@@ -533,7 +583,7 @@ impl Interpreter {
         if let Some(expression) = block.expression {
             executor.evaluate(*expression)
         } else {
-            Ok(Value::Void)
+            Ok(Value::Unit)
         }
     }
 
@@ -550,6 +600,7 @@ impl Interpreter {
             }
         };
 
+        // TODO: decide whether to check for the else branch if the main one does not return `()`
         if result.is_true() {
             let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
             executor.evaluate_block(conditional.main_block)
@@ -560,7 +611,7 @@ impl Interpreter {
             let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
             executor.evaluate_block(else_block)
         } else {
-            Ok(Value::Void)
+            Ok(Value::Unit)
         }
     }
 
@@ -576,6 +627,30 @@ impl Interpreter {
                 .map_err(|error| Error::ArrayLiteral(location, error))?;
         }
         Ok(Value::Array(result))
+    }
+
+    fn evaluate_tuple(&mut self, tuple: TupleExpression) -> Result<Value, Error> {
+        log::trace!("Tuple expression       : {}", tuple);
+
+        let mut result = Tuple::with_capacity(tuple.elements.len());
+        for element in tuple.elements.into_iter() {
+            result.push(self.evaluate(element)?);
+        }
+        Ok(Value::Tuple(result))
+    }
+
+    fn evaluate_structure(&mut self, structure: StructureExpression) -> Result<Value, Error> {
+        log::trace!("Structure expression       : {}", structure);
+
+        let location = structure.location;
+
+        let mut result = Structure::new(structure.identifier.name);
+        for (identifier, expression) in structure.fields.into_iter() {
+            result
+                .push(identifier.name, self.evaluate(expression)?)
+                .map_err(|error| Error::StructureLiteral(location, error))?;
+        }
+        Ok(Value::Structure(result))
     }
 
     fn get_unary_operand(&mut self, resolve: bool) -> Result<Element, ScopeError> {

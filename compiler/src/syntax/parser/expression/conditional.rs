@@ -152,103 +152,92 @@ mod tests {
     use crate::syntax::BlockExpression;
     use crate::syntax::ConditionalExpression;
     use crate::syntax::Expression;
+    use crate::syntax::ExpressionElement;
+    use crate::syntax::ExpressionObject;
+    use crate::syntax::ExpressionOperand;
     use crate::syntax::Literal;
-    use crate::syntax::OperatorExpression;
-    use crate::syntax::OperatorExpressionElement;
-    use crate::syntax::OperatorExpressionObject;
-    use crate::syntax::OperatorExpressionOperand;
 
     #[test]
     fn ok_nested() {
-        let code = r#"if true { 1 } else if false { 2 } else { 3 }"#;
+        let input = r#"if true { 1 } else if false { 2 } else { 3 }"#;
 
         let expected = Ok(ConditionalExpression::new(
             Location::new(1, 1),
-            Expression::Operator(OperatorExpression::new(
+            Expression::new(
                 Location::new(1, 4),
-                vec![OperatorExpressionElement::new(
+                vec![ExpressionElement::new(
                     Location::new(1, 4),
-                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                        Literal::new(
-                            Location::new(1, 4),
-                            lexical::Literal::Boolean(BooleanLiteral::True),
-                        ),
-                    )),
+                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                        Location::new(1, 4),
+                        lexical::Literal::Boolean(BooleanLiteral::True),
+                    ))),
                 )],
-            )),
+            ),
             BlockExpression::new(
                 Location::new(1, 9),
                 vec![],
-                Some(Expression::Operator(OperatorExpression::new(
+                Some(Expression::new(
                     Location::new(1, 11),
-                    vec![OperatorExpressionElement::new(
+                    vec![ExpressionElement::new(
                         Location::new(1, 11),
-                        OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                            Literal::new(
-                                Location::new(1, 11),
-                                lexical::Literal::Integer(IntegerLiteral::decimal("1".to_owned())),
-                            ),
-                        )),
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(1, 11),
+                            lexical::Literal::Integer(IntegerLiteral::new_decimal("1".to_owned())),
+                        ))),
                     )],
-                ))),
+                )),
             ),
             Some(ConditionalExpression::new(
                 Location::new(1, 20),
-                Expression::Operator(OperatorExpression::new(
+                Expression::new(
                     Location::new(1, 23),
-                    vec![OperatorExpressionElement::new(
+                    vec![ExpressionElement::new(
                         Location::new(1, 23),
-                        OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                            Literal::new(
-                                Location::new(1, 23),
-                                lexical::Literal::Boolean(BooleanLiteral::False),
-                            ),
-                        )),
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(1, 23),
+                            lexical::Literal::Boolean(BooleanLiteral::False),
+                        ))),
                     )],
-                )),
+                ),
                 BlockExpression::new(
                     Location::new(1, 29),
                     vec![],
-                    Some(Expression::Operator(OperatorExpression::new(
+                    Some(Expression::new(
                         Location::new(1, 31),
-                        vec![OperatorExpressionElement::new(
+                        vec![ExpressionElement::new(
                             Location::new(1, 31),
-                            OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                                Literal::new(
-                                    Location::new(1, 31),
-                                    lexical::Literal::Integer(IntegerLiteral::decimal(
-                                        "2".to_owned(),
-                                    )),
-                                ),
-                            )),
+                            ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                                Location::new(1, 31),
+                                lexical::Literal::Integer(IntegerLiteral::new_decimal(
+                                    "2".to_owned(),
+                                )),
+                            ))),
                         )],
-                    ))),
+                    )),
                 ),
                 None,
                 Some(BlockExpression::new(
                     Location::new(1, 40),
                     vec![],
-                    Some(Expression::Operator(OperatorExpression::new(
+                    Some(Expression::new(
                         Location::new(1, 42),
-                        vec![OperatorExpressionElement::new(
+                        vec![ExpressionElement::new(
                             Location::new(1, 42),
-                            OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                                Literal::new(
-                                    Location::new(1, 42),
-                                    lexical::Literal::Integer(IntegerLiteral::decimal(
-                                        "3".to_owned(),
-                                    )),
-                                ),
-                            )),
+                            ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                                Location::new(1, 42),
+                                lexical::Literal::Integer(IntegerLiteral::new_decimal(
+                                    "3".to_owned(),
+                                )),
+                            ))),
                         )],
-                    ))),
+                    )),
                 )),
             )),
             None,
         ));
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
 
         assert_eq!(expected, result);
     }

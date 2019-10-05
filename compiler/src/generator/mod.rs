@@ -18,16 +18,15 @@ use crate::syntax::BlockExpression;
 use crate::syntax::CircuitProgram;
 use crate::syntax::ConditionalExpression;
 use crate::syntax::Expression;
+use crate::syntax::ExpressionObject;
+use crate::syntax::ExpressionOperand;
+use crate::syntax::ExpressionOperator;
 use crate::syntax::Identifier;
 use crate::syntax::Literal;
-use crate::syntax::OperatorExpression;
-use crate::syntax::OperatorExpressionObject;
-use crate::syntax::OperatorExpressionOperand;
-use crate::syntax::OperatorExpressionOperator;
 use crate::syntax::Statement;
 
 pub struct Generator {
-    stack: Vec<OperatorExpressionOperand>,
+    stack: Vec<ExpressionOperand>,
     writer: Rc<RefCell<Writer>>,
 }
 
@@ -65,9 +64,12 @@ impl Generator {
         log::trace!("Statement              : {}", statement);
 
         match statement {
-            Statement::Debug(debug) => {
-                let result = self.evaluate(debug.expression)?;
-                self.writer.borrow_mut().write_debug(result.as_str())?;
+            Statement::Empty => {}
+            Statement::Require(require) => {
+                let result = self.evaluate(require.expression)?;
+                self.writer
+                    .borrow_mut()
+                    .write_require(result.as_str(), require.id.as_str())?;
             }
             Statement::Let(r#let) => {
                 let result = self.evaluate(r#let.expression)?;
@@ -76,12 +78,6 @@ impl Generator {
                     r#let.identifier.name.as_str(),
                     result.as_str(),
                 )?;
-            }
-            Statement::Require(require) => {
-                let result = self.evaluate(require.expression)?;
-                self.writer
-                    .borrow_mut()
-                    .write_require(result.as_str(), require.id.as_str())?;
             }
             Statement::Loop(r#loop) => {
                 self.writer.borrow_mut().enter_loop(
@@ -100,6 +96,12 @@ impl Generator {
                 }
                 self.writer.borrow_mut().exit_loop()?;
             }
+            Statement::Type { .. } => unimplemented!(),
+            Statement::Struct { .. } => unimplemented!(),
+            Statement::Debug(debug) => {
+                let result = self.evaluate(debug.expression)?;
+                self.writer.borrow_mut().write_debug(result.as_str())?;
+            }
             Statement::Expression(expression) => {
                 self.evaluate(expression)?;
             }
@@ -109,38 +111,29 @@ impl Generator {
     }
 
     fn evaluate(&mut self, expression: Expression) -> Result<String, Error> {
-        match expression {
-            Expression::Operator(expression) => self.operator(expression),
-            Expression::Block(expression) => self.block(expression),
-            Expression::Conditional(expression) => self.conditional(expression),
-        }
-    }
-
-    fn operator(&mut self, expression: OperatorExpression) -> Result<String, Error> {
-        log::trace!("Operator expression    : {}", expression);
+        log::trace!("Expression    : {}", expression);
 
         for expression_element in expression.into_iter() {
             match expression_element.object {
-                OperatorExpressionObject::Operand(operand) => self.stack.push(operand),
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Assignment) => {
+                ExpressionObject::Operand(operand) => self.stack.push(operand),
+                ExpressionObject::Operator(ExpressionOperator::Assignment) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     self.writer
                         .borrow_mut()
                         .write_assignment(operand_1.as_str(), operand_2.as_str())?;
 
-                    self.stack
-                        .push(OperatorExpressionOperand::Literal(Literal::new(
-                            expression_element.location,
-                            lexical::Literal::Void,
-                        )));
+                    self.stack.push(ExpressionOperand::Literal(Literal::new(
+                        expression_element.location,
+                        lexical::Literal::Unit,
+                    )));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Range) => {
+                ExpressionObject::Operator(ExpressionOperator::Range) => {
                     panic!("The range operator cannot be used in expressions")
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::RangeInclusive) => {
+                ExpressionObject::Operator(ExpressionOperator::RangeInclusive) => {
                     panic!("The range inclusive operator cannot be used in expressions")
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Or) => {
+                ExpressionObject::Operator(ExpressionOperator::Or) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
                         .writer
@@ -148,12 +141,12 @@ impl Generator {
                         .write_or(operand_1.as_str(), operand_2.as_str())?;
 
                     self.stack
-                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                        .push(ExpressionOperand::Identifier(Identifier::new(
                             expression_element.location,
                             id,
                         )));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Xor) => {
+                ExpressionObject::Operator(ExpressionOperator::Xor) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
                         .writer
@@ -161,12 +154,12 @@ impl Generator {
                         .write_xor(operand_1.as_str(), operand_2.as_str())?;
 
                     self.stack
-                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                        .push(ExpressionOperand::Identifier(Identifier::new(
                             expression_element.location,
                             id,
                         )));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::And) => {
+                ExpressionObject::Operator(ExpressionOperator::And) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
                         .writer
@@ -174,12 +167,12 @@ impl Generator {
                         .write_and(operand_1.as_str(), operand_2.as_str())?;
 
                     self.stack
-                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                        .push(ExpressionOperand::Identifier(Identifier::new(
                             expression_element.location,
                             id,
                         )));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Equal) => {
+                ExpressionObject::Operator(ExpressionOperator::Equal) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
                         .writer
@@ -187,12 +180,12 @@ impl Generator {
                         .write_equals_number(operand_1.as_str(), operand_2.as_str())?;
 
                     self.stack
-                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                        .push(ExpressionOperand::Identifier(Identifier::new(
                             expression_element.location,
                             id,
                         )));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::NotEqual) => {
+                ExpressionObject::Operator(ExpressionOperator::NotEqual) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
                         .writer
@@ -200,12 +193,12 @@ impl Generator {
                         .write_not_equals_number(operand_1.as_str(), operand_2.as_str())?;
 
                     self.stack
-                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                        .push(ExpressionOperand::Identifier(Identifier::new(
                             expression_element.location,
                             id,
                         )));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::GreaterEqual) => {
+                ExpressionObject::Operator(ExpressionOperator::GreaterEqual) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
                         .writer
@@ -213,12 +206,12 @@ impl Generator {
                         .write_greater_equals(operand_1.as_str(), operand_2.as_str())?;
 
                     self.stack
-                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                        .push(ExpressionOperand::Identifier(Identifier::new(
                             expression_element.location,
                             id,
                         )));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::LesserEqual) => {
+                ExpressionObject::Operator(ExpressionOperator::LesserEqual) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
                         .writer
@@ -226,12 +219,12 @@ impl Generator {
                         .write_lesser_equals(operand_1.as_str(), operand_2.as_str())?;
 
                     self.stack
-                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                        .push(ExpressionOperand::Identifier(Identifier::new(
                             expression_element.location,
                             id,
                         )));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Greater) => {
+                ExpressionObject::Operator(ExpressionOperator::Greater) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
                         .writer
@@ -239,12 +232,12 @@ impl Generator {
                         .write_greater(operand_1.as_str(), operand_2.as_str())?;
 
                     self.stack
-                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                        .push(ExpressionOperand::Identifier(Identifier::new(
                             expression_element.location,
                             id,
                         )));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Lesser) => {
+                ExpressionObject::Operator(ExpressionOperator::Lesser) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
                         .writer
@@ -252,12 +245,12 @@ impl Generator {
                         .write_lesser(operand_1.as_str(), operand_2.as_str())?;
 
                     self.stack
-                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                        .push(ExpressionOperand::Identifier(Identifier::new(
                             expression_element.location,
                             id,
                         )));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Addition) => {
+                ExpressionObject::Operator(ExpressionOperator::Addition) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
                         .writer
@@ -265,12 +258,12 @@ impl Generator {
                         .write_addition(operand_1.as_str(), operand_2.as_str())?;
 
                     self.stack
-                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                        .push(ExpressionOperand::Identifier(Identifier::new(
                             expression_element.location,
                             id,
                         )));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Subtraction) => {
+                ExpressionObject::Operator(ExpressionOperator::Subtraction) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
                         .writer
@@ -278,12 +271,12 @@ impl Generator {
                         .write_subtraction(operand_1.as_str(), operand_2.as_str())?;
 
                     self.stack
-                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                        .push(ExpressionOperand::Identifier(Identifier::new(
                             expression_element.location,
                             id,
                         )));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Multiplication) => {
+                ExpressionObject::Operator(ExpressionOperator::Multiplication) => {
                     let (operand_1, operand_2) = self.get_binary_operands()?;
                     let id = self
                         .writer
@@ -291,28 +284,28 @@ impl Generator {
                         .write_multiplication(operand_1.as_str(), operand_2.as_str())?;
 
                     self.stack
-                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                        .push(ExpressionOperand::Identifier(Identifier::new(
                             expression_element.location,
                             id,
                         )));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Division) => {
+                ExpressionObject::Operator(ExpressionOperator::Division) => {
                     unimplemented!();
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Remainder) => {
+                ExpressionObject::Operator(ExpressionOperator::Remainder) => {
                     unimplemented!();
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Casting) => {
+                ExpressionObject::Operator(ExpressionOperator::Casting) => {
                     let (operand_1, _type) = self.get_binary_operands()?;
                     let id = self.writer.borrow_mut().write_casting(operand_1.as_str())?;
 
                     self.stack
-                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                        .push(ExpressionOperand::Identifier(Identifier::new(
                             expression_element.location,
                             id,
                         )));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Negation) => {
+                ExpressionObject::Operator(ExpressionOperator::Negation) => {
                     let operand_1 = self.get_unary_operand()?;
                     let id = self
                         .writer
@@ -320,31 +313,34 @@ impl Generator {
                         .write_negation(operand_1.as_str())?;
 
                     self.stack
-                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                        .push(ExpressionOperand::Identifier(Identifier::new(
                             expression_element.location,
                             id,
                         )));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Not) => {
+                ExpressionObject::Operator(ExpressionOperator::Not) => {
                     let operand_1 = self.get_unary_operand()?;
                     let id = self.writer.borrow_mut().write_not(operand_1.as_str())?;
 
                     self.stack
-                        .push(OperatorExpressionOperand::Identifier(Identifier::new(
+                        .push(ExpressionOperand::Identifier(Identifier::new(
                             expression_element.location,
                             id,
                         )));
                 }
-                OperatorExpressionObject::Operator(OperatorExpressionOperator::Indexing) => {
+                ExpressionObject::Operator(ExpressionOperator::Indexing) => {
                     panic!("The indexing operator cannot be used in expressions")
+                }
+                ExpressionObject::Operator(ExpressionOperator::Field) => {
+                    panic!("The field operator cannot be used in expressions")
                 }
             }
         }
 
         Ok(
             match self.stack.pop().expect("Always contains an element") {
-                OperatorExpressionOperand::Identifier(identifier) => identifier.name,
-                OperatorExpressionOperand::Literal(literal) => self.literal(literal)?,
+                ExpressionOperand::Identifier(identifier) => identifier.name,
+                ExpressionOperand::Literal(literal) => self.literal(literal)?,
                 _ => panic!("Always is either an identifier or literal"),
             },
         )
@@ -426,7 +422,7 @@ impl Generator {
 
     fn literal(&mut self, literal: Literal) -> Result<String, Error> {
         Ok(match literal.data {
-            lexical::Literal::Void => "()".to_owned(),
+            lexical::Literal::Unit => "()".to_owned(),
             lexical::Literal::Boolean(value) => self
                 .writer
                 .borrow_mut()
@@ -441,12 +437,14 @@ impl Generator {
 
     fn get_unary_operand(&mut self) -> Result<String, Error> {
         let operand_1 = match self.stack.pop().expect("Always contains an element") {
-            OperatorExpressionOperand::Identifier(identifier) => identifier.name,
-            OperatorExpressionOperand::Literal(literal) => self.literal(literal)?,
-            OperatorExpressionOperand::Block(block) => self.block(block)?,
-            OperatorExpressionOperand::Conditional(conditional) => self.conditional(conditional)?,
-            OperatorExpressionOperand::Type(r#type) => r#type.to_string(),
-            OperatorExpressionOperand::Array(array) => array.to_string(),
+            ExpressionOperand::Identifier(identifier) => identifier.name,
+            ExpressionOperand::Literal(literal) => self.literal(literal)?,
+            ExpressionOperand::Block(block) => self.block(block)?,
+            ExpressionOperand::Conditional(conditional) => self.conditional(conditional)?,
+            ExpressionOperand::Type(r#type) => r#type.to_string(),
+            ExpressionOperand::Array(array) => array.to_string(),
+            ExpressionOperand::Tuple(tuple) => tuple.to_string(),
+            ExpressionOperand::Structure(structure) => structure.to_string(),
         };
 
         Ok(operand_1)
@@ -457,21 +455,25 @@ impl Generator {
         let operand_1 = self.stack.pop().expect("Always contains an element");
 
         let operand_1 = match operand_1 {
-            OperatorExpressionOperand::Identifier(identifier) => identifier.name,
-            OperatorExpressionOperand::Literal(literal) => self.literal(literal)?,
-            OperatorExpressionOperand::Block(block) => self.block(block)?,
-            OperatorExpressionOperand::Conditional(conditional) => self.conditional(conditional)?,
-            OperatorExpressionOperand::Type(r#type) => r#type.to_string(),
-            OperatorExpressionOperand::Array(array) => array.to_string(),
+            ExpressionOperand::Identifier(identifier) => identifier.name,
+            ExpressionOperand::Literal(literal) => self.literal(literal)?,
+            ExpressionOperand::Block(block) => self.block(block)?,
+            ExpressionOperand::Conditional(conditional) => self.conditional(conditional)?,
+            ExpressionOperand::Type(r#type) => r#type.to_string(),
+            ExpressionOperand::Array(array) => array.to_string(),
+            ExpressionOperand::Tuple(tuple) => tuple.to_string(),
+            ExpressionOperand::Structure(structure) => structure.to_string(),
         };
 
         let operand_2 = match operand_2 {
-            OperatorExpressionOperand::Identifier(identifier) => identifier.name,
-            OperatorExpressionOperand::Literal(literal) => self.literal(literal)?,
-            OperatorExpressionOperand::Block(block) => self.block(block)?,
-            OperatorExpressionOperand::Conditional(conditional) => self.conditional(conditional)?,
-            OperatorExpressionOperand::Type(r#type) => r#type.to_string(),
-            OperatorExpressionOperand::Array(array) => array.to_string(),
+            ExpressionOperand::Identifier(identifier) => identifier.name,
+            ExpressionOperand::Literal(literal) => self.literal(literal)?,
+            ExpressionOperand::Block(block) => self.block(block)?,
+            ExpressionOperand::Conditional(conditional) => self.conditional(conditional)?,
+            ExpressionOperand::Type(r#type) => r#type.to_string(),
+            ExpressionOperand::Array(array) => array.to_string(),
+            ExpressionOperand::Tuple(tuple) => tuple.to_string(),
+            ExpressionOperand::Structure(structure) => structure.to_string(),
         };
 
         Ok((operand_1, operand_2))

@@ -84,6 +84,6 @@ fn init_logger() {
         env::set_var("RUST_LOG", "compiler=info,jabserver=info");
     }
     env_logger::Builder::from_default_env()
-        .default_format_timestamp_nanos(true)
+        .format_timestamp_nanos()
         .init();
 }

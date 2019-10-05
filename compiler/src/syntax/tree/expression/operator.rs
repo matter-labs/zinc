@@ -1,5 +1,5 @@
 //!
-//! The operator expression operator.
+//! The expression operator.
 //!
 
 use std::fmt;
@@ -42,8 +42,9 @@ pub enum Operator {
     // unary arithmetic
     Negation,
 
-    // indexing
+    // access
     Indexing,
+    Field,
 }
 
 impl fmt::Display for Operator {
@@ -78,6 +79,7 @@ impl fmt::Display for Operator {
             Self::Negation => write!(f, "-"),
 
             Self::Indexing => write!(f, "[]"),
+            Self::Field => write!(f, "."),
         }
     }
 }

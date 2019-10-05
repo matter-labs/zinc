@@ -4,31 +4,31 @@
 root = inputs [ witnesses ] statement*
 
 inputs = 'inputs' '{' input* '}'
-input = identifier ':' type ';'
+input = identifier ':' type ','
 
 witnesses = 'witness' '{' witness* '}'
-witness = identifier ':' type ';'
+witness = identifier ':' type ','
 
 ## Statements
 statement = (
-    | let_statement
-    | require_statement
-    | debug_statement
-    | loop_statement
-  ) ';'
+  | empty_statement
+  | require_statement
+  | let_statement
+  | loop_statement
+  | type_statement
+  | debug_statement
+  | expression
+) ';'
 
-let_statement = 'let' [ 'mut' ] identifier [ ':' type ] '=' expression
+empty_statement = 
 require_statement = 'require' '(' expression ')'
-debug_statement = 'debug' '(' expression ')'
+let_statement = 'let' [ 'mut' ] identifier [ ':' type ] '=' expression
 loop_statement = 'for' identifier 'in' literal_integer ( '..' | '..=' ) literal_integer block_expression
+type_statement = 'type' identifier '=' type
+debug_statement = 'debug' '(' expression ')'
 
 ## Expression
-expression =
-  | operator_expression
-  | block_expression
-  | conditional_expression
-
-operator_expression = operand_or ( '||' operand_or )*
+expression = operand_or ( '||' operand_or )*
 operand_or = operand_xor ( '^^' operand_xor )*
 operand_xor = operand_and ( '&&' operand_and )*
 operand_and = operand_comparison ( ( '==' | '!=' | '>=' | '<=' | '>' | '<' ) operand_comparison )?
@@ -37,15 +37,14 @@ operand_add_sub = operand_mul_div_rem ( ('*' | '/' | '%') operand_mul_div_rem )*
 operand_mul_div_rem = operand_as ( 'as' type )*
 operand_as =
   | ( '-' | '!' ) operand_as
-  | operand_index ( '[' expression ']' )*
-operand_index =
+  | operand_access ( '[' literal_integer ']' | '.' literal_integer | '.' identifier )*
+operand_access =
   | literal
   | identifier
-  | '(' expression ')'
+  | tuple_expression
   | block_expression
   | conditional_expression
   | array_expression
-  | tuple_expression
 
 block_expression = '{' statement* expression? '}'
 
@@ -56,22 +55,8 @@ array_expression =
   | '[' expression ';' literal_integer ']'
 
 tuple_expression =
-  | '(' expression ',' expression? [ ',' expression ]* ')'
+  | '(' ')'
+  | '(' expression ')'
+  | '(' expression ',' [ expression? [ ',' expression ]* ] ')'
 
 ```
-
-# Operator precedence table
-
-|    Operator     |  Associativity  |
-|:---------------:|:---------------:|
-| [] .            |  left to right  |
-| - !             |      unary      |
-| as              |  left to right  |
-| * / %           |  left to right  |
-| + -             |  left to right  |
-| == != <= >= < > |   parenthesis   |
-| &&              |  left to right  |
-| ^^              |  left to right  |
-| ⎮⎮              |  left to right  |
-| .. ..=          |     single      |
-| =               |     single      |

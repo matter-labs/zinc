@@ -20,11 +20,11 @@ use crate::Error;
 #[derive(Debug, Clone, Copy)]
 pub enum State {
     KeywordWitness,
-    BracketOpen,
-    ElementIdentifierOrBracketClose,
-    ElementColon,
-    ElementType,
-    ElementSemicolon,
+    BracketCurlyLeft,
+    IdentifierOrBracketCurlyRight,
+    Colon,
+    Type,
+    Comma,
 }
 
 impl Default for State {
@@ -59,7 +59,7 @@ impl Parser {
                         Some(Ok(Token {
                             lexeme: Lexeme::Keyword(Keyword::Witness),
                             ..
-                        })) => self.state = State::BracketOpen,
+                        })) => self.state = State::BracketCurlyLeft,
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
@@ -75,13 +75,13 @@ impl Parser {
                         }
                     }
                 }
-                State::BracketOpen => {
+                State::BracketCurlyLeft => {
                     let next = stream.borrow_mut().next();
                     match next {
                         Some(Ok(Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
-                        })) => self.state = State::ElementIdentifierOrBracketClose,
+                        })) => self.state = State::IdentifierOrBracketCurlyRight,
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
@@ -97,7 +97,7 @@ impl Parser {
                         }
                     }
                 }
-                State::ElementIdentifierOrBracketClose => {
+                State::IdentifierOrBracketCurlyRight => {
                     let next = stream.borrow_mut().next();
                     match next {
                         Some(Ok(Token {
@@ -111,7 +111,7 @@ impl Parser {
                             let identifier = Identifier::new(location, identifier.name);
                             self.builder.set_location(location);
                             self.builder.set_identifier(identifier);
-                            self.state = State::ElementColon;
+                            self.state = State::Colon;
                         }
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
@@ -128,13 +128,13 @@ impl Parser {
                         }
                     }
                 }
-                State::ElementColon => {
+                State::Colon => {
                     let next = stream.borrow_mut().next();
                     match next {
                         Some(Ok(Token {
                             lexeme: Lexeme::Symbol(Symbol::Colon),
                             ..
-                        })) => self.state = State::ElementType,
+                        })) => self.state = State::Type,
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
@@ -150,27 +150,27 @@ impl Parser {
                         }
                     }
                 }
-                State::ElementType => {
+                State::Type => {
                     let r#type = TypeParser::default().parse(stream.clone())?;
                     self.builder.set_type(r#type);
-                    self.state = State::ElementSemicolon;
+                    self.state = State::Comma;
                 }
-                State::ElementSemicolon => {
+                State::Comma => {
                     let next = stream.borrow_mut().next();
                     match next {
                         Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::Semicolon),
+                            lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
                         })) => {
                             let witness = self.builder.build();
                             log::trace!("Witness: {:?}", witness);
                             self.witnesses.push(witness);
-                            self.state = State::ElementIdentifierOrBracketClose;
+                            self.state = State::IdentifierOrBracketCurlyRight;
                         }
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                vec![";"],
+                                vec![","],
                                 lexeme,
                             )));
                         }
@@ -206,54 +206,54 @@ mod tests {
 
     #[test]
     fn ok_single() {
-        let code = r#"
+        let input = r#"
     witness {
-        a: uint232;
+        a: u232,
     }
 "#;
 
         let expected = Ok(vec![Witness::new(
             Location::new(3, 9),
             Identifier::new(Location::new(3, 9), "a".to_owned()),
-            Type::new(Location::new(3, 12), TypeVariant::Uint { bitlength: 232 }),
+            Type::new(Location::new(3, 12), TypeVariant::new_integer_unsigned(232)),
         )]);
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
 
         assert_eq!(expected, result);
     }
 
     #[test]
     fn ok_empty() {
-        let code = r#"
+        let input = r#"
     witness {}
 "#;
 
         let expected = Ok(Vec::<Witness>::new());
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));;
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));;
 
         assert_eq!(expected, result);
     }
 
     #[test]
-    fn err_expected_semicolon() {
-        let code = r#"
+    fn err_expected_comma() {
+        let input = r#"
     witness {
-        a: uint232,
+        a: u232;
     }
 "#;
 
         let expected = Err(Error::Syntax(SyntaxError::Expected(
-            Location::new(3, 19),
-            vec![";"],
-            Lexeme::Symbol(Symbol::Comma),
+            Location::new(3, 16),
+            vec![","],
+            Lexeme::Symbol(Symbol::Semicolon),
         )));
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
 
         assert_eq!(expected, result);
     }

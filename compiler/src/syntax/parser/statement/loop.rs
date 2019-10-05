@@ -267,20 +267,19 @@ mod tests {
     use crate::syntax::DebugStatement;
     use crate::syntax::Error as SyntaxError;
     use crate::syntax::Expression;
+    use crate::syntax::ExpressionElement;
+    use crate::syntax::ExpressionObject;
+    use crate::syntax::ExpressionOperand;
+    use crate::syntax::ExpressionOperator;
     use crate::syntax::Identifier;
     use crate::syntax::Literal;
     use crate::syntax::LoopStatement;
-    use crate::syntax::OperatorExpression;
-    use crate::syntax::OperatorExpressionElement;
-    use crate::syntax::OperatorExpressionObject;
-    use crate::syntax::OperatorExpressionOperand;
-    use crate::syntax::OperatorExpressionOperator;
     use crate::syntax::Statement;
     use crate::Error;
 
     #[test]
     fn ok_with_block() {
-        let code = r#"for i in 0..=4 { debug(42); 2 + 1 };"#;
+        let input = r#"for i in 0..=4 { debug(42); 2 + 1 };"#;
 
         let expected = Ok(LoopStatement::new(
             Location::new(1, 1),
@@ -293,66 +292,58 @@ mod tests {
                 Location::new(1, 16),
                 vec![Statement::Debug(DebugStatement::new(
                     Location::new(1, 18),
-                    Expression::Operator(OperatorExpression::new(
+                    Expression::new(
                         Location::new(1, 24),
-                        vec![OperatorExpressionElement::new(
+                        vec![ExpressionElement::new(
                             Location::new(1, 24),
-                            OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                                Literal::new(
-                                    Location::new(1, 24),
-                                    lexical::Literal::Integer(IntegerLiteral::decimal(
-                                        "42".to_owned(),
-                                    )),
-                                ),
-                            )),
+                            ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                                Location::new(1, 24),
+                                lexical::Literal::Integer(IntegerLiteral::new_decimal(
+                                    "42".to_owned(),
+                                )),
+                            ))),
                         )],
-                    )),
+                    ),
                 ))],
-                Some(Expression::Operator(OperatorExpression::new(
+                Some(Expression::new(
                     Location::new(1, 29),
                     vec![
-                        OperatorExpressionElement::new(
+                        ExpressionElement::new(
                             Location::new(1, 29),
-                            OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                                Literal::new(
-                                    Location::new(1, 29),
-                                    lexical::Literal::Integer(IntegerLiteral::decimal(
-                                        "2".to_owned(),
-                                    )),
-                                ),
-                            )),
+                            ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                                Location::new(1, 29),
+                                lexical::Literal::Integer(IntegerLiteral::new_decimal(
+                                    "2".to_owned(),
+                                )),
+                            ))),
                         ),
-                        OperatorExpressionElement::new(
+                        ExpressionElement::new(
                             Location::new(1, 33),
-                            OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                                Literal::new(
-                                    Location::new(1, 33),
-                                    lexical::Literal::Integer(IntegerLiteral::decimal(
-                                        "1".to_owned(),
-                                    )),
-                                ),
-                            )),
+                            ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                                Location::new(1, 33),
+                                lexical::Literal::Integer(IntegerLiteral::new_decimal(
+                                    "1".to_owned(),
+                                )),
+                            ))),
                         ),
-                        OperatorExpressionElement::new(
+                        ExpressionElement::new(
                             Location::new(1, 31),
-                            OperatorExpressionObject::Operator(
-                                OperatorExpressionOperator::Addition,
-                            ),
+                            ExpressionObject::Operator(ExpressionOperator::Addition),
                         ),
                     ],
-                ))),
+                )),
             ),
         ));
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
 
         assert_eq!(expected, result);
     }
 
     #[test]
     fn ok_with_empty_block() {
-        let code = r#"for i in 0..4 {};"#;
+        let input = r#"for i in 0..4 {};"#;
 
         let expected = Ok(LoopStatement::new(
             Location::new(1, 1),
@@ -365,14 +356,14 @@ mod tests {
         ));
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
 
         assert_eq!(expected, result);
     }
 
     #[test]
     fn err_expected_integer_literal() {
-        let code = r#"for i in 0..n {};"#;
+        let input = r#"for i in 0..n {};"#;
 
         let expected = Err(Error::Syntax(SyntaxError::Expected(
             Location::new(1, 13),
@@ -381,7 +372,7 @@ mod tests {
         )));
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
 
         assert_eq!(expected, result);
     }

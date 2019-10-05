@@ -6,6 +6,8 @@ mod array;
 mod boolean;
 mod error;
 mod integer;
+mod structure;
+mod tuple;
 
 pub use self::array::Array;
 pub use self::array::Error as ArrayError;
@@ -14,6 +16,9 @@ pub use self::boolean::Error as BooleanError;
 pub use self::error::Error;
 pub use self::integer::Error as IntegerError;
 pub use self::integer::Integer;
+pub use self::structure::Error as StructureError;
+pub use self::structure::Structure;
+pub use self::tuple::Tuple;
 
 use std::fmt;
 
@@ -30,10 +35,12 @@ use crate::syntax::TypeVariant;
 
 #[derive(Clone, PartialEq)]
 pub enum Value {
-    Void,
+    Unit,
     Boolean(Boolean),
     Integer(Integer),
     Array(Array),
+    Tuple(Tuple),
+    Structure(Structure),
 }
 
 impl Value {
@@ -60,13 +67,13 @@ impl Value {
         r#type: Type,
     ) -> Result<Self, Error> {
         match r#type.variant {
-            TypeVariant::Void => Ok(Self::Void),
+            TypeVariant::Unit => Ok(Self::Unit),
             TypeVariant::Boolean => {
                 Boolean::new_from_bool(system.namespace(|| "value_new_input"), false)
                     .map(Self::Boolean)
                     .map_err(Error::Boolean)
             }
-            TypeVariant::Int { bitlength } => Integer::new_from_bigint(
+            TypeVariant::IntegerSigned { bitlength } => Integer::new_from_bigint(
                 system.namespace(|| "value_new_input"),
                 BigInt::zero(),
                 true,
@@ -74,7 +81,7 @@ impl Value {
             )
             .map(Self::Integer)
             .map_err(Error::Integer),
-            TypeVariant::Uint { bitlength } => Integer::new_from_bigint(
+            TypeVariant::IntegerUnsigned { bitlength } => Integer::new_from_bigint(
                 system.namespace(|| "value_new_input"),
                 BigInt::zero(),
                 false,
@@ -91,6 +98,9 @@ impl Value {
             .map(Self::Integer)
             .map_err(Error::Integer),
             TypeVariant::Array { .. } => unimplemented!(),
+            TypeVariant::Tuple { .. } => unimplemented!(),
+            TypeVariant::Structure { .. } => unimplemented!(),
+            TypeVariant::Alias { .. } => unimplemented!(),
         }
     }
 
@@ -99,13 +109,13 @@ impl Value {
         r#type: Type,
     ) -> Result<Self, Error> {
         match r#type.variant {
-            TypeVariant::Void => Ok(Self::Void),
+            TypeVariant::Unit => Ok(Self::Unit),
             TypeVariant::Boolean => {
                 Boolean::new_from_bool(system.namespace(|| "value_new_witness"), false)
                     .map(Self::Boolean)
                     .map_err(Error::Boolean)
             }
-            TypeVariant::Int { bitlength } => Integer::new_from_bigint(
+            TypeVariant::IntegerSigned { bitlength } => Integer::new_from_bigint(
                 system.namespace(|| "value_new_witness"),
                 BigInt::zero(),
                 true,
@@ -113,7 +123,7 @@ impl Value {
             )
             .map(Self::Integer)
             .map_err(Error::Integer),
-            TypeVariant::Uint { bitlength } => Integer::new_from_bigint(
+            TypeVariant::IntegerUnsigned { bitlength } => Integer::new_from_bigint(
                 system.namespace(|| "value_new_witness"),
                 BigInt::zero(),
                 false,
@@ -130,26 +140,35 @@ impl Value {
             .map(Self::Integer)
             .map_err(Error::Integer),
             TypeVariant::Array { .. } => unimplemented!(),
+            TypeVariant::Tuple { .. } => unimplemented!(),
+            TypeVariant::Structure { .. } => unimplemented!(),
+            TypeVariant::Alias { .. } => unimplemented!(),
         }
     }
 
     pub fn type_variant(&self) -> TypeVariant {
         match self {
-            Self::Void => TypeVariant::Void,
-            Self::Boolean(..) => TypeVariant::Boolean,
+            Self::Unit => TypeVariant::new_unit(),
+            Self::Boolean(..) => TypeVariant::new_boolean(),
             Self::Integer(integer) => integer.type_variant(),
             Self::Array(array) => array.type_variant(),
+            Self::Tuple(tuple) => tuple.type_variant(),
+            Self::Structure(structure) => structure.type_variant(),
         }
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::Void, Self::Void) => true,
+            (Self::Unit, Self::Unit) => true,
             (Self::Boolean(..), Self::Boolean(..)) => true,
             (Self::Integer(value_1), Self::Integer(value_2)) => {
                 value_1.has_the_same_type_as(value_2)
             }
             (Self::Array(value_1), Self::Array(value_2)) => value_1.has_the_same_type_as(value_2),
+            (Self::Tuple(value_1), Self::Tuple(value_2)) => value_1.has_the_same_type_as(value_2),
+            (Self::Structure(value_1), Self::Structure(value_2)) => {
+                value_1.has_the_same_type_as(value_2)
+            }
             _ => false,
         }
     }
@@ -223,7 +242,7 @@ impl Value {
         other: &Self,
     ) -> Result<Self, Error> {
         match (self, other) {
-            (Self::Void, Self::Void) => {
+            (Self::Unit, Self::Unit) => {
                 Boolean::new_from_bool(system.namespace(|| "value_equals"), true)
                     .map(Self::Boolean)
                     .map_err(Error::Boolean)
@@ -255,7 +274,7 @@ impl Value {
         other: &Self,
     ) -> Result<Self, Error> {
         match (self, other) {
-            (Self::Void, Self::Void) => {
+            (Self::Unit, Self::Unit) => {
                 Boolean::new_from_bool(system.namespace(|| "value_not_equals"), false)
                     .map(Self::Boolean)
                     .map_err(Error::Boolean)
@@ -516,10 +535,12 @@ impl Value {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Void => write!(f, "()"),
-            Self::Boolean(boolean) => write!(f, "{}", boolean),
-            Self::Integer(integer) => write!(f, "{}", integer),
-            Self::Array(array) => write!(f, "{}", array),
+            Self::Unit => write!(f, "()"),
+            Self::Boolean(value) => write!(f, "{}", value),
+            Self::Integer(value) => write!(f, "{}", value),
+            Self::Array(value) => write!(f, "{}", value),
+            Self::Tuple(value) => write!(f, "{}", value),
+            Self::Structure(value) => write!(f, "{}", value),
         }
     }
 }

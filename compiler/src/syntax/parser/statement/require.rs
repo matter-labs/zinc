@@ -20,11 +20,11 @@ use crate::Error;
 #[derive(Debug, Clone, Copy)]
 pub enum State {
     KeywordRequire,
-    BracketOpen,
+    ParenthesisLeft,
     Expression,
-    CommaOrBracketClose,
+    CommaOrParenthesisRight,
     Tag,
-    BracketClose,
+    ParenthesisRight,
 }
 
 impl Default for State {
@@ -51,7 +51,7 @@ impl Parser {
                             location,
                         })) => {
                             self.builder.set_location(location);
-                            self.state = State::BracketOpen;
+                            self.state = State::ParenthesisLeft;
                         }
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
@@ -68,7 +68,7 @@ impl Parser {
                         }
                     }
                 }
-                State::BracketOpen => {
+                State::ParenthesisLeft => {
                     let next = stream.borrow_mut().next();
                     match next {
                         Some(Ok(Token {
@@ -93,9 +93,9 @@ impl Parser {
                 State::Expression => {
                     let expression = ExpressionParser::default().parse(stream.clone())?;
                     self.builder.set_expression(expression);
-                    self.state = State::CommaOrBracketClose;
+                    self.state = State::CommaOrParenthesisRight;
                 }
-                State::CommaOrBracketClose => {
+                State::CommaOrParenthesisRight => {
                     let next = stream.borrow_mut().next();
                     match next {
                         Some(Ok(Token {
@@ -129,7 +129,7 @@ impl Parser {
                             ..
                         })) => {
                             self.builder.set_tag(tag);
-                            self.state = State::BracketClose;
+                            self.state = State::ParenthesisRight;
                         }
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
@@ -146,7 +146,7 @@ impl Parser {
                         }
                     }
                 }
-                State::BracketClose => {
+                State::ParenthesisRight => {
                     let next = stream.borrow_mut().next();
                     match next {
                         Some(Ok(Token {
@@ -185,63 +185,58 @@ mod tests {
     use crate::lexical::StringLiteral;
     use crate::lexical::TokenStream;
     use crate::syntax::Expression;
+    use crate::syntax::ExpressionElement;
+    use crate::syntax::ExpressionObject;
+    use crate::syntax::ExpressionOperand;
     use crate::syntax::Literal;
-    use crate::syntax::OperatorExpression;
-    use crate::syntax::OperatorExpressionElement;
-    use crate::syntax::OperatorExpressionObject;
-    use crate::syntax::OperatorExpressionOperand;
     use crate::syntax::RequireStatement;
 
     #[test]
     fn ok() {
-        let code = r#"require(true)"#;
+        let input = r#"require(true);"#;
 
         let expected = Ok(RequireStatement::new(
             Location::new(1, 1),
-            Expression::Operator(OperatorExpression::new(
+            Expression::new(
                 Location::new(1, 9),
-                vec![OperatorExpressionElement::new(
+                vec![ExpressionElement::new(
                     Location::new(1, 9),
-                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                        Literal::new(
-                            Location::new(1, 9),
-                            lexical::Literal::Boolean(BooleanLiteral::True),
-                        ),
-                    )),
+                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                        Location::new(1, 9),
+                        lexical::Literal::Boolean(BooleanLiteral::True),
+                    ))),
                 )],
-            )),
+            ),
             None,
         ));
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
 
         assert_eq!(expected, result);
     }
 
     #[test]
     fn ok_with_annotation() {
-        let code = r#"require(true, "test")"#;
+        let input = r#"require(true, "test");"#;
 
         let expected = Ok(RequireStatement::new(
             Location::new(1, 1),
-            Expression::Operator(OperatorExpression::new(
+            Expression::new(
                 Location::new(1, 9),
-                vec![OperatorExpressionElement::new(
+                vec![ExpressionElement::new(
                     Location::new(1, 9),
-                    OperatorExpressionObject::Operand(OperatorExpressionOperand::Literal(
-                        Literal::new(
-                            Location::new(1, 9),
-                            lexical::Literal::Boolean(BooleanLiteral::True),
-                        ),
-                    )),
+                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                        Location::new(1, 9),
+                        lexical::Literal::Boolean(BooleanLiteral::True),
+                    ))),
                 )],
-            )),
+            ),
             Some(StringLiteral::new("test".to_owned())),
         ));
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(code.to_owned()))));
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
 
         assert_eq!(expected, result);
     }

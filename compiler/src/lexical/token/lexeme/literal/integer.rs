@@ -11,11 +11,11 @@ pub enum Integer {
 }
 
 impl Integer {
-    pub fn decimal(input: String) -> Self {
+    pub fn new_decimal(input: String) -> Self {
         Self::Decimal { value: input }
     }
 
-    pub fn hexadecimal(input: String) -> Self {
+    pub fn new_hexadecimal(input: String) -> Self {
         Self::Hexadecimal { value: input }
     }
 }

@@ -22,12 +22,13 @@
 
 - standard library (from bellman) ✔
 
-## Version 0.4 ✘ 
+## Version 0.4 ✔
 
-- arrays ✔
-- tuples ✘
-- structures ✘
+- type aliases ✔
 - `for` loops with `while` ✔
+- arrays ✔
+- tuples ✔
+- structures ✔
 
 ## Version 0.5
 

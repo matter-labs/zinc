@@ -12,9 +12,9 @@ use crate::syntax::Type;
 pub struct Builder {
     location: Option<Location>,
     identifier: Option<Identifier>,
+    is_mutable: bool,
     r#type: Option<Type>,
     expression: Option<Expression>,
-    is_mutable: bool,
 }
 
 impl Builder {
@@ -26,16 +26,16 @@ impl Builder {
         self.identifier = Some(value);
     }
 
+    pub fn set_mutable(&mut self) {
+        self.is_mutable = true;
+    }
+
     pub fn set_type(&mut self, value: Type) {
         self.r#type = Some(value);
     }
 
     pub fn set_expression(&mut self, value: Expression) {
         self.expression = Some(value);
-    }
-
-    pub fn set_mutable(&mut self) {
-        self.is_mutable = true;
     }
 
     pub fn finish(mut self) -> LetStatement {

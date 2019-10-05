@@ -54,7 +54,7 @@ impl fmt::Display for Loop {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "for {} in {}{}{}{} {{ {} }}",
+            "for {} in {}{}{}{} {}",
             self.index_identifier,
             self.range_start,
             if self.is_range_inclusive { "..=" } else { ".." },

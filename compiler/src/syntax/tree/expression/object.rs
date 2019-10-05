@@ -1,16 +1,16 @@
 //!
-//! The operator expression object.
+//! The expression object.
 //!
 
 use std::fmt;
 
-use crate::syntax::OperatorExpressionOperand;
-use crate::syntax::OperatorExpressionOperator;
+use crate::syntax::ExpressionOperand;
+use crate::syntax::ExpressionOperator;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Object {
-    Operator(OperatorExpressionOperator),
-    Operand(OperatorExpressionOperand),
+    Operator(ExpressionOperator),
+    Operand(ExpressionOperand),
 }
 
 impl fmt::Display for Object {

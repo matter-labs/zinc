@@ -4,49 +4,71 @@
 
 mod array;
 mod block;
+mod builder;
 mod conditional;
+mod element;
+mod object;
+mod operand;
 mod operator;
+mod structure;
+mod tuple;
 
 pub use self::array::Builder as ArrayExpressionBuilder;
 pub use self::array::Expression as ArrayExpression;
 pub use self::block::Builder as BlockExpressionBuilder;
 pub use self::block::Expression as BlockExpression;
+pub use self::builder::Builder as ExpressionBuilder;
+pub use self::builder::Builder;
 pub use self::conditional::Builder as ConditionalExpressionBuilder;
 pub use self::conditional::Expression as ConditionalExpression;
-pub use self::operator::Builder as OperatorExpressionBuilder;
-pub use self::operator::Element as OperatorExpressionElement;
-pub use self::operator::Expression as OperatorExpression;
-pub use self::operator::Object as OperatorExpressionObject;
-pub use self::operator::Operand as OperatorExpressionOperand;
-pub use self::operator::Operator as OperatorExpressionOperator;
+pub use self::element::Element as ExpressionElement;
+pub use self::element::Element;
+pub use self::object::Object as ExpressionObject;
+pub use self::object::Object;
+pub use self::operand::Operand as ExpressionOperand;
+pub use self::operand::Operand;
+pub use self::operator::Operator as ExpressionOperator;
+pub use self::operator::Operator;
+pub use self::structure::Builder as StructureExpressionBuilder;
+pub use self::structure::Expression as StructureExpression;
+pub use self::tuple::Builder as TupleExpressionBuilder;
+pub use self::tuple::Expression as TupleExpression;
 
 use std::fmt;
 
 use crate::lexical::Location;
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum Expression {
-    Operator(OperatorExpression),
-    Block(BlockExpression),
-    Conditional(ConditionalExpression),
+#[derive(Debug, Default, Clone, PartialEq)]
+pub struct Expression {
+    pub location: Location,
+    pub elements: Vec<Element>,
 }
 
 impl Expression {
-    pub fn location(&self) -> Location {
-        match self {
-            Self::Operator(expression) => expression.location,
-            Self::Block(expression) => expression.location,
-            Self::Conditional(expression) => expression.location,
-        }
+    pub fn new(location: Location, elements: Vec<Element>) -> Self {
+        Self { location, elements }
+    }
+}
+
+impl IntoIterator for Expression {
+    type Item = Element;
+    type IntoIter = ::std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.elements.into_iter()
     }
 }
 
 impl fmt::Display for Expression {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Operator(expression) => write!(f, "( {} )", expression),
-            Self::Block(expression) => write!(f, "{}", expression),
-            Self::Conditional(expression) => write!(f, "{}", expression),
-        }
+        write!(
+            f,
+            "{}",
+            self.elements
+                .iter()
+                .map(|element| element.to_string())
+                .collect::<Vec<String>>()
+                .join(" "),
+        )
     }
 }

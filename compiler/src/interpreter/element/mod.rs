@@ -7,6 +7,7 @@ mod place;
 mod value;
 
 pub use self::error::Error;
+pub use self::place::Element as PlaceElement;
 pub use self::place::Error as PlaceError;
 pub use self::place::Place;
 pub use self::value::Array;
@@ -16,6 +17,9 @@ pub use self::value::BooleanError;
 pub use self::value::Error as ValueError;
 pub use self::value::Integer;
 pub use self::value::IntegerError;
+pub use self::value::Structure;
+pub use self::value::StructureError;
+pub use self::value::Tuple;
 pub use self::value::Value;
 
 use std::fmt;
@@ -306,7 +310,7 @@ impl Element {
         _other: Self,
         _system: CS,
     ) -> Result<Self, Error> {
-        //        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Division;
+        //        const OPERATOR: ExpressionOperator = ExpressionOperator::Division;
         //
         //        let value_1 = match self {
         //            Self::Place(Place {
@@ -334,7 +338,7 @@ impl Element {
         _other: Self,
         _system: CS,
     ) -> Result<Self, Error> {
-        //        const OPERATOR: OperatorExpressionOperator = OperatorExpressionOperator::Remainder;
+        //        const OPERATOR: ExpressionOperator = ExpressionOperator::Remainder;
         //
         //        let value_1 = match self {
         //            Self::Place(Place {
@@ -415,6 +419,25 @@ impl Element {
 
         place.index(value).map_err(Error::Place)?;
         Ok(Self::Place(place))
+    }
+
+    pub fn field(self, other: Self) -> Result<Self, Error> {
+        let mut place = match self {
+            Self::Place(place) => place,
+            value => return Err(Error::ExpectedPlaceExpression("field", value)),
+        };
+
+        match other {
+            Self::Value(value) => {
+                place.access_tuple(value).map_err(Error::Place)?;
+                Ok(Self::Place(place))
+            }
+            Self::Place(field) => {
+                place.access_structure(field).map_err(Error::Place)?;
+                Ok(Self::Place(place))
+            }
+            value => Err(Error::ExpectedValueOrPlaceExpression("field", value)),
+        }
     }
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

@@ -13,15 +13,15 @@ use crate::syntax::TypeVariant;
 
 #[derive(Clone, PartialEq)]
 pub struct Array {
-    pub elements: Vec<Value>,
-    pub type_variant: TypeVariant,
+    elements: Vec<Value>,
+    type_variant: TypeVariant,
 }
 
 impl Default for Array {
     fn default() -> Self {
         Self {
             elements: Default::default(),
-            type_variant: TypeVariant::Void,
+            type_variant: TypeVariant::new_unit(),
         }
     }
 }
@@ -34,12 +34,12 @@ impl Array {
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             elements: Vec::with_capacity(capacity),
-            type_variant: TypeVariant::Void,
+            type_variant: TypeVariant::new_unit(),
         }
     }
 
     pub fn type_variant(&self) -> TypeVariant {
-        TypeVariant::array(self.type_variant.clone(), self.elements.len())
+        TypeVariant::new_array(self.type_variant.clone(), self.elements.len())
     }
 
     pub fn push(&mut self, value: Value) -> Result<(), Error> {
@@ -63,6 +63,10 @@ impl Array {
         self.elements.get(index)
     }
 
+    pub fn get_mut(&mut self, index: usize) -> Option<&mut Value> {
+        self.elements.get_mut(index)
+    }
+
     pub fn len(&self) -> usize {
         self.elements.len()
     }
@@ -72,7 +76,15 @@ impl Array {
     }
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self.elements)
+        write!(
+            f,
+            "[{}]",
+            self.elements
+                .iter()
+                .map(|element| element.to_string())
+                .collect::<Vec<String>>()
+                .join(", ")
+        )
     }
 }
 
