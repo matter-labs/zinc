@@ -1,52 +1,53 @@
 # Roadmap
 
-## Version 0.1 ✔
+## Version 0.1
 
-- primitive types ✔
-- input and witness (exported as JSON output) ✔
-- var declarations ✔
-- operators on primitive types ✔
-- `require()` ✔
-- comments ✔
-- `debug!()` ✔
-- interpreter ✔
+- [x] primitive types 
+- [x] input and witness (exported as JSON output)
+- [x] var declarations
+- [x] operators on primitive types
+- [x] `require()`
+- [x] comments
+- [x] `debug!()`
+- [x] interpreter
 
-## Version 0.2 ✔
+## Version 0.2
 
-- syntax highlighting for Visual Studio Code ✔
-- mutability ✔
-- conditionals ✔
-- `for` loops (without `while`) ✔
+- [x] syntax highlighting for Visual Studio Code
+- [x] mutability
+- [x] conditionals
+- [x] `for` loops (without `while`)
 
-## Version 0.3 ✔
+## Version 0.3
 
-- standard library (from bellman) ✔
+- [x] standard library (from bellman)
 
-## Version 0.4 ✔
+## Version 0.4
 
-- type aliases ✔
-- `for` loops with `while` ✔
-- arrays ✔
-- tuples ✔
-- structures ✔
+- [x] type aliases
+- [x] `for` loops with `while`
+- [x] arrays
+- [x] tuples
+- [x] structures
+- [ ] code generation of all of the above
 
 ## Version 0.5
 
-- functions
-- modules and imports
+- [ ] functions
+- [ ] modules and imports
 
 ## Later
 
-- `enum`
-- `match`
-- `unsafe_unchecked`
+- [ ] `enum`
+- [ ] `match`
+- [ ] `unsafe_unchecked`
 
 ## Much later
 
-- testing framework with coverage metrics
-- `Option<>`, `Result<>`, etc
-- bytes and strings
-- interfaces?
-- `unsafe_rust`?
-- conditional optimization
-- formal verification
+- [ ] testing framework with coverage metrics
+- [ ] `Option<>`, `Result<>`, etc
+- [ ] bytes and strings
+- [ ] interfaces?
+- [ ] `unsafe_rust`?
+- [ ] conditional optimization
+- [ ] formal verification

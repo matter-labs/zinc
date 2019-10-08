@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Jabberwocky language is used to simplify development of Quadratic Arithmetic Programs (see [this example](http://coders-errand.com/how-to-build-a-quadratic-arithmetic-program/)). It converts a jab program into an R1CS circuit (a list of linbear constraints over finite fields) using the [bellman](https://github.com/matter-labs/bellman) library. This allows generation of Zero Knowledge Proofs for any proof system supported by bellman (such as Groth16 or Sonic).
+The Jabberwocky language is used to simplify development of Quadratic Arithmetic Programs (see [this example](http://coders-errand.com/how-to-build-a-quadratic-arithmetic-program/)). It converts a jab program into an R1S circuit (a list of linbear constraints over finite fields) using the [bellman](https://github.com/matter-labs/bellman) library. This allows generation of Zero Knowledge Proofs for any proof system supported by bellman (such as Groth16 or Sonic).
 
 :::info
 Implementation details below are highlighted like this.
@@ -305,7 +305,7 @@ let c: u8 = Order::FIRST; // ok
 
 ## Passing by value
 
-Variables are always passed by value to operators, function calls and assignments. In R1CS programs passing by value is natural and cheap, albeit somewhat couner-intuitive: in fact, under the hood all variables are represented as references to immutable values, whereas change a mutable variable technically leads to creating a new variable with a reference to another immutable value.
+Variables are always passed by value to operators, function calls and assignments. In R1S programs passing by value is natural and cheap, albeit somewhat couner-intuitive: in fact, under the hood all variables are represented as references to immutable values, whereas change a mutable variable technically leads to creating a new variable with a reference to another immutable value.
 
 In contrast to Rust, passing by value in jab doesn't "move" the variable.
 

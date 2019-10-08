@@ -11,3 +11,19 @@ for i in 2..6 {
 };
 
 require(fact == 120 as field);
+
+type Huylo = (field,);
+
+struct Putin {
+    huylo: field,
+    a: bool,
+    b: (),
+    c: Huylo,
+};
+
+let value: Putin = Putin {
+    huylo: 0 as field,
+    a: true,
+    b: (),
+    c: (1,),
+};

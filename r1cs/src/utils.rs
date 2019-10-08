@@ -1,5 +1,5 @@
 //!
-//! Utility functions.
+//! R1CS utility functions.
 //!
 
 use bellman::pairing::ff::BitIterator;
@@ -17,18 +17,18 @@ use pairing::bn256::Bn256;
 use pairing::bn256::Fr;
 use pairing::Engine;
 
-pub fn pack_bits_to_element<CS>(
-    mut system: CS,
+pub fn pack_bits_to_element<S>(
+    mut system: S,
     bits: &[Boolean],
 ) -> Result<AllocatedNum<Bn256>, SynthesisError>
 where
-    CS: ConstraintSystem<Bn256>,
+    S: ConstraintSystem<Bn256>,
 {
     let mut data_from_lc = Num::<Bn256>::zero();
     let mut coef = Fr::one();
 
     for bit in bits {
-        data_from_lc = data_from_lc.add_bool_with_coeff(CS::one(), &bit, coef);
+        data_from_lc = data_from_lc.add_bool_with_coeff(S::one(), &bit, coef);
         coef.double();
     }
 
@@ -39,21 +39,21 @@ where
     system.enforce(
         || "pack_bits_to_number",
         |lc| lc + data_packed.get_variable(),
-        |lc| lc + CS::one(),
+        |lc| lc + S::one(),
         |_| data_from_lc.lc(Fr::one()),
     );
 
     Ok(data_packed)
 }
 
-pub fn field_into_allocated_bits_le_fixed<E, CS, F>(
-    mut system: CS,
+pub fn field_into_allocated_bits_le_fixed<E, S, F>(
+    mut system: S,
     field: Option<F>,
     bitlength: usize,
 ) -> Result<Vec<AllocatedBit>, SynthesisError>
 where
     E: Engine,
-    CS: ConstraintSystem<E>,
+    S: ConstraintSystem<E>,
     F: PrimeField,
 {
     assert!(bitlength <= F::NUM_BITS as usize);
@@ -94,13 +94,13 @@ where
     Ok(bits)
 }
 
-pub fn into_bits_le_fixed<CS>(
-    mut system: CS,
+pub fn into_bits_le_fixed<S>(
+    mut system: S,
     number: &AllocatedNum<Bn256>,
     bitlength: usize,
 ) -> Result<Vec<Boolean>, SynthesisError>
 where
-    CS: ConstraintSystem<Bn256>,
+    S: ConstraintSystem<Bn256>,
 {
     let bits = field_into_allocated_bits_le_fixed(&mut system, number.get_value(), bitlength)?;
     let mut lc = LinearCombination::zero();

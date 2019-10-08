@@ -5,12 +5,10 @@ use r1cs::Circuit;
 use r1cs::Fr;
 use r1cs::TestConstraintSystem;
 
-use circuit::GeneratedCircuit;
-
 fn main() {
     let mut system = TestConstraintSystem::<Bn256>::new();
 
-    let circuit = GeneratedCircuit::default();
+    let circuit = circuit::GeneratedCircuit::default();
     circuit.synthesize(&mut system).expect("Synthesis failed");
 
     dbg!(system.find_unconstrained());

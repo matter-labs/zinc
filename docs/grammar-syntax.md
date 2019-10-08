@@ -1,13 +1,11 @@
 # Syntax grammar rules
 
 ```
-root = inputs [ witnesses ] statement*
+root = inputs witnesses? statement*
 
-inputs = 'inputs' '{' input* '}'
-input = identifier ':' type ','
+inputs = 'inputs' '{' ( identifier ':' type ',' )* '}'
 
-witnesses = 'witness' '{' witness* '}'
-witness = identifier ':' type ','
+witnesses = 'witness' '{' ( identifier ':' type ',' )* '}'
 
 ## Statements
 statement = (
@@ -22,7 +20,7 @@ statement = (
 
 empty_statement = 
 require_statement = 'require' '(' expression ')'
-let_statement = 'let' [ 'mut' ] identifier [ ':' type ] '=' expression
+let_statement = 'let' 'mut'? identifier ( ':' type )? '=' expression
 loop_statement = 'for' identifier 'in' literal_integer ( '..' | '..=' ) literal_integer block_expression
 type_statement = 'type' identifier '=' type
 debug_statement = 'debug' '(' expression ')'
@@ -40,7 +38,7 @@ operand_as =
   | operand_access ( '[' literal_integer ']' | '.' literal_integer | '.' identifier )*
 operand_access =
   | literal
-  | identifier
+  | structure_expression
   | tuple_expression
   | block_expression
   | conditional_expression
@@ -48,15 +46,19 @@ operand_access =
 
 block_expression = '{' statement* expression? '}'
 
-conditional_expression = 'if' expression block_expression [ 'else' ( conditional_expression | block_expression ) ]
+conditional_expression = 'if' expression block_expression ( 'else' ( conditional_expression | block_expression ) )?
 
 array_expression =
-  | '[' [ expression [ ',' expression ]* ]? ']'
+  | '[' ( expression ( ',' expression )* )? ']'
   | '[' expression ';' literal_integer ']'
 
 tuple_expression =
   | '(' ')'
   | '(' expression ')'
-  | '(' expression ',' [ expression? [ ',' expression ]* ] ')'
+  | '(' expression ',' ( expression? ( ',' expression )* )? ')'
+
+structure_expression =
+  | identifier
+  | identifier ( '{' ( identifier ':' type ',' )* '}' )?
 
 ```
