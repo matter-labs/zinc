@@ -57,10 +57,9 @@ impl Builder {
 
     pub fn finish(mut self) -> Type {
         let location = self.location.take().expect("Missing location");
+
         let variant = if let Some(alias_identifier) = self.alias_identifier.take() {
             TypeVariant::new_alias(alias_identifier)
-        } else if self.is_unit {
-            TypeVariant::new_unit()
         } else if let Some(keyword) = self.keyword.take() {
             match keyword {
                 Keyword::Bool => TypeVariant::new_boolean(),
@@ -73,11 +72,13 @@ impl Builder {
             let array_size: usize = self.array_size.take().expect("Missing array size").into();
             TypeVariant::new_array(array_type, array_size)
         } else if !self.tuple_types.is_empty() {
-            if self.tuple_types.len() == 1 && !self.tuple_has_comma {
+            if !self.tuple_has_comma {
                 self.tuple_types.pop().expect("Always contains an element")
             } else {
                 TypeVariant::new_tuple(self.tuple_types)
             }
+        } else if self.is_unit {
+            TypeVariant::new_unit()
         } else {
             panic!("Always checked by the branches above");
         };

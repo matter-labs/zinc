@@ -1,4 +1,4 @@
-# Lexical grammar rules
+# Lexical grammar
 
 ```
 lexeme =
@@ -23,36 +23,36 @@ type =
   | 'field'
 
 keyword =
-  // domain
+  // built-ins
   | 'inputs'
   | 'witness'
   | 'require'
   | 'debug'
 
-  // declaration
+  // declarations
   | 'let'
   | 'mut'
   | 'type'
   | 'struct'
 
-  // control
+  // controls
   | 'for'
   | 'in'
   | 'while'
   | 'if'
   | 'else'
 
-  // type
+  // types
   | 'bool'
   | ['u8' 'u16' ... 'u240' 'u248']
   | ['i8' 'i16' ... 'i240' 'i248']
   | 'field'
 
-  // literal
+  // literals
   | 'true'
   | 'false'
 
-  // operator
+  // operators
   | 'as'
 
 literal =

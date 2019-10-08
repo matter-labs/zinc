@@ -1,50 +1,60 @@
-# Jabberwocky Compiler
+# The Jabberwocky translator
 
-The Jabberwocky language compiler tools.
+## Roadmap
 
-## Language design philosophy
+### Version 0.1
 
-The goal of Jabberwocky is to make writing zero-knowledge programs and smart contracts easy. It is being designed with the following principles in mind:
+- [x] primitive types 
+- [x] input and witness (exported as JSON output)
+- [x] var declarations
+- [x] operators on primitive types
+- [x] `require()`
+- [x] comments
+- [x] `debug!()`
+- [x] interpreter
 
-- **Ease of learning**. Anyone familiar with C-like languages (Javascript, Java, C++, Rust, Solidity) should be able to learn Jabberwocky quickly and with minimum effort.
-- **Readability**. The code in Jabberwocky should be easy to read und intuitively comprehensible for anybody familiar with the C++ language familiy. There should be no counter-intuitive concepts.
-- **Security**. It should be easy to write deterministic and secure programs. It should be possible to write safe code without need to understand language subtleties. Conversely, it should be difficult to write code which does not do what it intuitively appears to be doing.
-- **Minimalism and simplicity**. Less code is better. There should ideally be only one way to do something efficiently. Complexity should be reduced.
-- **Expressiveness**. The language should be powerful enough to make building complex programs easy.
-- **Efficiency**. The code should compile to the most efficient circuit possible.
-- **Expose non-optimizable costs**. Costs that cannot be optimized efficiently must be made explicit to the developers. An example is the requirement to explicitly specify the loop range with constants.
+### Version 0.2
 
-These goals led to the following decisions:
+- [x] syntax highlighting for Visual Studio Code
+- [x] mutability
+- [x] conditionals
+- [x] `for` loops (without `while`)
 
-- **Functional programming**. The langauge should have first-class support for functional programming principles, such as immutability and minimizing side-effects.
-- **Rustiness**. The language shall follow rust syntax and philosophy as closely as possible. It should be a subset of rust whenever possible. 
-  - Notable exceptions:
-    - Types. Obviously we need to adapt the type system to be efficiently representable in finite fields, which are the basic building block of R1S.
-    - References and ownership. Memory management is very different in R1S circuits compared to the von Neumann architecture. The decision is to pass everything "by value" by default without moving ownership (see the developer guide for explanation).
-    - `for-while` loops. Combining `for` and `while` loops allows nicer syntax without hiding the fact that the `for-while` loop has a fixed number of iterations.
+### Version 0.3
 
-## Compiler command line interface
+- [x] standard library (from bellman)
 
-### The interface description
+### Version 0.4
 
-```
-jabc 0.1.0
-hedgar2017 <hedgar2017@gmail.com>
-The Jabberwocky language compiler
+- [x] type aliases
+- [x] `for` loops with `while`
+- [x] arrays
+- [x] tuples
+- [x] structures
+- [x] code generation of all of the above
 
-USAGE:
-    jabc.exe [FLAGS] --input <INPUT> --output <OUTPUT>
+### Version 0.5
 
-FLAGS:
-    -h, --help       Prints help information
-    -m, --meta       Generates meta info
-    -p, --profile    Runs the profiler and prints cost information
-    -V, --version    Prints version information
+- [ ] functions
+- [ ] modules and imports
 
-OPTIONS:
-    -i, --input <INPUT>      Specifies the input *.jab file name
-    -o, --output <OUTPUT>    Specifies the output *.rs file name
-```
+### Later
+
+- [ ] `enum`
+- [ ] `match`
+- [ ] `unsafe_unchecked`
+
+### Much later
+
+- [ ] testing framework with coverage metrics
+- [ ] `Option<>`, `Result<>`, etc
+- [ ] bytes and strings
+- [ ] interfaces?
+- [ ] `unsafe_rust`?
+- [ ] conditional optimization
+- [ ] formal verification
+
+## Transpiler output
 
 ### Meta info
 
@@ -65,14 +75,14 @@ OPTIONS:
 }
 ```
 
-### Cost profiler output
+### Cost profiling
 
-The cost profiler must print number of constraints for each line in the following `json` format:
+The cost profiler prints number of constraints for each line:
 
 ```json
 {
     "file": "filename.jab",
-    "md5":  "md5 hash of the file",
+    "md5":  "000011112222333344445555666677778888",
     "constraints": {
         "1": 2,
         "2": 0,
@@ -82,9 +92,10 @@ The cost profiler must print number of constraints for each line in the followin
 }
 ```
 
-Each line must sum up constraints in all statements that **begin** in this line.
+Each line must sum up constraints in all statements that begin in this line.
 
-If a line contains the beginning of a block enclosed in `{ ... }`, the costs must include the total cost of the block in curly brackets:
+If a line contains the beginning of a block enclosed in `{ ... }`, the costs
+must include the total cost of the block in curly brackets:
 
 ```rust
 1: if a == b { // 3 constraints
@@ -98,31 +109,11 @@ If a line contains the beginning of a block enclosed in `{ ... }`, the costs mus
 
 ```json
 "constraints": {
-    "1": {"inline": 3, "block": 4},
+    "1": { "inline": 3, "block": 4 },
     "2": 1,
-    "3": {"inline": 0, "block": 2},
+    "3": { "inline": 0, "block": 2 },
     "4": 2
 }
 ```
 
 This information will be used to visualize the cost with IDE plugins.
-
-## Interpreter command line interface
-
-### The interface description
-
-```
-jabi 0.1.0
-hedgar2017 <hedgar2017@gmail.com>
-The Jabberwocky language interpreter
-
-USAGE:
-    jabi.exe <INPUT>
-
-FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
-
-ARGS:
-    <INPUT>
-```

@@ -1,4 +1,4 @@
-# Syntax grammar rules
+# Syntax grammar
 
 ```
 root = inputs witnesses? statement*
