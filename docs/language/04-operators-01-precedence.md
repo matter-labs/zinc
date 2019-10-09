@@ -1,4 +1,6 @@
-# Operator precedence
+# Precedence
+
+The top one is executed the first.
 
 ```
 |    Operator      |  Associativity  |

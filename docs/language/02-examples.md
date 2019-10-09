@@ -2,7 +2,7 @@
 
 `simple_math.jab`:
 
-```rust
+```jab
 /// 
 /// The example library.
 /// 
@@ -19,7 +19,7 @@ pub fn cube(x: u128) -> u128 {
 
 `main.jab`:
 
-```rust
+```jab
 ///
 /// The example binary.
 /// 

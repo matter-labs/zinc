@@ -11,36 +11,36 @@ use failure::Fail;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Keyword {
-    // domain
+    // built-ins
     Inputs,
     Witness,
     Require,
     Debug,
 
-    // declaration
+    // declarations
     Let,
     Mut,
     Type,
     Struct,
 
-    // control
+    // controls
     For,
     In,
     While,
     If,
     Else,
 
-    // type
+    // types
     Bool,
     U { bitlength: usize },
     I { bitlength: usize },
     Field,
 
-    // literal
+    // literals
     True,
     False,
 
-    // operator
+    // operators
     As,
 }
 
