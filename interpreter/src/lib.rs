@@ -117,15 +117,15 @@ impl Interpreter {
             Statement::Require(require) => match self.evaluate(require.expression)? {
                 Value::Boolean(boolean) => {
                     if boolean.is_true() {
-                        log::info!("require {} passed", require.id)
+                        log::info!("require {} passed", require.annotation);
                     } else {
-                        return Err(Error::RequireFailed(require.location, require.id));
+                        return Err(Error::RequireFailed(require.location, require.annotation));
                     }
                 }
                 value => {
                     return Err(Error::RequireExpectedBooleanExpression(
                         require.location,
-                        require.id,
+                        require.annotation,
                         value,
                     ))
                 }
@@ -260,7 +260,7 @@ impl Interpreter {
             }
             Statement::Debug(debug) => {
                 let result = self.evaluate(debug.expression)?;
-                println!("{}", result);
+                log::info!("{}", result);
             }
             Statement::Expression(expression) => {
                 self.evaluate(expression)?;
@@ -383,7 +383,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                ExpressionObject::Operator(ExpressionOperator::Equal) => {
+                ExpressionObject::Operator(ExpressionOperator::Equals) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -395,7 +395,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                ExpressionObject::Operator(ExpressionOperator::NotEqual) => {
+                ExpressionObject::Operator(ExpressionOperator::NotEquals) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -407,7 +407,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                ExpressionObject::Operator(ExpressionOperator::GreaterEqual) => {
+                ExpressionObject::Operator(ExpressionOperator::GreaterEquals) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -419,7 +419,7 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
-                ExpressionObject::Operator(ExpressionOperator::LesserEqual) => {
+                ExpressionObject::Operator(ExpressionOperator::LesserEquals) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(true, true)
                         .map_err(|error| Error::Scope(element.location, error))?;

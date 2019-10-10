@@ -19,10 +19,10 @@ pub enum Operator {
     And,
 
     // comparison
-    Equal,
-    NotEqual,
-    GreaterEqual,
-    LesserEqual,
+    Equals,
+    NotEquals,
+    GreaterEquals,
+    LesserEquals,
     Greater,
     Lesser,
 
@@ -59,10 +59,10 @@ impl fmt::Display for Operator {
             Self::Xor => write!(f, "^^"),
             Self::And => write!(f, "&&"),
 
-            Self::Equal => write!(f, "=="),
-            Self::NotEqual => write!(f, "!="),
-            Self::GreaterEqual => write!(f, ">="),
-            Self::LesserEqual => write!(f, "<="),
+            Self::Equals => write!(f, "=="),
+            Self::NotEquals => write!(f, "!="),
+            Self::GreaterEquals => write!(f, ">="),
+            Self::LesserEquals => write!(f, "<="),
             Self::Greater => write!(f, ">"),
             Self::Lesser => write!(f, "<"),
 

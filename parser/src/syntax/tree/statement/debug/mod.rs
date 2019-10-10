@@ -28,6 +28,6 @@ impl Debug {
 
 impl fmt::Display for Debug {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "debug ({})", self.expression,)
+        write!(f, "debug({})", self.expression)
     }
 }

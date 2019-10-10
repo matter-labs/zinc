@@ -98,7 +98,7 @@ fn main() -> Result<(), Error> {
     })?;
 
     if args.meta {
-        println!("{}", serde_json::to_string(&circuit).expect("Always valid"));
+        log::info!("{}", serde_json::to_string(&circuit).expect("Always valid"));
     }
 
     let result = Transpiler::new().transpile(circuit).map_err(|error| {

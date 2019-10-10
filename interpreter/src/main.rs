@@ -72,7 +72,7 @@ fn main() -> Result<(), Error> {
     })?;
 
     if args.meta {
-        println!("{}", serde_json::to_string(&circuit).expect("Always valid"));
+        log::info!("{}", serde_json::to_string(&circuit).expect("Always valid"));
     }
 
     Interpreter::default().interpret(circuit).map_err(|error| {

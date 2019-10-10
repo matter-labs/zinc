@@ -15,26 +15,30 @@ use crate::syntax::Expression;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Require {
     pub location: Location,
-    pub id: String,
     pub expression: Expression,
+    pub annotation: String,
 }
 
 impl Require {
-    pub fn new(location: Location, expression: Expression, tag: Option<StringLiteral>) -> Self {
-        let id = tag
+    pub fn new(
+        location: Location,
+        expression: Expression,
+        annotation: Option<StringLiteral>,
+    ) -> Self {
+        let annotation = annotation
             .map(|literal| literal.to_string())
             .unwrap_or_else(|| format!("L{}", location.line));
 
         Self {
             location,
-            id,
             expression,
+            annotation,
         }
     }
 }
 
 impl fmt::Display for Require {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "require ({}, {})", self.expression, self.id)
+        write!(f, r#"require({}, "{}")"#, self.expression, self.annotation)
     }
 }

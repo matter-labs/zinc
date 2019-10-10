@@ -54,7 +54,7 @@ impl Parser {
                             location,
                         })) => {
                             stream.borrow_mut().next();
-                            self.operator = Some((location, ExpressionOperator::Equal));
+                            self.operator = Some((location, ExpressionOperator::Equals));
                             self.state = State::ComparisonSecondOperand;
                         }
                         Some(Ok(Token {
@@ -62,7 +62,7 @@ impl Parser {
                             location,
                         })) => {
                             stream.borrow_mut().next();
-                            self.operator = Some((location, ExpressionOperator::NotEqual));
+                            self.operator = Some((location, ExpressionOperator::NotEquals));
                             self.state = State::ComparisonSecondOperand;
                         }
                         Some(Ok(Token {
@@ -70,7 +70,7 @@ impl Parser {
                             location,
                         })) => {
                             stream.borrow_mut().next();
-                            self.operator = Some((location, ExpressionOperator::GreaterEqual));
+                            self.operator = Some((location, ExpressionOperator::GreaterEquals));
                             self.state = State::ComparisonSecondOperand;
                         }
                         Some(Ok(Token {
@@ -78,7 +78,7 @@ impl Parser {
                             location,
                         })) => {
                             stream.borrow_mut().next();
-                            self.operator = Some((location, ExpressionOperator::LesserEqual));
+                            self.operator = Some((location, ExpressionOperator::LesserEquals));
                             self.state = State::ComparisonSecondOperand;
                         }
                         Some(Ok(Token {
@@ -153,7 +153,7 @@ mod tests {
                 ),
                 ExpressionElement::new(
                     Location::new(1, 6),
-                    ExpressionObject::Operator(ExpressionOperator::Equal),
+                    ExpressionObject::Operator(ExpressionOperator::Equals),
                 ),
             ],
         ));

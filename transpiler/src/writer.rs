@@ -3,12 +3,7 @@
 //!
 
 use parser::Input;
-use parser::StructStatement;
-use parser::TypeStatement;
-use parser::TypeVariant;
 use parser::Witness;
-
-use crate::Converter;
 
 pub struct Writer {
     buffer: String,
@@ -41,227 +36,10 @@ impl Writer {
         result
     }
 
-    pub fn write_require(&mut self, result: &str, annotation: &str) {
-        self.write_line(format!(
-            r#"r1cs::require(system.namespace(|| "{0}"), &{1}, "{0}");"#,
-            annotation, result
-        ));
-    }
-
-    pub fn write_let(&mut self, is_mutable: bool, name: &str, result: &str) {
-        self.write_line(format!(
-            "let{0} {1} = {2};",
-            if is_mutable { " mut" } else { "" },
-            name,
-            result,
-        ));
-    }
-
-    pub fn write_debug(&mut self, result: &str) {
-        self.write_line(format!(r#"dbg!({0}.get_value());"#, result));
-    }
-
-    pub fn write_type(&mut self, data: TypeStatement) {
-        self.write_line(format!(
-            r#"type {0} = {1};"#,
-            data.identifier,
-            Converter::r#type(data.r#type.variant)
-        ));
-    }
-
-    pub fn write_struct(&mut self, data: StructStatement) {
-        let fields = data
-            .fields
-            .into_iter()
-            .map(|(identifier, r#type)| {
-                format!("{}: {}", identifier, Converter::r#type(r#type.variant))
-            })
-            .collect::<Vec<String>>()
-            .join(", ");
-        self.write_line(format!(r#"struct {0} {{ {1} }}"#, data.identifier, fields));
-    }
-
-    pub fn write_assignment(&mut self, operand_1: &str, operand_2: &str) {
-        if self.conditional_stack.is_empty() {
-            self.write_line(format!(r#"{0} = {1};"#, operand_1, operand_2,))
-        } else {
-            let conditions = self
-                .conditional_stack
-                .iter()
-                .map(|(name, value)| {
-                    format!(
-                        r#"{0}{1}.get_value().expect("Always returns a value")"#,
-                        if *value { "" } else { "!" },
-                        name
-                    )
-                })
-                .collect::<Vec<String>>()
-                .join(" && ");
-            self.write_line(format!(r#"if {0} {{"#, conditions));
-            self.shift_forward();
-            self.write_line(format!(r#"{0} = {1};"#, operand_1, operand_2,));
-            self.shift_backward();
-            self.write_line("}".to_owned());
-        }
-    }
-
-    pub fn write_or(&mut self, operand_1: &str, operand_2: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::or(system.namespace(|| {1}), &{2}, &{3})?;"#,
-            id, namespace, operand_1, operand_2
-        ));
-        id
-    }
-
-    pub fn write_xor(&mut self, operand_1: &str, operand_2: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::xor(system.namespace(|| {1}), &{2}, &{3})?;"#,
-            id, namespace, operand_1, operand_2
-        ));
-        id
-    }
-
-    pub fn write_and(&mut self, operand_1: &str, operand_2: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::and(system.namespace(|| {1}), &{2}, &{3})?;"#,
-            id, namespace, operand_1, operand_2
-        ));
-        id
-    }
-
-    pub fn write_equals_boolean(&mut self, operand_1: &str, operand_2: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::equals_boolean(system.namespace(|| {1}), &{2}, &{3}, 254)?;"#,
-            id, namespace, operand_1, operand_2
-        ));
-        id
-    }
-
-    pub fn write_equals_number(&mut self, operand_1: &str, operand_2: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::equals_number(system.namespace(|| {1}), &{2}, &{3}, 254)?;"#,
-            id, namespace, operand_1, operand_2
-        ));
-        id
-    }
-
-    pub fn write_not_equals_boolean(&mut self, operand_1: &str, operand_2: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::not_equals_boolean(system.namespace(|| {1}), &{2}, &{3}, 254)?;"#,
-            id, namespace, operand_1, operand_2
-        ));
-        id
-    }
-
-    pub fn write_not_equals_number(&mut self, operand_1: &str, operand_2: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::not_equals_number(system.namespace(|| {1}), &{2}, &{3}, 254)?;"#,
-            id, namespace, operand_1, operand_2
-        ));
-        id
-    }
-
-    pub fn write_greater_equals(&mut self, operand_1: &str, operand_2: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::greater_equals(system.namespace(|| {1}), &{2}, &{3}, 254)?;"#,
-            id, namespace, operand_1, operand_2
-        ));
-        id
-    }
-
-    pub fn write_lesser_equals(&mut self, operand_1: &str, operand_2: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::lesser_equals(system.namespace(|| {1}), &{2}, &{3}, 254)?;"#,
-            id, namespace, operand_1, operand_2
-        ));
-        id
-    }
-
-    pub fn write_greater(&mut self, operand_1: &str, operand_2: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::greater(system.namespace(|| {1}), &{2}, &{3}, 254)?;"#,
-            id, namespace, operand_1, operand_2
-        ));
-        id
-    }
-
-    pub fn write_lesser(&mut self, operand_1: &str, operand_2: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::lesser(system.namespace(|| {1}), &{2}, &{3}, 254)?;"#,
-            id, namespace, operand_1, operand_2
-        ));
-        id
-    }
-
-    pub fn write_addition(&mut self, operand_1: &str, operand_2: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::add(system.namespace(|| {1}), &{2}, &{3}, 254)?.0;"#,
-            id, namespace, operand_1, operand_2
-        ));
-        id
-    }
-
-    pub fn write_subtraction(&mut self, operand_1: &str, operand_2: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::subtract(system.namespace(|| {1}), &{2}, &{3}, 254)?.0;"#,
-            id, namespace, operand_1, operand_2
-        ));
-        id
-    }
-
-    pub fn write_multiplication(&mut self, operand_1: &str, operand_2: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::multiply(system.namespace(|| {1}), &{2}, &{3}, 254)?.0;"#,
-            id, namespace, operand_1, operand_2
-        ));
-        id
-    }
-
-    pub fn write_casting(&mut self, operand_1: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::cast(system.namespace(|| {1}), &{2}, 254)?;"#,
-            id, namespace, operand_1
-        ));
-        id
-    }
-
-    pub fn write_negation(&mut self, operand_1: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::negate(system.namespace(|| {1}), &{2}, 254)?.0;"#,
-            id, namespace, operand_1
-        ));
-        id
-    }
-
-    pub fn write_not(&mut self, operand_1: &str) -> String {
-        let (id, namespace) = self.next_id_and_namespace();
-        self.write_line(format!(
-            r#"let {0} = r1cs::not(system.namespace(|| {1}), &{2})?;"#,
-            id, namespace, operand_1
-        ));
-        id
-    }
-
     pub fn write_attributes(&mut self) {
         self.write_line("#![allow(unused_imports)]".to_owned());
         self.write_line("#![allow(unused_variables)]".to_owned());
-        self.write_empty_line();
+        self.write_new_line();
     }
 
     pub fn write_imports(&mut self) {
@@ -272,7 +50,7 @@ impl Writer {
         self.write_line("use r1cs::Fr;".to_owned());
         self.write_line("use r1cs::AllocatedNum;".to_owned());
         self.write_line("use r1cs::Boolean;".to_owned());
-        self.write_empty_line();
+        self.write_new_line();
     }
 
     pub fn write_circuit_declaration(&mut self, inputs: &[Input], witnesses: &[Witness]) {
@@ -287,7 +65,7 @@ impl Writer {
         }
         self.shift_backward();
         self.write_line("}".to_owned());
-        self.write_empty_line();
+        self.write_new_line();
     }
 
     pub fn write_circuit_header(&mut self) {
@@ -348,10 +126,6 @@ impl Writer {
         id
     }
 
-    pub fn write_identifier(&mut self, name: &str) {
-        self.write_line(name.to_owned());
-    }
-
     pub fn write_circuit_trailer(&mut self) {
         self.write_line("Ok(())".to_owned());
         self.shift_backward();
@@ -402,13 +176,17 @@ impl Writer {
         self.write_line("};".to_owned());
     }
 
-    fn write_line(&mut self, line: String) {
-        self.buffer.push_str(&" ".repeat(self.offset));
+    pub fn write_line(&mut self, line: String) {
+        self.write_offset();
         self.buffer.push_str(&line);
-        self.buffer.push('\n');
+        self.write_new_line();
     }
 
-    fn write_empty_line(&mut self) {
+    fn write_offset(&mut self) {
+        self.buffer.push_str(&" ".repeat(self.offset));
+    }
+
+    fn write_new_line(&mut self) {
         self.buffer.push('\n');
     }
 
