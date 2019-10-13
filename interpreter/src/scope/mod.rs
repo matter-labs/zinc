@@ -15,7 +15,7 @@ use std::str;
 use parser::TypeVariant;
 
 use crate::Place;
-use crate::PlaceElement;
+use crate::PlaceDescriptor;
 use crate::Value;
 
 use self::variable::Variable;
@@ -43,14 +43,14 @@ impl Scope {
                 value = match value {
                     Value::Array(array) => {
                         let index = match index {
-                            PlaceElement::ArrayIndex(index) => *index,
-                            PlaceElement::TupleField(index) => {
+                            PlaceDescriptor::ArrayIndex(index) => *index,
+                            PlaceDescriptor::TupleField(index) => {
                                 return Err(Error::AddressArrayAsTuple(
                                     place.identifier.to_owned(),
                                     *index,
                                 ));
                             }
-                            PlaceElement::StructureField(identifier) => {
+                            PlaceDescriptor::StructureField(identifier) => {
                                 return Err(Error::AddressArrayAsStructure(
                                     place.identifier.to_owned(),
                                     identifier.to_owned(),
@@ -64,14 +64,14 @@ impl Scope {
                     }
                     Value::Tuple(tuple) => {
                         let index = match index {
-                            PlaceElement::ArrayIndex(index) => {
+                            PlaceDescriptor::ArrayIndex(index) => {
                                 return Err(Error::AccessTupleAsArray(
                                     place.identifier.to_owned(),
                                     *index,
                                 ));
                             }
-                            PlaceElement::TupleField(index) => *index,
-                            PlaceElement::StructureField(identifier) => {
+                            PlaceDescriptor::TupleField(index) => *index,
+                            PlaceDescriptor::StructureField(identifier) => {
                                 return Err(Error::AccessTupleAsStructure(
                                     place.identifier.to_owned(),
                                     identifier.to_owned(),
@@ -85,19 +85,19 @@ impl Scope {
                     }
                     Value::Structure(structure) => {
                         let identifier = match index {
-                            PlaceElement::ArrayIndex(index) => {
+                            PlaceDescriptor::ArrayIndex(index) => {
                                 return Err(Error::AccessStructureAsArray(
                                     place.identifier.to_owned(),
                                     *index,
                                 ));
                             }
-                            PlaceElement::TupleField(index) => {
+                            PlaceDescriptor::TupleField(index) => {
                                 return Err(Error::AccessStructureAsTuple(
                                     place.identifier.to_owned(),
                                     *index,
                                 ));
                             }
-                            PlaceElement::StructureField(identifier) => identifier,
+                            PlaceDescriptor::StructureField(identifier) => identifier,
                         };
 
                         structure.get(identifier).ok_or_else(|| {
@@ -135,14 +135,14 @@ impl Scope {
                 match value {
                     Value::Array(array) => {
                         let index = match index {
-                            PlaceElement::ArrayIndex(index) => *index,
-                            PlaceElement::TupleField(index) => {
+                            PlaceDescriptor::ArrayIndex(index) => *index,
+                            PlaceDescriptor::TupleField(index) => {
                                 return Err(Error::AddressArrayAsTuple(
                                     place.identifier.to_owned(),
                                     *index,
                                 ));
                             }
-                            PlaceElement::StructureField(identifier) => {
+                            PlaceDescriptor::StructureField(identifier) => {
                                 return Err(Error::AddressArrayAsStructure(
                                     place.identifier.to_owned(),
                                     identifier.to_owned(),
@@ -162,14 +162,14 @@ impl Scope {
                     }
                     Value::Tuple(tuple) => {
                         let index = match index {
-                            PlaceElement::ArrayIndex(index) => {
+                            PlaceDescriptor::ArrayIndex(index) => {
                                 return Err(Error::AccessTupleAsArray(
                                     place.identifier.to_owned(),
                                     *index,
                                 ));
                             }
-                            PlaceElement::TupleField(index) => *index,
-                            PlaceElement::StructureField(identifier) => {
+                            PlaceDescriptor::TupleField(index) => *index,
+                            PlaceDescriptor::StructureField(identifier) => {
                                 return Err(Error::AccessTupleAsStructure(
                                     place.identifier.to_owned(),
                                     identifier.to_owned(),
@@ -189,19 +189,19 @@ impl Scope {
                     }
                     Value::Structure(structure) => {
                         let identifier = match index {
-                            PlaceElement::ArrayIndex(index) => {
+                            PlaceDescriptor::ArrayIndex(index) => {
                                 return Err(Error::AccessStructureAsArray(
                                     place.identifier.to_owned(),
                                     *index,
                                 ));
                             }
-                            PlaceElement::TupleField(index) => {
+                            PlaceDescriptor::TupleField(index) => {
                                 return Err(Error::AccessStructureAsTuple(
                                     place.identifier.to_owned(),
                                     *index,
                                 ));
                             }
-                            PlaceElement::StructureField(identifier) => identifier,
+                            PlaceDescriptor::StructureField(identifier) => identifier,
                         };
 
                         match structure.get_mut(identifier) {

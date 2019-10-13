@@ -1,0 +1,12 @@
+/*
+    Algorithm: Test
+*/
+
+inputs {}
+
+let mut sum: u64 = 0;
+for i in 10..=0 {
+    sum = sum + i;
+};
+
+require(sum == 55 as u64);

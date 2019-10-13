@@ -7,35 +7,22 @@ use parser::Type;
 
 use crate::TypeOutput;
 
-pub struct Output {
-    pub identifier: String,
-    pub fields: Vec<(String, String)>,
-}
+pub struct Output {}
 
 impl Output {
-    pub fn new(identifier: Identifier, fields: Vec<(Identifier, Type)>) -> Self {
-        Self {
-            identifier: identifier.name,
-            fields: fields
-                .into_iter()
-                .map(|(identifier, r#type)| {
-                    (identifier.name, TypeOutput::from(r#type.variant).into())
-                })
-                .collect::<Vec<(String, String)>>(),
-        }
-    }
-}
-
-impl Into<String> for Output {
-    fn into(self) -> String {
+    pub fn output(identifier: Identifier, fields: Vec<(Identifier, Type)>) -> String {
         format!(
             r#"struct {0} {{ {1} }}"#,
-            self.identifier,
-            self.fields
+            identifier,
+            fields
                 .into_iter()
-                .map(|(identifier, r#type)| format!("{}: {}", identifier, r#type))
+                .map(|(identifier, r#type)| format!(
+                    "{}: {}",
+                    identifier.name,
+                    TypeOutput::output(r#type.variant)
+                ))
                 .collect::<Vec<String>>()
-                .join(", ")
+                .join(", "),
         )
     }
 }

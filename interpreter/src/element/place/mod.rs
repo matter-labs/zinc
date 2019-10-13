@@ -2,10 +2,10 @@
 //! The interpreter element place.
 //!
 
-mod element;
+mod descriptor;
 mod error;
 
-pub use self::element::Element;
+pub use self::descriptor::Descriptor;
 pub use self::error::Error;
 
 use std::fmt;
@@ -15,7 +15,7 @@ use crate::Value;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Place {
     pub identifier: String,
-    pub elements: Vec<Element>,
+    pub elements: Vec<Descriptor>,
 }
 
 impl Place {
@@ -35,7 +35,7 @@ impl Place {
             value => return Err(Error::IndexingExpectedIntegerConstant(value)),
         };
 
-        self.elements.push(Element::ArrayIndex(index));
+        self.elements.push(Descriptor::ArrayIndex(index));
         Ok(())
     }
 
@@ -48,14 +48,14 @@ impl Place {
             value => return Err(Error::TupleAccessExpectedIntegerConstant(value)),
         };
 
-        self.elements.push(Element::TupleField(field));
+        self.elements.push(Descriptor::TupleField(field));
         Ok(())
     }
 
     pub fn access_structure(&mut self, place: Place) -> Result<(), Error> {
         let field = place.identifier;
 
-        self.elements.push(Element::StructureField(field));
+        self.elements.push(Descriptor::StructureField(field));
         Ok(())
     }
 }
@@ -66,9 +66,9 @@ impl fmt::Display for Place {
             .elements
             .iter()
             .map(|element| match element {
-                Element::ArrayIndex(index) => format!("[{}]", index),
-                Element::TupleField(index) => format!(".{}", index),
-                Element::StructureField(identifier) => format!(".{}", identifier),
+                Descriptor::ArrayIndex(index) => format!("[{}]", index),
+                Descriptor::TupleField(index) => format!(".{}", index),
+                Descriptor::StructureField(identifier) => format!(".{}", identifier),
             })
             .collect::<Vec<String>>()
             .join("");

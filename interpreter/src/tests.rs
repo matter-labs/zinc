@@ -286,7 +286,7 @@ fn loop_reverted() {
 inputs {}
 
 let mut sum: u64 = 0;
-for i in 10..0 {
+for i in 10..=0 {
     sum = sum + i;
 };
 

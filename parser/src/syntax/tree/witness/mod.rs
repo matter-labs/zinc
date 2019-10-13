@@ -35,7 +35,7 @@ impl Witness {
             TypeVariant::Boolean => 1,
             TypeVariant::IntegerUnsigned { bitlength } => bitlength,
             TypeVariant::IntegerSigned { bitlength } => bitlength,
-            TypeVariant::Field => crate::SIZE_FIELD,
+            TypeVariant::Field => crate::BITLENGTH_FIELD,
             _ => panic!("Always checked by the branches above"),
         }
     }

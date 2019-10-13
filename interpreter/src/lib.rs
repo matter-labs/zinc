@@ -16,7 +16,7 @@ pub use self::element::Error as ElementError;
 pub use self::element::Integer;
 pub use self::element::IntegerError;
 pub use self::element::Place;
-pub use self::element::PlaceElement;
+pub use self::element::PlaceDescriptor;
 pub use self::element::PlaceError;
 pub use self::element::Structure;
 pub use self::element::StructureError;
@@ -56,7 +56,7 @@ pub const MAX_VALUE_BYTE: usize = 256;
 
 pub const SIZE_BYTE: usize = 8;
 pub const SIZE_MAX_INT: usize = 248;
-pub const SIZE_FIELD: usize = 254;
+pub const SIZE_FIELD: usize = r1cs::BITLENGTH_FIELD;
 pub const SIZE_FIELD_PADDED: usize = 256;
 
 pub fn interpret(circuit: CircuitProgram) -> Result<(), Error> {
@@ -230,7 +230,11 @@ impl Interpreter {
                     }
 
                     if is_reverse {
-                        index -= 1;
+                        if index > 0 {
+                            index -= 1;
+                        } else {
+                            break;
+                        }
                     } else {
                         index += 1;
                     }

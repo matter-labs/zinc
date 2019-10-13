@@ -7,7 +7,7 @@ mod place;
 mod value;
 
 pub use self::error::Error;
-pub use self::place::Element as PlaceElement;
+pub use self::place::Descriptor as PlaceDescriptor;
 pub use self::place::Error as PlaceError;
 pub use self::place::Place;
 pub use self::value::Array;

@@ -16,8 +16,8 @@ use crate::Value;
 #[derive(Default, Clone, PartialEq)]
 pub struct Structure {
     identifier: String,
-    elements: BTreeMap<String, Value>,
     fields: BTreeMap<String, TypeVariant>,
+    elements: BTreeMap<String, Value>,
 }
 
 impl Structure {
