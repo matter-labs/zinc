@@ -5,8 +5,8 @@
 use parser::Identifier;
 use parser::Type;
 
-use crate::Element;
-use crate::TypeOutput;
+use crate::element::Element;
+use crate::output::TypeOutput;
 
 pub struct Output {}
 

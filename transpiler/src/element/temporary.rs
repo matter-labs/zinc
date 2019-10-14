@@ -4,7 +4,7 @@
 
 use std::fmt;
 
-use crate::Descriptor;
+use crate::element::Descriptor;
 
 pub struct Element {
     pub identifier: String,

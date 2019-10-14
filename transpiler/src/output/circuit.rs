@@ -5,8 +5,8 @@
 use parser::Input;
 use parser::Witness;
 
-use crate::InputOutput;
-use crate::WitnessOutput;
+use crate::output::InputOutput;
+use crate::output::WitnessOutput;
 
 pub struct Output {
     pub start: Vec<String>,

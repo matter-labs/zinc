@@ -4,9 +4,9 @@
 
 use failure::Fail;
 
-use crate::Element;
-use crate::PlaceError;
-use crate::ValueError;
+use crate::element::Element;
+use crate::element::PlaceError;
+use crate::element::ValueError;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {

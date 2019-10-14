@@ -188,7 +188,7 @@ where
     S: ConstraintSystem<Bn256>,
 {
     Ok(Boolean::from(AllocatedNum::equals(
-        system.namespace(|| "not_equals"),
+        system.namespace(|| "not_equals_number"),
         a,
         b,
     )?)
@@ -210,7 +210,7 @@ where
     S: ConstraintSystem<Bn256>,
 {
     Ok(Boolean::from(AllocatedBit::alloc(
-        system.namespace(|| "equals_boolean"),
+        system.namespace(|| "not_equals_boolean"),
         Some(a.get_value() != b.get_value()),
     )?))
 }
@@ -468,6 +468,50 @@ where
         bitlength,
     )?;
 
+    Ok((number, bits))
+}
+
+///
+/// The division function.
+///
+/// Transpiles from:
+/// `{identifier} / {identifier}`
+///
+pub fn divide<S>(
+    mut system: S,
+    _a: &AllocatedNum<Bn256>,
+    _b: &AllocatedNum<Bn256>,
+    _bitlength: usize,
+) -> Result<(AllocatedNum<Bn256>, Vec<Boolean>), SynthesisError>
+where
+    S: ConstraintSystem<Bn256>,
+{
+    let number = AllocatedNum::alloc(system.namespace(|| "alloc"), || {
+        Ok(Fr::from_str("0").expect("Always valid"))
+    })?;
+    let bits = number.into_bits_le(system.namespace(|| "into_bits_le"))?;
+    Ok((number, bits))
+}
+
+///
+/// The remainder function.
+///
+/// Transpiles from:
+/// `{identifier} % {identifier}`
+///
+pub fn modulo<S>(
+    mut system: S,
+    _a: &AllocatedNum<Bn256>,
+    _b: &AllocatedNum<Bn256>,
+    _bitlength: usize,
+) -> Result<(AllocatedNum<Bn256>, Vec<Boolean>), SynthesisError>
+where
+    S: ConstraintSystem<Bn256>,
+{
+    let number = AllocatedNum::alloc(system.namespace(|| "alloc"), || {
+        Ok(Fr::from_str("0").expect("Always valid"))
+    })?;
+    let bits = number.into_bits_le(system.namespace(|| "into_bits_le"))?;
     Ok((number, bits))
 }
 

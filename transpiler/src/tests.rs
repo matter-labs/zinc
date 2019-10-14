@@ -1,13 +1,10 @@
 //!
-//! The interpreter tests.
+//! The transpiler tests.
 //!
 
 #![cfg(test)]
 
-use parser::Location;
-
-use crate::Error;
-use crate::Interpreter;
+use crate::Transpiler;
 
 #[test]
 fn algorithm_factorial() {
@@ -23,12 +20,10 @@ for i in 2..6 {
 require(fact == 120 as field);
 "#;
 
-    let expected = Ok(());
-
     let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+        Transpiler::default().transpile(parser::parse(input.to_owned()).expect("Syntax error"));
 
-    assert_eq!(expected, result);
+    assert!(result.is_ok());
 }
 
 #[test]
@@ -49,12 +44,10 @@ for i in 1..=6 {
 require(fibo == 13 as field);
 "#;
 
-    let expected = Ok(());
-
     let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+        Transpiler::default().transpile(parser::parse(input.to_owned()).expect("Syntax error"));
 
-    assert_eq!(expected, result);
+    assert!(result.is_ok());
 }
 
 #[test]
@@ -78,12 +71,10 @@ require(array_double[2][2] == 111);
 require(array_double[3][1] == 255);
 "#;
 
-    let expected = Ok(());
-
     let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+        Transpiler::default().transpile(parser::parse(input.to_owned()).expect("Syntax error"));
 
-    assert_eq!(expected, result);
+    assert!(result.is_ok());
 }
 
 #[test]
@@ -113,12 +104,10 @@ require(2 != array[2]);
 require(3 == array[3]);
 "#;
 
-    let expected = Ok(());
-
     let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+        Transpiler::default().transpile(parser::parse(input.to_owned()).expect("Syntax error"));
 
-    assert_eq!(expected, result);
+    assert!(result.is_ok());
 }
 
 #[test]
@@ -140,12 +129,10 @@ require(tuple_nested.1.0 == 3);
 require(tuple_nested.1.1 == 111);
 "#;
 
-    let expected = Ok(());
-
     let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+        Transpiler::default().transpile(parser::parse(input.to_owned()).expect("Syntax error"));
 
-    assert_eq!(expected, result);
+    assert!(result.is_ok());
 }
 
 #[test]
@@ -173,12 +160,10 @@ require(test.y == 7);
 require(test.z == 9);
 "#;
 
-    let expected = Ok(());
-
     let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+        Transpiler::default().transpile(parser::parse(input.to_owned()).expect("Syntax error"));
 
-    assert_eq!(expected, result);
+    assert!(result.is_ok());
 }
 
 #[test]
@@ -197,12 +182,10 @@ let pyramid = 1 + {
 require(pyramid == 16);
 "#;
 
-    let expected = Ok(());
-
     let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+        Transpiler::default().transpile(parser::parse(input.to_owned()).expect("Syntax error"));
 
-    assert_eq!(expected, result);
+    assert!(result.is_ok());
 }
 
 #[test]
@@ -218,12 +201,10 @@ let mut inner = 25;
 require(inner == 50);
 "#;
 
-    let expected = Ok(());
-
     let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+        Transpiler::default().transpile(parser::parse(input.to_owned()).expect("Syntax error"));
 
-    assert_eq!(expected, result);
+    assert!(result.is_ok());
 }
 
 #[test]
@@ -242,12 +223,10 @@ let result = if false {
 require(result == 2);
 "#;
 
-    let expected = Ok(());
-
     let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+        Transpiler::default().transpile(parser::parse(input.to_owned()).expect("Syntax error"));
 
-    assert_eq!(expected, result);
+    assert!(result.is_ok());
 }
 
 #[test]
@@ -263,12 +242,10 @@ if false {
 require(result == 5);
 "#;
 
-    let expected = Ok(());
-
     let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+        Transpiler::default().transpile(parser::parse(input.to_owned()).expect("Syntax error"));
 
-    assert_eq!(expected, result);
+    assert!(result.is_ok());
 }
 
 #[test]
@@ -284,12 +261,10 @@ for i in 0..=10 {
 require(sum == 55 as u64);
 "#;
 
-    let expected = Ok(());
-
     let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+        Transpiler::default().transpile(parser::parse(input.to_owned()).expect("Syntax error"));
 
-    assert_eq!(expected, result);
+    assert!(result.is_ok());
 }
 
 #[test]
@@ -305,12 +280,10 @@ for i in 10..=0 {
 require(sum == 55 as u64);
 "#;
 
-    let expected = Ok(());
-
     let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+        Transpiler::default().transpile(parser::parse(input.to_owned()).expect("Syntax error"));
 
-    assert_eq!(expected, result);
+    assert!(result.is_ok());
 }
 
 #[test]
@@ -326,12 +299,10 @@ for i in 0..1_000_000 while i < 10 as u64 {
 require(sum == 55 as u64);
 "#;
 
-    let expected = Ok(());
-
     let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+        Transpiler::default().transpile(parser::parse(input.to_owned()).expect("Syntax error"));
 
-    assert_eq!(expected, result);
+    assert!(result.is_ok());
 }
 
 #[test]
@@ -351,28 +322,8 @@ for i in 0..=5 {
 require(sum == 105 as u64);
 "#;
 
-    let expected = Ok(());
-
     let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+        Transpiler::default().transpile(parser::parse(input.to_owned()).expect("Syntax error"));
 
-    assert_eq!(expected, result);
-}
-
-#[test]
-fn require_fail() {
-    let input = r#"
-inputs {}
-
-let value = 42;
-
-require(value != 42);
-"#;
-
-    let expected = Err(Error::RequireFailed(Location::new(6, 1), "L6".to_owned()));
-
-    let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
-
-    assert_eq!(expected, result);
+    assert!(result.is_ok());
 }

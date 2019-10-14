@@ -10,7 +10,7 @@ use std::fmt;
 
 use parser::TypeVariant;
 
-use crate::Value;
+use crate::element::Value;
 
 #[derive(Clone, PartialEq)]
 pub struct Array {

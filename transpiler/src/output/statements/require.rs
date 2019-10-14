@@ -2,7 +2,7 @@
 //! Transpiler output require statement.
 //!
 
-use crate::Element;
+use crate::element::Element;
 
 pub struct Output {}
 

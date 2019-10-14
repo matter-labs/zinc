@@ -6,7 +6,7 @@ use std::fmt;
 
 use parser::TypeVariant;
 
-use crate::Value;
+use crate::element::Value;
 
 #[derive(Default, Clone, PartialEq)]
 pub struct Tuple {

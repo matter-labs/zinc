@@ -2,7 +2,7 @@
 //! Transpiler output lesser operator.
 //!
 
-use crate::Element;
+use crate::element::Element;
 
 pub struct Output {}
 

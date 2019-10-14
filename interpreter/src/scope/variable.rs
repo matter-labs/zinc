@@ -2,7 +2,7 @@
 //! The interpreter scope variable.
 //!
 
-use crate::Value;
+use crate::element::Value;
 
 #[derive(Debug)]
 pub struct Variable {

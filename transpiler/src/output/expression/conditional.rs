@@ -2,7 +2,7 @@
 //! Transpiler output conditional.
 //!
 
-use crate::Element;
+use crate::element::Element;
 
 pub struct Output {}
 

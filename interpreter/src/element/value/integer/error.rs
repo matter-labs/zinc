@@ -4,8 +4,9 @@
 
 use failure::Fail;
 
-use crate::Integer;
 use parser::TypeVariant;
+
+use crate::element::Integer;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {

@@ -14,9 +14,9 @@ use std::str;
 
 use parser::TypeVariant;
 
-use crate::Place;
-use crate::PlaceDescriptor;
-use crate::Value;
+use crate::element::Place;
+use crate::element::PlaceDescriptor;
+use crate::element::Value;
 
 use self::variable::Variable;
 

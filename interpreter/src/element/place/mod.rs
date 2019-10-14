@@ -10,7 +10,7 @@ pub use self::error::Error;
 
 use std::fmt;
 
-use crate::Value;
+use crate::element::Value;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Place {

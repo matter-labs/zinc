@@ -3,7 +3,8 @@
 //!
 
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::Read;
+use std::io::Write;
 use std::path::PathBuf;
 
 use failure::Fail;

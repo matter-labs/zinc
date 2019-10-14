@@ -2,7 +2,7 @@
 //! Transpiler output assignment operator.
 //!
 
-use crate::Element;
+use crate::element::Element;
 
 pub struct Output {}
 

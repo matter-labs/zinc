@@ -63,9 +63,9 @@ impl Value {
 
     pub fn new_input<S: ConstraintSystem<Bn256>>(
         mut system: S,
-        r#type: Type,
+        type_variant: TypeVariant,
     ) -> Result<Self, Error> {
-        match r#type.variant {
+        match type_variant {
             TypeVariant::Unit => Ok(Self::Unit),
             TypeVariant::Boolean => {
                 Boolean::new_from_bool(system.namespace(|| "value_new_input"), false)
@@ -92,22 +92,56 @@ impl Value {
                 system.namespace(|| "value_new_input"),
                 BigInt::zero(),
                 false,
-                crate::SIZE_FIELD,
+                crate::BITLENGTH_FIELD,
             )
             .map(Self::Integer)
             .map_err(Error::Integer),
-            TypeVariant::Array { .. } => unimplemented!(),
-            TypeVariant::Tuple { .. } => unimplemented!(),
-            TypeVariant::Structure { .. } => unimplemented!(),
-            TypeVariant::Alias { .. } => unimplemented!(),
+            TypeVariant::Array { type_variant, size } => {
+                let mut array = Array::with_capacity(size);
+                for _ in 0..size {
+                    array
+                        .push(Self::new_input(
+                            system.namespace(|| "value_new_input_array"),
+                            *(type_variant.clone()),
+                        )?)
+                        .map_err(Error::Array)?;
+                }
+                Ok(Self::Array(array))
+            }
+            TypeVariant::Tuple { type_variants } => {
+                let mut tuple = Tuple::with_capacity(type_variants.len());
+                for type_variant in type_variants.into_iter() {
+                    tuple.push(Self::new_input(
+                        system.namespace(|| "value_new_input_tuple"),
+                        type_variant,
+                    )?);
+                }
+                Ok(Self::Tuple(tuple))
+            }
+            TypeVariant::Structure { identifier, fields } => {
+                let mut structure = Structure::new(identifier);
+                for (key, type_variant) in fields.into_iter() {
+                    structure
+                        .push(
+                            key,
+                            Self::new_input(
+                                system.namespace(|| "value_new_input_structure"),
+                                type_variant,
+                            )?,
+                        )
+                        .map_err(Error::Structure)?;
+                }
+                Ok(Self::Structure(structure))
+            }
+            TypeVariant::Alias { .. } => panic!("Input types cannot be aliased"),
         }
     }
 
     pub fn new_witness<S: ConstraintSystem<Bn256>>(
         mut system: S,
-        r#type: Type,
+        type_variant: TypeVariant,
     ) -> Result<Self, Error> {
-        match r#type.variant {
+        match type_variant {
             TypeVariant::Unit => Ok(Self::Unit),
             TypeVariant::Boolean => {
                 Boolean::new_from_bool(system.namespace(|| "value_new_witness"), false)
@@ -134,14 +168,48 @@ impl Value {
                 system.namespace(|| "value_new_witness"),
                 BigInt::zero(),
                 false,
-                crate::SIZE_FIELD,
+                crate::BITLENGTH_FIELD,
             )
             .map(Self::Integer)
             .map_err(Error::Integer),
-            TypeVariant::Array { .. } => unimplemented!(),
-            TypeVariant::Tuple { .. } => unimplemented!(),
-            TypeVariant::Structure { .. } => unimplemented!(),
-            TypeVariant::Alias { .. } => unimplemented!(),
+            TypeVariant::Array { type_variant, size } => {
+                let mut array = Array::with_capacity(size);
+                for _ in 0..size {
+                    array
+                        .push(Self::new_witness(
+                            system.namespace(|| "value_new_witness_array"),
+                            *(type_variant.clone()),
+                        )?)
+                        .map_err(Error::Array)?;
+                }
+                Ok(Self::Array(array))
+            }
+            TypeVariant::Tuple { type_variants } => {
+                let mut tuple = Tuple::with_capacity(type_variants.len());
+                for type_variant in type_variants.into_iter() {
+                    tuple.push(Self::new_witness(
+                        system.namespace(|| "value_new_witness_tuple"),
+                        type_variant,
+                    )?);
+                }
+                Ok(Self::Tuple(tuple))
+            }
+            TypeVariant::Structure { identifier, fields } => {
+                let mut structure = Structure::new(identifier);
+                for (key, type_variant) in fields.into_iter() {
+                    structure
+                        .push(
+                            key,
+                            Self::new_witness(
+                                system.namespace(|| "value_new_witness_structure"),
+                                type_variant,
+                            )?,
+                        )
+                        .map_err(Error::Structure)?;
+                }
+                Ok(Self::Structure(structure))
+            }
+            TypeVariant::Alias { .. } => panic!("Witness types cannot be aliased"),
         }
     }
 
@@ -444,48 +512,44 @@ impl Value {
 
     pub fn divide<S: ConstraintSystem<Bn256>>(
         self,
-        _system: S,
-        _other: Self,
+        mut system: S,
+        other: Self,
     ) -> Result<Self, Error> {
-        //        let value_1 = match self {
-        //            Self::Integer(value) => value,
-        //            value => return Err(Error::ExpectedIntegerValue("divide", value)),
-        //        };
-        //
-        //        let value_2 = match other {
-        //            Self::Integer(value) => value,
-        //            value => return Err(Error::ExpectedIntegerValue("divide", value)),
-        //        };
-        //
-        //        value_1
-        //            .divide(system.namespace(|| "value_divide"), value_2)
-        //            .map(Self::Integer)
-        //            .map_err(Error::Integer)
+        let value_1 = match self {
+            Self::Integer(value) => value,
+            value => return Err(Error::ExpectedInteger("divide", value)),
+        };
 
-        unimplemented!();
+        let value_2 = match other {
+            Self::Integer(value) => value,
+            value => return Err(Error::ExpectedInteger("divide", value)),
+        };
+
+        value_1
+            .divide(system.namespace(|| "value_divide"), value_2)
+            .map(Self::Integer)
+            .map_err(Error::Integer)
     }
 
     pub fn modulo<S: ConstraintSystem<Bn256>>(
         self,
-        _system: S,
-        _other: Self,
+        mut system: S,
+        other: Self,
     ) -> Result<Self, Error> {
-        //        let value_1 = match self {
-        //            Self::Integer(value) => value,
-        //            value => return Err(Error::ExpectedIntegerValue("modulo", value)),
-        //        };
-        //
-        //        let value_2 = match other {
-        //            Self::Integer(value) => value,
-        //            value => return Err(Error::ExpectedIntegerValue("modulo", value)),
-        //        };
-        //
-        //        value_1
-        //            .modulo(system.namespace(|| "value_modulo"), value_2)
-        //            .map(Self::Integer)
-        //            .map_err(Error::Integer)
+        let value_1 = match self {
+            Self::Integer(value) => value,
+            value => return Err(Error::ExpectedInteger("modulo", value)),
+        };
 
-        unimplemented!();
+        let value_2 = match other {
+            Self::Integer(value) => value,
+            value => return Err(Error::ExpectedInteger("modulo", value)),
+        };
+
+        value_1
+            .modulo(system.namespace(|| "value_modulo"), value_2)
+            .map(Self::Integer)
+            .map_err(Error::Integer)
     }
 
     pub fn negate<S: ConstraintSystem<Bn256>>(self, mut system: S) -> Result<Self, Error> {

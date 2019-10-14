@@ -8,12 +8,12 @@ use parser::Literal;
 use parser::Location;
 use parser::TypeVariant;
 
-use crate::ArrayError;
-use crate::ElementError;
-use crate::IntegerError;
-use crate::ScopeError;
-use crate::StructureError;
-use crate::Value;
+use crate::element::ArrayError;
+use crate::element::Error as ElementError;
+use crate::element::IntegerError;
+use crate::element::StructureError;
+use crate::element::Value;
+use crate::scope::Error as ScopeError;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {

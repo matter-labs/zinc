@@ -5,7 +5,7 @@
 use parser::Identifier;
 use parser::Type;
 
-use crate::TypeOutput;
+use crate::output::TypeOutput;
 
 pub struct Output {}
 

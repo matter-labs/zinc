@@ -302,58 +302,44 @@ impl Element {
 
     pub fn divide<S: ConstraintSystem<Bn256>>(
         self,
-        _other: Self,
-        _system: S,
+        other: Self,
+        mut system: S,
     ) -> Result<Self, Error> {
-        //        const OPERATOR: ExpressionOperator = ExpressionOperator::Division;
-        //
-        //        let value_1 = match self {
-        //            Self::Place(Place {
-        //                value,
-        //                ..
-        //            }) => value,
-        //            Self::Value(value) => value,
-        //            value => return Err(Error::ExpectedValueExpression(OPERATOR, value)),
-        //        };
-        //
-        //        let value_2 = match other {
-        //            Self::Place(Place {
-        //                value,
-        //                ..
-        //            }) => value,
-        //            Self::Value(value) => value,
-        //            value => return Err(Error::ExpectedValueExpression(OPERATOR, value)),
-        //        };
+        let value_1 = match self {
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("divide", value)),
+        };
 
-        unimplemented!();
+        let value_2 = match other {
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("divide", value)),
+        };
+
+        value_1
+            .divide(system.namespace(|| "element_divide"), value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn modulo<S: ConstraintSystem<Bn256>>(
         self,
-        _other: Self,
-        _system: S,
+        other: Self,
+        mut system: S,
     ) -> Result<Self, Error> {
-        //        const OPERATOR: ExpressionOperator = ExpressionOperator::Remainder;
-        //
-        //        let value_1 = match self {
-        //            Self::Place(Place {
-        //                value,
-        //                ..
-        //            }) => value,
-        //            Self::Value(value) => value,
-        //            value => return Err(Error::ExpectedValueExpression(OPERATOR, value)),
-        //        };
-        //
-        //        let value_2 = match other {
-        //            Self::Place(Place {
-        //                value,
-        //                ..
-        //            }) => value,
-        //            Self::Value(value) => value,
-        //            value => return Err(Error::ExpectedValueExpression(OPERATOR, value)),
-        //        };
+        let value_1 = match self {
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("modulo", value)),
+        };
 
-        unimplemented!();
+        let value_2 = match other {
+            Self::Value(value) => value,
+            value => return Err(Error::ExpectedValueExpression("modulo", value)),
+        };
+
+        value_1
+            .modulo(system.namespace(|| "element_modulo"), value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn negate<S: ConstraintSystem<Bn256>>(self, mut system: S) -> Result<Self, Error> {

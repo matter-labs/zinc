@@ -4,9 +4,11 @@
 
 use failure::Fail;
 
-use crate::BooleanError;
-use crate::IntegerError;
-use crate::Value;
+use crate::element::ArrayError;
+use crate::element::BooleanError;
+use crate::element::IntegerError;
+use crate::element::StructureError;
+use crate::element::Value;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
@@ -18,6 +20,10 @@ pub enum Error {
     Boolean(BooleanError),
     #[fail(display = "integer: {}", _0)]
     Integer(IntegerError),
+    #[fail(display = "array: {}", _0)]
+    Array(ArrayError),
+    #[fail(display = "structure: {}", _0)]
+    Structure(StructureError),
     #[fail(display = "operand types mismatch: '{}' and '{}'", _0, _1)]
     OperandTypesMismatch(Value, Value),
     #[fail(

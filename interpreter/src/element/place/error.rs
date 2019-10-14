@@ -4,7 +4,7 @@
 
 use failure::Fail;
 
-use crate::Value;
+use crate::element::Value;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {

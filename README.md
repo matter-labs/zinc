@@ -37,15 +37,12 @@
 
 - [ ] functions
 - [ ] modules and imports
+- [ ] `enum`
+- [ ] `match`
 
 ### Later
 
-- [ ] `enum`
-- [ ] `match`
 - [ ] `unsafe_unchecked`
-
-### Much later
-
 - [ ] testing framework with coverage metrics
 - [ ] `Option<>`, `Result<>`, etc
 - [ ] bytes and strings
