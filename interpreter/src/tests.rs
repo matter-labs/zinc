@@ -321,6 +321,30 @@ require(sum == 55 as u64);
 }
 
 #[test]
+fn loop_nested() {
+    let input = r#"
+inputs {}
+
+let mut sum: u64 = 0;
+
+for i in 0..=5 {
+    sum = sum + i;
+    for j in 0..=5 {
+        sum = sum + j;
+    };
+};
+
+require(sum == 105 as u64);
+"#;
+
+    let expected = Ok(());
+
+    let result = crate::interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+
+    assert_eq!(expected, result);
+}
+
+#[test]
 fn require_fail() {
     let input = r#"
 inputs {}

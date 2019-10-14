@@ -5,8 +5,12 @@
 inputs {}
 
 let mut sum: u64 = 0;
-for i in 10..=0 {
+
+for i in 0..=5 {
     sum = sum + i;
+    for j in 0..=5 {
+        sum = sum + j;
+    };
 };
 
-require(sum == 55 as u64);
+require(sum == 105 as u64);

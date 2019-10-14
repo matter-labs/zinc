@@ -25,7 +25,8 @@ pub use self::output::DebugStatementOutput;
 pub use self::output::ImportsOutput;
 pub use self::output::InputOutput;
 pub use self::output::LetStatementOutput;
-pub use self::output::LoopStatementOutput;
+pub use self::output::LoopStatementForOutput;
+pub use self::output::LoopStatementWhileOutput;
 pub use self::output::OperatorAdditionOutput;
 pub use self::output::OperatorAndOutput;
 pub use self::output::OperatorAssignmentOutput;
@@ -130,18 +131,13 @@ impl Transpiler {
                 ));
             }
             Statement::Loop(r#loop) => {
-                let while_condition = match r#loop.while_condition {
-                    Some(expression) => Some(self.evaluate(expression)),
-                    None => None,
-                };
-                let output = LoopStatementOutput::output(
+                let output = LoopStatementForOutput::output(
                     r#loop.index_identifier.name.clone(),
                     r#loop.range_start,
                     r#loop.range_end,
                     r#loop.is_range_inclusive,
-                    while_condition,
                 );
-                self.writer.write_line(output.r#for);
+                self.writer.write_line(output.start);
                 self.loop_stack.push(r#loop.index_identifier.name.clone());
                 self.writer.shift_forward();
                 let index_namespace = self.current_namespace();
@@ -149,21 +145,31 @@ impl Transpiler {
                     r#loop.index_identifier.name,
                     index_namespace,
                 ));
-                let has_while = output.r#while.is_some();
-                if let Some(r#while) = output.r#while {
-                    self.writer.write_line(r#while);
+
+                if let Some(r#while) = r#loop.while_condition {
+                    let while_condition = self.evaluate(r#while);
+                    let output = LoopStatementWhileOutput::output(while_condition);
+                    self.writer.write_line(output.start);
                     self.writer.shift_forward();
-                }
-                for statement in r#loop.block.statements.into_iter() {
-                    self.statement(statement);
-                }
-                if let Some(expression) = r#loop.block.expression {
-                    self.evaluate(*expression);
-                }
-                if has_while {
+
+                    for statement in r#loop.block.statements.into_iter() {
+                        self.statement(statement);
+                    }
+                    if let Some(expression) = r#loop.block.expression {
+                        self.evaluate(*expression);
+                    }
+
                     self.writer.shift_backward();
-                    self.writer.write_line(output.end.clone());
+                    self.writer.write_line(output.end);
+                } else {
+                    for statement in r#loop.block.statements.into_iter() {
+                        self.statement(statement);
+                    }
+                    if let Some(expression) = r#loop.block.expression {
+                        self.evaluate(*expression);
+                    }
                 }
+
                 self.loop_stack.pop();
                 self.writer.shift_backward();
                 self.writer.write_line(output.end);
@@ -677,8 +683,10 @@ impl Transpiler {
                 .collect::<Vec<String>>()
                 .join(", ");
             format!(
-                r#"format!("temp_{0:06}_{{}}", {1})"#,
-                self.id_sequence, indexes
+                r#"format!("temp_{0:06}{1}", {2})"#,
+                self.id_sequence,
+                "_{}".repeat(self.loop_stack.len()),
+                indexes
             )
         }
     }

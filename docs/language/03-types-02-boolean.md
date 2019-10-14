@@ -19,5 +19,5 @@ let b: bool = false;
 
 if a && !b {
     debug(a ^^ b);
-}
+};
 ```
