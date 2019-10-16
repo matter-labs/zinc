@@ -18,7 +18,7 @@ use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::Type;
 use crate::syntax::TypeBuilder;
-use crate::Error;
+use crate::{Error, Identifier};
 
 #[derive(Default)]
 pub struct Parser {
@@ -54,7 +54,8 @@ impl Parser {
             })) => {
                 stream.borrow_mut().next();
                 self.builder.set_location(location);
-                self.builder.set_alias_identifier(identifier.name);
+                self.builder
+                    .set_alias_identifier(Identifier::new(location, identifier.name));
                 Ok(self.builder.finish())
             }
             Some(Ok(Token {

@@ -12,14 +12,14 @@ impl Output {
     pub fn output(
         identifier: String,
         type_name: String,
-        fields: Vec<(Identifier, Element)>,
+        fields: &[(Identifier, Element)],
     ) -> String {
         format!(
             "let {0} = {1} {{ {2} }};",
             identifier,
             type_name,
             fields
-                .into_iter()
+                .iter()
                 .map(|(key, identifier)| format!("{}: {}", key, identifier))
                 .collect::<Vec<String>>()
                 .join(", "),

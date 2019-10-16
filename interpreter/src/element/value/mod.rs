@@ -42,20 +42,44 @@ pub enum Value {
 impl Value {
     pub fn new_boolean<S: ConstraintSystem<Bn256>>(
         mut system: S,
-        boolean: BooleanLiteral,
+        literal: BooleanLiteral,
     ) -> Result<Self, Error> {
-        Boolean::new_from_literal(system.namespace(|| "value_new_boolean"), boolean)
+        Boolean::new_from_literal(system.namespace(|| "value_new_boolean"), literal)
             .map(Self::Boolean)
             .map_err(Error::Boolean)
     }
 
     pub fn new_integer<S: ConstraintSystem<Bn256>>(
         mut system: S,
-        integer: IntegerLiteral,
+        literal: IntegerLiteral,
     ) -> Result<Self, Error> {
-        Integer::new_from_literal(system.namespace(|| "value_new_integer"), integer)
+        Integer::new_from_literal(system.namespace(|| "value_new_integer"), literal)
             .map(Self::Integer)
             .map_err(Error::Integer)
+    }
+
+    pub fn new_array(values: Vec<Self>) -> Result<Self, Error> {
+        let mut array = Array::with_capacity(values.len());
+        for element in values.into_iter() {
+            array.push(element).map_err(Error::Array)?;
+        }
+        Ok(Self::Array(array))
+    }
+
+    pub fn new_tuple(values: Vec<Self>) -> Result<Self, Error> {
+        let mut tuple = Tuple::with_capacity(values.len());
+        for element in values.into_iter() {
+            tuple.push(element);
+        }
+        Ok(Self::Tuple(tuple))
+    }
+
+    pub fn new_structure(identifier: String, fields: Vec<(String, Self)>) -> Result<Self, Error> {
+        let mut structure = Structure::new(identifier);
+        for (key, value) in fields.into_iter() {
+            structure.push(key, value).map_err(Error::Structure)?;
+        }
+        Ok(Self::Structure(structure))
     }
 
     pub fn type_variant(&self) -> TypeVariant {

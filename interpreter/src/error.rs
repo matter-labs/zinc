@@ -33,6 +33,11 @@ pub enum Error {
     )]
     ConditionalExpectedBooleanExpression(Location, Value),
     #[fail(
+        display = "{} conditional branches return different types: '{}' and '{}'",
+        _0, _1, _2
+    )]
+    ConditionalBranchTypeMismatch(Location, Value, Value),
+    #[fail(
         display = "{} let declaration invalid type: '{}' cannot be casted to '{}'",
         _0, _1, _2
     )]

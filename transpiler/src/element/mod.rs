@@ -14,22 +14,25 @@ pub use self::temporary::Element as TemporaryElement;
 
 use std::fmt;
 
-use parser::ExpressionOperand;
+use parser::TypeVariant;
 
 pub enum Element {
-    Unit,
-    Constant(String),
-    Operand(ExpressionOperand),
     Temporary(TemporaryElement),
     Permanent(PermanentElement),
+    Unit,
     Type(TypeElement),
+    ConstantBoolean(bool),
+    ConstantNumeric(usize),
+    ConstantString(String),
 }
 
 impl Element {
-    pub fn is_unit(&self) -> bool {
+    pub fn type_variant(&self) -> TypeVariant {
         match self {
-            Self::Unit => true,
-            _ => false,
+            Self::Temporary(element) => element.type_variant().clone(),
+            Self::Permanent(element) => element.type_variant().clone(),
+            Self::Unit => TypeVariant::Unit,
+            _ => panic!("Always checked by some branches above"),
         }
     }
 }
@@ -37,12 +40,13 @@ impl Element {
 impl Into<String> for Element {
     fn into(self) -> String {
         match self {
-            Self::Unit => "()".to_owned(),
-            Self::Constant(element) => element,
-            Self::Operand(element) => element.to_string(),
             Self::Temporary(element) => element.into(),
             Self::Permanent(element) => element.into(),
+            Self::Unit => "()".to_owned(),
             Self::Type(element) => element.into(),
+            Self::ConstantBoolean(element) => element.to_string(),
+            Self::ConstantNumeric(element) => element.to_string(),
+            Self::ConstantString(element) => element,
         }
     }
 }
@@ -50,12 +54,13 @@ impl Into<String> for Element {
 impl fmt::Display for Element {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Unit => write!(f, "()"),
-            Self::Constant(element) => write!(f, "{}", element),
-            Self::Operand(element) => write!(f, "{}", element),
             Self::Temporary(element) => write!(f, "{}", element),
             Self::Permanent(element) => write!(f, "{}", element),
+            Self::Unit => write!(f, "()"),
             Self::Type(element) => write!(f, "{}", element),
+            Self::ConstantBoolean(element) => write!(f, "{}", element),
+            Self::ConstantNumeric(element) => write!(f, "{}", element),
+            Self::ConstantString(element) => write!(f, "{}", element),
         }
     }
 }

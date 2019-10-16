@@ -4,23 +4,23 @@
 
 use std::fmt;
 
-use crate::element::Descriptor;
+use parser::TypeVariant;
 
 pub struct Element {
     pub identifier: String,
-    pub descriptors: Vec<Descriptor>,
+    pub type_variant: TypeVariant,
 }
 
 impl Element {
-    pub fn new(identifier: String) -> Self {
+    pub fn new(identifier: String, type_variant: TypeVariant) -> Self {
         Self {
             identifier,
-            descriptors: Default::default(),
+            type_variant,
         }
     }
 
-    pub fn push_descriptor(&mut self, descriptor: Descriptor) {
-        self.descriptors.push(descriptor);
+    pub fn type_variant(&self) -> TypeVariant {
+        self.type_variant.clone()
     }
 }
 
@@ -32,16 +32,6 @@ impl Into<String> for Element {
 
 impl fmt::Display for Element {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}{}{}",
-            "(".repeat(self.descriptors.len()),
-            self.identifier,
-            self.descriptors
-                .iter()
-                .map(|descriptor| descriptor.to_string() + ")")
-                .collect::<Vec<String>>()
-                .join(""),
-        )
+        write!(f, "{}", self.identifier)
     }
 }

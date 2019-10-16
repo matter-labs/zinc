@@ -70,7 +70,8 @@ impl Variant {
         Self::Tuple { type_variants }
     }
 
-    pub fn new_structure(identifier: String, fields: BTreeMap<String, Self>) -> Self {
+    pub fn new_structure(identifier: String, fields: Vec<(String, Self)>) -> Self {
+        let fields = fields.into_iter().collect::<BTreeMap<String, Self>>();
         Self::Structure { identifier, fields }
     }
 

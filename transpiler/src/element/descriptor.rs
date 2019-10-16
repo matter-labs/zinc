@@ -4,9 +4,11 @@
 
 use std::fmt;
 
+#[derive(Debug)]
 pub enum Descriptor {
-    Index(String),
-    Field(String),
+    Array(usize),
+    Tuple(usize),
+    Structure(String),
 }
 
 impl Into<String> for Descriptor {
@@ -18,8 +20,9 @@ impl Into<String> for Descriptor {
 impl fmt::Display for Descriptor {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Descriptor::Index(index) => write!(f, "[{}]", index),
-            Descriptor::Field(field) => write!(f, ".{}", field),
+            Descriptor::Array(index) => write!(f, "[{}]", index),
+            Descriptor::Tuple(field) => write!(f, ".{}", field),
+            Descriptor::Structure(field) => write!(f, ".{}", field),
         }
     }
 }

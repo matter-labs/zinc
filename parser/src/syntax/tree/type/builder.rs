@@ -5,6 +5,7 @@
 use crate::lexical::IntegerLiteral;
 use crate::lexical::Keyword;
 use crate::lexical::Location;
+use crate::syntax::Identifier;
 use crate::syntax::Type;
 use crate::syntax::TypeVariant;
 
@@ -17,7 +18,7 @@ pub struct Builder {
     array_size: Option<IntegerLiteral>,
     tuple_types: Vec<TypeVariant>,
     tuple_has_comma: bool,
-    alias_identifier: Option<String>,
+    alias_identifier: Option<Identifier>,
 }
 
 impl Builder {
@@ -51,15 +52,15 @@ impl Builder {
         self.tuple_has_comma = true;
     }
 
-    pub fn set_alias_identifier(&mut self, value: String) {
+    pub fn set_alias_identifier(&mut self, value: Identifier) {
         self.alias_identifier = Some(value);
     }
 
     pub fn finish(mut self) -> Type {
         let location = self.location.take().expect("Missing location");
 
-        let variant = if let Some(alias_identifier) = self.alias_identifier.take() {
-            TypeVariant::new_alias(alias_identifier)
+        let variant = if let Some(identifier) = self.alias_identifier.take() {
+            TypeVariant::new_alias(identifier.name)
         } else if let Some(keyword) = self.keyword.take() {
             match keyword {
                 Keyword::Bool => TypeVariant::new_boolean(),

@@ -29,7 +29,13 @@ impl Structure {
     }
 
     pub fn type_variant(&self) -> TypeVariant {
-        TypeVariant::new_structure(self.identifier.clone(), self.fields.clone())
+        TypeVariant::new_structure(
+            self.identifier.clone(),
+            self.fields
+                .clone()
+                .into_iter()
+                .collect::<Vec<(String, TypeVariant)>>(),
+        )
     }
 
     pub fn push(&mut self, key: String, value: Value) -> Result<(), Error> {

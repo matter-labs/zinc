@@ -109,7 +109,7 @@ if 3 == original[3] {
 
 require(0 == array[0]);
 require(1 == array[1]);
-require(2 != array[2]);
+require(2 == array[2]);
 require(3 == array[3]);
 "#;
 
@@ -260,7 +260,7 @@ if false {
     result = 10;
 };
 
-require(result == 5);
+require(result == 10);
 "#;
 
     let expected = Ok(());

@@ -3,7 +3,6 @@
 //!
 
 use std::cell::RefCell;
-use std::collections::BTreeMap;
 use std::rc::Rc;
 
 use parser::ArrayExpression;
@@ -24,13 +23,10 @@ use r1cs::Bn256;
 use r1cs::ConstraintSystem;
 use r1cs::TestConstraintSystem;
 
-use crate::element::Array;
 use crate::element::Element;
 use crate::element::Error as ElementError;
 use crate::element::Integer;
 use crate::element::Place;
-use crate::element::Structure;
-use crate::element::Tuple;
 use crate::element::Value;
 use crate::scope::Error as ScopeError;
 use crate::scope::Scope;
@@ -65,29 +61,29 @@ impl Interpreter {
             self.scope
                 .borrow_mut()
                 .declare_variable(input.identifier.name, Value::Unit, false)
-                .map_err(|error| Error::Scope(location, error))?;
+                .map_err(|error| Error::Scope(location, error))?; // TODO
         }
         for witness in program.witnesses.into_iter() {
             let location = witness.location;
             self.scope
                 .borrow_mut()
                 .declare_variable(witness.identifier.name, Value::Unit, false)
-                .map_err(|error| Error::Scope(location, error))?;
+                .map_err(|error| Error::Scope(location, error))?; // TODO
         }
 
         for statement in program.statements.into_iter() {
-            self.execute(statement)?;
+            self.execute_statement(statement)?;
         }
 
         Ok(())
     }
 
-    fn execute(&mut self, statement: Statement) -> Result<(), Error> {
+    fn execute_statement(&mut self, statement: Statement) -> Result<(), Error> {
         log::trace!("Statement              : {}", statement);
 
         match statement {
             Statement::Empty => {}
-            Statement::Require(require) => match self.evaluate(require.expression)? {
+            Statement::Require(require) => match self.evaluate_expression(require.expression)? {
                 Value::Boolean(boolean) => {
                     if boolean.is_true() {
                         log::info!("require {} passed", require.annotation);
@@ -105,7 +101,7 @@ impl Interpreter {
             },
             Statement::Let(r#let) => {
                 let location = r#let.location;
-                let value = self.evaluate(r#let.expression)?;
+                let value = self.evaluate_expression(r#let.expression)?;
                 let value = if let Some(r#type) = r#let.r#type {
                     let type_variant = match r#type.variant {
                         TypeVariant::Alias { identifier } => {
@@ -182,7 +178,7 @@ impl Interpreter {
                     let mut executor = Interpreter::new(scope);
                     if let Some(while_condition) = r#loop.while_condition.clone() {
                         let location = while_condition.location;
-                        match executor.evaluate(while_condition)? {
+                        match executor.evaluate_expression(while_condition)? {
                             Value::Boolean(boolean) => {
                                 if boolean.is_false() {
                                     break;
@@ -196,10 +192,10 @@ impl Interpreter {
                         }
                     }
                     for statement in r#loop.block.statements.iter() {
-                        executor.execute(statement.to_owned())?;
+                        executor.execute_statement(statement.to_owned())?;
                     }
                     if let Some(ref expression) = r#loop.block.expression {
-                        executor.evaluate(*expression.to_owned())?;
+                        executor.evaluate_expression(*expression.to_owned())?;
                     }
 
                     if is_reverse {
@@ -227,8 +223,8 @@ impl Interpreter {
                     r#struct
                         .fields
                         .into_iter()
-                        .map(|(key, r#type)| (key.name, r#type.variant))
-                        .collect::<BTreeMap<String, TypeVariant>>(),
+                        .map(|(identifier, r#type)| (identifier.name, r#type.variant))
+                        .collect(),
                 );
                 self.scope
                     .borrow_mut()
@@ -236,17 +232,17 @@ impl Interpreter {
                     .map_err(|error| Error::Scope(location, error))?;
             }
             Statement::Debug(debug) => {
-                let result = self.evaluate(debug.expression)?;
+                let result = self.evaluate_expression(debug.expression)?;
                 log::info!("{}", result);
             }
             Statement::Expression(expression) => {
-                self.evaluate(expression)?;
+                self.evaluate_expression(expression)?;
             }
         }
         Ok(())
     }
 
-    fn evaluate(&mut self, expression: Expression) -> Result<Value, Error> {
+    fn evaluate_expression(&mut self, expression: Expression) -> Result<Value, Error> {
         log::trace!("Operator expression    : {}", expression);
 
         let location = expression.location;
@@ -288,19 +284,19 @@ impl Interpreter {
                             Element::Place(Place::new(identifier.name))
                         }
                         ExpressionOperand::Block(block) => {
-                            Element::Value(self.evaluate_block(block)?)
+                            Element::Value(self.evaluate_block_expression(block)?)
                         }
                         ExpressionOperand::Conditional(conditional) => {
-                            Element::Value(self.evaluate_conditional(conditional)?)
+                            Element::Value(self.evaluate_conditional_expression(conditional)?)
                         }
                         ExpressionOperand::Array(array) => {
-                            Element::Value(self.evaluate_array(array)?)
+                            Element::Value(self.evaluate_array_expression(array)?)
                         }
                         ExpressionOperand::Tuple(tuple) => {
-                            Element::Value(self.evaluate_tuple(tuple)?)
+                            Element::Value(self.evaluate_tuple_expression(tuple)?)
                         }
                         ExpressionOperand::Structure(structure) => {
-                            Element::Value(self.evaluate_structure(structure)?)
+                            Element::Value(self.evaluate_structure_expression(structure)?)
                         }
                     };
                     self.rpn_stack.push(element);
@@ -563,24 +559,29 @@ impl Interpreter {
         }
     }
 
-    fn evaluate_block(&mut self, block: BlockExpression) -> Result<Value, Error> {
+    fn evaluate_block_expression(&mut self, block: BlockExpression) -> Result<Value, Error> {
         log::trace!("Block expression       : {}", block);
 
         let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
         for statement in block.statements.into_iter() {
-            executor.execute(statement)?;
+            executor.execute_statement(statement)?;
         }
         if let Some(expression) = block.expression {
-            executor.evaluate(*expression)
+            executor.evaluate_expression(*expression)
         } else {
             Ok(Value::Unit)
         }
     }
 
-    fn evaluate_conditional(&mut self, conditional: ConditionalExpression) -> Result<Value, Error> {
+    fn evaluate_conditional_expression(
+        &mut self,
+        conditional: ConditionalExpression,
+    ) -> Result<Value, Error> {
         log::trace!("Conditional expression : {}", conditional);
 
-        let result = match self.evaluate(*conditional.condition)? {
+        let location = conditional.location;
+
+        let condition_result = match self.evaluate_expression(*conditional.condition)? {
             Value::Boolean(boolean) => boolean,
             value => {
                 return Err(Error::ConditionalExpectedBooleanExpression(
@@ -590,57 +591,82 @@ impl Interpreter {
             }
         };
 
-        // TODO: decide whether to check for the else branch if the main one does not return `()`
-        if result.is_true() {
+        let main_result = {
             let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
-            executor.evaluate_block(conditional.main_block)
-        } else if let Some(else_if) = conditional.else_if {
+            executor.evaluate_block_expression(conditional.main_block)?
+        };
+
+        let else_result = if let Some(else_if) = conditional.else_if {
             let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
-            executor.evaluate_conditional(*else_if)
+            executor.evaluate_conditional_expression(*else_if)?
         } else if let Some(else_block) = conditional.else_block {
             let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
-            executor.evaluate_block(else_block)
+            executor.evaluate_block_expression(else_block)?
         } else {
-            Ok(Value::Unit)
+            Value::Unit
+        };
+
+        if !main_result.has_the_same_type_as(&else_result) {
+            return Err(Error::ConditionalBranchTypeMismatch(
+                location,
+                main_result,
+                else_result,
+            ));
         }
+
+        Ok(if condition_result.is_true() {
+            main_result
+        } else {
+            else_result
+        })
     }
 
-    fn evaluate_array(&mut self, array: ArrayExpression) -> Result<Value, Error> {
+    fn evaluate_array_expression(&mut self, array: ArrayExpression) -> Result<Value, Error> {
         log::trace!("Array expression       : {}", array);
 
         let location = array.location;
 
-        let mut result = Array::with_capacity(array.elements.len());
+        let mut values = Vec::with_capacity(array.elements.len());
         for element in array.elements.into_iter() {
-            result
-                .push(self.evaluate(element)?)
-                .map_err(|error| Error::ArrayLiteral(location, error))?;
+            values.push(self.evaluate_expression(element)?);
         }
-        Ok(Value::Array(result))
+
+        Value::new_array(values)
+            .map_err(ElementError::Value)
+            .map_err(|error| Error::Element(location, error))
     }
 
-    fn evaluate_tuple(&mut self, tuple: TupleExpression) -> Result<Value, Error> {
+    fn evaluate_tuple_expression(&mut self, tuple: TupleExpression) -> Result<Value, Error> {
         log::trace!("Tuple expression       : {}", tuple);
 
-        let mut result = Tuple::with_capacity(tuple.elements.len());
+        let location = tuple.location;
+
+        let mut values = Vec::with_capacity(tuple.elements.len());
         for element in tuple.elements.into_iter() {
-            result.push(self.evaluate(element)?);
+            values.push(self.evaluate_expression(element)?);
         }
-        Ok(Value::Tuple(result))
+
+        Value::new_tuple(values)
+            .map_err(ElementError::Value)
+            .map_err(|error| Error::Element(location, error))
     }
 
-    fn evaluate_structure(&mut self, structure: StructureExpression) -> Result<Value, Error> {
+    fn evaluate_structure_expression(
+        &mut self,
+        structure: StructureExpression,
+    ) -> Result<Value, Error> {
         log::trace!("Structure expression       : {}", structure);
 
         let location = structure.location;
 
-        let mut result = Structure::new(structure.identifier.name);
+        let mut fields = Vec::with_capacity(structure.fields.len());
         for (identifier, expression) in structure.fields.into_iter() {
-            result
-                .push(identifier.name, self.evaluate(expression)?)
-                .map_err(|error| Error::StructureLiteral(location, error))?;
+            fields.push((identifier.name, self.evaluate_expression(expression)?));
         }
-        Ok(Value::Structure(result))
+
+        Value::new_structure(structure.identifier.name, fields)
+            .map_err(ElementError::Value)
+            .map_err(|error| Error::Element(location, error))
     }
 
     fn get_unary_operand(&mut self, resolve: bool) -> Result<Element, ScopeError> {
