@@ -102,7 +102,7 @@ fn main() -> Result<(), Error> {
         log::info!("{}", serde_json::to_string(&circuit).expect("Always valid"));
     }
 
-    let result = Transpiler::new().transpile(circuit).map_err(|error| {
+    let result = Transpiler::default().transpile(circuit).map_err(|error| {
         log::error!("{}", error);
         Error::Transpiler(error)
     })?;

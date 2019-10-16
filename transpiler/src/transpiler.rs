@@ -61,30 +61,24 @@ use crate::output::TypeStatementOutput;
 use crate::writer::Writer;
 
 pub struct Transpiler {
-    stack: Vec<Element>,
     writer: Writer,
-
-    id_sequence: usize,
+    rpn_stack: Vec<Element>,
     loop_stack: Vec<String>,
+    id_sequence: usize,
 }
 
 impl Default for Transpiler {
     fn default() -> Self {
         Self {
-            stack: Default::default(),
-            writer: Writer::new(),
-
-            id_sequence: 0,
+            writer: Default::default(),
+            rpn_stack: Default::default(),
             loop_stack: Vec::with_capacity(16),
+            id_sequence: Default::default(),
         }
     }
 }
 
 impl Transpiler {
-    pub fn new() -> Self {
-        Default::default()
-    }
-
     pub fn transpile(&mut self, program: CircuitProgram) -> Result<String, Error> {
         self.writer.write_lines(AttributesOutput::output());
         self.writer.write_lines(ImportsOutput::output());
@@ -189,13 +183,13 @@ impl Transpiler {
         for expression_element in expression.into_iter() {
             match expression_element.object {
                 ExpressionObject::Operand(operand) => {
-                    self.stack.push(Element::Operand(operand));
+                    self.rpn_stack.push(Element::Operand(operand));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Assignment) => {
                     let (operand_1, operand_2) = self.get_binary_operands(false, true);
                     self.writer
                         .write_line(OperatorAssignmentOutput::output(operand_1, operand_2));
-                    self.stack.push(Element::Unit);
+                    self.rpn_stack.push(Element::Unit);
                 }
                 ExpressionObject::Operator(ExpressionOperator::Range) => {
                     panic!("The range operator cannot be used in expressions")
@@ -213,7 +207,7 @@ impl Transpiler {
                         operand_2,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Xor) => {
@@ -226,7 +220,7 @@ impl Transpiler {
                         operand_2,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::And) => {
@@ -239,7 +233,7 @@ impl Transpiler {
                         operand_2,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Equals) => {
@@ -252,7 +246,7 @@ impl Transpiler {
                         operand_2,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::NotEquals) => {
@@ -265,7 +259,7 @@ impl Transpiler {
                         operand_2,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::GreaterEquals) => {
@@ -278,7 +272,7 @@ impl Transpiler {
                         operand_2,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::LesserEquals) => {
@@ -291,7 +285,7 @@ impl Transpiler {
                         operand_2,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Greater) => {
@@ -304,7 +298,7 @@ impl Transpiler {
                         operand_2,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Lesser) => {
@@ -317,7 +311,7 @@ impl Transpiler {
                         operand_2,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Addition) => {
@@ -330,7 +324,7 @@ impl Transpiler {
                         operand_2,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Subtraction) => {
@@ -343,7 +337,7 @@ impl Transpiler {
                         operand_2,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Multiplication) => {
@@ -356,7 +350,7 @@ impl Transpiler {
                         operand_2,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Division) => {
@@ -369,7 +363,7 @@ impl Transpiler {
                         operand_2,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Remainder) => {
@@ -382,7 +376,7 @@ impl Transpiler {
                         operand_2,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Casting) => {
@@ -395,7 +389,7 @@ impl Transpiler {
                         r#type,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Negation) => {
@@ -407,7 +401,7 @@ impl Transpiler {
                         operand,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Not) => {
@@ -419,7 +413,7 @@ impl Transpiler {
                         operand,
                     ));
 
-                    self.stack
+                    self.rpn_stack
                         .push(Element::Temporary(TemporaryElement::new(identifier)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Indexing) => {
@@ -435,7 +429,7 @@ impl Transpiler {
                         }
                         _ => panic!("Always checked by some branches above"),
                     };
-                    self.stack.push(operand_1);
+                    self.rpn_stack.push(operand_1);
                 }
                 ExpressionObject::Operator(ExpressionOperator::Field) => {
                     let (operand_1, operand_2) = self.get_binary_operands(false, false);
@@ -450,12 +444,12 @@ impl Transpiler {
                         }
                         _ => panic!("Always checked by some branches above"),
                     };
-                    self.stack.push(operand_1);
+                    self.rpn_stack.push(operand_1);
                 }
             }
         }
 
-        match self.stack.pop().expect("Always contains an element") {
+        match self.rpn_stack.pop().expect("Always contains an element") {
             Element::Operand(operand) => match operand {
                 ExpressionOperand::Unit => Element::Unit,
                 ExpressionOperand::Identifier(identifier) => {
@@ -594,7 +588,7 @@ impl Transpiler {
     }
 
     fn get_unary_operand(&mut self, allocate: bool) -> Element {
-        match self.stack.pop().expect("Always contains an element") {
+        match self.rpn_stack.pop().expect("Always contains an element") {
             Element::Operand(operand) => match operand {
                 ExpressionOperand::Unit => Element::Unit,
                 ExpressionOperand::Identifier(identifier) => {
@@ -615,8 +609,8 @@ impl Transpiler {
     }
 
     fn get_binary_operands(&mut self, allocate_1: bool, allocate_2: bool) -> (Element, Element) {
-        let operand_2 = self.stack.pop().expect("Always contains an element");
-        let operand_1 = self.stack.pop().expect("Always contains an element");
+        let operand_2 = self.rpn_stack.pop().expect("Always contains an element");
+        let operand_1 = self.rpn_stack.pop().expect("Always contains an element");
 
         let operand_1 = match operand_1 {
             Element::Operand(operand) => match operand {

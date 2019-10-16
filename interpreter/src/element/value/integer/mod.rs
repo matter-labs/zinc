@@ -73,17 +73,17 @@ impl Integer {
         };
 
         let number = BigInt::from_str_radix(&string, base).expect("Always valid");
-        let mut bitlength = crate::BITLENGTH_BYTE;
+        let mut bitlength = r1cs::BITLENGTH_BYTE;
         let mut exponent = BigInt::from(crate::MAX_VALUE_BYTE);
         while number >= exponent {
-            if bitlength == crate::BITLENGTH_MAX_INT {
+            if bitlength == r1cs::BITLENGTH_MAX_INT {
                 exponent *= 64;
-                bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
-            } else if bitlength == crate::BITLENGTH_FIELD {
+                bitlength += r1cs::BITLENGTH_FIELD - r1cs::BITLENGTH_MAX_INT;
+            } else if bitlength == r1cs::BITLENGTH_FIELD {
                 return Err(Error::LiteralTooLarge(bitlength));
             } else {
                 exponent *= crate::MAX_VALUE_BYTE;
-                bitlength += crate::BITLENGTH_BYTE;
+                bitlength += r1cs::BITLENGTH_BYTE;
             }
         }
 
@@ -102,11 +102,11 @@ impl Integer {
 
     pub fn type_variant(&self) -> TypeVariant {
         match (self.is_signed, self.bitlength) {
-            (false, crate::BITLENGTH_FIELD) => TypeVariant::new_field(),
-            (true, bitlength) if bitlength < crate::BITLENGTH_FIELD => {
+            (false, r1cs::BITLENGTH_FIELD) => TypeVariant::new_field(),
+            (true, bitlength) if bitlength < r1cs::BITLENGTH_FIELD => {
                 TypeVariant::new_integer_signed(bitlength)
             }
-            (false, bitlength) if bitlength < crate::BITLENGTH_FIELD => {
+            (false, bitlength) if bitlength < r1cs::BITLENGTH_FIELD => {
                 TypeVariant::new_integer_unsigned(bitlength)
             }
             (..) => panic!("Always checked by the branches above"),
@@ -389,23 +389,23 @@ impl Integer {
     ) -> Result<Self, Error> {
         let type_variant = match (self.is_signed, self.bitlength, type_variant) {
             (false, b1, TypeVariant::IntegerUnsigned { bitlength: b2 })
-                if b1 >= crate::BITLENGTH_FIELD_PADDED - crate::BITLENGTH_BYTE || b1 >= b2 =>
+                if b1 >= r1cs::BITLENGTH_FIELD_PADDED - r1cs::BITLENGTH_BYTE || b1 >= b2 =>
             {
                 return Err(Error::CastingToLesserOrEqualBitlength(b1, b2));
             }
             (false, b1, TypeVariant::IntegerSigned { bitlength: b2 })
-                if b1 >= crate::BITLENGTH_FIELD_PADDED - crate::BITLENGTH_BYTE * 2
-                    || b1 + crate::BITLENGTH_BYTE >= b2 =>
+                if b1 >= r1cs::BITLENGTH_FIELD_PADDED - r1cs::BITLENGTH_BYTE * 2
+                    || b1 + r1cs::BITLENGTH_BYTE >= b2 =>
             {
                 return Err(Error::CastingToLesserOrEqualBitlength(b1, b2));
             }
             (true, b1, TypeVariant::IntegerSigned { bitlength: b2 })
-                if b1 >= crate::BITLENGTH_FIELD_PADDED - crate::BITLENGTH_BYTE || b1 >= b2 =>
+                if b1 >= r1cs::BITLENGTH_FIELD_PADDED - r1cs::BITLENGTH_BYTE || b1 >= b2 =>
             {
                 return Err(Error::CastingToLesserOrEqualBitlength(b1, b2));
             }
             (true, b1, TypeVariant::IntegerUnsigned { bitlength: b2 })
-                if b1 >= crate::BITLENGTH_FIELD_PADDED - crate::BITLENGTH_BYTE || b1 >= b2 =>
+                if b1 >= r1cs::BITLENGTH_FIELD_PADDED - r1cs::BITLENGTH_BYTE || b1 >= b2 =>
             {
                 return Err(Error::CastingToLesserOrEqualBitlength(b1, b2));
             }
@@ -415,7 +415,7 @@ impl Integer {
         let (is_signed, bitlength) = match type_variant {
             TypeVariant::IntegerUnsigned { bitlength } => (false, bitlength),
             TypeVariant::IntegerSigned { bitlength } => (true, bitlength),
-            TypeVariant::Field => (false, crate::BITLENGTH_FIELD),
+            TypeVariant::Field => (false, r1cs::BITLENGTH_FIELD),
             type_variant => return Err(Error::CastingToInvalidType(self, type_variant)),
         };
 

@@ -17,7 +17,10 @@ use ff::Field;
 use ff::PrimeField;
 use franklin_crypto::circuit::boolean::AllocatedBit;
 
+pub const BITLENGTH_BYTE: usize = 8;
+pub const BITLENGTH_MAX_INT: usize = 248;
 pub const BITLENGTH_FIELD: usize = 254;
+pub const BITLENGTH_FIELD_PADDED: usize = 256;
 
 ///
 /// Allocates a boolean.

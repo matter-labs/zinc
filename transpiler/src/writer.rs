@@ -11,10 +11,6 @@ pub struct Writer {
 impl Writer {
     const SIZE_TAB: usize = 4;
 
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     pub fn get(&mut self) -> String {
         let result = self.buffer.clone();
         self.buffer.clear();
