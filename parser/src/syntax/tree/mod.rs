@@ -37,6 +37,8 @@ pub use self::r#type::Type;
 pub use self::r#type::Variant as TypeVariant;
 pub use self::statement::Debug as DebugStatement;
 pub use self::statement::DebugBuilder as DebugStatementBuilder;
+pub use self::statement::Enum as EnumStatement;
+pub use self::statement::EnumBuilder as EnumStatementBuilder;
 pub use self::statement::Let as LetStatement;
 pub use self::statement::LetBuilder as LetStatementBuilder;
 pub use self::statement::Loop as LoopStatement;

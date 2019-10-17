@@ -3,6 +3,7 @@
 //!
 
 mod debug;
+mod r#enum;
 mod r#let;
 mod r#loop;
 mod require;
@@ -10,6 +11,7 @@ mod r#struct;
 mod r#type;
 
 pub use self::debug::Output as DebugOutput;
+pub use self::r#enum::Output as EnumOutput;
 pub use self::r#let::Output as LetOutput;
 pub use self::r#loop::OutputFor as LoopForOutput;
 pub use self::r#loop::OutputWhile as LoopWhileOutput;

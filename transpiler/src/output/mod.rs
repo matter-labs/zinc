@@ -45,6 +45,7 @@ pub use self::operator::SubtractionOutput as OperatorSubtractionOutput;
 pub use self::operator::XorOutput as OperatorXorOutput;
 pub use self::r#type::Output as TypeOutput;
 pub use self::statements::DebugOutput as DebugStatementOutput;
+pub use self::statements::EnumOutput as EnumStatementOutput;
 pub use self::statements::LetOutput as LetStatementOutput;
 pub use self::statements::LoopForOutput as LoopStatementForOutput;
 pub use self::statements::LoopWhileOutput as LoopStatementWhileOutput;

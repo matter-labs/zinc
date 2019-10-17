@@ -12,7 +12,7 @@ use structopt::StructOpt;
 use interpreter::Interpreter;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "jabi", about = "The Jabberwocky language interpreter")]
+#[structopt(name = "jabi", about = "The Jabberwocky interpreter")]
 struct Arguments {
     #[structopt(short = "m", long = "meta", help = "Generates meta info")]
     meta: bool,

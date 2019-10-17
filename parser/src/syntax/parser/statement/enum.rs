@@ -1,5 +1,5 @@
 //!
-//! The struct statement parser.
+//! The enum statement parser.
 //!
 
 use std::cell::RefCell;
@@ -7,48 +7,48 @@ use std::rc::Rc;
 
 use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
+use crate::lexical::Literal;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
+use crate::syntax::EnumStatement;
+use crate::syntax::EnumStatementBuilder;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::Identifier;
-use crate::syntax::StructStatement;
-use crate::syntax::StructStatementBuilder;
-use crate::syntax::TypeParser;
 use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    KeywordStruct,
+    KeywordEnum,
     Identifier,
     BracketCurlyLeftOrEnd,
     IdentifierOrBracketCurlyRight,
-    Colon,
-    Type,
+    Equals,
+    Number,
     CommaOrBracketCurlyRight,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::KeywordStruct
+        State::KeywordEnum
     }
 }
 
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    builder: StructStatementBuilder,
+    builder: EnumStatementBuilder,
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<StructStatement, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<EnumStatement, Error> {
         loop {
             match self.state {
-                State::KeywordStruct => {
+                State::KeywordEnum => {
                     let next = stream.borrow_mut().next();
                     match next {
                         Some(Ok(Token {
-                            lexeme: Lexeme::Keyword(Keyword::Struct),
+                            lexeme: Lexeme::Keyword(Keyword::Enum),
                             location,
                         })) => {
                             self.builder.set_location(location);
@@ -57,7 +57,7 @@ impl Parser {
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                vec!["struct"],
+                                vec!["enum"],
                                 lexeme,
                             )));
                         }
@@ -126,8 +126,8 @@ impl Parser {
                             location,
                         })) => {
                             let identifier = Identifier::new(location, identifier.name);
-                            self.builder.push_field_identifier(identifier);
-                            self.state = State::Colon;
+                            self.builder.push_variant_identifier(identifier);
+                            self.state = State::Equals;
                         }
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
@@ -144,17 +144,17 @@ impl Parser {
                         }
                     }
                 }
-                State::Colon => {
+                State::Equals => {
                     let next = stream.borrow_mut().next();
                     match next {
                         Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::Colon),
+                            lexeme: Lexeme::Symbol(Symbol::Equals),
                             ..
-                        })) => self.state = State::Type,
+                        })) => self.state = State::Number,
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                vec![":"],
+                                vec!["="],
                                 lexeme,
                             )));
                         }
@@ -166,10 +166,30 @@ impl Parser {
                         }
                     }
                 }
-                State::Type => {
-                    let r#type = TypeParser::default().parse(stream.clone())?;
-                    self.builder.push_field_type(r#type);
-                    self.state = State::CommaOrBracketCurlyRight;
+                State::Number => {
+                    let next = stream.borrow_mut().next();
+                    match next {
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Literal(Literal::Integer(literal)),
+                            ..
+                        })) => {
+                            self.builder.push_variant_value(literal);
+                            self.state = State::CommaOrBracketCurlyRight;
+                        }
+                        Some(Ok(Token { lexeme, location })) => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                vec!["{integer}"],
+                                lexeme,
+                            )));
+                        }
+                        Some(Err(error)) => return Err(Error::Lexical(error)),
+                        None => {
+                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
+                                stream.borrow().location(),
+                            )))
+                        }
+                    }
                 }
                 State::CommaOrBracketCurlyRight => {
                     let next = stream.borrow_mut().next();
@@ -208,31 +228,30 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::lexical::IntegerLiteral;
     use crate::lexical::Lexeme;
     use crate::lexical::Location;
     use crate::lexical::Symbol;
     use crate::lexical::TokenStream;
+    use crate::syntax::EnumStatement;
     use crate::syntax::Error as SyntaxError;
     use crate::syntax::Identifier;
-    use crate::syntax::StructStatement;
-    use crate::syntax::Type;
-    use crate::syntax::TypeVariant;
     use crate::Error;
 
     #[test]
     fn ok_single() {
         let input = r#"
-    struct Test {
-        a: u232,
+    enum Test {
+        a = 1,
     }
 "#;
 
-        let expected = Ok(StructStatement::new(
+        let expected = Ok(EnumStatement::new(
             Location::new(2, 5),
-            Identifier::new(Location::new(2, 12), "Test".to_owned()),
+            Identifier::new(Location::new(2, 10), "Test".to_owned()),
             vec![(
                 Identifier::new(Location::new(3, 9), "a".to_owned()),
-                Type::new(Location::new(3, 12), TypeVariant::new_integer_unsigned(232)),
+                IntegerLiteral::new_decimal("1".to_owned()),
             )],
         ));
 
@@ -245,28 +264,28 @@ mod tests {
     #[test]
     fn ok_multiple() {
         let input = r#"
-    struct Test {
-        a: u232,
-        b: u232,
-        c: u232,
+    enum Test {
+        a = 1,
+        b = 2,
+        c = 3,
     }
 "#;
 
-        let expected = Ok(StructStatement::new(
+        let expected = Ok(EnumStatement::new(
             Location::new(2, 5),
-            Identifier::new(Location::new(2, 12), "Test".to_owned()),
+            Identifier::new(Location::new(2, 10), "Test".to_owned()),
             vec![
                 (
                     Identifier::new(Location::new(3, 9), "a".to_owned()),
-                    Type::new(Location::new(3, 12), TypeVariant::new_integer_unsigned(232)),
+                    IntegerLiteral::new_decimal("1".to_owned()),
                 ),
                 (
                     Identifier::new(Location::new(4, 9), "b".to_owned()),
-                    Type::new(Location::new(4, 12), TypeVariant::new_integer_unsigned(232)),
+                    IntegerLiteral::new_decimal("2".to_owned()),
                 ),
                 (
                     Identifier::new(Location::new(5, 9), "c".to_owned()),
-                    Type::new(Location::new(5, 12), TypeVariant::new_integer_unsigned(232)),
+                    IntegerLiteral::new_decimal("3".to_owned()),
                 ),
             ],
         ));
@@ -280,12 +299,12 @@ mod tests {
     #[test]
     fn ok_empty_with_brackets() {
         let input = r#"
-    struct Test {}
+    enum Test {}
 "#;
 
-        let expected = Ok(StructStatement::new(
+        let expected = Ok(EnumStatement::new(
             Location::new(2, 5),
-            Identifier::new(Location::new(2, 12), "Test".to_owned()),
+            Identifier::new(Location::new(2, 10), "Test".to_owned()),
             vec![],
         ));
 
@@ -298,12 +317,12 @@ mod tests {
     #[test]
     fn ok_empty_with_semicolon() {
         let input = r#"
-    struct Test;
+    enum Test;
 "#;
 
-        let expected = Ok(StructStatement::new(
+        let expected = Ok(EnumStatement::new(
             Location::new(2, 5),
-            Identifier::new(Location::new(2, 12), "Test".to_owned()),
+            Identifier::new(Location::new(2, 10), "Test".to_owned()),
             vec![],
         ));
 
@@ -316,13 +335,13 @@ mod tests {
     #[test]
     fn err_expected_comma() {
         let input = r#"
-    struct Test {
-        a: u232;
+    enum Test {
+        a = 1;
     }
 "#;
 
         let expected = Err(Error::Syntax(SyntaxError::Expected(
-            Location::new(3, 16),
+            Location::new(3, 14),
             vec![",", "}"],
             Lexeme::Symbol(Symbol::Semicolon),
         )));

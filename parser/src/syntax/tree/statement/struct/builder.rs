@@ -27,7 +27,7 @@ impl Builder {
         self.fields.push((value, None));
     }
 
-    pub fn set_field_type(&mut self, value: Type) {
+    pub fn push_field_type(&mut self, value: Type) {
         self.fields.last_mut().expect("Missing field identifier").1 = Some(value);
     }
 

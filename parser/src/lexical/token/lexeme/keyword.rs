@@ -22,6 +22,7 @@ pub enum Keyword {
     Mut,
     Type,
     Struct,
+    Enum,
 
     // controls
     For,
@@ -29,6 +30,7 @@ pub enum Keyword {
     While,
     If,
     Else,
+    Match,
 
     // types
     Bool,
@@ -87,12 +89,14 @@ impl TryFrom<&str> for Keyword {
             "mut" => return Ok(Self::Mut),
             "type" => return Ok(Self::Type),
             "struct" => return Ok(Self::Struct),
+            "enum" => return Ok(Self::Enum),
 
             "for" => return Ok(Self::For),
             "in" => return Ok(Self::In),
             "while" => return Ok(Self::While),
             "if" => return Ok(Self::If),
             "else" => return Ok(Self::Else),
+            "match" => return Ok(Self::Match),
 
             "bool" => return Ok(Self::Bool),
             "field" => return Ok(Self::Field),
@@ -167,12 +171,14 @@ impl fmt::Display for Keyword {
             Self::Mut => write!(f, "mut"),
             Self::Type => write!(f, "type"),
             Self::Struct => write!(f, "struct"),
+            Self::Enum => write!(f, "enum"),
 
             Self::For => write!(f, "for"),
             Self::In => write!(f, "in"),
             Self::While => write!(f, "while"),
             Self::If => write!(f, "if"),
             Self::Else => write!(f, "else"),
+            Self::Match => write!(f, "match"),
 
             Self::Bool => write!(f, "bool"),
             Self::U { bitlength } => write!(f, "u{}", bitlength),

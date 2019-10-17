@@ -231,6 +231,21 @@ impl Interpreter {
                     .declare_type(r#struct.identifier.name, type_variant)
                     .map_err(|error| Error::Scope(location, error))?;
             }
+            Statement::Enum(r#enum) => {
+                let location = r#enum.location;
+                let type_variant = TypeVariant::new_enumeration(
+                    r#enum.identifier.name.clone(),
+                    r#enum
+                        .variants
+                        .into_iter()
+                        .map(|(identifier, value)| (identifier.name, value.into()))
+                        .collect(),
+                );
+                self.scope
+                    .borrow_mut()
+                    .declare_type(r#enum.identifier.name, type_variant)
+                    .map_err(|error| Error::Scope(location, error))?;
+            }
             Statement::Debug(debug) => {
                 let result = self.evaluate_expression(debug.expression)?;
                 log::info!("{}", result);

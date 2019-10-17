@@ -38,7 +38,7 @@ impl Element {
                 TypeVariant::Tuple { type_variants } => {
                     let field = match descriptor {
                         Descriptor::Tuple(field) => *field,
-                        _ => panic!("1"),
+                        _ => panic!("Always is a tuple"),
                     };
 
                     &type_variants[field]
@@ -46,12 +46,12 @@ impl Element {
                 TypeVariant::Structure { fields, .. } => {
                     let field = match descriptor {
                         Descriptor::Structure(identifier) => identifier,
-                        _ => panic!("1"),
+                        _ => panic!("Always is a structure"),
                     };
 
                     fields.get(field).unwrap()
                 }
-                _ => panic!("1"),
+                _ => panic!("Always checked by some branches above"),
             };
         }
         type_variant.to_owned()

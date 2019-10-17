@@ -3,6 +3,7 @@
 //!
 
 mod debug;
+mod r#enum;
 mod r#let;
 mod r#loop;
 mod require;
@@ -10,6 +11,7 @@ mod r#struct;
 mod r#type;
 
 pub use self::debug::Parser as DebugParser;
+pub use self::r#enum::Parser as EnumParser;
 pub use self::r#let::Parser as LetParser;
 pub use self::r#loop::Parser as LoopParser;
 pub use self::r#struct::Parser as StructParser;
@@ -109,6 +111,16 @@ impl Parser {
                             let result = StructParser::default()
                                 .parse(stream.clone())
                                 .map(Statement::Struct)?;
+                            self.state = State::Semicolon;
+                            result
+                        }
+                        Some(Ok(Token {
+                            lexeme: Lexeme::Keyword(Keyword::Enum),
+                            ..
+                        })) => {
+                            let result = EnumParser::default()
+                                .parse(stream.clone())
+                                .map(Statement::Enum)?;
                             self.state = State::Semicolon;
                             result
                         }

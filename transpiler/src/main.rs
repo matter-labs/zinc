@@ -13,7 +13,7 @@ use structopt::StructOpt;
 use transpiler::Transpiler;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "jabc", about = "The Jabberwocky language compiler")]
+#[structopt(name = "jabc", about = "The Jabberwocky transpiler")]
 struct Arguments {
     #[structopt(
         short = "p",

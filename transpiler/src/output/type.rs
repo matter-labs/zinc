@@ -26,6 +26,7 @@ impl Output {
                     .join(", ")
             ),
             TypeVariant::Structure { identifier, .. } => identifier,
+            TypeVariant::Enumeration { identifier, .. } => identifier,
             TypeVariant::Alias { identifier } => identifier,
         }
     }

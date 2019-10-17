@@ -19,10 +19,6 @@ impl Element {
             type_variant,
         }
     }
-
-    pub fn type_variant(&self) -> TypeVariant {
-        self.type_variant.clone()
-    }
 }
 
 impl Into<String> for Element {

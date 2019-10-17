@@ -7,8 +7,6 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
-use crate::syntax::TypeVariant;
-
 #[derive(Debug, Clone, Serialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 #[serde(tag = "name")]
@@ -32,6 +30,10 @@ pub enum Variant {
     Structure {
         identifier: String,
         fields: BTreeMap<String, Self>,
+    },
+    Enumeration {
+        identifier: String,
+        variants: BTreeMap<String, usize>,
     },
     Alias {
         identifier: String,
@@ -67,20 +69,28 @@ impl Variant {
         Self::Field
     }
 
-    pub fn new_array(type_variant: TypeVariant, size: usize) -> Self {
+    pub fn new_array(type_variant: Self, size: usize) -> Self {
         Self::Array {
             type_variant: Box::new(type_variant),
             size,
         }
     }
 
-    pub fn new_tuple(type_variants: Vec<TypeVariant>) -> Self {
+    pub fn new_tuple(type_variants: Vec<Self>) -> Self {
         Self::Tuple { type_variants }
     }
 
     pub fn new_structure(identifier: String, fields: Vec<(String, Self)>) -> Self {
         let fields = fields.into_iter().collect::<BTreeMap<String, Self>>();
         Self::Structure { identifier, fields }
+    }
+
+    pub fn new_enumeration(identifier: String, variants: Vec<(String, usize)>) -> Self {
+        let variants = variants.into_iter().collect::<BTreeMap<String, usize>>();
+        Self::Enumeration {
+            identifier,
+            variants,
+        }
     }
 
     pub fn new_alias(identifier: String) -> Self {
@@ -113,6 +123,19 @@ impl fmt::Display for Variant {
                 fields
                     .iter()
                     .map(|(identiifer, type_variant)| format!("{}: {}", identiifer, type_variant))
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
+            Self::Enumeration {
+                identifier,
+                variants,
+            } => write!(
+                f,
+                "{} {{ {} }}",
+                identifier,
+                variants
+                    .iter()
+                    .map(|(identiifer, value)| format!("{} = {}", identiifer, value))
                     .collect::<Vec<String>>()
                     .join(", ")
             ),

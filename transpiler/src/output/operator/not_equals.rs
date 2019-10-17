@@ -30,7 +30,7 @@ impl Output {
                         identifier, namespace, operand_1, operand_2, b1,
                     )
                 } else {
-                    panic!("Got invalid bitlengths: {} and {}", b1, b2)
+                    panic!("Got invalid bitlengths: {} and {}", b1, b2) // TODO
                 }
             }
             (
@@ -43,7 +43,7 @@ impl Output {
                         identifier, namespace, operand_1, operand_2, b1,
                     )
                 } else {
-                    panic!("Got invalid bitlengths: {} and {}", b1, b2)
+                    panic!("Got invalid bitlengths: {} and {}", b1, b2) // TODO
                 }
             }
             (TypeVariant::Field, TypeVariant::Field) => {
@@ -52,7 +52,7 @@ impl Output {
                 identifier, namespace, operand_1, operand_2, semantic::BITLENGTH_FIELD
             )
             }
-            (type_1, type_2) => panic!("Got invalid types: {} and {}", type_1, type_2),
+            (type_1, type_2) => panic!("Got invalid types: {} and {}", type_1, type_2), // TODO
         }
     }
 }

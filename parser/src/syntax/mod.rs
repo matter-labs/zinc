@@ -38,6 +38,8 @@ pub use self::tree::ConditionalExpression;
 pub use self::tree::ConditionalExpressionBuilder;
 pub use self::tree::DebugStatement;
 pub use self::tree::DebugStatementBuilder;
+pub use self::tree::EnumStatement;
+pub use self::tree::EnumStatementBuilder;
 pub use self::tree::Expression;
 pub use self::tree::ExpressionBuilder;
 pub use self::tree::ExpressionElement;

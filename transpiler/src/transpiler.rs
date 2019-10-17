@@ -33,6 +33,7 @@ use crate::output::BlockOutput;
 use crate::output::CircuitOutput;
 use crate::output::ConditionalOutput;
 use crate::output::DebugStatementOutput;
+use crate::output::EnumStatementOutput;
 use crate::output::ImportsOutput;
 use crate::output::LetStatementOutput;
 use crate::output::LoopStatementForOutput;
@@ -127,9 +128,13 @@ impl Transpiler {
                 ));
             }
             Statement::Let(r#let) => {
+                let location = r#let.location;
+
                 let expression = self.transpile_expression(r#let.expression)?;
                 let mut type_variant = expression.type_variant();
                 if let Some(ref r#type) = r#let.r#type {
+                    semantic::validate_casting(&type_variant, &r#type.variant)
+                        .map_err(|error| Error::LetImplicitCasting(location, error))?;
                     type_variant = r#type.variant.clone();
                 }
                 self.scope
@@ -138,7 +143,7 @@ impl Transpiler {
                         type_variant,
                         r#let.is_mutable,
                     )
-                    .map_err(Error::Scope)?; // TODO
+                    .map_err(|error| Error::Scope(location, error))?;
                 self.writer.write_line(LetStatementOutput::output(
                     r#let.is_mutable,
                     r#let.identifier,
@@ -156,6 +161,8 @@ impl Transpiler {
                 self.writer.write_line(output.start);
                 self.loop_stack.push(r#loop.index_identifier.name.clone());
                 self.writer.shift_forward();
+
+                let index_location = r#loop.index_identifier.location;
                 let index_namespace = self.current_namespace();
                 self.scope
                     .declare_variable(
@@ -163,7 +170,7 @@ impl Transpiler {
                         TypeVariant::new_integer_unsigned(64),
                         false,
                     )
-                    .map_err(Error::Scope)?;
+                    .map_err(|error| Error::Scope(index_location, error))?;
                 self.writer.write_line(AllocationNumberIndexOutput::output(
                     r#loop.index_identifier.name,
                     index_namespace,
@@ -198,18 +205,23 @@ impl Transpiler {
                 self.writer.write_line(output.end);
             }
             Statement::Type(r#type) => {
+                let location = r#type.location;
+
                 self.scope
                     .declare_type(
                         r#type.identifier.name.clone(),
                         r#type.r#type.variant.clone(),
                     )
-                    .map_err(Error::Scope)?;
+                    .map_err(|error| Error::Scope(location, error))?;
+
                 self.writer.write_line(TypeStatementOutput::output(
                     r#type.identifier,
                     r#type.r#type,
                 ));
             }
             Statement::Struct(r#struct) => {
+                let location = r#struct.location;
+
                 self.scope
                     .declare_type(
                         r#struct.identifier.name.clone(),
@@ -223,10 +235,34 @@ impl Transpiler {
                                 .collect(),
                         ),
                     )
-                    .map_err(Error::Scope)?;
+                    .map_err(|error| Error::Scope(location, error))?;
+
                 self.writer.write_line(StructStatementOutput::output(
                     r#struct.identifier,
                     r#struct.fields,
+                ));
+            }
+            Statement::Enum(r#enum) => {
+                let location = r#enum.location;
+
+                self.scope
+                    .declare_type(
+                        r#enum.identifier.name.clone(),
+                        TypeVariant::new_enumeration(
+                            r#enum.identifier.name.clone(),
+                            r#enum
+                                .variants
+                                .clone()
+                                .into_iter()
+                                .map(|(identifier, value)| (identifier.name, value.into()))
+                                .collect(),
+                        ),
+                    )
+                    .map_err(|error| Error::Scope(location, error))?;
+
+                self.writer.write_line(EnumStatementOutput::output(
+                    r#enum.identifier,
+                    r#enum.variants,
                 ));
             }
             Statement::Debug(debug) => {
@@ -246,13 +282,25 @@ impl Transpiler {
         log::trace!("Expression             : {}", expression);
 
         for expression_element in expression.into_iter() {
+            let location = expression_element.location;
             match expression_element.object {
                 ExpressionObject::Operand(operand) => {
                     self.rpn_stack.push(StackElement::NonEvaluated(operand));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Assignment) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::Assignment) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(EvaluationMode::Direct, EvaluationMode::Transpiling)?;
+
+                    match operand_1 {
+                        Element::Permanent { .. } => {}
+                        Element::ConstantString { .. } => {}
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location, operator, "{lvalue}", "{rvalue}",
+                            ))
+                        }
+                    }
+
                     self.writer
                         .write_line(OperatorAssignmentOutput::output(operand_1, operand_2));
                     self.rpn_stack.push(StackElement::Evaluated(Element::Unit));
@@ -263,14 +311,25 @@ impl Transpiler {
                 ExpressionObject::Operator(ExpressionOperator::RangeInclusive) => {
                     panic!("The range inclusive operator cannot be used in expressions")
                 }
-                ExpressionObject::Operator(ExpressionOperator::Or) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::Or) => {
                     let (operand_1, operand_2) = self.get_binary_operands(
                         EvaluationMode::Transpiling,
                         EvaluationMode::Transpiling,
                     )?;
 
+                    match (operand_1.type_variant(), operand_2.type_variant()) {
+                        (TypeVariant::Boolean, TypeVariant::Boolean) => {}
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{boolean}",
+                                "{boolean}",
+                            ))
+                        }
+                    }
+
                     let (identifier, namespace) = self.next_id_and_namespace();
-                    let type_variant = operand_1.type_variant();
                     self.writer.write_line(OperatorOrOutput::output(
                         identifier.clone(),
                         namespace,
@@ -280,17 +339,28 @@ impl Transpiler {
 
                     self.rpn_stack
                         .push(StackElement::Evaluated(Element::Temporary(
-                            TemporaryElement::new(identifier, type_variant),
+                            TemporaryElement::new(identifier, TypeVariant::Boolean),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Xor) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::Xor) => {
                     let (operand_1, operand_2) = self.get_binary_operands(
                         EvaluationMode::Transpiling,
                         EvaluationMode::Transpiling,
                     )?;
 
+                    match (operand_1.type_variant(), operand_2.type_variant()) {
+                        (TypeVariant::Boolean, TypeVariant::Boolean) => {}
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{boolean}",
+                                "{boolean}",
+                            ))
+                        }
+                    }
+
                     let (identifier, namespace) = self.next_id_and_namespace();
-                    let type_variant = operand_1.type_variant();
                     self.writer.write_line(OperatorXorOutput::output(
                         identifier.clone(),
                         namespace,
@@ -300,17 +370,28 @@ impl Transpiler {
 
                     self.rpn_stack
                         .push(StackElement::Evaluated(Element::Temporary(
-                            TemporaryElement::new(identifier, type_variant),
+                            TemporaryElement::new(identifier, TypeVariant::Boolean),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::And) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::And) => {
                     let (operand_1, operand_2) = self.get_binary_operands(
                         EvaluationMode::Transpiling,
                         EvaluationMode::Transpiling,
                     )?;
 
+                    match (operand_1.type_variant(), operand_2.type_variant()) {
+                        (TypeVariant::Boolean, TypeVariant::Boolean) => {}
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{boolean}",
+                                "{boolean}",
+                            ))
+                        }
+                    }
+
                     let (identifier, namespace) = self.next_id_and_namespace();
-                    let type_variant = operand_1.type_variant();
                     self.writer.write_line(OperatorAndOutput::output(
                         identifier.clone(),
                         namespace,
@@ -320,17 +401,34 @@ impl Transpiler {
 
                     self.rpn_stack
                         .push(StackElement::Evaluated(Element::Temporary(
-                            TemporaryElement::new(identifier, type_variant),
+                            TemporaryElement::new(identifier, TypeVariant::Boolean),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Equals) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::Equals) => {
                     let (operand_1, operand_2) = self.get_binary_operands(
                         EvaluationMode::Transpiling,
                         EvaluationMode::Transpiling,
                     )?;
 
+                    match (operand_1.type_variant(), operand_2.type_variant()) {
+                        (TypeVariant::Boolean, TypeVariant::Boolean) => {}
+                        (
+                            TypeVariant::IntegerUnsigned { .. },
+                            TypeVariant::IntegerUnsigned { .. },
+                        ) => {}
+                        (TypeVariant::IntegerSigned { .. }, TypeVariant::IntegerSigned { .. }) => {}
+                        (TypeVariant::Field, TypeVariant::Field) => {}
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{boolean} or {integer}",
+                                "{boolean} or {integer}",
+                            ))
+                        }
+                    }
+
                     let (identifier, namespace) = self.next_id_and_namespace();
-                    let type_variant = operand_1.type_variant();
                     self.writer.write_line(OperatorEqualsOutput::output(
                         identifier.clone(),
                         namespace,
@@ -340,17 +438,34 @@ impl Transpiler {
 
                     self.rpn_stack
                         .push(StackElement::Evaluated(Element::Temporary(
-                            TemporaryElement::new(identifier, type_variant),
+                            TemporaryElement::new(identifier, TypeVariant::Boolean),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::NotEquals) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::NotEquals) => {
                     let (operand_1, operand_2) = self.get_binary_operands(
                         EvaluationMode::Transpiling,
                         EvaluationMode::Transpiling,
                     )?;
 
+                    match (operand_1.type_variant(), operand_2.type_variant()) {
+                        (TypeVariant::Boolean, TypeVariant::Boolean) => {}
+                        (
+                            TypeVariant::IntegerUnsigned { .. },
+                            TypeVariant::IntegerUnsigned { .. },
+                        ) => {}
+                        (TypeVariant::IntegerSigned { .. }, TypeVariant::IntegerSigned { .. }) => {}
+                        (TypeVariant::Field, TypeVariant::Field) => {}
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{boolean} or {integer}",
+                                "{boolean} or {integer}",
+                            ))
+                        }
+                    }
+
                     let (identifier, namespace) = self.next_id_and_namespace();
-                    let type_variant = operand_1.type_variant();
                     self.writer.write_line(OperatorNotEqualsOutput::output(
                         identifier.clone(),
                         namespace,
@@ -360,17 +475,33 @@ impl Transpiler {
 
                     self.rpn_stack
                         .push(StackElement::Evaluated(Element::Temporary(
-                            TemporaryElement::new(identifier, type_variant),
+                            TemporaryElement::new(identifier, TypeVariant::Boolean),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::GreaterEquals) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::GreaterEquals) => {
                     let (operand_1, operand_2) = self.get_binary_operands(
                         EvaluationMode::Transpiling,
                         EvaluationMode::Transpiling,
                     )?;
 
+                    match (operand_1.type_variant(), operand_2.type_variant()) {
+                        (
+                            TypeVariant::IntegerUnsigned { .. },
+                            TypeVariant::IntegerUnsigned { .. },
+                        ) => {}
+                        (TypeVariant::IntegerSigned { .. }, TypeVariant::IntegerSigned { .. }) => {}
+                        (TypeVariant::Field, TypeVariant::Field) => {}
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{integer}",
+                                "{integer}",
+                            ))
+                        }
+                    }
+
                     let (identifier, namespace) = self.next_id_and_namespace();
-                    let type_variant = operand_1.type_variant();
                     self.writer.write_line(OperatorGreaterEqualsOutput::output(
                         identifier.clone(),
                         namespace,
@@ -380,17 +511,33 @@ impl Transpiler {
 
                     self.rpn_stack
                         .push(StackElement::Evaluated(Element::Temporary(
-                            TemporaryElement::new(identifier, type_variant),
+                            TemporaryElement::new(identifier, TypeVariant::Boolean),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::LesserEquals) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::LesserEquals) => {
                     let (operand_1, operand_2) = self.get_binary_operands(
                         EvaluationMode::Transpiling,
                         EvaluationMode::Transpiling,
                     )?;
 
+                    match (operand_1.type_variant(), operand_2.type_variant()) {
+                        (
+                            TypeVariant::IntegerUnsigned { .. },
+                            TypeVariant::IntegerUnsigned { .. },
+                        ) => {}
+                        (TypeVariant::IntegerSigned { .. }, TypeVariant::IntegerSigned { .. }) => {}
+                        (TypeVariant::Field, TypeVariant::Field) => {}
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{integer}",
+                                "{integer}",
+                            ))
+                        }
+                    }
+
                     let (identifier, namespace) = self.next_id_and_namespace();
-                    let type_variant = operand_1.type_variant();
                     self.writer.write_line(OperatorLesserEqualsOutput::output(
                         identifier.clone(),
                         namespace,
@@ -400,17 +547,33 @@ impl Transpiler {
 
                     self.rpn_stack
                         .push(StackElement::Evaluated(Element::Temporary(
-                            TemporaryElement::new(identifier, type_variant),
+                            TemporaryElement::new(identifier, TypeVariant::Boolean),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Greater) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::Greater) => {
                     let (operand_1, operand_2) = self.get_binary_operands(
                         EvaluationMode::Transpiling,
                         EvaluationMode::Transpiling,
                     )?;
 
+                    match (operand_1.type_variant(), operand_2.type_variant()) {
+                        (
+                            TypeVariant::IntegerUnsigned { .. },
+                            TypeVariant::IntegerUnsigned { .. },
+                        ) => {}
+                        (TypeVariant::IntegerSigned { .. }, TypeVariant::IntegerSigned { .. }) => {}
+                        (TypeVariant::Field, TypeVariant::Field) => {}
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{integer}",
+                                "{integer}",
+                            ))
+                        }
+                    }
+
                     let (identifier, namespace) = self.next_id_and_namespace();
-                    let type_variant = operand_1.type_variant();
                     self.writer.write_line(OperatorGreaterOutput::output(
                         identifier.clone(),
                         namespace,
@@ -420,17 +583,33 @@ impl Transpiler {
 
                     self.rpn_stack
                         .push(StackElement::Evaluated(Element::Temporary(
-                            TemporaryElement::new(identifier, type_variant),
+                            TemporaryElement::new(identifier, TypeVariant::Boolean),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Lesser) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::Lesser) => {
                     let (operand_1, operand_2) = self.get_binary_operands(
                         EvaluationMode::Transpiling,
                         EvaluationMode::Transpiling,
                     )?;
 
+                    match (operand_1.type_variant(), operand_2.type_variant()) {
+                        (
+                            TypeVariant::IntegerUnsigned { .. },
+                            TypeVariant::IntegerUnsigned { .. },
+                        ) => {}
+                        (TypeVariant::IntegerSigned { .. }, TypeVariant::IntegerSigned { .. }) => {}
+                        (TypeVariant::Field, TypeVariant::Field) => {}
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{integer}",
+                                "{integer}",
+                            ))
+                        }
+                    }
+
                     let (identifier, namespace) = self.next_id_and_namespace();
-                    let type_variant = operand_1.type_variant();
                     self.writer.write_line(OperatorLesserOutput::output(
                         identifier.clone(),
                         namespace,
@@ -440,14 +619,31 @@ impl Transpiler {
 
                     self.rpn_stack
                         .push(StackElement::Evaluated(Element::Temporary(
-                            TemporaryElement::new(identifier, type_variant),
+                            TemporaryElement::new(identifier, TypeVariant::Boolean),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Addition) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::Addition) => {
                     let (operand_1, operand_2) = self.get_binary_operands(
                         EvaluationMode::Transpiling,
                         EvaluationMode::Transpiling,
                     )?;
+
+                    match (operand_1.type_variant(), operand_2.type_variant()) {
+                        (
+                            TypeVariant::IntegerUnsigned { .. },
+                            TypeVariant::IntegerUnsigned { .. },
+                        ) => {}
+                        (TypeVariant::IntegerSigned { .. }, TypeVariant::IntegerSigned { .. }) => {}
+                        (TypeVariant::Field, TypeVariant::Field) => {}
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{integer}",
+                                "{integer}",
+                            ))
+                        }
+                    }
 
                     let (identifier, namespace) = self.next_id_and_namespace();
                     let type_variant = operand_1.type_variant();
@@ -463,11 +659,28 @@ impl Transpiler {
                             TemporaryElement::new(identifier, type_variant),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Subtraction) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::Subtraction) => {
                     let (operand_1, operand_2) = self.get_binary_operands(
                         EvaluationMode::Transpiling,
                         EvaluationMode::Transpiling,
                     )?;
+
+                    match (operand_1.type_variant(), operand_2.type_variant()) {
+                        (
+                            TypeVariant::IntegerUnsigned { .. },
+                            TypeVariant::IntegerUnsigned { .. },
+                        ) => {}
+                        (TypeVariant::IntegerSigned { .. }, TypeVariant::IntegerSigned { .. }) => {}
+                        (TypeVariant::Field, TypeVariant::Field) => {}
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{integer}",
+                                "{integer}",
+                            ))
+                        }
+                    }
 
                     let (identifier, namespace) = self.next_id_and_namespace();
                     let type_variant = operand_1.type_variant();
@@ -483,11 +696,28 @@ impl Transpiler {
                             TemporaryElement::new(identifier, type_variant),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Multiplication) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::Multiplication) => {
                     let (operand_1, operand_2) = self.get_binary_operands(
                         EvaluationMode::Transpiling,
                         EvaluationMode::Transpiling,
                     )?;
+
+                    match (operand_1.type_variant(), operand_2.type_variant()) {
+                        (
+                            TypeVariant::IntegerUnsigned { .. },
+                            TypeVariant::IntegerUnsigned { .. },
+                        ) => {}
+                        (TypeVariant::IntegerSigned { .. }, TypeVariant::IntegerSigned { .. }) => {}
+                        (TypeVariant::Field, TypeVariant::Field) => {}
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{integer}",
+                                "{integer}",
+                            ))
+                        }
+                    }
 
                     let (identifier, namespace) = self.next_id_and_namespace();
                     let type_variant = operand_1.type_variant();
@@ -503,11 +733,28 @@ impl Transpiler {
                             TemporaryElement::new(identifier, type_variant),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Division) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::Division) => {
                     let (operand_1, operand_2) = self.get_binary_operands(
                         EvaluationMode::Transpiling,
                         EvaluationMode::Transpiling,
                     )?;
+
+                    match (operand_1.type_variant(), operand_2.type_variant()) {
+                        (
+                            TypeVariant::IntegerUnsigned { .. },
+                            TypeVariant::IntegerUnsigned { .. },
+                        ) => {}
+                        (TypeVariant::IntegerSigned { .. }, TypeVariant::IntegerSigned { .. }) => {}
+                        (TypeVariant::Field, TypeVariant::Field) => {}
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{integer}",
+                                "{integer}",
+                            ))
+                        }
+                    }
 
                     let (identifier, namespace) = self.next_id_and_namespace();
                     let type_variant = operand_1.type_variant();
@@ -523,11 +770,28 @@ impl Transpiler {
                             TemporaryElement::new(identifier, type_variant),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Remainder) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::Remainder) => {
                     let (operand_1, operand_2) = self.get_binary_operands(
                         EvaluationMode::Transpiling,
                         EvaluationMode::Transpiling,
                     )?;
+
+                    match (operand_1.type_variant(), operand_2.type_variant()) {
+                        (
+                            TypeVariant::IntegerUnsigned { .. },
+                            TypeVariant::IntegerUnsigned { .. },
+                        ) => {}
+                        (TypeVariant::IntegerSigned { .. }, TypeVariant::IntegerSigned { .. }) => {}
+                        (TypeVariant::Field, TypeVariant::Field) => {}
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{integer}",
+                                "{integer}",
+                            ))
+                        }
+                    }
 
                     let (identifier, namespace) = self.next_id_and_namespace();
                     let type_variant = operand_1.type_variant();
@@ -543,11 +807,28 @@ impl Transpiler {
                             TemporaryElement::new(identifier, type_variant),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Casting) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::Casting) => {
                     let (operand, r#type) = self.get_binary_operands(
                         EvaluationMode::Transpiling,
                         EvaluationMode::Transpiling,
                     )?;
+
+                    match operand.type_variant() {
+                        TypeVariant::IntegerUnsigned { .. } => {}
+                        TypeVariant::IntegerSigned { .. } => {}
+                        TypeVariant::Field => {}
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{integer}",
+                                "{type}",
+                            ))
+                        }
+                    }
+
+                    semantic::validate_casting(&operand.type_variant(), &r#type.type_variant())
+                        .map_err(|error| Error::ExplicitCasting(location, error))?;
 
                     let (identifier, namespace) = self.next_id_and_namespace();
                     let type_variant = r#type.type_variant();
@@ -563,8 +844,15 @@ impl Transpiler {
                             TemporaryElement::new(identifier, type_variant),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Negation) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::Negation) => {
                     let operand = self.get_unary_operand(EvaluationMode::Transpiling)?;
+
+                    match operand.type_variant() {
+                        TypeVariant::IntegerUnsigned { .. } => {}
+                        TypeVariant::IntegerSigned { .. } => {}
+                        TypeVariant::Field => {}
+                        _ => return Err(Error::UnaryOperator(location, operator, "{integer}")),
+                    }
 
                     let (identifier, namespace) = self.next_id_and_namespace();
                     let type_variant = operand.type_variant();
@@ -579,11 +867,15 @@ impl Transpiler {
                             TemporaryElement::new(identifier, type_variant),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Not) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::Not) => {
                     let operand = self.get_unary_operand(EvaluationMode::Transpiling)?;
 
+                    match operand.type_variant() {
+                        TypeVariant::Boolean => {}
+                        _ => return Err(Error::UnaryOperator(location, operator, "{boolean}")),
+                    }
+
                     let (identifier, namespace) = self.next_id_and_namespace();
-                    let type_variant = operand.type_variant();
                     self.writer.write_line(OperatorNotOutput::output(
                         identifier.clone(),
                         namespace,
@@ -592,44 +884,52 @@ impl Transpiler {
 
                     self.rpn_stack
                         .push(StackElement::Evaluated(Element::Temporary(
-                            TemporaryElement::new(identifier, type_variant),
+                            TemporaryElement::new(identifier, TypeVariant::Boolean),
                         )));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Indexing) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::Indexing) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(EvaluationMode::Transpiling, EvaluationMode::Direct)?;
 
-                    let operand_1 = match operand_1 {
-                        Element::Permanent(mut element) => match operand_2 {
-                            Element::ConstantNumeric(index) => {
-                                element.push_descriptor(Descriptor::Array(index));
-                                Element::Permanent(element)
-                            }
-                            _ => panic!("Always checked by some branches above"),
-                        },
-                        _ => panic!("Always checked by some branches above"),
+                    let element = match (operand_1, operand_2) {
+                        (Element::Permanent(mut element), Element::ConstantNumeric(index)) => {
+                            element.push_descriptor(Descriptor::Array(index));
+                            Element::Permanent(element)
+                        }
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{identifier}",
+                                "{index}",
+                            ))
+                        }
                     };
-                    self.rpn_stack.push(StackElement::Evaluated(operand_1));
+                    self.rpn_stack.push(StackElement::Evaluated(element));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Field) => {
+                ExpressionObject::Operator(operator @ ExpressionOperator::Field) => {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(EvaluationMode::Transpiling, EvaluationMode::Direct)?;
 
-                    let operand_1 = match operand_1 {
-                        Element::Permanent(mut element) => match operand_2 {
-                            Element::ConstantNumeric(field) => {
-                                element.push_descriptor(Descriptor::Tuple(field));
-                                Element::Permanent(element)
-                            }
-                            Element::ConstantString(field) => {
-                                element.push_descriptor(Descriptor::Structure(field));
-                                Element::Permanent(element)
-                            }
-                            _ => panic!("Always checked by some branches above"),
-                        },
-                        _ => panic!("Always checked by some branches above"),
+                    let element = match (operand_1, operand_2) {
+                        (Element::Permanent(mut element), Element::ConstantNumeric(field)) => {
+                            element.push_descriptor(Descriptor::Tuple(field));
+                            Element::Permanent(element)
+                        }
+                        (Element::Permanent(mut element), Element::ConstantString(field)) => {
+                            element.push_descriptor(Descriptor::Structure(field));
+                            Element::Permanent(element)
+                        }
+                        _ => {
+                            return Err(Error::BinaryOperator(
+                                location,
+                                operator,
+                                "{identifier}",
+                                "{field}",
+                            ))
+                        }
                     };
-                    self.rpn_stack.push(StackElement::Evaluated(operand_1));
+                    self.rpn_stack.push(StackElement::Evaluated(element));
                 }
             }
         }
@@ -644,10 +944,11 @@ impl Transpiler {
     ) -> Result<Element, Error> {
         Ok(match mode {
             EvaluationMode::Transpiling => {
+                let location = identifier.location;
                 let variable = self
                     .scope
                     .get_variable(&identifier.name, vec![])
-                    .map_err(Error::Scope)?;
+                    .map_err(|error| Error::Scope(location, error))?;
                 Element::Permanent(PermanentElement::new(
                     identifier.name,
                     variable.type_variant,
@@ -745,7 +1046,7 @@ impl Transpiler {
 
         let type_variant = main_result.type_variant();
         if type_variant != else_result.type_variant() {
-            panic!("Conditional type variants do not match");
+            panic!("Conditional type variants do not match"); // TODO
         }
 
         let condition = self.transpile_expression(*conditional.condition)?;

@@ -3,6 +3,7 @@
 //!
 
 mod debug;
+mod r#enum;
 mod r#let;
 mod r#loop;
 mod require;
@@ -11,6 +12,8 @@ mod r#type;
 
 pub use self::debug::Builder as DebugBuilder;
 pub use self::debug::Debug;
+pub use self::r#enum::Builder as EnumBuilder;
+pub use self::r#enum::Enum;
 pub use self::r#let::Builder as LetBuilder;
 pub use self::r#let::Let;
 pub use self::r#loop::Builder as LoopBuilder;
@@ -34,6 +37,7 @@ pub enum Statement {
     Loop(Loop),
     Type(Type),
     Struct(Struct),
+    Enum(Enum),
     Debug(Debug),
     Expression(Expression),
 }
@@ -47,6 +51,7 @@ impl fmt::Display for Statement {
             Self::Loop(statement) => write!(f, "{}", statement),
             Self::Type(statement) => write!(f, "{}", statement),
             Self::Struct(statement) => write!(f, "{}", statement),
+            Self::Enum(statement) => write!(f, "{}", statement),
             Self::Debug(statement) => write!(f, "{}", statement),
             Self::Expression(statement) => write!(f, "{}", statement),
         }
