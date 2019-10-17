@@ -3,6 +3,7 @@ members = [
     "parser",
     "interpreter",
     "transpiler",
+    "semantic",
     "r1cs",
     "circuit",
 ]

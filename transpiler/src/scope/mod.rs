@@ -139,17 +139,6 @@ impl Scope {
         Ok(())
     }
 
-    pub fn resolve_type(&self, name: &str) -> Result<TypeVariant, Error> {
-        match self.types.get(name) {
-            Some(TypeVariant::Alias { identifier }) => self.resolve_type(identifier),
-            Some(type_variant) => Ok(type_variant.to_owned()),
-            None => match self.parent {
-                Some(ref parent) => parent.borrow().resolve_type(name),
-                None => Err(Error::UndeclaredType(name.to_owned())),
-            },
-        }
-    }
-
     pub fn declare_type(
         &mut self,
         identifier: String,

@@ -8,9 +8,6 @@ pub use self::error::Error;
 
 use std::fmt;
 
-use num_bigint::BigInt;
-use num_traits::Num;
-
 use parser::IntegerLiteral;
 use parser::TypeVariant;
 use r1cs::AllocatedNum;
@@ -44,52 +41,16 @@ impl Integer {
         })
     }
 
-    pub fn new_from_bigint<S: ConstraintSystem<Bn256>>(
-        mut system: S,
-        value: BigInt,
-        is_signed: bool,
-        bitlength: usize,
-    ) -> Result<Self, Error> {
-        let number = r1cs::allocate_number(
-            system.namespace(|| "integer_new_from_bigint"),
-            value.to_string().as_str(),
-        )
-        .map_err(|error| Error::InnerAllocation(error.to_string()))?;
-
-        Ok(Self {
-            number,
-            is_signed,
-            bitlength,
-        })
-    }
-
     pub fn new_from_literal<S: ConstraintSystem<Bn256>>(
         mut system: S,
         literal: IntegerLiteral,
     ) -> Result<Self, Error> {
-        let (string, base) = match literal {
-            IntegerLiteral::Decimal { value } => (value, crate::BASE_DECIMAL as u32),
-            IntegerLiteral::Hexadecimal { value } => (value, crate::BASE_HEXADECIMAL as u32),
-        };
-
-        let number = BigInt::from_str_radix(&string, base).expect("Always valid");
-        let mut bitlength = r1cs::BITLENGTH_BYTE;
-        let mut exponent = BigInt::from(crate::MAX_VALUE_BYTE);
-        while number >= exponent {
-            if bitlength == r1cs::BITLENGTH_MAX_INT {
-                exponent *= 64;
-                bitlength += r1cs::BITLENGTH_FIELD - r1cs::BITLENGTH_MAX_INT;
-            } else if bitlength == r1cs::BITLENGTH_FIELD {
-                return Err(Error::LiteralTooLarge(bitlength));
-            } else {
-                exponent *= crate::MAX_VALUE_BYTE;
-                bitlength += r1cs::BITLENGTH_BYTE;
-            }
-        }
+        let (number, bitlength) =
+            semantic::infer_integer_literal(&literal).map_err(Error::Inference)?;
 
         let number = r1cs::allocate_number(
             system.namespace(|| "integer_new_from_literal"),
-            number.to_string().as_str(),
+            number.as_str(),
         )
         .map_err(|error| Error::InnerAllocation(error.to_string()))?;
 
@@ -102,12 +63,9 @@ impl Integer {
 
     pub fn type_variant(&self) -> TypeVariant {
         match (self.is_signed, self.bitlength) {
-            (false, r1cs::BITLENGTH_FIELD) => TypeVariant::new_field(),
-            (true, bitlength) if bitlength < r1cs::BITLENGTH_FIELD => {
-                TypeVariant::new_integer_signed(bitlength)
-            }
-            (false, bitlength) if bitlength < r1cs::BITLENGTH_FIELD => {
-                TypeVariant::new_integer_unsigned(bitlength)
+            (false, semantic::BITLENGTH_FIELD) => TypeVariant::new_field(),
+            (is_signed, bitlength) if bitlength < semantic::BITLENGTH_FIELD => {
+                TypeVariant::new_integer(is_signed, bitlength)
             }
             (..) => panic!("Always checked by the branches above"),
         }
@@ -385,38 +343,15 @@ impl Integer {
     pub fn cast<S: ConstraintSystem<Bn256>>(
         mut self,
         mut system: S,
-        type_variant: TypeVariant,
+        to: TypeVariant,
     ) -> Result<Self, Error> {
-        let type_variant = match (self.is_signed, self.bitlength, type_variant) {
-            (false, b1, TypeVariant::IntegerUnsigned { bitlength: b2 })
-                if b1 >= r1cs::BITLENGTH_FIELD_PADDED - r1cs::BITLENGTH_BYTE || b1 >= b2 =>
-            {
-                return Err(Error::CastingToLesserOrEqualBitlength(b1, b2));
-            }
-            (false, b1, TypeVariant::IntegerSigned { bitlength: b2 })
-                if b1 >= r1cs::BITLENGTH_FIELD_PADDED - r1cs::BITLENGTH_BYTE * 2
-                    || b1 + r1cs::BITLENGTH_BYTE >= b2 =>
-            {
-                return Err(Error::CastingToLesserOrEqualBitlength(b1, b2));
-            }
-            (true, b1, TypeVariant::IntegerSigned { bitlength: b2 })
-                if b1 >= r1cs::BITLENGTH_FIELD_PADDED - r1cs::BITLENGTH_BYTE || b1 >= b2 =>
-            {
-                return Err(Error::CastingToLesserOrEqualBitlength(b1, b2));
-            }
-            (true, b1, TypeVariant::IntegerUnsigned { bitlength: b2 })
-                if b1 >= r1cs::BITLENGTH_FIELD_PADDED - r1cs::BITLENGTH_BYTE || b1 >= b2 =>
-            {
-                return Err(Error::CastingToLesserOrEqualBitlength(b1, b2));
-            }
-            (_, _, type_variant) => type_variant,
-        };
-
-        let (is_signed, bitlength) = match type_variant {
+        let from = self.type_variant();
+        semantic::validate_casting(&from, &to).map_err(Error::Casting)?;
+        let (is_signed, bitlength) = match to {
             TypeVariant::IntegerUnsigned { bitlength } => (false, bitlength),
             TypeVariant::IntegerSigned { bitlength } => (true, bitlength),
-            TypeVariant::Field => (false, r1cs::BITLENGTH_FIELD),
-            type_variant => return Err(Error::CastingToInvalidType(self, type_variant)),
+            TypeVariant::Field => (false, semantic::BITLENGTH_FIELD),
+            _ => panic!("Always checked by some branches above"),
         };
 
         self.number = r1cs::cast(

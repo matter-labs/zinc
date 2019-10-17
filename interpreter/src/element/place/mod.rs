@@ -28,10 +28,11 @@ impl Place {
 
     pub fn index(&mut self, value: Value) -> Result<(), Error> {
         let index = match value {
-            Value::Integer(integer) => {
-                usize::from_str_radix(integer.to_string().as_str(), crate::BASE_HEXADECIMAL as u32)
-                    .expect("Always valid")
-            }
+            Value::Integer(integer) => usize::from_str_radix(
+                integer.to_string().as_str(),
+                semantic::BASE_HEXADECIMAL as u32,
+            )
+            .expect("Always valid"),
             value => return Err(Error::IndexingExpectedIntegerConstant(value)),
         };
 
@@ -41,10 +42,11 @@ impl Place {
 
     pub fn access_tuple(&mut self, value: Value) -> Result<(), Error> {
         let field = match value {
-            Value::Integer(integer) => {
-                usize::from_str_radix(integer.to_string().as_str(), crate::BASE_HEXADECIMAL as u32)
-                    .expect("Always valid")
-            }
+            Value::Integer(integer) => usize::from_str_radix(
+                integer.to_string().as_str(),
+                semantic::BASE_HEXADECIMAL as u32,
+            )
+            .expect("Always valid"),
             value => return Err(Error::TupleAccessExpectedIntegerConstant(value)),
         };
 

@@ -47,6 +47,14 @@ impl Variant {
         Self::Boolean
     }
 
+    pub fn new_integer(is_signed: bool, bitlength: usize) -> Self {
+        if is_signed {
+            Self::new_integer_signed(bitlength)
+        } else {
+            Self::new_integer_unsigned(bitlength)
+        }
+    }
+
     pub fn new_integer_unsigned(bitlength: usize) -> Self {
         Self::IntegerUnsigned { bitlength }
     }

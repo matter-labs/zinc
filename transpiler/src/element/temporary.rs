@@ -6,6 +6,7 @@ use std::fmt;
 
 use parser::TypeVariant;
 
+#[derive(Debug)]
 pub struct Element {
     pub identifier: String,
     pub type_variant: TypeVariant,

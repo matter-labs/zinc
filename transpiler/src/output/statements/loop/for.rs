@@ -16,7 +16,7 @@ impl Output {
             format!("({0}{1}{2}).rev()", range_end, operator, range_start)
         };
 
-        let start = format!("for {0}_index in {1} {{", index, range,);
+        let start = format!("for {0}_index in {1} {{", index, range);
         let end = "}".to_owned();
 
         Self { start, end }

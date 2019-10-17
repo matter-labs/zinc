@@ -21,4 +21,5 @@ num-traits = "0.2"
 num-bigint = "0.2"
 
 parser = { path = "../parser" }
+semantic = { path = "../semantic" }
 r1cs = { path = "../r1cs" }

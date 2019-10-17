@@ -550,7 +550,7 @@ impl Transpiler {
                     )?;
 
                     let (identifier, namespace) = self.next_id_and_namespace();
-                    let type_variant = operand.type_variant();
+                    let type_variant = r#type.type_variant();
                     self.writer.write_line(OperatorCastingOutput::output(
                         identifier.clone(),
                         namespace,
@@ -679,13 +679,17 @@ impl Transpiler {
             InnerLiteral::Integer(value) => match mode {
                 EvaluationMode::Transpiling => {
                     let (identifier, namespace) = self.next_id_and_namespace();
+                    let (value, bitlength) = semantic::infer_integer_literal(&value).expect("TODO");
                     self.writer
                         .write_line(AllocationNumberConstantOutput::output(
                             identifier.clone(),
                             namespace,
                             value.to_string(),
                         ));
-                    Element::Temporary(TemporaryElement::new(identifier, TypeVariant::Field))
+                    Element::Temporary(TemporaryElement::new(
+                        identifier,
+                        TypeVariant::new_integer_unsigned(bitlength),
+                    ))
                 }
                 EvaluationMode::Direct => Element::ConstantNumeric(value.into()),
             },
@@ -768,11 +772,14 @@ impl Transpiler {
         log::trace!("Array expression       : {}", array);
 
         let mut elements = Vec::with_capacity(array.elements.len());
+        let mut type_variant = TypeVariant::Unit;
         for expression in array.elements.into_iter() {
-            elements.push(self.transpile_expression(expression)?);
+            let element = self.transpile_expression(expression)?;
+            type_variant = element.type_variant();
+            elements.push(element);
         }
         let identifier = self.next_id();
-        let type_variant = TypeVariant::new_array(TypeVariant::Unit, elements.len());
+        let type_variant = TypeVariant::new_array(type_variant, elements.len());
         self.writer
             .write_line(ArrayOutput::output(identifier.clone(), elements));
 
@@ -854,9 +861,7 @@ impl Transpiler {
             ExpressionOperand::Structure(expression) => {
                 self.transpile_structure_expression(expression)?
             }
-            ExpressionOperand::Type(r#type) => {
-                Element::Type(TypeElement::new(r#type.variant.to_string()))
-            }
+            ExpressionOperand::Type(r#type) => Element::Type(TypeElement::new(r#type.variant)),
         })
     }
 

@@ -16,6 +16,7 @@ use std::fmt;
 
 use parser::TypeVariant;
 
+#[derive(Debug)]
 pub enum Element {
     Temporary(TemporaryElement),
     Permanent(PermanentElement),
@@ -29,9 +30,10 @@ pub enum Element {
 impl Element {
     pub fn type_variant(&self) -> TypeVariant {
         match self {
-            Self::Temporary(element) => element.type_variant().clone(),
-            Self::Permanent(element) => element.type_variant().clone(),
+            Self::Temporary(element) => element.type_variant(),
+            Self::Permanent(element) => element.type_variant(),
             Self::Unit => TypeVariant::Unit,
+            Self::Type(element) => element.type_variant.clone(),
             _ => panic!("Always checked by some branches above"),
         }
     }

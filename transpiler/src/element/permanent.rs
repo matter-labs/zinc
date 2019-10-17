@@ -34,7 +34,7 @@ impl Element {
         let mut type_variant = &self.type_variant;
         for descriptor in self.descriptors.iter() {
             type_variant = match type_variant {
-                TypeVariant::Array { type_variant, size } => &*type_variant,
+                TypeVariant::Array { type_variant, .. } => &*type_variant,
                 TypeVariant::Tuple { type_variants } => {
                     let field = match descriptor {
                         Descriptor::Tuple(field) => *field,

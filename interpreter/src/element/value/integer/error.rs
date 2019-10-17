@@ -5,8 +5,8 @@
 use failure::Fail;
 
 use parser::TypeVariant;
-
-use crate::element::Integer;
+use semantic::CastingError;
+use semantic::InferenceError;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
@@ -18,8 +18,8 @@ pub enum Error {
     LiteralTooLarge(usize),
     #[fail(display = "operand types mismatch: '{}' and '{}'", _0, _1)]
     OperandTypesMismatch(TypeVariant, TypeVariant),
-    #[fail(display = "casting to invalid type: from '{}' to '{}'", _0, _1)]
-    CastingToInvalidType(Integer, TypeVariant),
-    #[fail(display = "casting to lesser bitlength: from {} to {}", _0, _1)]
-    CastingToLesserOrEqualBitlength(usize, usize),
+    #[fail(display = "inference: {}", _0)]
+    Inference(InferenceError),
+    #[fail(display = "casting: {}", _0)]
+    Casting(CastingError),
 }
