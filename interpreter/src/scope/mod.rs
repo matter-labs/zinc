@@ -3,12 +3,15 @@
 //!
 
 mod error;
+mod item;
 mod variable;
 
 pub use self::error::Error;
+pub use self::item::Item;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::rc::Rc;
 use std::str;
 
@@ -23,16 +26,22 @@ use self::variable::Variable;
 #[derive(Debug, Default)]
 pub struct Scope {
     parent: Option<Rc<RefCell<Self>>>,
+    items: HashMap<String, Item>,
+    constants: HashMap<String, Value>,
     variables: HashMap<String, Variable>,
     types: HashMap<String, TypeVariant>,
+    modules: HashSet<String>,
 }
 
 impl Scope {
     pub fn new(parent: Option<Rc<RefCell<Self>>>) -> Self {
         Self {
             parent,
+            items: Default::default(),
+            constants: Default::default(),
             variables: Default::default(),
             types: Default::default(),
+            modules: Default::default(),
         }
     }
 
@@ -243,11 +252,21 @@ impl Scope {
         value: Value,
         is_mutable: bool,
     ) -> Result<(), Error> {
-        if self.is_variable_declared(&name) {
-            return Err(Error::RedeclaredVariable(name));
+        if self.is_item_declared(&name) {
+            return Err(Error::RedeclaredItem(name));
         }
         self.variables
-            .insert(name, Variable::new(value, is_mutable));
+            .insert(name.clone(), Variable::new(value, is_mutable));
+        self.items.insert(name, Item::Variable);
+        Ok(())
+    }
+
+    pub fn declare_type(&mut self, name: String, type_variant: TypeVariant) -> Result<(), Error> {
+        if self.is_item_declared(&name) {
+            return Err(Error::RedeclaredItem(name));
+        }
+        self.types.insert(name.clone(), type_variant);
+        self.items.insert(name, Item::Type);
         Ok(())
     }
 
@@ -262,31 +281,12 @@ impl Scope {
         }
     }
 
-    pub fn declare_type(&mut self, name: String, type_variant: TypeVariant) -> Result<(), Error> {
-        if self.is_type_declared(&name) {
-            return Err(Error::RedeclaredType(name));
-        }
-        self.types.insert(name, type_variant);
-        Ok(())
-    }
-
-    fn is_variable_declared(&self, name: &str) -> bool {
-        if self.variables.contains_key(name) {
+    fn is_item_declared(&self, name: &str) -> bool {
+        if self.items.contains_key(name) {
             true
         } else {
             match self.parent {
-                Some(ref parent) => parent.borrow().is_variable_declared(name),
-                None => false,
-            }
-        }
-    }
-
-    fn is_type_declared(&self, name: &str) -> bool {
-        if self.types.contains_key(name) {
-            true
-        } else {
-            match self.parent {
-                Some(ref parent) => parent.borrow().is_type_declared(name),
+                Some(ref parent) => parent.borrow().is_item_declared(name),
                 None => false,
             }
         }

@@ -7,13 +7,12 @@ use crate::syntax::Expression;
 use crate::syntax::ExpressionBuilder;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::Identifier;
-use crate::syntax::PathExpression;
 use crate::syntax::StructureExpression;
 
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
-    path: Option<PathExpression>,
+    path: Option<Expression>,
     has_bracket: bool,
     fields: Vec<(Identifier, Option<Expression>)>,
 }
@@ -23,7 +22,7 @@ impl Builder {
         self.location = Some(value);
     }
 
-    pub fn set_path(&mut self, value: PathExpression) {
+    pub fn set_path(&mut self, value: Expression) {
         self.path = Some(value);
     }
 
@@ -45,10 +44,7 @@ impl Builder {
                 let mut builder = ExpressionBuilder::default();
                 let location = self.location.take().expect("Missing location");
                 builder.set_location(location);
-                builder.push_operand(
-                    location,
-                    ExpressionOperand::Path(self.path.take().expect("Missing path")),
-                );
+                builder.extend_with_expression(self.path.take().expect("Missing path"));
                 builder.finish()
             }
             (_size, true) => {

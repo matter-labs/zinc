@@ -55,8 +55,6 @@ pub use self::tree::LetStatementBuilder;
 pub use self::tree::Literal;
 pub use self::tree::LoopStatement;
 pub use self::tree::LoopStatementBuilder;
-pub use self::tree::PathExpression;
-pub use self::tree::PathExpressionBuilder;
 pub use self::tree::RequireStatement;
 pub use self::tree::RequireStatementBuilder;
 pub use self::tree::Statement;

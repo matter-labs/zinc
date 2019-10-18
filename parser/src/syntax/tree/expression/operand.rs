@@ -9,7 +9,6 @@ use crate::syntax::BlockExpression;
 use crate::syntax::ConditionalExpression;
 use crate::syntax::Identifier;
 use crate::syntax::Literal;
-use crate::syntax::PathExpression;
 use crate::syntax::StructureExpression;
 use crate::syntax::TupleExpression;
 use crate::syntax::Type;
@@ -20,7 +19,6 @@ pub enum Operand {
     Literal(Literal),
     Identifier(Identifier),
     Type(Type),
-    Path(PathExpression),
     Block(BlockExpression),
     Conditional(ConditionalExpression),
     Array(ArrayExpression),
@@ -35,7 +33,6 @@ impl fmt::Display for Operand {
             Self::Literal(operand) => write!(f, "{}", operand),
             Self::Identifier(operand) => write!(f, "{}", operand),
             Self::Type(operand) => write!(f, "{}", operand),
-            Self::Path(operand) => write!(f, "{}", operand),
             Self::Block(operand) => write!(f, "{}", operand),
             Self::Conditional(operand) => write!(f, "{}", operand),
             Self::Array(operand) => write!(f, "{}", operand),

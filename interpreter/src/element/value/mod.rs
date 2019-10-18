@@ -37,6 +37,7 @@ pub enum Value {
     Array(Array),
     Tuple(Tuple),
     Structure(Structure),
+    Enumeration(usize),
 }
 
 impl Value {
@@ -85,11 +86,12 @@ impl Value {
     pub fn type_variant(&self) -> TypeVariant {
         match self {
             Self::Unit => TypeVariant::new_unit(),
-            Self::Boolean(..) => TypeVariant::new_boolean(),
-            Self::Integer(integer) => integer.type_variant(),
-            Self::Array(array) => array.type_variant(),
-            Self::Tuple(tuple) => tuple.type_variant(),
-            Self::Structure(structure) => structure.type_variant(),
+            Self::Boolean(value) => value.type_variant(),
+            Self::Integer(value) => value.type_variant(),
+            Self::Array(value) => value.type_variant(),
+            Self::Tuple(value) => value.type_variant(),
+            Self::Structure(value) => value.type_variant(),
+            Self::Enumeration(_value) => TypeVariant::new_integer_unsigned(8),
         }
     }
 
@@ -469,6 +471,7 @@ impl Value {
             Self::Array(value) => write!(f, "{}", value),
             Self::Tuple(value) => write!(f, "{}", value),
             Self::Structure(value) => write!(f, "{}", value),
+            Self::Enumeration(value) => write!(f, "{}", value),
         }
     }
 }

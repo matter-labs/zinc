@@ -10,15 +10,12 @@ use parser::TypeVariant;
 pub enum Error {
     #[fail(display = "undeclared variable '{}'", _0)]
     UndeclaredVariable(String),
-    #[fail(display = "redeclared variable '{}'", _0)]
-    RedeclaredVariable(String),
     #[fail(display = "mutating an immutable variable '{}'", _0)]
     MutatingImmutableVariable(String),
-
     #[fail(display = "undeclared type '{}'", _0)]
     UndeclaredType(String),
-    #[fail(display = "redeclared type '{}'", _0)]
-    RedeclaredType(String),
+    #[fail(display = "redeclared item '{}'", _0)]
+    RedeclaredItem(String),
 
     #[fail(
         display = "the value being assigned has type '{}', but expected '{}'",

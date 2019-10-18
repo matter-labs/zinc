@@ -11,19 +11,18 @@ use std::fmt;
 use crate::lexical::Location;
 use crate::syntax;
 use crate::syntax::Identifier;
-use crate::syntax::PathExpression;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
     pub location: Location,
-    pub path: PathExpression,
+    pub path: syntax::Expression,
     pub fields: Vec<(Identifier, syntax::Expression)>,
 }
 
 impl Expression {
     pub fn new(
         location: Location,
-        path: PathExpression,
+        path: syntax::Expression,
         fields: Vec<(Identifier, syntax::Expression)>,
     ) -> Self {
         Self {
@@ -38,13 +37,7 @@ impl fmt::Display for Expression {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "struct {} {{ {} }}",
-            self.path
-                .elements
-                .iter()
-                .map(|identifier| identifier.name.as_str())
-                .collect::<Vec<&str>>()
-                .join("::"),
+            "struct {{ {} }}",
             self.fields
                 .iter()
                 .map(|(identifier, expression)| format!("{}: {}", identifier, expression))

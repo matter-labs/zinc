@@ -45,6 +45,7 @@ pub enum Operator {
     // access
     Indexing,
     Field,
+    Path,
 }
 
 impl fmt::Display for Operator {
@@ -80,6 +81,7 @@ impl fmt::Display for Operator {
 
             Self::Indexing => write!(f, "[]"),
             Self::Field => write!(f, "."),
+            Self::Path => write!(f, "::"),
         }
     }
 }

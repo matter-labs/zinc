@@ -9,6 +9,7 @@ pub use self::error::Error;
 use std::fmt;
 
 use parser::BooleanLiteral;
+use parser::TypeVariant;
 use r1cs::Bn256;
 use r1cs::ConstraintSystem;
 
@@ -43,6 +44,10 @@ impl Boolean {
 
     pub fn is_true(&self) -> bool {
         self.0.get_value().expect("Always returns a value")
+    }
+
+    pub fn type_variant(&self) -> TypeVariant {
+        TypeVariant::new_boolean()
     }
 
     pub fn or<S: ConstraintSystem<Bn256>>(self, mut system: S, other: Self) -> Result<Self, Error> {

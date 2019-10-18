@@ -15,7 +15,6 @@ use parser::ExpressionOperand;
 use parser::ExpressionOperator;
 use parser::InnerLiteral;
 use parser::Literal;
-use parser::PathExpression;
 use parser::Statement;
 use parser::StructureExpression;
 use parser::TupleExpression;
@@ -59,14 +58,14 @@ impl Interpreter {
     pub fn interpret(&mut self, program: CircuitProgram) -> Result<(), Error> {
         for input in program.inputs.into_iter() {
             let location = input.location;
-            self.scope
+            self.scope()
                 .borrow_mut()
                 .declare_variable(input.identifier.name, Value::Unit, false)
                 .map_err(|error| Error::Scope(location, error))?; // TODO
         }
         for witness in program.witnesses.into_iter() {
             let location = witness.location;
-            self.scope
+            self.scope()
                 .borrow_mut()
                 .declare_variable(witness.identifier.name, Value::Unit, false)
                 .map_err(|error| Error::Scope(location, error))?; // TODO
@@ -107,7 +106,7 @@ impl Interpreter {
                     let type_variant = match r#type.variant {
                         TypeVariant::Alias { identifier } => {
                             let location = r#type.location;
-                            self.scope
+                            self.scope()
                                 .borrow()
                                 .resolve_type(&identifier)
                                 .map_err(|error| Error::Scope(location, error))?
@@ -141,7 +140,7 @@ impl Interpreter {
                     value
                 };
 
-                self.scope
+                self.scope()
                     .borrow_mut()
                     .declare_variable(r#let.identifier.name, value, r#let.is_mutable)
                     .map_err(|error| Error::Scope(location, error))?;
@@ -162,7 +161,7 @@ impl Interpreter {
                         break;
                     }
 
-                    let mut scope = Scope::new(Some(self.scope.clone()));
+                    let mut scope = Scope::new(Some(self.scope().clone()));
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     scope
@@ -212,7 +211,7 @@ impl Interpreter {
             }
             Statement::Type(r#type) => {
                 let location = r#type.location;
-                self.scope
+                self.scope()
                     .borrow_mut()
                     .declare_type(r#type.identifier.name, r#type.r#type.variant)
                     .map_err(|error| Error::Scope(location, error))?;
@@ -226,7 +225,7 @@ impl Interpreter {
                         .map(|(identifier, r#type)| (identifier.name, r#type.variant))
                         .collect(),
                 );
-                self.scope
+                self.scope()
                     .borrow_mut()
                     .declare_type(r#struct.identifier.name, type_variant)
                     .map_err(|error| Error::Scope(location, error))?;
@@ -240,7 +239,7 @@ impl Interpreter {
                         .map(|(identifier, value)| (identifier.name, value.into()))
                         .collect(),
                 );
-                self.scope
+                self.scope()
                     .borrow_mut()
                     .declare_type(r#enum.identifier.name, type_variant)
                     .map_err(|error| Error::Scope(location, error))?;
@@ -312,7 +311,6 @@ impl Interpreter {
                         ExpressionOperand::Structure(structure) => {
                             Element::Value(self.evaluate_structure_expression(structure)?)
                         }
-                        ExpressionOperand::Path(path) => self.evaluate_path_expression(path)?,
                     };
                     self.rpn_stack.push(element);
                 }
@@ -323,7 +321,7 @@ impl Interpreter {
                     let (place, value) = operand_1
                         .assign(operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.scope
+                    self.scope()
                         .borrow_mut()
                         .update_value(&place, value)
                         .map_err(|error| Error::Scope(element.location, error))?;
@@ -559,6 +557,12 @@ impl Interpreter {
                             .map_err(|error| Error::Element(element.location, error))?,
                     );
                 }
+                ExpressionObject::Operator(ExpressionOperator::Path) => {
+                    let (operand_1, operand_2) = self
+                        .get_binary_operands(false, false)
+                        .map_err(|error| Error::Scope(element.location, error))?;
+                    self.rpn_stack.push(operand_2);
+                }
             }
         }
 
@@ -577,7 +581,7 @@ impl Interpreter {
     fn evaluate_block_expression(&mut self, block: BlockExpression) -> Result<Value, Error> {
         log::trace!("Block expression       : {}", block);
 
-        let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
+        let mut executor = Interpreter::new(Scope::new(Some(self.scope().clone())));
         for statement in block.statements.into_iter() {
             executor.execute_statement(statement)?;
         }
@@ -607,15 +611,15 @@ impl Interpreter {
         };
 
         let main_result = {
-            let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
+            let mut executor = Interpreter::new(Scope::new(Some(self.scope().clone())));
             executor.evaluate_block_expression(conditional.main_block)?
         };
 
         let else_result = if let Some(else_if) = conditional.else_if {
-            let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
+            let mut executor = Interpreter::new(Scope::new(Some(self.scope().clone())));
             executor.evaluate_conditional_expression(*else_if)?
         } else if let Some(else_block) = conditional.else_block {
-            let mut executor = Interpreter::new(Scope::new(Some(self.scope.clone())));
+            let mut executor = Interpreter::new(Scope::new(Some(self.scope().clone())));
             executor.evaluate_block_expression(else_block)?
         } else {
             Value::Unit
@@ -684,14 +688,6 @@ impl Interpreter {
             .map_err(|error| Error::Element(location, error))
     }
 
-    fn evaluate_path_expression(&mut self, path: PathExpression) -> Result<Element, Error> {
-        log::trace!("Path expression            : {}", path);
-
-        let name = path.elements.get(0).cloned().expect("TODO").name;
-        let place = Place::new(name);
-        Ok(Element::Place(place))
-    }
-
     fn get_unary_operand(&mut self, resolve: bool) -> Result<Element, ScopeError> {
         self.get_operand(resolve)
     }
@@ -711,7 +707,7 @@ impl Interpreter {
         if resolve {
             match operand {
                 Element::Place(ref place) => {
-                    self.scope.borrow().get_value(place).map(Element::Value)
+                    self.scope().borrow().get_value(place).map(Element::Value)
                 }
                 Element::Value(value) => Ok(Element::Value(value)),
                 Element::Type(..) => panic!("Type expressions cannot be resolved"),
@@ -719,6 +715,10 @@ impl Interpreter {
         } else {
             Ok(operand)
         }
+    }
+
+    fn scope(&self) -> Rc<RefCell<Scope>> {
+        self.scope.clone()
     }
 
     fn next_temp_namespace(&mut self) -> String {

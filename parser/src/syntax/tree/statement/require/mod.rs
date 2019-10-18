@@ -27,7 +27,7 @@ impl Require {
     ) -> Self {
         let annotation = annotation
             .map(|literal| literal.to_string())
-            .unwrap_or_else(|| format!("L{}", location.line));
+            .unwrap_or_else(|| format!("L{}C{}", location.line, location.column));
 
         Self {
             location,
