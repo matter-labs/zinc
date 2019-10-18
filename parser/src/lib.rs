@@ -22,6 +22,7 @@ pub use self::syntax::ExpressionOperator;
 pub use self::syntax::Identifier;
 pub use self::syntax::Input;
 pub use self::syntax::Literal;
+pub use self::syntax::PathExpression;
 pub use self::syntax::Statement;
 pub use self::syntax::StructStatement;
 pub use self::syntax::StructureExpression;

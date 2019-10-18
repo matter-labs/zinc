@@ -74,8 +74,8 @@ impl Value {
         Ok(Self::Tuple(tuple))
     }
 
-    pub fn new_structure(identifier: String, fields: Vec<(String, Self)>) -> Result<Self, Error> {
-        let mut structure = Structure::new(identifier);
+    pub fn new_structure(fields: Vec<(String, Self)>) -> Result<Self, Error> {
+        let mut structure = Structure::new();
         for (key, value) in fields.into_iter() {
             structure.push(key, value).map_err(Error::Structure)?;
         }

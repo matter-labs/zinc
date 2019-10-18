@@ -80,6 +80,7 @@ mod tests {
     use crate::syntax::ExpressionOperator;
     use crate::syntax::Identifier;
     use crate::syntax::Literal;
+    use crate::syntax::PathExpression;
 
     #[test]
     fn ok() {
@@ -90,9 +91,9 @@ mod tests {
             vec![
                 ExpressionElement::new(
                     Location::new(1, 1),
-                    ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
+                    ExpressionObject::Operand(ExpressionOperand::Path(PathExpression::new(
                         Location::new(1, 1),
-                        "array".to_owned(),
+                        vec![Identifier::new(Location::new(1, 1), "array".to_owned())],
                     ))),
                 ),
                 ExpressionElement::new(

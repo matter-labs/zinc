@@ -36,7 +36,7 @@ operand_mul_div_rem = operand_as ( 'as' type )*
 operand_as =
   | ( '-' | '!' ) operand_as
   | operand_access ( '[' literal_integer ']' | '.' literal_integer | '.' identifier )*
-operand_access =
+operand_access
   | literal
   | structure_expression
   | tuple_expression
@@ -58,7 +58,9 @@ tuple_expression =
   | '(' expression ',' ( expression? ( ',' expression )* )? ')'
 
 structure_expression =
-  | identifier
-  | identifier ( '{' ( identifier ':' type ',' )* '}' )?
+  | path_expression
+  | path_expression ( '{' ( identifier ':' type ',' )* '}' )?
+
+path_expression = identifier ( '::' identifier )*
 
 ```

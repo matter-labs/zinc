@@ -19,6 +19,7 @@ pub use self::expression::ConditionalExpressionParser;
 pub use self::expression::MulDivRemOperandParser;
 pub use self::expression::OrOperandParser;
 pub use self::expression::Parser as ExpressionParser;
+pub use self::expression::PathExpressionParser;
 pub use self::expression::StructureExpressionParser;
 pub use self::expression::TupleExpressionParser;
 pub use self::expression::XorOperandParser;

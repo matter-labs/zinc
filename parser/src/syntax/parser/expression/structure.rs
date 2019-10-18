@@ -17,6 +17,7 @@ use crate::syntax::Error as SyntaxError;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionParser;
 use crate::syntax::Identifier;
+use crate::syntax::PathExpressionParser;
 use crate::syntax::StructureExpressionBuilder;
 use crate::Error;
 
@@ -47,15 +48,15 @@ impl Parser {
         loop {
             match self.state {
                 State::Identifier => {
-                    let next = stream.borrow_mut().next();
-                    match next {
+                    let peek = stream.borrow_mut().peek();
+                    match peek {
                         Some(Ok(Token {
-                            lexeme: Lexeme::Identifier(identifier),
+                            lexeme: Lexeme::Identifier { .. },
                             location,
                         })) => {
                             self.builder.set_location(location);
-                            let identifier = Identifier::new(location, identifier.name);
-                            self.builder.set_identifier(identifier);
+                            let path = PathExpressionParser::default().parse(stream.clone())?;
+                            self.builder.set_path(path);
                             self.state = State::BracketCurlyLeftOrEnd;
                         }
                         Some(Ok(Token { lexeme, location })) => {
@@ -200,6 +201,7 @@ mod tests {
     use crate::syntax::ExpressionOperand;
     use crate::syntax::Identifier;
     use crate::syntax::Literal;
+    use crate::syntax::PathExpression;
     use crate::syntax::StructureExpression;
     use crate::Error;
 
@@ -217,7 +219,10 @@ mod tests {
                 Location::new(2, 5),
                 ExpressionObject::Operand(ExpressionOperand::Structure(StructureExpression::new(
                     Location::new(2, 5),
-                    Identifier::new(Location::new(2, 5), "Test".to_owned()),
+                    PathExpression::new(
+                        Location::new(2, 5),
+                        vec![Identifier::new(Location::new(2, 5), "Test".to_owned())],
+                    ),
                     vec![(
                         Identifier::new(Location::new(3, 9), "a".to_owned()),
                         Expression::new(
@@ -261,7 +266,10 @@ mod tests {
                 Location::new(2, 5),
                 ExpressionObject::Operand(ExpressionOperand::Structure(StructureExpression::new(
                     Location::new(2, 5),
-                    Identifier::new(Location::new(2, 5), "Test".to_owned()),
+                    PathExpression::new(
+                        Location::new(2, 5),
+                        vec![Identifier::new(Location::new(2, 5), "Test".to_owned())],
+                    ),
                     vec![
                         (
                             Identifier::new(Location::new(3, 9), "a".to_owned()),
@@ -337,7 +345,10 @@ mod tests {
                 Location::new(2, 5),
                 ExpressionObject::Operand(ExpressionOperand::Structure(StructureExpression::new(
                     Location::new(2, 5),
-                    Identifier::new(Location::new(2, 5), "Test".to_owned()),
+                    PathExpression::new(
+                        Location::new(2, 5),
+                        vec![Identifier::new(Location::new(2, 5), "Test".to_owned())],
+                    ),
                     vec![],
                 ))),
             )],
@@ -359,9 +370,9 @@ mod tests {
             Location::new(2, 5),
             vec![ExpressionElement::new(
                 Location::new(2, 5),
-                ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
+                ExpressionObject::Operand(ExpressionOperand::Path(PathExpression::new(
                     Location::new(2, 5),
-                    "Test".to_owned(),
+                    vec![Identifier::new(Location::new(2, 5), "Test".to_owned())],
                 ))),
             )],
         ));

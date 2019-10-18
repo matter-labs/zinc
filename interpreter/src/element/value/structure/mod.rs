@@ -15,22 +15,17 @@ use crate::element::Value;
 
 #[derive(Default, Clone, PartialEq)]
 pub struct Structure {
-    identifier: String,
     fields: BTreeMap<String, TypeVariant>,
     elements: BTreeMap<String, Value>,
 }
 
 impl Structure {
-    pub fn new(identifier: String) -> Self {
-        Self {
-            identifier,
-            ..Default::default()
-        }
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn type_variant(&self) -> TypeVariant {
         TypeVariant::new_structure(
-            self.identifier.clone(),
             self.fields
                 .clone()
                 .into_iter()
@@ -57,7 +52,7 @@ impl Structure {
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        self.identifier == other.identifier
+        self.fields == other.fields
     }
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

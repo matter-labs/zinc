@@ -13,6 +13,7 @@ use parser::ExpressionOperator;
 use parser::Identifier;
 use parser::InnerLiteral;
 use parser::Literal;
+use parser::PathExpression;
 use parser::Statement;
 use parser::StructureExpression;
 use parser::TupleExpression;
@@ -226,7 +227,6 @@ impl Transpiler {
                     .declare_type(
                         r#struct.identifier.name.clone(),
                         TypeVariant::new_structure(
-                            r#struct.identifier.name.clone(),
                             r#struct
                                 .fields
                                 .clone()
@@ -249,7 +249,6 @@ impl Transpiler {
                     .declare_type(
                         r#enum.identifier.name.clone(),
                         TypeVariant::new_enumeration(
-                            r#enum.identifier.name.clone(),
                             r#enum
                                 .variants
                                 .clone()
@@ -1000,6 +999,14 @@ impl Transpiler {
         Ok(element)
     }
 
+    fn transpile_path_expression(
+        &mut self,
+        path: PathExpression,
+        mode: EvaluationMode,
+    ) -> Result<Element, Error> {
+        self.transpile_identifier_expression(path.elements.get(0).cloned().expect("TODO"), mode)
+    }
+
     fn transpile_block_expression(&mut self, block: BlockExpression) -> Result<Element, Error> {
         log::trace!("Block expression       : {}", block);
 
@@ -1122,16 +1129,22 @@ impl Transpiler {
             fields.push((identifier, self.transpile_expression(expression)?));
         }
         let identifier = self.next_id();
+        let type_name = structure
+            .path
+            .elements
+            .last()
+            .expect("TODO")
+            .to_owned()
+            .name;
         self.writer.write_line(StructureOutput::output(
             identifier.clone(),
-            structure.identifier.name.clone(),
+            type_name.clone(),
             fields.as_slice(),
         ));
 
         Ok(Element::Temporary(TemporaryElement::new(
             identifier,
             TypeVariant::new_structure(
-                structure.identifier.name,
                 fields
                     .into_iter()
                     .map(|(identifier, element)| (identifier.name, element.type_variant()))
@@ -1147,12 +1160,14 @@ impl Transpiler {
     ) -> Result<Element, Error> {
         Ok(match operand {
             ExpressionOperand::Unit => Element::Unit,
-            ExpressionOperand::Identifier(identifier) => {
-                self.transpile_identifier_expression(identifier, mode)?
-            }
             ExpressionOperand::Literal(literal) => {
                 self.transpile_literal_expression(literal, mode)?
             }
+            ExpressionOperand::Identifier(identifier) => {
+                self.transpile_identifier_expression(identifier, mode)?
+            }
+            ExpressionOperand::Type(r#type) => Element::Type(TypeElement::new(r#type.variant)),
+            ExpressionOperand::Path(path) => self.transpile_path_expression(path, mode)?,
             ExpressionOperand::Block(expression) => self.transpile_block_expression(expression)?,
             ExpressionOperand::Conditional(expression) => {
                 self.transpile_conditional_expression(expression)?
@@ -1162,7 +1177,6 @@ impl Transpiler {
             ExpressionOperand::Structure(expression) => {
                 self.transpile_structure_expression(expression)?
             }
-            ExpressionOperand::Type(r#type) => Element::Type(TypeElement::new(r#type.variant)),
         })
     }
 

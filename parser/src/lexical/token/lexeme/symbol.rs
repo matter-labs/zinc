@@ -29,6 +29,7 @@ pub enum Symbol {
     GreaterThan,
 
     // complex
+    DoubleColon,
     DoubleEquals,
     ExclamationMarkEquals,
     LesserThanEquals,
@@ -64,6 +65,7 @@ impl From<&str> for Symbol {
             "<" => Self::LesserThan,
             ">" => Self::GreaterThan,
 
+            "::" => Self::DoubleColon,
             "==" => Self::DoubleEquals,
             "!=" => Self::ExclamationMarkEquals,
             "<=" => Self::LesserThanEquals,
@@ -103,6 +105,7 @@ impl fmt::Display for Symbol {
             Self::LesserThan => write!(f, "<"),
             Self::GreaterThan => write!(f, ">"),
 
+            Self::DoubleColon => write!(f, "::"),
             Self::DoubleEquals => write!(f, "=="),
             Self::ExclamationMarkEquals => write!(f, "!="),
             Self::LesserThanEquals => write!(f, "<="),

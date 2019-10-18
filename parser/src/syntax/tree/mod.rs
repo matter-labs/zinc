@@ -24,6 +24,8 @@ pub use self::expression::ExpressionElement;
 pub use self::expression::ExpressionObject;
 pub use self::expression::ExpressionOperand;
 pub use self::expression::ExpressionOperator;
+pub use self::expression::PathExpression;
+pub use self::expression::PathExpressionBuilder;
 pub use self::expression::StructureExpression;
 pub use self::expression::StructureExpressionBuilder;
 pub use self::expression::TupleExpression;

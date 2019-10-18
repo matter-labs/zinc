@@ -28,11 +28,9 @@ pub enum Variant {
         type_variants: Vec<Self>,
     },
     Structure {
-        identifier: String,
         fields: BTreeMap<String, Self>,
     },
     Enumeration {
-        identifier: String,
         variants: BTreeMap<String, usize>,
     },
     Alias {
@@ -80,17 +78,14 @@ impl Variant {
         Self::Tuple { type_variants }
     }
 
-    pub fn new_structure(identifier: String, fields: Vec<(String, Self)>) -> Self {
+    pub fn new_structure(fields: Vec<(String, Self)>) -> Self {
         let fields = fields.into_iter().collect::<BTreeMap<String, Self>>();
-        Self::Structure { identifier, fields }
+        Self::Structure { fields }
     }
 
-    pub fn new_enumeration(identifier: String, variants: Vec<(String, usize)>) -> Self {
+    pub fn new_enumeration(variants: Vec<(String, usize)>) -> Self {
         let variants = variants.into_iter().collect::<BTreeMap<String, usize>>();
-        Self::Enumeration {
-            identifier,
-            variants,
-        }
+        Self::Enumeration { variants }
     }
 
     pub fn new_alias(identifier: String) -> Self {
@@ -116,23 +111,18 @@ impl fmt::Display for Variant {
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
-            Self::Structure { identifier, fields } => write!(
+            Self::Structure { fields } => write!(
                 f,
-                "{} {{ {} }}",
-                identifier,
+                "{{ {} }}",
                 fields
                     .iter()
                     .map(|(identiifer, type_variant)| format!("{}: {}", identiifer, type_variant))
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
-            Self::Enumeration {
-                identifier,
-                variants,
-            } => write!(
+            Self::Enumeration { variants } => write!(
                 f,
-                "{} {{ {} }}",
-                identifier,
+                "{{ {} }}",
                 variants
                     .iter()
                     .map(|(identiifer, value)| format!("{} = {}", identiifer, value))

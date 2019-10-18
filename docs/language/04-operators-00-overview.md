@@ -1,8 +1,14 @@
 # Operators
 
-## Path resolution (TODO)
+## Path resolution
 
 `::`
+
+**Accepts**
+1. Module or enum
+2. Identifier or module
+
+**Returns** the second operand.
 
 ## Array indexing
 

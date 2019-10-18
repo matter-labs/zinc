@@ -15,6 +15,7 @@ use parser::ExpressionOperand;
 use parser::ExpressionOperator;
 use parser::InnerLiteral;
 use parser::Literal;
+use parser::PathExpression;
 use parser::Statement;
 use parser::StructureExpression;
 use parser::TupleExpression;
@@ -219,7 +220,6 @@ impl Interpreter {
             Statement::Struct(r#struct) => {
                 let location = r#struct.location;
                 let type_variant = TypeVariant::new_structure(
-                    r#struct.identifier.name.clone(),
                     r#struct
                         .fields
                         .into_iter()
@@ -234,7 +234,6 @@ impl Interpreter {
             Statement::Enum(r#enum) => {
                 let location = r#enum.location;
                 let type_variant = TypeVariant::new_enumeration(
-                    r#enum.identifier.name.clone(),
                     r#enum
                         .variants
                         .into_iter()
@@ -313,6 +312,7 @@ impl Interpreter {
                         ExpressionOperand::Structure(structure) => {
                             Element::Value(self.evaluate_structure_expression(structure)?)
                         }
+                        ExpressionOperand::Path(path) => self.evaluate_path_expression(path)?,
                     };
                     self.rpn_stack.push(element);
                 }
@@ -679,9 +679,17 @@ impl Interpreter {
             fields.push((identifier.name, self.evaluate_expression(expression)?));
         }
 
-        Value::new_structure(structure.identifier.name, fields)
+        Value::new_structure(fields)
             .map_err(ElementError::Value)
             .map_err(|error| Error::Element(location, error))
+    }
+
+    fn evaluate_path_expression(&mut self, path: PathExpression) -> Result<Element, Error> {
+        log::trace!("Path expression            : {}", path);
+
+        let name = path.elements.get(0).cloned().expect("TODO").name;
+        let place = Place::new(name);
+        Ok(Element::Place(place))
     }
 
     fn get_unary_operand(&mut self, resolve: bool) -> Result<Element, ScopeError> {

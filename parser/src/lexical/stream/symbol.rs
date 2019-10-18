@@ -15,6 +15,7 @@ pub enum State {
     Lesser,
     Greater,
     Dot,
+    Colon,
     DoubleDot,
     And,
     Or,
@@ -45,7 +46,6 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                 '(' => return Ok((size + 1, Symbol::ParenthesisLeft)),
                 ')' => return Ok((size + 1, Symbol::ParenthesisRight)),
 
-                ':' => return Ok((size + 1, Symbol::Colon)),
                 ';' => return Ok((size + 1, Symbol::Semicolon)),
                 ',' => return Ok((size + 1, Symbol::Comma)),
 
@@ -59,6 +59,10 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                 '.' => {
                     size += 1;
                     state = State::Dot;
+                }
+                ':' => {
+                    size += 1;
+                    state = State::Colon;
                 }
                 '=' => {
                     size += 1;
@@ -113,6 +117,10 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                     state = State::DoubleDot;
                 }
                 _ => return Ok((size, Symbol::Dot)),
+            },
+            State::Colon => match character {
+                ':' => return Ok((size + 1, Symbol::DoubleColon)),
+                _ => return Ok((size, Symbol::Colon)),
             },
             State::DoubleDot => match character {
                 '=' => return Ok((size + 1, Symbol::DoubleDotEquals)),

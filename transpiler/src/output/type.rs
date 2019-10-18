@@ -25,8 +25,8 @@ impl Output {
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
-            TypeVariant::Structure { identifier, .. } => identifier,
-            TypeVariant::Enumeration { identifier, .. } => identifier,
+            TypeVariant::Structure { .. } => unimplemented!(),
+            TypeVariant::Enumeration { .. } => unimplemented!(),
             TypeVariant::Alias { identifier } => identifier,
         }
     }

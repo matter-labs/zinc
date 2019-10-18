@@ -7,12 +7,13 @@ use crate::syntax::Expression;
 use crate::syntax::ExpressionBuilder;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::Identifier;
+use crate::syntax::PathExpression;
 use crate::syntax::StructureExpression;
 
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
-    identifier: Option<Identifier>,
+    path: Option<PathExpression>,
     has_bracket: bool,
     fields: Vec<(Identifier, Option<Expression>)>,
 }
@@ -22,8 +23,8 @@ impl Builder {
         self.location = Some(value);
     }
 
-    pub fn set_identifier(&mut self, value: Identifier) {
-        self.identifier = Some(value);
+    pub fn set_path(&mut self, value: PathExpression) {
+        self.path = Some(value);
     }
 
     pub fn set_bracket(&mut self) {
@@ -46,9 +47,7 @@ impl Builder {
                 builder.set_location(location);
                 builder.push_operand(
                     location,
-                    ExpressionOperand::Identifier(
-                        self.identifier.take().expect("Missing identifier"),
-                    ),
+                    ExpressionOperand::Path(self.path.take().expect("Missing path")),
                 );
                 builder.finish()
             }
@@ -60,7 +59,7 @@ impl Builder {
                     location,
                     ExpressionOperand::Structure(StructureExpression::new(
                         location,
-                        self.identifier.take().expect("Missing identifier"),
+                        self.path.take().expect("Missing path"),
                         self.fields
                             .into_iter()
                             .map(|(identifier, expression)| {

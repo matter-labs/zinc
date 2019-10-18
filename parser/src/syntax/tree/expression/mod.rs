@@ -10,6 +10,7 @@ mod element;
 mod object;
 mod operand;
 mod operator;
+mod path;
 mod structure;
 mod tuple;
 
@@ -29,6 +30,8 @@ pub use self::operand::Operand as ExpressionOperand;
 pub use self::operand::Operand;
 pub use self::operator::Operator as ExpressionOperator;
 pub use self::operator::Operator;
+pub use self::path::Builder as PathExpressionBuilder;
+pub use self::path::Expression as PathExpression;
 pub use self::structure::Builder as StructureExpressionBuilder;
 pub use self::structure::Expression as StructureExpression;
 pub use self::tuple::Builder as TupleExpressionBuilder;
