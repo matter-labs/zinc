@@ -201,7 +201,6 @@ mod tests {
     use crate::syntax::ExpressionOperand;
     use crate::syntax::Identifier;
     use crate::syntax::Literal;
-    use crate::syntax::PathExpression;
     use crate::syntax::StructureExpression;
     use crate::Error;
 
@@ -219,9 +218,17 @@ mod tests {
                 Location::new(2, 5),
                 ExpressionObject::Operand(ExpressionOperand::Structure(StructureExpression::new(
                     Location::new(2, 5),
-                    PathExpression::new(
+                    Expression::new(
                         Location::new(2, 5),
-                        vec![Identifier::new(Location::new(2, 5), "Test".to_owned())],
+                        vec![
+                            ExpressionElement::new(
+                                Location::new(2, 5),
+                                ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
+                                    Location::new(2, 5),
+                                    "Test".to_owned(),
+                                ))),
+                            ),
+                        ],
                     ),
                     vec![(
                         Identifier::new(Location::new(3, 9), "a".to_owned()),
@@ -266,9 +273,17 @@ mod tests {
                 Location::new(2, 5),
                 ExpressionObject::Operand(ExpressionOperand::Structure(StructureExpression::new(
                     Location::new(2, 5),
-                    PathExpression::new(
+                    Expression::new(
                         Location::new(2, 5),
-                        vec![Identifier::new(Location::new(2, 5), "Test".to_owned())],
+                        vec![
+                            ExpressionElement::new(
+                                Location::new(2, 5),
+                                ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
+                                    Location::new(2, 5),
+                                    "Test".to_owned(),
+                                ))),
+                            ),
+                        ],
                     ),
                     vec![
                         (
@@ -345,9 +360,17 @@ mod tests {
                 Location::new(2, 5),
                 ExpressionObject::Operand(ExpressionOperand::Structure(StructureExpression::new(
                     Location::new(2, 5),
-                    PathExpression::new(
+                    Expression::new(
                         Location::new(2, 5),
-                        vec![Identifier::new(Location::new(2, 5), "Test".to_owned())],
+                        vec![
+                            ExpressionElement::new(
+                                Location::new(2, 5),
+                                ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
+                                    Location::new(2, 5),
+                                    "Test".to_owned(),
+                                ))),
+                            ),
+                        ],
                     ),
                     vec![],
                 ))),
@@ -370,10 +393,7 @@ mod tests {
             Location::new(2, 5),
             vec![ExpressionElement::new(
                 Location::new(2, 5),
-                ExpressionObject::Operand(ExpressionOperand::Path(PathExpression::new(
-                    Location::new(2, 5),
-                    vec![Identifier::new(Location::new(2, 5), "Test".to_owned())],
-                ))),
+                ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(Location::new(2, 5), "Test".to_owned()))),
             )],
         ));
 

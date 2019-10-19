@@ -24,6 +24,7 @@ in
 while
 if
 else
+match
 ```
 
 #### Types
@@ -47,7 +48,6 @@ as
 
 ## Reserved
 ```jab
-match
 fn
 return
 pub

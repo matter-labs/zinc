@@ -19,7 +19,7 @@ let value = 42;
 require(value != 42);
 "#;
 
-    let expected = Err(Error::RequireFailed(Location::new(6, 1), "L6".to_owned()));
+    let expected = Err(Error::RequireFailed(Location::new(6, 1), "L6C1".to_owned()));
 
     let result =
         Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));

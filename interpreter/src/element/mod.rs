@@ -39,14 +39,12 @@ impl Element {
     pub fn assign(self, other: Self) -> Result<(Place, Value), Error> {
         let place = match self {
             Self::Place(place) => place,
-            value => {
-                return Err(Error::ExpectedPlaceExpression("assign", value));
-            }
+            element => return Err(Error::ExpectedPlaceExpression("assign", element)),
         };
 
         let value = match other {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("assign", value)),
+            element => return Err(Error::ExpectedValueExpression("assign", element)),
         };
 
         Ok((place, value))
@@ -55,12 +53,12 @@ impl Element {
     pub fn or<S: ConstraintSystem<Bn256>>(self, other: Self, mut system: S) -> Result<Self, Error> {
         let value_1 = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("or", value)),
+            element => return Err(Error::ExpectedValueExpression("or", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("or", value)),
+            element => return Err(Error::ExpectedValueExpression("or", element)),
         };
 
         value_1
@@ -76,12 +74,12 @@ impl Element {
     ) -> Result<Self, Error> {
         let value_1 = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("xor", value)),
+            element => return Err(Error::ExpectedValueExpression("xor", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("xor", value)),
+            element => return Err(Error::ExpectedValueExpression("xor", element)),
         };
 
         value_1
@@ -97,12 +95,12 @@ impl Element {
     ) -> Result<Self, Error> {
         let value_1 = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("and", value)),
+            element => return Err(Error::ExpectedValueExpression("and", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("and", value)),
+            element => return Err(Error::ExpectedValueExpression("and", element)),
         };
 
         value_1
@@ -118,12 +116,12 @@ impl Element {
     ) -> Result<Self, Error> {
         let value_1 = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("equals", value)),
+            element => return Err(Error::ExpectedValueExpression("equals", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("equals", value)),
+            element => return Err(Error::ExpectedValueExpression("equals", element)),
         };
 
         value_1
@@ -139,12 +137,12 @@ impl Element {
     ) -> Result<Self, Error> {
         let value_1 = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("not_equals", value)),
+            element => return Err(Error::ExpectedValueExpression("not_equals", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("not_equals", value)),
+            element => return Err(Error::ExpectedValueExpression("not_equals", element)),
         };
 
         value_1
@@ -160,12 +158,12 @@ impl Element {
     ) -> Result<Self, Error> {
         let value_1 = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("greater_equals", value)),
+            element => return Err(Error::ExpectedValueExpression("greater_equals", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("greater_equals", value)),
+            element => return Err(Error::ExpectedValueExpression("greater_equals", element)),
         };
 
         value_1
@@ -181,12 +179,12 @@ impl Element {
     ) -> Result<Self, Error> {
         let value_1 = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("lesser_equals", value)),
+            element => return Err(Error::ExpectedValueExpression("lesser_equals", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("lesser_equals", value)),
+            element => return Err(Error::ExpectedValueExpression("lesser_equals", element)),
         };
 
         value_1
@@ -202,12 +200,12 @@ impl Element {
     ) -> Result<Self, Error> {
         let value_1 = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("greater", value)),
+            element => return Err(Error::ExpectedValueExpression("greater", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("greater", value)),
+            element => return Err(Error::ExpectedValueExpression("greater", element)),
         };
 
         value_1
@@ -223,12 +221,12 @@ impl Element {
     ) -> Result<Self, Error> {
         let value_1 = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("lesser", value)),
+            element => return Err(Error::ExpectedValueExpression("lesser", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("lesser", value)),
+            element => return Err(Error::ExpectedValueExpression("lesser", element)),
         };
 
         value_1
@@ -244,12 +242,12 @@ impl Element {
     ) -> Result<Self, Error> {
         let value_1 = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("add", value)),
+            element => return Err(Error::ExpectedValueExpression("add", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("add", value)),
+            element => return Err(Error::ExpectedValueExpression("add", element)),
         };
 
         value_1
@@ -265,12 +263,12 @@ impl Element {
     ) -> Result<Self, Error> {
         let value_1 = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("subtract", value)),
+            element => return Err(Error::ExpectedValueExpression("subtract", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("subtract", value)),
+            element => return Err(Error::ExpectedValueExpression("subtract", element)),
         };
 
         value_1
@@ -286,12 +284,12 @@ impl Element {
     ) -> Result<Self, Error> {
         let value_1 = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("multiply", value)),
+            element => return Err(Error::ExpectedValueExpression("multiply", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("multiply", value)),
+            element => return Err(Error::ExpectedValueExpression("multiply", element)),
         };
 
         value_1
@@ -307,12 +305,12 @@ impl Element {
     ) -> Result<Self, Error> {
         let value_1 = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("divide", value)),
+            element => return Err(Error::ExpectedValueExpression("divide", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("divide", value)),
+            element => return Err(Error::ExpectedValueExpression("divide", element)),
         };
 
         value_1
@@ -328,12 +326,12 @@ impl Element {
     ) -> Result<Self, Error> {
         let value_1 = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("modulo", value)),
+            element => return Err(Error::ExpectedValueExpression("modulo", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("modulo", value)),
+            element => return Err(Error::ExpectedValueExpression("modulo", element)),
         };
 
         value_1
@@ -345,7 +343,7 @@ impl Element {
     pub fn negate<S: ConstraintSystem<Bn256>>(self, mut system: S) -> Result<Self, Error> {
         let value = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("negate", value)),
+            element => return Err(Error::ExpectedValueExpression("negate", element)),
         };
 
         value
@@ -357,7 +355,7 @@ impl Element {
     pub fn not<S: ConstraintSystem<Bn256>>(self, mut system: S) -> Result<Self, Error> {
         let value = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("not", value)),
+            element => return Err(Error::ExpectedValueExpression("not", element)),
         };
 
         value
@@ -373,12 +371,12 @@ impl Element {
     ) -> Result<Self, Error> {
         let value = match self {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("cast", value)),
+            element => return Err(Error::ExpectedValueExpression("cast", element)),
         };
 
         let r#type = match other {
             Self::Type(r#type) => r#type,
-            value => return Err(Error::ExpectedTypeExpression("cast", value)),
+            element => return Err(Error::ExpectedTypeExpression("cast", element)),
         };
 
         value
@@ -390,12 +388,12 @@ impl Element {
     pub fn index(self, other: Self) -> Result<Self, Error> {
         let mut place = match self {
             Self::Place(place) => place,
-            value => return Err(Error::ExpectedPlaceExpression("index", value)),
+            element => return Err(Error::ExpectedPlaceExpression("index", element)),
         };
 
         let value = match other {
             Self::Value(value) => value,
-            value => return Err(Error::ExpectedValueExpression("index", value)),
+            element => return Err(Error::ExpectedValueExpression("index", element)),
         };
 
         place.index(value).map_err(Error::Place)?;
@@ -405,7 +403,7 @@ impl Element {
     pub fn field(self, other: Self) -> Result<Self, Error> {
         let mut place = match self {
             Self::Place(place) => place,
-            value => return Err(Error::ExpectedPlaceExpression("field", value)),
+            element => return Err(Error::ExpectedPlaceExpression("field", element)),
         };
 
         match other {
@@ -417,8 +415,24 @@ impl Element {
                 place.access_structure(field).map_err(Error::Place)?;
                 Ok(Self::Place(place))
             }
-            value => Err(Error::ExpectedValueOrPlaceExpression("field", value)),
+            element => Err(Error::ExpectedValueOrPlaceExpression("field", element)),
         }
+    }
+
+    pub fn path(self, other: Self) -> Result<(String, String), Error> {
+        let identifier_1 = match self {
+            Self::Place(place) => place.identifier,
+            element => {
+                return Err(Error::ExpectedPlaceExpression("path", element));
+            }
+        };
+
+        let identifier_2 = match other {
+            Self::Place(place) => place.identifier,
+            element => return Err(Error::ExpectedPlaceExpression("path", element)),
+        };
+
+        Ok((identifier_1, identifier_2))
     }
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

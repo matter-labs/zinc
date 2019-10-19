@@ -1,66 +1,88 @@
 # Syntax grammar
 
 ```
-root = inputs witnesses? statement*
+program = inputs [ witnesses ] { statement } ;
 
-inputs = 'inputs' '{' ( identifier ':' type ',' )* '}'
+inputs = 'inputs', field_list ;
 
-witnesses = 'witness' '{' ( identifier ':' type ',' )* '}'
+witnesses = 'witness', field_list ;
+
+type =
+    'bool'
+  | 'u8' | 'u16' ... 'u240' | 'u248'
+  | 'i8' | 'i16' ... 'i240' | 'i248'
+  | 'field'
+  | '[', type, ';', integer, ']'
+  | '(', { type }, ')'
+  | identifier
+;
+
+field = identifier, ':', type ;
+field_list = '{', [ field, { ',', field } ], '}' ;
+
+variant = identifier, '=', integer ;
+variant_list = '{', [ variant, { ',', variant } ], '}' ;
 
 ## Statements
-statement = (
-  | empty_statement
+statement =
+    empty_statement
   | require_statement
   | let_statement
   | loop_statement
   | type_statement
+  | struct_statement
+  | enum_statement
   | debug_statement
   | expression
-) ';'
+';' ;
 
-empty_statement = 
-require_statement = 'require' '(' expression ')'
-let_statement = 'let' 'mut'? identifier ( ':' type )? '=' expression
-loop_statement = 'for' identifier 'in' literal_integer ( '..' | '..=' ) literal_integer block_expression
-type_statement = 'type' identifier '=' type
-debug_statement = 'debug' '(' expression ')'
+empty_statement = ;
+require_statement = 'require', '(', expression, ')' ;
+let_statement = 'let', [ 'mut' ], identifier, [ ':', type ], '=', expression ;
+loop_statement = 'for', identifier, 'in', integer, '..' | '..=', integer, [ 'while', expression ], block_expression ;
+type_statement = 'type', identifier, '=', type ;
+struct_statement = 'struct', field_list ;
+enum_statement = 'enum', variant_list ;
+debug_statement = 'debug', '(', expression, ')' ;
 
 ## Expression
-expression = operand_or ( '||' operand_or )*
-operand_or = operand_xor ( '^^' operand_xor )*
-operand_xor = operand_and ( '&&' operand_and )*
-operand_and = operand_comparison ( ( '==' | '!=' | '>=' | '<=' | '>' | '<' ) operand_comparison )?
-operand_comparison = operand_add_sub ( ('+' | '-') operand_add_sub )*
-operand_add_sub = operand_mul_div_rem ( ('*' | '/' | '%') operand_mul_div_rem )*
-operand_mul_div_rem = operand_as ( 'as' type )*
+expression = operand_or, { '||' operand_or } ;
+operand_or = operand_xor, { '^^' operand_xor } ;
+operand_xor = operand_and, { '&&' operand_and } ;
+operand_and = operand_comparison, [ '==' | '!=' | '>=' | '<=' | '>' | '<', operand_comparison ] ;
+operand_comparison = operand_add_sub, { '+' | '-', operand_add_sub } ;
+operand_add_sub = operand_mul_div_rem, { '*' | '/' | '%', operand_mul_div_rem } ;
+operand_mul_div_rem = operand_as, { 'as', type } ;
 operand_as =
-  | ( '-' | '!' ) operand_as
-  | operand_access ( '[' literal_integer ']' | '.' literal_integer | '.' identifier )*
+    '-' | '!', operand_as
+  | operand_access, { '[', integer, ']' | '.', integer | '.', identifier }
 operand_access
-  | literal
-  | structure_expression
-  | tuple_expression
+    literal
   | block_expression
   | conditional_expression
+  | match_expression
   | array_expression
+  | tuple_expression
+  | identifier_expression
+;
 
-block_expression = '{' statement* expression? '}'
+block_expression = '{', { statement }, [ expression ], '}' ;
 
-conditional_expression = 'if' expression block_expression ( 'else' ( conditional_expression | block_expression ) )?
+conditional_expression = 'if', expression, block_expression, [ 'else', conditional_expression | block_expression ] ;
+
+match_expression = 'match', expression, '{', { literal, '=>', block_expression, ',' }, '}' ;
 
 array_expression =
-  | '[' ( expression ( ',' expression )* )? ']'
-  | '[' expression ';' literal_integer ']'
+    '[', [ expression, { ',', expression } ] ']'
+  | '[', expression, ';', integer, ']'
+;
 
 tuple_expression =
-  | '(' ')'
-  | '(' expression ')'
-  | '(' expression ',' ( expression? ( ',' expression )* )? ')'
+    '(', ')'
+  | '(', expression, ')'
+  | '(', expression, ',', [ expression, { ',', expression } ], ')'
+;
 
-structure_expression =
-  | path_expression
-  | path_expression ( '{' ( identifier ':' type ',' )* '}' )?
-
-path_expression = identifier ( '::' identifier )*
+identifier_expression = identifier, { '::' identifier }, [ field_list ] ;
 
 ```

@@ -8,15 +8,13 @@ use parser::TypeVariant;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
-    #[fail(display = "undeclared variable '{}'", _0)]
-    UndeclaredVariable(String),
-    #[fail(display = "mutating an immutable variable '{}'", _0)]
-    MutatingImmutableVariable(String),
-    #[fail(display = "undeclared type '{}'", _0)]
-    UndeclaredType(String),
+    #[fail(display = "undeclared item '{}'", _0)]
+    UndeclaredItem(String),
     #[fail(display = "redeclared item '{}'", _0)]
     RedeclaredItem(String),
 
+    #[fail(display = "mutating an immutable variable '{}'", _0)]
+    MutatingImmutableVariable(String),
     #[fail(
         display = "the value being assigned has type '{}', but expected '{}'",
         _0, _1

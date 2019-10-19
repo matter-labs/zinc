@@ -2,18 +2,18 @@
 //! The interpreter tests.
 //!
 
-mod algorithm_factorial;
-mod algorithm_fibonacci;
-mod array_double;
-mod array_filling;
-mod block_expression_pyramid;
-mod block_statement_mutating;
-mod conditional_expression_elseless;
-mod conditional_expression_nested;
-mod loop_inclusive;
-mod loop_nested;
-mod loop_reverted;
-mod loop_with_while;
-mod require_failure;
-mod structure_mutating;
-mod tuple_nested;
+mod error_require_failed;
+mod ok_algorithm_factorial;
+mod ok_algorithm_fibonacci;
+mod ok_array_double;
+mod ok_array_filling;
+mod ok_block_expression_pyramid;
+mod ok_block_statement_mutating;
+mod ok_conditional_expression_elseless;
+mod ok_conditional_expression_nested;
+mod ok_loop_inclusive;
+mod ok_loop_nested;
+mod ok_loop_reverted;
+mod ok_loop_with_while;
+mod ok_structure_mutating;
+mod ok_tuple_nested;

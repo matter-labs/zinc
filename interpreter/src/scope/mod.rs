@@ -127,7 +127,7 @@ impl Scope {
         } else {
             match self.parent {
                 Some(ref parent) => parent.borrow().get_value(place),
-                None => Err(Error::UndeclaredVariable(place.identifier.to_owned())),
+                None => Err(Error::UndeclaredItem(place.identifier.to_owned())),
             }
         }
     }
@@ -241,7 +241,7 @@ impl Scope {
         } else {
             match self.parent {
                 Some(ref mut parent) => parent.borrow_mut().update_value(place, new_value),
-                None => Err(Error::UndeclaredVariable(place.identifier.to_owned())),
+                None => Err(Error::UndeclaredItem(place.identifier.to_owned())),
             }
         }
     }
@@ -252,7 +252,7 @@ impl Scope {
         value: Value,
         is_mutable: bool,
     ) -> Result<(), Error> {
-        if self.is_item_declared(&name) {
+        if let Ok(_item) = self.get_item_type(&name) {
             return Err(Error::RedeclaredItem(name));
         }
         self.variables
@@ -262,7 +262,7 @@ impl Scope {
     }
 
     pub fn declare_type(&mut self, name: String, type_variant: TypeVariant) -> Result<(), Error> {
-        if self.is_item_declared(&name) {
+        if let Ok(_item) = self.get_item_type(&name) {
             return Err(Error::RedeclaredItem(name));
         }
         self.types.insert(name.clone(), type_variant);
@@ -276,19 +276,18 @@ impl Scope {
             Some(type_variant) => Ok(type_variant.to_owned()),
             None => match self.parent {
                 Some(ref parent) => parent.borrow().resolve_type(name),
-                None => Err(Error::UndeclaredType(name.to_owned())),
+                None => Err(Error::UndeclaredItem(name.to_owned())),
             },
         }
     }
 
-    fn is_item_declared(&self, name: &str) -> bool {
-        if self.items.contains_key(name) {
-            true
+    pub fn get_item_type(&self, name: &str) -> Result<Item, Error> {
+        if let Some(item) = self.items.get(name).copied() {
+            Ok(item)
+        } else if let Some(ref parent) = self.parent {
+            parent.borrow().get_item_type(name)
         } else {
-            match self.parent {
-                Some(ref parent) => parent.borrow().is_item_declared(name),
-                None => false,
-            }
+            Err(Error::UndeclaredItem(name.to_owned()))
         }
     }
 }

@@ -29,6 +29,7 @@ use crate::element::Integer;
 use crate::element::Place;
 use crate::element::Value;
 use crate::scope::Error as ScopeError;
+use crate::scope::Item as ScopeItem;
 use crate::scope::Scope;
 use crate::Error;
 
@@ -270,7 +271,7 @@ impl Interpreter {
                                 let namespace = self.next_temp_namespace();
                                 let namespace = self.system.namespace(|| namespace);
                                 Element::Value(
-                                    Value::new_boolean(namespace, literal)
+                                    Value::new_boolean_from_literal(namespace, literal)
                                         .map_err(ElementError::Value)
                                         .map_err(|error| Error::Element(location, error))?,
                                 )
@@ -280,7 +281,7 @@ impl Interpreter {
                                 let namespace = self.next_temp_namespace();
                                 let namespace = self.system.namespace(|| namespace);
                                 Element::Value(
-                                    Value::new_integer(namespace, literal)
+                                    Value::new_integer_from_literal(namespace, literal)
                                         .map_err(ElementError::Value)
                                         .map_err(|error| Error::Element(location, error))?,
                                 )
@@ -561,7 +562,57 @@ impl Interpreter {
                     let (operand_1, operand_2) = self
                         .get_binary_operands(false, false)
                         .map_err(|error| Error::Scope(element.location, error))?;
-                    self.rpn_stack.push(operand_2);
+
+                    let (identifier_1, identifier_2) = operand_1
+                        .path(operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+
+                    let value = match self
+                        .scope()
+                        .borrow()
+                        .get_item_type(&identifier_1)
+                        .map_err(|error| Error::Scope(element.location, error))?
+                    {
+                        ScopeItem::Type => match self
+                            .scope()
+                            .borrow()
+                            .resolve_type(&identifier_1)
+                            .map_err(|error| {
+                            Error::Scope(element.location, error)
+                        })? {
+                            TypeVariant::Enumeration { variants } => {
+                                let value =
+                                    variants.get(&identifier_2).copied().ok_or_else(|| {
+                                        Error::EnumerationVariantNotExists(
+                                            element.location,
+                                            identifier_1,
+                                            identifier_2,
+                                        )
+                                    })?;
+                                let namespace = self.next_temp_namespace();
+                                let namespace = self.system.namespace(|| namespace);
+                                Value::new_integer_from_usize(namespace, value)
+                                    .map_err(ElementError::Value)
+                                    .map_err(|error| Error::Element(element.location, error))?
+                            }
+                            type_variant => {
+                                return Err(Error::PathOperatorExpectedEnum(
+                                    element.location,
+                                    identifier_1,
+                                    type_variant,
+                                ))
+                            }
+                        },
+                        item_type => {
+                            return Err(Error::PathOperatorExpectedNamespace(
+                                element.location,
+                                identifier_1,
+                                item_type,
+                            ))
+                        }
+                    };
+
+                    self.rpn_stack.push(Element::Value(value));
                 }
             }
         }

@@ -41,20 +41,29 @@ pub enum Value {
 }
 
 impl Value {
-    pub fn new_boolean<S: ConstraintSystem<Bn256>>(
-        mut system: S,
+    pub fn new_boolean_from_literal<S: ConstraintSystem<Bn256>>(
+        system: S,
         literal: BooleanLiteral,
     ) -> Result<Self, Error> {
-        Boolean::new_from_literal(system.namespace(|| "value_new_boolean"), literal)
+        Boolean::new_from_literal(system, literal)
             .map(Self::Boolean)
             .map_err(Error::Boolean)
     }
 
-    pub fn new_integer<S: ConstraintSystem<Bn256>>(
-        mut system: S,
+    pub fn new_integer_from_literal<S: ConstraintSystem<Bn256>>(
+        system: S,
         literal: IntegerLiteral,
     ) -> Result<Self, Error> {
-        Integer::new_from_literal(system.namespace(|| "value_new_integer"), literal)
+        Integer::new_from_literal(system, literal)
+            .map(Self::Integer)
+            .map_err(Error::Integer)
+    }
+
+    pub fn new_integer_from_usize<S: ConstraintSystem<Bn256>>(
+        system: S,
+        value: usize,
+    ) -> Result<Self, Error> {
+        Integer::new_from_usize(system, value)
             .map(Self::Integer)
             .map_err(Error::Integer)
     }

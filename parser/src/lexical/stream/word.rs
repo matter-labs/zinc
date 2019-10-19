@@ -5,6 +5,7 @@
 //! 1. An identifier
 //! 2. A keyword
 //! 3. A boolean literal
+//! 4. An underscore symbol
 //!
 
 use std::convert::TryFrom;
@@ -15,6 +16,7 @@ use crate::lexical::BooleanLiteral;
 use crate::lexical::Identifier;
 use crate::lexical::IdentifierError;
 use crate::lexical::Lexeme;
+use crate::lexical::Symbol;
 use crate::lexical::Literal;
 
 pub enum State {
@@ -52,11 +54,12 @@ pub fn parse(input: &str) -> Result<(usize, Lexeme), Error> {
 
     let lexeme = match Identifier::try_from(&input[..size]) {
         Ok(identifier) => Lexeme::Identifier(identifier),
+        Err(IdentifierError::IsEmpty) => return Err(Error::EmptyIdentifier),
+        Err(IdentifierError::IsUnderscore) => Lexeme::Symbol(Symbol::Underscore),
         Err(IdentifierError::IsKeyword(keyword)) => match BooleanLiteral::try_from(keyword) {
             Ok(boolean) => Lexeme::Literal(Literal::Boolean(boolean)),
             Err(keyword) => Lexeme::Keyword(keyword),
         },
-        Err(IdentifierError::IsEmpty) => return Err(Error::EmptyIdentifier),
     };
     Ok((size, lexeme))
 }

@@ -1,82 +1,63 @@
 # Lexical grammar
 
 ```
-lexeme =
-  | comment
-  | identifier
-  | keyword
-  | literal
-  | symbol
+lexeme = comment | identifier | keyword | literal | symbol ;
 
-comment =
-  | single_line_comment
-  | multi_line_comment
-single_line_comment = // [~\n .]* \n
-multi_line_comment = /* [~*/ .]* */
+comment = single_line_comment | multi_line_comment ;
+single_line_comment = '//', ( ? ANY ? - '\n' ), '\n' ;
+multi_line_comment = '/*', ( ? ANY ? - '*/' ), '*/' ;
 
-identifier = ~keyword [A-Za-z_][A-Za-z_0-9]*
-
-type =
-  | 'bool'
-  | ['u8' 'u16' ... 'u240' 'u248']
-  | ['i8' 'i16' ... 'i240' 'i248']
-  | 'field'
+identifier = (
+    alpha, { alpha | digit | '_' }
+  | '_', alpha, { alpha }
+- keyword ) ;
 
 keyword =
-  // built-ins
-  | 'inputs'
+    'inputs'
   | 'witness'
   | 'require'
   | 'debug'
 
-  // declarations
   | 'let'
   | 'mut'
   | 'type'
   | 'struct'
+  | 'enum'
 
-  // controls
   | 'for'
   | 'in'
   | 'while'
   | 'if'
   | 'else'
 
-  // types
   | 'bool'
-  | ['u8' 'u16' ... 'u240' 'u248']
-  | ['i8' 'i16' ... 'i240' 'i248']
+  | 'u8' | 'u16' ... 'u240' | 'u248'
+  | 'i8' | 'i16' ... 'i240' | 'i248'
   | 'field'
 
-  // literals
   | 'true'
   | 'false'
 
-  // operators
   | 'as'
+;
 
-literal =
-  | literal_integer
-  | literal_boolean
-  | literal_string
-literal_integer =
-  | '0'
-  | [1-9][0-9]*
-  | 0x[0-9a-fA-F]+
-literal_boolean =
-  | 'true'
-  | 'false'
-literal_string =
-  | " [~" \" .]* "
+literal = boolean | integer | string ;
+boolean = 'true' | 'false' ;
+integer =
+    '0'
+  | digit - '0', { digit }
+  | '0x', hex_digit, { hex_digit}
+;
+string = '"', { ANY - '"' | '\', ANY }, '"' ;
 
 symbol =
-  // simple
-  | '('
+    '('
   | ')'
   | '['
   | ']'
   | '{'
-  | '}'    
+  | '}'
+  | '_'
   | '.'
   | ':'
   | ';'
@@ -91,8 +72,6 @@ symbol =
   | '!'
   | '<'
   | '>'
-
-  // complex
   | '::'
   | '=='
   | '!='
@@ -103,5 +82,24 @@ symbol =
   | '||'
   | '..'
   | '..='
+;
+
+alpha =
+    'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G'
+  | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N'
+  | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U'
+  | 'V' | 'W' | 'X' | 'Y' | 'Z' 
+  | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g'
+  | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n'
+  | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u'
+  | 'v' | 'w' | 'x' | 'y' | 'z'
+;
+
+digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
+
+hex_digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+  | 'A' | 'B' | 'C' | 'D' | 'E' | 'F'
+  | 'a' | 'b' | 'c' | 'd' | 'e' | 'f'
+;
 
 ```
