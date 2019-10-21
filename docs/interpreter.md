@@ -3,8 +3,8 @@
 ## Interface
 
 ```
-jabi 0.4.0
-The Jabberwocky language interpreter
+zrsi 0.4.0
+The ZRust language interpreter
 
 USAGE:
     interpreter.exe [FLAGS] --input <input>
@@ -15,7 +15,7 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -i, --input <input>    Specifies the input *.jab file name
+    -i, --input <input>    Specifies the input *.zrs file name
 ```
 
 ## Output

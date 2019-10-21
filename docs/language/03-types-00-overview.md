@@ -21,7 +21,7 @@ Casting can be performed using `as` keyword:
 - integers to types of greater bitlength
 - enums can be implicitly converted to unsigned integers of enough bitlength (TODO)
 
-```jab
+```zrs
 let a = -1; // `i8`, after a cast using the unary minus and the `let` inference
 let b: u16 = a as u16; // ok, casted to the opposite sign with greater bitlength 
 let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength

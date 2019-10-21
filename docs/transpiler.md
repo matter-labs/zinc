@@ -3,8 +3,8 @@
 ## Interface
 
 ```
-jabc 0.4.0
-The Jabberwocky language compiler
+zrsc 0.4.0
+The ZRust language compiler
 
 USAGE:
     transpiler.exe [FLAGS] --input <input> --output <output>
@@ -16,7 +16,7 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -i, --input <input>      Specifies the input *.jab file name
+    -i, --input <input>      Specifies the input *.zrs file name
     -o, --output <output>    Specifies the output *.rs file name
 ```
 
@@ -47,7 +47,7 @@ The cost profiler prints number of constraints for each line:
 
 ```json
 {
-    "file": "filename.jab",
+    "file": "filename.zrs",
     "md5":  "000011112222333344445555666677778888",
     "constraints": {
         "1": 2,

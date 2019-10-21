@@ -8,6 +8,6 @@ second argument of the `require` statement.
 
 ## Examples
 
-```jab
+```zrs
 require(true != false, "mega ultra extra total global example");
 ```

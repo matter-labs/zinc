@@ -1,4 +1,4 @@
-# The Jabberwocky translator
+# The ZRust translator
 
 ## Roadmap
 

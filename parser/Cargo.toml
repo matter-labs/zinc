@@ -3,7 +3,7 @@ name = "parser"
 version = "0.4.0"
 authors = ["hedgar2017 <hedgar2017@gmail.com>"]
 edition = "2018"
-description = "Jabberwocky parser"
+description = "ZRust parser"
 
 [dependencies]
 log = "0.4"

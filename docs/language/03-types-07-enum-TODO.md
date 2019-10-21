@@ -8,7 +8,7 @@ probably forbidden in the future.
 
 ## Examples
 
-```jab
+```zrs
 enum Order {
     FIRST, // 0
     SECOND, // 1

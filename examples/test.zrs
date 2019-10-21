@@ -1,15 +1,17 @@
 /*
-    # Jabberwocky (jab): secure-by-design language for constructing
-    R1CS ZK-circuits.
+    ZRust: secure-by-design Rust-based language for constructing
+    R1CS ZK-circuits and smart contracts.
 
-    The language is almost a subset of simple Rust (with minor
-    differences dictated by the specifics of R1CS circuits).
+    The language is almost strictly a subset of simple Rust (with minor
+    differences dictated by the specifics of R1CS circuits). It is easily
+    learnable by golang, c++, solidity and js developers.
+
+    This file demonstrates current progress of ZRust implementation.
+    All the code examples below are fully functional.
 
     Rust syntax highlighting is used.
 
-    All the code examples below are fully functional.
-
-    Jab SDK provides:
+    ZRust SDK provides:
     - Fast interpreter with console log output for ease of debugging.
     - Transpiler into Rust (compatible with bellman framework).
 */
@@ -49,14 +51,14 @@ let var_1 = 42;
     Mutability
 */
 
-let mut var_mutable = 42;
-var_mutable = 43;
+let mut var_mutable = 41;
+var_mutable = 42;
 
 /*
     Console log traces for debugging
 */
 
-debug(var_mutable); // 43
+debug(var_mutable); // 42
 
 /*
     Require enforces a condition to be true.
@@ -64,7 +66,8 @@ debug(var_mutable); // 43
     while the circuit won't be satisfied.
 */
 
-require(var_mutable == 43); // passes
+require(var_mutable == 42); // passes
+require(var_mutable == 42, "expects the Answer to the Ultimate Question of Life, the Universe, and Everything"); // passes
 
 /*
     Types
@@ -175,7 +178,7 @@ for i in 0..=5 {
     };
 };
 
-require(sum == 105 as u64);
+require(sum == 105 as u64, "line_178_error_msg");
 
 // The loop range bounds are of type u64 by default
 // to keep compatibility with the Rust inner usize type.

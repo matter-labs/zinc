@@ -7,7 +7,7 @@ and `(value,)` is a tuple with one element.
 
 ## Examples
 
-```jab
+```zrs
 let mut tuple: (u8, field) = (0xff, 0 as field);
 tuple.0 = 42;
 debug(tuple.1);

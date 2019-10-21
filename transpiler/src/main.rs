@@ -13,7 +13,7 @@ use structopt::StructOpt;
 use transpiler::Transpiler;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "jabc", about = "The Jabberwocky transpiler")]
+#[structopt(name = "zrsc", about = "The ZRust transpiler")]
 struct Arguments {
     #[structopt(
         short = "p",
@@ -28,7 +28,7 @@ struct Arguments {
         long = "input",
         name = "INPUT",
         parse(from_os_str),
-        help = "Specifies the input *.jab file name"
+        help = "Specifies the input *.zrs file name"
     )]
     input: PathBuf,
     #[structopt(
@@ -121,7 +121,7 @@ fn main() -> Result<(), Error> {
 fn init_logger() {
     use std::env;
     if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "compiler=info,jabc=info");
+        env::set_var("RUST_LOG", "compiler=info,zrsc=info");
     }
     env_logger::Builder::from_default_env()
         .format_timestamp_nanos()

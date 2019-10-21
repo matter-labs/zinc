@@ -3,7 +3,7 @@ name = "semantic"
 version = "0.4.0"
 authors = ["hedgar2017 <hedgar2017@gmail.com>"]
 edition = "2018"
-description = "Jabberwocky semantic tools shared by multiple applications"
+description = "ZRust semantic tools shared by multiple applications"
 
 [dependencies]
 failure = "0.1"

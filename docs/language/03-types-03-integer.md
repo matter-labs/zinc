@@ -41,7 +41,7 @@ behavior will become less strict in the future.
 
 ## Examples
 
-```jab
+```zrs
 let a = 0; // u8
 let a: i24 = 0; // i24
 let b = 256; // u16

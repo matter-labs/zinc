@@ -3,10 +3,10 @@ name = "transpiler"
 version = "0.4.0"
 authors = ["hedgar2017 <hedgar2017@gmail.com>"]
 edition = "2018"
-description = "Jabberwocky transpiler"
+description = "ZRust transpiler"
 
 [[bin]]
-name = "jabc"
+name = "zrsc"
 path = "src/main.rs"
 
 [dependencies]

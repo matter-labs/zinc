@@ -1,8 +1,8 @@
 # Code examples
 
-`simple_math.jab`:
+`simple_math.zrs`:
 
-```jab
+```zrs
 /// 
 /// The example library.
 /// 
@@ -17,9 +17,9 @@ pub fn cube(x: u128) -> u128 {
 }
 ```
 
-`main.jab`:
+`main.zrs`:
 
-```jab
+```zrs
 ///
 /// The example binary.
 /// 

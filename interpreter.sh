@@ -4,10 +4,10 @@
 export LOG_LEVEL="${1}"
 
 export APPLICATION_NAME='interpreter'
-export EXECUTABLE_NAME='jabi'
+export EXECUTABLE_NAME='zrsi'
 export BUILD_MODE='debug'
 
-# *.jab
+# *.zrs
 export INPUT="${2}"
 
 export RUST_LOG="parser=${LOG_LEVEL},${APPLICATION_NAME}=${LOG_LEVEL}"

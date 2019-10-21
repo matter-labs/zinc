@@ -1,6 +1,6 @@
 {
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-	"name": "Jabberwocky",
+	"name": "ZRust",
 	"patterns": [
 		{
 			"include": "#keywords"
@@ -19,7 +19,7 @@
 		"keywords": {
 			"patterns": [
 				{
-					"name": "keyword.control.jab",
+					"name": "keyword.control.zrs",
 					"match": "\\b(inputs|witness|for|in|while|if|else|require|debug|let|mut|type|struct)\\b"
 				},
 				{
@@ -29,12 +29,12 @@
 			]
 		},
 		"strings": {
-			"name": "string.quoted.double.jab",
+			"name": "string.quoted.double.zrs",
 			"begin": "\"",
 			"end": "\"",
 			"patterns": [
 				{
-					"name": "constant.character.escape.jab",
+					"name": "constant.character.escape.zrs",
 					"match": "\\\\."
 				}
 			]
@@ -42,7 +42,7 @@
 		"constants": {
 			"patterns": [
 				{
-					"name": "constant.numeric.jab",
+					"name": "constant.numeric.zrs",
 					"match": "\\b(0|[1-9][0-9]*|0x[0-9a-fA-F]+)\\b"
 				}
 			]
@@ -50,17 +50,17 @@
 		"comments": {
 			"patterns": [
 				{
-					"name": "comment.line.jab",
+					"name": "comment.line.zrs",
 					"begin": "//",
 					"end": "\n"
 				},
 				{
-					"name": "comment.block.jab",
+					"name": "comment.block.zrs",
 					"begin": "/\\*",
 					"end": "\\*/"
 				}
 			]
 		}
 	},
-	"scopeName": "source.jabberwocky"
+	"scopeName": "source.zrust"
 }

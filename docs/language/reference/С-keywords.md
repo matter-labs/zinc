@@ -1,7 +1,7 @@
 # Keywords
 
 #### Built-ins
-```jab
+```zrs
 inputs
 witness
 require
@@ -9,7 +9,7 @@ debug
 ```
 
 #### Declarations
-```jab
+```zrs
 let
 mut
 type
@@ -18,7 +18,7 @@ enum
 ```
 
 #### Controls
-```jab
+```zrs
 for
 in
 while
@@ -28,7 +28,7 @@ match
 ```
 
 #### Types
-```jab
+```zrs
 bool
 u8 ... u248
 i8 ... i248
@@ -36,18 +36,18 @@ field
 ```
 
 #### Literals
-```jab
+```zrs
 true
 false
 ```
 
 #### Operators
-```jab
+```zrs
 as
 ```
 
 ## Reserved
-```jab
+```zrs
 fn
 return
 pub

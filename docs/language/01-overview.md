@@ -1,12 +1,12 @@
 # Overview
 
-The goal of Jabberwocky is to make writing zero-knowledge programs and smart
+The goal of ZRust is to make writing zero-knowledge programs and smart
 contracts easy. It is being designed with the following principles in mind:
 
 - **Ease of learning**. Anyone familiar with C-like languages (Javascript, Java,
- C++, Rust, Solidity) should be able to learn Jabberwocky quickly and with
+ C++, Rust, Solidity) should be able to learn ZRust quickly and with
  minimum effort.
-- **Readability**. The code in Jabberwocky should be easy to read intuitively
+- **Readability**. The code in ZRust should be easy to read intuitively
  comprehensible for anybody familiar with the C++ language familiy. There should
  be no counter-intuitive concepts.
 - **Security**. It should be easy to write deterministic and secure programs.

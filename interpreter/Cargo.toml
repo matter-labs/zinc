@@ -3,10 +3,10 @@ name = "interpreter"
 version = "0.4.0"
 authors = ["hedgar2017 <hedgar2017@gmail.com>"]
 edition = "2018"
-description = "Jabberwocky interpreter"
+description = "ZRust interpreter"
 
 [[bin]]
-name = "jabi"
+name = "zrsi"
 path = "src/main.rs"
 
 [dependencies]

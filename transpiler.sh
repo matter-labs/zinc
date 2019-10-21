@@ -4,10 +4,10 @@
 export LOG_LEVEL="${1}"
 
 export APPLICATION_NAME='transpiler'
-export EXECUTABLE_NAME='jabc'
+export EXECUTABLE_NAME='zrsc'
 export BUILD_MODE='debug'
 
-# *.jab
+# *.zrs
 export INPUT="${2}"
 
 # *.rs
