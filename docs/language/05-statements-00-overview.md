@@ -30,7 +30,7 @@ It accepts an optional annotation string as the second argument.
 
 ### Example
 
-```zrs
+```rust
 require(true != false, "mega ultra test require");
 ```
 
@@ -43,7 +43,7 @@ Shadowing is not allowed yet.
 
 ### Example
 
-```zrs
+```rust
 let mut variable: field = 0;
 ```
 
@@ -56,7 +56,7 @@ can use its variables and the loop iterator.
 
 ### Examples
 
-```zrs
+```rust
     for i in 0..=10 while i % x != 8 {
         debug(i);
     }
@@ -68,7 +68,7 @@ The `type` statement declares a type alias to avoid repeating complex types.
 
 ### Example
 
-```zrs
+```rust
 type Alias = (field, u8, [field; 8]);
 ```
 
@@ -78,7 +78,7 @@ The `struct` statement declares a structure type.
 
 ### Example
 
-```zrs
+```rust
 struct Data = {
     a: field,
     b: u8,
@@ -94,7 +94,7 @@ The debug statement outputs an expression.
 
 ### Example
 
-```zrs
+```rust
 let value = 0xff;
 debug(value);
 ```

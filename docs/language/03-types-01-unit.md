@@ -8,7 +8,7 @@ The type cannot be used in any expressions or be casted to or from.
 
 ## Examples
 
-```zrs
+```rust
 let x = ();
 let y: () = {
     debug!(42);

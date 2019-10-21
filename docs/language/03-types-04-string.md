@@ -8,6 +8,6 @@ second argument of the `require` statement.
 
 ## Examples
 
-```zrs
+```rust
 require(true != false, "mega ultra extra total global example");
 ```

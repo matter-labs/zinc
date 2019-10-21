@@ -72,7 +72,8 @@ fn main() -> Result<(), Error> {
     })?;
 
     if args.meta {
-        log::info!("{}", serde_json::to_string(&circuit).expect("Always valid"));
+        let meta = serde_json::to_string(&circuit).expect("Always valid");
+        log::info!("{}", meta);
     }
 
     Interpreter::default().interpret(circuit).map_err(|error| {

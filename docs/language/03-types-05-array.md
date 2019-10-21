@@ -9,14 +9,14 @@ you cannot index an array with a variable for now.
 
 Arrays support an index operator:
 
-```zrs
+```rust
 let element = fibbonaci[3];
 fibbonaci[2] = 1;
 ```
 
 ## Examples
 
-```zrs
+```rust
 let fibbonaci: [u8; 5] = [1, 1, 2, 3, 5];
 let mut a: [u8, 3] = [1, 2, 3]; // initialized with all zeros
 ```

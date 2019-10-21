@@ -13,7 +13,7 @@ The type cannot be casted to or from.
 
 ## Examples
 
-```zrs
+```rust
 let a = true;
 let b: bool = false;
 

@@ -2,7 +2,7 @@
 
 `simple_math.zrs`:
 
-```zrs
+```rust
 /// 
 /// The example library.
 /// 
@@ -19,7 +19,7 @@ pub fn cube(x: u128) -> u128 {
 
 `main.zrs`:
 
-```zrs
+```rust
 ///
 /// The example binary.
 /// 

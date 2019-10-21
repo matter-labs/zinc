@@ -4,7 +4,7 @@ No known differences from the Rust behavior.
 
 ## Examples
 
-```zrs
+```rust
 struct Person {
     age: u8,
     id: u64,

@@ -2,7 +2,7 @@
 
 ## Public inputs and secret witness
 
-```zrs
+```rust
     input {
         {identifier}: {type},
         ...
@@ -27,7 +27,7 @@ Variable names for input and witness are declared in the global variable namespa
 Each circuit must have 0 or more input arguments. It can have 0 or more witness
 arguments (if not arguments are provided, `witness` block can be omitted).
 
-```zrs
+```rust
     input {
         x: u128,
         ...
@@ -41,7 +41,7 @@ arguments (if not arguments are provided, `witness` block can be omitted).
 
 ## Functions (TODO)
 
-```zrs
+```rust
 fn {identifier}({arguments})[ -> {type}] {
     {statement}*    
     {expression}
@@ -55,7 +55,7 @@ The value is returned in the last statement without the trailing semicolon.
 Not allowing returning the value in the middle of the function is a design
 decision to imply to the user that the function is always evaluated completely.
 
-```zrs
+```rust
 // calculate `x ^ y` for all `y` up to 8
 fn pow(x: u8, y: u8) -> u8 {
     require(y < 8);
@@ -77,7 +77,7 @@ Recursion is not supported.
 
 Any primitive type and tuple can be converted to and from an array of `bool` bits.
 
-```zrs
+```rust
 // into_bits
 let i: u16 = 7;
 let i_bits = i.into_bits(); // [bool; 16]

@@ -8,7 +8,7 @@ probably forbidden in the future.
 
 ## Examples
 
-```zrs
+```rust
 enum Order {
     FIRST, // 0
     SECOND, // 1
