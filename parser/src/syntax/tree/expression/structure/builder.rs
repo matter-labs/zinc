@@ -3,17 +3,14 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::Expression;
-use crate::syntax::ExpressionBuilder;
-use crate::syntax::ExpressionOperand;
 use crate::syntax::Identifier;
 use crate::syntax::StructureExpression;
+use crate::syntax::Expression;
 
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
     path: Option<Expression>,
-    has_bracket: bool,
     fields: Vec<(Identifier, Option<Expression>)>,
 }
 
@@ -26,10 +23,6 @@ impl Builder {
         self.path = Some(value);
     }
 
-    pub fn set_bracket(&mut self) {
-        self.has_bracket = true;
-    }
-
     pub fn push_field_identifier(&mut self, value: Identifier) {
         self.fields.push((value, None));
     }
@@ -38,35 +31,16 @@ impl Builder {
         self.fields.last_mut().expect("Missing field identifier").1 = Some(value);
     }
 
-    pub fn finish(mut self) -> Expression {
-        match (self.fields.len(), self.has_bracket) {
-            (0, false) => {
-                let mut builder = ExpressionBuilder::default();
-                let location = self.location.take().expect("Missing location");
-                builder.set_location(location);
-                builder.extend_with_expression(self.path.take().expect("Missing path"));
-                builder.finish()
-            }
-            (_size, true) => {
-                let mut builder = ExpressionBuilder::default();
-                let location = self.location.take().expect("Missing location");
-                builder.set_location(location);
-                builder.push_operand(
-                    location,
-                    ExpressionOperand::Structure(StructureExpression::new(
-                        location,
-                        self.path.take().expect("Missing path"),
-                        self.fields
-                            .into_iter()
-                            .map(|(identifier, expression)| {
-                                (identifier, expression.expect("Missing field expression"))
-                            })
-                            .collect::<Vec<(Identifier, Expression)>>(),
-                    )),
-                );
-                builder.finish()
-            }
-            _ => panic!("Always checked by the branches above"),
-        }
+    pub fn finish(mut self) -> StructureExpression {
+        StructureExpression::new(
+                self.location.expect("Missing location"),
+                self.path.take().expect("Missing path"),
+                self.fields
+                    .into_iter()
+                    .map(|(identifier, expression)| {
+                        (identifier, expression.expect("Missing field expression"))
+                    })
+                    .collect::<Vec<(Identifier, Expression)>>(),
+            )
     }
 }

@@ -28,6 +28,8 @@ pub use self::expression::StructureExpression;
 pub use self::expression::StructureExpressionBuilder;
 pub use self::expression::TupleExpression;
 pub use self::expression::TupleExpressionBuilder;
+pub use self::expression::MatchExpression;
+pub use self::expression::MatchExpressionBuilder;
 pub use self::identifier::Identifier;
 pub use self::input::Builder as InputBuilder;
 pub use self::input::Input;

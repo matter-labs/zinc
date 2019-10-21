@@ -37,8 +37,8 @@
 
 - [ ] functions
 - [ ] modules and imports
-- [ ] `enum`
-- [ ] `match`
+- [x] C-like `enum`
+- [x] `match`
 
 ### Later
 

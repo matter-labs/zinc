@@ -23,7 +23,7 @@ field_list = '{', [ field, { ',', field } ], '}' ;
 variant = identifier, '=', integer ;
 variant_list = '{', [ variant, { ',', variant } ], '}' ;
 
-## Statements
+(* Statements *)
 statement =
     empty_statement
   | require_statement
@@ -45,10 +45,10 @@ struct_statement = 'struct', field_list ;
 enum_statement = 'enum', variant_list ;
 debug_statement = 'debug', '(', expression, ')' ;
 
-## Expression
-expression = operand_or, { '||' operand_or } ;
-operand_or = operand_xor, { '^^' operand_xor } ;
-operand_xor = operand_and, { '&&' operand_and } ;
+(* Expressions *)
+expression = operand_or, { '||', operand_or } ;
+operand_or = operand_xor, { '^^', operand_xor } ;
+operand_xor = operand_and, { '&&', operand_and } ;
 operand_and = operand_comparison, [ '==' | '!=' | '>=' | '<=' | '>' | '<', operand_comparison ] ;
 operand_comparison = operand_add_sub, { '+' | '-', operand_add_sub } ;
 operand_add_sub = operand_mul_div_rem, { '*' | '/' | '%', operand_mul_div_rem } ;
@@ -57,20 +57,21 @@ operand_as =
     '-' | '!', operand_as
   | operand_access, { '[', integer, ']' | '.', integer | '.', identifier }
 operand_access
-    literal
+    tuple_expression
   | block_expression
+  | array_expression
   | conditional_expression
   | match_expression
-  | array_expression
-  | tuple_expression
-  | identifier_expression
+  | struct_expression
+  | literal
+  | path_expression
 ;
 
 block_expression = '{', { statement }, [ expression ], '}' ;
 
 conditional_expression = 'if', expression, block_expression, [ 'else', conditional_expression | block_expression ] ;
 
-match_expression = 'match', expression, '{', { literal, '=>', block_expression, ',' }, '}' ;
+match_expression = 'match', expression, '{', { literal, '=>', expression, ',' }, '}' ;
 
 array_expression =
     '[', [ expression, { ',', expression } ] ']'
@@ -83,6 +84,8 @@ tuple_expression =
   | '(', expression, ',', [ expression, { ',', expression } ], ')'
 ;
 
-identifier_expression = identifier, { '::' identifier }, [ field_list ] ;
+struct_expression = 'struct', path_expression, [ field_list ] ;
+
+path_expression = identifier, { '::', identifier } ;
 
 ```

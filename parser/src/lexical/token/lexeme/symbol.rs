@@ -40,6 +40,7 @@ pub enum Symbol {
     DoubleCircumflex,
     DoubleDot,
     DoubleDotEquals,
+    EqualsGreater,
 }
 
 impl From<&str> for Symbol {
@@ -77,6 +78,7 @@ impl From<&str> for Symbol {
             "^^" => Self::DoubleCircumflex,
             ".." => Self::DoubleDot,
             "..=" => Self::DoubleDotEquals,
+            "=>" => Self::EqualsGreater,
 
             _ => panic!("Always checked by the branches above"),
         }
@@ -118,6 +120,7 @@ impl fmt::Display for Symbol {
             Self::DoubleCircumflex => write!(f, "^^"),
             Self::DoubleDot => write!(f, ".."),
             Self::DoubleDotEquals => write!(f, "..="),
+            Self::EqualsGreater => write!(f, "=>"),
         }
     }
 }

@@ -24,7 +24,6 @@ use std::fmt;
 
 use parser::BooleanLiteral;
 use parser::IntegerLiteral;
-use parser::Type;
 use parser::TypeVariant;
 use r1cs::Bn256;
 use r1cs::ConstraintSystem;
@@ -41,6 +40,10 @@ pub enum Value {
 }
 
 impl Value {
+    pub fn new_unit() -> Self {
+        Self::Unit
+    }
+
     pub fn new_boolean_from_literal<S: ConstraintSystem<Bn256>>(
         system: S,
         literal: BooleanLiteral,
@@ -459,7 +462,7 @@ impl Value {
     pub fn cast<S: ConstraintSystem<Bn256>>(
         self,
         mut system: S,
-        r#type: Type,
+        type_variant: TypeVariant,
     ) -> Result<Self, Error> {
         let value = match self {
             Self::Integer(value) => value,
@@ -467,7 +470,7 @@ impl Value {
         };
 
         value
-            .cast(system.namespace(|| "value_cast"), r#type.variant)
+            .cast(system.namespace(|| "value_cast"), type_variant)
             .map(Self::Integer)
             .map_err(Error::Integer)
     }

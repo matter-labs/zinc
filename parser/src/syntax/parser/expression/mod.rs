@@ -17,6 +17,7 @@ mod path;
 mod structure;
 mod tuple;
 mod xor;
+mod r#match;
 
 pub use self::access::Parser as AccessOperandParser;
 pub use self::add_sub::Parser as AddSubOperandParser;
@@ -33,6 +34,7 @@ pub use self::path::Parser as PathExpressionParser;
 pub use self::structure::Parser as StructureExpressionParser;
 pub use self::tuple::Parser as TupleExpressionParser;
 pub use self::xor::Parser as XorOperandParser;
+pub use self::r#match::Parser as MatchExpressionParser;
 
 use std::cell::RefCell;
 use std::rc::Rc;

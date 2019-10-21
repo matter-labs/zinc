@@ -102,6 +102,26 @@ impl Transpiler {
     pub fn transpile(mut self, program: CircuitProgram) -> Result<String, Error> {
         self.writer.write_lines(AttributesOutput::output());
         self.writer.write_lines(ImportsOutput::output());
+        for input in program.inputs.iter() {
+            let location = input.location;
+            self.scope
+                .declare_variable(
+                    input.identifier.name.clone(),
+                    input.r#type.variant.clone(),
+                    false,
+                )
+                .map_err(|error| Error::Scope(location, error))?;
+        }
+        for witness in program.witnesses.iter() {
+            let location = witness.location;
+            self.scope
+                .declare_variable(
+                    witness.identifier.name.clone(),
+                    witness.r#type.variant.clone(),
+                    false,
+                )
+                .map_err(|error| Error::Scope(location, error))?;
+        }
         let circuit = CircuitOutput::output(program.inputs, program.witnesses);
         self.writer.write_lines(circuit.start);
         self.writer.shift_forward();
@@ -133,9 +153,11 @@ impl Transpiler {
                 let expression = self.transpile_expression(r#let.expression)?;
                 let mut type_variant = expression.type_variant();
                 if let Some(ref r#type) = r#let.r#type {
-                    semantic::validate_casting(&type_variant, &r#type.variant)
-                        .map_err(|error| Error::LetImplicitCasting(location, error))?;
-                    type_variant = r#type.variant.clone();
+                    if r#type.variant != type_variant {
+                        semantic::validate_casting(&type_variant, &r#type.variant)
+                            .map_err(|error| Error::LetImplicitCasting(location, error))?;
+                        type_variant = r#type.variant.clone();
+                    }
                 }
                 self.scope
                     .declare_variable(
@@ -1123,7 +1145,13 @@ impl Transpiler {
         let identifier = self.next_id();
         self.writer.write_line(StructureOutput::output(
             identifier.clone(),
-            "TODO".to_owned(),
+            if let ExpressionObject::Operand(ExpressionOperand::Identifier(ref identifier)) =
+                structure.path.elements[0].object
+            {
+                identifier.name.clone()
+            } else {
+                panic!("TODO")
+            },
             fields.as_slice(),
         ));
 
@@ -1156,6 +1184,7 @@ impl Transpiler {
             ExpressionOperand::Conditional(expression) => {
                 self.transpile_conditional_expression(expression)?
             }
+            ExpressionOperand::Match(_expression) => unimplemented!(),
             ExpressionOperand::Array(expression) => self.transpile_array_expression(expression)?,
             ExpressionOperand::Tuple(expression) => self.transpile_tuple_expression(expression)?,
             ExpressionOperand::Structure(expression) => {

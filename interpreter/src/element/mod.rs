@@ -380,7 +380,7 @@ impl Element {
         };
 
         value
-            .cast(system.namespace(|| "element_cast"), r#type)
+            .cast(system.namespace(|| "element_cast"), r#type.variant)
             .map(Self::Value)
             .map_err(Error::Value)
     }

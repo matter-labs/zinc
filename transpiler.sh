@@ -17,7 +17,7 @@ export RUST_LOG="parser=${LOG_LEVEL},${APPLICATION_NAME}=${LOG_LEVEL}"
 export RUST_BACKTRACE=1
 
 cargo fmt --package "${APPLICATION_NAME}"
-cargo test --package "${APPLICATION_NAME}"
+# cargo test --package "${APPLICATION_NAME}"
 cargo build --package "${APPLICATION_NAME}"
 
 "./target/${BUILD_MODE}/${EXECUTABLE_NAME}" --meta --input "${INPUT}" --output "${OUTPUT}"

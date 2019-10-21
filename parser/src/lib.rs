@@ -26,6 +26,7 @@ pub use self::syntax::Statement;
 pub use self::syntax::StructStatement;
 pub use self::syntax::StructureExpression;
 pub use self::syntax::TupleExpression;
+pub use self::syntax::MatchExpression;
 pub use self::syntax::Type;
 pub use self::syntax::TypeStatement;
 pub use self::syntax::TypeVariant;

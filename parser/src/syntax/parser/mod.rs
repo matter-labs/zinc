@@ -22,6 +22,7 @@ pub use self::expression::Parser as ExpressionParser;
 pub use self::expression::PathExpressionParser;
 pub use self::expression::StructureExpressionParser;
 pub use self::expression::TupleExpressionParser;
+pub use self::expression::MatchExpressionParser;
 pub use self::expression::XorOperandParser;
 pub use self::inputs::Parser as InputsParser;
 pub use self::r#type::Parser as TypeParser;

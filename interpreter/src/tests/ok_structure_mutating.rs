@@ -17,7 +17,7 @@ struct Test {
     z: u8,
 };
 
-let mut test = Test {
+let mut test = struct Test {
     x: 1,
     y: 2,
     z: 3,

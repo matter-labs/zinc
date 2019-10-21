@@ -97,6 +97,7 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
             },
             State::Equal => match character {
                 '=' => return Ok((size + 1, Symbol::DoubleEquals)),
+                '>' => return Ok((size + 1, Symbol::EqualsGreater)),
                 _ => return Ok((size, Symbol::Equals)),
             },
             State::Exclamation => match character {

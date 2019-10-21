@@ -15,6 +15,7 @@ use parser::ExpressionOperand;
 use parser::ExpressionOperator;
 use parser::InnerLiteral;
 use parser::Literal;
+use parser::MatchExpression;
 use parser::Statement;
 use parser::StructureExpression;
 use parser::TupleExpression;
@@ -35,7 +36,7 @@ use crate::Error;
 
 pub struct Interpreter {
     system: TestConstraintSystem<Bn256>,
-    scope: Rc<RefCell<Scope>>,
+    scope_stack: Vec<Rc<RefCell<Scope>>>,
     rpn_stack: Vec<Element>,
     id_sequence: usize,
 }
@@ -48,9 +49,12 @@ impl Default for Interpreter {
 
 impl Interpreter {
     pub fn new(scope: Scope) -> Self {
+        let mut scope_stack = Vec::with_capacity(16);
+        scope_stack.push(Rc::new(RefCell::new(scope)));
+
         Self {
             system: TestConstraintSystem::new(),
-            scope: Rc::new(RefCell::new(scope)),
+            scope_stack,
             rpn_stack: Vec::with_capacity(64),
             id_sequence: 0,
         }
@@ -104,7 +108,7 @@ impl Interpreter {
                 let location = r#let.location;
                 let value = self.evaluate_expression(r#let.expression)?;
                 let value = if let Some(r#type) = r#let.r#type {
-                    let type_variant = match r#type.variant {
+                    let let_type_variant = match r#type.variant {
                         TypeVariant::Alias { identifier } => {
                             let location = r#type.location;
                             self.scope()
@@ -114,26 +118,30 @@ impl Interpreter {
                         }
                         type_variant => type_variant,
                     };
-
-                    match (value, type_variant) {
-                        (Value::Integer(integer), type_variant) => {
-                            let namespace = r#let.identifier.name.clone();
-                            let namespace = self.system.namespace(|| namespace);
-                            integer
-                                .cast(namespace, type_variant)
-                                .map(Value::Integer)
-                                .map_err(|error| Error::LetImplicitCasting(location, error))?
-                        }
-                        (value, type_variant) => {
-                            let value_type_variant = value.type_variant();
-                            if value_type_variant == type_variant {
-                                value
-                            } else {
-                                return Err(Error::LetInvalidType(
-                                    r#let.location,
-                                    value_type_variant,
-                                    type_variant,
-                                ));
+                    let value_type_variant = value.type_variant();
+                    if let_type_variant == value_type_variant {
+                        value
+                    } else {
+                        match (value, let_type_variant) {
+                            (Value::Integer(integer), type_variant) => {
+                                let namespace = r#let.identifier.name.clone();
+                                let namespace = self.system.namespace(|| namespace);
+                                integer
+                                    .cast(namespace, type_variant)
+                                    .map(Value::Integer)
+                                    .map_err(|error| Error::LetImplicitCasting(location, error))?
+                            }
+                            (value, let_type_variant) => {
+                                let value_type_variant = value.type_variant();
+                                if value_type_variant == let_type_variant {
+                                    value
+                                } else {
+                                    return Err(Error::LetInvalidType(
+                                        r#let.location,
+                                        value_type_variant,
+                                        let_type_variant,
+                                    ));
+                                }
                             }
                         }
                     }
@@ -162,10 +170,12 @@ impl Interpreter {
                         break;
                     }
 
-                    let mut scope = Scope::new(Some(self.scope().clone()));
+                    self.push_scope();
+                    let scope = self.scope();
                     let namespace = self.next_temp_namespace();
                     let namespace = self.system.namespace(|| namespace);
                     scope
+                        .borrow_mut()
                         .declare_variable(
                             r#loop.index_identifier.name.clone(),
                             Value::Integer(
@@ -176,10 +186,9 @@ impl Interpreter {
                         )
                         .map_err(|error| Error::Scope(location, error))?;
 
-                    let mut executor = Interpreter::new(scope);
                     if let Some(while_condition) = r#loop.while_condition.clone() {
                         let location = while_condition.location;
-                        match executor.evaluate_expression(while_condition)? {
+                        match self.evaluate_expression(while_condition)? {
                             Value::Boolean(boolean) => {
                                 if boolean.is_false() {
                                     break;
@@ -193,11 +202,12 @@ impl Interpreter {
                         }
                     }
                     for statement in r#loop.block.statements.iter() {
-                        executor.execute_statement(statement.to_owned())?;
+                        self.execute_statement(statement.to_owned())?;
                     }
                     if let Some(ref expression) = r#loop.block.expression {
-                        executor.evaluate_expression(*expression.to_owned())?;
+                        self.evaluate_expression(*expression.to_owned())?;
                     }
+                    self.pop_scope();
 
                     if is_reverse {
                         if index > 0 {
@@ -299,6 +309,9 @@ impl Interpreter {
                         }
                         ExpressionOperand::Block(block) => {
                             Element::Value(self.evaluate_block_expression(block)?)
+                        }
+                        ExpressionOperand::Match(r#match) => {
+                            Element::Value(self.evaluate_match_expression(r#match)?)
                         }
                         ExpressionOperand::Conditional(conditional) => {
                             Element::Value(self.evaluate_conditional_expression(conditional)?)
@@ -620,7 +633,7 @@ impl Interpreter {
         match self.rpn_stack.pop() {
             Some(Element::Value(value)) => Ok(value),
             Some(Element::Place(place)) => self
-                .scope
+                .scope()
                 .borrow()
                 .get_value(&place)
                 .map_err(|error| Error::Scope(location, error)),
@@ -632,15 +645,18 @@ impl Interpreter {
     fn evaluate_block_expression(&mut self, block: BlockExpression) -> Result<Value, Error> {
         log::trace!("Block expression       : {}", block);
 
-        let mut executor = Interpreter::new(Scope::new(Some(self.scope().clone())));
+        self.push_scope();
         for statement in block.statements.into_iter() {
-            executor.execute_statement(statement)?;
+            self.execute_statement(statement)?;
         }
-        if let Some(expression) = block.expression {
-            executor.evaluate_expression(*expression)
+        let result = if let Some(expression) = block.expression {
+            self.evaluate_expression(*expression)?
         } else {
-            Ok(Value::Unit)
-        }
+            Value::Unit
+        };
+        self.pop_scope();
+
+        Ok(result)
     }
 
     fn evaluate_conditional_expression(
@@ -661,17 +677,12 @@ impl Interpreter {
             }
         };
 
-        let main_result = {
-            let mut executor = Interpreter::new(Scope::new(Some(self.scope().clone())));
-            executor.evaluate_block_expression(conditional.main_block)?
-        };
+        let main_result = { self.evaluate_block_expression(conditional.main_block)? };
 
         let else_result = if let Some(else_if) = conditional.else_if {
-            let mut executor = Interpreter::new(Scope::new(Some(self.scope().clone())));
-            executor.evaluate_conditional_expression(*else_if)?
+            self.evaluate_conditional_expression(*else_if)?
         } else if let Some(else_block) = conditional.else_block {
-            let mut executor = Interpreter::new(Scope::new(Some(self.scope().clone())));
-            executor.evaluate_block_expression(else_block)?
+            self.evaluate_block_expression(else_block)?
         } else {
             Value::Unit
         };
@@ -689,6 +700,35 @@ impl Interpreter {
         } else {
             else_result
         })
+    }
+
+    fn evaluate_match_expression(&mut self, r#match: MatchExpression) -> Result<Value, Error> {
+        log::trace!("Match expression       : {}", r#match);
+
+        let location = r#match.location;
+
+        let match_expression_result = self.evaluate_expression(r#match.match_expression)?;
+
+        for (left, right) in r#match.branches.into_iter() {
+            let left = self.evaluate_expression(left)?;
+            let namespace = self.next_temp_namespace();
+            let namespace = self.system.namespace(|| namespace);
+
+            let matched = match match_expression_result
+                .equals(namespace, &left)
+                .map_err(ElementError::Value)
+                .map_err(|error| Error::Element(location, error))?
+            {
+                Value::Boolean(boolean) => boolean.is_true(),
+                _ => panic!("Always is a boolean value"),
+            };
+            if matched {
+                let right = self.evaluate_expression(right)?;
+                return Ok(right);
+            }
+        }
+
+        Ok(Value::new_unit())
     }
 
     fn evaluate_array_expression(&mut self, array: ArrayExpression) -> Result<Value, Error> {
@@ -769,7 +809,19 @@ impl Interpreter {
     }
 
     fn scope(&self) -> Rc<RefCell<Scope>> {
-        self.scope.clone()
+        self.scope_stack
+            .last()
+            .cloned()
+            .expect("Always contains an element")
+    }
+
+    fn push_scope(&mut self) {
+        self.scope_stack
+            .push(Rc::new(RefCell::new(Scope::new(Some(self.scope())))));
+    }
+
+    fn pop_scope(&mut self) {
+        self.scope_stack.pop();
     }
 
     fn next_temp_namespace(&mut self) -> String {

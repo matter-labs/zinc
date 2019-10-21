@@ -15,11 +15,13 @@ use crate::lexical::TokenStream;
 use crate::syntax::ArrayExpressionParser;
 use crate::syntax::BlockExpressionParser;
 use crate::syntax::ConditionalExpressionParser;
+use crate::syntax::MatchExpressionParser;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionBuilder;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
+use crate::syntax::PathExpressionParser;
 use crate::syntax::Identifier;
 use crate::syntax::Literal;
 use crate::syntax::StructureExpressionParser;
@@ -56,6 +58,16 @@ impl Parser {
                     let peek = stream.borrow_mut().peek();
                     match peek {
                         Some(Ok(Token {
+                                    lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
+                                    location,
+                                })) => {
+                            self.builder.set_location(location);
+                            let expression =
+                                TupleExpressionParser::default().parse(stream.clone())?;
+                            self.builder.extend_with_expression(expression);
+                            self.state = State::BracketSquareLeftOrDotOrEnd;
+                        }
+                        Some(Ok(Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             location,
                         })) => {
@@ -63,6 +75,16 @@ impl Parser {
                             let block = BlockExpressionParser::default().parse(stream.clone())?;
                             self.builder
                                 .push_operand(block.location, ExpressionOperand::Block(block));
+                            self.state = State::BracketSquareLeftOrDotOrEnd;
+                        }
+                        Some(Ok(Token {
+                                    lexeme: Lexeme::Symbol(Symbol::BracketSquareLeft),
+                                    location,
+                                })) => {
+                            self.builder.set_location(location);
+                            let array = ArrayExpressionParser::default().parse(stream.clone())?;
+                            self.builder
+                                .push_operand(array.location, ExpressionOperand::Array(array));
                             self.state = State::BracketSquareLeftOrDotOrEnd;
                         }
                         Some(Ok(Token {
@@ -79,23 +101,29 @@ impl Parser {
                             self.state = State::BracketSquareLeftOrDotOrEnd;
                         }
                         Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::BracketSquareLeft),
-                            location,
-                        })) => {
+                                    lexeme: Lexeme::Keyword(Keyword::Match),
+                                    location,
+                                })) => {
                             self.builder.set_location(location);
-                            let array = ArrayExpressionParser::default().parse(stream.clone())?;
-                            self.builder
-                                .push_operand(array.location, ExpressionOperand::Array(array));
+                            let r#match =
+                                MatchExpressionParser::default().parse(stream.clone())?;
+                            self.builder.push_operand(
+                                r#match.location,
+                                ExpressionOperand::Match(r#match),
+                            );
                             self.state = State::BracketSquareLeftOrDotOrEnd;
                         }
                         Some(Ok(Token {
-                            lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
-                            location,
-                        })) => {
+                                    lexeme: Lexeme::Keyword(Keyword::Struct),
+                                    location,
+                                })) => {
                             self.builder.set_location(location);
-                            let expression =
-                                TupleExpressionParser::default().parse(stream.clone())?;
-                            self.builder.extend_with_expression(expression);
+                            let r#struct =
+                                StructureExpressionParser::default().parse(stream.clone())?;
+                            self.builder.push_operand(
+                                r#struct.location,
+                                ExpressionOperand::Structure(r#struct),
+                            );
                             self.state = State::BracketSquareLeftOrDotOrEnd;
                         }
                         Some(Ok(Token {
@@ -114,16 +142,16 @@ impl Parser {
                             lexeme: Lexeme::Identifier(..),
                             location,
                         })) => {
+
                             self.builder.set_location(location);
-                            let expression =
-                                StructureExpressionParser::default().parse(stream.clone())?;
-                            self.builder.extend_with_expression(expression);
+                            let path = PathExpressionParser::default().parse(stream.clone())?;
+                            self.builder.extend_with_expression(path);
                             self.state = State::BracketSquareLeftOrDotOrEnd;
                         }
                         Some(Ok(Token { lexeme, location })) => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                vec!["(", "{", "[", "if", "{literal}", "{identifier}"],
+                                vec!["(", "{", "[", "if", "match", "struct", "{literal}", "{identifier}"],
                                 lexeme,
                             )))
                         }
