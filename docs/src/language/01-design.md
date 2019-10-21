@@ -1,4 +1,4 @@
-# Design Rationale
+# Design
 
 The goal of ZRust is to make writing zero-knowledge programs and smart
 contracts easy. It is being designed with the following principles in mind:
