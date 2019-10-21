@@ -4,7 +4,7 @@
 export LOG_LEVEL="${1}"
 
 export APPLICATION_NAME='interpreter'
-export EXECUTABLE_NAME='zrsi'
+export EXECUTABLE_NAME='zrusti'
 export BUILD_MODE='debug'
 
 # *.zrs

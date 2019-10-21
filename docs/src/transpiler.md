@@ -3,11 +3,11 @@
 ## Interface
 
 ```
-zrsc 0.4.0
+zrustc 0.4.0
 The ZRust language compiler
 
 USAGE:
-    transpiler.exe [FLAGS] --input <input> --output <output>
+    zrustc [FLAGS] --input <input> --output <output>
 
 FLAGS:
     -h, --help       Prints help information

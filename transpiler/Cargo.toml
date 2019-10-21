@@ -6,7 +6,7 @@ edition = "2018"
 description = "ZRust transpiler"
 
 [[bin]]
-name = "zrsc"
+name = "zrustc"
 path = "src/main.rs"
 
 [dependencies]

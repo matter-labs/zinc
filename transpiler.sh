@@ -4,7 +4,7 @@
 export LOG_LEVEL="${1}"
 
 export APPLICATION_NAME='transpiler'
-export EXECUTABLE_NAME='zrsc'
+export EXECUTABLE_NAME='zrustc'
 export BUILD_MODE='debug'
 
 # *.zrs

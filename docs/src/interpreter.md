@@ -3,11 +3,11 @@
 ## Interface
 
 ```
-zrsi 0.4.0
+zrusti 0.4.0
 The ZRust language interpreter
 
 USAGE:
-    interpreter.exe [FLAGS] --input <input>
+    zrusti [FLAGS] --input <input>
 
 FLAGS:
     -h, --help       Prints help information
