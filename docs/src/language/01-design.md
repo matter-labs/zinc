@@ -1,4 +1,4 @@
-# Overview
+# Design Rationale
 
 The goal of ZRust is to make writing zero-knowledge programs and smart
 contracts easy. It is being designed with the following principles in mind:
@@ -22,20 +22,21 @@ contracts easy. It is being designed with the following principles in mind:
  must be made explicit to the developers. An example is the requirement to
  explicitly specify the loop range with constants.
 
-These goals led to the following decisions:
+The above mentioned goals led to the following decisions in the language design:
 
 - **Functional programming**. The langauge should have first-class support for
  functional programming principles, such as immutability and minimizing
  side-effects.
 - **Rustiness**. The language shall follow rust syntax and philosophy as closely
  as possible. It should be a subset of rust whenever possible. 
-- **Divergence from Rust**.
+- **Divergence from Rust**:
   - **Types**. Obviously we need to adapt the type system to be efficiently
    representable in finite fields, which are the basic building block of R1CS.
   - **References and ownership**. Memory management is very different in R1CS
-   circuits compared to the von Neumann architecture. The decision is to pass
-   everything "by value" by default without moving ownership (see the developer
-   guide for explanation).
+   circuits compared to the von Neumann architecture. Also, since R1CS does not 
+   imply parallel programming patterns, a lot of elements of the Rust design would be 
+   unnecessary and redundant. The decision is to pass all variables "by value" by default 
+   without moving ownership (see the developer guide for explanation).
   - **`for-while` loops**. Combining `for` and `while` loops allows nicer syntax
    without hiding the fact that the `for-while` loop has a fixed number
    of iterations.
