@@ -1,4 +1,4 @@
-# Program structure overview
+# Program structure
 
 ## Public inputs and secret witness
 

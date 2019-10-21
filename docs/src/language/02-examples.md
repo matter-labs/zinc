@@ -1,4 +1,4 @@
-# Code examples
+# Examples
 
 `simple_math.zrs`:
 

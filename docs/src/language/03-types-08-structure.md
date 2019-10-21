@@ -10,7 +10,7 @@ struct Person {
     id: u64,
 };
 
-let mut person = Person {
+let mut person = struct Person {
     age: 24,
     id: 123456789 as u64,
 };

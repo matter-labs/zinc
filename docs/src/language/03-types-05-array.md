@@ -18,5 +18,5 @@ fibbonaci[2] = 1;
 
 ```rust
 let fibbonaci: [u8; 5] = [1, 1, 2, 3, 5];
-let mut a: [u8, 3] = [1, 2, 3]; // initialized with all zeros
+let mut a: [u8, 3] = [1, 2, 3];
 ```

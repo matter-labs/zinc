@@ -3,3 +3,6 @@
 
 # IDE
 /.idea/
+
+# Book
+/docs/book

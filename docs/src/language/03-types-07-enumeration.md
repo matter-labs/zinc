@@ -1,4 +1,4 @@
-# Enum
+# Enumeration
 
 Simple C-like enums are supported, following the restricted Rust syntax.
 

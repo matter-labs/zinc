@@ -1,4 +1,4 @@
-# Precedence
+# Operator precedence
 
 The top one is executed the first.
 
