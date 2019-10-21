@@ -29,13 +29,13 @@ These goals led to the following decisions:
  side-effects.
 - **Rustiness**. The language shall follow rust syntax and philosophy as closely
  as possible. It should be a subset of rust whenever possible. 
-- **Exceptions**.
-  - Types. Obviously we need to adapt the type system to be efficiently
+- **Divergence from Rust**.
+  - **Types**. Obviously we need to adapt the type system to be efficiently
    representable in finite fields, which are the basic building block of R1CS.
-  - References and ownership. Memory management is very different in R1CS
+  - **References and ownership**. Memory management is very different in R1CS
    circuits compared to the von Neumann architecture. The decision is to pass
    everything "by value" by default without moving ownership (see the developer
    guide for explanation).
-  - `for-while` loops. Combining `for` and `while` loops allows nicer syntax
+  - **`for-while` loops**. Combining `for` and `while` loops allows nicer syntax
    without hiding the fact that the `for-while` loop has a fixed number
    of iterations.
