@@ -3,7 +3,7 @@
 The goal of ZRust is to make writing zero-knowledge programs and smart
 contracts easy. It is being designed with the following principles in mind:
 
-- **Ease of learning**. Anyone familiar with C-like languages (Javascript, Java,
+- **Ease of learning**. Anyone familiar with C-like languages (Javascript, Java, Golang,
  C++, Rust, Solidity) should be able to learn ZRust quickly and with
  minimum effort.
 - **Readability**. The code in ZRust should be easy to read intuitively
