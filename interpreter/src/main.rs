@@ -10,6 +10,7 @@ use failure::Fail;
 use structopt::StructOpt;
 
 use interpreter::Interpreter;
+use parser::Parser;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "zrsi", about = "The ZRust interpreter")]
@@ -66,7 +67,7 @@ fn main() -> Result<(), Error> {
         .map_err(InputError::Reading)
         .map_err(Error::Input)?;
 
-    let circuit = parser::parse(input).map_err(|error| {
+    let circuit = Parser::default().parse(input).map_err(|error| {
         log::error!("{}", error);
         Error::Parser(error)
     })?;

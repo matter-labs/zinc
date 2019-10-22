@@ -10,7 +10,6 @@ use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::AccessOperandParser;
-use crate::syntax::Error as SyntaxError;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionBuilder;
 use crate::syntax::ExpressionOperator;
@@ -22,43 +21,40 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
-        let peek = stream.borrow_mut().peek();
-        match peek {
-            Some(Ok(Token {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<(Expression, Option<Token>), Error> {
+        let next = match initial.take() {
+            Some(next) => next,
+            None => stream.borrow_mut().next()?,
+        };
+        match next {
+            Token {
                 lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
                 location,
-            })) => {
-                stream.borrow_mut().next();
+            } => {
                 self.builder.set_location(location);
-                let rpn = Self::default().parse(stream.clone())?;
-                self.builder.extend_with_expression(rpn);
+                let (expression, next) = Self::default().parse(stream.clone(), None)?;
+                self.builder.extend_with_expression(expression);
                 self.builder
                     .push_operator(location, ExpressionOperator::Not);
-                Ok(self.builder.finish())
+                Ok((self.builder.finish(), next))
             }
-            Some(Ok(Token {
+            Token {
                 lexeme: Lexeme::Symbol(Symbol::Minus),
                 location,
-            })) => {
-                stream.borrow_mut().next();
+            } => {
                 self.builder.set_location(location);
-                let rpn = Self::default().parse(stream.clone())?;
-                self.builder.extend_with_expression(rpn);
+                let (expression, next) = Self::default().parse(stream.clone(), None)?;
+                self.builder.extend_with_expression(expression);
                 self.builder
                     .push_operator(location, ExpressionOperator::Negation);
-                Ok(self.builder.finish())
+                Ok((self.builder.finish(), next))
             }
-            Some(Ok(Token { location, .. })) => {
-                self.builder.set_location(location);
-                let rpn = AccessOperandParser::default().parse(stream.clone())?;
-                self.builder.extend_with_expression(rpn);
-                Ok(self.builder.finish())
+            token => {
+                self.builder.set_location(token.location);
+                let (expression, next) = AccessOperandParser::default().parse(stream.clone(), Some(token))?;
+                self.builder.extend_with_expression(expression);
+                Ok((self.builder.finish(), next))
             }
-            Some(Err(error)) => Err(Error::Lexical(error)),
-            None => Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                stream.borrow().location(),
-            ))),
         }
     }
 }

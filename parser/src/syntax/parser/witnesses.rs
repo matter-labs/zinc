@@ -41,144 +41,99 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Vec<Witness>, Error> {
-        let peek = stream.borrow_mut().peek();
-        match peek {
-            Some(Ok(Token {
-                lexeme: Lexeme::Keyword(Keyword::Witness),
-                ..
-            })) => {}
-            _ => return Ok(self.witnesses),
-        }
-
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<(Vec<Witness>, Option<Token>), Error> {
         loop {
             match self.state {
                 State::KeywordWitness => {
-                    let next = stream.borrow_mut().next();
+                    let next = stream.borrow_mut().next()?;
                     match next {
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Keyword(Keyword::Witness),
                             ..
-                        })) => self.state = State::BracketCurlyLeft,
-                        Some(Ok(Token { lexeme, location })) => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["witness"],
-                                lexeme,
-                            )));
-                        }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
+                        } => self.state = State::BracketCurlyLeft,
+                        token => return Ok((self.witnesses, Some(token))),
                     }
                 }
                 State::BracketCurlyLeft => {
-                    let next = stream.borrow_mut().next();
+                    let next = stream.borrow_mut().next()?;
                     match next {
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
-                        })) => self.state = State::IdentifierOrBracketCurlyRight,
-                        Some(Ok(Token { lexeme, location })) => {
+                        } => self.state = State::IdentifierOrBracketCurlyRight,
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec!["{"],
                                 lexeme,
                             )));
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::IdentifierOrBracketCurlyRight => {
-                    let next = stream.borrow_mut().next();
+                    let next = stream.borrow_mut().next()?;
                     match next {
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
-                        })) => return Ok(self.witnesses),
-                        Some(Ok(Token {
+                        } => return Ok((self.witnesses, None)),
+                        Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
-                        })) => {
+                        } => {
                             let identifier = Identifier::new(location, identifier.name);
                             self.builder.set_location(location);
                             self.builder.set_identifier(identifier);
                             self.state = State::Colon;
                         }
-                        Some(Ok(Token { lexeme, location })) => {
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec!["{identifier}", "}"],
                                 lexeme,
                             )));
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::Colon => {
-                    let next = stream.borrow_mut().next();
+                    let next = stream.borrow_mut().next()?;
                     match next {
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::Colon),
                             ..
-                        })) => self.state = State::Type,
-                        Some(Ok(Token { lexeme, location })) => {
+                        } => self.state = State::Type,
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec![":"],
                                 lexeme,
                             )));
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::Type => {
-                    let r#type = TypeParser::default().parse(stream.clone())?;
+                    let r#type = TypeParser::default().parse(stream.clone(), None)?;
                     self.builder.set_type(r#type);
                     self.state = State::Comma;
                 }
                 State::Comma => {
-                    let next = stream.borrow_mut().next();
+                    let next = stream.borrow_mut().next()?;
                     match next {
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
-                        })) => {
+                        } => {
                             let witness = self.builder.build();
                             log::trace!("Witness: {:?}", witness);
                             self.witnesses.push(witness);
                             self.state = State::IdentifierOrBracketCurlyRight;
                         }
-                        Some(Ok(Token { lexeme, location })) => {
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec![","],
                                 lexeme,
                             )));
-                        }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
                         }
                     }
                 }
@@ -239,7 +194,7 @@ mod tests {
     }
 
     #[test]
-    fn err_expected_comma() {
+    fn error_expected_comma() {
         let input = r#"
     witness {
         a: u232;

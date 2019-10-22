@@ -25,7 +25,7 @@ pub fn integer_literal(literal: &IntegerLiteral) -> Result<(String, usize), Erro
             exponent *= 64;
             bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
         } else if bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::LiteralTooLarge(bitlength));
+            return Err(Error::LiteralTooLarge(literal.to_owned(), bitlength));
         } else {
             exponent *= crate::MAX_VALUE_BYTE;
             bitlength += crate::BITLENGTH_BYTE;
@@ -33,4 +33,15 @@ pub fn integer_literal(literal: &IntegerLiteral) -> Result<(String, usize), Erro
     }
 
     Ok((number.to_string(), bitlength))
+}
+
+pub fn enough_bitlength(literals: &[&IntegerLiteral]) -> Result<usize, Error> {
+    let mut max = 0;
+    for literal in literals.iter() {
+        let bitlength = integer_literal(literal)?.1;
+        if bitlength > max {
+            max = bitlength;
+        }
+    }
+    Ok(max)
 }

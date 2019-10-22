@@ -56,8 +56,9 @@ impl Value {
     pub fn new_integer_from_literal<S: ConstraintSystem<Bn256>>(
         system: S,
         literal: IntegerLiteral,
+        bitlength: Option<usize>,
     ) -> Result<Self, Error> {
-        Integer::new_from_literal(system, literal)
+        Integer::new_from_literal(system, literal, bitlength)
             .map(Self::Integer)
             .map_err(Error::Integer)
     }
@@ -65,8 +66,9 @@ impl Value {
     pub fn new_integer_from_usize<S: ConstraintSystem<Bn256>>(
         system: S,
         value: usize,
+        bitlength: usize,
     ) -> Result<Self, Error> {
-        Integer::new_from_usize(system, value)
+        Integer::new_from_usize(system, value, bitlength)
             .map(Self::Integer)
             .map_err(Error::Integer)
     }

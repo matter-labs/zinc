@@ -28,6 +28,7 @@ pub enum Lexeme {
     Literal(Literal),
     Symbol(Symbol),
     Comment(Comment),
+    Eof,
 }
 
 impl fmt::Display for Lexeme {
@@ -38,6 +39,7 @@ impl fmt::Display for Lexeme {
             Self::Literal(literal) => write!(f, "{}", literal),
             Self::Symbol(symbol) => write!(f, "{}", symbol),
             Self::Comment(comment) => write!(f, "{}", comment),
+            Self::Eof => write!(f, "EOF"),
         }
     }
 }

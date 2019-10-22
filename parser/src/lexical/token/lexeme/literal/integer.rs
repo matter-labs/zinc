@@ -4,7 +4,9 @@
 
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq)]
+use serde_derive::Serialize;
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
 pub enum Integer {
     Decimal { value: String },
     Hexadecimal { value: String },
@@ -32,6 +34,13 @@ impl Into<String> for Integer {
 impl Into<usize> for Integer {
     fn into(self) -> usize {
         let string: String = self.into();
+        string.parse::<usize>().expect("Always valid")
+    }
+}
+
+impl Into<usize> for &Integer {
+    fn into(self) -> usize {
+        let string: String = self.to_string();
         string.parse::<usize>().expect("Always valid")
     }
 }

@@ -148,7 +148,7 @@ let mut c: u232 = 2 + 2;
 }
 
 #[test]
-fn err_unexpected_end() {
+fn error_unexpected_end() {
     let input = "&";
 
     let expected: Result<Token, Error> = Err(Error::UnexpectedEnd(Location::new(1, 1)));
@@ -161,7 +161,7 @@ fn err_unexpected_end() {
 }
 
 #[test]
-fn err_unknown_character() {
+fn error_unknown_character() {
     let input = "#";
 
     let expected: Result<Token, Error> = Err(Error::InvalidCharacter(Location::new(1, 1), '#'));
@@ -174,7 +174,7 @@ fn err_unknown_character() {
 }
 
 #[test]
-fn err_invalid_symbol() {
+fn error_invalid_symbol() {
     let input = "|#";
 
     let expected: Result<Token, Error> = Err(Error::InvalidSymbol(
@@ -190,7 +190,7 @@ fn err_invalid_symbol() {
 }
 
 #[test]
-fn err_invalid_integer_literal() {
+fn error_invalid_integer_literal() {
     let input = "0xCRAP";
 
     let expected: Result<Token, Error> = Err(Error::InvalidIntegerLiteral(

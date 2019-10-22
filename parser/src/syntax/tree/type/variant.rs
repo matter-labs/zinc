@@ -7,6 +7,8 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
+use crate::IntegerLiteral;
+
 #[derive(Debug, Clone, Serialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 #[serde(tag = "name")]
@@ -22,7 +24,7 @@ pub enum Variant {
     Field,
     Array {
         type_variant: Box<Self>,
-        size: usize,
+        size: IntegerLiteral,
     },
     Tuple {
         type_variants: Vec<Self>,
@@ -31,7 +33,7 @@ pub enum Variant {
         fields: BTreeMap<String, Self>,
     },
     Enumeration {
-        variants: BTreeMap<String, usize>,
+        variants: BTreeMap<String, IntegerLiteral>,
     },
     Alias {
         identifier: String,
@@ -67,7 +69,7 @@ impl Variant {
         Self::Field
     }
 
-    pub fn new_array(type_variant: Self, size: usize) -> Self {
+    pub fn new_array(type_variant: Self, size: IntegerLiteral) -> Self {
         Self::Array {
             type_variant: Box::new(type_variant),
             size,
@@ -83,8 +85,8 @@ impl Variant {
         Self::Structure { fields }
     }
 
-    pub fn new_enumeration(variants: Vec<(String, usize)>) -> Self {
-        let variants = variants.into_iter().collect::<BTreeMap<String, usize>>();
+    pub fn new_enumeration(variants: Vec<(String, IntegerLiteral)>) -> Self {
+        let variants = variants.into_iter().collect::<BTreeMap<String, IntegerLiteral>>();
         Self::Enumeration { variants }
     }
 

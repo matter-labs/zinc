@@ -33,49 +33,47 @@ pub struct Parser {
     state: State,
     builder: ExpressionBuilder,
     operator: Option<(Location, ExpressionOperator)>,
+    next: Option<Token>,
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<(Expression, Option<Token>), Error> {
         loop {
             match self.state {
                 State::MulDivRemOperand => {
-                    let rpn = MulDivRemOperandParser::default().parse(stream.clone())?;
-                    self.builder.set_location_if_unset(rpn.location);
-                    self.builder.extend_with_expression(rpn);
+                    let (expression, next) = MulDivRemOperandParser::default().parse(stream.clone(), initial.take())?;
+                    self.next = next;
+                    self.builder.set_location_if_unset(expression.location);
+                    self.builder.extend_with_expression(expression);
                     if let Some((location, operator)) = self.operator.take() {
                         self.builder.push_operator(location, operator);
                     }
                     self.state = State::MulDivRemOperator;
                 }
                 State::MulDivRemOperator => {
-                    let peek = stream.borrow_mut().peek();
-                    match peek {
-                        Some(Ok(Token {
+                    match self.next.take().expect("Always contains a value") {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::Asterisk),
                             location,
-                        })) => {
-                            stream.borrow_mut().next();
+                        } => {
                             self.operator = Some((location, ExpressionOperator::Multiplication));
                             self.state = State::MulDivRemOperand;
                         }
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::Slash),
                             location,
-                        })) => {
-                            stream.borrow_mut().next();
+                        } => {
                             self.operator = Some((location, ExpressionOperator::Division));
                             self.state = State::MulDivRemOperand;
                         }
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::Percent),
                             location,
-                        })) => {
-                            stream.borrow_mut().next();
+                        } => {
                             self.operator = Some((location, ExpressionOperator::Remainder));
                             self.state = State::MulDivRemOperand;
                         }
-                        _ => return Ok(self.builder.finish()),
+                        token => return Ok((self.builder.finish(), Some(token))),
                     }
                 }
             }

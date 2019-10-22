@@ -27,6 +27,7 @@ impl Integer {
     pub fn new_from_usize<S: ConstraintSystem<Bn256>>(
         mut system: S,
         value: usize,
+        bitlength: usize,
     ) -> Result<Self, Error> {
         let number = r1cs::allocate_number(
             system.namespace(|| "integer_new_from_usize"),
@@ -37,16 +38,18 @@ impl Integer {
         Ok(Self {
             number,
             is_signed: false,
-            bitlength: 64,
+            bitlength,
         })
     }
 
     pub fn new_from_literal<S: ConstraintSystem<Bn256>>(
         mut system: S,
         literal: IntegerLiteral,
+        bitlength: Option<usize>,
     ) -> Result<Self, Error> {
-        let (number, bitlength) =
+        let (number, inferred_bitlength) =
             semantic::infer_integer_literal(&literal).map_err(Error::Inference)?;
+        let bitlength = bitlength.unwrap_or(inferred_bitlength);
 
         let number = r1cs::allocate_number(
             system.namespace(|| "integer_new_from_literal"),

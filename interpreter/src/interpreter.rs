@@ -14,6 +14,7 @@ use parser::ExpressionObject;
 use parser::ExpressionOperand;
 use parser::ExpressionOperator;
 use parser::InnerLiteral;
+use parser::IntegerLiteral;
 use parser::Literal;
 use parser::MatchExpression;
 use parser::Statement;
@@ -91,7 +92,7 @@ impl Interpreter {
             Statement::Require(require) => match self.evaluate_expression(require.expression)? {
                 Value::Boolean(boolean) => {
                     if boolean.is_true() {
-                        log::info!("require {} passed", require.annotation);
+                        log::info!("require '{}' passed", require.annotation);
                     } else {
                         return Err(Error::RequireFailed(require.location, require.annotation));
                     }
@@ -157,15 +158,22 @@ impl Interpreter {
             Statement::Loop(r#loop) => {
                 let location = r#loop.location;
 
-                let is_reverse = r#loop.range_end < r#loop.range_start;
-                let mut index = r#loop.range_start;
+                let bitlength =
+                    semantic::infer_enough_bitlength(&[&r#loop.range_start, &r#loop.range_end])
+                        .map_err(|error| Error::BitlengthInference(location, error))?;
+
+                let range_start = r#loop.range_start.into();
+                let range_end = r#loop.range_end.into();
+
+                let is_reverse = range_end < range_start;
+                let mut index = range_start;
 
                 loop {
                     if match (r#loop.is_range_inclusive, is_reverse) {
-                        (true, true) => index < r#loop.range_end,
-                        (true, false) => index > r#loop.range_end,
-                        (false, true) => index <= r#loop.range_end,
-                        (false, false) => index >= r#loop.range_end,
+                        (true, true) => index < range_end,
+                        (true, false) => index > range_end,
+                        (false, true) => index <= range_end,
+                        (false, false) => index >= range_end,
                     } {
                         break;
                     }
@@ -179,7 +187,7 @@ impl Interpreter {
                         .declare_variable(
                             r#loop.index_identifier.name.clone(),
                             Value::Integer(
-                                Integer::new_from_usize(namespace, index)
+                                Integer::new_from_usize(namespace, index, bitlength)
                                     .map_err(|error| Error::LoopIterator(location, error))?,
                             ),
                             false,
@@ -247,7 +255,7 @@ impl Interpreter {
                     r#enum
                         .variants
                         .into_iter()
-                        .map(|(identifier, value)| (identifier.name, value.into()))
+                        .map(|(identifier, value)| (identifier.name, value))
                         .collect(),
                 );
                 self.scope()
@@ -291,7 +299,7 @@ impl Interpreter {
                                 let namespace = self.next_temp_namespace();
                                 let namespace = self.system.namespace(|| namespace);
                                 Element::Value(
-                                    Value::new_integer_from_literal(namespace, literal)
+                                    Value::new_integer_from_literal(namespace, literal, None)
                                         .map_err(ElementError::Value)
                                         .map_err(|error| Error::Element(location, error))?,
                                 )
@@ -594,8 +602,16 @@ impl Interpreter {
                             Error::Scope(element.location, error)
                         })? {
                             TypeVariant::Enumeration { variants } => {
-                                let value =
-                                    variants.get(&identifier_2).copied().ok_or_else(|| {
+                                let literals = variants
+                                    .iter()
+                                    .map(|(_key, value)| value)
+                                    .collect::<Vec<&IntegerLiteral>>();
+                                let bitlength = semantic::infer_enough_bitlength(&literals)
+                                    .map_err(|error| {
+                                        Error::BitlengthInference(element.location, error)
+                                    })?;
+                                let literal =
+                                    variants.get(&identifier_2).cloned().ok_or_else(|| {
                                         Error::EnumerationVariantNotExists(
                                             element.location,
                                             identifier_1,
@@ -604,7 +620,7 @@ impl Interpreter {
                                     })?;
                                 let namespace = self.next_temp_namespace();
                                 let namespace = self.system.namespace(|| namespace);
-                                Value::new_integer_from_usize(namespace, value)
+                                Value::new_integer_from_literal(namespace, literal, Some(bitlength))
                                     .map_err(ElementError::Value)
                                     .map_err(|error| Error::Element(element.location, error))?
                             }

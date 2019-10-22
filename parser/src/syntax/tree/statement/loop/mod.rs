@@ -9,6 +9,7 @@ pub use self::builder::Builder;
 use std::fmt;
 
 use crate::lexical::Location;
+use crate::lexical::IntegerLiteral;
 use crate::syntax::BlockExpression;
 use crate::syntax::Expression;
 use crate::syntax::Identifier;
@@ -18,8 +19,8 @@ pub struct Loop {
     pub location: Location,
     pub id: String,
     pub index_identifier: Identifier,
-    pub range_start: usize,
-    pub range_end: usize,
+    pub range_start: IntegerLiteral,
+    pub range_end: IntegerLiteral,
     pub is_range_inclusive: bool,
     pub while_condition: Option<Expression>,
     pub block: BlockExpression,
@@ -29,8 +30,8 @@ impl Loop {
     pub fn new(
         location: Location,
         index_identifier: Identifier,
-        range_start: usize,
-        range_end: usize,
+        range_start: IntegerLiteral,
+        range_end: IntegerLiteral,
         is_range_inclusive: bool,
         while_condition: Option<Expression>,
         block: BlockExpression,

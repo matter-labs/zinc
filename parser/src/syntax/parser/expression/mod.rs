@@ -67,39 +67,39 @@ pub struct Parser {
     state: State,
     builder: ExpressionBuilder,
     operator: Option<(Location, ExpressionOperator)>,
+    next: Option<Token>,
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<(Expression, Option<Token>), Error> {
         loop {
             match self.state {
                 State::AssignmentFirstOperand => {
-                    let rpn = AssignmentOperandParser::default().parse(stream.clone())?;
-                    self.builder.set_location_if_unset(rpn.location);
-                    self.builder.extend_with_expression(rpn);
+                    let (expression, next) = AssignmentOperandParser::default().parse(stream.clone(), initial.take())?;
+                    self.next = next;
+                    self.builder.set_location_if_unset(expression.location);
+                    self.builder.extend_with_expression(expression);
                     self.state = State::AssignmentOperator;
                 }
                 State::AssignmentOperator => {
-                    let peek = stream.borrow_mut().peek();
-                    match peek {
-                        Some(Ok(Token {
+                    match self.next.take().expect("Always contains a value") {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::Equals),
                             location,
-                        })) => {
-                            stream.borrow_mut().next();
+                        } => {
                             self.operator = Some((location, ExpressionOperator::Assignment));
                             self.state = State::AssignmentSecondOperand;
                         }
-                        _ => return Ok(self.builder.finish()),
+                        token => return Ok((self.builder.finish(), Some(token))),
                     }
                 }
                 State::AssignmentSecondOperand => {
-                    let rpn = AssignmentOperandParser::default().parse(stream.clone())?;
-                    self.builder.extend_with_expression(rpn);
+                    let (expression, token) = AssignmentOperandParser::default().parse(stream.clone(), None)?;
+                    self.builder.extend_with_expression(expression);
                     if let Some((location, operator)) = self.operator.take() {
                         self.builder.push_operator(location, operator);
                     }
-                    return Ok(self.builder.finish());
+                    return Ok((self.builder.finish(), token));
                 }
             }
         }

@@ -30,6 +30,7 @@ use std::fmt;
 use crate::syntax::Expression;
 
 #[derive(Debug, Clone, PartialEq)]
+#[allow(clippy::large_enum_variant)]
 pub enum Statement {
     Empty,
     Require(Require),

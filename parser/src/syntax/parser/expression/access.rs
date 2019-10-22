@@ -48,89 +48,94 @@ pub struct Parser {
     state: State,
     builder: ExpressionBuilder,
     operator: Option<(Location, ExpressionOperator)>,
+    next: Option<Token>,
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<(Expression, Option<Token>), Error> {
         loop {
             match self.state {
                 State::Operand => {
-                    let peek = stream.borrow_mut().peek();
-                    match peek {
-                        Some(Ok(Token {
-                                    lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
-                                    location,
-                                })) => {
-                            self.builder.set_location(location);
+                    let next = match initial.take() {
+                        Some(next) => next,
+                        None => stream.borrow_mut().next()?,
+                    };
+                    match next {
+                        token @ Token {
+                            lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
+                            ..
+                        } => {
+                            self.builder.set_location(token.location);
                             let expression =
-                                TupleExpressionParser::default().parse(stream.clone())?;
+                                TupleExpressionParser::default().parse(stream.clone(), Some(token))?;
                             self.builder.extend_with_expression(expression);
                             self.state = State::BracketSquareLeftOrDotOrEnd;
                         }
-                        Some(Ok(Token {
+                        token @ Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
-                            location,
-                        })) => {
-                            self.builder.set_location(location);
-                            let block = BlockExpressionParser::default().parse(stream.clone())?;
+                            ..
+                        } => {
+                            self.builder.set_location(token.location);
+                            let block = BlockExpressionParser::default().parse(stream.clone(), Some(token))?;
                             self.builder
                                 .push_operand(block.location, ExpressionOperand::Block(block));
                             self.state = State::BracketSquareLeftOrDotOrEnd;
                         }
-                        Some(Ok(Token {
+                        token @ Token {
                                     lexeme: Lexeme::Symbol(Symbol::BracketSquareLeft),
-                                    location,
-                                })) => {
-                            self.builder.set_location(location);
-                            let array = ArrayExpressionParser::default().parse(stream.clone())?;
+                                    ..
+                                } => {
+                            self.builder.set_location(token.location);
+                            let array = ArrayExpressionParser::default().parse(stream.clone(), Some(token))?;
                             self.builder
                                 .push_operand(array.location, ExpressionOperand::Array(array));
                             self.state = State::BracketSquareLeftOrDotOrEnd;
                         }
-                        Some(Ok(Token {
+                        token @ Token {
                             lexeme: Lexeme::Keyword(Keyword::If),
-                            location,
-                        })) => {
-                            self.builder.set_location(location);
-                            let conditional =
-                                ConditionalExpressionParser::default().parse(stream.clone())?;
+                            ..
+                        } => {
+                            self.builder.set_location(token.location);
+                            let (expression, next) =
+                                ConditionalExpressionParser::default().parse(stream.clone(), Some(token))?;
+                            self.next = next;
                             self.builder.push_operand(
-                                conditional.location,
-                                ExpressionOperand::Conditional(conditional),
+                                expression.location,
+                                ExpressionOperand::Conditional(expression),
                             );
                             self.state = State::BracketSquareLeftOrDotOrEnd;
                         }
-                        Some(Ok(Token {
-                                    lexeme: Lexeme::Keyword(Keyword::Match),
-                                    location,
-                                })) => {
-                            self.builder.set_location(location);
-                            let r#match =
-                                MatchExpressionParser::default().parse(stream.clone())?;
+                        token @ Token {
+                            lexeme: Lexeme::Keyword(Keyword::Match),
+                            ..
+                        } => {
+                            self.builder.set_location(token.location);
+                            let expression =
+                                MatchExpressionParser::default().parse(stream.clone(), Some(token))?;
                             self.builder.push_operand(
-                                r#match.location,
-                                ExpressionOperand::Match(r#match),
+                                expression.location,
+                                ExpressionOperand::Match(expression),
                             );
                             self.state = State::BracketSquareLeftOrDotOrEnd;
                         }
-                        Some(Ok(Token {
-                                    lexeme: Lexeme::Keyword(Keyword::Struct),
-                                    location,
-                                })) => {
-                            self.builder.set_location(location);
-                            let r#struct =
-                                StructureExpressionParser::default().parse(stream.clone())?;
+                        token @ Token {
+                            lexeme: Lexeme::Keyword(Keyword::Struct),
+                            ..
+                        } => {
+                            self.builder.set_location(token.location);
+                            let (expression, next) =
+                                StructureExpressionParser::default().parse(stream.clone(), Some(token))?;
+                            self.next = next;
                             self.builder.push_operand(
-                                r#struct.location,
-                                ExpressionOperand::Structure(r#struct),
+                                expression.location,
+                                ExpressionOperand::Structure(expression),
                             );
                             self.state = State::BracketSquareLeftOrDotOrEnd;
                         }
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Literal(literal),
                             location,
-                        })) => {
-                            stream.borrow_mut().next();
+                        } => {
                             self.builder.set_location(location);
                             self.builder.push_operand(
                                 location,
@@ -138,60 +143,54 @@ impl Parser {
                             );
                             self.state = State::BracketSquareLeftOrDotOrEnd;
                         }
-                        Some(Ok(Token {
-                            lexeme: Lexeme::Identifier(..),
-                            location,
-                        })) => {
-
-                            self.builder.set_location(location);
-                            let path = PathExpressionParser::default().parse(stream.clone())?;
-                            self.builder.extend_with_expression(path);
+                        token @ Token {
+                            lexeme: Lexeme::Identifier { .. },
+                            ..
+                        } => {
+                            self.builder.set_location(token.location);
+                            let (expression, next) = PathExpressionParser::default().parse(stream.clone(), Some(token))?;
+                            self.next = next;
+                            self.builder.extend_with_expression(expression);
                             self.state = State::BracketSquareLeftOrDotOrEnd;
                         }
-                        Some(Ok(Token { lexeme, location })) => {
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec!["(", "{", "[", "if", "match", "struct", "{literal}", "{identifier}"],
                                 lexeme,
                             )))
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::BracketSquareLeftOrDotOrEnd => {
-                    let peek = stream.borrow_mut().peek();
-                    match peek {
-                        Some(Ok(Token {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareLeft),
                             location,
-                        })) => {
-                            stream.borrow_mut().next();
+                        } => {
                             self.operator = Some((location, ExpressionOperator::Indexing));
                             self.state = State::IndexExpression;
                         }
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::Dot),
                             location,
-                        })) => {
-                            stream.borrow_mut().next();
+                        } => {
                             self.operator = Some((location, ExpressionOperator::Field));
                             self.state = State::FieldDescriptor;
                         }
-                        _ => return Ok(self.builder.finish()),
+                        token => return Ok((self.builder.finish(), Some(token))),
                     }
                 }
                 State::IndexExpression => {
-                    let next = stream.borrow_mut().next();
+                    let next = stream.borrow_mut().next()?;
                     match next {
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Literal(literal @ lexical::Literal::Integer(..)),
                             location,
-                        })) => {
+                        } => {
                             self.builder.push_operand(
                                 location,
                                 ExpressionOperand::Literal(Literal::new(location, literal)),
@@ -201,52 +200,40 @@ impl Parser {
                             }
                             self.state = State::BracketSquareRight;
                         }
-                        Some(Ok(Token { lexeme, location })) => {
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec!["{integer}"],
                                 lexeme,
                             )))
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::BracketSquareRight => {
-                    let next = stream.borrow_mut().next();
+                    let next = stream.borrow_mut().next()?;
                     match next {
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareRight),
                             ..
-                        })) => {
+                        } => {
                             self.state = State::BracketSquareLeftOrDotOrEnd;
                         }
-                        Some(Ok(Token { lexeme, location })) => {
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec!["]"],
                                 lexeme,
                             )))
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::FieldDescriptor => {
-                    let next = stream.borrow_mut().next();
+                    let next = stream.borrow_mut().next()?;
                     match next {
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Literal(literal @ lexical::Literal::Integer(..)),
                             location,
-                        })) => {
+                        } => {
                             self.builder.push_operand(
                                 location,
                                 ExpressionOperand::Literal(Literal::new(location, literal)),
@@ -256,10 +243,10 @@ impl Parser {
                             }
                             self.state = State::BracketSquareLeftOrDotOrEnd;
                         }
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
-                        })) => {
+                        } => {
                             self.builder.push_operand(
                                 location,
                                 ExpressionOperand::Identifier(Identifier::new(
@@ -272,17 +259,11 @@ impl Parser {
                             }
                             self.state = State::BracketSquareLeftOrDotOrEnd;
                         }
-                        Some(Ok(Token { lexeme, location })) => {
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec!["{integer}", "{identifier}"],
                                 lexeme,
-                            )))
-                        }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
                             )))
                         }
                     }

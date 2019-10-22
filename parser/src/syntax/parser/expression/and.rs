@@ -34,79 +34,74 @@ pub struct Parser {
     state: State,
     builder: ExpressionBuilder,
     operator: Option<(Location, ExpressionOperator)>,
+    next: Option<Token>,
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<(Expression, Option<Token>), Error> {
         loop {
             match self.state {
                 State::ComparisonFirstOperand => {
-                    let rpn = ComparisonOperandParser::default().parse(stream.clone())?;
-                    self.builder.set_location_if_unset(rpn.location);
-                    self.builder.extend_with_expression(rpn);
+                    let (expression, next) = ComparisonOperandParser::default().parse(stream.clone(), initial.take())?;
+                    self.next = next;
+                    self.builder.set_location_if_unset(expression.location);
+                    self.builder.extend_with_expression(expression);
                     self.state = State::ComparisonOperator;
                 }
                 State::ComparisonOperator => {
-                    let peek = stream.borrow_mut().peek();
-                    match peek {
-                        Some(Ok(Token {
+                    match self.next.take().expect("Always contains a value") {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::DoubleEquals),
                             location,
-                        })) => {
-                            stream.borrow_mut().next();
+                        } => {
                             self.operator = Some((location, ExpressionOperator::Equals));
                             self.state = State::ComparisonSecondOperand;
                         }
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::ExclamationMarkEquals),
                             location,
-                        })) => {
-                            stream.borrow_mut().next();
+                        } => {
                             self.operator = Some((location, ExpressionOperator::NotEquals));
                             self.state = State::ComparisonSecondOperand;
                         }
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::GreaterThanEquals),
                             location,
-                        })) => {
-                            stream.borrow_mut().next();
+                        } => {
                             self.operator = Some((location, ExpressionOperator::GreaterEquals));
                             self.state = State::ComparisonSecondOperand;
                         }
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::LesserThanEquals),
                             location,
-                        })) => {
-                            stream.borrow_mut().next();
+                        } => {
                             self.operator = Some((location, ExpressionOperator::LesserEquals));
                             self.state = State::ComparisonSecondOperand;
                         }
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::GreaterThan),
                             location,
-                        })) => {
-                            stream.borrow_mut().next();
+                        } => {
                             self.operator = Some((location, ExpressionOperator::Greater));
                             self.state = State::ComparisonSecondOperand;
                         }
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::LesserThan),
                             location,
-                        })) => {
-                            stream.borrow_mut().next();
+                        } => {
                             self.operator = Some((location, ExpressionOperator::Lesser));
                             self.state = State::ComparisonSecondOperand;
                         }
-                        _ => return Ok(self.builder.finish()),
+                        token => return Ok((self.builder.finish(), Some(token))),
                     }
                 }
                 State::ComparisonSecondOperand => {
-                    let rpn = ComparisonOperandParser::default().parse(stream.clone())?;
-                    self.builder.extend_with_expression(rpn);
+                    let (expression, next) = ComparisonOperandParser::default().parse(stream.clone(), None)?;
+                    self.builder.extend_with_expression(expression);
                     if let Some((location, operator)) = self.operator.take() {
                         self.builder.push_operator(location, operator);
                     }
-                    return Ok(self.builder.finish());
+                    return Ok((self.builder.finish(), next));
                 }
             }
         }

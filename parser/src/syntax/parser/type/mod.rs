@@ -18,7 +18,8 @@ use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::Type;
 use crate::syntax::TypeBuilder;
-use crate::{Error, Identifier};
+use crate::Error;
+use crate::Identifier;
 
 #[derive(Default)]
 pub struct Parser {
@@ -26,18 +27,19 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Type, Error> {
-        let peek = stream.borrow_mut().peek();
-        match peek {
-            Some(Ok(Token {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<Type, Error> {
+        match match initial.take() {
+            Some(token) => token,
+            None => stream.borrow_mut().next()?,
+        } {
+            Token {
                 lexeme: Lexeme::Keyword(keyword),
                 location,
-            })) => match keyword {
+            } => match keyword {
                 keyword @ Keyword::Bool
                 | keyword @ Keyword::I { .. }
                 | keyword @ Keyword::U { .. }
                 | keyword @ Keyword::Field => {
-                    stream.borrow_mut().next();
                     self.builder.set_location(location);
                     self.builder.set_keyword(keyword);
                     Ok(self.builder.finish())
@@ -48,32 +50,27 @@ impl Parser {
                     Lexeme::Keyword(keyword),
                 ))),
             },
-            Some(Ok(Token {
+            Token {
                 lexeme: Lexeme::Identifier(identifier),
                 location,
-            })) => {
-                stream.borrow_mut().next();
+            } => {
                 self.builder.set_location(location);
                 self.builder
                     .set_alias_identifier(Identifier::new(location, identifier.name));
                 Ok(self.builder.finish())
             }
-            Some(Ok(Token {
+            token @ Token {
                 lexeme: Lexeme::Symbol(Symbol::BracketSquareLeft),
                 ..
-            })) => ArrayTypeParser::default().parse(stream.clone()),
-            Some(Ok(Token {
+            } => ArrayTypeParser::default().parse(stream.clone(), Some(token)),
+            token @ Token {
                 lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                 ..
-            })) => TupleTypeParser::default().parse(stream.clone()),
-            Some(Ok(Token { lexeme, location })) => Err(Error::Syntax(SyntaxError::Expected(
+            } => TupleTypeParser::default().parse(stream.clone(), Some(token)),
+            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
                 location,
                 vec!["{type}", "{identifier}", "(", "["],
                 lexeme,
-            ))),
-            Some(Err(error)) => Err(Error::Lexical(error)),
-            None => Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                stream.borrow().location(),
             ))),
         }
     }
@@ -231,7 +228,7 @@ mod tests {
     }
 
     #[test]
-    fn err_array_expected_semicolon() {
+    fn error_array_expected_semicolon() {
         let input = "[field, 8]";
 
         let expected = Err(Error::Syntax(SyntaxError::Expected(

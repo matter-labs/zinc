@@ -90,7 +90,7 @@ let mut c: u232 = 2 + 2;
 }
 
 #[test]
-fn err_unexpected_end() {
+fn error_unexpected_end() {
     use crate::Error as MainError;
 
     let input = "inputs";
@@ -105,7 +105,7 @@ fn err_unexpected_end() {
 }
 
 #[test]
-fn err_expected() {
+fn error_expected() {
     use crate::lexical::Lexeme;
     use crate::lexical::Symbol;
     use crate::Error as MainError;
@@ -125,7 +125,7 @@ fn err_expected() {
 }
 
 #[test]
-fn err_unexpected_expression_at_root() {
+fn error_unexpected_expression_at_root() {
     use crate::Error as MainError;
 
     let input = r#"
@@ -138,7 +138,7 @@ fn err_unexpected_expression_at_root() {
         Parser::parse(TokenStream::new(input.to_owned()));
 
     let expected: Result<CircuitProgram, MainError> = Err(MainError::Syntax(
-        Error::UnterminatedExpressionAtRoot(Location::new(4, 5)),
+        Error::ExpressionAtRoot(Location::new(4, 5)),
     ));
 
     assert_eq!(expected, result);

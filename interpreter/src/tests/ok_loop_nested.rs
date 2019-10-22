@@ -4,6 +4,8 @@
 
 #![cfg(test)]
 
+use parser::Parser;
+
 use crate::Interpreter;
 
 #[test]
@@ -11,7 +13,7 @@ fn test() {
     let input = r#"
 inputs {}
 
-let mut sum: u64 = 0;
+let mut sum = 0;
 
 for i in 0..=5 {
     sum = sum + i;
@@ -20,13 +22,16 @@ for i in 0..=5 {
     };
 };
 
-require(sum == 105 as u64);
+require(sum == 105);
 "#;
 
     let expected = Ok(());
 
-    let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+    let result = Interpreter::default().interpret(
+        Parser::default()
+            .parse(input.to_owned())
+            .expect("Syntax error"),
+    );
 
     assert_eq!(expected, result);
 }

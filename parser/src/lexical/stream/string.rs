@@ -73,7 +73,7 @@ mod tests {
     }
 
     #[test]
-    fn err_unexpected_end() {
+    fn error_unexpected_end() {
         let input = "\"some string";
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
@@ -81,7 +81,7 @@ mod tests {
     }
 
     #[test]
-    fn err_not_a_string() {
+    fn error_not_a_string() {
         let input = "no double quote here";
         let expected = Err(Error::NotAString);
         let result = parse(input);

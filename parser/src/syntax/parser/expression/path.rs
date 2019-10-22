@@ -38,16 +38,19 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Expression, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<(Expression, Option<Token>), Error> {
         loop {
             match self.state {
                 State::Identifier => {
-                    let next = stream.borrow_mut().next();
+                    let next = match initial.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    };
                     match next {
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
-                        })) => {
+                        } => {
                             self.builder.set_location_if_unset(location);
                             self.builder.push_operand(
                                 location,
@@ -61,33 +64,26 @@ impl Parser {
                             }
                             self.state = State::DoubleColonOrEnd;
                         }
-                        Some(Ok(Token { lexeme, location })) => {
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec!["{identifier}"],
                                 lexeme,
                             )));
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::DoubleColonOrEnd => {
-                    let peek = stream.borrow_mut().peek();
-                    match peek {
-                        Some(Ok(Token {
+                    let next = stream.borrow_mut().next()?;
+                    match next {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::DoubleColon),
                             location,
-                        })) => {
-                            stream.borrow_mut().next();
+                        } => {
                             self.operator = Some((location, ExpressionOperator::Path));
                             self.state = State::Identifier;
                         }
-                        _ => return Ok(self.builder.finish()),
+                        token => return Ok((self.builder.finish(), Some(token))),
                     }
                 }
             }

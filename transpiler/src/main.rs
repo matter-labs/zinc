@@ -10,6 +10,7 @@ use std::path::PathBuf;
 use failure::Fail;
 use structopt::StructOpt;
 
+use parser::Parser;
 use transpiler::Transpiler;
 
 #[derive(Debug, StructOpt)]
@@ -93,7 +94,7 @@ fn main() -> Result<(), Error> {
         .map_err(InputError::Reading)
         .map_err(Error::Input)?;
 
-    let circuit = parser::parse(input).map_err(|error| {
+    let circuit = Parser::default().parse(input).map_err(|error| {
         log::error!("{}", error);
         Error::Parser(error)
     })?;

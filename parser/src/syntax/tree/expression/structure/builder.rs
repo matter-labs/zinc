@@ -10,7 +10,7 @@ use crate::syntax::Expression;
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
-    path: Option<Expression>,
+    path_expression: Option<Expression>,
     fields: Vec<(Identifier, Option<Expression>)>,
 }
 
@@ -19,8 +19,8 @@ impl Builder {
         self.location = Some(value);
     }
 
-    pub fn set_path(&mut self, value: Expression) {
-        self.path = Some(value);
+    pub fn set_path_expression(&mut self, value: Expression) {
+        self.path_expression = Some(value);
     }
 
     pub fn push_field_identifier(&mut self, value: Identifier) {
@@ -33,9 +33,9 @@ impl Builder {
 
     pub fn finish(mut self) -> StructureExpression {
         StructureExpression::new(
-                self.location.expect("Missing location"),
-                self.path.take().expect("Missing path"),
-                self.fields
+            self.location.expect("Missing location"),
+            self.path_expression.take().expect("Missing path expression"),
+            self.fields
                     .into_iter()
                     .map(|(identifier, expression)| {
                         (identifier, expression.expect("Missing field expression"))

@@ -48,157 +48,137 @@ impl Default for State {
 pub struct Parser {
     state: State,
     statement: Option<Statement>,
+    next: Option<Token>,
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<(Statement, bool), Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<(Statement, Option<Token>, bool), Error> {
         loop {
             match self.state {
                 State::Statement => {
-                    let peek = stream.borrow_mut().peek();
-                    self.statement = Some(match peek {
-                        Some(Ok(Token {
+                    self.statement = Some(match match initial.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::Semicolon),
                             ..
-                        })) => {
-                            stream.borrow_mut().next();
-                            return Ok((Statement::Empty, false));
-                        }
-                        Some(Ok(Token {
+                        } => return Ok((Statement::Empty, None, false)),
+                        token @ Token {
                             lexeme: Lexeme::Keyword(Keyword::Require),
                             ..
-                        })) => {
-                            let result = RequireParser::default()
-                                .parse(stream.clone())
-                                .map(Statement::Require)?;
+                        } => {
+                            let statement = RequireParser::default()
+                                .parse(stream.clone(), Some(token))?;;
                             self.state = State::Semicolon;
-                            result
+                            Statement::Require(statement)
                         }
-                        Some(Ok(Token {
+                        token @ Token {
                             lexeme: Lexeme::Keyword(Keyword::Let),
                             ..
-                        })) => {
-                            let result = LetParser::default()
-                                .parse(stream.clone())
-                                .map(Statement::Let)?;
+                        } => {
+                            let (statement, next) = LetParser::default()
+                                .parse(stream.clone(), Some(token))?;
+                            self.next = next;
                             self.state = State::Semicolon;
-                            result
+                            Statement::Let(statement)
                         }
-                        Some(Ok(Token {
+                        token @ Token {
                             lexeme: Lexeme::Keyword(Keyword::For),
                             ..
-                        })) => {
-                            let result = LoopParser::default()
-                                .parse(stream.clone())
-                                .map(Statement::Loop)?;
+                        } => {
+                            let statement = LoopParser::default()
+                                .parse(stream.clone(), Some(token))?;
                             self.state = State::Semicolon;
-                            result
+                            Statement::Loop(statement)
                         }
-                        Some(Ok(Token {
+                        token @ Token {
                             lexeme: Lexeme::Keyword(Keyword::Type),
                             ..
-                        })) => {
-                            let result = TypeParser::default()
-                                .parse(stream.clone())
-                                .map(Statement::Type)?;
+                        } => {
+                            let statement = TypeParser::default()
+                                .parse(stream.clone(), Some(token))?;
                             self.state = State::Semicolon;
-                            result
+                            Statement::Type(statement)
                         }
-                        Some(Ok(Token {
+                        token @ Token {
                             lexeme: Lexeme::Keyword(Keyword::Struct),
                             ..
-                        })) => {
-                            let result = StructParser::default()
-                                .parse(stream.clone())
-                                .map(Statement::Struct)?;
+                        } => {
+                            let (statement, next) = StructParser::default().parse(stream.clone(), Some(token))?;
+                            self.next = next;
                             self.state = State::Semicolon;
-                            result
+                            Statement::Struct(statement)
                         }
-                        Some(Ok(Token {
+                        token @ Token {
                             lexeme: Lexeme::Keyword(Keyword::Enum),
                             ..
-                        })) => {
-                            let result = EnumParser::default()
-                                .parse(stream.clone())
-                                .map(Statement::Enum)?;
+                        } => {
+                            let (statement, next) = EnumParser::default()
+                                .parse(stream.clone(), Some(token))?;
+                            self.next = next;
                             self.state = State::Semicolon;
-                            result
+                            Statement::Enum(statement)
                         }
-                        Some(Ok(Token {
+                        token @ Token {
                             lexeme: Lexeme::Keyword(Keyword::Debug),
                             ..
-                        })) => {
-                            let result = DebugParser::default()
-                                .parse(stream.clone())
-                                .map(Statement::Debug)?;
+                        } => {
+                            let statement = DebugParser::default()
+                                .parse(stream.clone(), Some(token))?;
                             self.state = State::Semicolon;
-                            result
+                            Statement::Debug(statement)
                         }
-                        Some(Ok(..)) => {
-                            let result = ExpressionParser::default().parse(stream.clone())?;
+                        token => {
+                            let (expression, next) = ExpressionParser::default().parse(stream.clone(), Some(token))?;
+                            self.next = next;
                             self.state = State::SemicolonOptional;
-                            Statement::Expression(result)
-                        }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
+                            Statement::Expression(expression)
                         }
                     });
                 }
                 State::Semicolon => {
-                    let next = stream.borrow_mut().next();
-                    match next {
-                        Some(Ok(Token {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::Semicolon),
                             ..
-                        })) => {
+                        } => {
                             return Ok((
                                 self.statement.take().expect("Always contains a value"),
+                                None,
                                 false,
                             ))
                         }
-                        Some(Ok(Token { lexeme, location })) => {
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec![";"],
                                 lexeme,
                             )));
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::SemicolonOptional => {
-                    let peek = stream.borrow_mut().peek();
-                    match peek {
-                        Some(Ok(Token {
+                    match self.next.take().expect("Always contains a value") {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::Semicolon),
                             ..
-                        })) => {
-                            stream.borrow_mut().next();
+                        } => {
                             return Ok((
                                 self.statement.take().expect("Always contains a value"),
+                                None,
                                 false,
                             ));
                         }
-                        Some(Ok(..)) => {
+                        token => {
                             return Ok((
                                 self.statement.take().expect("Always contains a value"),
+                                Some(token),
                                 true,
                             ));
-                        }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Ok((
-                                self.statement.take().expect("Always contains a value"),
-                                true,
-                            ))
                         }
                     }
                 }

@@ -40,15 +40,15 @@ impl Scope {
     ) -> Result<Variable, Error> {
         if let Some(variable) = self.variables.get(identifier) {
             let mut type_variant = &variable.type_variant;
-            for descriptor in descriptors.iter() {
+            for descriptor in descriptors.into_iter() {
                 type_variant = match type_variant {
                     TypeVariant::Array { type_variant, size } => {
                         let index = match descriptor {
-                            Descriptor::Array(index) => *index,
+                            Descriptor::Array(index) => index,
                             Descriptor::Tuple(index) => {
                                 return Err(Error::AddressArrayAsTuple(
                                     identifier.to_owned(),
-                                    *index,
+                                    index,
                                 ));
                             }
                             Descriptor::Structure(field) => {
@@ -59,7 +59,7 @@ impl Scope {
                             }
                         };
 
-                        if index >= *size {
+                        if index >= size.into() {
                             return Err(Error::ArrayIndexOutOfRange(index, identifier.to_owned()));
                         }
 
@@ -70,10 +70,10 @@ impl Scope {
                             Descriptor::Array(index) => {
                                 return Err(Error::AccessTupleAsArray(
                                     identifier.to_owned(),
-                                    *index,
+                                    index,
                                 ));
                             }
-                            Descriptor::Tuple(field) => *field,
+                            Descriptor::Tuple(field) => field,
                             Descriptor::Structure(field) => {
                                 return Err(Error::AccessTupleAsStructure(
                                     identifier.to_owned(),
@@ -93,13 +93,13 @@ impl Scope {
                             Descriptor::Array(index) => {
                                 return Err(Error::AccessStructureAsArray(
                                     identifier.to_owned(),
-                                    *index,
+                                    index,
                                 ));
                             }
                             Descriptor::Tuple(index) => {
                                 return Err(Error::AccessStructureAsTuple(
                                     identifier.to_owned(),
-                                    *index,
+                                    index,
                                 ));
                             }
                             Descriptor::Structure(identifier) => identifier,

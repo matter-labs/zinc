@@ -37,40 +37,48 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::lexical::TokenStream;
+use crate::lexical::Token;
+use crate::lexical::Lexeme;
 use crate::syntax::CircuitProgram;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::Statement;
 use crate::Error;
 
-pub struct Parser {}
+#[derive(Default)]
+pub struct Parser {
+    next: Option<Token>,
+}
 
 impl Parser {
-    pub fn parse(stream: TokenStream) -> Result<CircuitProgram, Error> {
+    pub fn parse(mut self, input: String) -> Result<CircuitProgram, Error> {
+        let stream = TokenStream::new(input);
         let stream = Rc::new(RefCell::new(stream));
 
         let inputs = InputsParser::default().parse(stream.clone())?;
-        let witnesses = WitnessesParser::default().parse(stream.clone())?;
+        let (witnesses, next) = WitnessesParser::default().parse(stream.clone())?;
+        self.next = next;
 
         let mut statements = Vec::new();
         loop {
-            let peek = stream.borrow_mut().peek();
-            match peek {
-                Some(Ok(token)) => {
-                    let (statement, is_unterminated) =
-                        StatementParser::default().parse(stream.clone())?;
-                    if let Statement::Expression(..) = statement {
+            match match self.next.take() {
+                Some(token) => token,
+                None => stream.borrow_mut().next()?,
+            } {
+                Token { lexeme: Lexeme::Eof, .. } => break,
+                token => {
+                    let (statement, next, is_unterminated) =
+                        StatementParser::default().parse(stream.clone(), Some(token))?;
+                    self.next = next;
+                    if let Statement::Expression(ref expression) = statement {
                         if is_unterminated {
-                            return Err(Error::Syntax(SyntaxError::UnterminatedExpressionAtRoot(
-                                token.location,
+                            return Err(Error::Syntax(SyntaxError::ExpressionAtRoot(
+                                expression.location,
                             )));
                         }
                     }
-
                     log::trace!("Statement: {:?}", statement);
                     statements.push(statement);
                 }
-                Some(Err(error)) => return Err(Error::Lexical(error)),
-                None => break,
             }
         }
 

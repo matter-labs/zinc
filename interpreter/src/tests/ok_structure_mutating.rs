@@ -4,6 +4,8 @@
 
 #![cfg(test)]
 
+use parser::Parser;
+
 use crate::Interpreter;
 
 #[test]
@@ -33,8 +35,11 @@ require(test.z == 9);
 
     let expected = Ok(());
 
-    let result =
-        Interpreter::default().interpret(parser::parse(input.to_owned()).expect("Syntax error"));
+    let result = Interpreter::default().interpret(
+        Parser::default()
+            .parse(input.to_owned())
+            .expect("Syntax error"),
+    );
 
     assert_eq!(expected, result);
 }

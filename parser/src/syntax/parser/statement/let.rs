@@ -42,150 +42,122 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<LetStatement, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<(LetStatement, Option<Token>), Error> {
         loop {
             match self.state {
                 State::KeywordLet => {
-                    let next = stream.borrow_mut().next();
-                    match next {
-                        Some(Ok(Token {
+                    match match initial.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
+                        Token {
                             lexeme: Lexeme::Keyword(Keyword::Let),
                             location,
-                        })) => {
+                        } => {
                             self.builder.set_location(location);
                             self.state = State::MutOrIdentifier;
                         }
-                        Some(Ok(Token { lexeme, location })) => {
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec!["let"],
                                 lexeme,
                             )));
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::MutOrIdentifier => {
-                    let next = stream.borrow_mut().next();
+                    let next = stream.borrow_mut().next()?;
                     match next {
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Keyword(Keyword::Mut),
                             ..
-                        })) => {
+                        } => {
                             self.builder.set_mutable();
                             self.state = State::Identifier;
                         }
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
-                        })) => {
+                        } => {
                             let identifier = Identifier::new(location, identifier.name);
                             self.builder.set_identifier(identifier);
                             self.state = State::ColonOrEquals;
                         }
-                        Some(Ok(Token { lexeme, location })) => {
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec!["mut", "{identifier}"],
                                 lexeme,
                             )));
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::Identifier => {
-                    let next = stream.borrow_mut().next();
+                    let next = stream.borrow_mut().next()?;
                     match next {
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
-                        })) => {
+                        } => {
                             let identifier = Identifier::new(location, identifier.name);
                             self.builder.set_identifier(identifier);
                             self.state = State::ColonOrEquals;
                         }
-                        Some(Ok(Token { lexeme, location })) => {
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec!["{identifier}"],
                                 lexeme,
                             )));
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::ColonOrEquals => {
-                    let next = stream.borrow_mut().next();
+                    let next = stream.borrow_mut().next()?;
                     match next {
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::Colon),
                             ..
-                        })) => self.state = State::Type,
-                        Some(Ok(Token {
+                        } => self.state = State::Type,
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::Equals),
                             ..
-                        })) => self.state = State::Expression,
-                        Some(Ok(Token { lexeme, location })) => {
+                        } => self.state = State::Expression,
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec![":", "="],
                                 lexeme,
                             )));
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::Type => {
-                    let r#type = TypeParser::default().parse(stream.clone())?;
+                    let r#type = TypeParser::default().parse(stream.clone(), None)?;
                     self.builder.set_type(r#type);
                     self.state = State::Equals;
                 }
                 State::Equals => {
-                    let next = stream.borrow_mut().next();
+                    let next = stream.borrow_mut().next()?;
                     match next {
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::Equals),
                             ..
-                        })) => self.state = State::Expression,
-                        Some(Ok(Token { lexeme, location })) => {
+                        } => self.state = State::Expression,
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec!["="],
                                 lexeme,
                             )));
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::Expression => {
-                    let expression = ExpressionParser::default().parse(stream.clone())?;
+                    let (expression, next) = ExpressionParser::default().parse(stream.clone(), None)?;
                     self.builder.set_expression(expression);
-                    return Ok(self.builder.finish());
+                    return Ok((self.builder.finish(), next));
                 }
             }
         }
@@ -274,7 +246,7 @@ mod tests {
     }
 
     #[test]
-    fn err_no_value() {
+    fn error_no_value() {
         let input = r#"let a;"#;
 
         let expected = Err(Error::Syntax(SyntaxError::Expected(

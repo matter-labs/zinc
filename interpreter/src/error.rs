@@ -7,6 +7,7 @@ use failure::Fail;
 use parser::Literal;
 use parser::Location;
 use parser::TypeVariant;
+use semantic::InferenceError;
 
 use crate::element::ArrayError;
 use crate::element::Error as ElementError;
@@ -22,6 +23,8 @@ pub enum Error {
     Element(Location, ElementError),
     #[fail(display = "{} scope: {}", _0, _1)]
     Scope(Location, ScopeError),
+    #[fail(display = "{} bitlength inference: {}", _0, _1)]
+    BitlengthInference(Location, InferenceError),
     #[fail(display = "{} literal cannot be evaluated: {}", _0, _1)]
     LiteralCannotBeEvaluated(Location, Literal),
     #[fail(display = "{} array literal: {}", _0, _1)]

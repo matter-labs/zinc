@@ -36,100 +36,85 @@ impl Default for State {
 pub struct Parser {
     state: State,
     builder: ConditionalExpressionBuilder,
+    next: Option<Token>,
 }
 
 impl Parser {
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
-    ) -> Result<ConditionalExpression, Error> {
+        mut initial: Option<Token>,
+    ) -> Result<(ConditionalExpression, Option<Token>), Error> {
         loop {
             match self.state {
                 State::KeywordIf => {
-                    let next = stream.borrow_mut().next();
+                    let next = match initial.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    };
                     match next {
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Keyword(Keyword::If),
                             location,
-                        })) => {
+                        } => {
                             self.builder.set_location(location);
                             self.state = State::Condition;
                         }
-                        Some(Ok(Token { lexeme, location })) => {
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec!["if"],
                                 lexeme,
                             )));
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::Condition => {
-                    let expression = ExpressionParser::default().parse(stream.clone())?;
+                    let (expression, next) = ExpressionParser::default().parse(stream.clone(), None)?;
+                    self.next = next;
                     self.builder.set_condition(expression);
                     self.state = State::MainBlock;
                 }
                 State::MainBlock => {
-                    let block = BlockExpressionParser::default().parse(stream.clone())?;
+                    let block = BlockExpressionParser::default().parse(stream.clone(), self.next.take())?;
                     self.builder.set_main_block(block);
                     self.state = State::ElseKeywordOrEnd;
                 }
                 State::ElseKeywordOrEnd => {
-                    let peek = stream.borrow_mut().peek();
-                    match peek {
-                        Some(Ok(Token {
+                    let next = stream.borrow_mut().next()?;
+                    match next {
+                        Token {
                             lexeme: Lexeme::Keyword(Keyword::Else),
                             ..
-                        })) => {
-                            stream.borrow_mut().next();
-                            self.state = State::KeywordIfOrElseBlock;
-                        }
-                        Some(Ok(..)) => return Ok(self.builder.finish()),
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
+                        } => self.state = State::KeywordIfOrElseBlock,
+                        token => return Ok((self.builder.finish(), Some(token))),
                     }
                 }
                 State::KeywordIfOrElseBlock => {
-                    let peek = stream.borrow_mut().peek();
-                    match peek {
-                        Some(Ok(Token {
+                    let next = stream.borrow_mut().next()?;
+                    match next {
+                        token @ Token {
                             lexeme: Lexeme::Keyword(Keyword::If),
                             ..
-                        })) => {
-                            let conditional = Self::default().parse(stream.clone())?;
-                            self.builder.set_else_if(conditional);
-                            return Ok(self.builder.finish());
+                        } => {
+                            let (expression, next) = Self::default().parse(stream.clone(), Some(token))?;
+                            self.builder.set_else_if(expression);
+                            return Ok((self.builder.finish(), next));
                         }
-                        Some(Ok(Token {
+                        token @ Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
-                        })) => {
-                            let block = BlockExpressionParser::default().parse(stream.clone())?;
+                        } => {
+                            let block = BlockExpressionParser::default().parse(stream.clone(), Some(token))?;
                             self.builder.set_else_block(block);
-                            return Ok(self.builder.finish());
+                            return Ok((self.builder.finish(), None));
                         }
-                        Some(Ok(Token { lexeme, location })) => {
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec!["if", "{"],
                                 lexeme,
                             )));
-                        }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
                         }
                     }
                 }

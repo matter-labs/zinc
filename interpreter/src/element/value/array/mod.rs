@@ -8,6 +8,7 @@ pub use self::error::Error;
 
 use std::fmt;
 
+use parser::IntegerLiteral;
 use parser::TypeVariant;
 
 use crate::element::Value;
@@ -40,7 +41,10 @@ impl Array {
     }
 
     pub fn type_variant(&self) -> TypeVariant {
-        TypeVariant::new_array(self.type_variant.clone(), self.elements.len())
+        TypeVariant::new_array(
+            self.type_variant.clone(),
+            IntegerLiteral::new_decimal(self.elements.len().to_string()),
+        )
     }
 
     pub fn push(&mut self, value: Value) -> Result<(), Error> {

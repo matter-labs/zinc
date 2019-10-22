@@ -15,7 +15,7 @@ pub fn validate(from: &TypeVariant, to: &TypeVariant) -> Result<(), Error> {
             TypeVariant::IntegerUnsigned { bitlength: b2 },
         ) => {
             let (b1, b2) = (*b1, *b2);
-            if b1 >= crate::BITLENGTH_FIELD_PADDED - crate::BITLENGTH_BYTE || b1 >= b2 {
+            if b1 >= crate::BITLENGTH_FIELD_PADDED - crate::BITLENGTH_BYTE || b1 > b2 {
                 Err(Error::DataLossPossible(b1, b2))
             } else {
                 Ok(())
@@ -26,7 +26,7 @@ pub fn validate(from: &TypeVariant, to: &TypeVariant) -> Result<(), Error> {
             TypeVariant::IntegerSigned { bitlength: b2 },
         ) => {
             let (b1, b2) = (*b1, *b2);
-            if b1 >= crate::BITLENGTH_FIELD_PADDED - crate::BITLENGTH_BYTE || b1 >= b2 {
+            if b1 >= crate::BITLENGTH_FIELD_PADDED - crate::BITLENGTH_BYTE || b1 > b2 {
                 Err(Error::DataLossPossible(b1, b2))
             } else {
                 Ok(())
@@ -41,7 +41,7 @@ pub fn validate(from: &TypeVariant, to: &TypeVariant) -> Result<(), Error> {
             TypeVariant::IntegerSigned { bitlength: b2 },
         ) => {
             let (b1, b2) = (*b1, *b2);
-            if b1 >= crate::BITLENGTH_FIELD_PADDED - crate::BITLENGTH_BYTE || b1 >= b2 {
+            if b1 >= crate::BITLENGTH_FIELD_PADDED - crate::BITLENGTH_BYTE || b1 > b2 {
                 Err(Error::DataLossPossible(b1, b2))
             } else {
                 Ok(())
@@ -52,7 +52,7 @@ pub fn validate(from: &TypeVariant, to: &TypeVariant) -> Result<(), Error> {
             TypeVariant::IntegerUnsigned { bitlength: b2 },
         ) => {
             let (b1, b2) = (*b1, *b2);
-            if b1 >= crate::BITLENGTH_FIELD_PADDED - crate::BITLENGTH_BYTE || b1 >= b2 {
+            if b1 >= crate::BITLENGTH_FIELD_PADDED - crate::BITLENGTH_BYTE || b1 > b2 {
                 Err(Error::DataLossPossible(b1, b2))
             } else {
                 Ok(())

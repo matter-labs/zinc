@@ -8,6 +8,7 @@ mod inference;
 pub use self::casting::validate as validate_casting;
 pub use self::casting::Error as CastingError;
 pub use self::inference::integer_literal as infer_integer_literal;
+pub use self::inference::enough_bitlength as infer_enough_bitlength;
 pub use self::inference::Error as InferenceError;
 
 pub const BASE_DECIMAL: usize = 10;

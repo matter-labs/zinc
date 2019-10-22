@@ -70,8 +70,7 @@ impl Builder {
                 _ => panic!("Always checked by the branches above"),
             }
         } else if let Some(array_type) = self.array_type_variant.take() {
-            let array_size: usize = self.array_size.take().expect("Missing array size").into();
-            TypeVariant::new_array(array_type, array_size)
+            TypeVariant::new_array(array_type, self.array_size.take().expect("Missing array size"))
         } else if !self.tuple_types.is_empty() {
             if !self.tuple_has_comma {
                 self.tuple_types.pop().expect("Always contains an element")

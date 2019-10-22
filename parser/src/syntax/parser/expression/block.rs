@@ -33,50 +33,45 @@ impl Default for State {
 pub struct Parser {
     state: State,
     builder: BlockExpressionBuilder,
+    next: Option<Token>,
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<BlockExpression, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<BlockExpression, Error> {
         loop {
             match self.state {
                 State::BracketCurlyLeft => {
-                    let next = stream.borrow_mut().next();
-                    match next {
-                        Some(Ok(Token {
+                    match match initial.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             location,
-                        })) => {
+                        } => {
                             self.builder.set_location(location);
                             self.state = State::StatementOrBracketCurlyRight;
                         }
-                        Some(Ok(Token { lexeme, location })) => {
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec!["{"],
                                 lexeme,
                             )));
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::StatementOrBracketCurlyRight => {
-                    let peek = stream.borrow_mut().peek();
-                    match peek {
-                        Some(Ok(Token {
+                    let next = stream.borrow_mut().next()?;
+                    match next {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
-                        })) => {
-                            stream.borrow_mut().next();
-                            return Ok(self.builder.finish());
-                        }
-                        Some(Ok(..)) => {
-                            let (statement, is_unterminated) =
-                                StatementParser::default().parse(stream.clone())?;
+                        } => return Ok(self.builder.finish()),
+                        token => {
+                            let (statement, next, is_unterminated) =
+                                StatementParser::default().parse(stream.clone(), Some(token))?;
+                            self.next = next;
                             match statement {
                                 Statement::Expression(expression) => {
                                     if is_unterminated {
@@ -90,33 +85,23 @@ impl Parser {
                                 statement => self.builder.push_statement(statement),
                             }
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::BracketCurlyRight => {
-                    let next = stream.borrow_mut().next();
-                    match next {
-                        Some(Ok(Token {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
-                        })) => return Ok(self.builder.finish()),
-                        Some(Ok(Token { lexeme, location })) => {
+                        } => return Ok(self.builder.finish()),
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec!["}"],
                                 lexeme,
                             )));
-                        }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
                         }
                     }
                 }

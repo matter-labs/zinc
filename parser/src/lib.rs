@@ -31,12 +31,6 @@ pub use self::syntax::Type;
 pub use self::syntax::TypeStatement;
 pub use self::syntax::TypeVariant;
 pub use self::syntax::Witness;
-
-use self::lexical::TokenStream;
-use self::syntax::Parser;
+pub use self::syntax::Parser;
 
 pub const BITLENGTH_FIELD: usize = 254;
-
-pub fn parse(input: String) -> Result<CircuitProgram, Error> {
-    Parser::parse(TokenStream::new(input))
-}

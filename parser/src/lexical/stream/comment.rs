@@ -103,7 +103,7 @@ mod tests {
     use crate::lexical::Comment;
 
     #[test]
-    fn single_line_ok() {
+    fn ok_single_line() {
         let input = "//mega ultra comment text\n";
         let expected = Ok((
             25,
@@ -116,15 +116,7 @@ mod tests {
     }
 
     #[test]
-    fn single_line_err_unexpected_end() {
-        let input = "//mega ultra comment text";
-        let expected = Err(Error::UnexpectedEnd);
-        let result = parse(input);
-        assert_eq!(expected, result);
-    }
-
-    #[test]
-    fn multi_line_ok() {
+    fn ok_multi_line() {
         let input = r#"/*
     This is the mega ultra test application!
 */"#;
@@ -139,7 +131,15 @@ mod tests {
     }
 
     #[test]
-    fn multi_line_err_unexpected_end() {
+    fn error_single_line_unexpected_end() {
+        let input = "//mega ultra comment text";
+        let expected = Err(Error::UnexpectedEnd);
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn error_multi_line_unexpected_end() {
         let input = r#"/* This is the mega ultra test application!"#;
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
@@ -147,7 +147,7 @@ mod tests {
     }
 
     #[test]
-    fn err_not_a_comment() {
+    fn error_not_a_comment() {
         let input = "not a comment text";
         let expected = Err(Error::NotAComment);
         let result = parse(input);
@@ -155,7 +155,7 @@ mod tests {
     }
 
     #[test]
-    fn err_not_a_comment_one_slash() {
+    fn error_not_a_comment_one_slash() {
         let input = "/almost a comment text";
         let expected = Err(Error::NotAComment);
         let result = parse(input);

@@ -35,83 +35,66 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Type, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<Type, Error> {
         loop {
             match self.state {
                 State::ParenthesisLeft => {
-                    let next = stream.borrow_mut().next();
-                    match next {
-                        Some(Ok(Token {
+                    match match initial.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                             location,
-                        })) => {
+                        } => {
                             self.builder.set_location(location);
                             self.state = State::TypeOrParenthesisRight;
                         }
-                        Some(Ok(Token { lexeme, location })) => {
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec!["("],
                                 lexeme,
                             )))
                         }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
-                        }
                     }
                 }
                 State::TypeOrParenthesisRight => {
-                    let peek = stream.borrow_mut().peek();
-                    match peek {
-                        Some(Ok(Token {
+                    let next = stream.borrow_mut().next()?;
+                    match next {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                             ..
-                        })) => {
-                            stream.borrow_mut().next();
+                        } => {
                             self.builder.set_unit_if_empty();
                             return Ok(self.builder.finish());
                         }
-                        Some(Ok(..)) => {
-                            let array_type = TypeParser::default().parse(stream.clone())?;
+                        token => {
+                            let array_type = TypeParser::default().parse(stream.clone(), Some(token))?;
                             self.builder.push_tuple_type(array_type.variant);
                             self.state = State::CommaOrParenthesisRight;
-                        }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
-                            )))
                         }
                     }
                 }
                 State::CommaOrParenthesisRight => {
-                    let next = stream.borrow_mut().next();
+                    let next = stream.borrow_mut().next()?;
                     match next {
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
-                        })) => {
+                        } => {
                             self.builder.set_tuple_comma();
                             self.state = State::TypeOrParenthesisRight;
                         }
-                        Some(Ok(Token {
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                             ..
-                        })) => return Ok(self.builder.finish()),
-                        Some(Ok(Token { lexeme, location })) => {
+                        } => return Ok(self.builder.finish()),
+                        Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
                                 vec![",", ")"],
                                 lexeme,
-                            )))
-                        }
-                        Some(Err(error)) => return Err(Error::Lexical(error)),
-                        None => {
-                            return Err(Error::Syntax(SyntaxError::UnexpectedEnd(
-                                stream.borrow().location(),
                             )))
                         }
                     }

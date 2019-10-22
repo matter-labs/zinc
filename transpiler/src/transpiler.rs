@@ -17,6 +17,7 @@ use parser::Statement;
 use parser::StructureExpression;
 use parser::TupleExpression;
 use parser::TypeVariant;
+use parser::IntegerLiteral;
 
 use crate::element::Descriptor;
 use crate::element::Element;
@@ -86,7 +87,7 @@ impl Default for Transpiler {
     fn default() -> Self {
         Self {
             writer: Default::default(),
-            scope: Default::default(),
+            scope: Scope::new(None),
             rpn_stack: Default::default(),
             loop_stack: Vec::with_capacity(16),
             id_sequence: Default::default(),
@@ -176,8 +177,8 @@ impl Transpiler {
             Statement::Loop(r#loop) => {
                 let output = LoopStatementForOutput::output(
                     r#loop.index_identifier.name.clone(),
-                    r#loop.range_start,
-                    r#loop.range_end,
+                    r#loop.range_start.into(),
+                    r#loop.range_end.into(),
                     r#loop.is_range_inclusive,
                 );
                 self.writer.write_line(output.start);
@@ -274,7 +275,7 @@ impl Transpiler {
                                 .variants
                                 .clone()
                                 .into_iter()
-                                .map(|(identifier, value)| (identifier.name, value.into()))
+                                .map(|(identifier, value)| (identifier.name, value))
                                 .collect(),
                         ),
                     )
@@ -1101,7 +1102,7 @@ impl Transpiler {
             elements.push(element);
         }
         let identifier = self.next_id();
-        let type_variant = TypeVariant::new_array(type_variant, elements.len());
+        let type_variant = TypeVariant::new_array(type_variant, IntegerLiteral::new_decimal(elements.len().to_string()));
         self.writer
             .write_line(ArrayOutput::output(identifier.clone(), elements));
 

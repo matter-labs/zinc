@@ -169,7 +169,7 @@ require(array_double[3][1] == 255);
     A nested loop
 */
 
-let mut sum: u64 = 0;
+let mut sum = 0;
 
 for i in 0..=5 {
     sum = sum + i;
@@ -178,7 +178,7 @@ for i in 0..=5 {
     };
 };
 
-require(sum == 105 as u64, "line_178_error_msg");
+require(sum == 105, "line_178_error_msg");
 
 // The loop range bounds are of type u64 by default
 // to keep compatibility with the Rust inner usize type.
@@ -191,12 +191,12 @@ require(sum == 105 as u64, "line_178_error_msg");
     circuit loops must always have fixed size.
 */
 
-let mut s: u64 = 0;
-for k in 0..20 while k < 10 as u64 {
+let mut s = 0;
+for k in 0..20 while k < 10 {
     s = s + k;
 };
 
-require(s == 55 as u64);
+require(s == 55);
 
 /*
     Conditionals

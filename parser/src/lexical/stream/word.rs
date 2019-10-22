@@ -68,6 +68,7 @@ pub fn parse(input: &str) -> Result<(usize, Lexeme), Error> {
 mod tests {
     use super::parse;
     use super::Error;
+    use crate::lexical::Symbol;
     use crate::lexical::BooleanLiteral;
     use crate::lexical::Identifier;
     use crate::lexical::Keyword;
@@ -75,7 +76,7 @@ mod tests {
     use crate::lexical::Literal;
 
     #[test]
-    fn identifier_ok() {
+    fn ok_identifier() {
         let input = "xyz";
         let expected = Ok((
             input.len(),
@@ -86,7 +87,7 @@ mod tests {
     }
 
     #[test]
-    fn identifier_below_field_range_ok() {
+    fn ok_identifier_below_field_range() {
         let input = "u0";
         let expected = Ok((
             input.len(),
@@ -97,7 +98,7 @@ mod tests {
     }
 
     #[test]
-    fn identifier_above_field_range_ok() {
+    fn ok_identifier_above_field_range() {
         let input = "u256";
         let expected = Ok((
             input.len(),
@@ -108,7 +109,7 @@ mod tests {
     }
 
     #[test]
-    fn identifier_invalid_modulo_ok() {
+    fn ok_identifier_invalid_modulo() {
         let input = "u119";
         let expected = Ok((
             input.len(),
@@ -119,7 +120,7 @@ mod tests {
     }
 
     #[test]
-    fn keyword_ok() {
+    fn ok_keyword() {
         let input = "require";
         let expected = Ok((input.len(), Lexeme::Keyword(Keyword::Require)));
         let result = parse(input);
@@ -127,7 +128,7 @@ mod tests {
     }
 
     #[test]
-    fn keyword_signed_integer_min_ok() {
+    fn ok_keyword_signed_integer_min() {
         let input = "i8";
         let expected = Ok((input.len(), Lexeme::Keyword(Keyword::new_integer_signed(8))));
         let result = parse(input);
@@ -135,7 +136,7 @@ mod tests {
     }
 
     #[test]
-    fn keyword_unsigned_integer_max_ok() {
+    fn ok_keyword_unsigned_integer_max() {
         let input = "u248";
         let expected = Ok((
             input.len(),
@@ -146,7 +147,7 @@ mod tests {
     }
 
     #[test]
-    fn literal_boolean_ok() {
+    fn ok_literal_boolean() {
         let input = "true";
         let expected = Ok((
             input.len(),
@@ -157,7 +158,18 @@ mod tests {
     }
 
     #[test]
-    fn err_empty_identifier() {
+    fn ok_symbol_underscore() {
+        let input = "_";
+        let expected = Ok((
+            input.len(),
+            Lexeme::Symbol(Symbol::Underscore),
+        ));
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn error_empty_identifier() {
         let input = "";
         let expected = Err(Error::EmptyIdentifier);
         let result = parse(input);

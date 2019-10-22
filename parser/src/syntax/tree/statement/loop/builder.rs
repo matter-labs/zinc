@@ -55,8 +55,8 @@ impl Builder {
             self.index_identifier
                 .take()
                 .expect("Missing index identifier"),
-            self.range_start.take().expect("Missing range start").into(),
-            self.range_end.take().expect("Missing range end").into(),
+            self.range_start.take().expect("Missing range start"),
+            self.range_end.take().expect("Missing range end"),
             self.is_range_inclusive,
             self.while_condition.take(),
             self.block.take().expect("Missing block"),
