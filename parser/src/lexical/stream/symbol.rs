@@ -14,6 +14,7 @@ pub enum State {
     Exclamation,
     Lesser,
     Greater,
+    Minus,
     Dot,
     Colon,
     DoubleDot,
@@ -50,12 +51,15 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                 ',' => return Ok((size + 1, Symbol::Comma)),
 
                 '+' => return Ok((size + 1, Symbol::Plus)),
-                '-' => return Ok((size + 1, Symbol::Minus)),
                 '*' => return Ok((size + 1, Symbol::Asterisk)),
                 '/' => return Ok((size + 1, Symbol::Slash)),
                 '%' => return Ok((size + 1, Symbol::Percent)),
                 '\\' => return Ok((size + 1, Symbol::Backslash)),
 
+                '-' => {
+                    size += 1;
+                    state = State::Minus;
+                }
                 '.' => {
                     size += 1;
                     state = State::Dot;
@@ -111,6 +115,10 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
             State::Greater => match character {
                 '=' => return Ok((size + 1, Symbol::GreaterThanEquals)),
                 _ => return Ok((size, Symbol::GreaterThan)),
+            },
+            State::Minus => match character {
+                '>' => return Ok((size + 1, Symbol::MinusGreater)),
+                _ => return Ok((size, Symbol::Minus)),
             },
             State::Dot => match character {
                 '.' => {

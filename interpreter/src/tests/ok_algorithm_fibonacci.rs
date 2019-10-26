@@ -11,19 +11,19 @@ use crate::Interpreter;
 #[test]
 fn test() {
     let input = r#"
-inputs {}
+input {}
 
 let mut value_1: field = 0;
 let mut value_2: field = 1;
 let mut fibo = value_1;
 
-for i in 1..=6 {
+for i in 1..=10 {
     fibo = value_1 + value_2;
     value_1 = value_2;
     value_2 = fibo;
 };
 
-require(fibo == 13 as field);
+require(fibo == 89 as field);
 "#;
 
     let expected = Ok(());

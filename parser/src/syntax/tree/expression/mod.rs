@@ -7,12 +7,12 @@ mod block;
 mod builder;
 mod conditional;
 mod element;
+mod r#match;
 mod object;
 mod operand;
 mod operator;
 mod structure;
 mod tuple;
-mod r#match;
 
 pub use self::array::Builder as ArrayExpressionBuilder;
 pub use self::array::Expression as ArrayExpression;
@@ -30,12 +30,12 @@ pub use self::operand::Operand as ExpressionOperand;
 pub use self::operand::Operand;
 pub use self::operator::Operator as ExpressionOperator;
 pub use self::operator::Operator;
+pub use self::r#match::Builder as MatchExpressionBuilder;
+pub use self::r#match::Expression as MatchExpression;
 pub use self::structure::Builder as StructureExpressionBuilder;
 pub use self::structure::Expression as StructureExpression;
 pub use self::tuple::Builder as TupleExpressionBuilder;
 pub use self::tuple::Expression as TupleExpression;
-pub use self::r#match::Builder as MatchExpressionBuilder;
-pub use self::r#match::Expression as MatchExpression;
 
 use std::fmt;
 

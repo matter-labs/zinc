@@ -8,23 +8,19 @@ pub use self::builder::Builder;
 
 use std::fmt;
 
-use crate::lexical::IntegerLiteral;
 use crate::lexical::Location;
 use crate::syntax::Identifier;
+use crate::syntax::Variant;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Enum {
     pub location: Location,
     pub identifier: Identifier,
-    pub variants: Vec<(Identifier, IntegerLiteral)>,
+    pub variants: Vec<Variant>,
 }
 
 impl Enum {
-    pub fn new(
-        location: Location,
-        identifier: Identifier,
-        variants: Vec<(Identifier, IntegerLiteral)>,
-    ) -> Self {
+    pub fn new(location: Location, identifier: Identifier, variants: Vec<Variant>) -> Self {
         Self {
             location,
             identifier,
@@ -41,7 +37,7 @@ impl fmt::Display for Enum {
             self.identifier,
             self.variants
                 .iter()
-                .map(|(identifier, value)| format!("{}: {}", identifier, value))
+                .map(|variant| variant.to_string())
                 .collect::<Vec<String>>()
                 .join(", ")
         )

@@ -7,6 +7,7 @@ use std::fmt;
 
 use serde_derive::Serialize;
 
+use crate::BlockExpression;
 use crate::IntegerLiteral;
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
@@ -34,6 +35,12 @@ pub enum Variant {
     },
     Enumeration {
         variants: BTreeMap<String, IntegerLiteral>,
+    },
+    Function {
+        arguments: Vec<(String, Self)>,
+        return_type: Box<Self>,
+        #[serde(skip_serializing)]
+        body: BlockExpression,
     },
     Alias {
         identifier: String,
@@ -86,8 +93,22 @@ impl Variant {
     }
 
     pub fn new_enumeration(variants: Vec<(String, IntegerLiteral)>) -> Self {
-        let variants = variants.into_iter().collect::<BTreeMap<String, IntegerLiteral>>();
+        let variants = variants
+            .into_iter()
+            .collect::<BTreeMap<String, IntegerLiteral>>();
         Self::Enumeration { variants }
+    }
+
+    pub fn new_function(
+        arguments: Vec<(String, Self)>,
+        return_type: Self,
+        body: BlockExpression,
+    ) -> Self {
+        Self::Function {
+            arguments,
+            return_type: Box::new(return_type),
+            body,
+        }
     }
 
     pub fn new_alias(identifier: String) -> Self {
@@ -130,6 +151,21 @@ impl fmt::Display for Variant {
                     .map(|(identiifer, value)| format!("{} = {}", identiifer, value))
                     .collect::<Vec<String>>()
                     .join(", ")
+            ),
+            Self::Function {
+                arguments,
+                return_type,
+                body,
+            } => write!(
+                f,
+                "fn ({}) -> {} {{ {} }}",
+                arguments
+                    .iter()
+                    .map(|(identiifer, type_variant)| format!("{}: {}", identiifer, type_variant))
+                    .collect::<Vec<String>>()
+                    .join(", "),
+                return_type,
+                body,
             ),
             Self::Alias { identifier } => write!(f, "{}", identifier),
         }

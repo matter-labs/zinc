@@ -37,7 +37,11 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<BlockExpression, Error> {
+    pub fn parse(
+        mut self,
+        stream: Rc<RefCell<TokenStream>>,
+        mut initial: Option<Token>,
+    ) -> Result<BlockExpression, Error> {
         loop {
             match self.state {
                 State::BracketCurlyLeft => {
@@ -174,8 +178,10 @@ mod tests {
             )),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -186,8 +192,10 @@ mod tests {
 
         let expected = Ok(BlockExpression::new(Location::new(1, 1), vec![], None));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }

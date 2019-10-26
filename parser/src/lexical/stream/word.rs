@@ -16,8 +16,8 @@ use crate::lexical::BooleanLiteral;
 use crate::lexical::Identifier;
 use crate::lexical::IdentifierError;
 use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
 use crate::lexical::Literal;
+use crate::lexical::Symbol;
 
 pub enum State {
     Start,
@@ -68,12 +68,12 @@ pub fn parse(input: &str) -> Result<(usize, Lexeme), Error> {
 mod tests {
     use super::parse;
     use super::Error;
-    use crate::lexical::Symbol;
     use crate::lexical::BooleanLiteral;
     use crate::lexical::Identifier;
     use crate::lexical::Keyword;
     use crate::lexical::Lexeme;
     use crate::lexical::Literal;
+    use crate::lexical::Symbol;
 
     #[test]
     fn ok_identifier() {
@@ -160,10 +160,7 @@ mod tests {
     #[test]
     fn ok_symbol_underscore() {
         let input = "_";
-        let expected = Ok((
-            input.len(),
-            Lexeme::Symbol(Symbol::Underscore),
-        ));
+        let expected = Ok((input.len(), Lexeme::Symbol(Symbol::Underscore)));
         let result = parse(input);
         assert_eq!(expected, result);
     }

@@ -41,7 +41,11 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<Expression, Error> {
+    pub fn parse(
+        mut self,
+        stream: Rc<RefCell<TokenStream>>,
+        mut initial: Option<Token>,
+    ) -> Result<Expression, Error> {
         loop {
             match self.state {
                 State::ParenthesisLeft => {
@@ -76,7 +80,8 @@ impl Parser {
                             return Ok(self.builder.finish());
                         }
                         token => {
-                            let (expression, next) = ExpressionParser::default().parse(stream.clone(), Some(token))?;
+                            let (expression, next) =
+                                ExpressionParser::default().parse(stream.clone(), Some(token))?;
                             self.next = next;
                             self.builder.push_expression(expression);
                             self.state = State::CommaOrParenthesisRight;
@@ -139,8 +144,10 @@ mod tests {
             )],
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -160,8 +167,10 @@ mod tests {
             )],
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -192,8 +201,10 @@ mod tests {
             )],
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -256,8 +267,10 @@ mod tests {
             )],
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }

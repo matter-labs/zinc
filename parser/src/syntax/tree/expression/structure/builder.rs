@@ -3,9 +3,9 @@
 //!
 
 use crate::lexical::Location;
+use crate::syntax::Expression;
 use crate::syntax::Identifier;
 use crate::syntax::StructureExpression;
-use crate::syntax::Expression;
 
 #[derive(Default)]
 pub struct Builder {
@@ -34,13 +34,15 @@ impl Builder {
     pub fn finish(mut self) -> StructureExpression {
         StructureExpression::new(
             self.location.expect("Missing location"),
-            self.path_expression.take().expect("Missing path expression"),
+            self.path_expression
+                .take()
+                .expect("Missing path expression"),
             self.fields
-                    .into_iter()
-                    .map(|(identifier, expression)| {
-                        (identifier, expression.expect("Missing field expression"))
-                    })
-                    .collect::<Vec<(Identifier, Expression)>>(),
-            )
+                .into_iter()
+                .map(|(identifier, expression)| {
+                    (identifier, expression.expect("Missing field expression"))
+                })
+                .collect::<Vec<(Identifier, Expression)>>(),
+        )
     }
 }

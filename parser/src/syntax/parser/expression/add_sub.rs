@@ -37,11 +37,16 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<(Expression, Option<Token>), Error> {
+    pub fn parse(
+        mut self,
+        stream: Rc<RefCell<TokenStream>>,
+        mut initial: Option<Token>,
+    ) -> Result<(Expression, Option<Token>), Error> {
         loop {
             match self.state {
                 State::MulDivRemOperand => {
-                    let (expression, next) = MulDivRemOperandParser::default().parse(stream.clone(), initial.take())?;
+                    let (expression, next) =
+                        MulDivRemOperandParser::default().parse(stream.clone(), initial.take())?;
                     self.next = next;
                     self.builder.set_location_if_unset(expression.location);
                     self.builder.extend_with_expression(expression);
@@ -89,7 +94,9 @@ mod tests {
     use super::Parser;
     use crate::lexical;
     use crate::lexical::IntegerLiteral;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Expression;
     use crate::syntax::ExpressionElement;
@@ -100,34 +107,41 @@ mod tests {
 
     #[test]
     fn ok() {
-        let input = r#"42 * 228 "#;
+        let input = r#"42 * 228"#;
 
-        let expected = Ok(Expression::new(
-            Location::new(1, 1),
-            vec![
-                ExpressionElement::new(
-                    Location::new(1, 1),
-                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+        let expected = Ok((
+            Expression::new(
+                Location::new(1, 1),
+                vec![
+                    ExpressionElement::new(
                         Location::new(1, 1),
-                        lexical::Literal::Integer(IntegerLiteral::new_decimal("42".to_owned())),
-                    ))),
-                ),
-                ExpressionElement::new(
-                    Location::new(1, 6),
-                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(1, 1),
+                            lexical::Literal::Integer(IntegerLiteral::new_decimal("42".to_owned())),
+                        ))),
+                    ),
+                    ExpressionElement::new(
                         Location::new(1, 6),
-                        lexical::Literal::Integer(IntegerLiteral::new_decimal("228".to_owned())),
-                    ))),
-                ),
-                ExpressionElement::new(
-                    Location::new(1, 4),
-                    ExpressionObject::Operator(ExpressionOperator::Multiplication),
-                ),
-            ],
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(1, 6),
+                            lexical::Literal::Integer(IntegerLiteral::new_decimal(
+                                "228".to_owned(),
+                            )),
+                        ))),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 4),
+                        ExpressionObject::Operator(ExpressionOperator::Multiplication),
+                    ),
+                ],
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 9))),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }

@@ -5,15 +5,16 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
-use crate::lexical::Keyword;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::ExpressionParser;
 use crate::syntax::MatchExpression;
 use crate::syntax::MatchExpressionBuilder;
+use crate::syntax::PatternParser;
 use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
@@ -21,9 +22,9 @@ pub enum State {
     MatchKeyword,
     MatchExpression,
     BracketCurlyLeft,
-    BracketCurlyRightOrExpressionLeft,
+    BracketCurlyRightOrBranchPattern,
     Select,
-    ExpressionRight,
+    BranchExpression,
     CommaOrBracketCurlyRight,
 }
 
@@ -41,7 +42,11 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<MatchExpression, Error> {
+    pub fn parse(
+        mut self,
+        stream: Rc<RefCell<TokenStream>>,
+        mut initial: Option<Token>,
+    ) -> Result<MatchExpression, Error> {
         loop {
             match self.state {
                 State::MatchKeyword => {
@@ -67,7 +72,8 @@ impl Parser {
                     }
                 }
                 State::MatchExpression => {
-                    let (expression, next) = ExpressionParser::default().parse(stream.clone(), None)?;
+                    let (expression, next) =
+                        ExpressionParser::default().parse(stream.clone(), None)?;
                     self.next = next;
                     self.builder.set_match_expression(expression);
                     self.state = State::BracketCurlyLeft;
@@ -77,7 +83,7 @@ impl Parser {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
-                        } => self.state = State::BracketCurlyRightOrExpressionLeft,
+                        } => self.state = State::BracketCurlyRightOrBranchPattern,
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
@@ -87,7 +93,7 @@ impl Parser {
                         }
                     }
                 }
-                State::BracketCurlyRightOrExpressionLeft => {
+                State::BracketCurlyRightOrBranchPattern => {
                     let next = stream.borrow_mut().next()?;
                     match next {
                         Token {
@@ -95,19 +101,20 @@ impl Parser {
                             ..
                         } => return Ok(self.builder.finish()),
                         token => {
-                            let (expression, next) = ExpressionParser::default().parse(stream.clone(), Some(token))?;
-                            self.next = next;
-                            self.builder.push_branch_left(expression);
+                            let pattern =
+                                PatternParser::default().parse(stream.clone(), Some(token))?;
+                            self.builder.push_branch_pattern(pattern);
                             self.state = State::Select;
                         }
                     }
                 }
                 State::Select => {
-                    match self.next.take().expect("Always contains a value") {
+                    let next = stream.borrow_mut().next()?;
+                    match next {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::EqualsGreater),
                             ..
-                        } => self.state = State::ExpressionRight,
+                        } => self.state = State::BranchExpression,
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
@@ -117,10 +124,11 @@ impl Parser {
                         }
                     }
                 }
-                State::ExpressionRight => {
-                    let (expression, next) = ExpressionParser::default().parse(stream.clone(), None)?;
+                State::BranchExpression => {
+                    let (expression, next) =
+                        ExpressionParser::default().parse(stream.clone(), None)?;
                     self.next = next;
-                    self.builder.set_branch_right(expression);
+                    self.builder.set_branch_expression(expression);
                     self.state = State::CommaOrBracketCurlyRight;
                 }
                 State::CommaOrBracketCurlyRight => {
@@ -128,7 +136,7 @@ impl Parser {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
-                        } => self.state = State::BracketCurlyRightOrExpressionLeft,
+                        } => self.state = State::BracketCurlyRightOrBranchPattern,
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
@@ -154,6 +162,7 @@ mod tests {
 
     use super::Parser;
     use crate::lexical;
+    use crate::lexical::BooleanLiteral;
     use crate::lexical::IntegerLiteral;
     use crate::lexical::Lexeme;
     use crate::lexical::Location;
@@ -166,58 +175,56 @@ mod tests {
     use crate::syntax::ExpressionOperand;
     use crate::syntax::Identifier;
     use crate::syntax::Literal;
-    use crate::syntax::StructureExpression;
+    use crate::syntax::MatchExpression;
+    use crate::syntax::Pattern;
+    use crate::syntax::PatternVariant;
     use crate::Error;
 
     #[test]
     fn ok_single() {
         let input = r#"
-    Test {
-        a: 1,
+    match test {
+        false => true,
     }
 "#;
 
-        let expected = Ok(Expression::new(
+        let expected = Ok(MatchExpression::new(
             Location::new(2, 5),
-            vec![ExpressionElement::new(
-                Location::new(2, 5),
-                ExpressionObject::Operand(ExpressionOperand::Structure(StructureExpression::new(
-                    Location::new(2, 5),
-                    Expression::new(
-                        Location::new(2, 5),
-                        vec![
-                            ExpressionElement::new(
-                                Location::new(2, 5),
-                                ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-                                    Location::new(2, 5),
-                                    "Test".to_owned(),
-                                ))),
-                            ),
-                        ],
-                    ),
-                    vec![(
-                        Identifier::new(Location::new(3, 9), "a".to_owned()),
-                        Expression::new(
-                            Location::new(3, 12),
-                            vec![ExpressionElement::new(
-                                Location::new(3, 12),
-                                ExpressionObject::Operand(ExpressionOperand::Literal(
-                                    Literal::new(
-                                        Location::new(3, 12),
-                                        lexical::Literal::Integer(IntegerLiteral::new_decimal(
-                                            "1".to_owned(),
-                                        )),
-                                    ),
-                                )),
-                            )],
-                        ),
+            Expression::new(
+                Location::new(2, 11),
+                vec![ExpressionElement::new(
+                    Location::new(2, 11),
+                    ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
+                        Location::new(2, 11),
+                        "test".to_owned(),
+                    ))),
+                )],
+            ),
+            vec![(
+                Pattern::new(
+                    Location::new(3, 9),
+                    PatternVariant::new_literal(Literal::new(
+                        Location::new(3, 9),
+                        lexical::Literal::Boolean(BooleanLiteral::False),
+                    )),
+                ),
+                Expression::new(
+                    Location::new(3, 18),
+                    vec![ExpressionElement::new(
+                        Location::new(3, 18),
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(3, 18),
+                            lexical::Literal::Boolean(BooleanLiteral::True),
+                        ))),
                     )],
-                ))),
+                ),
             )],
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -225,90 +232,89 @@ mod tests {
     #[test]
     fn ok_multiple() {
         let input = r#"
-    Test {
-        a: 1,
-        b: 2,
-        c: 3,
+    match test {
+        1 => 1,
+        2 => 2,
+        _ => 3,
     }
 "#;
-
-        let expected = Ok(Expression::new(
+        let expected = Ok(MatchExpression::new(
             Location::new(2, 5),
-            vec![ExpressionElement::new(
-                Location::new(2, 5),
-                ExpressionObject::Operand(ExpressionOperand::Structure(StructureExpression::new(
-                    Location::new(2, 5),
-                    Expression::new(
-                        Location::new(2, 5),
-                        vec![
-                            ExpressionElement::new(
-                                Location::new(2, 5),
-                                ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-                                    Location::new(2, 5),
-                                    "Test".to_owned(),
-                                ))),
-                            ),
-                        ],
+            Expression::new(
+                Location::new(2, 11),
+                vec![ExpressionElement::new(
+                    Location::new(2, 11),
+                    ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
+                        Location::new(2, 11),
+                        "test".to_owned(),
+                    ))),
+                )],
+            ),
+            vec![
+                (
+                    Pattern::new(
+                        Location::new(3, 9),
+                        PatternVariant::new_literal(Literal::new(
+                            Location::new(3, 9),
+                            lexical::Literal::Integer(IntegerLiteral::new_decimal("1".to_owned())),
+                        )),
                     ),
-                    vec![
-                        (
-                            Identifier::new(Location::new(3, 9), "a".to_owned()),
-                            Expression::new(
-                                Location::new(3, 12),
-                                vec![ExpressionElement::new(
-                                    Location::new(3, 12),
-                                    ExpressionObject::Operand(ExpressionOperand::Literal(
-                                        Literal::new(
-                                            Location::new(3, 12),
-                                            lexical::Literal::Integer(IntegerLiteral::new_decimal(
-                                                "1".to_owned(),
-                                            )),
-                                        ),
-                                    )),
-                                )],
-                            ),
-                        ),
-                        (
-                            Identifier::new(Location::new(4, 9), "b".to_owned()),
-                            Expression::new(
-                                Location::new(4, 12),
-                                vec![ExpressionElement::new(
-                                    Location::new(4, 12),
-                                    ExpressionObject::Operand(ExpressionOperand::Literal(
-                                        Literal::new(
-                                            Location::new(4, 12),
-                                            lexical::Literal::Integer(IntegerLiteral::new_decimal(
-                                                "2".to_owned(),
-                                            )),
-                                        ),
-                                    )),
-                                )],
-                            ),
-                        ),
-                        (
-                            Identifier::new(Location::new(5, 9), "c".to_owned()),
-                            Expression::new(
-                                Location::new(5, 12),
-                                vec![ExpressionElement::new(
-                                    Location::new(5, 12),
-                                    ExpressionObject::Operand(ExpressionOperand::Literal(
-                                        Literal::new(
-                                            Location::new(5, 12),
-                                            lexical::Literal::Integer(IntegerLiteral::new_decimal(
-                                                "3".to_owned(),
-                                            )),
-                                        ),
-                                    )),
-                                )],
-                            ),
-                        ),
-                    ],
-                ))),
-            )],
+                    Expression::new(
+                        Location::new(3, 14),
+                        vec![ExpressionElement::new(
+                            Location::new(3, 14),
+                            ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                                Location::new(3, 14),
+                                lexical::Literal::Integer(IntegerLiteral::new_decimal(
+                                    "1".to_owned(),
+                                )),
+                            ))),
+                        )],
+                    ),
+                ),
+                (
+                    Pattern::new(
+                        Location::new(4, 9),
+                        PatternVariant::new_literal(Literal::new(
+                            Location::new(4, 9),
+                            lexical::Literal::Integer(IntegerLiteral::new_decimal("2".to_owned())),
+                        )),
+                    ),
+                    Expression::new(
+                        Location::new(4, 14),
+                        vec![ExpressionElement::new(
+                            Location::new(4, 14),
+                            ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                                Location::new(4, 14),
+                                lexical::Literal::Integer(IntegerLiteral::new_decimal(
+                                    "2".to_owned(),
+                                )),
+                            ))),
+                        )],
+                    ),
+                ),
+                (
+                    Pattern::new(Location::new(5, 9), PatternVariant::new_ignoring()),
+                    Expression::new(
+                        Location::new(5, 14),
+                        vec![ExpressionElement::new(
+                            Location::new(5, 14),
+                            ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                                Location::new(5, 14),
+                                lexical::Literal::Integer(IntegerLiteral::new_decimal(
+                                    "3".to_owned(),
+                                )),
+                            ))),
+                        )],
+                    ),
+                ),
+            ],
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -316,54 +322,28 @@ mod tests {
     #[test]
     fn ok_empty() {
         let input = r#"
-    Test {}
+    match test {}
 "#;
 
-        let expected = Ok(Expression::new(
+        let expected = Ok(MatchExpression::new(
             Location::new(2, 5),
-            vec![ExpressionElement::new(
-                Location::new(2, 5),
-                ExpressionObject::Operand(ExpressionOperand::Structure(StructureExpression::new(
-                    Location::new(2, 5),
-                    Expression::new(
-                        Location::new(2, 5),
-                        vec![
-                            ExpressionElement::new(
-                                Location::new(2, 5),
-                                ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-                                    Location::new(2, 5),
-                                    "Test".to_owned(),
-                                ))),
-                            ),
-                        ],
-                    ),
-                    vec![],
-                ))),
-            )],
+            Expression::new(
+                Location::new(2, 11),
+                vec![ExpressionElement::new(
+                    Location::new(2, 11),
+                    ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
+                        Location::new(2, 11),
+                        "test".to_owned(),
+                    ))),
+                )],
+            ),
+            vec![],
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));;
-
-        assert_eq!(expected, result);
-    }
-
-    #[test]
-    fn ok_identifier() {
-        let input = r#"
-    Test;
-"#;
-
-        let expected = Ok(Expression::new(
-            Location::new(2, 5),
-            vec![ExpressionElement::new(
-                Location::new(2, 5),
-                ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(Location::new(2, 5), "Test".to_owned()))),
-            )],
-        ));
-
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));;
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -371,19 +351,21 @@ mod tests {
     #[test]
     fn error_expected_comma() {
         let input = r#"
-    Test {
-        a: 1;
+    match test {
+        1 => 1;
     }
 "#;
 
         let expected = Err(Error::Syntax(SyntaxError::Expected(
-            Location::new(3, 13),
+            Location::new(3, 15),
             vec![",", "}"],
             Lexeme::Symbol(Symbol::Semicolon),
         )));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }

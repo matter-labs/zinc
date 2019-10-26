@@ -12,12 +12,12 @@ use parser::ExpressionOperand;
 use parser::ExpressionOperator;
 use parser::Identifier;
 use parser::InnerLiteral;
+use parser::IntegerLiteral;
 use parser::Literal;
 use parser::Statement;
 use parser::StructureExpression;
 use parser::TupleExpression;
 use parser::TypeVariant;
-use parser::IntegerLiteral;
 
 use crate::element::Descriptor;
 use crate::element::Element;
@@ -253,7 +253,7 @@ impl Transpiler {
                                 .fields
                                 .clone()
                                 .into_iter()
-                                .map(|(identifier, r#type)| (identifier.name, r#type.variant))
+                                .map(|field| (field.identifier.name, field.r#type.variant))
                                 .collect(),
                         ),
                     )
@@ -275,7 +275,7 @@ impl Transpiler {
                                 .variants
                                 .clone()
                                 .into_iter()
-                                .map(|(identifier, value)| (identifier.name, value))
+                                .map(|variant| (variant.identifier.name, variant.literal))
                                 .collect(),
                         ),
                     )
@@ -286,6 +286,9 @@ impl Transpiler {
                     r#enum.variants,
                 ));
             }
+            Statement::Fn(_fn) => unimplemented!(),
+            Statement::Mod(_mod) => unimplemented!(),
+            Statement::Use(_use) => unimplemented!(),
             Statement::Debug(debug) => {
                 let expression = self.transpile_expression(debug.expression)?;
                 self.writer
@@ -952,6 +955,7 @@ impl Transpiler {
                     };
                     self.rpn_stack.push(StackElement::Evaluated(element));
                 }
+                ExpressionObject::Operator(_operator @ ExpressionOperator::Call) => unimplemented!(),
                 ExpressionObject::Operator(_operator @ ExpressionOperator::Path) => unimplemented!(),
             }
         }
@@ -1102,7 +1106,10 @@ impl Transpiler {
             elements.push(element);
         }
         let identifier = self.next_id();
-        let type_variant = TypeVariant::new_array(type_variant, IntegerLiteral::new_decimal(elements.len().to_string()));
+        let type_variant = TypeVariant::new_array(
+            type_variant,
+            IntegerLiteral::new_decimal(elements.len().to_string()),
+        );
         self.writer
             .write_line(ArrayOutput::output(identifier.clone(), elements));
 
@@ -1180,6 +1187,7 @@ impl Transpiler {
             ExpressionOperand::Identifier(identifier) => {
                 self.transpile_identifier_expression(identifier, mode)?
             }
+            ExpressionOperand::List(_list) => unimplemented!(),
             ExpressionOperand::Type(r#type) => Element::Type(TypeElement::new(r#type.variant)),
             ExpressionOperand::Block(expression) => self.transpile_block_expression(expression)?,
             ExpressionOperand::Conditional(expression) => {

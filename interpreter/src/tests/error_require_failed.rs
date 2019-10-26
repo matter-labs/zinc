@@ -13,7 +13,7 @@ use crate::Interpreter;
 #[test]
 fn test() {
     let input = r#"
-inputs {}
+input {}
 
 let value = 42;
 

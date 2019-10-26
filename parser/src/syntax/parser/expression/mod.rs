@@ -11,13 +11,14 @@ mod block;
 mod casting;
 mod comparison;
 mod conditional;
+mod list;
+mod r#match;
 mod mul_div_rem;
 mod or;
 mod path;
 mod structure;
 mod tuple;
 mod xor;
-mod r#match;
 
 pub use self::access::Parser as AccessOperandParser;
 pub use self::add_sub::Parser as AddSubOperandParser;
@@ -28,13 +29,14 @@ pub use self::block::Parser as BlockExpressionParser;
 pub use self::casting::Parser as CastingOperandParser;
 pub use self::comparison::Parser as ComparisonOperandParser;
 pub use self::conditional::Parser as ConditionalExpressionParser;
+pub use self::list::Parser as ListParser;
 pub use self::mul_div_rem::Parser as MulDivRemOperandParser;
 pub use self::or::Parser as OrOperandParser;
 pub use self::path::Parser as PathExpressionParser;
+pub use self::r#match::Parser as MatchExpressionParser;
 pub use self::structure::Parser as StructureExpressionParser;
 pub use self::tuple::Parser as TupleExpressionParser;
 pub use self::xor::Parser as XorOperandParser;
-pub use self::r#match::Parser as MatchExpressionParser;
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -71,11 +73,16 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<(Expression, Option<Token>), Error> {
+    pub fn parse(
+        mut self,
+        stream: Rc<RefCell<TokenStream>>,
+        mut initial: Option<Token>,
+    ) -> Result<(Expression, Option<Token>), Error> {
         loop {
             match self.state {
                 State::AssignmentFirstOperand => {
-                    let (expression, next) = AssignmentOperandParser::default().parse(stream.clone(), initial.take())?;
+                    let (expression, next) =
+                        AssignmentOperandParser::default().parse(stream.clone(), initial.take())?;
                     self.next = next;
                     self.builder.set_location_if_unset(expression.location);
                     self.builder.extend_with_expression(expression);
@@ -94,7 +101,8 @@ impl Parser {
                     }
                 }
                 State::AssignmentSecondOperand => {
-                    let (expression, token) = AssignmentOperandParser::default().parse(stream.clone(), None)?;
+                    let (expression, token) =
+                        AssignmentOperandParser::default().parse(stream.clone(), None)?;
                     self.builder.extend_with_expression(expression);
                     if let Some((location, operator)) = self.operator.take() {
                         self.builder.push_operator(location, operator);
@@ -114,7 +122,9 @@ mod tests {
     use super::Parser;
     use crate::lexical;
     use crate::lexical::BooleanLiteral;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Expression;
     use crate::syntax::ExpressionElement;
@@ -127,32 +137,37 @@ mod tests {
     fn ok() {
         let input = r#"true || false"#;
 
-        let expected = Ok(Expression::new(
-            Location::new(1, 1),
-            vec![
-                ExpressionElement::new(
-                    Location::new(1, 1),
-                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+        let expected = Ok((
+            Expression::new(
+                Location::new(1, 1),
+                vec![
+                    ExpressionElement::new(
                         Location::new(1, 1),
-                        lexical::Literal::Boolean(BooleanLiteral::True),
-                    ))),
-                ),
-                ExpressionElement::new(
-                    Location::new(1, 9),
-                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(1, 1),
+                            lexical::Literal::Boolean(BooleanLiteral::True),
+                        ))),
+                    ),
+                    ExpressionElement::new(
                         Location::new(1, 9),
-                        lexical::Literal::Boolean(BooleanLiteral::False),
-                    ))),
-                ),
-                ExpressionElement::new(
-                    Location::new(1, 6),
-                    ExpressionObject::Operator(ExpressionOperator::Or),
-                ),
-            ],
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(1, 9),
+                            lexical::Literal::Boolean(BooleanLiteral::False),
+                        ))),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 6),
+                        ExpressionObject::Operator(ExpressionOperator::Or),
+                    ),
+                ],
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 14))),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }

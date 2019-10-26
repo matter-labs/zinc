@@ -1,0 +1,66 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "ZRust",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#constants"
+		},
+		{
+			"include": "#comments"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.zrs",
+					"match": "\\b(input|witness|let|mut|type|struct|enum|fn|mod|use|for|in|while|if|else)\\b"
+				},
+				{
+					"name": "keyword.other",
+					"match": "\\b(bool|uint[0-9]+|int[0-9]+|field|true|false|as)\\b"
+				}
+			]
+		},
+		"strings": {
+			"name": "string.quoted.double.zrs",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.zrs",
+					"match": "\\\\."
+				}
+			]
+		},
+		"constants": {
+			"patterns": [
+				{
+					"name": "constant.numeric.zrs",
+					"match": "\\b(0|[1-9][0-9]*|0x[0-9a-fA-F]+)\\b"
+				}
+			]
+		},
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.zrs",
+					"begin": "//",
+					"end": "\n"
+				},
+				{
+					"name": "comment.block.zrs",
+					"begin": "/\\*",
+					"end": "\\*/"
+				}
+			]
+		}
+	},
+	"scopeName": "source.zrust"
+}

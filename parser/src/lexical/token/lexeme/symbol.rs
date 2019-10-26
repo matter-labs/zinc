@@ -41,6 +41,7 @@ pub enum Symbol {
     DoubleDot,
     DoubleDotEquals,
     EqualsGreater,
+    MinusGreater,
 }
 
 impl From<&str> for Symbol {
@@ -79,6 +80,7 @@ impl From<&str> for Symbol {
             ".." => Self::DoubleDot,
             "..=" => Self::DoubleDotEquals,
             "=>" => Self::EqualsGreater,
+            "->" => Self::MinusGreater,
 
             _ => panic!("Always checked by the branches above"),
         }
@@ -121,6 +123,7 @@ impl fmt::Display for Symbol {
             Self::DoubleDot => write!(f, ".."),
             Self::DoubleDotEquals => write!(f, "..="),
             Self::EqualsGreater => write!(f, "=>"),
+            Self::MinusGreater => write!(f, "->"),
         }
     }
 }

@@ -22,7 +22,7 @@ pub fn integer_literal(literal: &IntegerLiteral) -> Result<(String, usize), Erro
     let mut exponent = BigInt::from(crate::MAX_VALUE_BYTE);
     while number >= exponent {
         if bitlength == crate::BITLENGTH_MAX_INT {
-            exponent *= 64;
+            exponent *= crate::MAX_VALUE_BYTE / 2 / 2;
             bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
         } else if bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::LiteralTooLarge(literal.to_owned(), bitlength));

@@ -11,7 +11,7 @@ use crate::Interpreter;
 #[test]
 fn test() {
     let input = r#"
-inputs {}
+input {}
 
 let mut fact: field = 1;
 

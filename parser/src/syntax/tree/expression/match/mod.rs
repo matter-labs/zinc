@@ -10,19 +10,20 @@ use std::fmt;
 
 use crate::lexical::Location;
 use crate::syntax;
+use crate::syntax::Pattern;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
     pub location: Location,
     pub match_expression: syntax::Expression,
-    pub branches: Vec<(syntax::Expression, syntax::Expression)>,
+    pub branches: Vec<(Pattern, syntax::Expression)>,
 }
 
 impl Expression {
     pub fn new(
         location: Location,
         match_expression: syntax::Expression,
-        branches: Vec<(syntax::Expression, syntax::Expression)>,
+        branches: Vec<(Pattern, syntax::Expression)>,
     ) -> Self {
         Self {
             location,
@@ -40,7 +41,7 @@ impl fmt::Display for Expression {
             self.match_expression,
             self.branches
                 .iter()
-                .map(|(left, right)| format!("{} => {}", left, right))
+                .map(|(pattern, expression)| format!("{} => {}", pattern, expression))
                 .collect::<Vec<String>>()
                 .join(", ")
         )

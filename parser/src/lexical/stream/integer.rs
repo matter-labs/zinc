@@ -31,6 +31,8 @@ pub enum Error {
         _0, _1, _2
     )]
     InvalidHexadecimalCharacter(char, usize, String),
+    #[fail(display = "hexadecimal literal must have at least one digit after '0x'")]
+    EmptyHexadecimalLiteral,
 }
 
 pub fn parse(input: &str) -> Result<(usize, IntegerLiteral), Error> {
@@ -103,7 +105,18 @@ pub fn parse(input: &str) -> Result<(usize, IntegerLiteral), Error> {
         }
     }
 
-    Err(Error::UnexpectedEnd)
+    match state {
+        State::Start => Err(Error::UnexpectedEnd),
+        State::ZeroOrHexadecimal => Ok((size, IntegerLiteral::new_decimal(value))),
+        State::Decimal => Ok((size, IntegerLiteral::new_decimal(value))),
+        State::Hexadecimal => {
+            if !value.is_empty() {
+                Ok((size, IntegerLiteral::new_hexadecimal(value)))
+            } else {
+                Err(Error::EmptyHexadecimalLiteral)
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -114,7 +127,7 @@ mod tests {
 
     #[test]
     fn ok_decimal_zero() {
-        let input = "0\n";
+        let input = "0";
         let expected = Ok((1, IntegerLiteral::new_decimal("0".to_owned())));
         let result = parse(input);
         assert_eq!(expected, result);
@@ -122,7 +135,7 @@ mod tests {
 
     #[test]
     fn ok_decimal() {
-        let input = "666\n";
+        let input = "666";
         let expected = Ok((3, IntegerLiteral::new_decimal("666".to_owned())));
         let result = parse(input);
         assert_eq!(expected, result);
@@ -130,7 +143,7 @@ mod tests {
 
     #[test]
     fn ok_hexadecimal_lowercase() {
-        let input = "0xdead_666_beef\n";
+        let input = "0xdead_666_beef";
         let expected = Ok((
             15,
             IntegerLiteral::new_hexadecimal("dead666beef".to_owned()),
@@ -141,7 +154,7 @@ mod tests {
 
     #[test]
     fn ok_hexadecimal_uppercase() {
-        let input = "0xDEAD_666_BEEF\n";
+        let input = "0xDEAD_666_BEEF";
         let expected = Ok((
             15,
             IntegerLiteral::new_hexadecimal("dead666beef".to_owned()),
@@ -152,7 +165,7 @@ mod tests {
 
     #[test]
     fn ok_hexadecimal_mixed_case() {
-        let input = "0xdEaD_666_bEeF\n";
+        let input = "0xdEaD_666_bEeF";
         let expected = Ok((
             15,
             IntegerLiteral::new_hexadecimal("dead666beef".to_owned()),
@@ -163,7 +176,7 @@ mod tests {
 
     #[test]
     fn error_unexpected_end() {
-        let input = "555";
+        let input = "";
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
         assert_eq!(expected, result);
@@ -171,7 +184,7 @@ mod tests {
 
     #[test]
     fn error_not_an_integer() {
-        let input = "xyz\n";
+        let input = "xyz";
         let expected = Err(Error::NotAnInteger);
         let result = parse(input);
         assert_eq!(expected, result);
@@ -179,7 +192,7 @@ mod tests {
 
     #[test]
     fn error_invalid_decimal_character() {
-        let input = "25x\n";
+        let input = "25x";
         let expected = Err(Error::InvalidDecimalCharacter('x', 3, "25x".to_owned()));
         let result = parse(input);
         assert_eq!(expected, result);
@@ -187,12 +200,20 @@ mod tests {
 
     #[test]
     fn error_invalid_hexadecimal_character() {
-        let input = "0xABC_X\n";
+        let input = "0xABC_X";
         let expected = Err(Error::InvalidHexadecimalCharacter(
             'X',
             7,
             "0xABC_X".to_owned(),
         ));
+        let result = parse(input);
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn error_empty_hexadecimal_literal() {
+        let input = "0x";
+        let expected = Err(Error::EmptyHexadecimalLiteral);
         let result = parse(input);
         assert_eq!(expected, result);
     }

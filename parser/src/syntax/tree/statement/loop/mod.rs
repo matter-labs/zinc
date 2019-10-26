@@ -8,8 +8,8 @@ pub use self::builder::Builder;
 
 use std::fmt;
 
-use crate::lexical::Location;
 use crate::lexical::IntegerLiteral;
+use crate::lexical::Location;
 use crate::syntax::BlockExpression;
 use crate::syntax::Expression;
 use crate::syntax::Identifier;

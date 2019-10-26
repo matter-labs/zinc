@@ -54,13 +54,13 @@ impl Scope {
                         let index = match index {
                             PlaceDescriptor::ArrayIndex(index) => *index,
                             PlaceDescriptor::TupleField(index) => {
-                                return Err(Error::AddressArrayAsTuple(
+                                return Err(Error::ArrayAccessAsTuple(
                                     place.identifier.to_owned(),
                                     *index,
                                 ));
                             }
                             PlaceDescriptor::StructureField(identifier) => {
-                                return Err(Error::AddressArrayAsStructure(
+                                return Err(Error::ArrayAccessAsStructure(
                                     place.identifier.to_owned(),
                                     identifier.to_owned(),
                                 ));
@@ -74,14 +74,14 @@ impl Scope {
                     Value::Tuple(tuple) => {
                         let index = match index {
                             PlaceDescriptor::ArrayIndex(index) => {
-                                return Err(Error::AccessTupleAsArray(
+                                return Err(Error::TupleAccessAsArray(
                                     place.identifier.to_owned(),
                                     *index,
                                 ));
                             }
                             PlaceDescriptor::TupleField(index) => *index,
                             PlaceDescriptor::StructureField(identifier) => {
-                                return Err(Error::AccessTupleAsStructure(
+                                return Err(Error::TupleAccessAsStructure(
                                     place.identifier.to_owned(),
                                     identifier.to_owned(),
                                 ));
@@ -95,13 +95,13 @@ impl Scope {
                     Value::Structure(structure) => {
                         let identifier = match index {
                             PlaceDescriptor::ArrayIndex(index) => {
-                                return Err(Error::AccessStructureAsArray(
+                                return Err(Error::StructureAccessAsArray(
                                     place.identifier.to_owned(),
                                     *index,
                                 ));
                             }
                             PlaceDescriptor::TupleField(index) => {
-                                return Err(Error::AccessStructureAsTuple(
+                                return Err(Error::StructureAccessAsTuple(
                                     place.identifier.to_owned(),
                                     *index,
                                 ));
@@ -135,9 +135,7 @@ impl Scope {
     pub fn update_value(&mut self, place: &Place, new_value: Value) -> Result<(), Error> {
         if let Some(variable) = self.variables.get_mut(&place.identifier) {
             if !variable.is_mutable {
-                return Err(Error::MutatingImmutableVariable(
-                    place.identifier.to_owned(),
-                ));
+                return Err(Error::MutatingImmutable(place.identifier.to_owned()));
             }
             let mut value = &mut variable.value;
             for index in place.elements.iter() {
@@ -146,13 +144,13 @@ impl Scope {
                         let index = match index {
                             PlaceDescriptor::ArrayIndex(index) => *index,
                             PlaceDescriptor::TupleField(index) => {
-                                return Err(Error::AddressArrayAsTuple(
+                                return Err(Error::ArrayAccessAsTuple(
                                     place.identifier.to_owned(),
                                     *index,
                                 ));
                             }
                             PlaceDescriptor::StructureField(identifier) => {
-                                return Err(Error::AddressArrayAsStructure(
+                                return Err(Error::ArrayAccessAsStructure(
                                     place.identifier.to_owned(),
                                     identifier.to_owned(),
                                 ));
@@ -172,14 +170,14 @@ impl Scope {
                     Value::Tuple(tuple) => {
                         let index = match index {
                             PlaceDescriptor::ArrayIndex(index) => {
-                                return Err(Error::AccessTupleAsArray(
+                                return Err(Error::TupleAccessAsArray(
                                     place.identifier.to_owned(),
                                     *index,
                                 ));
                             }
                             PlaceDescriptor::TupleField(index) => *index,
                             PlaceDescriptor::StructureField(identifier) => {
-                                return Err(Error::AccessTupleAsStructure(
+                                return Err(Error::TupleAccessAsStructure(
                                     place.identifier.to_owned(),
                                     identifier.to_owned(),
                                 ));
@@ -199,13 +197,13 @@ impl Scope {
                     Value::Structure(structure) => {
                         let identifier = match index {
                             PlaceDescriptor::ArrayIndex(index) => {
-                                return Err(Error::AccessStructureAsArray(
+                                return Err(Error::StructureAccessAsArray(
                                     place.identifier.to_owned(),
                                     *index,
                                 ));
                             }
                             PlaceDescriptor::TupleField(index) => {
-                                return Err(Error::AccessStructureAsTuple(
+                                return Err(Error::StructureAccessAsTuple(
                                     place.identifier.to_owned(),
                                     *index,
                                 ));

@@ -18,12 +18,12 @@
 
 
 /*
-    The program starts with the inputs (public input) and
+    The program starts with the input (public input) and
     witnesses (private input) definition.
 */
 
-inputs {
-    input: field,
+input {
+    value: field,
 }
 
 witness {
@@ -40,10 +40,10 @@ let var_1 = 42;
 */
 
 /*
-    Using inputs and witnesses
+    Using input and witnesses
 */
 
-// let public = input + result;
+// let public = value + result;
 // Works in the transpiled code only, since passing input arguments
 // to the interpreter is not implemented yet.
 
@@ -192,8 +192,8 @@ require(sum == 105, "line_178_error_msg");
 */
 
 let mut s = 0;
-for k in 0..20 while k < 10 {
-    s = s + k;
+for i in 0..20 while i < 10 {
+    s = s + i;
 };
 
 require(s == 55);
@@ -226,7 +226,7 @@ let mut value_1: field = 0;
 let mut value_2: field = 1;
 let mut fibo = value_1;
 
-for l in 1..=6 {
+for i in 1..=6 {
     fibo = value_1 + value_2;
     value_1 = value_2;
     value_2 = fibo;
@@ -240,8 +240,8 @@ require(fibo == 13 as field);
 
 let mut fact: field = 1;
 
-for m in 2..6 {
-    fact = fact * m as field;
+for i in 2..6 {
+    fact = fact * i as field;
 };
 
 require(fact == 120 as field);

@@ -5,12 +5,13 @@
 use crate::lexical::Location;
 use crate::syntax::Expression;
 use crate::syntax::MatchExpression;
+use crate::syntax::Pattern;
 
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
     match_expression: Option<Expression>,
-    branches: Vec<(Expression, Option<Expression>)>,
+    branches: Vec<(Pattern, Option<Expression>)>,
 }
 
 impl Builder {
@@ -22,12 +23,15 @@ impl Builder {
         self.match_expression = Some(value);
     }
 
-    pub fn push_branch_left(&mut self, value: Expression) {
+    pub fn push_branch_pattern(&mut self, value: Pattern) {
         self.branches.push((value, None));
     }
 
-    pub fn set_branch_right(&mut self, value: Expression) {
-        self.branches.last_mut().expect("Missing left expression").1 = Some(value);
+    pub fn set_branch_expression(&mut self, value: Expression) {
+        self.branches
+            .last_mut()
+            .expect("Missing branch expression")
+            .1 = Some(value);
     }
 
     pub fn finish(self) -> MatchExpression {
@@ -36,10 +40,10 @@ impl Builder {
             self.match_expression.expect("Missing match expression"),
             self.branches
                 .into_iter()
-                .map(|(left, right)| {
-                    (left, right.expect("Missing right expression"))
+                .map(|(pattern, expression)| {
+                    (pattern, expression.expect("Missing branch expression"))
                 })
-                .collect::<Vec<(Expression, Expression)>>(),
+                .collect::<Vec<(Pattern, Expression)>>(),
         )
     }
 }

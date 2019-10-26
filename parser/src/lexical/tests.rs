@@ -23,7 +23,7 @@ fn ok() {
 /*
     This is the mega ultra test application!
 */
-inputs {
+input {
     a: u8, // input 1
 }
 
@@ -36,12 +36,12 @@ let mut c: u232 = 2 + 2;
 
     let expected = vec![
         Token {
-            lexeme: Lexeme::Keyword(Keyword::Inputs),
+            lexeme: Lexeme::Keyword(Keyword::Input),
             location: Location::new(5, 1),
         },
         Token {
             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
-            location: Location::new(5, 8),
+            location: Location::new(5, 7),
         },
         Token {
             lexeme: Lexeme::Identifier(Identifier::new("a".to_owned())),
@@ -137,12 +137,19 @@ let mut c: u232 = 2 + 2;
         },
     ]
     .into_iter()
-    .map(Result::Ok)
-    .collect::<Vec<Result<Token, Error>>>();
+    .collect::<Vec<Token>>();
 
-    let result = TokenStream::new(input.to_owned())
-        .into_iter()
-        .collect::<Vec<Result<Token, Error>>>();
+    let mut result = Vec::with_capacity(expected.len());
+    let mut stream = TokenStream::new(input.to_owned());
+    loop {
+        match stream.next().expect("Lexical error") {
+            Token {
+                lexeme: Lexeme::Eof,
+                ..
+            } => break,
+            token => result.push(token),
+        }
+    }
 
     assert_eq!(expected, result);
 }
@@ -153,9 +160,7 @@ fn error_unexpected_end() {
 
     let expected: Result<Token, Error> = Err(Error::UnexpectedEnd(Location::new(1, 1)));
 
-    let result = TokenStream::new(input.to_owned())
-        .next()
-        .expect("Always contains an element");
+    let result = TokenStream::new(input.to_owned()).next();
 
     assert_eq!(expected, result);
 }
@@ -166,9 +171,7 @@ fn error_unknown_character() {
 
     let expected: Result<Token, Error> = Err(Error::InvalidCharacter(Location::new(1, 1), '#'));
 
-    let result = TokenStream::new(input.to_owned())
-        .next()
-        .expect("Always contains an element");
+    let result = TokenStream::new(input.to_owned()).next();
 
     assert_eq!(expected, result);
 }
@@ -182,9 +185,7 @@ fn error_invalid_symbol() {
         SymbolParserError::InvalidCharacter('#', 2, "|#".to_owned()),
     ));
 
-    let result = TokenStream::new(input.to_owned())
-        .next()
-        .expect("Always contains an element");
+    let result = TokenStream::new(input.to_owned()).next();
 
     assert_eq!(expected, result);
 }
@@ -198,9 +199,7 @@ fn error_invalid_integer_literal() {
         IntegerParserError::InvalidHexadecimalCharacter('R', 4, "0xCR".to_owned()),
     ));
 
-    let result = TokenStream::new(input.to_owned())
-        .next()
-        .expect("Always contains an element");
+    let result = TokenStream::new(input.to_owned()).next();
 
     assert_eq!(expected, result);
 }

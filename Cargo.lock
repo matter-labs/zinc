@@ -272,7 +272,7 @@ dependencies = [
 [[package]]
 name = "franklin-crypto"
 version = "0.0.5"
-source = "git+https://github.com/matter-labs/franklin-crypto#9169ea3ac02a7e387eee9fdc7992e258234d5418"
+source = "git+https://github.com/matter-labs/franklin-crypto#d83bde46f1eb8e5ded4d4c8dd662fd1af0580f84"
 dependencies = [
  "bellman_ce 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "bit-vec 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -341,14 +341,14 @@ dependencies = [
 
 [[package]]
 name = "interpreter"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "parser 0.4.0",
+ "parser 0.5.0",
  "r1cs 0.1.0",
- "semantic 0.4.0",
+ "semantic 0.5.0",
  "serde 1.0.101 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.101 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.41 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -447,7 +447,7 @@ dependencies = [
 
 [[package]]
 name = "parser"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -633,12 +633,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "semantic"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-bigint 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "parser 0.4.0",
+ "parser 0.5.0",
  "r1cs 0.1.0",
 ]
 
@@ -781,16 +781,16 @@ dependencies = [
 
 [[package]]
 name = "transpiler"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-bigint 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "parser 0.4.0",
+ "parser 0.5.0",
  "r1cs 0.1.0",
- "semantic 0.4.0",
+ "semantic 0.5.0",
  "serde 1.0.101 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.101 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.41 (registry+https://github.com/rust-lang/crates.io-index)",

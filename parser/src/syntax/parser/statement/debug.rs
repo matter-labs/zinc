@@ -38,7 +38,11 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<DebugStatement, Error> {
+    pub fn parse(
+        mut self,
+        stream: Rc<RefCell<TokenStream>>,
+        mut initial: Option<Token>,
+    ) -> Result<DebugStatement, Error> {
         loop {
             match self.state {
                 State::KeywordDebug => {
@@ -79,7 +83,8 @@ impl Parser {
                     }
                 }
                 State::Expression => {
-                    let (expression, next) = ExpressionParser::default().parse(stream.clone(), None)?;
+                    let (expression, next) =
+                        ExpressionParser::default().parse(stream.clone(), None)?;
                     self.next = next;
                     self.builder.set_expression(expression);
                     self.state = State::ParenthesisRight;
@@ -139,8 +144,10 @@ mod tests {
             ),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }

@@ -42,7 +42,11 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<(LetStatement, Option<Token>), Error> {
+    pub fn parse(
+        mut self,
+        stream: Rc<RefCell<TokenStream>>,
+        mut initial: Option<Token>,
+    ) -> Result<(LetStatement, Option<Token>), Error> {
         loop {
             match self.state {
                 State::KeywordLet => {
@@ -155,7 +159,8 @@ impl Parser {
                     }
                 }
                 State::Expression => {
-                    let (expression, next) = ExpressionParser::default().parse(stream.clone(), None)?;
+                    let (expression, next) =
+                        ExpressionParser::default().parse(stream.clone(), None)?;
                     self.builder.set_expression(expression);
                     return Ok((self.builder.finish(), next));
                 }
@@ -175,6 +180,7 @@ mod tests {
     use crate::lexical::Lexeme;
     use crate::lexical::Location;
     use crate::lexical::Symbol;
+    use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Error as SyntaxError;
     use crate::syntax::Expression;
@@ -192,25 +198,33 @@ mod tests {
     fn ok_simple() {
         let input = r#"let a = 42;"#;
 
-        let expected = Ok(LetStatement::new(
-            Location::new(1, 1),
-            Identifier::new(Location::new(1, 5), "a".to_owned()),
-            false,
-            None,
-            Expression::new(
-                Location::new(1, 9),
-                vec![ExpressionElement::new(
+        let expected = Ok((
+            LetStatement::new(
+                Location::new(1, 1),
+                Identifier::new(Location::new(1, 5), "a".to_owned()),
+                false,
+                None,
+                Expression::new(
                     Location::new(1, 9),
-                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                    vec![ExpressionElement::new(
                         Location::new(1, 9),
-                        lexical::Literal::Integer(IntegerLiteral::new_decimal("42".to_owned())),
-                    ))),
-                )],
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(1, 9),
+                            lexical::Literal::Integer(IntegerLiteral::new_decimal("42".to_owned())),
+                        ))),
+                    )],
+                ),
             ),
+            Some(Token::new(
+                Lexeme::Symbol(Symbol::Semicolon),
+                Location::new(1, 11),
+            )),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -219,28 +233,36 @@ mod tests {
     fn ok_mut_with_type() {
         let input = r#"let mut a: u232 = 42;"#;
 
-        let expected = Ok(LetStatement::new(
-            Location::new(1, 1),
-            Identifier::new(Location::new(1, 9), "a".to_owned()),
-            true,
-            Some(Type::new(
-                Location::new(1, 12),
-                TypeVariant::new_integer_unsigned(232),
-            )),
-            Expression::new(
-                Location::new(1, 19),
-                vec![ExpressionElement::new(
+        let expected = Ok((
+            LetStatement::new(
+                Location::new(1, 1),
+                Identifier::new(Location::new(1, 9), "a".to_owned()),
+                true,
+                Some(Type::new(
+                    Location::new(1, 12),
+                    TypeVariant::new_integer_unsigned(232),
+                )),
+                Expression::new(
                     Location::new(1, 19),
-                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                    vec![ExpressionElement::new(
                         Location::new(1, 19),
-                        lexical::Literal::Integer(IntegerLiteral::new_decimal("42".to_owned())),
-                    ))),
-                )],
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(1, 19),
+                            lexical::Literal::Integer(IntegerLiteral::new_decimal("42".to_owned())),
+                        ))),
+                    )],
+                ),
             ),
+            Some(Token::new(
+                Lexeme::Symbol(Symbol::Semicolon),
+                Location::new(1, 21),
+            )),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -255,8 +277,10 @@ mod tests {
             Lexeme::Symbol(Symbol::Semicolon),
         )));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }

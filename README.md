@@ -35,8 +35,8 @@
 
 ### Version 0.5
 
-- [ ] functions
-- [ ] modules and imports
+- [x] functions
+- [x] modules and imports
 - [x] C-like `enum`
 - [x] `match`
 

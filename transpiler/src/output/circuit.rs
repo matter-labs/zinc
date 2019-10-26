@@ -2,8 +2,7 @@
 //! Transpiler output imports.
 //!
 
-use parser::Input;
-use parser::Witness;
+use parser::Field;
 
 use crate::output::InputOutput;
 use crate::output::WitnessOutput;
@@ -14,7 +13,7 @@ pub struct Output {
 }
 
 impl Output {
-    pub fn output(inputs: Vec<Input>, witnesses: Vec<Witness>) -> Self {
+    pub fn output(inputs: Vec<Field>, witnesses: Vec<Field>) -> Self {
         let mut start = Vec::with_capacity((inputs.len() + witnesses.len()) * 2 + 6);
         start.push("#[derive(Default)]".to_owned());
         start.push("pub struct GeneratedCircuit {".to_owned());

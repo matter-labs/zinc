@@ -12,7 +12,7 @@ use failure::Fail;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Keyword {
     // built-ins
-    Inputs,
+    Input,
     Witness,
     Require,
     Debug,
@@ -23,6 +23,9 @@ pub enum Keyword {
     Type,
     Struct,
     Enum,
+    Fn,
+    Mod,
+    Use,
 
     // controls
     For,
@@ -80,7 +83,7 @@ impl TryFrom<&str> for Keyword {
         const BITLENGTH_RANGE: RangeInclusive<usize> = (BITLENGTH_MIN..=BITLENGTH_MAX);
 
         match input {
-            "inputs" => return Ok(Self::Inputs),
+            "input" => return Ok(Self::Input),
             "witness" => return Ok(Self::Witness),
             "require" => return Ok(Self::Require),
             "debug" => return Ok(Self::Debug),
@@ -90,6 +93,9 @@ impl TryFrom<&str> for Keyword {
             "type" => return Ok(Self::Type),
             "struct" => return Ok(Self::Struct),
             "enum" => return Ok(Self::Enum),
+            "fn" => return Ok(Self::Fn),
+            "mod" => return Ok(Self::Mod),
+            "use" => return Ok(Self::Use),
 
             "for" => return Ok(Self::For),
             "in" => return Ok(Self::In),
@@ -162,7 +168,7 @@ impl TryFrom<&str> for Keyword {
 impl fmt::Display for Keyword {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Inputs => write!(f, "inputs"),
+            Self::Input => write!(f, "input"),
             Self::Witness => write!(f, "witness"),
             Self::Require => write!(f, "require"),
             Self::Debug => write!(f, "debug"),
@@ -172,6 +178,9 @@ impl fmt::Display for Keyword {
             Self::Type => write!(f, "type"),
             Self::Struct => write!(f, "struct"),
             Self::Enum => write!(f, "enum"),
+            Self::Fn => write!(f, "fn"),
+            Self::Mod => write!(f, "mod"),
+            Self::Use => write!(f, "use"),
 
             Self::For => write!(f, "for"),
             Self::In => write!(f, "in"),

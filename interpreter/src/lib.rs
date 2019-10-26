@@ -2,6 +2,8 @@
 //! The interpreter library.
 //!
 
+#![allow(clippy::large_enum_variant)]
+
 mod element;
 mod error;
 mod interpreter;

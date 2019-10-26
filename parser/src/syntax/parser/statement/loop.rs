@@ -46,7 +46,11 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<LoopStatement, Error> {
+    pub fn parse(
+        mut self,
+        stream: Rc<RefCell<TokenStream>>,
+        mut initial: Option<Token>,
+    ) -> Result<LoopStatement, Error> {
         loop {
             match self.state {
                 State::KeywordFor => {
@@ -178,7 +182,8 @@ impl Parser {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
                         } => {
-                            let block = BlockExpressionParser::default().parse(stream.clone(), Some(token))?;
+                            let block = BlockExpressionParser::default()
+                                .parse(stream.clone(), Some(token))?;
                             self.builder.set_block(block);
                             return Ok(self.builder.finish());
                         }
@@ -196,13 +201,15 @@ impl Parser {
                     }
                 }
                 State::WhileCondition => {
-                    let (expression, next) = ExpressionParser::default().parse(stream.clone(), None)?;
+                    let (expression, next) =
+                        ExpressionParser::default().parse(stream.clone(), None)?;
                     self.next = next;
                     self.builder.set_while_condition(expression);
                     self.state = State::BlockExpression;
                 }
                 State::BlockExpression => {
-                    let expression = BlockExpressionParser::default().parse(stream.clone(), self.next.take())?;
+                    let expression =
+                        BlockExpressionParser::default().parse(stream.clone(), self.next.take())?;
                     self.builder.set_block(expression);
                     return Ok(self.builder.finish());
                 }
@@ -243,8 +250,8 @@ mod tests {
         let expected = Ok(LoopStatement::new(
             Location::new(1, 1),
             Identifier::new(Location::new(1, 5), "i".to_owned()),
-            0,
-            4,
+            IntegerLiteral::new_decimal("0".to_owned()),
+            IntegerLiteral::new_decimal("4".to_owned()),
             true,
             None,
             BlockExpression::new(
@@ -294,8 +301,10 @@ mod tests {
             ),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -307,15 +316,17 @@ mod tests {
         let expected = Ok(LoopStatement::new(
             Location::new(1, 1),
             Identifier::new(Location::new(1, 5), "i".to_owned()),
-            0,
-            4,
+            IntegerLiteral::new_decimal("0".to_owned()),
+            IntegerLiteral::new_decimal("4".to_owned()),
             false,
             None,
             BlockExpression::new(Location::new(1, 15), vec![], None),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -330,8 +341,10 @@ mod tests {
             Lexeme::Identifier(lexical::Identifier::new("n".to_owned())),
         )));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }

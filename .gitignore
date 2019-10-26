@@ -5,4 +5,7 @@
 /.idea/
 
 # Book
-/docs/book
+/book/book/
+
+# Generated
+/circuit/src/lib.rs

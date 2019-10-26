@@ -24,7 +24,7 @@ pub use self::value::Value;
 
 use std::fmt;
 
-use parser::Type;
+use parser::TypeVariant;
 use r1cs::Bn256;
 use r1cs::ConstraintSystem;
 
@@ -32,7 +32,7 @@ use r1cs::ConstraintSystem;
 pub enum Element {
     Place(Place),
     Value(Value),
-    Type(Type),
+    Type(TypeVariant),
 }
 
 impl Element {
@@ -380,7 +380,7 @@ impl Element {
         };
 
         value
-            .cast(system.namespace(|| "element_cast"), r#type.variant)
+            .cast(system.namespace(|| "element_cast"), r#type)
             .map(Self::Value)
             .map_err(Error::Value)
     }

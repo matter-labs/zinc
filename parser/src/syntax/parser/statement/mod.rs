@@ -4,18 +4,24 @@
 
 mod debug;
 mod r#enum;
+mod r#fn;
 mod r#let;
 mod r#loop;
+mod module;
 mod require;
 mod r#struct;
 mod r#type;
+mod r#use;
 
 pub use self::debug::Parser as DebugParser;
+pub use self::module::Parser as ModParser;
 pub use self::r#enum::Parser as EnumParser;
+pub use self::r#fn::Parser as FnParser;
 pub use self::r#let::Parser as LetParser;
 pub use self::r#loop::Parser as LoopParser;
 pub use self::r#struct::Parser as StructParser;
 pub use self::r#type::Parser as TypeParser;
+pub use self::r#use::Parser as UseParser;
 pub use self::require::Parser as RequireParser;
 
 use std::cell::RefCell;
@@ -52,90 +58,126 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<(Statement, Option<Token>, bool), Error> {
+    pub fn parse(
+        mut self,
+        stream: Rc<RefCell<TokenStream>>,
+        mut initial: Option<Token>,
+    ) -> Result<(Statement, Option<Token>, bool), Error> {
         loop {
             match self.state {
                 State::Statement => {
-                    self.statement = Some(match match initial.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
-                        Token {
-                            lexeme: Lexeme::Symbol(Symbol::Semicolon),
-                            ..
-                        } => return Ok((Statement::Empty, None, false)),
-                        token @ Token {
-                            lexeme: Lexeme::Keyword(Keyword::Require),
-                            ..
-                        } => {
-                            let statement = RequireParser::default()
-                                .parse(stream.clone(), Some(token))?;;
-                            self.state = State::Semicolon;
-                            Statement::Require(statement)
-                        }
-                        token @ Token {
-                            lexeme: Lexeme::Keyword(Keyword::Let),
-                            ..
-                        } => {
-                            let (statement, next) = LetParser::default()
-                                .parse(stream.clone(), Some(token))?;
-                            self.next = next;
-                            self.state = State::Semicolon;
-                            Statement::Let(statement)
-                        }
-                        token @ Token {
-                            lexeme: Lexeme::Keyword(Keyword::For),
-                            ..
-                        } => {
-                            let statement = LoopParser::default()
-                                .parse(stream.clone(), Some(token))?;
-                            self.state = State::Semicolon;
-                            Statement::Loop(statement)
-                        }
-                        token @ Token {
-                            lexeme: Lexeme::Keyword(Keyword::Type),
-                            ..
-                        } => {
-                            let statement = TypeParser::default()
-                                .parse(stream.clone(), Some(token))?;
-                            self.state = State::Semicolon;
-                            Statement::Type(statement)
-                        }
-                        token @ Token {
-                            lexeme: Lexeme::Keyword(Keyword::Struct),
-                            ..
-                        } => {
-                            let (statement, next) = StructParser::default().parse(stream.clone(), Some(token))?;
-                            self.next = next;
-                            self.state = State::Semicolon;
-                            Statement::Struct(statement)
-                        }
-                        token @ Token {
-                            lexeme: Lexeme::Keyword(Keyword::Enum),
-                            ..
-                        } => {
-                            let (statement, next) = EnumParser::default()
-                                .parse(stream.clone(), Some(token))?;
-                            self.next = next;
-                            self.state = State::Semicolon;
-                            Statement::Enum(statement)
-                        }
-                        token @ Token {
-                            lexeme: Lexeme::Keyword(Keyword::Debug),
-                            ..
-                        } => {
-                            let statement = DebugParser::default()
-                                .parse(stream.clone(), Some(token))?;
-                            self.state = State::Semicolon;
-                            Statement::Debug(statement)
-                        }
-                        token => {
-                            let (expression, next) = ExpressionParser::default().parse(stream.clone(), Some(token))?;
-                            self.next = next;
-                            self.state = State::SemicolonOptional;
-                            Statement::Expression(expression)
-                        }
-                    });
+                    self.statement = Some(
+                        match match initial.take() {
+                            Some(token) => token,
+                            None => stream.borrow_mut().next()?,
+                        } {
+                            Token {
+                                lexeme: Lexeme::Symbol(Symbol::Semicolon),
+                                ..
+                            } => return Ok((Statement::Empty, None, false)),
+                            token @ Token {
+                                lexeme: Lexeme::Keyword(Keyword::Require),
+                                ..
+                            } => {
+                                let statement =
+                                    RequireParser::default().parse(stream.clone(), Some(token))?;
+                                self.state = State::Semicolon;
+                                Statement::Require(statement)
+                            }
+                            token @ Token {
+                                lexeme: Lexeme::Keyword(Keyword::Let),
+                                ..
+                            } => {
+                                let (statement, next) =
+                                    LetParser::default().parse(stream.clone(), Some(token))?;
+                                self.next = next;
+                                self.state = State::Semicolon;
+                                Statement::Let(statement)
+                            }
+                            token @ Token {
+                                lexeme: Lexeme::Keyword(Keyword::For),
+                                ..
+                            } => {
+                                let statement =
+                                    LoopParser::default().parse(stream.clone(), Some(token))?;
+                                self.state = State::Semicolon;
+                                Statement::Loop(statement)
+                            }
+                            token @ Token {
+                                lexeme: Lexeme::Keyword(Keyword::Type),
+                                ..
+                            } => {
+                                let statement =
+                                    TypeParser::default().parse(stream.clone(), Some(token))?;
+                                self.state = State::Semicolon;
+                                Statement::Type(statement)
+                            }
+                            token @ Token {
+                                lexeme: Lexeme::Keyword(Keyword::Struct),
+                                ..
+                            } => {
+                                let (statement, next) =
+                                    StructParser::default().parse(stream.clone(), Some(token))?;
+                                self.next = next;
+                                self.state = State::Semicolon;
+                                Statement::Struct(statement)
+                            }
+                            token @ Token {
+                                lexeme: Lexeme::Keyword(Keyword::Enum),
+                                ..
+                            } => {
+                                let (statement, next) =
+                                    EnumParser::default().parse(stream.clone(), Some(token))?;
+                                self.next = next;
+                                self.state = State::Semicolon;
+                                Statement::Enum(statement)
+                            }
+                            token @ Token {
+                                lexeme: Lexeme::Keyword(Keyword::Fn),
+                                ..
+                            } => {
+                                let statement =
+                                    FnParser::default().parse(stream.clone(), Some(token))?;
+                                self.state = State::Semicolon;
+                                Statement::Fn(statement)
+                            }
+                            token @ Token {
+                                lexeme: Lexeme::Keyword(Keyword::Mod),
+                                ..
+                            } => {
+                                let statement =
+                                    ModParser::default().parse(stream.clone(), Some(token))?;
+                                self.state = State::Semicolon;
+                                Statement::Mod(statement)
+                            }
+                            token @ Token {
+                                lexeme: Lexeme::Keyword(Keyword::Use),
+                                ..
+                            } => {
+                                let (statement, next) =
+                                    UseParser::default().parse(stream.clone(), Some(token))?;
+                                self.next = next;
+                                self.state = State::Semicolon;
+                                Statement::Use(statement)
+                            }
+                            token @ Token {
+                                lexeme: Lexeme::Keyword(Keyword::Debug),
+                                ..
+                            } => {
+                                let statement =
+                                    DebugParser::default().parse(stream.clone(), Some(token))?;
+                                self.state = State::Semicolon;
+                                Statement::Debug(statement)
+                            }
+                            token => {
+                                let (expression, next) = ExpressionParser::default()
+                                    .parse(stream.clone(), Some(token))?;
+                                self.next = next;
+                                self.state = State::SemicolonOptional;
+                                Statement::Expression(expression)
+                            }
+                        },
+                    );
                 }
                 State::Semicolon => {
                     match match self.next.take() {
@@ -195,7 +237,9 @@ mod tests {
     use super::Parser;
     use crate::lexical;
     use crate::lexical::IntegerLiteral;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::BlockExpression;
     use crate::syntax::Expression;
@@ -213,10 +257,12 @@ mod tests {
     fn ok_empty() {
         let input = r#";"#;
 
-        let expected = Ok((Statement::Empty, false));
+        let expected = Ok((Statement::Empty, None, false));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -245,18 +291,21 @@ mod tests {
                     )],
                 ),
             )),
+            None,
             false,
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
 
     #[test]
     fn ok_semicolon_unterminated() {
-        let input = r#"{ 42 } "#;
+        let input = r#"{ 42 }"#;
 
         let expected = Ok((
             Statement::Expression(Expression::new(
@@ -283,11 +332,14 @@ mod tests {
                     ))),
                 )],
             )),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 7))),
             true,
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }

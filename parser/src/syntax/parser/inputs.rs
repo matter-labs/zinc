@@ -11,50 +11,46 @@ use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
-use crate::syntax::Identifier;
-use crate::syntax::Input;
-use crate::syntax::InputBuilder;
-use crate::syntax::TypeParser;
+use crate::syntax::Field;
+use crate::syntax::FieldListParser;
 use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    KeywordInputs,
+    KeywordInput,
     BracketCurlyLeft,
-    IdentifierOrBracketCurlyRight,
-    Colon,
-    Type,
-    Comma,
+    FieldList,
+    BracketCurlyRight,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::KeywordInputs
+        State::KeywordInput
     }
 }
 
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    inputs: Vec<Input>,
-    builder: InputBuilder,
+    fields: Vec<Field>,
+    next: Option<Token>,
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Vec<Input>, Error> {
+    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Vec<Field>, Error> {
         loop {
             match self.state {
-                State::KeywordInputs => {
+                State::KeywordInput => {
                     let next = stream.borrow_mut().next()?;
                     match next {
                         Token {
-                            lexeme: Lexeme::Keyword(Keyword::Inputs),
+                            lexeme: Lexeme::Keyword(Keyword::Input),
                             ..
                         } => self.state = State::BracketCurlyLeft,
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                vec!["inputs"],
+                                vec!["input"],
                                 lexeme,
                             )));
                         }
@@ -66,7 +62,7 @@ impl Parser {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
-                        } => self.state = State::IdentifierOrBracketCurlyRight,
+                        } => self.state = State::FieldList,
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
@@ -76,68 +72,22 @@ impl Parser {
                         }
                     }
                 }
-                State::IdentifierOrBracketCurlyRight => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                State::FieldList => {
+                    let (fields, next) = FieldListParser::default().parse(stream.clone(), None)?;
+                    self.fields = fields;
+                    self.next = next;
+                    self.state = State::BracketCurlyRight;
+                }
+                State::BracketCurlyRight => {
+                    match self.next.take().expect("Always contains a value") {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
-                        } => return Ok(self.inputs),
-                        Token {
-                            lexeme: Lexeme::Identifier(identifier),
-                            location,
-                        } => {
-                            let identifier = Identifier::new(location, identifier.name);
-                            self.builder.set_location(location);
-                            self.builder.set_identifier(identifier);
-                            self.state = State::Colon;
-                        }
+                        } => return Ok(self.fields),
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                vec!["{identifier}", "}"],
-                                lexeme,
-                            )));
-                        }
-                    }
-                }
-                State::Colon => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
-                        Token {
-                            lexeme: Lexeme::Symbol(Symbol::Colon),
-                            ..
-                        } => self.state = State::Type,
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec![":"],
-                                lexeme,
-                            )));
-                        }
-                    }
-                }
-                State::Type => {
-                    let r#type = TypeParser::default().parse(stream.clone(), None)?;
-                    self.builder.set_type(r#type);
-                    self.state = State::Comma;
-                }
-                State::Comma => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
-                        Token {
-                            lexeme: Lexeme::Symbol(Symbol::Comma),
-                            ..
-                        } => {
-                            let input = self.builder.build();
-                            log::trace!("Input: {:?}", input);
-                            self.inputs.push(input);
-                            self.state = State::IdentifierOrBracketCurlyRight;
-                        }
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec![","],
+                                vec!["}"],
                                 lexeme,
                             )));
                         }
@@ -154,26 +104,22 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::lexical::Lexeme;
     use crate::lexical::Location;
-    use crate::lexical::Symbol;
     use crate::lexical::TokenStream;
-    use crate::syntax::Error as SyntaxError;
+    use crate::syntax::Field;
     use crate::syntax::Identifier;
-    use crate::syntax::Input;
     use crate::syntax::Type;
     use crate::syntax::TypeVariant;
-    use crate::Error;
 
     #[test]
     fn ok_single() {
         let input = r#"
-    inputs {
+    input {
         a: u232,
     }
 "#;
 
-        let expected = Ok(vec![Input::new(
+        let expected = Ok(vec![Field::new(
             Location::new(3, 9),
             Identifier::new(Location::new(3, 9), "a".to_owned()),
             Type::new(Location::new(3, 12), TypeVariant::new_integer_unsigned(232)),
@@ -188,30 +134,10 @@ mod tests {
     #[test]
     fn ok_empty() {
         let input = r#"
-    inputs {}
+    input {}
 "#;
 
-        let expected = Ok(Vec::<Input>::new());
-
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));;
-
-        assert_eq!(expected, result);
-    }
-
-    #[test]
-    fn error_expected_comma() {
-        let input = r#"
-    inputs {
-        a: u232;
-    }
-"#;
-
-        let expected = Err(Error::Syntax(SyntaxError::Expected(
-            Location::new(3, 16),
-            vec![","],
-            Lexeme::Symbol(Symbol::Semicolon),
-        )));
+        let expected = Ok(Vec::<Field>::new());
 
         let result =
             Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));

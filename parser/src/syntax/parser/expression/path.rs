@@ -38,7 +38,11 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<(Expression, Option<Token>), Error> {
+    pub fn parse(
+        mut self,
+        stream: Rc<RefCell<TokenStream>>,
+        mut initial: Option<Token>,
+    ) -> Result<(Expression, Option<Token>), Error> {
         loop {
             match self.state {
                 State::Identifier => {
@@ -97,7 +101,10 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Symbol;
+    use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Expression;
     use crate::syntax::ExpressionElement;
@@ -110,43 +117,49 @@ mod tests {
     fn ok() {
         let input = r#"mega::ultra::namespace;"#;
 
-        let expected = Ok(Expression::new(
-            Location::new(1, 1),
-            vec![
-                ExpressionElement::new(
+        let expected =
+            Ok((
+                Expression::new(
                     Location::new(1, 1),
-                    ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-                        Location::new(1, 1),
-                        "Test".to_owned(),
-                    ))),
+                    vec![
+                        ExpressionElement::new(
+                            Location::new(1, 1),
+                            ExpressionObject::Operand(ExpressionOperand::Identifier(
+                                Identifier::new(Location::new(1, 1), "mega".to_owned()),
+                            )),
+                        ),
+                        ExpressionElement::new(
+                            Location::new(1, 7),
+                            ExpressionObject::Operand(ExpressionOperand::Identifier(
+                                Identifier::new(Location::new(1, 7), "ultra".to_owned()),
+                            )),
+                        ),
+                        ExpressionElement::new(
+                            Location::new(1, 5),
+                            ExpressionObject::Operator(ExpressionOperator::Path),
+                        ),
+                        ExpressionElement::new(
+                            Location::new(1, 14),
+                            ExpressionObject::Operand(ExpressionOperand::Identifier(
+                                Identifier::new(Location::new(1, 14), "namespace".to_owned()),
+                            )),
+                        ),
+                        ExpressionElement::new(
+                            Location::new(1, 12),
+                            ExpressionObject::Operator(ExpressionOperator::Path),
+                        ),
+                    ],
                 ),
-                ExpressionElement::new(
-                    Location::new(1, 7),
-                    ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-                        Location::new(1, 7),
-                        "Test".to_owned(),
-                    ))),
-                ),
-                ExpressionElement::new(
-                    Location::new(1, 5),
-                    ExpressionObject::Operator(ExpressionOperator::Path),
-                ),
-                ExpressionElement::new(
-                    Location::new(1, 14),
-                    ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-                        Location::new(1, 14),
-                        "Test".to_owned(),
-                    ))),
-                ),
-                ExpressionElement::new(
-                    Location::new(1, 12),
-                    ExpressionObject::Operator(ExpressionOperator::Path),
-                ),
-            ],
-        ));
+                Some(Token::new(
+                    Lexeme::Symbol(Symbol::Semicolon),
+                    Location::new(1, 23),
+                )),
+            ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));;
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }

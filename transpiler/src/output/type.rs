@@ -27,6 +27,7 @@ impl Output {
             ),
             TypeVariant::Structure { .. } => unimplemented!(),
             TypeVariant::Enumeration { .. } => unimplemented!(),
+            TypeVariant::Function { .. } => unimplemented!(),
             TypeVariant::Alias { identifier } => identifier,
         }
     }

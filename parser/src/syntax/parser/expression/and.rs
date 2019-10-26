@@ -38,11 +38,16 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<(Expression, Option<Token>), Error> {
+    pub fn parse(
+        mut self,
+        stream: Rc<RefCell<TokenStream>>,
+        mut initial: Option<Token>,
+    ) -> Result<(Expression, Option<Token>), Error> {
         loop {
             match self.state {
                 State::ComparisonFirstOperand => {
-                    let (expression, next) = ComparisonOperandParser::default().parse(stream.clone(), initial.take())?;
+                    let (expression, next) =
+                        ComparisonOperandParser::default().parse(stream.clone(), initial.take())?;
                     self.next = next;
                     self.builder.set_location_if_unset(expression.location);
                     self.builder.extend_with_expression(expression);
@@ -96,7 +101,8 @@ impl Parser {
                     }
                 }
                 State::ComparisonSecondOperand => {
-                    let (expression, next) = ComparisonOperandParser::default().parse(stream.clone(), None)?;
+                    let (expression, next) =
+                        ComparisonOperandParser::default().parse(stream.clone(), None)?;
                     self.builder.extend_with_expression(expression);
                     if let Some((location, operator)) = self.operator.take() {
                         self.builder.push_operator(location, operator);
@@ -116,7 +122,9 @@ mod tests {
     use super::Parser;
     use crate::lexical;
     use crate::lexical::BooleanLiteral;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Expression;
     use crate::syntax::ExpressionElement;
@@ -129,32 +137,37 @@ mod tests {
     fn ok() {
         let input = r#"true == false"#;
 
-        let expected = Ok(Expression::new(
-            Location::new(1, 1),
-            vec![
-                ExpressionElement::new(
-                    Location::new(1, 1),
-                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+        let expected = Ok((
+            Expression::new(
+                Location::new(1, 1),
+                vec![
+                    ExpressionElement::new(
                         Location::new(1, 1),
-                        lexical::Literal::Boolean(BooleanLiteral::True),
-                    ))),
-                ),
-                ExpressionElement::new(
-                    Location::new(1, 9),
-                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(1, 1),
+                            lexical::Literal::Boolean(BooleanLiteral::True),
+                        ))),
+                    ),
+                    ExpressionElement::new(
                         Location::new(1, 9),
-                        lexical::Literal::Boolean(BooleanLiteral::False),
-                    ))),
-                ),
-                ExpressionElement::new(
-                    Location::new(1, 6),
-                    ExpressionObject::Operator(ExpressionOperator::Equals),
-                ),
-            ],
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(1, 9),
+                            lexical::Literal::Boolean(BooleanLiteral::False),
+                        ))),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 6),
+                        ExpressionObject::Operator(ExpressionOperator::Equals),
+                    ),
+                ],
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 14))),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }

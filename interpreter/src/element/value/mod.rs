@@ -23,7 +23,9 @@ pub use self::tuple::Tuple;
 use std::fmt;
 
 use parser::BooleanLiteral;
+use parser::InnerLiteral;
 use parser::IntegerLiteral;
+use parser::Literal;
 use parser::TypeVariant;
 use r1cs::Bn256;
 use r1cs::ConstraintSystem;
@@ -37,11 +39,23 @@ pub enum Value {
     Tuple(Tuple),
     Structure(Structure),
     Enumeration(usize),
+    List(Vec<Self>),
 }
 
 impl Value {
     pub fn new_unit() -> Self {
         Self::Unit
+    }
+
+    pub fn new_from_literal<S: ConstraintSystem<Bn256>>(
+        system: S,
+        literal: Literal,
+    ) -> Result<Self, Error> {
+        match literal.data {
+            InnerLiteral::Boolean(literal) => Self::new_boolean_from_literal(system, literal),
+            InnerLiteral::Integer(literal) => Self::new_integer_from_literal(system, literal, None),
+            InnerLiteral::String { .. } => panic!("String variables cannot be created yet"),
+        }
     }
 
     pub fn new_boolean_from_literal<S: ConstraintSystem<Bn256>>(
@@ -106,6 +120,7 @@ impl Value {
             Self::Tuple(value) => value.type_variant(),
             Self::Structure(value) => value.type_variant(),
             Self::Enumeration(_value) => TypeVariant::new_integer_unsigned(8),
+            Self::List(_list) => unimplemented!(),
         }
     }
 
@@ -486,6 +501,7 @@ impl Value {
             Self::Tuple(value) => write!(f, "{}", value),
             Self::Structure(value) => write!(f, "{}", value),
             Self::Enumeration(value) => write!(f, "{}", value),
+            Self::List(value) => write!(f, "{:?}", value),
         }
     }
 }

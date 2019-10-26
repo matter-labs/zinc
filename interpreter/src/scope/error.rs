@@ -13,8 +13,8 @@ pub enum Error {
     #[fail(display = "redeclared item '{}'", _0)]
     RedeclaredItem(String),
 
-    #[fail(display = "mutating an immutable variable '{}'", _0)]
-    MutatingImmutableVariable(String),
+    #[fail(display = "mutating an immutable object '{}'", _0)]
+    MutatingImmutable(String),
     #[fail(
         display = "the value being assigned has type '{}', but expected '{}'",
         _0, _1
@@ -25,34 +25,34 @@ pub enum Error {
 
     #[fail(display = "index {} is out of range of '{}'", _0, _1)]
     ArrayIndexOutOfRange(usize, String),
-    #[fail(display = "array '{}' cannot be addressed with tuple field {}", _0, _1)]
-    AddressArrayAsTuple(String, usize),
+    #[fail(display = "array '{}' cannot be accessed with tuple field {}", _0, _1)]
+    ArrayAccessAsTuple(String, usize),
     #[fail(
-        display = "array '{}' cannot be addressed with structure field '{}'",
+        display = "array '{}' cannot be accessed with structure field '{}'",
         _0, _1
     )]
-    AddressArrayAsStructure(String, String),
+    ArrayAccessAsStructure(String, String),
 
     #[fail(display = "tuple field {} does not exist in '{}'", _0, _1)]
     TupleFieldNotExists(usize, String),
-    #[fail(display = "tuple '{}' cannot be addressed with array index {}", _0, _1)]
-    AccessTupleAsArray(String, usize),
+    #[fail(display = "tuple '{}' cannot be accessed with array index {}", _0, _1)]
+    TupleAccessAsArray(String, usize),
     #[fail(
-        display = "tuple '{}' cannot be addressed with structure field '{}'",
+        display = "tuple '{}' cannot be accessed with structure field '{}'",
         _0, _1
     )]
-    AccessTupleAsStructure(String, String),
+    TupleAccessAsStructure(String, String),
 
     #[fail(display = "structure field '{}' does not exist in '{}'", _0, _1)]
     StructureFieldNotExists(String, String),
     #[fail(
-        display = "structure '{}' cannot be addressed with array index {}",
+        display = "structure '{}' cannot be accessed with array index {}",
         _0, _1
     )]
-    AccessStructureAsArray(String, usize),
+    StructureAccessAsArray(String, usize),
     #[fail(
-        display = "structure '{}' cannot be addressed with tuple field {}",
+        display = "structure '{}' cannot be accessed with tuple field {}",
         _0, _1
     )]
-    AccessStructureAsTuple(String, usize),
+    StructureAccessAsTuple(String, usize),
 }

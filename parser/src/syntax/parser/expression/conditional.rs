@@ -70,13 +70,15 @@ impl Parser {
                     }
                 }
                 State::Condition => {
-                    let (expression, next) = ExpressionParser::default().parse(stream.clone(), None)?;
+                    let (expression, next) =
+                        ExpressionParser::default().parse(stream.clone(), None)?;
                     self.next = next;
                     self.builder.set_condition(expression);
                     self.state = State::MainBlock;
                 }
                 State::MainBlock => {
-                    let block = BlockExpressionParser::default().parse(stream.clone(), self.next.take())?;
+                    let block =
+                        BlockExpressionParser::default().parse(stream.clone(), self.next.take())?;
                     self.builder.set_main_block(block);
                     self.state = State::ElseKeywordOrEnd;
                 }
@@ -97,7 +99,8 @@ impl Parser {
                             lexeme: Lexeme::Keyword(Keyword::If),
                             ..
                         } => {
-                            let (expression, next) = Self::default().parse(stream.clone(), Some(token))?;
+                            let (expression, next) =
+                                Self::default().parse(stream.clone(), Some(token))?;
                             self.builder.set_else_if(expression);
                             return Ok((self.builder.finish(), next));
                         }
@@ -105,7 +108,8 @@ impl Parser {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
                         } => {
-                            let block = BlockExpressionParser::default().parse(stream.clone(), Some(token))?;
+                            let block = BlockExpressionParser::default()
+                                .parse(stream.clone(), Some(token))?;
                             self.builder.set_else_block(block);
                             return Ok((self.builder.finish(), None));
                         }
@@ -146,83 +150,94 @@ mod tests {
     fn ok_nested() {
         let input = r#"if true { 1 } else if false { 2 } else { 3 }"#;
 
-        let expected = Ok(ConditionalExpression::new(
-            Location::new(1, 1),
-            Expression::new(
-                Location::new(1, 4),
-                vec![ExpressionElement::new(
-                    Location::new(1, 4),
-                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
-                        Location::new(1, 4),
-                        lexical::Literal::Boolean(BooleanLiteral::True),
-                    ))),
-                )],
-            ),
-            BlockExpression::new(
-                Location::new(1, 9),
-                vec![],
-                Some(Expression::new(
-                    Location::new(1, 11),
-                    vec![ExpressionElement::new(
-                        Location::new(1, 11),
-                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
-                            Location::new(1, 11),
-                            lexical::Literal::Integer(IntegerLiteral::new_decimal("1".to_owned())),
-                        ))),
-                    )],
-                )),
-            ),
-            Some(ConditionalExpression::new(
-                Location::new(1, 20),
+        let expected = Ok((
+            ConditionalExpression::new(
+                Location::new(1, 1),
                 Expression::new(
-                    Location::new(1, 23),
+                    Location::new(1, 4),
                     vec![ExpressionElement::new(
-                        Location::new(1, 23),
+                        Location::new(1, 4),
                         ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
-                            Location::new(1, 23),
-                            lexical::Literal::Boolean(BooleanLiteral::False),
+                            Location::new(1, 4),
+                            lexical::Literal::Boolean(BooleanLiteral::True),
                         ))),
                     )],
                 ),
                 BlockExpression::new(
-                    Location::new(1, 29),
+                    Location::new(1, 9),
                     vec![],
                     Some(Expression::new(
-                        Location::new(1, 31),
+                        Location::new(1, 11),
                         vec![ExpressionElement::new(
-                            Location::new(1, 31),
+                            Location::new(1, 11),
                             ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
-                                Location::new(1, 31),
+                                Location::new(1, 11),
                                 lexical::Literal::Integer(IntegerLiteral::new_decimal(
-                                    "2".to_owned(),
+                                    "1".to_owned(),
                                 )),
                             ))),
                         )],
                     )),
                 ),
-                None,
-                Some(BlockExpression::new(
-                    Location::new(1, 40),
-                    vec![],
-                    Some(Expression::new(
-                        Location::new(1, 42),
+                Some(ConditionalExpression::new(
+                    Location::new(1, 20),
+                    Expression::new(
+                        Location::new(1, 23),
                         vec![ExpressionElement::new(
-                            Location::new(1, 42),
+                            Location::new(1, 23),
                             ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
-                                Location::new(1, 42),
-                                lexical::Literal::Integer(IntegerLiteral::new_decimal(
-                                    "3".to_owned(),
-                                )),
+                                Location::new(1, 23),
+                                lexical::Literal::Boolean(BooleanLiteral::False),
                             ))),
                         )],
+                    ),
+                    BlockExpression::new(
+                        Location::new(1, 29),
+                        vec![],
+                        Some(Expression::new(
+                            Location::new(1, 31),
+                            vec![ExpressionElement::new(
+                                Location::new(1, 31),
+                                ExpressionObject::Operand(ExpressionOperand::Literal(
+                                    Literal::new(
+                                        Location::new(1, 31),
+                                        lexical::Literal::Integer(IntegerLiteral::new_decimal(
+                                            "2".to_owned(),
+                                        )),
+                                    ),
+                                )),
+                            )],
+                        )),
+                    ),
+                    None,
+                    Some(BlockExpression::new(
+                        Location::new(1, 40),
+                        vec![],
+                        Some(Expression::new(
+                            Location::new(1, 42),
+                            vec![ExpressionElement::new(
+                                Location::new(1, 42),
+                                ExpressionObject::Operand(ExpressionOperand::Literal(
+                                    Literal::new(
+                                        Location::new(1, 42),
+                                        lexical::Literal::Integer(IntegerLiteral::new_decimal(
+                                            "3".to_owned(),
+                                        )),
+                                    ),
+                                )),
+                            )],
+                        )),
                     )),
                 )),
-            )),
+                None,
+            ),
             None,
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }

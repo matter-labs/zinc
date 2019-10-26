@@ -27,7 +27,11 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<Type, Error> {
+    pub fn parse(
+        mut self,
+        stream: Rc<RefCell<TokenStream>>,
+        mut initial: Option<Token>,
+    ) -> Result<Type, Error> {
         match match initial.take() {
             Some(token) => token,
             None => stream.borrow_mut().next()?,
@@ -82,6 +86,7 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::lexical::IntegerLiteral;
     use crate::lexical::Lexeme;
     use crate::lexical::Location;
     use crate::lexical::Symbol;
@@ -97,8 +102,10 @@ mod tests {
 
         let expected = Ok(Type::new(Location::new(1, 1), TypeVariant::new_unit()));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -112,8 +119,10 @@ mod tests {
             TypeVariant::new_integer_unsigned(232),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -124,8 +133,10 @@ mod tests {
 
         let expected = Ok(Type::new(Location::new(1, 1), TypeVariant::new_field()));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -136,11 +147,16 @@ mod tests {
 
         let expected = Ok(Type::new(
             Location::new(1, 1),
-            TypeVariant::new_array(TypeVariant::new_field(), 8),
+            TypeVariant::new_array(
+                TypeVariant::new_field(),
+                IntegerLiteral::new_decimal("8".to_owned()),
+            ),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -151,11 +167,19 @@ mod tests {
 
         let expected = Ok(Type::new(
             Location::new(1, 1),
-            TypeVariant::new_array(TypeVariant::new_array(TypeVariant::new_field(), 8), 8),
+            TypeVariant::new_array(
+                TypeVariant::new_array(
+                    TypeVariant::new_field(),
+                    IntegerLiteral::new_decimal("8".to_owned()),
+                ),
+                IntegerLiteral::new_decimal("8".to_owned()),
+            ),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -169,8 +193,10 @@ mod tests {
             TypeVariant::new_tuple(vec![TypeVariant::Field]),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -184,12 +210,17 @@ mod tests {
             TypeVariant::new_tuple(vec![
                 TypeVariant::Field,
                 TypeVariant::Unit,
-                TypeVariant::new_array(TypeVariant::new_integer_unsigned(8), 4),
+                TypeVariant::new_array(
+                    TypeVariant::new_integer_unsigned(8),
+                    IntegerLiteral::new_decimal("4".to_owned()),
+                ),
             ]),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -206,8 +237,10 @@ mod tests {
             ])]),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -221,8 +254,10 @@ mod tests {
             TypeVariant::new_alias(input.to_owned()),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -237,8 +272,10 @@ mod tests {
             Lexeme::Symbol(Symbol::Comma),
         )));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }

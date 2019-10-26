@@ -5,9 +5,9 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
-use crate::lexical::Keyword;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
@@ -43,7 +43,11 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<(StructureExpression, Option<Token>), Error> {
+    pub fn parse(
+        mut self,
+        stream: Rc<RefCell<TokenStream>>,
+        mut initial: Option<Token>,
+    ) -> Result<(StructureExpression, Option<Token>), Error> {
         loop {
             match self.state {
                 State::KeywordStruct => {
@@ -54,8 +58,11 @@ impl Parser {
                     match next {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Struct),
-                            ..
-                        } => self.state = State::Path,
+                            location,
+                        } => {
+                            self.builder.set_location(location);
+                            self.state = State::Path;
+                        }
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
@@ -72,8 +79,8 @@ impl Parser {
                             lexeme: Lexeme::Identifier { .. },
                             ..
                         } => {
-                            self.builder.set_location(token.location);
-                            let (expression, next) = PathExpressionParser::default().parse(stream.clone(), Some(token))?;
+                            let (expression, next) = PathExpressionParser::default()
+                                .parse(stream.clone(), Some(token))?;
                             self.next = next;
                             self.builder.set_path_expression(expression);
                             self.state = State::BracketCurlyLeftOrEnd;
@@ -137,7 +144,8 @@ impl Parser {
                     }
                 }
                 State::Expression => {
-                    let (expression, next) = ExpressionParser::default().parse(stream.clone(), None)?;
+                    let (expression, next) =
+                        ExpressionParser::default().parse(stream.clone(), None)?;
                     self.next = next;
                     self.builder.set_field_expression(expression);
                     self.state = State::CommaOrBracketCurlyRight;
@@ -191,30 +199,76 @@ mod tests {
     #[test]
     fn ok_single() {
         let input = r#"
-    Test {
+    struct Test {
         a: 1,
     }
 "#;
 
-        let expected = Ok(Expression::new(
-            Location::new(2, 5),
-            vec![ExpressionElement::new(
+        let expected = Ok((
+            StructureExpression::new(
                 Location::new(2, 5),
-                ExpressionObject::Operand(ExpressionOperand::Structure(StructureExpression::new(
-                    Location::new(2, 5),
+                Expression::new(
+                    Location::new(2, 12),
+                    vec![ExpressionElement::new(
+                        Location::new(2, 12),
+                        ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
+                            Location::new(2, 12),
+                            "Test".to_owned(),
+                        ))),
+                    )],
+                ),
+                vec![(
+                    Identifier::new(Location::new(3, 9), "a".to_owned()),
                     Expression::new(
-                        Location::new(2, 5),
-                        vec![
-                            ExpressionElement::new(
-                                Location::new(2, 5),
-                                ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-                                    Location::new(2, 5),
-                                    "Test".to_owned(),
-                                ))),
-                            ),
-                        ],
+                        Location::new(3, 12),
+                        vec![ExpressionElement::new(
+                            Location::new(3, 12),
+                            ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                                Location::new(3, 12),
+                                lexical::Literal::Integer(IntegerLiteral::new_decimal(
+                                    "1".to_owned(),
+                                )),
+                            ))),
+                        )],
                     ),
-                    vec![(
+                )],
+            ),
+            None,
+        ));
+
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_multiple() {
+        let input = r#"
+    struct Test {
+        a: 1,
+        b: 2,
+        c: 3,
+    }
+"#;
+
+        let expected = Ok((
+            StructureExpression::new(
+                Location::new(2, 5),
+                Expression::new(
+                    Location::new(2, 12),
+                    vec![ExpressionElement::new(
+                        Location::new(2, 12),
+                        ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
+                            Location::new(2, 12),
+                            "Test".to_owned(),
+                        ))),
+                    )],
+                ),
+                vec![
+                    (
                         Identifier::new(Location::new(3, 9), "a".to_owned()),
                         Expression::new(
                             Location::new(3, 12),
@@ -230,104 +284,50 @@ mod tests {
                                 )),
                             )],
                         ),
-                    )],
-                ))),
-            )],
-        ));
-
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
-
-        assert_eq!(expected, result);
-    }
-
-    #[test]
-    fn ok_multiple() {
-        let input = r#"
-    Test {
-        a: 1,
-        b: 2,
-        c: 3,
-    }
-"#;
-
-        let expected = Ok(Expression::new(
-            Location::new(2, 5),
-            vec![ExpressionElement::new(
-                Location::new(2, 5),
-                ExpressionObject::Operand(ExpressionOperand::Structure(StructureExpression::new(
-                    Location::new(2, 5),
-                    Expression::new(
-                        Location::new(2, 5),
-                        vec![
-                            ExpressionElement::new(
-                                Location::new(2, 5),
-                                ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-                                    Location::new(2, 5),
-                                    "Test".to_owned(),
-                                ))),
-                            ),
-                        ],
                     ),
-                    vec![
-                        (
-                            Identifier::new(Location::new(3, 9), "a".to_owned()),
-                            Expression::new(
-                                Location::new(3, 12),
-                                vec![ExpressionElement::new(
-                                    Location::new(3, 12),
-                                    ExpressionObject::Operand(ExpressionOperand::Literal(
-                                        Literal::new(
-                                            Location::new(3, 12),
-                                            lexical::Literal::Integer(IntegerLiteral::new_decimal(
-                                                "1".to_owned(),
-                                            )),
-                                        ),
-                                    )),
-                                )],
-                            ),
-                        ),
-                        (
-                            Identifier::new(Location::new(4, 9), "b".to_owned()),
-                            Expression::new(
+                    (
+                        Identifier::new(Location::new(4, 9), "b".to_owned()),
+                        Expression::new(
+                            Location::new(4, 12),
+                            vec![ExpressionElement::new(
                                 Location::new(4, 12),
-                                vec![ExpressionElement::new(
-                                    Location::new(4, 12),
-                                    ExpressionObject::Operand(ExpressionOperand::Literal(
-                                        Literal::new(
-                                            Location::new(4, 12),
-                                            lexical::Literal::Integer(IntegerLiteral::new_decimal(
-                                                "2".to_owned(),
-                                            )),
-                                        ),
-                                    )),
-                                )],
-                            ),
+                                ExpressionObject::Operand(ExpressionOperand::Literal(
+                                    Literal::new(
+                                        Location::new(4, 12),
+                                        lexical::Literal::Integer(IntegerLiteral::new_decimal(
+                                            "2".to_owned(),
+                                        )),
+                                    ),
+                                )),
+                            )],
                         ),
-                        (
-                            Identifier::new(Location::new(5, 9), "c".to_owned()),
-                            Expression::new(
+                    ),
+                    (
+                        Identifier::new(Location::new(5, 9), "c".to_owned()),
+                        Expression::new(
+                            Location::new(5, 12),
+                            vec![ExpressionElement::new(
                                 Location::new(5, 12),
-                                vec![ExpressionElement::new(
-                                    Location::new(5, 12),
-                                    ExpressionObject::Operand(ExpressionOperand::Literal(
-                                        Literal::new(
-                                            Location::new(5, 12),
-                                            lexical::Literal::Integer(IntegerLiteral::new_decimal(
-                                                "3".to_owned(),
-                                            )),
-                                        ),
-                                    )),
-                                )],
-                            ),
+                                ExpressionObject::Operand(ExpressionOperand::Literal(
+                                    Literal::new(
+                                        Location::new(5, 12),
+                                        lexical::Literal::Integer(IntegerLiteral::new_decimal(
+                                            "3".to_owned(),
+                                        )),
+                                    ),
+                                )),
+                            )],
                         ),
-                    ],
-                ))),
-            )],
+                    ),
+                ],
+            ),
+            None,
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -335,54 +335,31 @@ mod tests {
     #[test]
     fn ok_empty() {
         let input = r#"
-    Test {}
+    struct Test {}
 "#;
 
-        let expected = Ok(Expression::new(
-            Location::new(2, 5),
-            vec![ExpressionElement::new(
+        let expected = Ok((
+            StructureExpression::new(
                 Location::new(2, 5),
-                ExpressionObject::Operand(ExpressionOperand::Structure(StructureExpression::new(
-                    Location::new(2, 5),
-                    Expression::new(
-                        Location::new(2, 5),
-                        vec![
-                            ExpressionElement::new(
-                                Location::new(2, 5),
-                                ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-                                    Location::new(2, 5),
-                                    "Test".to_owned(),
-                                ))),
-                            ),
-                        ],
-                    ),
-                    vec![],
-                ))),
-            )],
+                Expression::new(
+                    Location::new(2, 12),
+                    vec![ExpressionElement::new(
+                        Location::new(2, 12),
+                        ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
+                            Location::new(2, 12),
+                            "Test".to_owned(),
+                        ))),
+                    )],
+                ),
+                vec![],
+            ),
+            None,
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));;
-
-        assert_eq!(expected, result);
-    }
-
-    #[test]
-    fn ok_identifier() {
-        let input = r#"
-    Test;
-"#;
-
-        let expected = Ok(Expression::new(
-            Location::new(2, 5),
-            vec![ExpressionElement::new(
-                Location::new(2, 5),
-                ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(Location::new(2, 5), "Test".to_owned()))),
-            )],
-        ));
-
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));;
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }
@@ -390,7 +367,7 @@ mod tests {
     #[test]
     fn error_expected_comma() {
         let input = r#"
-    Test {
+    struct Test {
         a: 1;
     }
 "#;
@@ -401,8 +378,10 @@ mod tests {
             Lexeme::Symbol(Symbol::Semicolon),
         )));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }

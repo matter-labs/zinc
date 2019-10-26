@@ -9,22 +9,18 @@ pub use self::builder::Builder;
 use std::fmt;
 
 use crate::lexical::Location;
+use crate::syntax::Field;
 use crate::syntax::Identifier;
-use crate::syntax::Type;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Struct {
     pub location: Location,
     pub identifier: Identifier,
-    pub fields: Vec<(Identifier, Type)>,
+    pub fields: Vec<Field>,
 }
 
 impl Struct {
-    pub fn new(
-        location: Location,
-        identifier: Identifier,
-        fields: Vec<(Identifier, Type)>,
-    ) -> Self {
+    pub fn new(location: Location, identifier: Identifier, fields: Vec<Field>) -> Self {
         Self {
             location,
             identifier,
@@ -41,7 +37,7 @@ impl fmt::Display for Struct {
             self.identifier,
             self.fields
                 .iter()
-                .map(|(identifier, r#type)| format!("{}: {}", identifier, r#type))
+                .map(|field| field.to_string())
                 .collect::<Vec<String>>()
                 .join(", ")
         )

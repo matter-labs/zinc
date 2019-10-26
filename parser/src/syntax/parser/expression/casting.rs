@@ -21,7 +21,11 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<(Expression, Option<Token>), Error> {
+    pub fn parse(
+        mut self,
+        stream: Rc<RefCell<TokenStream>>,
+        mut initial: Option<Token>,
+    ) -> Result<(Expression, Option<Token>), Error> {
         let next = match initial.take() {
             Some(next) => next,
             None => stream.borrow_mut().next()?,
@@ -51,7 +55,8 @@ impl Parser {
             }
             token => {
                 self.builder.set_location(token.location);
-                let (expression, next) = AccessOperandParser::default().parse(stream.clone(), Some(token))?;
+                let (expression, next) =
+                    AccessOperandParser::default().parse(stream.clone(), Some(token))?;
                 self.builder.extend_with_expression(expression);
                 Ok((self.builder.finish(), next))
             }
@@ -67,7 +72,9 @@ mod tests {
     use super::Parser;
     use crate::lexical;
     use crate::lexical::IntegerLiteral;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Expression;
     use crate::syntax::ExpressionElement;
@@ -79,31 +86,39 @@ mod tests {
 
     #[test]
     fn ok() {
-        let input = r#"array[42] "#;
+        let input = r#"array[42]"#;
 
-        let expected = Ok(Expression::new(
-            Location::new(1, 1),
-            vec![
-                ExpressionElement::new(
-                    Location::new(1, 1),
-                    ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(Location::new(1, 1), "array".to_owned()))),
-                ),
-                ExpressionElement::new(
-                    Location::new(1, 7),
-                    ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+        let expected = Ok((
+            Expression::new(
+                Location::new(1, 1),
+                vec![
+                    ExpressionElement::new(
+                        Location::new(1, 1),
+                        ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
+                            Location::new(1, 1),
+                            "array".to_owned(),
+                        ))),
+                    ),
+                    ExpressionElement::new(
                         Location::new(1, 7),
-                        lexical::Literal::Integer(IntegerLiteral::new_decimal("42".to_owned())),
-                    ))),
-                ),
-                ExpressionElement::new(
-                    Location::new(1, 6),
-                    ExpressionObject::Operator(ExpressionOperator::Indexing),
-                ),
-            ],
+                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
+                            Location::new(1, 7),
+                            lexical::Literal::Integer(IntegerLiteral::new_decimal("42".to_owned())),
+                        ))),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 6),
+                        ExpressionObject::Operator(ExpressionOperator::Indexing),
+                    ),
+                ],
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 10))),
         ));
 
-        let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
 
         assert_eq!(expected, result);
     }

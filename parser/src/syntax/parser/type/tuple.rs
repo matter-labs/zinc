@@ -35,7 +35,11 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>, mut initial: Option<Token>) -> Result<Type, Error> {
+    pub fn parse(
+        mut self,
+        stream: Rc<RefCell<TokenStream>>,
+        mut initial: Option<Token>,
+    ) -> Result<Type, Error> {
         loop {
             match self.state {
                 State::ParenthesisLeft => {
@@ -70,7 +74,8 @@ impl Parser {
                             return Ok(self.builder.finish());
                         }
                         token => {
-                            let array_type = TypeParser::default().parse(stream.clone(), Some(token))?;
+                            let array_type =
+                                TypeParser::default().parse(stream.clone(), Some(token))?;
                             self.builder.push_tuple_type(array_type.variant);
                             self.state = State::CommaOrParenthesisRight;
                         }
