@@ -1,11 +1,18 @@
 # Syntax grammar
 
 ```
-program = inputs, [ witnesses ], { statement } ;
+(* Domain *)
+file = binary | library ;
+
+binary = inputs, witnesses, outputs, { statement } ;
+
+library = { statement } ;
 
 inputs = 'input', '{', field_list, '}' ;
 
 witnesses = 'witness', '{', field_list, '}' ;
+
+outputs = 'output', '{', field_list, '}' ;
 
 type =
     'bool'
@@ -26,24 +33,26 @@ variant_list = [ variant, { ',', variant } ] ;
 (* Statements *)
 statement =
     empty_statement
-  | require_statement
   | let_statement
   | loop_statement
   | type_statement
   | struct_statement
   | enum_statement
-  | debug_statement
+  | fn_statement
+  | mod_statement
+  | use_statement
   | expression
 ';' ;
 
 empty_statement = ;
-require_statement = 'require', '(', expression, ')' ;
 let_statement = 'let', [ 'mut' ], identifier, [ ':', type ], '=', expression ;
 loop_statement = 'for', identifier, 'in', integer, '..' | '..=', integer, [ 'while', expression ], block_expression ;
 type_statement = 'type', identifier, '=', type ;
 struct_statement = 'struct', field_list ;
 enum_statement = 'enum', variant_list ;
-debug_statement = 'debug', '(', expression, ')' ;
+fn_statement = 'fn', identifier, '(', field_list, ')', [ '->', type ], block_expression ;
+mod_statement = 'mod', identifier ;
+use_statement = 'use', path_expression ;
 
 (* Expressions *)
 expression = operand_or, { '||', operand_or } ;
@@ -55,7 +64,7 @@ operand_add_sub = operand_mul_div_rem, { '*' | '/' | '%', operand_mul_div_rem } 
 operand_mul_div_rem = operand_as, { 'as', type } ;
 operand_as =
     '-' | '!', operand_as
-  | operand_access, { '[', integer, ']' | '.', integer | '.', identifier }
+  | operand_access, { '[', integer, ']' | '.', integer | '.', identifier | '(', expression_list, ')' }
 operand_access
     tuple_expression
   | block_expression
@@ -66,6 +75,8 @@ operand_access
   | literal
   | path_expression
 ;
+
+expression_list = [ expression, { ',', expression } ] ;
 
 block_expression = '{', { statement }, [ expression ], '}' ;
 

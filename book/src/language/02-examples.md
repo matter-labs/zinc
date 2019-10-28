@@ -1,14 +1,14 @@
 # Examples
 
-`simple_math.zrs`:
+## Library
 
 ```rust
 /// 
-/// The example library.
+/// './lib.rs'
 /// 
 /// Returns x^3.
 /// 
-pub fn cube(x: u128) -> u128 {
+fn cube(x: u128) -> u128 {
     let mut r = x;
     for i in 0..2 {
         r = r * x;
@@ -17,18 +17,20 @@ pub fn cube(x: u128) -> u128 {
 }
 ```
 
-`main.zrs`:
+## Binary
 
 ```rust
-///
-/// The example binary.
 /// 
+/// './main.rs'
+///
 /// Proves a knowledge of a cubic root `r` for a given public input `x`.
 ///
 
-use simple_math;
+mod simple_math;
 
-inputs {
+use simple_math::cube;
+
+input {
     x: u128,
 }
 
@@ -36,5 +38,5 @@ witness {
     r: u128,
 }
 
-require(x == simple_math::cube(r), "x == r ^ 3");
+require(x == cube(r), "x == r ^ 3");
 ```

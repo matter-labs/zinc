@@ -20,7 +20,7 @@
 			"patterns": [
 				{
 					"name": "keyword.control.zrs",
-					"match": "\\b(input|witness|let|mut|type|struct|enum|fn|mod|use|for|in|while|if|else)\\b"
+					"match": "\\b(input|witness|output|let|mut|type|struct|enum|fn|mod|use|for|in|while|if|else|match)\\b"
 				},
 				{
 					"name": "keyword.other",

@@ -55,6 +55,16 @@ pub enum Error {
 
     #[fail(display = "calling a not-callable object '{}'", _0)]
     CallingNotCallable(String),
-    #[fail(display = "call expected an argument list, but got '{}'", _0)]
-    CallExpectedArgumentList(String),
+    #[fail(display = "missing function argument '{}'", _0)]
+    MissingFunctionArgument(String),
+    #[fail(
+        display = "function argument type mismatch: expected '{}', but got '{}'",
+        _0, _1
+    )]
+    FunctionArgumentTypeMismatch(TypeVariant, TypeVariant),
+    #[fail(
+        display = "function return type mismatch: expected '{}', but got '{}'",
+        _0, _1
+    )]
+    FunctionReturnTypeMismatch(TypeVariant, TypeVariant),
 }

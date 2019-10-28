@@ -3,7 +3,7 @@
 ## Interface
 
 ```
-zrusti 0.4.0
+zrusti 0.5.0
 The ZRust language interpreter
 
 USAGE:

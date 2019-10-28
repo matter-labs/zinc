@@ -1,7 +1,7 @@
 # Lexical grammar
 
 ```
-lexeme = comment | identifier | keyword | literal | symbol ;
+lexeme = comment | identifier | keyword | literal | symbol | EOF ;
 
 comment = single_line_comment | multi_line_comment ;
 single_line_comment = '//', ( ? ANY ? - '\n' ), '\n' ;
@@ -15,6 +15,7 @@ identifier = (
 keyword =
     'input'
   | 'witness'
+  | 'output'
 
   | 'let'
   | 'mut'
@@ -30,6 +31,7 @@ keyword =
   | 'while'
   | 'if'
   | 'else'
+  | 'match'
 
   | 'bool'
   | 'u8' | 'u16' ... 'u240' | 'u248'

@@ -4,11 +4,13 @@ The following statements have been implemented so far:
 
 - empty statement
 - `let` declaration
-- `require`
-- `debug`
 - `for` loop
-- `type` alias declaration
+- `type` declaration
 - `struct` declaration
+- `enum` declaration
+- `fn` declaration
+- `mod` declaration
+- `use`
 - expression statement
 
 An important difference from Rust: all statements must be terminated with
@@ -18,21 +20,6 @@ ones ending with `}` must be terminated with `;` as well.
 ## Empty
 
 An empty statement is just a `;`.
-
-## Require
-
-The require statement checks the boolean expression for being true and aborts
-the program if it is false.
-
-It accepts an optional annotation string as the second argument.
-
-`require` is going to be implemented as a built-in function.
-
-### Example
-
-```rust
-require(true != false, "mega ultra test require");
-```
 
 ## Let declaration
 
@@ -84,17 +71,4 @@ struct Data = {
     b: u8,
     c: (),
 };
-```
-
-## Debug
-
-The debug statement outputs an expression.
-
-`debug` is going to be implemented as a built-in function.
-
-### Example
-
-```rust
-let value = 0xff;
-debug(value);
 ```

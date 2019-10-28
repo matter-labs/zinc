@@ -600,9 +600,7 @@ impl Interpreter {
                     };
                     let arguments = match operand_2 {
                         Element::Value(Value::List(arguments)) => arguments,
-                        element => {
-                            return Err(Error::CallExpectedArgumentList(element.to_string()))
-                        }
+                        _ => panic!("Always is an argument list"),
                     };
 
                     let value = self.evaluate_function_call(type_variant, arguments)?;
@@ -885,34 +883,58 @@ impl Interpreter {
     fn evaluate_function_call(
         &mut self,
         function: TypeVariant,
-        arguments: Vec<Value>,
+        mut arguments: Vec<Value>,
     ) -> Result<Value, Error> {
         let global_scope = self.scope_stack[0].clone();
         let scope = Rc::new(RefCell::new(Scope::new(Some(global_scope.clone()))));
         let new_scope_stack = vec![global_scope, scope];
 
-        let body = match function {
+        match function {
             TypeVariant::Function {
                 arguments: argument_fields,
-                return_type: _,
+                return_type,
                 body,
             } => {
-                for (index, argument) in arguments.into_iter().enumerate() {
+                arguments.reverse();
+                let mut data: Vec<(String, TypeVariant, Value)> =
+                    Vec::with_capacity(argument_fields.len());
+                for (name, type_variant) in argument_fields.into_iter() {
+                    let value = arguments
+                        .pop()
+                        .ok_or_else(|| Error::MissingFunctionArgument(name.clone()))?;
+                    let value_type_variant = value.type_variant();
+                    if value_type_variant != type_variant {
+                        return Err(Error::FunctionArgumentTypeMismatch(
+                            type_variant,
+                            value_type_variant,
+                        ));
+                    }
+                    data.push((name, type_variant, value));
+                }
+                for argument in data.into_iter() {
                     new_scope_stack[1]
                         .borrow_mut()
-                        .declare_variable(argument_fields[index].0.clone(), argument, false)
+                        .declare_variable(argument.0, argument.2, false)
                         .map_err(|error| Error::Scope(body.location, error))?;
                 }
-                body
-            }
-            type_variant => return Err(Error::CallingNotCallable(type_variant.to_string())),
-        };
 
-        let old_scope_stack = self.scope_stack.clone();
-        self.scope_stack = new_scope_stack;
-        let value = self.evaluate_block_expression(body)?;
-        self.scope_stack = old_scope_stack;
-        Ok(value)
+                let old_scope_stack = self.scope_stack.drain(..).collect();
+                self.scope_stack = new_scope_stack;
+                let result = self.evaluate_block_expression(body)?;
+                let return_type = *return_type;
+                let result_type_variant = result.type_variant();
+                self.scope_stack = old_scope_stack;
+                if return_type != result_type_variant {
+                    Err(Error::FunctionReturnTypeMismatch(
+                        return_type,
+                        result_type_variant,
+                    ))
+                } else {
+                    Ok(result)
+                }
+            }
+            type_variant => Err(Error::CallingNotCallable(type_variant.to_string())),
+        }
     }
 
     fn get_unary_operand(&mut self, resolve: bool) -> Result<Element, ScopeError> {

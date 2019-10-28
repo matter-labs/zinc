@@ -3,7 +3,7 @@
 ## Interface
 
 ```
-zrustc 0.4.0
+zrustc 0.5.0
 The ZRust language compiler
 
 USAGE:
