@@ -1,0 +1,270 @@
+/*
+    ZRust: secure-by-design Rust-based language for constructing
+    R1CS ZK-circuits and smart contracts.
+
+    The language is almost strictly a subset of simple Rust (with minor
+    differences dictated by the specifics of R1CS circuits). It is easily
+    learnable by golang, c++, solidity and js developers.
+
+    This file demonstrates current progress of ZRust implementation.
+    All the code examples below are fully functional.
+
+    Rust syntax highlighting is used.
+
+    ZRust SDK provides:
+    - Fast interpreter with console log output for ease of debugging.
+    - Transpiler into Rust (compatible with bellman framework).
+*/
+
+
+/*
+    The program starts with the inputs (public input) and
+    witnesses (private input) definition.
+*/
+
+inputs {
+    input: field,
+}
+
+witness {
+    result: field,
+}
+
+/*
+    Variables (immutable by default)
+*/
+
+let var_1 = 42;
+/*
+    var_1 = 43; // Compile error: assignment to immutable
+*/
+
+/*
+    Using inputs and witnesses
+*/
+
+// let public = input + result;
+// Works in the transpiled code only, since passing input arguments
+// to the interpreter is not implemented yet.
+
+/*
+    Mutability
+*/
+
+let mut var_mutable = 41;
+var_mutable = 42;
+
+/*
+    Console log traces for debugging
+*/
+
+debug(var_mutable); // 42
+
+/*
+    Require enforces a condition to be true.
+    If the condition fails, the program throws an error,
+    while the circuit won't be satisfied.
+*/
+
+require(var_mutable == 42); // passes
+require(var_mutable == 42, "expects the Answer to the Ultimate Question of Life, the Universe, and Everything"); // passes
+
+/*
+    Types
+
+    The language enforces static strong explicit typing with some inference.
+    Operators almost always require explicit type conversion.
+*/
+
+let byte: u8 = 42;  // integer literal type depends on the type
+                    // specified in the 'let' declaration
+let signed = -42; // the negation operator implicitly converts a literal to a signed type
+let big_integer: field = (0xffffffffffffffff as field) + (byte as field);
+                    // both the literal and 'byte' variable value
+                    // must be casted to 'field'
+let inferred = 54354 + 10000 - 5422; // inferred from the first literal as u16
+
+/*
+    Expressions
+
+    Operator precedence is the same as that in Rust and most of other languages
+*/
+
+let expression =
+    ((15 + (7 - (1 + 1))) * 3) < ((15 + (7 - (1 + 1))) * 4); // inferred as boolean
+
+// operator list starting from the highest precedence:
+// |    Operator      |  Associativity  |   Description
+// |----------------- |-----------------|-----------------
+// |        ::        |  left to right  | path resolution
+// |       [] .       |  left to right  | array index and field access
+// |        - !       |      unary      | unary NOT and minus
+// |        as        |  left to right  | casting
+// |       * / %      |  left to right  | multiplication, division, remainder
+// |        + -       |  left to right  | addition, subtraction
+// |  == != <= >= < > |   parenthesis   | comparison
+// |        &&        |  left to right  | logical AND
+// |        ^^        |  left to right  | logical XOR
+// |        ||        |  left to right  | logical OR
+// |      .. ..=      |     single      | range exclusive and inclusive (only for loops)
+// |         =        |     single      | assignment
+
+/*
+    Nested blocks
+*/
+
+let pyramid = 1 + {
+    2 + {
+        3 + {
+            4
+        } + 3
+    } + 2
+} + 1;
+
+require(pyramid == 16);
+
+/*
+    Structures
+*/
+
+struct Test {
+    x: u8,
+    y: u8,
+    z: u8,
+};
+
+let mut test = struct Test {
+    x: 1,
+    y: 2,
+    z: 3,
+};
+
+test.x = 5;
+test.y = 7;
+test.z = 9;
+require(test.x == 5);
+require(test.y == 7);
+require(test.z == 9);
+
+/*
+    Two-dimensional array
+*/
+
+let mut array_double: [[u8; 4]; 4] = [
+    [1, 2, 3, 4],
+    [5, 6, 7, 8],
+    [9, 10, 11, 12],
+    [13, 14, 15, 16],
+];
+
+array_double[1][3] = 42;
+array_double[2][2] = 111;
+array_double[3][1] = 255;
+
+require(array_double[1][3] == 42);
+require(array_double[2][2] == 111);
+require(array_double[3][1] == 255);
+
+/*
+    A nested loop
+*/
+
+let mut sum = 0;
+
+for i in 0..=5 {
+    sum = sum + i;
+    for j in 0..=5 {
+        sum = sum + j;
+    };
+};
+
+require(sum == 105, "line_178_error_msg");
+
+// The loop range bounds are of type u64 by default
+// to keep compatibility with the Rust inner usize type.
+// This behavior will be probably changed in the future.
+
+/*
+    A loop with 'while'
+
+    Generic 'while' construct is not supported to emphasize that
+    circuit loops must always have fixed size.
+*/
+
+let mut s = 0;
+for k in 0..20 while k < 10 {
+    s = s + k;
+};
+
+require(s == 55);
+
+/*
+    Conditionals
+*/
+
+let branch = if false {
+    1
+} else if true {
+    if true {
+        42
+    } else {
+        2
+    }
+} else {
+    3
+};
+
+require(branch == 42);
+
+// TODO: assignments in conditional branches
+
+/*
+    Fibonacci algorithm
+*/
+
+let mut value_1: field = 0;
+let mut value_2: field = 1;
+let mut fibo = value_1;
+
+for l in 1..=6 {
+    fibo = value_1 + value_2;
+    value_1 = value_2;
+    value_2 = fibo;
+};
+
+require(fibo == 13 as field);
+
+/*
+    Factorial algorithm
+*/
+
+let mut fact: field = 1;
+
+for m in 2..6 {
+    fact = fact * m as field;
+};
+
+require(fact == 120 as field);
+
+/*
+    A complex test
+*/
+
+struct MyStruct {
+    data: u8,
+};
+
+let mut payload = struct MyStruct {
+    data: 42,
+};
+
+let mega_array = [[1, 2, 3], [4, 5, 6]];
+
+if mega_array[0][0] == 1 {
+    let r = ((15 + (7 - (1 + 1))) * 3) -
+        (2 + (payload.data + mega_array[1][1]));
+    require(r == 11);
+} else {
+    payload.data = 50;
+    require(payload.data + 5 == 55);
+};

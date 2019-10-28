@@ -1,0 +1,9 @@
+[package]
+name = "circuit"
+version = "1.0.0"
+authors = ["hedgar2017 <hedgar2017@gmail.com>"]
+edition = "2018"
+description = "ZRust generated circuit"
+
+[dependencies]
+r1cs = { path = "../r1cs" }

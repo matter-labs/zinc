@@ -1,0 +1,25 @@
+{
+    "name": "zrust-syntax-highlighting",
+    "displayName": "ZRust Syntax Highlighting",
+    "description": "ZRust Syntax Highlighting",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.38.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "zrs",
+            "aliases": ["ZRust", "zrs"],
+            "extensions": [".zrs"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "zrs",
+            "scopeName": "source.zrust",
+            "path": "./syntaxes/zrs.tmLanguage.json"
+        }]
+    }
+}
