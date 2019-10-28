@@ -43,10 +43,14 @@
 ### Version 0.6
 
 - [ ] conditional optimization
+- [ ] std lib
 - [ ] `Option<>`
+
+### Version 0.7
+
 - [ ] `Result<>`, ? operator
 - [ ] simple references (more like aliases)
-- [ ] std lib
+- [ ] move()/copy()
 
 ### Later
 
