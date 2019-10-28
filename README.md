@@ -40,13 +40,23 @@
 - [x] C-like `enum`
 - [x] `match`
 
+### Version 0.6
+
+- [ ] conditional optimization
+- [ ] std lib
+- [ ] `Option<>`
+
+### Version 0.7
+
+- [ ] `Result<>`, ? operator
+- [ ] simple references (more like aliases)
+- [ ] move()/copy()
+
 ### Later
 
 - [ ] `unsafe_unchecked`
 - [ ] testing framework with coverage metrics
-- [ ] `Option<>`, `Result<>`, etc
 - [ ] bytes and strings
 - [ ] interfaces?
 - [ ] `unsafe_rust`?
-- [ ] conditional optimization
 - [ ] formal verification
