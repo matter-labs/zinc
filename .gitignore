@@ -3,6 +3,7 @@
 
 # IDE
 /.idea/
+/.vscode/
 
 # Book
 /book/build/
