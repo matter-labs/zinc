@@ -1,4 +1,3 @@
 #!/bin/bash -Cex
 
-cd './book/'
-mdbook build --open
+mdbook build --open --dest-dir './build/' './book/'
