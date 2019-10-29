@@ -15,13 +15,15 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 let tuple = (1, 2, 3);
 let result = tuple.jabberwocky;
 "#;
 
     let expected = Err(Error::Scope(
-        Location::new(5, 14),
+        Location::new(7, 14),
         ScopeError::TupleAccessAsStructure("tuple".to_owned(), "jabberwocky".to_owned()),
     ));
 

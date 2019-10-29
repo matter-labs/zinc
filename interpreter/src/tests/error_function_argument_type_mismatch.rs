@@ -14,6 +14,8 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 fn sum(a: u8, b: bool) -> u8 {
     let mut result = a;

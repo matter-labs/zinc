@@ -1,19 +1,18 @@
 # Enumeration
 
-Simple C-like enums are supported, following the restricted Rust syntax.
-
-The enum values can be implicitly casted to unsigned integers of enough
-bitlength in expressions and `let` statements, but this behavior will be
-probably forbidden in the future.
-
-## Examples
+Simple C-like enums are supported, following the restricted Rust syntax:
 
 ```rust
 enum Order {
-    FIRST, // 0
-    SECOND, // 1
-}
+    FIRST = 0,
+    SECOND = 1,
+};
+```
 
-let x = Order::FIRST; // Order
-let y: u8 = Order::SECOND; // u8
+The enum values can be implicitly casted to unsigned integers of enough
+bitlength in `let` statements:
+
+```rust
+let x = Order::FIRST; // the type is Order
+let y: u8 = Order::SECOND; // the type is u8
 ```

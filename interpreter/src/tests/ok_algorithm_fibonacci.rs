@@ -12,6 +12,8 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 let mut value_1: field = 0;
 let mut value_2: field = 1;

@@ -12,6 +12,8 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 let mut tuple_nested: ((u8, u8), (u8, u8)) = (
     (1, 2),

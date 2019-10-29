@@ -16,12 +16,14 @@ use crate::Value;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 if 42 {};
 "#;
 
     let expected = Err(Error::ConditionalExpectedBooleanExpression(
-        Location::new(4, 4),
+        Location::new(6, 4),
         Value::new_integer_from_usize(TestConstraintSystem::new(), 42, 8).expect("Always valid"),
     ));
 

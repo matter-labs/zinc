@@ -6,6 +6,7 @@ mod expression;
 mod field;
 mod field_list;
 mod inputs;
+mod outputs;
 mod pattern;
 mod statement;
 mod r#type;
@@ -33,15 +34,14 @@ pub use self::expression::XorOperandParser;
 pub use self::field::Parser as FieldParser;
 pub use self::field_list::Parser as FieldListParser;
 pub use self::inputs::Parser as InputsParser;
+pub use self::outputs::Parser as OutputsParser;
 pub use self::pattern::Parser as PatternParser;
 pub use self::r#type::Parser as TypeParser;
-pub use self::statement::DebugParser as DebugStatementParser;
 pub use self::statement::FnParser as FnStatementParser;
 pub use self::statement::LetParser as LetStatementParser;
 pub use self::statement::LoopParser as LoopStatementParser;
 pub use self::statement::ModParser as ModStatementParser;
 pub use self::statement::Parser as StatementParser;
-pub use self::statement::RequireParser as RequireStatementParser;
 pub use self::statement::UseParser as UseStatementParser;
 pub use self::variant::Parser as VariantParser;
 pub use self::variant_list::Parser as VariantListParser;
@@ -68,9 +68,9 @@ impl Parser {
         let stream = TokenStream::new(input);
         let stream = Rc::new(RefCell::new(stream));
 
-        let input = InputsParser::default().parse(stream.clone())?;
-        let (witnesses, next) = WitnessesParser::default().parse(stream.clone())?;
-        self.next = next;
+        let inputs = InputsParser::default().parse(stream.clone())?;
+        let witnesses = WitnessesParser::default().parse(stream.clone())?;
+        let outputs = OutputsParser::default().parse(stream.clone())?;
 
         let mut statements = Vec::new();
         loop {
@@ -100,8 +100,9 @@ impl Parser {
         }
 
         Ok(CircuitProgram {
-            inputs: input,
+            inputs,
             witnesses,
+            outputs,
             statements,
         })
     }

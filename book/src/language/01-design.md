@@ -3,8 +3,8 @@
 The goal of ZRust is to make writing zero-knowledge programs and smart
 contracts easy. It is being designed with the following principles in mind:
 
-- **Ease of learning**. Anyone familiar with C-like languages (Javascript, Java, Golang,
- C++, Rust, Solidity) should be able to learn ZRust quickly and with
+- **Ease of learning**. Anyone familiar with C-like languages (Javascript, Java,
+ Golang, C++, Rust, Solidity) should be able to learn ZRust quickly and with
  minimum effort.
 - **Readability**. The code in ZRust should be easy to read intuitively
  comprehensible for anybody familiar with the C++ language familiy. There should
@@ -34,9 +34,10 @@ The above mentioned goals led to the following decisions in the language design:
    representable in finite fields, which are the basic building block of R1CS.
   - **References and ownership**. Memory management is very different in R1CS
    circuits compared to the von Neumann architecture. Also, since R1CS does not 
-   imply parallel programming patterns, a lot of elements of the Rust design would be 
-   unnecessary and redundant. The decision is to pass all variables "by value" by default 
-   without moving ownership (see the developer guide for explanation).
+   imply parallel programming patterns, a lot of elements of the Rust design
+   would be unnecessary and redundant. The decision is to pass all variables
+   "by value" by default without moving ownership (see the developer guide
+   for explanation).
   - **`for-while` loops**. Combining `for` and `while` loops allows nicer syntax
    without hiding the fact that the `for-while` loop has a fixed number
    of iterations.

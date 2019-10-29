@@ -15,12 +15,14 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 let result = 42 + jabberwocky;
 "#;
 
     let expected = Err(Error::Scope(
-        Location::new(4, 17),
+        Location::new(6, 17),
         ScopeError::UndeclaredItem("jabberwocky".to_owned()),
     ));
 

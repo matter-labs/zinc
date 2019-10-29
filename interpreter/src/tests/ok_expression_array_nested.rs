@@ -12,6 +12,8 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 let mut array_double: [[u8; 4]; 4] = [
     [1, 2, 3, 4],

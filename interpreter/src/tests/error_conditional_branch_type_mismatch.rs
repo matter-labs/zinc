@@ -17,12 +17,14 @@ use crate::Value;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 if true { 42 } else { false };
 "#;
 
     let expected = Err(Error::ConditionalBranchTypeMismatch(
-        Location::new(4, 1),
+        Location::new(6, 1),
         Value::new_integer_from_usize(TestConstraintSystem::new(), 42, 8).expect("Always valid"),
         Value::new_boolean_from_literal(TestConstraintSystem::new(), BooleanLiteral::False)
             .expect("Always valid"),

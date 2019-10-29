@@ -4,9 +4,9 @@ Integer types are somewhat different from those of Rust.
 
 ## Types
 
-- `u8` .. `u248`: unsigned integer keywords with different bitlength
-- `i8` .. `i248`: signed integer keywords with different bitlength
-- `field`: the native field unsigned integer
+- `u8` .. `u248`: unsigned integers
+- `i8` .. `i248`: signed integers
+- `field`: the native field integer
 
 Integer types bitlength step equals 8, that is, only the following bitlengths
 are possible: `8`, `16`, ..., `240`, `248`.
@@ -18,12 +18,6 @@ modulus length (e.g. for BN256 the field modulus length is `254` bit).
 All other types are represented using `field` as their basic building block.
 
 When integers variables are allocated, their bitlength must be enforced in the constraint system.
-
-## Type inference
-
-If the literal type is not specified, the minimal possible bitlength is inferred.
-
-`let` statement performs an implicit casting if the type is specified.
 
 ## Literals
 
@@ -38,6 +32,12 @@ unsigned values can be implicitly casted to signed ones using the unary minus.
 
 Casting is possible only to a type with greater bitlength. Probably, this
 behavior will become less strict in the future.
+
+## Inference
+
+If the literal type is not specified, the minimal possible bitlength is inferred.
+
+The `let` statement performs an implicit casting if the type is specified.
 
 ## Examples
 

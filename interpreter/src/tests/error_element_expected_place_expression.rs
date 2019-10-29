@@ -18,12 +18,14 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 5 = 5;
 "#;
 
     let expected = Err(Error::Element(
-        Location::new(4, 3),
+        Location::new(6, 3),
         ElementError::ExpectedPlaceExpression(
             "assign",
             Element::Value(

@@ -2,8 +2,6 @@
 
 No known differences from the Rust behavior.
 
-## Examples
-
 ```rust
 struct Person {
     age: u8,
@@ -15,5 +13,4 @@ let mut person = struct Person {
     id: 123456789 as u64,
 };
 person.age = 25;
-debug(person.id);
 ```

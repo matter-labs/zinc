@@ -13,6 +13,8 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 let sum = 0;
 

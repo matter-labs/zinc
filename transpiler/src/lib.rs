@@ -6,7 +6,6 @@ mod element;
 mod error;
 mod output;
 mod scope;
-mod tests;
 mod transpiler;
 mod writer;
 

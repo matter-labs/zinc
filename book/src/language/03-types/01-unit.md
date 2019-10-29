@@ -1,16 +1,22 @@
 # Unit
 
-`()` is the unit type and value.
-
 No known differences from the Rust behavior.
 
-The type cannot be used in any expressions or be casted to or from.
+`()` is the literal for both unit type and value. The unit type cannot be used
+by any operators and cannot be casted to or from.
 
-## Examples
+The unit type can exist as a standalone value:
 
 ```rust
-let x = ();
-let y: () = {
-    debug!(42);
+let x = (); // ()
+```
+
+It can be returned by blocks or functions:
+
+```rust
+fn check(value: bool) {
+    // several statements
 };
+
+let y = check(true); // ()
 ```

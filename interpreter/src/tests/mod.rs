@@ -13,8 +13,6 @@ mod error_function_return_type_mismatch;
 mod error_let_implicit_casting;
 mod error_let_invalid_type;
 mod error_loop_while_expected_boolean;
-mod error_require_expected_boolean;
-mod error_require_failed;
 mod error_scope_addressing_primitive_variable;
 mod error_scope_array_access_as_structure;
 mod error_scope_array_access_as_tuple;

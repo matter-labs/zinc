@@ -1,74 +1,11 @@
 # Statements
 
-The following statements have been implemented so far:
+The basic element of the ZRust program is **the statement**.
 
-- empty statement
-- `let` declaration
-- `for` loop
-- `type` declaration
-- `struct` declaration
-- `enum` declaration
-- `fn` declaration
-- `mod` declaration
-- `use`
-- expression statement
+Statements are divided into several types:
+1. Declaration statements
+2. Expression statements
+3. Control statements
 
-An important difference from Rust: all statements must be terminated with
-a `;`. That is, all statements including `struct` declaration and expression
-ones ending with `}` must be terminated with `;` as well.
-
-## Empty
-
-An empty statement is just a `;`.
-
-## Let declaration
-
-The `let` declaration behaves just like in Rust, but it does not allow
-uninitialized variables.
-
-Shadowing is not allowed yet.
-
-### Example
-
-```rust
-let mut variable: field = 0;
-```
-
-## Loop
-
-The `for` loop statement behaves just like in Rust, but it is merged with the
-`while` loop, so the optional `while` condition is checked before each iteration
-of the loop. The `while` condition expression has access to the inner scope and
-can use its variables and the loop iterator.
-
-### Examples
-
-```rust
-    for i in 0..=10 while i % x != 8 {
-        debug(i);
-    }
-```
-
-## Type
-
-The `type` statement declares a type alias to avoid repeating complex types.
-
-### Example
-
-```rust
-type Alias = (field, u8, [field; 8]);
-```
-
-## Struct
-
-The `struct` statement declares a structure type.
-
-### Example
-
-```rust
-struct Data = {
-    a: field,
-    b: u8,
-    c: (),
-};
-```
+In contrast with Rust, all expressions must be terminated with `;` in ZRust,
+including ones ending with `}`, that is, `struct`, `fn`, `for` etc.

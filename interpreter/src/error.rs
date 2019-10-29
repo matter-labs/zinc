@@ -21,11 +21,6 @@ pub enum Error {
     Scope(Location, ScopeError),
     #[fail(display = "{} semantic: {}", _0, _1)]
     Semantic(Location, SemanticError),
-    #[fail(
-        display = "{} the require '{}' expected a boolean expression, but got '{}'",
-        _0, _1, _2
-    )]
-    RequireExpectedBooleanExpression(Location, String, Value),
     #[fail(display = "{} the require '{}' failed", _0, _1)]
     RequireFailed(Location, String),
     #[fail(

@@ -36,7 +36,11 @@ witness {
     b: i248,
 }
 
-let mut c: u232 = 2 + 2;
+output {
+    c: field,
+}
+
+let mut d: u232 = 2 + 2;
 "#;
 
     let expected = Ok(CircuitProgram {
@@ -50,32 +54,37 @@ let mut c: u232 = 2 + 2;
             Identifier::new(Location::new(7, 5), "b".to_owned()),
             Type::new(Location::new(7, 8), TypeVariant::new_integer_signed(248)),
         )],
+        outputs: vec![Field::new(
+            Location::new(11, 5),
+            Identifier::new(Location::new(11, 5), "c".to_owned()),
+            Type::new(Location::new(11, 8), TypeVariant::new_field()),
+        )],
         statements: vec![Statement::Let(LetStatement {
-            location: Location::new(10, 1),
-            identifier: Identifier::new(Location::new(10, 9), "c".to_owned()),
+            location: Location::new(14, 1),
+            identifier: Identifier::new(Location::new(14, 9), "d".to_owned()),
             r#type: Some(Type::new(
-                Location::new(10, 12),
+                Location::new(14, 12),
                 TypeVariant::new_integer_unsigned(232),
             )),
             expression: Expression::new(
-                Location::new(10, 19),
+                Location::new(14, 19),
                 vec![
                     ExpressionElement::new(
-                        Location::new(10, 19),
+                        Location::new(14, 19),
                         ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
-                            Location::new(10, 19),
+                            Location::new(14, 19),
                             lexical::Literal::Integer(IntegerLiteral::new_decimal("2".to_owned())),
                         ))),
                     ),
                     ExpressionElement::new(
-                        Location::new(10, 23),
+                        Location::new(14, 23),
                         ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
-                            Location::new(10, 23),
+                            Location::new(14, 23),
                             lexical::Literal::Integer(IntegerLiteral::new_decimal("2".to_owned())),
                         ))),
                     ),
                     ExpressionElement::new(
-                        Location::new(10, 21),
+                        Location::new(14, 21),
                         ExpressionObject::Operator(ExpressionOperator::Addition),
                     ),
                 ],
@@ -128,6 +137,8 @@ fn error_expression_statement_at_root() {
 
     let input = r#"
     input {}
+    witness {}
+    output {}
 
     2 + 2
 "#;
@@ -135,7 +146,7 @@ fn error_expression_statement_at_root() {
     let result: Result<CircuitProgram, Error> = Parser::default().parse(input.to_owned());
 
     let expected: Result<CircuitProgram, Error> = Err(Error::Syntax(
-        SyntaxError::ExpressionStatementAtRoot(Location::new(4, 5)),
+        SyntaxError::ExpressionStatementAtRoot(Location::new(6, 5)),
     ));
 
     assert_eq!(expected, result);

@@ -12,12 +12,15 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
-fn print(a: u8) {
-    debug(a);
+fn check(a: u8) {
+    // some code
+    ()
 };
 
-print(42);
+check(42);
 "#;
 
     let expected = Ok(());

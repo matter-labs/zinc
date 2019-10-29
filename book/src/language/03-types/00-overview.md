@@ -1,28 +1,34 @@
 # Types
 
-## Variables
-
-Variables will have the following meta-information collected by the compiler:
-
-- current variable (id or name) in the constraint system
-- linear combination to compute the variable (which also includes representation of constant values)
-- expected range: bit length which the user **promises** to respect with regard to witness
-- enforced range: bit length which is **guaranteed** to have been enforced in the circuit
+ZRust types:
+- unit
+- boolean
+- integer
+- string
+- array
+- tuple
+- enumeration
+- structure
+- function
 
 ## Type conversions
 
 The language enforces static strong explicit typing with a little inference.
-Operators almost always require explicit type conversion.
+Operators always require explicit type conversion.
 
-Only the `let` statement can infer types for now.
+### Explicit
 
-Casting can be performed using `as` keyword:
+Type conversions can be done only on the integer and enumeration types with
+the `as` operator. Please, check the **Chapter 5** for the operator behavior.
 
-- integers to types of greater bitlength
-- enums can be implicitly converted to unsigned integers of enough bitlength (TODO)
+### Implicit
 
-```rust
-let a = -1; // `i8`, after a cast using the unary minus and the `let` inference
-let b: u16 = a as u16; // ok, casted to the opposite sign with greater bitlength 
-let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
-```
+The `let` statement can perform implicit type casting of integers if the type
+is specified to the left of the assignment symbol. That is, as a result of
+`let a: field = 42 as u8;`, the variable `a` will be casted to the `field` type.
+
+### Inference
+
+Only the `let` statement can infer types in case its type is not specified. For
+example, after `let a = 42000;` the `a` variable will have type `u16`, since it
+is enough for the integer literal `42000`.

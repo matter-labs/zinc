@@ -12,6 +12,8 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 let result = 2 + 2 * 2 - (42 - 7 * 3) == 6 - 21 && (false ^^ (true || (2 + 2 == 5)));
 

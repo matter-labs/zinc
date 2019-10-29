@@ -14,6 +14,8 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 enum Jabberwocky {
     Gone = 42,
@@ -23,7 +25,7 @@ let really = Jabberwocky::Exists;
 "#;
 
     let expected = Err(Error::EnumerationVariantNotExists(
-        Location::new(8, 25),
+        Location::new(10, 25),
         "Jabberwocky".to_owned(),
         "Exists".to_owned(),
     ));

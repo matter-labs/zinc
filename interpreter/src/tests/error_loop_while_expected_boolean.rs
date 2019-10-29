@@ -16,12 +16,14 @@ use crate::Value;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 for i in 0..17 while 42 {};
 "#;
 
     let expected = Err(Error::LoopWhileExpectedBooleanExpression(
-        Location::new(4, 22),
+        Location::new(6, 22),
         Value::new_integer_from_usize(TestConstraintSystem::new(), 42, 8).expect("Always valid"),
     ));
 

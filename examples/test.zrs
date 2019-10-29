@@ -14,12 +14,9 @@
     ZRust SDK provides:
     - Fast interpreter with console log output for ease of debugging.
     - Transpiler into Rust (compatible with bellman framework).
-*/
 
-
-/*
-    The program starts with the input (public input) and
-    witnesses (private input) definition.
+    The program starts with inputs (public input), witnesses (private input), and
+    outputs definition.
 */
 
 input {
@@ -28,6 +25,10 @@ input {
 
 witness {
     result: field,
+}
+
+output {
+    foo: field,
 }
 
 /*
@@ -55,19 +56,13 @@ let mut var_mutable = 41;
 var_mutable = 42;
 
 /*
-    Console log traces for debugging
-*/
-
-debug(var_mutable); // 42
-
-/*
     Require enforces a condition to be true.
     If the condition fails, the program throws an error,
     while the circuit won't be satisfied.
 */
 
 require(var_mutable == 42); // passes
-require(var_mutable == 42, "expects the Answer to the Ultimate Question of Life, the Universe, and Everything"); // passes
+require(var_mutable == 42); // passes
 
 /*
     Types
@@ -147,6 +142,22 @@ require(test.y == 7);
 require(test.z == 9);
 
 /*
+    Enumerations and matches
+*/
+
+enum TestEnum {
+    A = 1,
+    B = 2,
+    C = 3,
+};
+
+require(match TestEnum::B as u8 {
+    1 => 25,
+    2 => 42,
+    3 => 111,
+} == 42);
+
+/*
     Two-dimensional array
 */
 
@@ -178,7 +189,7 @@ for i in 0..=5 {
     };
 };
 
-require(sum == 105, "line_178_error_msg");
+require(sum == 105);
 
 // The loop range bounds are of type u64 by default
 // to keep compatibility with the Rust inner usize type.
@@ -216,7 +227,13 @@ let branch = if false {
 
 require(branch == 42);
 
-// TODO: assignments in conditional branches
+/*
+    Functions
+*/
+
+fn sum_two(a: u8, b: u8) -> u8 { a + b };
+
+require(sum_two(42, 25) == 67);
 
 /*
     Fibonacci algorithm
@@ -260,10 +277,12 @@ let mut payload = struct MyStruct {
 
 let mega_array = [[1, 2, 3], [4, 5, 6]];
 
+fn double(a: u8) -> u8 { a * 2 };
+
 if mega_array[0][0] == 1 {
     let r = ((15 + (7 - (1 + 1))) * 3) -
-        (2 + (payload.data + mega_array[1][1]));
-    require(r == 11);
+        (1 + (payload.data + mega_array[1][1] + double(21)));
+    require(r == 42);
 } else {
     payload.data = 50;
     require(payload.data + 5 == 55);

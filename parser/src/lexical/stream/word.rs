@@ -121,8 +121,8 @@ mod tests {
 
     #[test]
     fn ok_keyword() {
-        let input = "require";
-        let expected = Ok((input.len(), Lexeme::Keyword(Keyword::Require)));
+        let input = "match";
+        let expected = Ok((input.len(), Lexeme::Keyword(Keyword::Match)));
         let result = parse(input);
         assert_eq!(expected, result);
     }

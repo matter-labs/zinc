@@ -15,13 +15,15 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 let array = [1, 2, 3];
 let result = array.69;
 "#;
 
     let expected = Err(Error::Scope(
-        Location::new(5, 14),
+        Location::new(7, 14),
         ScopeError::ArrayAccessAsTuple("array".to_owned(), 69),
     ));
 

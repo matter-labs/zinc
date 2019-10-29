@@ -15,12 +15,14 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 let value: u8 = true;
 "#;
 
     let expected = Err(Error::LetInvalidType(
-        Location::new(4, 12),
+        Location::new(6, 12),
         TypeVariant::new_boolean(),
         TypeVariant::new_integer_unsigned(8),
     ));

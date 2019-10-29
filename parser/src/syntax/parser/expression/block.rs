@@ -125,53 +125,39 @@ mod tests {
     use crate::lexical::Location;
     use crate::lexical::TokenStream;
     use crate::syntax::BlockExpression;
-    use crate::syntax::DebugStatement;
     use crate::syntax::Expression;
     use crate::syntax::ExpressionElement;
     use crate::syntax::ExpressionObject;
     use crate::syntax::ExpressionOperand;
     use crate::syntax::ExpressionOperator;
     use crate::syntax::Literal;
-    use crate::syntax::Statement;
 
     #[test]
     fn ok_statements_with_expression() {
-        let input = r#"{ debug(42); 2 + 1 }"#;
+        let input = r#"{ 2 + 1 }"#;
 
         let expected = Ok(BlockExpression::new(
             Location::new(1, 1),
-            vec![Statement::Debug(DebugStatement::new(
-                Location::new(1, 3),
-                Expression::new(
-                    Location::new(1, 9),
-                    vec![ExpressionElement::new(
-                        Location::new(1, 9),
-                        ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
-                            Location::new(1, 9),
-                            lexical::Literal::Integer(IntegerLiteral::new_decimal("42".to_owned())),
-                        ))),
-                    )],
-                ),
-            ))],
+            vec![],
             Some(Expression::new(
-                Location::new(1, 14),
+                Location::new(1, 3),
                 vec![
                     ExpressionElement::new(
-                        Location::new(1, 14),
+                        Location::new(1, 3),
                         ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
-                            Location::new(1, 14),
+                            Location::new(1, 3),
                             lexical::Literal::Integer(IntegerLiteral::new_decimal("2".to_owned())),
                         ))),
                     ),
                     ExpressionElement::new(
-                        Location::new(1, 18),
+                        Location::new(1, 7),
                         ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
-                            Location::new(1, 18),
+                            Location::new(1, 7),
                             lexical::Literal::Integer(IntegerLiteral::new_decimal("1".to_owned())),
                         ))),
                     ),
                     ExpressionElement::new(
-                        Location::new(1, 16),
+                        Location::new(1, 5),
                         ExpressionObject::Operator(ExpressionOperator::Addition),
                     ),
                 ],

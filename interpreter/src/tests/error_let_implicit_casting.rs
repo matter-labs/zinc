@@ -17,12 +17,14 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 let value: bool = 42;
 "#;
 
     let expected = Err(Error::LetImplicitCasting(
-        Location::new(4, 12),
+        Location::new(6, 12),
         IntegerError::Casting(CastingError::ToInvalidType(
             TypeVariant::new_integer_unsigned(8),
             TypeVariant::new_boolean(),

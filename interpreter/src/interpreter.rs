@@ -16,6 +16,7 @@ use parser::ExpressionOperator;
 use parser::InnerLiteral;
 use parser::IntegerLiteral;
 use parser::Literal;
+use parser::Location;
 use parser::MatchExpression;
 use parser::PatternVariant;
 use parser::Statement;
@@ -50,8 +51,18 @@ impl Default for Interpreter {
 }
 
 impl Interpreter {
-    pub fn new(scope: Scope) -> Self {
+    pub fn new(mut scope: Scope) -> Self {
         let mut scope_stack = Vec::with_capacity(16);
+        scope
+            .declare_type(
+                "require".to_owned(),
+                TypeVariant::new_function(
+                    vec![("condition".to_owned(), TypeVariant::new_boolean())],
+                    TypeVariant::new_unit(),
+                    BlockExpression::new(Location::new(0, 0), vec![], None),
+                ),
+            )
+            .expect("Built-it function 'require' declaration error");
         scope_stack.push(Rc::new(RefCell::new(scope)));
 
         Self {
@@ -90,25 +101,6 @@ impl Interpreter {
 
         match statement {
             Statement::Empty => {}
-            Statement::Require(require) => {
-                let location = require.expression.location;
-                match self.evaluate_expression(require.expression)? {
-                    Value::Boolean(boolean) => {
-                        if boolean.is_true() {
-                            log::info!("require '{}' passed", require.annotation);
-                        } else {
-                            return Err(Error::RequireFailed(require.location, require.annotation));
-                        }
-                    }
-                    value => {
-                        return Err(Error::RequireExpectedBooleanExpression(
-                            location,
-                            require.annotation,
-                            value,
-                        ))
-                    }
-                }
-            }
             Statement::Let(r#let) => {
                 let location = r#let.location;
                 let value = self.evaluate_expression(r#let.expression)?;
@@ -286,10 +278,6 @@ impl Interpreter {
             }
             Statement::Mod(_mod) => {}
             Statement::Use(_use) => {}
-            Statement::Debug(debug) => {
-                let result = self.evaluate_expression(debug.expression)?;
-                log::info!("{}", result);
-            }
             Statement::Expression(expression) => {
                 self.evaluate_expression(expression)?;
             }

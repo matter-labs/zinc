@@ -1,5 +1,5 @@
 //!
-//! The witnesses parser.
+//! The outputs parser.
 //!
 
 use std::cell::RefCell;
@@ -17,7 +17,7 @@ use crate::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    KeywordWitness,
+    KeywordOutput,
     BracketCurlyLeft,
     FieldList,
     BracketCurlyRight,
@@ -25,7 +25,7 @@ pub enum State {
 
 impl Default for State {
     fn default() -> Self {
-        State::KeywordWitness
+        State::KeywordOutput
     }
 }
 
@@ -40,17 +40,17 @@ impl Parser {
     pub fn parse(mut self, stream: Rc<RefCell<TokenStream>>) -> Result<Vec<Field>, Error> {
         loop {
             match self.state {
-                State::KeywordWitness => {
+                State::KeywordOutput => {
                     let next = stream.borrow_mut().next()?;
                     match next {
                         Token {
-                            lexeme: Lexeme::Keyword(Keyword::Witness),
+                            lexeme: Lexeme::Keyword(Keyword::Output),
                             ..
                         } => self.state = State::BracketCurlyLeft,
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                vec!["witness"],
+                                vec!["output"],
                                 lexeme,
                             )));
                         }
@@ -113,8 +113,8 @@ mod tests {
 
     #[test]
     fn ok_single() {
-        let input = r#"
-    witness {
+        let output = r#"
+    output {
         a: u232,
     }
 "#;
@@ -126,21 +126,21 @@ mod tests {
         )]);
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(output.to_owned()))));
 
         assert_eq!(expected, result);
     }
 
     #[test]
     fn ok_empty() {
-        let input = r#"
-    witness {}
+        let output = r#"
+    output {}
 "#;
 
         let expected = Ok(Vec::<Field>::new());
 
         let result =
-            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input.to_owned()))));
+            Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(output.to_owned()))));
 
         assert_eq!(expected, result);
     }

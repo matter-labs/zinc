@@ -12,6 +12,8 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 enum Data {
     Value = 42,

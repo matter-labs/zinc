@@ -11,6 +11,7 @@ use crate::syntax::Statement;
 pub struct CircuitProgram {
     pub inputs: Vec<Field>,
     pub witnesses: Vec<Field>,
+    pub outputs: Vec<Field>,
     #[serde(skip_serializing)]
     pub statements: Vec<Statement>,
 }

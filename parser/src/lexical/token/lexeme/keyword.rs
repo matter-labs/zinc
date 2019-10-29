@@ -14,8 +14,7 @@ pub enum Keyword {
     // built-ins
     Input,
     Witness,
-    Require,
-    Debug,
+    Output,
 
     // declarations
     Let,
@@ -85,8 +84,7 @@ impl TryFrom<&str> for Keyword {
         match input {
             "input" => return Ok(Self::Input),
             "witness" => return Ok(Self::Witness),
-            "require" => return Ok(Self::Require),
-            "debug" => return Ok(Self::Debug),
+            "output" => return Ok(Self::Output),
 
             "let" => return Ok(Self::Let),
             "mut" => return Ok(Self::Mut),
@@ -170,8 +168,7 @@ impl fmt::Display for Keyword {
         match self {
             Self::Input => write!(f, "input"),
             Self::Witness => write!(f, "witness"),
-            Self::Require => write!(f, "require"),
-            Self::Debug => write!(f, "debug"),
+            Self::Output => write!(f, "output"),
 
             Self::Let => write!(f, "let"),
             Self::Mut => write!(f, "mut"),

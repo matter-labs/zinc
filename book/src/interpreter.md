@@ -20,4 +20,4 @@ OPTIONS:
 
 ## Output
 
-The interpreter outputs using the debug statements only.
+The interpreter outputs using the debug function only.

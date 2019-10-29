@@ -15,6 +15,8 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 struct Test { value: u8 };
 let test = struct Test { value: 42 };
@@ -23,7 +25,7 @@ let result = test.jabberwocky;
 "#;
 
     let expected = Err(Error::Scope(
-        Location::new(7, 14),
+        Location::new(9, 14),
         ScopeError::StructureFieldNotExists("jabberwocky".to_owned(), "test".to_owned()),
     ));
 

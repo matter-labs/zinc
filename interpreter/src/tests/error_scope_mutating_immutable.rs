@@ -15,13 +15,15 @@ use crate::Interpreter;
 fn test() {
     let input = r#"
 input {}
+witness {}
+output {}
 
 let result = 42;
 result = 69;
 "#;
 
     let expected = Err(Error::Scope(
-        Location::new(5, 8),
+        Location::new(7, 8),
         ScopeError::MutatingImmutable("result".to_owned()),
     ));
 

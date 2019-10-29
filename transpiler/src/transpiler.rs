@@ -33,7 +33,6 @@ use crate::output::AttributesOutput;
 use crate::output::BlockOutput;
 use crate::output::CircuitOutput;
 use crate::output::ConditionalOutput;
-use crate::output::DebugStatementOutput;
 use crate::output::EnumStatementOutput;
 use crate::output::ImportsOutput;
 use crate::output::LetStatementOutput;
@@ -57,7 +56,6 @@ use crate::output::OperatorOrOutput;
 use crate::output::OperatorRemainderOutput;
 use crate::output::OperatorSubtractionOutput;
 use crate::output::OperatorXorOutput;
-use crate::output::RequireStatementOutput;
 use crate::output::StructStatementOutput;
 use crate::output::StructureOutput;
 use crate::output::TupleOutput;
@@ -141,13 +139,6 @@ impl Transpiler {
 
         match statement {
             Statement::Empty => {}
-            Statement::Require(require) => {
-                let expression = self.transpile_expression(require.expression)?;
-                self.writer.write_line(RequireStatementOutput::output(
-                    expression,
-                    require.annotation,
-                ));
-            }
             Statement::Let(r#let) => {
                 let location = r#let.location;
 
@@ -289,11 +280,6 @@ impl Transpiler {
             Statement::Fn(_fn) => unimplemented!(),
             Statement::Mod(_mod) => unimplemented!(),
             Statement::Use(_use) => unimplemented!(),
-            Statement::Debug(debug) => {
-                let expression = self.transpile_expression(debug.expression)?;
-                self.writer
-                    .write_line(DebugStatementOutput::output(expression));
-            }
             Statement::Expression(expression) => {
                 self.transpile_expression(expression)?;
             }

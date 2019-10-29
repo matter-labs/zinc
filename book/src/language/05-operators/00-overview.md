@@ -60,6 +60,17 @@
 
 **Returns** the integer result.
 
+Casting allowed:
+
+- integers to types of greater bitlength
+- enums to integers of enough bitlength
+
+```rust
+let a = -1; // `i8`, after a cast using the unary minus and the `let` inference
+let b: u16 = a as u16; // ok, casted to the opposite sign with greater bitlength 
+let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
+```
+
 ## Multiplication
 
 `*`

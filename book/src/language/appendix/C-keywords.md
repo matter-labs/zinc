@@ -4,6 +4,7 @@
 ```rust
 input
 witness
+output
 ```
 
 #### Declarations

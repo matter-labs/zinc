@@ -2,18 +2,15 @@
 //! The statement parser.
 //!
 
-mod debug;
 mod r#enum;
 mod r#fn;
 mod r#let;
 mod r#loop;
 mod module;
-mod require;
 mod r#struct;
 mod r#type;
 mod r#use;
 
-pub use self::debug::Parser as DebugParser;
 pub use self::module::Parser as ModParser;
 pub use self::r#enum::Parser as EnumParser;
 pub use self::r#fn::Parser as FnParser;
@@ -22,7 +19,6 @@ pub use self::r#loop::Parser as LoopParser;
 pub use self::r#struct::Parser as StructParser;
 pub use self::r#type::Parser as TypeParser;
 pub use self::r#use::Parser as UseParser;
-pub use self::require::Parser as RequireParser;
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -75,15 +71,6 @@ impl Parser {
                                 lexeme: Lexeme::Symbol(Symbol::Semicolon),
                                 ..
                             } => return Ok((Statement::Empty, None, false)),
-                            token @ Token {
-                                lexeme: Lexeme::Keyword(Keyword::Require),
-                                ..
-                            } => {
-                                let statement =
-                                    RequireParser::default().parse(stream.clone(), Some(token))?;
-                                self.state = State::Semicolon;
-                                Statement::Require(statement)
-                            }
                             token @ Token {
                                 lexeme: Lexeme::Keyword(Keyword::Let),
                                 ..
@@ -159,15 +146,6 @@ impl Parser {
                                 self.next = next;
                                 self.state = State::Semicolon;
                                 Statement::Use(statement)
-                            }
-                            token @ Token {
-                                lexeme: Lexeme::Keyword(Keyword::Debug),
-                                ..
-                            } => {
-                                let statement =
-                                    DebugParser::default().parse(stream.clone(), Some(token))?;
-                                self.state = State::Semicolon;
-                                Statement::Debug(statement)
                             }
                             token => {
                                 let (expression, next) = ExpressionParser::default()
