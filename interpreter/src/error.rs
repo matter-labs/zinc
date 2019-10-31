@@ -28,7 +28,7 @@ pub enum Error {
         _0, _1, _2
     )]
     LetInvalidType(Location, TypeVariant, TypeVariant),
-    #[fail(display = "{} let declaration implicit casting: {}", _0, _1)]
+    #[fail(display = "{} let declaration implicit semantic.casting: {}", _0, _1)]
     LetImplicitCasting(Location, IntegerError),
     #[fail(
         display = "{} loop while condition expected a boolean expression, but got '{}'",

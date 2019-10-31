@@ -3,10 +3,10 @@
 # 'error' | 'warn' | 'info' | 'debug' | 'trace'
 export LOG_LEVEL="${1}"
 
-export APPLICATION_NAME='transpiler'
-export EXECUTABLE_NAME='zrustc'
+export LIBRARY_NAME='transpiler'
+export BINARY_NAME='zrustc'
 export BUILD_MODE='debug'
-export RUST_LOG="parser=${LOG_LEVEL},${APPLICATION_NAME}=${LOG_LEVEL}"
+export RUST_LOG="parser=${LOG_LEVEL},${LIBRARY_NAME}=${LOG_LEVEL},${BINARY_NAME}=${LOG_LEVEL}"
 export RUST_BACKTRACE=1
 
 # *.zrs
@@ -17,8 +17,8 @@ export OUTPUT="${3}"
 
 cargo fmt --all
 cargo test
-cargo build --package "${APPLICATION_NAME}"
+cargo build --package "${LIBRARY_NAME}"
 
-"./target/${BUILD_MODE}/${EXECUTABLE_NAME}" --meta --input "${INPUT}" --output "${OUTPUT}"
+"./target/${BUILD_MODE}/${BINARY_NAME}" --meta --input "${INPUT}" --output "${OUTPUT}"
 
 cargo run --bin circuit

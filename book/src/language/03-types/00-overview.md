@@ -13,7 +13,7 @@ ZRust types:
 
 ## Type conversions
 
-The language enforces static strong explicit typing with a little inference.
+The language enforces static strong explicit typing with a little semantic.inference.
 Operators always require explicit type conversion.
 
 ### Explicit
@@ -23,7 +23,7 @@ the `as` operator. Please, check the **Chapter 5** for the operator behavior.
 
 ### Implicit
 
-The `let` statement can perform implicit type casting of integers if the type
+The `let` statement can perform implicit type semantic.casting of integers if the type
 is specified to the left of the assignment symbol. That is, as a result of
 `let a: field = 42 as u8;`, the variable `a` will be casted to the `field` type.
 

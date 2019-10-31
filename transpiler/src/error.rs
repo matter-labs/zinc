@@ -12,9 +12,9 @@ use crate::scope::Error as ScopeError;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
-    #[fail(display = "{} let declaration implicit casting: {}", _0, _1)]
+    #[fail(display = "{} let declaration implicit semantic.casting: {}", _0, _1)]
     LetImplicitCasting(Location, CastingError),
-    #[fail(display = "{} explicit casting: {}", _0, _1)]
+    #[fail(display = "{} explicit semantic.casting: {}", _0, _1)]
     ExplicitCasting(Location, CastingError),
     #[fail(display = "{} scope: {}", _0, _1)]
     Scope(Location, ScopeError),

@@ -1,5 +1,5 @@
 //!
-//! Transpiler output casting operator.
+//! Transpiler output semantic.casting operator.
 //!
 
 use crate::element::Element;

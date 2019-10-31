@@ -37,7 +37,7 @@ behavior will become less strict in the future.
 
 If the literal type is not specified, the minimal possible bitlength is inferred.
 
-The `let` statement performs an implicit casting if the type is specified.
+The `let` statement performs an implicit semantic.casting if the type is specified.
 
 ## Examples
 

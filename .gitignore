@@ -9,4 +9,4 @@
 /book/build/
 
 # Generated
-/circuit/src/lib.rs
+/transpiler/circuit/src/lib.rs

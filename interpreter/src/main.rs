@@ -34,7 +34,7 @@ enum Error {
     #[fail(display = "Input: {}", _0)]
     Input(InputError),
     #[fail(display = "Parser: {}", _0)]
-    Parser(parser::Error),
+    Parser(parser::ParserError),
     #[fail(display = "Interpreter: {}", _0)]
     Interpreter(interpreter::Error),
 }
@@ -90,7 +90,7 @@ fn main() -> Result<(), Error> {
 fn init_logger() {
     use std::env;
     if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "compiler=info,zrsi=info");
+        env::set_var("RUST_LOG", "parser=info,interpreter=info,zrsi=info");
     }
     env_logger::Builder::from_default_env()
         .format_timestamp_nanos()

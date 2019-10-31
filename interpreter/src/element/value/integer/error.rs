@@ -18,8 +18,8 @@ pub enum Error {
     LiteralTooLarge(usize),
     #[fail(display = "operand types mismatch: '{}' and '{}'", _0, _1)]
     OperandTypesMismatch(TypeVariant, TypeVariant),
-    #[fail(display = "inference: {}", _0)]
+    #[fail(display = "semantic.inference: {}", _0)]
     Inference(InferenceError),
-    #[fail(display = "casting: {}", _0)]
+    #[fail(display = "semantic.casting: {}", _0)]
     Casting(CastingError),
 }

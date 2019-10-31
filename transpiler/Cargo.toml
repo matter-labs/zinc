@@ -20,6 +20,6 @@ serde_json = "1.0"
 num-traits = "0.2"
 num-bigint = "0.2"
 
-parser = { path = "../parser" }
+parser = { package = "compiler", path = "../compiler" }
 semantic = { path = "../semantic" }
 r1cs = { path = "../r1cs" }

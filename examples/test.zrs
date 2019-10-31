@@ -67,7 +67,7 @@ require(var_mutable == 42); // passes
 /*
     Types
 
-    The language enforces static strong explicit typing with some inference.
+    The language enforces static strong explicit typing with some semantic.inference.
     Operators almost always require explicit type conversion.
 */
 
@@ -94,7 +94,7 @@ let expression =
 // |        ::        |  left to right  | path resolution
 // |       [] .       |  left to right  | array index and field access
 // |        - !       |      unary      | unary NOT and minus
-// |        as        |  left to right  | casting
+// |        as        |  left to right  | semantic.casting
 // |       * / %      |  left to right  | multiplication, division, remainder
 // |        + -       |  left to right  | addition, subtraction
 // |  == != <= >= < > |   parenthesis   | comparison
