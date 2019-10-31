@@ -1,24 +1,17 @@
 #[repr(u8)]
 pub enum OpCode {
-    NoOp = 0x00,
+    NoOp,
 
-    Push1 = 0x01,
-    Push2 = 0x02,
-    Push4 = 0x03,
-    Push8 = 0x04,
-    Push16 = 0x05,
-    Push32 = 0x06,
+    Push,
+    Pop,
+    Copy,
+    Swap,
 
-    Copy1 = 0x07,
-    Copy2 = 0x08,
-    Copy4 = 0x09,
-    Copy8 = 0x0A,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Rem,
 
-    Add = 0x0B,
-    Sub = 0x0C,
-    Mul = 0x0D,
-    Div = 0x0E,
-    Rem = 0x0F,
-
-    CAssign = 0x10,
+    Select,
 }
