@@ -1,5 +1,5 @@
 [package]
-name = "franklin-vm"
+name = "zrust-vm"
 version = "0.1.0"
 authors = ["Alexander Movchan <am@matterlabs.dev>"]
 edition = "2018"

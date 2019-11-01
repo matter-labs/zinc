@@ -2,7 +2,7 @@ extern crate franklin_crypto;
 
 use crate::{Operator, RuntimeError, Bytecode, Stack};
 use num_bigint::BigInt;
-use ff::{PrimeField};
+use ff::PrimeField;
 use bellman::pairing::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use crate::stack::Primitive;
@@ -22,6 +22,9 @@ impl<E, CS> Operator<E, CS> for Push where E: Engine, CS: ConstraintSystem<E> {
         -> Result<(), RuntimeError>
     {
         let len = bytecode.next_byte().ok_or(RuntimeError::InvalidArguments)?;
+        if len < 1 || len > MAX_CONSTANT_LENGTH {
+            return Err(RuntimeError::InvalidArguments);
+        }
         let constant = Self::decode_constant(len, bytecode)?;
 
         let value: E::Fr = E::Fr::from_str(&constant.to_string()).ok_or(RuntimeError::SynthesisError)?;

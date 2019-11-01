@@ -29,6 +29,7 @@ impl<E, CS> VirtualMachine<E, CS> where E: Engine, CS: ConstraintSystem<E> {
 
         vm.opcodes.insert(OpCode::Push as u8, Rc::new(Box::new(operators::Push)));
         vm.opcodes.insert(OpCode::Pop as u8, Rc::new(Box::new(operators::Pop)));
+        vm.opcodes.insert(OpCode::Add as u8, Rc::new(Box::new(operators::Add)));
 
         vm
     }
@@ -67,30 +68,8 @@ impl<E, CS> VirtualMachine<E, CS> where E: Engine, CS: ConstraintSystem<E> {
             }
         }
     }
-}
 
-#[cfg(test)]
-mod test {
-    use super::*;
-    use franklin_crypto::circuit::test::TestConstraintSystem;
-    use bellman::pairing::bn256::Bn256;
-
-    #[test]
-    fn test_vm() {
-        let mut cs = TestConstraintSystem::<Bn256>::new();
-        let mut vm = VirtualMachine::<Bn256, TestConstraintSystem<Bn256>>::new();
-        let mut bytecode = Bytecode::new(&[
-            OpCode::Push as u8, 0x01, 0xAA,
-            OpCode::Push as u8, 0x02, 0xBB, 0xBB,
-            OpCode::Pop as u8,
-            OpCode::Push as u8, 0x02, 0xCC, 0xCC,
-        ]);
-
-        match vm.run(&mut cs, &mut bytecode) {
-            Ok(_) => {},
-            Err(e) => {assert!(false, "runtime error: {:?}", e)},
-        }
-
-        vm.log_stack();
+    pub fn stack(&self) -> &Stack<E> {
+        &self.stack
     }
 }

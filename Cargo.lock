@@ -179,17 +179,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "franklin-vm"
-version = "0.1.0"
-dependencies = [
- "bellman_ce 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ff_ce 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "franklin-crypto 0.0.5 (git+https://github.com/matter-labs/franklin-crypto.git)",
- "num-bigint 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "pairing_ce 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "fuchsia-cprng"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -535,6 +524,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "winapi-x86_64-pc-windows-gnu"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "zrust-vm"
+version = "0.1.0"
+dependencies = [
+ "bellman_ce 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ff_ce 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "franklin-crypto 0.0.5 (git+https://github.com/matter-labs/franklin-crypto.git)",
+ "num-bigint 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pairing_ce 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [metadata]
 "checksum arrayvec 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)" = "cd9fd44efafa8690358b7408d253adf110036b88f55672a933f01d616ad9b1b9"
