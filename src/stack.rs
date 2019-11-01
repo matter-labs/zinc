@@ -59,7 +59,7 @@ mod test {
 
         assert_eq!(stack.pop(), Some(7));
         assert_eq!(stack.pop(), Some(1));
-        assert_eq!(stack.pop(), None);;
+        assert_eq!(stack.pop(), None);
         assert_eq!(stack.size(), 0);
     }
 }

@@ -13,5 +13,5 @@ pub enum OpCode {
     Div,
     Rem,
 
-    Select,
+    ConditionalSelect,
 }
