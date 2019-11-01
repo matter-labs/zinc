@@ -4,8 +4,14 @@
 
 [WIP Specification](https://github.com/matter-labs/franklin/wiki/VM-Specification)
 
-## Project structure
+## Usage
 
-**opcodes** module contains C-like enum which may be used by compiler to generate bytecode.
+    let bytes: &[u8] = ...;
+    let mut cs: TestConstraintSystem<E> = ...;
 
-**operators** contains implementation of VM operators.
+    let bytecode = Bytecode::new(bytes);
+    let mut vm = VirtualMachine<E, TestConstraintSystem<E>>::new();
+    vm.set_breakpoint_handler(...);
+    vm.set_breakpoint(...);
+    vm.unset_breakpoint(...);
+    vm.run(&mut cs, bytecode);
