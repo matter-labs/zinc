@@ -46,10 +46,10 @@ impl Push {
         match bytecode.read(&mut len_bytes) {
             Ok(1) => {
                 let len = len_bytes[0];
-                if len < 1 || len > MAX_CONSTANT_LENGTH {
-                    Ok(len_bytes[0])
+                if len >= 1 && len <= MAX_CONSTANT_LENGTH {
+                    Ok(len)
                 } else {
-                    Err(RuntimeError::InvalidOperation)
+                    Err(RuntimeError::InvalidArguments)
                 }
             },
             Ok(_) => Err(RuntimeError::UnexpectedEndOfFile),
@@ -60,7 +60,7 @@ impl Push {
     fn read_constant(len: u8, bytecode: &mut dyn io::Read) -> Result<BigInt, RuntimeError> {
         let mut bytes: [u8; MAX_CONSTANT_LENGTH as usize] = [0; MAX_CONSTANT_LENGTH as usize];
 
-        match bytecode.read(&mut bytes) {
+        match bytecode.read(&mut bytes[..(len as usize)]) {
             Ok(n) if n == len as usize => Ok(Self::parse_le_constant(&bytes[0..(len as usize)])),
             Ok(_) => Err(RuntimeError::UnexpectedEndOfFile),
             Err(e) => Err(RuntimeError::IOError(e)),
