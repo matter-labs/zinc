@@ -27,6 +27,7 @@ impl<E, CS> VirtualMachine<E, CS> where E: Engine, CS: ConstraintSystem<E> {
             opcodes: HashMap::new(),
         };
 
+        vm.opcodes.insert(OpCode::NoOp as u8, Rc::new(Box::new(operators::NoOp)));
         vm.opcodes.insert(OpCode::Push as u8, Rc::new(Box::new(operators::Push)));
         vm.opcodes.insert(OpCode::Pop as u8, Rc::new(Box::new(operators::Pop)));
         vm.opcodes.insert(OpCode::Add as u8, Rc::new(Box::new(operators::Add)));
