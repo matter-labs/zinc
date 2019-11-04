@@ -38,3 +38,23 @@ impl<E, CS> Operator<E, CS> for Push where E: Engine, CS: ConstraintSystem<E> {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::{Bytecode, OpCode};
+    use crate::operators::utils::testing::{execute_bytecode, assert_stack_value};
+
+    #[test]
+    fn test_push() {
+        let stack = execute_bytecode(&mut Bytecode::new(&[
+            OpCode::Push as u8, 0x01, 0x00,
+            OpCode::Push as u8, 0x01, 0x01,
+            OpCode::Push as u8, 0x02, 0xCD, 0xAB
+        ]));
+
+        assert_eq!(stack.len(), 3);
+        assert_stack_value(&stack, 0, "0xABCD");
+        assert_stack_value(&stack, 1, "0x01");
+        assert_stack_value(&stack, 2, "0x00");
+    }
+}

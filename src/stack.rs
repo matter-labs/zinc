@@ -9,7 +9,7 @@ pub struct Primitive<E: Engine> {
 
 impl<E:Engine> Copy for Primitive<E> {}
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Stack<E: Engine> {
     elements: Vec<Primitive<E>>
 }

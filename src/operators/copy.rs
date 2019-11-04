@@ -35,3 +35,27 @@ impl<E, CS> Operator<E, CS> for Copy where E: Engine, CS: ConstraintSystem<E> {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::{Bytecode, OpCode};
+    use crate::operators::utils::testing::{execute_bytecode, assert_stack_value};
+
+    #[test]
+    fn test_add() {
+        let stack = execute_bytecode(&mut Bytecode::new(&[
+            OpCode::Push as u8, 0x01, 0x01,
+            OpCode::Push as u8, 0x01, 0x02,
+            OpCode::Push as u8, 0x01, 0x03,
+            OpCode::Copy as u8, 0x01, 0x00,
+            OpCode::Copy as u8, 0x01, 0x02,
+        ]));
+
+        assert_eq!(stack.len(), 5);
+        assert_stack_value(&stack, 0, "0x02");
+        assert_stack_value(&stack, 1, "0x03");
+        assert_stack_value(&stack, 2, "0x03");
+        assert_stack_value(&stack, 3, "0x02");
+        assert_stack_value(&stack, 4, "0x01");
+    }
+}

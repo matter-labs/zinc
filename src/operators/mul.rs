@@ -44,3 +44,21 @@ impl<E, CS> Operator<E, CS> for Mul where E: Engine, CS: ConstraintSystem<E> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::{Bytecode, OpCode};
+    use crate::operators::utils::testing::{execute_bytecode, assert_stack_value};
+
+    #[test]
+    fn test_add() {
+        let stack = execute_bytecode(&mut Bytecode::new(&[
+            OpCode::Push as u8, 0x01, 0x03,
+            OpCode::Push as u8, 0x01, 0x04,
+            OpCode::Mul as u8,
+        ]));
+
+        assert_eq!(stack.len(), 1);
+        assert_stack_value(&stack, 0, "0x0C");
+    }
+}

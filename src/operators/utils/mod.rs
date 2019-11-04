@@ -1,3 +1,5 @@
+pub mod testing;
+
 use crate::{Bytecode, RuntimeError};
 use num_bigint::BigInt;
 
