@@ -44,6 +44,16 @@ impl<E: Engine> Stack<E> {
                 .map(|p| *p)
         }
     }
+
+    pub fn set(&mut self, index: usize, x: Primitive<E>) -> bool {
+        if index >= self.elements.len() {
+            false
+        } else {
+            let vec_index = self.elements.len() - index - 1;
+            self.elements[vec_index] = x;
+            true
+        }
+    }
 }
 
 #[cfg(test)]
