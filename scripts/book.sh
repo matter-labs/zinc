@@ -1,3 +1,3 @@
 #!/bin/bash -Cex
 
-mdbook build --open --dest-dir './build/' './book/'
+mdbook build --open --dest-dir './build/' './zrust-book/'

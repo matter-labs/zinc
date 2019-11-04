@@ -6,7 +6,7 @@
 /.vscode/
 
 # Book
-/book/build/
+/zrust-book/build/
 
 # Generated
 /transpiler/circuit/src/lib.rs

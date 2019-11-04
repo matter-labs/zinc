@@ -3,10 +3,11 @@
 # 'error' | 'warn' | 'info' | 'debug' | 'trace'
 export LOG_LEVEL="${1}"
 
-export LIBRARY_NAME='compiler'
+export LIBRARY_NAME='zrust-compiler'
+export LIBRARY_NAME_LOG='zrust_compiler'
 export BINARY_NAME='zrustc'
 export BUILD_MODE='debug'
-export RUST_LOG="${LIBRARY_NAME}=${LOG_LEVEL},${BINARY_NAME}=${LOG_LEVEL}"
+export RUST_LOG="${LIBRARY_NAME_LOG}=${LOG_LEVEL},${BINARY_NAME}=${LOG_LEVEL}"
 export RUST_BACKTRACE=1
 
 # *.zrs

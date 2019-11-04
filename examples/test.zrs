@@ -67,7 +67,7 @@ require(var_mutable == 42); // passes
 /*
     Types
 
-    The language enforces static strong explicit typing with some semantic.inference.
+    The language enforces static strong explicit typing with some inference.
     Operators almost always require explicit type conversion.
 */
 

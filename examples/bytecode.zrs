@@ -1,0 +1,7 @@
+input {}
+
+witness {}
+
+output {}
+
+7432 as i16 + 23423 as i16 - 2676 as i16 * 256 as i16 / -789;
