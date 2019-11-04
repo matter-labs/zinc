@@ -18,7 +18,7 @@ impl<E, CS> Operator<E, CS> for Add where E: Engine, CS: ConstraintSystem<E> {
         let left = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
         let right = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
 
-        let mut sum = match (left.value, right.value) {
+        let sum = match (left.value, right.value) {
             (Some(a), Some(b)) => {
                 let mut sum = a;
                 sum.add_assign(&b);

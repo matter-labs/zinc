@@ -18,7 +18,7 @@ impl<E, CS> Operator<E, CS> for Mul where E: Engine, CS: ConstraintSystem<E> {
         let left = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
         let right = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
 
-        let mut prod = match (left.value, right.value) {
+        let prod = match (left.value, right.value) {
             (Some(a), Some(b)) => {
                 let mut prod = a;
                 prod.mul_assign(&b);

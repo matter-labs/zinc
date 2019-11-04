@@ -18,7 +18,7 @@ impl<E, CS> Operator<E, CS> for Sub where E: Engine, CS: ConstraintSystem<E> {
         let left = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
         let right = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
 
-        let mut diff = match (left.value, right.value) {
+        let diff = match (left.value, right.value) {
             (Some(a), Some(b)) => {
                 let mut diff = a;
                 diff.sub_assign(&b);

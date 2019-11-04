@@ -1,11 +1,13 @@
 use franklin_crypto::bellman::Variable;
 use bellman::pairing::Engine;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Primitive<E: Engine> {
     pub value: Option<E::Fr>,
     pub variable: Variable,
 }
+
+impl<E:Engine> Copy for Primitive<E> {}
 
 #[derive(Debug)]
 pub struct Stack<E: Engine> {
@@ -33,11 +35,13 @@ impl<E: Engine> Stack<E> {
         self.elements.len()
     }
 
-    pub fn get(&self, index: usize) -> Option<&Primitive<E>> {
+    pub fn get(&self, index: usize) -> Option<Primitive<E>> {
         if index >= self.elements.len() {
             None
         } else {
-            self.elements.get(self.elements.len() - index - 1)
+            self.elements
+                .get(self.elements.len() - index - 1)
+                .map(|p| *p)
         }
     }
 }

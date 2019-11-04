@@ -12,6 +12,7 @@ pub enum RuntimeError {
     StackOverflow,
     UnexpectedEndOfFile,
     SynthesisError,
+    InternalError,
 }
 
 
@@ -30,7 +31,10 @@ impl<E, CS> VirtualMachine<E, CS> where E: Engine, CS: ConstraintSystem<E> {
         vm.opcodes.insert(OpCode::NoOp as u8, Rc::new(Box::new(operators::NoOp)));
         vm.opcodes.insert(OpCode::Push as u8, Rc::new(Box::new(operators::Push)));
         vm.opcodes.insert(OpCode::Pop as u8, Rc::new(Box::new(operators::Pop)));
+        vm.opcodes.insert(OpCode::Copy as u8, Rc::new(Box::new(operators::Copy)));
         vm.opcodes.insert(OpCode::Add as u8, Rc::new(Box::new(operators::Add)));
+        vm.opcodes.insert(OpCode::Sub as u8, Rc::new(Box::new(operators::Sub)));
+        vm.opcodes.insert(OpCode::Mul as u8, Rc::new(Box::new(operators::Mul)));
 
         vm
     }
