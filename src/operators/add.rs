@@ -1,5 +1,5 @@
 use crate::{Operator, RuntimeError, Stack, Bytecode};
-use franklin_crypto::bellman::ConstraintSystem;
+use franklin_crypto::bellman::{ConstraintSystem, SynthesisError};
 use bellman::pairing::Engine;
 use ff::Field;
 use crate::stack::Primitive;
@@ -15,23 +15,31 @@ impl<E, CS> Operator<E, CS> for Add where E: Engine, CS: ConstraintSystem<E> {
         _bytecode: &mut Bytecode)
         -> Result<(), RuntimeError>
     {
-        let a = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
-        let b = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
+        let left = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
+        let right = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
 
-        let mut a_fr: E::Fr = a.value.ok_or(RuntimeError::SynthesisError)?;
-        let b_fr: E::Fr = b.value.ok_or(RuntimeError::SynthesisError)?;
+        let mut sum = match (left.value, right.value) {
+            (Some(a), Some(b)) => {
+                let mut sum = a;
+                sum.add_assign(&b);
+                Some(sum)
+            }
+            _ => None
+        };
 
-        a_fr.add_assign(&b_fr);
-        let variable = cs.alloc(|| "sum value", || Ok(a_fr)).map_err(|_| RuntimeError::SynthesisError)?;
+        let sum_var = cs.alloc(
+            || "sum",
+            || sum.ok_or(SynthesisError::AssignmentMissing)
+        ).map_err(|_| RuntimeError::SynthesisError)?;
 
         cs.enforce(
-            || "sum equality",
-            |lc| lc + a.variable + b.variable,
+            || "equality",
+            |lc| lc + left.variable + right.variable,
             |lc| lc + CS::one(),
-            |lc| lc + variable
+            |lc| lc + sum_var
         );
 
-        stack.push(Primitive { value: Some(a_fr), variable });
+        stack.push(Primitive { value: sum, variable: sum_var });
 
         Ok(())
     }

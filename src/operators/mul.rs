@@ -1,10 +1,10 @@
 use crate::{Operator, RuntimeError, Stack, Bytecode};
-use franklin_crypto::bellman::ConstraintSystem;
+use franklin_crypto::bellman::{ConstraintSystem, SynthesisError};
 use bellman::pairing::Engine;
 use ff::Field;
 use crate::stack::Primitive;
 
-/// Removes two elements from the stack and pushes their sum.
+/// Removes two elements from the stack and pushes their production.
 pub struct Mul;
 
 impl<E, CS> Operator<E, CS> for Mul where E: Engine, CS: ConstraintSystem<E> {
@@ -15,23 +15,31 @@ impl<E, CS> Operator<E, CS> for Mul where E: Engine, CS: ConstraintSystem<E> {
         _bytecode: &mut Bytecode)
         -> Result<(), RuntimeError>
     {
-        let a = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
-        let b = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
+        let left = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
+        let right = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
 
-        let mut a_fr: E::Fr = a.value.ok_or(RuntimeError::SynthesisError)?;
-        let b_fr: E::Fr = b.value.ok_or(RuntimeError::SynthesisError)?;
+        let mut prod = match (left.value, right.value) {
+            (Some(a), Some(b)) => {
+                let mut prod = a;
+                prod.mul_assign(&b);
+                Some(prod)
+            }
+            _ => None
+        };
 
-        a_fr.mul_assign(&b_fr);
-        let variable = cs.alloc(|| "sum value", || Ok(a_fr)).map_err(|_| RuntimeError::SynthesisError)?;
+        let prod_var = cs.alloc(
+            || "production",
+            || prod.ok_or(SynthesisError::AssignmentMissing)
+        ).map_err(|_| RuntimeError::SynthesisError)?;
 
         cs.enforce(
-            || "sum equality",
-            |lc| lc + a.variable + b.variable,
-            |lc| lc + CS::one(),
-            |lc| lc + variable
+            || "equality",
+            |lc| lc + left.variable,
+            |lc| lc + right.variable,
+            |lc| lc + prod_var
         );
 
-        stack.push(Primitive { value: Some(a_fr), variable });
+        stack.push(Primitive { value: prod, variable: prod_var });
 
         Ok(())
     }

@@ -1,10 +1,10 @@
 use crate::{Operator, RuntimeError, Stack, Bytecode};
-use franklin_crypto::bellman::ConstraintSystem;
+use franklin_crypto::bellman::{ConstraintSystem, SynthesisError};
 use bellman::pairing::Engine;
 use ff::Field;
 use crate::stack::Primitive;
 
-/// Removes two elements from the stack and pushes their sum.
+/// Removes two elements from the stack and pushes their difference.
 pub struct Sub;
 
 impl<E, CS> Operator<E, CS> for Sub where E: Engine, CS: ConstraintSystem<E> {
@@ -15,23 +15,31 @@ impl<E, CS> Operator<E, CS> for Sub where E: Engine, CS: ConstraintSystem<E> {
         _bytecode: &mut Bytecode)
         -> Result<(), RuntimeError>
     {
-        let a = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
-        let b = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
+        let left = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
+        let right = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
 
-        let mut a_fr: E::Fr = a.value.ok_or(RuntimeError::SynthesisError)?;
-        let b_fr: E::Fr = b.value.ok_or(RuntimeError::SynthesisError)?;
+        let mut diff = match (left.value, right.value) {
+            (Some(a), Some(b)) => {
+                let mut diff = a;
+                diff.sub_assign(&b);
+                Some(diff)
+            }
+            _ => None
+        };
 
-        a_fr.sub_assign(&b_fr);
-        let variable = cs.alloc(|| "sum value", || Ok(a_fr)).map_err(|_| RuntimeError::SynthesisError)?;
+        let diff_var = cs.alloc(
+            || "diff",
+            || diff.ok_or(SynthesisError::AssignmentMissing)
+        ).map_err(|_| RuntimeError::SynthesisError)?;
 
         cs.enforce(
-            || "sum equality",
-            |lc| lc + a.variable + b.variable,
+            || "equality",
+            |lc| lc + left.variable - right.variable,
             |lc| lc + CS::one(),
-            |lc| lc + variable
+            |lc| lc + diff_var
         );
 
-        stack.push(Primitive { value: Some(a_fr), variable });
+        stack.push(Primitive { value: diff, variable: diff_var });
 
         Ok(())
     }
