@@ -138,9 +138,6 @@ impl Analyzer {
                         .add(operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.rpn_stack.push(result);
-
-                    self.instructions.push(Instruction::Pop);
-                    self.instructions.push(Instruction::Pop);
                     self.instructions.push(Instruction::Add);
                 }
                 ExpressionObject::Operator(ExpressionOperator::Subtraction) => {
@@ -149,9 +146,6 @@ impl Analyzer {
                         .subtract(operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.rpn_stack.push(result);
-
-                    self.instructions.push(Instruction::Pop);
-                    self.instructions.push(Instruction::Pop);
                     self.instructions.push(Instruction::Subtract);
                 }
                 ExpressionObject::Operator(ExpressionOperator::Multiplication) => {
@@ -160,9 +154,6 @@ impl Analyzer {
                         .multiply(operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.rpn_stack.push(result);
-
-                    self.instructions.push(Instruction::Pop);
-                    self.instructions.push(Instruction::Pop);
                     self.instructions.push(Instruction::Multiply);
                 }
                 ExpressionObject::Operator(ExpressionOperator::Division) => {
@@ -171,9 +162,6 @@ impl Analyzer {
                         .divide(operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.rpn_stack.push(result);
-
-                    self.instructions.push(Instruction::Pop);
-                    self.instructions.push(Instruction::Pop);
                     self.instructions.push(Instruction::Divide);
                 }
                 ExpressionObject::Operator(ExpressionOperator::Remainder) => {
@@ -182,9 +170,6 @@ impl Analyzer {
                         .modulo(operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.rpn_stack.push(result);
-
-                    self.instructions.push(Instruction::Pop);
-                    self.instructions.push(Instruction::Pop);
                     self.instructions.push(Instruction::Remainder);
                 }
                 ExpressionObject::Operator(ExpressionOperator::Casting) => {
@@ -200,8 +185,6 @@ impl Analyzer {
                         .negate()
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.rpn_stack.push(result);
-
-                    self.instructions.push(Instruction::Pop);
                     self.instructions.push(Instruction::Negate);
                 }
                 ExpressionObject::Operator(ExpressionOperator::Not) => {
