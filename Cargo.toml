@@ -1,14 +1,5 @@
-[package]
-name = "zrust-vm"
-version = "0.1.0"
-authors = ["Alexander Movchan <am@matterlabs.dev>"]
-edition = "2018"
-
-[dependencies]
-pairing = { package = "pairing_ce", version = "0.17.0" }
-bellman = { package = "bellman_ce", version = "0.3.0" }
-franklin_crypto = { package = "franklin-crypto", git = "https://github.com/matter-labs/franklin-crypto.git", branch="master"}
-ff = { package = "ff_ce", version = "0.6.0", features = ["derive"] }
-num-bigint = "0.2.3"
-num-traits = "0.2.8"
-structopt = "0.3.3"
+[workspace]
+members = [
+    "zrust-bytecode",
+    "zrust-vm",
+]
