@@ -193,6 +193,7 @@ impl PartialEq<Self> for Integer {
 
 impl Into<Push> for Integer {
     fn into(self) -> Push {
+        println!("{}", self);
         Push::new(
             self.is_signed,
             self.bitlength / crate::BITLENGTH_BYTE,

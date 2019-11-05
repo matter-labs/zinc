@@ -2,13 +2,17 @@
 //! ZRust bytecode instruction.
 //!
 
-mod push;
 mod opcode;
+mod push;
 
 pub use self::opcode::OperationCode;
+pub use self::push::Error as PushError;
 pub use self::push::Push;
 
+use std::convert::TryFrom;
 use std::fmt;
+
+use failure::Fail;
 
 pub enum Instruction {
     NoOperation,
@@ -22,7 +26,39 @@ pub enum Instruction {
     Negate,
 }
 
+#[derive(Debug, Fail)]
+pub enum Error {
+    #[fail(display = "operation code missing")]
+    OperationCodeMissing,
+    #[fail(display = "operation code unknown: {}", _0)]
+    OperationCode(u8),
+    #[fail(display = "push: {}", _0)]
+    Push(PushError),
+}
+
 impl Instruction {
+    pub fn new_from_slice(bytes: &[u8]) -> Result<(Self, usize), Error> {
+        let opcode = match bytes.get(0).copied() {
+            Some(opcode) => OperationCode::try_from(opcode).map_err(Error::OperationCode)?,
+            None => return Err(Error::OperationCodeMissing),
+        };
+
+        Ok(match opcode {
+            OperationCode::NoOperation => (Self::NoOperation, 1),
+            OperationCode::Pop => (Self::Pop, 1),
+            OperationCode::Push => {
+                let (push, size) = Push::new_from_slice(&bytes[1..]).map_err(Error::Push)?;
+                (Self::Push(push), 1 + size)
+            }
+            OperationCode::Add => (Self::Add, 1),
+            OperationCode::Subtract => (Self::Subtract, 1),
+            OperationCode::Multiply => (Self::Multiply, 1),
+            OperationCode::Divide => (Self::Divide, 1),
+            OperationCode::Remainder => (Self::Remainder, 1),
+            OperationCode::Negate => (Self::Negate, 1),
+        })
+    }
+
     pub fn opcode(&self) -> OperationCode {
         match self {
             Self::NoOperation => OperationCode::NoOperation,
