@@ -53,3 +53,43 @@ R1CS:
     (bit1) * (1 - bit1) = (0)
     ...
     (bitN) * (1 - bitN) = (0)
+
+## And
+
+Expression:
+
+    c = a AND b
+    
+R1CS:
+
+    (a) * (b) = (c)
+    
+## Or
+
+Expression:
+
+    c = a OR b
+    
+R1CS:
+
+    (1 - a) * (1 - b) = (1 - c)
+    
+## Xor
+
+Expression:
+
+    c = a XOR b
+    
+R1CS:
+
+    (a + a) * (b) = (a + b - c)
+
+## Not
+
+Expression:
+
+    b = NOT a
+    
+R1CS:
+
+    (1) * (1) = (a + b)
