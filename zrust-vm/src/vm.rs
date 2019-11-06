@@ -1,9 +1,6 @@
-use std::rc::Rc;
-use std::collections::HashMap;
 use bellman::pairing::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use crate::{Stack, VMInstruction};
-use zrust_bytecode::InstructionCode;
 
 #[derive(Debug)]
 pub enum RuntimeError {

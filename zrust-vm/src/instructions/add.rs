@@ -45,18 +45,23 @@ impl<E, CS> VMInstruction<E, CS> for Add where E: Engine, CS: ConstraintSystem<E
 
 #[cfg(test)]
 mod test {
-    use crate::{Bytecode, OpCode};
-    use crate::instructions::utils::testing::{execute_bytecode, assert_stack_value};
+    use super::*;
+    use crate::instructions::testing_utils;
+    use zrust_bytecode::*;
+    use num_bigint::BigInt;
 
     #[test]
-    fn test_add() {
-        let stack = execute_bytecode(&mut Bytecode::new(&[
-            OpCode::Push as u8, 0x01, 0x01,
-            OpCode::Push as u8, 0x01, 0x02,
-            OpCode::Add as u8,
-        ]));
+    fn test_add() -> Result<(), RuntimeError> {
+        let mut bytecode = testing_utils::create_instructions_vec();
+        bytecode.push(Box::new(Push { value: BigInt::from(0x01) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(0x02) }));
+        bytecode.push(Box::new(Add));
+
+        let stack = testing_utils::execute(bytecode.as_slice())?;
 
         assert_eq!(stack.len(), 1);
-        assert_stack_value(&stack, 0, "0x03");
+        testing_utils::assert_stack_value(&stack, 0, "0x03");
+
+        Ok(())
     }
 }

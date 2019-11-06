@@ -38,7 +38,6 @@ Stack elements are zero-indexed, i.e. `0` is the top element, `1` is then next o
 | `push`    |   1 VLQ   |      -      |       1       | Pushes encoded constant value.
 | `pop`     |     -     |      1      |       -       | Consumes one element.
 | `copy`    |   1 VLQ   |      -      |       1       | Copies n-th element and pushes onto the stack.
-| `swap`    |   1 VLQ   |      -      |       1       | Swaps n-th and top elements in the stack.
 
 ### Arithmetic
 

@@ -1,7 +1,6 @@
 use crate::{Stack, RuntimeError};
 use bellman::pairing::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
-use std::fmt::Debug;
 use zrust_bytecode::*;
 use std::cmp;
 

@@ -21,7 +21,7 @@ impl Instruction for Push {
 }
 
 impl Push {
-    pub fn new(value: BigInt, signed: bool, bit_length: usize) -> Self {
+    pub fn new(value: BigInt, _signed: bool, _bit_length: usize) -> Self {
         Push { value }
     }
 

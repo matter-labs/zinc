@@ -5,8 +5,6 @@ use num_traits::cast::ToPrimitive;
 use crate::vm_instruction::VMInstruction;
 use zrust_bytecode::instructions::Copy;
 
-const MAX_CONSTANT_LENGTH: u8 = 4;
-
 impl<E, CS> VMInstruction<E, CS> for Copy where E: Engine, CS: ConstraintSystem<E> {
     fn execute(
         &self,
@@ -30,24 +28,29 @@ impl<E, CS> VMInstruction<E, CS> for Copy where E: Engine, CS: ConstraintSystem<
 
 #[cfg(test)]
 mod test {
-    use crate::{Bytecode, OpCode};
-    use crate::instructions::utils::testing::{execute_bytecode, assert_stack_value};
+    use super::*;
+    use crate::instructions::testing_utils;
+    use zrust_bytecode::*;
+    use num_bigint::BigInt;
 
     #[test]
-    fn test_add() {
-        let stack = execute_bytecode(&mut Bytecode::new(&[
-            OpCode::Push as u8, 0x01, 0x01,
-            OpCode::Push as u8, 0x01, 0x02,
-            OpCode::Push as u8, 0x01, 0x03,
-            OpCode::Copy as u8, 0x01, 0x00,
-            OpCode::Copy as u8, 0x01, 0x02,
-        ]));
+    fn test_copy() -> Result<(), RuntimeError> {
+        let mut bytecode = testing_utils::create_instructions_vec();
+        bytecode.push(Box::new(Push { value: BigInt::from(0x01) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(0x02) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(0x03) }));
+        bytecode.push(Box::new(Copy { index: 0 }));
+        bytecode.push(Box::new(Copy { index: 2 }));
+
+        let stack = testing_utils::execute(bytecode.as_slice())?;
 
         assert_eq!(stack.len(), 5);
-        assert_stack_value(&stack, 0, "0x02");
-        assert_stack_value(&stack, 1, "0x03");
-        assert_stack_value(&stack, 2, "0x03");
-        assert_stack_value(&stack, 3, "0x02");
-        assert_stack_value(&stack, 4, "0x01");
+        testing_utils::assert_stack_value(&stack, 0, "0x02");
+        testing_utils::assert_stack_value(&stack, 1, "0x03");
+        testing_utils::assert_stack_value(&stack, 2, "0x03");
+        testing_utils::assert_stack_value(&stack, 3, "0x02");
+        testing_utils::assert_stack_value(&stack, 4, "0x01");
+
+        Ok(())
     }
 }

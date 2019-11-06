@@ -1,14 +1,12 @@
-# Franklin VM
+# zrust-vm
 
-## Bytecode
+## Contents
 
-[WIP Specification](https://github.com/matter-labs/franklin/wiki/VM-Specification)
+- [Overview](#Overview)
+- Appendix
+    - [Bytecode Specification](doc/bytecode.md)
+    - [R1CS Notes](doc/r1cs.md)
 
-## Usage
+## Overview
 
-    let bytes: &[u8] = ...;
-    let mut cs: TestConstraintSystem<E> = ...;
 
-    let bytecode = Bytecode::new(bytes);
-    let mut vm = VirtualMachine<E, TestConstraintSystem<E>>::new();
-    vm.run(&mut cs, bytecode);
