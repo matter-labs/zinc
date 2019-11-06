@@ -5,6 +5,7 @@ use crate::operators::utils;
 use num_traits::cast::ToPrimitive;
 
 /// Swaps n-th element form the stack with top element.
+#[derive(Debug)]
 pub struct Swap;
 
 const MAX_CONSTANT_LENGTH: u8 = 4;

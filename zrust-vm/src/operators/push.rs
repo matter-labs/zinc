@@ -9,6 +9,7 @@ use crate::operators::utils;
 
 /// Decodes constant from bytecode and pushes it onto stack.
 /// See bytecode specification for details.
+#[derive(Debug)]
 pub struct Push;
 
 const MAX_CONSTANT_LENGTH: u8 = 32;

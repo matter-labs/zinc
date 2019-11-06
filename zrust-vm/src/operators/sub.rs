@@ -5,6 +5,7 @@ use ff::Field;
 use crate::stack::Primitive;
 
 /// Removes two elements from the stack and pushes their difference.
+#[derive(Debug)]
 pub struct Sub;
 
 impl<E, CS> Operator<E, CS> for Sub where E: Engine, CS: ConstraintSystem<E> {
@@ -15,8 +16,8 @@ impl<E, CS> Operator<E, CS> for Sub where E: Engine, CS: ConstraintSystem<E> {
         _bytecode: &mut Bytecode)
         -> Result<(), RuntimeError>
     {
-        let left = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
         let right = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
+        let left = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
 
         let diff = match (left.value, right.value) {
             (Some(a), Some(b)) => {

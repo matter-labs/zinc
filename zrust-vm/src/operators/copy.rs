@@ -5,6 +5,7 @@ use crate::operators::utils;
 use num_traits::cast::ToPrimitive;
 
 /// Copies n-th element form the stack on top of the stack.
+#[derive(Debug)]
 pub struct Copy;
 
 const MAX_CONSTANT_LENGTH: u8 = 4;

@@ -47,8 +47,11 @@ impl<E, CS> VirtualMachine<E, CS> where E: Engine, CS: ConstraintSystem<E> {
             let code = bytecode.next_byte().ok_or(RuntimeError::UnexpectedEndOfFile)?;
             let operator = self.dispatch(code)?;
             cs.push_namespace(|| format!("{}", i));
-            println!("{:?}", code);;
+
+            println!("{:?}", operator);
             operator.execute(cs, &mut self.stack, bytecode)?;
+            self.log_stack();
+
             cs.pop_namespace();
             i += 1;
         }
@@ -63,14 +66,17 @@ impl<E, CS> VirtualMachine<E, CS> where E: Engine, CS: ConstraintSystem<E> {
     }
 
     pub fn log_stack(&self) {
-        println!(">>> stack");
+        println!("stack:");
         for i in 0..self.stack.len() {
+            if i > 10 {
+                break;
+            }
             match self.stack.get(i) {
-                None => println!("none"),
+                None => println!("    none"),
                 Some(p) => {
                     match p.value {
-                        None => println!("none"),
-                        Some(fr) => println!("{:?}", fr),
+                        None => println!("    none"),
+                        Some(fr) => println!("    {:?}", fr),
                     }
                 }
             }

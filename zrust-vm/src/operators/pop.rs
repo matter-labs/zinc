@@ -3,6 +3,7 @@ use franklin_crypto::bellman::ConstraintSystem;
 use bellman::pairing::Engine;
 
 /// Removes top element from the stack.
+#[derive(Debug)]
 pub struct Pop;
 
 impl<E, CS> Operator<E, CS> for Pop where E: Engine, CS: ConstraintSystem<E> {

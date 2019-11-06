@@ -20,6 +20,10 @@ fn main() {
     let size = file.metadata().expect("failed to get file metadata").len() as usize;
     let mut input: Vec<u8> = Vec::new();
     file.read_to_end(&mut input).expect("failed to read file");
+
+    let fr = execute(input.as_slice()).expect("failed to execute bytecode");
+
+    dbg!(fr);
 }
 
 fn execute(bytes: &[u8]) -> Result<Fr, RuntimeError> {

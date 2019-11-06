@@ -5,6 +5,7 @@ use ff::Field;
 use crate::stack::Primitive;
 
 /// Removes two elements from the stack and pushes their sum.
+#[derive(Debug)]
 pub struct Add;
 
 impl<E, CS> Operator<E, CS> for Add where E: Engine, CS: ConstraintSystem<E> {
