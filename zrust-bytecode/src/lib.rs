@@ -5,8 +5,9 @@
 pub mod instructions;
 mod vlq;
 
+pub use crate::instructions::*;
+
 use std::fmt::Debug;
-use crate::instructions::*;
 use std::cmp;
 
 #[derive(Debug)]

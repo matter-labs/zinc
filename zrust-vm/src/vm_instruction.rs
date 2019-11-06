@@ -2,8 +2,7 @@ use crate::{Stack, RuntimeError};
 use bellman::pairing::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use std::fmt::Debug;
-use zrust_bytecode::{Instruction, DecodingError, InstructionCode};
-use zrust_bytecode::instructions::*;
+use zrust_bytecode::*;
 use std::cmp;
 
 pub trait VMInstruction<E, CS>: Instruction where E: Engine, CS: ConstraintSystem<E> {

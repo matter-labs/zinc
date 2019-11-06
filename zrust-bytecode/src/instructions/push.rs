@@ -21,6 +21,10 @@ impl Instruction for Push {
 }
 
 impl Push {
+    pub fn new(value: BigInt, signed: bool, bit_length: usize) -> Self {
+        Push { value }
+    }
+
     pub fn decode(bytes: &[u8]) -> Result<(Push, usize), DecodingError> {
         if bytes.len() < 3 {
             Err(DecodingError::UnexpectedEOF)
