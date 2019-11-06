@@ -2,66 +2,122 @@
 //! ZRust bytecode library.
 //!
 
-mod instruction;
+pub mod instructions;
+mod vlq;
 
-pub use self::instruction::Error as InstructionError;
-pub use self::instruction::Instruction;
-pub use self::instruction::OperationCode;
-pub use self::instruction::Push;
+use std::fmt::Debug;
+use crate::instructions::*;
+use std::cmp;
 
-use std::fs::File;
-use std::io::Read;
-use std::path::PathBuf;
+#[derive(Debug)]
+pub enum InstructionCode {
+    NoOperation = 0,
 
-use failure::Fail;
+    // Stack
+    Pop = 1,
+    Push = 2,
+    Copy = 99,
 
-pub const BITLENGTH_BYTE: usize = 8;
+    // Arithmetic
+    Add = 3,
+    Sub = 4,
+    Mul,
+    Div,
+    Rem,
 
-#[derive(Debug, Fail)]
-pub enum InputError {
-    #[fail(display = "Opening: {}", _0)]
-    Opening(std::io::Error),
-    #[fail(display = "Metadata: {}", _0)]
-    Metadata(std::io::Error),
-    #[fail(display = "Reading: {}", _0)]
-    Reading(std::io::Error),
+    // Boolean
+    Not,
+    And,
+    Or,
+    Xor,
+
+    // Comparison
+    Lt,
+    Le,
+    Eq,
+    Ne,
+    Ge,
+    Gt,
 }
 
-#[derive(Debug, Fail)]
-pub enum Error {
-    #[fail(display = "Input: {}", _0)]
-    Input(InputError),
-    #[fail(display = "Instruction: {}", _0)]
-    Instruction(InstructionError),
+pub trait Instruction: Debug {
+    fn to_assembly(&self) -> String;
+    fn code(&self) -> InstructionCode;
+    fn encode(&self) -> Vec<u8>;
 }
 
-pub fn from_file(path: PathBuf) -> Result<Vec<Instruction>, Error> {
-    let mut input_file = File::open(&path)
-        .map_err(InputError::Opening)
-        .map_err(Error::Input)?;
-    let size = input_file
-        .metadata()
-        .map_err(InputError::Metadata)
-        .map_err(Error::Input)?
-        .len() as usize;
-    let mut input = Vec::with_capacity(size);
-    input_file
-        .read_to_end(&mut input)
-        .map_err(InputError::Reading)
-        .map_err(Error::Input)?;
+#[derive(Debug)]
+pub enum DecodingError {
+    UnexpectedEOF,
+    UnknownInstructionCode(u8),
+}
 
-    let mut cursor = 0;
+pub fn decode_all(bytes: &[u8]) -> Result<Vec<Box<dyn Instruction>>, DecodingError> {
     let mut instructions = Vec::new();
-    loop {
-        if cursor == input.len() {
-            break;
-        }
 
-        let (instruction, offset) =
-            Instruction::new_from_slice(&input[cursor..]).map_err(Error::Instruction)?;
-        cursor += offset;
-        instructions.push(instruction);
+    let mut offset = 0;
+    while offset < bytes.len() {
+        match decode_instruction(&bytes[offset..]) {
+            Ok((instr, len)) => {
+                instructions.push(instr);
+                offset += len;
+            },
+            Err(err) => {
+                let last = cmp::min(bytes.len(), offset + 10);
+                log::warn!("failed to decode bytes {:?} at offset {}", &bytes[offset..last], offset);
+                return Err(err);
+            }
+        };
     }
 
     Ok(instructions)
+}
+
+pub fn decode_instruction(bytes: &[u8]) -> Result<(Box<dyn Instruction>, usize), DecodingError> {
+    if bytes.len() < 1 {
+        return Err(DecodingError::UnexpectedEOF);
+    }
+
+    match bytes[0] {
+        x if x == InstructionCode::NoOperation as u8 =>
+            NoOperation::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Push as u8 =>
+            Push::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Pop as u8 =>
+            Pop::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Copy as u8 =>
+            Copy::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Add as u8 =>
+            Add::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Sub as u8 =>
+            Sub::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Mul as u8 =>
+            Mul::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Div as u8 =>
+            Div::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Rem as u8 =>
+            Rem::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Not as u8 =>
+            Not::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::And as u8 =>
+            And::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Or as u8 =>
+            Or::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Xor as u8 =>
+            Xor::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        code => Err(DecodingError::UnknownInstructionCode(code))
+    }
 }
