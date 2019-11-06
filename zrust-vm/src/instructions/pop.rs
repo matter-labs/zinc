@@ -1,17 +1,14 @@
-use crate::{Operator, RuntimeError, Stack, Bytecode};
+use crate::{RuntimeError, Stack};
 use franklin_crypto::bellman::ConstraintSystem;
 use bellman::pairing::Engine;
+use crate::vm_instruction::VMInstruction;
+use zrust_bytecode::instructions::Pop;
 
-/// Removes top element from the stack.
-#[derive(Debug)]
-pub struct Pop;
-
-impl<E, CS> Operator<E, CS> for Pop where E: Engine, CS: ConstraintSystem<E> {
+impl<E, CS> VMInstruction<E, CS> for Pop where E: Engine, CS: ConstraintSystem<E> {
     fn execute(
             &self,
             _cs: &mut CS,
-            stack: &mut Stack<E>,
-            _bytecode: &mut Bytecode)
+            stack: &mut Stack<E>)
         -> Result<(), RuntimeError>
     {
         match stack.pop() {
@@ -24,7 +21,7 @@ impl<E, CS> Operator<E, CS> for Pop where E: Engine, CS: ConstraintSystem<E> {
 #[cfg(test)]
 mod test {
     use crate::{Bytecode, OpCode};
-    use crate::operators::utils::testing::{execute_bytecode, assert_stack_value};
+    use crate::instructions::utils::testing::{execute_bytecode, assert_stack_value};
 
     #[test]
     fn test_pop() {

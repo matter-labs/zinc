@@ -52,7 +52,7 @@ pub enum DecodingError {
     UnknownInstructionCode(u8),
 }
 
-pub fn decode_all(bytes: &[u8]) -> Result<Vec<Box<dyn Instruction>>, DecodingError> {
+pub fn decode_all_instructions(bytes: &[u8]) -> Result<Vec<Box<dyn Instruction>>, DecodingError> {
     let mut instructions = Vec::new();
 
     let mut offset = 0;

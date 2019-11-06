@@ -1,29 +1,20 @@
-use crate::{Operator, RuntimeError, Stack, Bytecode};
+use crate::{RuntimeError, Stack};
 use franklin_crypto::bellman::ConstraintSystem;
 use bellman::pairing::Engine;
-use crate::operators::utils;
 use num_traits::cast::ToPrimitive;
-
-/// Copies n-th element form the stack on top of the stack.
-#[derive(Debug)]
-pub struct Copy;
+use crate::vm_instruction::VMInstruction;
+use zrust_bytecode::instructions::Copy;
 
 const MAX_CONSTANT_LENGTH: u8 = 4;
 
-impl<E, CS> Operator<E, CS> for Copy where E: Engine, CS: ConstraintSystem<E> {
+impl<E, CS> VMInstruction<E, CS> for Copy where E: Engine, CS: ConstraintSystem<E> {
     fn execute(
         &self,
         _cs: &mut CS,
-        stack: &mut Stack<E>,
-        bytecode: &mut Bytecode)
+        stack: &mut Stack<E>)
         -> Result<(), RuntimeError>
     {
-        let len = bytecode.next_byte().ok_or(RuntimeError::StackUnderflow)?;
-        if len > MAX_CONSTANT_LENGTH {
-            return Err(RuntimeError::InvalidArguments);
-        }
-        let index_bigint = utils::decode_constant(len, bytecode)?;
-        let index = index_bigint.to_u64().ok_or(RuntimeError::InternalError)?;
+        let index = self.index.to_u64().ok_or(RuntimeError::InternalError)?;
 
         match stack.get(index as usize) {
             Some(p) => {
@@ -40,7 +31,7 @@ impl<E, CS> Operator<E, CS> for Copy where E: Engine, CS: ConstraintSystem<E> {
 #[cfg(test)]
 mod test {
     use crate::{Bytecode, OpCode};
-    use crate::operators::utils::testing::{execute_bytecode, assert_stack_value};
+    use crate::instructions::utils::testing::{execute_bytecode, assert_stack_value};
 
     #[test]
     fn test_add() {

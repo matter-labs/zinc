@@ -2,12 +2,12 @@ use crate::{Instruction, InstructionCode, DecodingError};
 
 #[derive(Debug)]
 pub struct Copy {
-    value: usize
+    pub index: usize
 }
 
 impl Instruction for Copy {
     fn to_assembly(&self) -> String {
-        format!("copy {}", self.value).into()
+        format!("copy {}", self.index).into()
     }
 
     fn code(&self) -> InstructionCode {
@@ -15,7 +15,7 @@ impl Instruction for Copy {
     }
 
     fn encode(&self) -> Vec<u8> {
-        vec![InstructionCode::Copy as u8, 0x01, self.value as u8]
+        vec![InstructionCode::Copy as u8, 0x01, self.index as u8]
     }
 }
 
@@ -26,7 +26,7 @@ impl Copy {
         } else if bytes[0] != InstructionCode::Copy as u8 {
             Err(DecodingError::UnknownInstructionCode(bytes[0]))
         } else {
-            Ok((Copy { value: bytes[2] as usize }, 3))
+            Ok((Copy { index: bytes[2] as usize }, 3))
         }
     }
 }

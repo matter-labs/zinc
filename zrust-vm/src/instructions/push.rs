@@ -1,34 +1,23 @@
 extern crate franklin_crypto;
 
-use crate::{Operator, RuntimeError, Bytecode, Stack};
+use crate::{RuntimeError, Stack};
 use ff::PrimeField;
 use bellman::pairing::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use crate::stack::Primitive;
-use crate::operators::utils;
-
-/// Decodes constant from bytecode and pushes it onto stack.
-/// See bytecode specification for details.
-#[derive(Debug)]
-pub struct Push;
+use crate::vm_instruction::VMInstruction;
+use zrust_bytecode::instructions::Push;
 
 const MAX_CONSTANT_LENGTH: u8 = 32;
 
-impl<E, CS> Operator<E, CS> for Push where E: Engine, CS: ConstraintSystem<E> {
+impl<E, CS> VMInstruction<E, CS> for Push where E: Engine, CS: ConstraintSystem<E> {
     fn execute(
         &self,
         cs: &mut CS,
-        stack: &mut Stack<E>,
-        bytecode: &mut Bytecode)
+        stack: &mut Stack<E>)
         -> Result<(), RuntimeError>
     {
-        let len = bytecode.next_byte().ok_or(RuntimeError::InvalidArguments)?;
-        if len < 1 || len > MAX_CONSTANT_LENGTH {
-            return Err(RuntimeError::InvalidArguments);
-        }
-        let constant = utils::decode_constant(len, bytecode)?;
-
-        let value: E::Fr = E::Fr::from_str(&constant.to_string()).ok_or(RuntimeError::SynthesisError)?;
+        let value: E::Fr = E::Fr::from_str(&self.value.to_string()).ok_or(RuntimeError::SynthesisError)?;
 
         match cs.alloc(|| "push", || Ok(value)) {
             Ok(var) => {
@@ -43,7 +32,7 @@ impl<E, CS> Operator<E, CS> for Push where E: Engine, CS: ConstraintSystem<E> {
 #[cfg(test)]
 mod test {
     use crate::{Bytecode, OpCode};
-    use crate::operators::utils::testing::{execute_bytecode, assert_stack_value};
+    use crate::instructions::utils::testing::{execute_bytecode, assert_stack_value};
 
     #[test]
     fn test_push() {

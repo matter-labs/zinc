@@ -1,19 +1,16 @@
-use crate::{Operator, RuntimeError, Stack, Bytecode};
+use crate::{RuntimeError, Stack};
 use franklin_crypto::bellman::{ConstraintSystem, SynthesisError};
 use bellman::pairing::Engine;
 use ff::Field;
 use crate::stack::Primitive;
+use crate::vm_instruction::VMInstruction;
+use zrust_bytecode::instructions::Sub;
 
-/// Removes two elements from the stack and pushes their difference.
-#[derive(Debug)]
-pub struct Sub;
-
-impl<E, CS> Operator<E, CS> for Sub where E: Engine, CS: ConstraintSystem<E> {
+impl<E, CS> VMInstruction<E, CS> for Sub where E: Engine, CS: ConstraintSystem<E> {
     fn execute(
         &self,
         cs: &mut CS,
-        stack: &mut Stack<E>,
-        _bytecode: &mut Bytecode)
+        stack: &mut Stack<E>)
         -> Result<(), RuntimeError>
     {
         let right = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
@@ -49,7 +46,7 @@ impl<E, CS> Operator<E, CS> for Sub where E: Engine, CS: ConstraintSystem<E> {
 #[cfg(test)]
 mod test {
     use crate::{Bytecode, OpCode};
-    use crate::operators::utils::testing::{execute_bytecode, assert_stack_value};
+    use crate::instructions::utils::testing::{execute_bytecode, assert_stack_value};
 
     #[test]
     fn test_add() {

@@ -2,8 +2,8 @@ use std::rc::Rc;
 use std::collections::HashMap;
 use bellman::pairing::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
-use crate::{operators, Operator, OpCode, Stack, Bytecode};
-use zrust_bytecode::OperationCode;
+use crate::{Stack, VMInstruction};
+use zrust_bytecode::InstructionCode;
 
 #[derive(Debug)]
 pub enum RuntimeError {
@@ -16,67 +16,43 @@ pub enum RuntimeError {
     InternalError,
 }
 
-
-pub struct VirtualMachine<E, CS> where E: Engine, CS: ConstraintSystem<E> {
+pub struct VirtualMachine<E> where E: Engine {
     stack: Stack<E>,
-    opcodes: HashMap<u8, Rc<Box<dyn Operator<E, CS>>>>,
 }
 
-impl<E, CS> VirtualMachine<E, CS> where E: Engine, CS: ConstraintSystem<E> {
+impl<E> VirtualMachine<E> where E: Engine {
     pub fn new() -> Self {
-        let mut vm = Self {
-            stack: Stack::new(),
-            opcodes: HashMap::new(),
-        };
-
-        vm.opcodes.insert(OperationCode::NoOperation as u8, Rc::new(Box::new(operators::NoOp)));
-        vm.opcodes.insert(OperationCode::Push as u8, Rc::new(Box::new(operators::Push)));
-        vm.opcodes.insert(OperationCode::Pop as u8, Rc::new(Box::new(operators::Pop)));
-        vm.opcodes.insert(OperationCode::Copy as u8, Rc::new(Box::new(operators::Copy)));
-//        vm.opcodes.insert(OpCode::Swap as u8, Rc::new(Box::new(operators::Swap)));
-        vm.opcodes.insert(OperationCode::Add as u8, Rc::new(Box::new(operators::Add)));
-        vm.opcodes.insert(OperationCode::Subtract as u8, Rc::new(Box::new(operators::Sub)));
-        vm.opcodes.insert(OperationCode::Multiply as u8, Rc::new(Box::new(operators::Mul)));
-
-        vm
+        Self { stack: Stack::new() }
     }
 
-    pub fn run(&mut self, cs: &mut CS, bytecode: &mut Bytecode) -> Result<(), RuntimeError> {
-        let mut i = 0;
-        while !bytecode.is_eof() {
-            let code = bytecode.next_byte().ok_or(RuntimeError::UnexpectedEndOfFile)?;
-            let operator = self.dispatch(code)?;
+    pub fn run<CS>(&mut self, cs: &mut CS, instructions: &[Box<dyn VMInstruction<E, CS>>])
+        -> Result<(), RuntimeError>
+    where
+        CS: ConstraintSystem<E>
+    {
+        for (i, instr) in instructions.iter().enumerate() {
             cs.push_namespace(|| format!("{}", i));
 
-            println!("{:?}", operator);
-            operator.execute(cs, &mut self.stack, bytecode)?;
+            log::info!(">>> {}", instr.to_assembly());
+            instr.execute(cs, &mut self.stack)?;
             self.log_stack();
 
             cs.pop_namespace();
-            i += 1;
         }
         Ok(())
     }
 
-    fn dispatch(&self, code: u8) -> Result<Rc<Box<dyn Operator<E, CS>>>, RuntimeError> {
-        match self.opcodes.get(&code) {
-            None => Err(RuntimeError::InvalidOperation(code)),
-            Some(op) => Ok(op.clone()),
-        }
-    }
-
     pub fn log_stack(&self) {
-        println!("stack:");
         for i in 0..self.stack.len() {
             if i > 10 {
                 break;
             }
             match self.stack.get(i) {
-                None => println!("    none"),
+                None => log::info!("none"),
                 Some(p) => {
                     match p.value {
-                        None => println!("    none"),
-                        Some(fr) => println!("    {:?}", fr),
+                        None => log::info!("none"),
+                        Some(fr) => log::info!("{:?}", fr),
                     }
                 }
             }

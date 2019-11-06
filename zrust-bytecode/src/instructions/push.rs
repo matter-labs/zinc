@@ -3,7 +3,7 @@ use num_bigint::BigInt;
 
 #[derive(Debug)]
 pub struct Push {
-    value: BigInt
+    pub value: BigInt
 }
 
 impl Instruction for Push {

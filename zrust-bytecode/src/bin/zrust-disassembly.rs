@@ -30,7 +30,7 @@ fn main() -> Result<(), DecodingError> {
     let mut input: Vec<u8> = Vec::new();
     file.read_to_end(&mut input).expect("failed to read file");
 
-    let instructions = zrust_bytecode::decode_all(input.as_slice())?;
+    let instructions = zrust_bytecode::decode_all_instructions(input.as_slice())?;
     for instruction in instructions.iter() {
         println!("{}", instruction.to_assembly());
     }

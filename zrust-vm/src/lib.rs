@@ -1,13 +1,9 @@
-mod opcodes;
 mod stack;
 mod vm;
-mod bytecode;
-mod operator;
+mod vm_instruction;
 
-pub mod operators;
+pub mod instructions;
 
-pub use opcodes::OpCode;
-pub use stack::Stack;
+pub use stack::{Stack, Primitive};
 pub use vm::{VirtualMachine, RuntimeError};
-pub use bytecode::Bytecode;
-pub use operator::Operator;
+pub use vm_instruction::{VMInstruction, decode_all_vm_instructions};
