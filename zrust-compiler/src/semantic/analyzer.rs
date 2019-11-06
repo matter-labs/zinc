@@ -6,6 +6,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use zrust_bytecode::Instruction;
+use zrust_bytecode::Push;
 
 use crate::error::Error as CompilerError;
 use crate::lexical::Literal as InnerLiteral;
@@ -25,7 +26,7 @@ use crate::CircuitProgram;
 pub struct Analyzer {
     scope_stack: Vec<Rc<RefCell<Scope>>>,
     rpn_stack: Vec<Element>,
-    instructions: Vec<Instruction>,
+    instructions: Vec<Box<dyn Instruction>>,
 }
 
 impl Default for Analyzer {
@@ -54,7 +55,10 @@ impl Analyzer {
         }
     }
 
-    pub fn compile(mut self, program: CircuitProgram) -> Result<Vec<Instruction>, CompilerError> {
+    pub fn compile(
+        mut self,
+        program: CircuitProgram,
+    ) -> Result<Vec<Box<dyn Instruction>>, CompilerError> {
         for statement in program.statements.into_iter() {
             self.execute_statement(statement)
                 .map_err(CompilerError::Semantic)?;
@@ -83,8 +87,8 @@ impl Analyzer {
                 ExpressionObject::Operand(operand) => match operand {
                     ExpressionOperand::Literal(literal) => {
                         let element = self.evaluate_literal(literal)?;
-                        self.instructions
-                            .push(Instruction::Push(element.clone().into()));
+                        let push: Push = element.clone().into();
+                        self.instructions.push(Box::new(push));
                         self.rpn_stack.push(element);
                     }
                     ExpressionOperand::Type(r#type) => {
@@ -138,7 +142,7 @@ impl Analyzer {
                         .add(operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.rpn_stack.push(result);
-                    self.instructions.push(Instruction::Add);
+                    self.instructions.push(Box::new(zrust_bytecode::Add));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Subtraction) => {
                     let (operand_1, operand_2) = self.get_binary_operands();
@@ -146,7 +150,7 @@ impl Analyzer {
                         .subtract(operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.rpn_stack.push(result);
-                    self.instructions.push(Instruction::Subtract);
+                    self.instructions.push(Box::new(zrust_bytecode::Sub));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Multiplication) => {
                     let (operand_1, operand_2) = self.get_binary_operands();
@@ -154,7 +158,7 @@ impl Analyzer {
                         .multiply(operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.rpn_stack.push(result);
-                    self.instructions.push(Instruction::Multiply);
+                    self.instructions.push(Box::new(zrust_bytecode::Mul));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Division) => {
                     let (operand_1, operand_2) = self.get_binary_operands();
@@ -162,7 +166,7 @@ impl Analyzer {
                         .divide(operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.rpn_stack.push(result);
-                    self.instructions.push(Instruction::Divide);
+                    self.instructions.push(Box::new(zrust_bytecode::Div));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Remainder) => {
                     let (operand_1, operand_2) = self.get_binary_operands();
@@ -170,7 +174,7 @@ impl Analyzer {
                         .modulo(operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.rpn_stack.push(result);
-                    self.instructions.push(Instruction::Remainder);
+                    self.instructions.push(Box::new(zrust_bytecode::Rem));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Casting) => {
                     let (operand_1, operand_2) = self.get_binary_operands();
@@ -185,7 +189,7 @@ impl Analyzer {
                         .negate()
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.rpn_stack.push(result);
-                    self.instructions.push(Instruction::Negate);
+                    //                    self.instructions.push(zrust_bytecode::::Negate);
                 }
                 ExpressionObject::Operator(ExpressionOperator::Not) => {
                     unimplemented!();

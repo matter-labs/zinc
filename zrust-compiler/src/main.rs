@@ -106,10 +106,9 @@ fn main() -> Result<(), Error> {
         .map_err(OutputError::Creating)
         .map_err(Error::Output)?;
     for instruction in instructions.into_iter() {
-        log::info!("{}", instruction);
-        let bytes: Vec<u8> = instruction.into();
+        log::info!("{:?}", instruction);
         output_file
-            .write_all(bytes.as_slice())
+            .write_all(instruction.encode().as_slice())
             .map_err(OutputError::Writing)
             .map_err(Error::Output)?;
     }

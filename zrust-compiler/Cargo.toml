@@ -20,4 +20,4 @@ serde_json = "1.0"
 num-traits = "0.2"
 num-bigint = "0.2"
 
-zrust-bytecode = { path = "../zrust-bytecode" }
+zrust-bytecode = { git = "https://github.com/matter-labs/zrust-vm", branch = "development" }

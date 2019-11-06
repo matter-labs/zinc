@@ -8,6 +8,10 @@ pub use self::error::Error;
 
 use std::fmt;
 
+use num_bigint::BigInt;
+use num_traits::One;
+use num_traits::Zero;
+
 use zrust_bytecode::Push;
 
 use crate::lexical::BooleanLiteral;
@@ -64,10 +68,11 @@ impl PartialEq<Self> for Boolean {
 
 impl Into<Push> for Boolean {
     fn into(self) -> Push {
+        let value = self.value.expect("Must contain a value");
         Push::new(
+            if value { BigInt::one() } else { BigInt::zero() },
             false,
             crate::BITLENGTH_BYTE,
-            vec![self.value.expect("Must contain a value") as u8],
         )
     }
 }
