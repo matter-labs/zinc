@@ -11,9 +11,11 @@ pub use self::push::Push;
 
 use std::convert::TryFrom;
 use std::fmt;
+use std::fmt::Debug;
 
 use failure::Fail;
 
+#[derive(Debug)]
 pub enum Instruction {
     NoOperation,
     Pop,

@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use bellman::pairing::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use crate::{operators, Operator, OpCode, Stack, Bytecode};
+use zrust_bytecode::OperationCode;
 
 #[derive(Debug)]
 pub enum RuntimeError {
@@ -28,14 +29,14 @@ impl<E, CS> VirtualMachine<E, CS> where E: Engine, CS: ConstraintSystem<E> {
             opcodes: HashMap::new(),
         };
 
-        vm.opcodes.insert(OpCode::NoOp as u8, Rc::new(Box::new(operators::NoOp)));
-        vm.opcodes.insert(OpCode::Push as u8, Rc::new(Box::new(operators::Push)));
-        vm.opcodes.insert(OpCode::Pop as u8, Rc::new(Box::new(operators::Pop)));
-        vm.opcodes.insert(OpCode::Copy as u8, Rc::new(Box::new(operators::Copy)));
-        vm.opcodes.insert(OpCode::Swap as u8, Rc::new(Box::new(operators::Swap)));
-        vm.opcodes.insert(OpCode::Add as u8, Rc::new(Box::new(operators::Add)));
-        vm.opcodes.insert(OpCode::Sub as u8, Rc::new(Box::new(operators::Sub)));
-        vm.opcodes.insert(OpCode::Mul as u8, Rc::new(Box::new(operators::Mul)));
+        vm.opcodes.insert(OperationCode::NoOperation as u8, Rc::new(Box::new(operators::NoOp)));
+        vm.opcodes.insert(OperationCode::Push as u8, Rc::new(Box::new(operators::Push)));
+        vm.opcodes.insert(OperationCode::Pop as u8, Rc::new(Box::new(operators::Pop)));
+        vm.opcodes.insert(OperationCode::Copy as u8, Rc::new(Box::new(operators::Copy)));
+//        vm.opcodes.insert(OpCode::Swap as u8, Rc::new(Box::new(operators::Swap)));
+        vm.opcodes.insert(OperationCode::Add as u8, Rc::new(Box::new(operators::Add)));
+        vm.opcodes.insert(OperationCode::Subtract as u8, Rc::new(Box::new(operators::Sub)));
+        vm.opcodes.insert(OperationCode::Multiply as u8, Rc::new(Box::new(operators::Mul)));
 
         vm
     }
@@ -46,6 +47,7 @@ impl<E, CS> VirtualMachine<E, CS> where E: Engine, CS: ConstraintSystem<E> {
             let code = bytecode.next_byte().ok_or(RuntimeError::UnexpectedEndOfFile)?;
             let operator = self.dispatch(code)?;
             cs.push_namespace(|| format!("{}", i));
+            println!("{:?}", code);;
             operator.execute(cs, &mut self.stack, bytecode)?;
             cs.pop_namespace();
             i += 1;

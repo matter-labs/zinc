@@ -31,6 +31,7 @@ fn main() -> Result<(), Error> {
     let instructions = zrust_bytecode::from_file(args.input)?;
     for instruction in instructions.into_iter() {
         log::info!("{}", instruction);
+        dbg!(instruction);
     }
 
     Ok(())

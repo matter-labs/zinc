@@ -8,6 +8,7 @@ use failure::Fail;
 
 use crate::OperationCode;
 
+#[derive(Debug)]
 pub struct Push {
     pub is_signed: bool,
     pub size: usize,

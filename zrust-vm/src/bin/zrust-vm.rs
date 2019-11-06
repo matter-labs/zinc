@@ -18,12 +18,8 @@ fn main() {
     let opt = Opt::from_args();
     let mut file = File::open(&opt.input).expect("failed to open file");
     let size = file.metadata().expect("failed to get file metadata").len() as usize;
-    let mut input: Vec<u8> = Vec::with_capacity(size);
-    file.read(input.as_mut_slice()).expect("failed to read file");
-
-    let fr = execute(input.as_slice()).expect("failed to execute bytecode");
-
-    dbg!(fr);
+    let mut input: Vec<u8> = Vec::new();
+    file.read_to_end(&mut input).expect("failed to read file");
 }
 
 fn execute(bytes: &[u8]) -> Result<Fr, RuntimeError> {

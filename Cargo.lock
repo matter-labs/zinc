@@ -853,6 +853,7 @@ dependencies = [
  "num-traits 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "pairing_ce 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zrust-bytecode 0.1.0",
 ]
 
 [metadata]
