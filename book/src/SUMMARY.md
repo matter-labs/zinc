@@ -1,7 +1,6 @@
 # Summary
 
-[Introduction](language/00-introduction.md)
-
+- [Introduction](language/00-introduction.md)
 - [Design](language/01-design.md)
 - [Examples](language/02-examples.md)
 - [Types](language/03-types/00-overview.md)
