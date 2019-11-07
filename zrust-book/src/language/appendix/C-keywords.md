@@ -1,12 +1,5 @@
 # Keywords
 
-#### Built-ins
-```rust
-input
-witness
-output
-```
-
 #### Declarations
 ```rust
 let

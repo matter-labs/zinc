@@ -3,32 +3,34 @@
 A ZRust project consists of a binary file called `main.zrs` and zero or more
 library files whose contents can be imported into the binary file.
 
-Binary file must contain the three mandatory structures
-`input`, `witness`, `output`, and the `main` function.
+Binary file must contain the `main` function, which accepts two mandatory
+arguments for input data and witnesses, and returns the output data.
 
 Library files may contain only declarations of types, functions, and constants.
 
-## Public inputs and secret witness
+## Inputs, witnesses and the output
 
 ```rust
-    input {
-        {identifier}: {type},
-        ...
-    }
+struct Input {
+    {identifier}: {type},
+    ...
+}
 
-    witness {
-        {identifier}: {type},
-        ...
-    }
+struct Witness {
+    {identifier}: {type},
+    ...
+}
 
-    output {
-        {identifier}: {type},
-        ...
-    }
+struct Output {
+    {identifier}: {type},
+    ...
+}
+
+fn main(input: Input, witness: Witness) -> Output { Output { ... } }
 ```
 
-Public inputs (defined in the `inputs` block) and secret witness (defined in the
-`witness` block) are the arguments of the program for which the circuit is
+Public inputs (defined as the `Input` type) and secret witness (defined as the
+`Witness` type) are the arguments of the program for which the circuit is
 implemented. The prover must provide both public inputs and secret witness data
 in order to generate proofs. The verifier must provide the same public input
 to verify the satisfiability of the proof.
@@ -36,30 +38,19 @@ to verify the satisfiability of the proof.
 Inputs, witnesses, and outputs must be defined at the beginning of a circuit.
 Variable names for input and witness are declared in the global variable scope.
 
-Outputs contain the results of a circuit.
+The output data defined as the `Output` type contain the result of a
+circuit execution.
 
-Each circuit can have 0 or more input, witness, and output arguments, but all
-the sections must be declared, even if they are empty.
+If either inputs or witnesses are empty, they must be specified as the `()` type.
+If there is no output data, the return type can be omitted like with an
+ordinary function.
 
-```rust
-    input {
-        x: u128,
-        ...
-    }
+## Standard library
 
-    witness {
-        cubic_root: u128,
-        ...
-    }
+Most of the standard library functions will be embedded into the ZRust virtual
+machine, which is described in the **Chapter 8**.
 
-    output {
-        result: field,
-        ...
-    }
-```
-
-## Standard library (TODO)
-
+The standard library will provide computation-heavy algorithms like:
 - hashes: `sha256`, `pedersen`, `poseidon`, `blake2s`
 - signatures: `eddsa_verify`
 - curve primitives: `ecc`

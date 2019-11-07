@@ -3,7 +3,7 @@
 Control statements do neither ignore the result nor declare a new item. The
 only such statement is the `for-while` loop.
 
-## `for-while` loop statement
+## `for-while` loop
 
 `for {identifier} in {integer}..{integer} [while {expression}] { ... }`
 

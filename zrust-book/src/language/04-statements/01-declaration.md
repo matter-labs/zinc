@@ -1,8 +1,8 @@
 # Declaration statements
 
-The declaration statements declare a new item.
+The declaration statements declare a new item, that is, a type, variable or module.
 
-## `let` declaration
+## `let` variable declaration
 
 `let [mut] {identifier}[: {type}] = {expression};`
 
@@ -12,13 +12,11 @@ uninitialized variables.
 The type is optional and is used mostly to cast integer literal or double check
 the expression result type, otherwise it is inferred.
 
-Shadowing is not allowed (already or yet).
-
 ```rust
 let mut variable: field = 0;
 ```
 
-## `type` declaration
+## `type` alias declaration
 
 `type {identifier} = {type};`
 
@@ -28,48 +26,47 @@ The `type` statement declares a type alias to avoid repeating complex types.
 type Alias = (field, u8, [field; 8]);
 ```
 
-## `struct` declaration
+## `struct` type declaration
 
-This statement is a special case of `type` and declares a structure type.
+The `struct` statement declares a structure.
 
 ```rust
 struct Data {
     a: field,
     b: u8,
     c: (),
-};
+}
 ```
 
-## `enum` declaration
+## `enum` type declaration
 
-This statement is a special case of `type` and declares an enumeration type.
+The `enum` statement declares an enumeration.
 
 ```rust
 enum List {
     A = 1,
     B = 2,
     C = 3,
-};
+}
 ```
 
-## `fn` declaration
+## `fn` type declaration
 
-The `fn` statement declares a function, which is basically a callable type
-differing in its input arguments and return type.
+The `fn` statement declares a function.
 
 ```rust
 fn sum(a: u8, b: u8) -> u8 {
     a + b
-};
+}
 ```
 
-## `mod` declaration
+## `mod` module declaration
 
 `mod {identifier};`
 
 The `mod` statement declares a new module and behaves the same way as in Rust.
 
-## `use` import
+## `use` module import
 
 `use {path};`
 
