@@ -25,7 +25,5 @@
     - [A - Lexical grammar](language/appendix/A-grammar-lexical.md)
     - [B - Syntax grammar](language/appendix/B-grammar-syntax.md)
     - [C - Keywords](language/appendix/C-keywords.md)
-
-[Interpreter CLI](interpreter.md)
-
-[Transpiler CLI](transpiler.md)
+- [Interpreter CLI](interpreter.md)
+- [Transpiler CLI](transpiler.md)
