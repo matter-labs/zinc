@@ -13,5 +13,6 @@ franklin_crypto = { package = "franklin-crypto", git = "https://github.com/matte
 ff = { package = "ff_ce", version = "0.6.0", features = ["derive"] }
 num-bigint = "0.2.3"
 num-traits = "0.2.8"
+num-integer = "0.1.41"
 structopt = "0.3.3"
 zrust-bytecode = { path = "../zrust-bytecode" }
