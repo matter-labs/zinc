@@ -22,3 +22,23 @@ all zero-knowledge constraints are automatically applied by virtual machine.
 There are however some limitations specific to zero-knowledge computations.
 For example conditional execution is implemented differently.
 Instead of conditional jumps, there is conditional assign instruction (you can think of it as of ternary operator).
+
+
+## Usage
+
+Show bytecode as human-readable assembly code:
+
+    zrust-disassembly <file.zrsb>
+
+Execute bytecode, log instructions and stack state:
+
+    RUST_LOG=info zrust-vm <file.zrsb>
+
+## Roadmap
+
+- Instructions:
+    - [x] Arithmetic
+    - [ ] Boolean & Comparison
+    - [ ] Conditional assignment
+    - [ ] Loops
+    - [ ] Function calls
