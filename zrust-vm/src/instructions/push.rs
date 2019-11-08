@@ -1,12 +1,12 @@
 extern crate franklin_crypto;
 
 use crate::{RuntimeError, Stack};
-use ff::PrimeField;
 use bellman::pairing::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use crate::stack::Primitive;
 use crate::vm_instruction::VMInstruction;
 use zrust_bytecode::instructions::Push;
+use crate::instructions::utils;
 
 impl<E, CS> VMInstruction<E, CS> for Push where E: Engine, CS: ConstraintSystem<E> {
     fn execute(
@@ -15,15 +15,18 @@ impl<E, CS> VMInstruction<E, CS> for Push where E: Engine, CS: ConstraintSystem<
         stack: &mut Stack<E>)
         -> Result<(), RuntimeError>
     {
-        let value: E::Fr = E::Fr::from_str(&self.value.to_string()).ok_or(RuntimeError::SynthesisError)?;
+        let value = utils::bigint_to_fr::<E>(&self.value).ok_or(RuntimeError::InternalError)?;
+        let var = cs.alloc(|| "push", || Ok(value)).map_err(|_| RuntimeError::SynthesisError)?;
 
-        match cs.alloc(|| "push", || Ok(value)) {
-            Ok(var) => {
-                stack.push(Primitive { value: Some(value), variable: var });
-                Ok(())
-            },
-            Err(_) => Err(RuntimeError::SynthesisError)
-        }
+        cs.enforce(
+            || "constant",
+            |lc| lc + CS::one(),
+            |lc| lc + (value, CS::one()),
+            |lc| lc + var
+        );
+
+        stack.push(Primitive { value: Some(value), variable: var });
+        Ok(())
     }
 }
 

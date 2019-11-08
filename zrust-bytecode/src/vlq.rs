@@ -2,6 +2,7 @@ use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 use num_integer::Integer;
 
+#[allow(dead_code)]
 pub fn encode(mut number: BigInt) -> Vec<u8> {
     let mut bytes: Vec<u8> = Vec::new();
 
@@ -15,6 +16,7 @@ pub fn encode(mut number: BigInt) -> Vec<u8> {
     bytes
 }
 
+#[allow(dead_code)]
 pub fn decode(bytes: &[u8]) -> (BigInt, usize) {
     let mut number = BigInt::from(0);
     let mut len = 0;

@@ -1,11 +1,9 @@
 use crate::{RuntimeError, Stack};
-use franklin_crypto::bellman::{ConstraintSystem, SynthesisError};
+use franklin_crypto::bellman::ConstraintSystem;
 use bellman::pairing::Engine;
-use crate::stack::Primitive;
 use crate::vm_instruction::VMInstruction;
 use zrust_bytecode::Rem;
 use crate::instructions::utils;
-use num_integer::Integer;
 
 impl<E, CS> VMInstruction<E, CS> for Rem where E: Engine, CS: ConstraintSystem<E> {
     fn execute(
@@ -17,7 +15,7 @@ impl<E, CS> VMInstruction<E, CS> for Rem where E: Engine, CS: ConstraintSystem<E
         let denominator = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
         let nominator = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
 
-        let (q, r) = utils::div_rem(cs, nominator, denominator)?;
+        let (_q, r) = utils::div_rem(cs, nominator, denominator)?;
 
         stack.push(r);
 

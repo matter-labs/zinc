@@ -13,6 +13,8 @@ pub fn execute(instructions: &[Box<dyn VMInstruction<Bn256, TestConstraintSystem
     let mut vm = VirtualMachine::<Bn256>::new();
     vm.run(&mut cs, instructions)?;
 
+    dbg!(cs.find_unconstrained());
+
     Ok(vm.stack().clone())
 }
 
