@@ -24,6 +24,8 @@ mod ne;
 mod ge;
 mod gt;
 
+mod cast;
+
 pub use noop::NoOperation;
 
 pub use push::Push;
@@ -47,3 +49,5 @@ pub use eq::Eq;
 pub use ne::Ne;
 pub use ge::Ge;
 pub use gt::Gt;
+
+pub use cast::Cast;

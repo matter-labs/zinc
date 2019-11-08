@@ -39,6 +39,8 @@ pub enum InstructionCode {
     Ne,
     Ge,
     Gt,
+
+    Cast,
 }
 
 pub trait Instruction: Debug {
@@ -136,6 +138,9 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Box<dyn Instruction>, usize),
 
         x if x == InstructionCode::Gt as u8 =>
             Gt::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Cast as u8 =>
+            Cast::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
 
         code => Err(DecodingError::UnknownInstructionCode(code))
     }
