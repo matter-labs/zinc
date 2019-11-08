@@ -12,16 +12,16 @@ use std::cmp;
 
 #[derive(Debug)]
 pub enum InstructionCode {
-    NoOperation = 0,
+    NoOperation,
 
     // Stack
-    Pop = 1,
-    Push = 2,
-    Copy = 99,
+    Pop,
+    Push,
+    Copy,
 
     // Arithmetic
-    Add = 3,
-    Sub = 4,
+    Add,
+    Sub,
     Mul,
     Div,
     Rem,
@@ -118,6 +118,24 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Box<dyn Instruction>, usize),
 
         x if x == InstructionCode::Xor as u8 =>
             Xor::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Lt as u8 =>
+            Lt::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Le as u8 =>
+            Le::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Eq as u8 =>
+            Eq::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Ne as u8 =>
+            Ne::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Ge as u8 =>
+            Ge::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Gt as u8 =>
+            Gt::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
 
         code => Err(DecodingError::UnknownInstructionCode(code))
     }
