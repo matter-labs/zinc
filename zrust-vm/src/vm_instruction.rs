@@ -76,17 +76,17 @@ where
         x if x == InstructionCode::Rem as u8 =>
             Rem::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
 
-//        x if x == InstructionCode::Not as u8 =>
-//            Not::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
-//
-//        x if x == InstructionCode::And as u8 =>
-//            And::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
-//
-//        x if x == InstructionCode::Or as u8 =>
-//            Or::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
-//
-//        x if x == InstructionCode::Xor as u8 =>
-//            Xor::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
+        x if x == InstructionCode::Not as u8 =>
+            Not::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::And as u8 =>
+            And::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Or as u8 =>
+            Or::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Xor as u8 =>
+            Xor::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
 
         code => Err(DecodingError::UnknownInstructionCode(code))
     }

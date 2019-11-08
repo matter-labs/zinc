@@ -5,8 +5,14 @@ pub mod noop;
 pub mod push;
 pub mod pop;
 pub mod copy;
+
 pub mod add;
 pub mod sub;
 pub mod mul;
 pub mod div;
 pub mod rem;
+
+pub mod not;
+pub mod and;
+pub mod or;
+pub mod xor;
