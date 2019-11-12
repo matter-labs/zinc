@@ -1,4 +1,6 @@
-use crate::{Instruction, InstructionCode, DecodingError};
+use crate::{Instruction, InstructionCode, DecodingError, utils};
+use num_traits::ToPrimitive;
+use num_bigint::ToBigInt;
 
 #[derive(Debug)]
 pub struct Pop {
@@ -15,7 +17,7 @@ impl Instruction for Pop {
     }
 
     fn encode(&self) -> Vec<u8> {
-        vec![InstructionCode::Pop as u8, self.count as u8]
+        utils::encode_with_vlq_argument(InstructionCode::Pop, &self.count.to_bigint().unwrap())
     }
 }
 
@@ -25,12 +27,8 @@ impl Pop {
     }
 
     pub fn decode(bytes: &[u8]) -> Result<(Pop, usize), DecodingError> {
-        if bytes.len() < 2 {
-            Err(DecodingError::UnexpectedEOF)
-        } else if bytes[0] != InstructionCode::Pop as u8 {
-            Err(DecodingError::UnknownInstructionCode(bytes[0]))
-        } else {
-            Ok((Pop::new(bytes[1] as usize), 2))
-        }
+        let (value, len) = utils::decode_with_vlq_argument(InstructionCode::Pop, bytes)?;
+        let count = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
+        Ok((Pop { count }, len))
     }
 }

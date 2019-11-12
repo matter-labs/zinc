@@ -1,4 +1,6 @@
-use crate::{Instruction, InstructionCode, DecodingError};
+use crate::{Instruction, InstructionCode, DecodingError, utils};
+use num_traits::ToPrimitive;
+use num_bigint::ToBigInt;
 
 #[derive(Debug)]
 pub struct LoopBegin {
@@ -15,7 +17,7 @@ impl Instruction for LoopBegin {
     }
 
     fn encode(&self) -> Vec<u8> {
-        vec![InstructionCode::LoopBegin as u8, 0x01, self.iterations as u8]
+        utils::encode_with_vlq_argument(InstructionCode::LoopBegin, &self.iterations.to_bigint().unwrap())
     }
 }
 
@@ -25,12 +27,8 @@ impl LoopBegin {
     }
 
     pub fn decode(bytes: &[u8]) -> Result<(LoopBegin, usize), DecodingError> {
-        if bytes.len() < 3 {
-            Err(DecodingError::UnexpectedEOF)
-        } else if bytes[0] != InstructionCode::LoopBegin as u8 {
-            Err(DecodingError::UnknownInstructionCode(bytes[0]))
-        } else {
-            Ok((LoopBegin::new(bytes[2] as usize), 3))
-        }
+        let (value, len) = utils::decode_with_vlq_argument(InstructionCode::LoopBegin, bytes)?;
+        let iterations = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
+        Ok((LoopBegin { iterations }, len))
     }
 }

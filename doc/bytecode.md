@@ -19,7 +19,7 @@ Operator can *consume* (remove from top of the stack) some elements and *push* a
 
 ### Argument encoding
 
-Most arguments are encoded using [VLQ](https://en.wikipedia.org/wiki/Variable-length_quantity).
+Most arguments are encoded using [VLQ](https://en.wikipedia.org/wiki/Variable-length_quantity#Removing_redundancy).
 
 ## Operators
 

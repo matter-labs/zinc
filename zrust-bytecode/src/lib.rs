@@ -3,7 +3,7 @@
 //!
 
 pub mod instructions;
-mod vlq;
+pub mod vlq;
 
 pub use crate::instructions::*;
 
@@ -58,6 +58,7 @@ pub trait Instruction: Debug {
 pub enum DecodingError {
     UnexpectedEOF,
     UnknownInstructionCode(u8),
+    ConstantTooLong,
 }
 
 pub fn decode_all_instructions(bytes: &[u8]) -> Result<Vec<Box<dyn Instruction>>, DecodingError> {

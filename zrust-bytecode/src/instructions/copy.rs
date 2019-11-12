@@ -1,4 +1,6 @@
-use crate::{Instruction, InstructionCode, DecodingError};
+use crate::{Instruction, InstructionCode, DecodingError, utils};
+use num_traits::ToPrimitive;
+use num_bigint::ToBigInt;
 
 #[derive(Debug)]
 pub struct Copy {
@@ -15,18 +17,14 @@ impl Instruction for Copy {
     }
 
     fn encode(&self) -> Vec<u8> {
-        vec![InstructionCode::Copy as u8, 0x01, self.index as u8]
+        utils::encode_with_vlq_argument(InstructionCode::Copy, &self.index.to_bigint().unwrap())
     }
 }
 
 impl Copy {
     pub fn decode(bytes: &[u8]) -> Result<(Copy, usize), DecodingError> {
-        if bytes.len() < 3 {
-            Err(DecodingError::UnexpectedEOF)
-        } else if bytes[0] != InstructionCode::Copy as u8 {
-            Err(DecodingError::UnknownInstructionCode(bytes[0]))
-        } else {
-            Ok((Copy { index: bytes[2] as usize }, 3))
-        }
+        let (value, len) = utils::decode_with_vlq_argument(InstructionCode::Push, bytes)?;
+        let index = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
+        Ok((Copy { index }, len))
     }
 }
