@@ -26,6 +26,10 @@ mod gt;
 
 mod cast;
 
+mod cs;
+mod loop_begin;
+mod loop_end;
+
 pub use noop::NoOperation;
 
 pub use push::Push;
@@ -51,3 +55,7 @@ pub use ge::Ge;
 pub use gt::Gt;
 
 pub use cast::Cast;
+
+pub use cs::ConditionalSelect;
+pub use loop_begin::LoopBegin;
+pub use loop_end::LoopEnd;

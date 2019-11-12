@@ -41,6 +41,10 @@ pub enum InstructionCode {
     Gt,
 
     Cast,
+
+    ConditionalSelect,
+    LoopBegin,
+    LoopEnd,
 }
 
 pub trait Instruction: Debug {
@@ -141,6 +145,15 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Box<dyn Instruction>, usize),
 
         x if x == InstructionCode::Cast as u8 =>
             Cast::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::ConditionalSelect as u8 =>
+            ConditionalSelect::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::LoopBegin as u8 =>
+            LoopBegin::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::LoopEnd as u8 =>
+            LoopEnd::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
 
         code => Err(DecodingError::UnknownInstructionCode(code))
     }
