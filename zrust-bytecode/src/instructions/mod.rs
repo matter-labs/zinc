@@ -11,6 +11,7 @@ mod sub;
 mod mul;
 mod div;
 mod rem;
+mod neg;
 
 mod not;
 mod and;
@@ -41,6 +42,7 @@ pub use sub::Sub;
 pub use mul::Mul;
 pub use div::Div;
 pub use rem::Rem;
+pub use neg::Neg;
 
 pub use not::Not;
 pub use and::And;

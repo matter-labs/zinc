@@ -1,12 +1,13 @@
 use crate::{Instruction, InstructionCode, DecodingError};
-use crate::instructions::utils::decode_simple_instruction;
 
 #[derive(Debug)]
-pub struct Pop;
+pub struct Pop {
+    pub count: usize
+}
 
 impl Instruction for Pop {
     fn to_assembly(&self) -> String {
-        "pop".into()
+        format!("pop {}", self.count).into()
     }
 
     fn code(&self) -> InstructionCode {
@@ -14,12 +15,22 @@ impl Instruction for Pop {
     }
 
     fn encode(&self) -> Vec<u8> {
-        vec![InstructionCode::Pop as u8]
+        vec![InstructionCode::Pop as u8, self.count as u8]
     }
 }
 
 impl Pop {
+    pub fn new(count: usize) -> Self {
+        Self { count }
+    }
+
     pub fn decode(bytes: &[u8]) -> Result<(Pop, usize), DecodingError> {
-        decode_simple_instruction(bytes, InstructionCode::Pop, Pop)
+        if bytes.len() < 2 {
+            Err(DecodingError::UnexpectedEOF)
+        } else if bytes[0] != InstructionCode::Pop as u8 {
+            Err(DecodingError::UnknownInstructionCode(bytes[0]))
+        } else {
+            Ok((Pop::new(bytes[1] as usize), 2))
+        }
     }
 }

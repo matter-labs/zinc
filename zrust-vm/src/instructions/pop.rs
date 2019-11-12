@@ -7,7 +7,9 @@ impl<E, O> VMInstruction<E, O> for Pop
     where E: Element, O: ElementOperator<E>
 {
     fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        vm.stack_pop()?;
+        for _ in 0..self.count {
+            vm.stack_pop()?;
+        }
         Ok(())
     }
 }
@@ -22,10 +24,10 @@ mod test {
     #[test]
     fn test_pop() -> Result<(), RuntimeError> {
         let mut bytecode = testing_utils::create_instructions_vec();
-        bytecode.push(Box::new(Push { value: BigInt::from(0x01) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(0x02) }));
+        bytecode.push(Box::new(Push { value: BigUint::from(0x01) }));
+        bytecode.push(Box::new(Push { value: BigUint::from(0x02) }));
         bytecode.push(Box::new(Pop));
-        bytecode.push(Box::new(Push { value: BigInt::from(0x03) }));
+        bytecode.push(Box::new(Push { value: BigUint::from(0x03) }));
 
         let stack = testing_utils::execute(bytecode.as_slice())?;
 

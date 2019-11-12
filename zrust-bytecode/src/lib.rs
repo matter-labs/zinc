@@ -25,6 +25,7 @@ pub enum InstructionCode {
     Mul,
     Div,
     Rem,
+    Neg,
 
     // Boolean
     Not,
@@ -112,6 +113,9 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Box<dyn Instruction>, usize),
 
         x if x == InstructionCode::Rem as u8 =>
             Rem::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Neg as u8 =>
+            Neg::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
 
         x if x == InstructionCode::Not as u8 =>
             Not::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
