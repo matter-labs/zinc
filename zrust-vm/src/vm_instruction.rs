@@ -24,7 +24,7 @@ where
     while offset < bytes.len() {
         match decode_vm_instruction(&bytes[offset..]) {
             Ok((instr, len)) => {
-                log::info!("{}  {:?}", instr.to_assembly(), &bytes[offset..(offset+len)]);
+                log::info!("{} \t{:2x?}", instr.to_assembly(), &bytes[offset..(offset+len)]);
                 instructions.push(instr);
                 offset += len;
             },
