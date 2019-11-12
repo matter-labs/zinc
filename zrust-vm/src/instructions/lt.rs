@@ -3,10 +3,11 @@
 //use bellman::pairing::Engine;
 //use ff::Field;
 //use crate::stack::Primitive;
-//use zrust_bytecode::instructions::And;
+//use zrust_bytecode::instructions::Lt;
 //use crate::vm_instruction::VMInstruction;
+//use crate::instructions::utils;
 //
-//impl<E, CS> VMInstruction<E, CS> for And where E: Engine, CS: ConstraintSystem<E> {
+//impl<E, CS> VMInstruction<E, CS> for Lt where E: Engine, CS: ConstraintSystem<E> {
 //    fn execute(
 //        &self,
 //        cs: &mut CS,
@@ -16,11 +17,13 @@
 //        let left = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
 //        let right = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
 //
-//        let and_value = match (left.value, right.value) {
+//        let lt_value = match (left.value, right.value) {
 //            (Some(a), Some(b)) => {
-//                let mut conj = a;
-//                conj.mul_assign(&b);
-//                Some(conj)
+//                if utils::fr_to_bigint(&a) < utils::fr_to_bigint(&b) {
+//                    Some(E::Fr::one())
+//                } else {
+//                    Some(E::Fr::zero())
+//                }
 //            }
 //            _ => None
 //        };
@@ -51,7 +54,7 @@
 //    use num_bigint::BigInt;
 //
 //    #[test]
-//    fn test_and() -> Result<(), RuntimeError> {
+//    fn test_lt() -> Result<(), RuntimeError> {
 //        let mut bytecode = testing_utils::create_instructions_vec();
 //        bytecode.push(Box::new(Push { value: BigInt::from(0x00) }));
 //        bytecode.push(Box::new(Push { value: BigInt::from(0x00) }));

@@ -1,25 +1,17 @@
-use crate::{RuntimeError, Stack};
-use franklin_crypto::bellman::ConstraintSystem;
-use bellman::pairing::Engine;
-use crate::vm_instruction::VMInstruction;
-use zrust_bytecode::Div;
-use crate::instructions::utils;
+extern crate franklin_crypto;
 
-impl<E, CS> VMInstruction<E, CS> for Div where E: Engine, CS: ConstraintSystem<E> {
-    fn execute(
-        &self,
-        cs: &mut CS,
-        stack: &mut Stack<E>)
-        -> Result<(), RuntimeError>
-    {
-        let denominator = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
-        let nominator = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
+use crate::{RuntimeError, VirtualMachine, VMInstruction, ElementOperator, Element};
+use zrust_bytecode::instructions::Div;
 
-        let (q, _r) = utils::div_rem(cs, nominator, denominator)?;
+impl<E, O> VMInstruction<E, O> for Div
+    where E: Element, O: ElementOperator<E>
+{
+    fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+        let right = vm.stack_pop()?;
+        let left = vm.stack_pop()?;
+        let (div, _rem) = vm.get_operator().div_rem(left, right)?;
 
-        stack.push(q);
-
-        Ok(())
+        vm.stack_push(div)
     }
 }
 

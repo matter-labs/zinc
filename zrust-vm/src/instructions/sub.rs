@@ -1,45 +1,17 @@
-use crate::{RuntimeError, Stack};
-use franklin_crypto::bellman::{ConstraintSystem, SynthesisError};
-use bellman::pairing::Engine;
-use ff::Field;
-use crate::stack::Primitive;
-use crate::vm_instruction::VMInstruction;
+extern crate franklin_crypto;
+
+use crate::{RuntimeError, VirtualMachine, VMInstruction, ElementOperator, Element};
 use zrust_bytecode::instructions::Sub;
 
-impl<E, CS> VMInstruction<E, CS> for Sub where E: Engine, CS: ConstraintSystem<E> {
-    fn execute(
-        &self,
-        cs: &mut CS,
-        stack: &mut Stack<E>)
-        -> Result<(), RuntimeError>
-    {
-        let right = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
-        let left = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
+impl<E, O> VMInstruction<E, O> for Sub
+    where E: Element, O: ElementOperator<E>
+{
+    fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+        let right = vm.stack_pop()?;
+        let left = vm.stack_pop()?;
+        let diff = vm.get_operator().sub(left, right)?;
 
-        let diff = match (left.value, right.value) {
-            (Some(a), Some(b)) => {
-                let mut diff = a;
-                diff.sub_assign(&b);
-                Some(diff)
-            }
-            _ => None
-        };
-
-        let diff_var = cs.alloc(
-            || "diff",
-            || diff.ok_or(SynthesisError::AssignmentMissing)
-        ).map_err(|_| RuntimeError::SynthesisError)?;
-
-        cs.enforce(
-            || "equality",
-            |lc| lc + left.variable - right.variable,
-            |lc| lc + CS::one(),
-            |lc| lc + diff_var
-        );
-
-        stack.push(Primitive { value: diff, variable: diff_var });
-
-        Ok(())
+        vm.stack_push(diff)
     }
 }
 

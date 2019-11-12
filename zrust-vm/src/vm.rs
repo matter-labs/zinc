@@ -1,6 +1,4 @@
-use bellman::pairing::Engine;
-use franklin_crypto::bellman::ConstraintSystem;
-use crate::{Stack, VMInstruction};
+use crate::{Element, ElementOperator, VMInstruction};
 
 #[derive(Debug)]
 pub enum RuntimeError {
@@ -11,52 +9,71 @@ pub enum RuntimeError {
     UnexpectedEndOfFile,
     SynthesisError,
     InternalError,
+    IntegerOverflow,
 }
 
-pub struct VirtualMachine<E> where E: Engine {
-    stack: Stack<E>,
+pub struct VirtualMachine<E, O>
+where
+    E: Element,
+    O: ElementOperator<E>
+{
+    stack: Vec<E>,
+    operator: O,
 }
 
-impl<E> VirtualMachine<E> where E: Engine {
-    pub fn new() -> Self {
-        Self { stack: Stack::new() }
+impl <E, O> VirtualMachine<E, O>
+where
+    E: Element,
+    O: ElementOperator<E>
+{
+    pub fn new(operator: O) -> Self {
+        Self {
+            stack: Vec::new(),
+            operator,
+        }
     }
 
-    pub fn run<CS>(&mut self, cs: &mut CS, instructions: &[Box<dyn VMInstruction<E, CS>>])
+    pub fn run(&mut self, instructions: &mut [Box<dyn VMInstruction<E, O>>])
         -> Result<(), RuntimeError>
-    where
-        CS: ConstraintSystem<E>
     {
-        for (i, instr) in instructions.iter().enumerate() {
-            cs.push_namespace(|| format!("{}", i));
-
+        for instr in instructions.iter_mut() {
             log::info!(">>> {}", instr.to_assembly());
-            instr.execute(cs, &mut self.stack)?;
+            instr.execute(self)?;
             self.log_stack();
-
-            cs.pop_namespace();
         }
+
         Ok(())
     }
 
     pub fn log_stack(&self) {
-        for i in 0..self.stack.len() {
-            if i > 10 {
-                break;
-            }
-            match self.stack.get(i) {
-                None => log::info!("none"),
-                Some(p) => {
-                    match p.value {
-                        None => log::info!("none"),
-                        Some(fr) => log::info!("{:?}", fr),
-                    }
-                }
-            }
+        let mut s = String::new();
+        for e in self.stack.iter().rev() {
+            s += format!("{} ", e).as_str();
         }
+        log::info!("{}", s)
     }
 
-    pub fn stack(&self) -> &Stack<E> {
-        &self.stack
+    pub fn stack_push(&mut self, element: E) -> Result<(), RuntimeError> {
+        self.stack.push(element);
+
+        Ok(())
+    }
+
+    pub fn stack_pop(&mut self) -> Result<E, RuntimeError> {
+        self.stack
+            .pop()
+            .ok_or(RuntimeError::StackUnderflow)
+    }
+
+    pub fn stack_get(&mut self, index: usize) -> Result<E, RuntimeError> {
+        let last = self.stack.len();
+        self.stack
+            .get(last - index - 1)
+            .ok_or(RuntimeError::StackUnderflow)
+            .map(|e| (*e).clone())
+    }
+
+    pub fn get_operator(&mut self) -> &mut O {
+        &mut self.operator
     }
 }

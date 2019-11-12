@@ -1,45 +1,21 @@
-use crate::{RuntimeError, Stack};
-use franklin_crypto::bellman::{ConstraintSystem, SynthesisError};
-use bellman::pairing::Engine;
-use ff::Field;
-use crate::stack::Primitive;
+extern crate franklin_crypto;
+
+use crate::{RuntimeError, VirtualMachine, VMInstruction, ElementOperator, Element};
 use zrust_bytecode::instructions::Add;
-use crate::vm_instruction::VMInstruction;
 
-impl<E, CS> VMInstruction<E, CS> for Add where E: Engine, CS: ConstraintSystem<E> {
-    fn execute(
-        &self,
-        cs: &mut CS,
-        stack: &mut Stack<E>)
-        -> Result<(), RuntimeError>
-    {
-        let left = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
-        let right = stack.pop().ok_or(RuntimeError::StackUnderflow)?;
+impl<E, O> VMInstruction<E, O> for Add
+where E: Element, O: ElementOperator<E>
+{
+    fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+        let left = vm.stack_pop()?;
+        let right = vm.stack_pop()?;
 
-        let sum = match (left.value, right.value) {
-            (Some(a), Some(b)) => {
-                let mut sum = a;
-                sum.add_assign(&b);
-                Some(sum)
-            }
-            _ => None
+        let sum = {
+            let op = vm.get_operator();
+            op.add(left, right)?
         };
 
-        let sum_var = cs.alloc(
-            || "sum",
-            || sum.ok_or(SynthesisError::AssignmentMissing)
-        ).map_err(|_| RuntimeError::SynthesisError)?;
-
-        cs.enforce(
-            || "equality",
-            |lc| lc + left.variable + right.variable,
-            |lc| lc + CS::one(),
-            |lc| lc + sum_var
-        );
-
-        stack.push(Primitive { value: sum, variable: sum_var });
-
-        Ok(())
+        vm.stack_push(sum)
     }
 }
 

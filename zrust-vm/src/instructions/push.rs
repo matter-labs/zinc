@@ -1,32 +1,16 @@
 extern crate franklin_crypto;
 
-use crate::{RuntimeError, Stack};
-use bellman::pairing::Engine;
-use franklin_crypto::bellman::ConstraintSystem;
-use crate::stack::Primitive;
-use crate::vm_instruction::VMInstruction;
+use crate::{RuntimeError, VirtualMachine, VMInstruction, ElementOperator, Element};
 use zrust_bytecode::instructions::Push;
-use crate::instructions::utils;
 
-impl<E, CS> VMInstruction<E, CS> for Push where E: Engine, CS: ConstraintSystem<E> {
-    fn execute(
-        &self,
-        cs: &mut CS,
-        stack: &mut Stack<E>)
-        -> Result<(), RuntimeError>
-    {
-        let value = utils::bigint_to_fr::<E>(&self.value).ok_or(RuntimeError::InternalError)?;
-        let var = cs.alloc(|| "push", || Ok(value)).map_err(|_| RuntimeError::SynthesisError)?;
+impl<E, O> VMInstruction<E, O> for Push
+    where E: Element, O: ElementOperator<E>
+{
+    fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+        let op = vm.get_operator();
+        let value = op.constant_bigint(&self.value)?;
 
-        cs.enforce(
-            || "constant",
-            |lc| lc + CS::one(),
-            |lc| lc + (value, CS::one()),
-            |lc| lc + var
-        );
-
-        stack.push(Primitive { value: Some(value), variable: var });
-        Ok(())
+        vm.stack_push(value)
     }
 }
 

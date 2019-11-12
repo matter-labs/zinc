@@ -1,29 +1,30 @@
-use crate::{Stack, RuntimeError};
-use bellman::pairing::Engine;
-use franklin_crypto::bellman::ConstraintSystem;
+use crate::{RuntimeError, VirtualMachine, Element, ElementOperator};
 use zrust_bytecode::*;
 use std::cmp;
 
-pub trait VMInstruction<E, CS>: Instruction where E: Engine, CS: ConstraintSystem<E> {
-    fn execute(
-        &self,
-        cs: &mut CS,
-        stack: &mut Stack<E>)
-        -> Result<(), RuntimeError>;
+pub trait VMInstruction<E, O>: Instruction
+where
+    E: Element,
+    O: ElementOperator<E>
+{
+    fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError>;
 }
 
-pub fn decode_all_vm_instructions<E, CS>(bytes: &[u8])
-    -> Result<Vec<Box<dyn VMInstruction<E, CS>>>, DecodingError>
+pub fn decode_all_vm_instructions<E, O>(bytes: &[u8])
+    -> Result<Vec<Box<dyn VMInstruction<E, O>>>, DecodingError>
 where
-    E: Engine,
-    CS: ConstraintSystem<E>
+    E: Element,
+    O: ElementOperator<E>
 {
+    log::info!("Started parsing...");
+
     let mut instructions = Vec::new();
 
     let mut offset = 0;
     while offset < bytes.len() {
         match decode_vm_instruction(&bytes[offset..]) {
             Ok((instr, len)) => {
+                log::info!("{}  {:?}", instr.to_assembly(), &bytes[offset..(offset+len)]);
                 instructions.push(instr);
                 offset += len;
             },
@@ -35,14 +36,16 @@ where
         };
     }
 
+    log::info!("Done parsing.");
+
     Ok(instructions)
 }
 
-pub fn decode_vm_instruction<E, CS>(bytes: &[u8])
-    -> Result<(Box<dyn VMInstruction<E, CS>>, usize), DecodingError>
+pub fn decode_vm_instruction<E, O>(bytes: &[u8])
+    -> Result<(Box<dyn VMInstruction<E, O>>, usize), DecodingError>
 where
-    E: Engine,
-    CS: ConstraintSystem<E>
+    E: Element,
+    O: ElementOperator<E>
 {
     if bytes.len() < 1 {
         return Err(DecodingError::UnexpectedEOF);
@@ -50,43 +53,43 @@ where
 
     match bytes[0] {
         x if x == InstructionCode::NoOperation as u8 =>
-            NoOperation::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
+            NoOperation::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
 
         x if x == InstructionCode::Push as u8 =>
-            Push::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
+            Push::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
 
         x if x == InstructionCode::Pop as u8 =>
-            Pop::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
+            Pop::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
 
         x if x == InstructionCode::Copy as u8 =>
-            Copy::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
+            Copy::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
 
         x if x == InstructionCode::Add as u8 =>
-            Add::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
+            Add::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
 
         x if x == InstructionCode::Sub as u8 =>
-            Sub::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
+            Sub::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
 
         x if x == InstructionCode::Mul as u8 =>
-            Mul::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
+            Mul::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
 
         x if x == InstructionCode::Div as u8 =>
-            Div::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
+            Div::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
 
         x if x == InstructionCode::Rem as u8 =>
-            Rem::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
+            Rem::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
 
-        x if x == InstructionCode::Not as u8 =>
-            Not::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::And as u8 =>
-            And::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Or as u8 =>
-            Or::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Xor as u8 =>
-            Xor::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, CS>>, usize) {(Box::new(s), len)}),
+//        x if x == InstructionCode::Not as u8 =>
+//            Not::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
+//
+//        x if x == InstructionCode::And as u8 =>
+//            And::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
+//
+//        x if x == InstructionCode::Or as u8 =>
+//            Or::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
+//
+//        x if x == InstructionCode::Xor as u8 =>
+//            Xor::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
 
         code => Err(DecodingError::UnknownInstructionCode(code))
     }

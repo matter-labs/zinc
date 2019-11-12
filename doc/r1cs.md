@@ -54,6 +54,16 @@ R1CS:
     ...
     (bitN) * (1 - bitN) = (0)
 
+## Not
+
+Expression:
+
+    b = NOT a
+    
+R1CS:
+
+    (1) * (1) = (a + b)
+
 ## And
 
 Expression:
@@ -84,12 +94,32 @@ R1CS:
 
     (a + a) * (b) = (a + b - c)
 
-## Not
+## Lt
 
 Expression:
 
-    b = NOT a
-    
+    c = a < b ? 1 : 0
+
 R1CS:
 
-    (1) * (1) = (a + b)
+    (bit0 * 2^0 + bit1 * 2^1 + ... + bitN-1 * 2^N-1) * (1) = (b - a)
+    (bit0) * (1 - bit0) = (0)
+    (bit1) * (1 - bit1) = (0)
+    ...
+    (bitN) * (1 - bitN) = (0)
+
+## Le
+
+Expression:
+
+    c = (a <= b ? 1 : 0)
+    
+    c = (a < b + 1 ? 1 : 0
+
+R1CS:
+
+    (bit0 * 2^0 + bit1 * 2^1 + ... + bitN-1 * 2^N-1) * (1) = (b + 1 - a)
+    (bit0) * (1 - bit0) = (0)
+    (bit1) * (1 - bit1) = (0)
+    ...
+    (bitN) * (1 - bitN) = (0)

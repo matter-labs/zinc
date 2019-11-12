@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 use std::{fs, io};
 use franklin_crypto::circuit::test::TestConstraintSystem;
-use zrust_vm::{VirtualMachine, RuntimeError, decode_all_vm_instructions};
+use zrust_vm::{VirtualMachine, RuntimeError, decode_all_vm_instructions, ConstrainedElement, ConstrainedElementOperator};
 use bellman::pairing::bn256::Bn256;
 use zrust_bytecode::DecodingError;
 
@@ -28,18 +28,18 @@ fn main() -> Result<(), Error> {
     let bytes = fs::read(args.input)
         .map_err(|e| Error::IOError(e))?;
 
-    let mut cs = TestConstraintSystem::<Bn256>::new();
-    let mut vm = VirtualMachine::<Bn256>::new();
+    let cs = TestConstraintSystem::<Bn256>::new();
+    let mut vm = VirtualMachine::new(ConstrainedElementOperator::new(cs));
 
-    let instructions = decode_all_vm_instructions
-        ::<Bn256, TestConstraintSystem<Bn256>>(bytes.as_slice())
+    let mut instructions = decode_all_vm_instructions::<
+        ConstrainedElement<Bn256>,
+        ConstrainedElementOperator<Bn256, TestConstraintSystem<Bn256>>
+        >(bytes.as_slice())
         .map_err(|e| Error::DecodingError(e))?;
 
     vm
-        .run(&mut cs, instructions.as_slice())
+        .run(instructions.as_mut_slice())
         .map_err(|e| Error::RuntimeError(e))?;
-
-    assert_eq!(cs.find_unconstrained(), "");
 
     Ok(())
 }

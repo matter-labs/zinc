@@ -1,20 +1,14 @@
-use crate::{RuntimeError, Stack};
-use franklin_crypto::bellman::ConstraintSystem;
-use bellman::pairing::Engine;
-use crate::vm_instruction::VMInstruction;
+extern crate franklin_crypto;
+
+use crate::{RuntimeError, VirtualMachine, VMInstruction, ElementOperator, Element};
 use zrust_bytecode::instructions::Pop;
 
-impl<E, CS> VMInstruction<E, CS> for Pop where E: Engine, CS: ConstraintSystem<E> {
-    fn execute(
-            &self,
-            _cs: &mut CS,
-            stack: &mut Stack<E>)
-        -> Result<(), RuntimeError>
-    {
-        match stack.pop() {
-            Some(_) => Ok(()),
-            None => Err(RuntimeError::StackUnderflow),
-        }
+impl<E, O> VMInstruction<E, O> for Pop
+    where E: Element, O: ElementOperator<E>
+{
+    fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+        vm.stack_pop()?;
+        Ok(())
     }
 }
 

@@ -1,28 +1,14 @@
-use crate::{RuntimeError, Stack};
-use franklin_crypto::bellman::ConstraintSystem;
-use bellman::pairing::Engine;
-use num_traits::cast::ToPrimitive;
-use crate::vm_instruction::VMInstruction;
+extern crate franklin_crypto;
+
+use crate::{RuntimeError, VirtualMachine, VMInstruction, ElementOperator, Element};
 use zrust_bytecode::instructions::Copy;
 
-impl<E, CS> VMInstruction<E, CS> for Copy where E: Engine, CS: ConstraintSystem<E> {
-    fn execute(
-        &self,
-        _cs: &mut CS,
-        stack: &mut Stack<E>)
-        -> Result<(), RuntimeError>
-    {
-        let index = self.index.to_u64().ok_or(RuntimeError::InternalError)?;
-
-        match stack.get(index as usize) {
-            Some(p) => {
-                stack.push(p);
-                Ok(())
-            },
-            None => {
-                Err(RuntimeError::StackUnderflow)
-            },
-        }
+impl<E, O> VMInstruction<E, O> for Copy
+    where E: Element, O: ElementOperator<E>
+{
+    fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+        let value = vm.stack_get(self.index)?;
+        vm.stack_push(value)
     }
 }
 
