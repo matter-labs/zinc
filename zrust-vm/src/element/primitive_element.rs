@@ -131,4 +131,10 @@ impl ElementOperator<PrimitiveElement> for PrimitiveElementOperator {
 
         Ok(PrimitiveElement { value })
     }
+
+    fn conditional_select(&mut self, condition: PrimitiveElement, if_true: PrimitiveElement, if_false: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
+        let value = if condition.value != 0 { if_true.value } else { if_false.value };
+
+        Ok(PrimitiveElement { value })
+    }
 }

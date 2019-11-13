@@ -22,3 +22,5 @@ pub mod eq;
 pub mod ne;
 pub mod ge;
 pub mod gt;
+
+pub mod cs;

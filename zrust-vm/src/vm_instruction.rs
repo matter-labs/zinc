@@ -109,6 +109,9 @@ where
         x if x == InstructionCode::Gt as u8 =>
             Gt::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
 
+        x if x == InstructionCode::ConditionalSelect as u8 =>
+            ConditionalSelect::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
+
         code => Err(DecodingError::UnknownInstructionCode(code))
     }
 }

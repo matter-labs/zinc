@@ -38,7 +38,7 @@ Execute bytecode, log instructions and stack state:
 
 - Instructions:
     - [x] Arithmetic
-    - [ ] Boolean & Comparison
+    - [x] Boolean & Comparison
     - [ ] Conditional assignment
     - [ ] Loops
     - [ ] Function calls

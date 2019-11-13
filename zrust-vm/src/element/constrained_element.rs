@@ -457,6 +457,38 @@ where
         let not_gt = self.le(left, right)?;
         self.not(not_gt)
     }
+
+    fn conditional_select(&mut self, condition: ConstrainedElement<E>, if_true: ConstrainedElement<E>, if_false: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let mut cs = self.cs_namespace();
+
+        let value = match condition.value {
+            Some(value) => {
+                if !value.is_zero() {
+                    if_true.value
+                } else {
+                    if_false.value
+                }
+            },
+            None => None
+        };
+
+        let variable = cs.alloc(
+            || "variable",
+            || value.ok_or(SynthesisError::AssignmentMissing))
+            .map_err(|_| RuntimeError::SynthesisError)?;
+
+        // Selected, Right, Left, Condition
+        // s = r + c * (l - r)
+        // (l - r) * (c) = (s - r)
+        cs.enforce(
+            || "constraint",
+            |lc| lc + if_true.variable - if_false.variable,
+            |lc| lc + condition.variable,
+            |lc| lc + variable - if_false.variable,
+        );
+
+        Ok(ConstrainedElement { value, variable })
+    }
 }
 
 
