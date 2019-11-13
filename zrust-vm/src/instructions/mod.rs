@@ -17,3 +17,8 @@ pub mod or;
 pub mod xor;
 
 pub mod lt;
+pub mod le;
+pub mod eq;
+pub mod ne;
+pub mod ge;
+pub mod gt;

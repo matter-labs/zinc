@@ -10,6 +10,8 @@ use num_integer::Integer;
 use std::fmt::{Debug, Display, Formatter, Error};
 use franklin_crypto::circuit::num::AllocatedNum;
 
+/// ConstrainedElement is an implementation of Element
+/// that for every operation on elements generates corresponding R1CS constraints.
 #[derive(Debug, Clone)]
 pub struct ConstrainedElement<E: Engine> {
     value: Option<E::Fr>,
@@ -63,6 +65,10 @@ impl <E, CS> ConstrainedElementOperator<E, CS>
         let s = format!("{}", self.counter);
         self.counter += 1;
         self.cs.namespace(|| s)
+    }
+
+    fn one() -> ConstrainedElement<E> {
+        ConstrainedElement { value: Some(E::Fr::one()), variable: CS::one() }
     }
 }
 
@@ -282,10 +288,19 @@ where
         })
     }
 
+    fn not(&mut self, element: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let one = Self::one();
+        self.sub(one, element)
+    }
+
     fn lt(&mut self, left: ConstrainedElement<E>, right: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let one = Self::one();
+        let right_minus_one = self.sub(right, one)?;
+        self.le(left, right_minus_one)
+    }
+
+    fn le(&mut self, left: ConstrainedElement<E>, right: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
         let diff = self.sub(right, left)?;
-        let one = self.constant_u64(1)?;
-        let diff = self.sub(diff, one)?;
 
         let mut cs = self.cs_namespace();
 
@@ -294,7 +309,12 @@ where
             || diff.value.ok_or(SynthesisError::AssignmentMissing))
             .map_err(|_| RuntimeError::SynthesisError)?;
 
-        // TODO: enforce diff == diff_num
+        cs.enforce(
+            || "allocated_num equality",
+            |lc| lc + diff.variable,
+            |lc| lc + CS::one(),
+            |lc| lc + diff_num.get_variable(),
+        );
 
         let bits = diff_num.into_bits_le_fixed(cs.namespace(|| "diff_num bits"), 32)
             .map_err(|_| RuntimeError::SynthesisError)?;
@@ -313,6 +333,43 @@ where
             value: lt.get_value_field::<E>(),
             variable: lt.get_variable(),
         })
+    }
+
+    fn eq(&mut self, left: ConstrainedElement<E>, right: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let mut cs = self.cs_namespace();
+
+        let l_num = AllocatedNum::alloc(
+            cs.namespace(|| "l_num"),
+            || left.value.ok_or(SynthesisError::AssignmentMissing))
+            .map_err(|_| RuntimeError::SynthesisError)?;
+
+        let r_num = AllocatedNum::alloc(
+            cs.namespace(|| "r_num"),
+            || right.value.ok_or(SynthesisError::AssignmentMissing))
+            .map_err(|_| RuntimeError::SynthesisError)?;
+
+        let eq = AllocatedNum::equals(cs, &l_num, &r_num)
+            .map_err(|_| RuntimeError::SynthesisError)?;
+
+        Ok(ConstrainedElement {
+            value: eq.get_value_field::<E>(),
+            variable: eq.get_variable(),
+        })
+    }
+
+    fn ne(&mut self, left: ConstrainedElement<E>, right: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let eq = self.eq(left, right)?;
+        self.not(eq)
+    }
+
+    fn ge(&mut self, left: ConstrainedElement<E>, right: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let not_ge = self.lt(left, right)?;
+        self.not(not_ge)
+    }
+
+    fn gt(&mut self, left: ConstrainedElement<E>, right: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let not_gt = self.le(left, right)?;
+        self.not(not_gt)
     }
 }
 

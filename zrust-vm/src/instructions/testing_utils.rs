@@ -28,6 +28,10 @@ where
 {
     for (i, expected) in expected_stack.iter().enumerate() {
         let value = vm.stack_get(i).expect("expected stack value is missing");
-        assert_eq!(value.to_bigint(), Some(expected.clone().into()), "wrong value on stack");
+        assert_eq!(
+            value.to_bigint(),
+            Some(expected.clone().into()),
+            "wrong value on stack at position {}", i
+        );
     }
 }

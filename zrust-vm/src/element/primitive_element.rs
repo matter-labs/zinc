@@ -4,6 +4,10 @@ use num_bigint::{BigInt, ToBigInt};
 use num_traits::ToPrimitive;
 use std::fmt::{Debug, Display, Formatter, Error};
 
+/// PrimitiveElement is an Element implementation
+/// that uses rust's primitive integer type to represent a value.
+///
+/// It's purpose is to provide faster computation.
 #[derive(Debug, Clone)]
 pub struct PrimitiveElement {
     value: u128,
@@ -68,8 +72,44 @@ impl ElementOperator<PrimitiveElement> for PrimitiveElementOperator {
         Ok(PrimitiveElement { value })
     }
 
+    fn not(&mut self, element: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
+        let value = 1 - element.value;
+
+        Ok(PrimitiveElement { value })
+    }
+
     fn lt(&mut self, left: PrimitiveElement, right: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
         let value = if left.value < right.value { 1 } else { 0 };
+
+        Ok(PrimitiveElement { value })
+    }
+
+    fn le(&mut self, left: PrimitiveElement, right: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
+        let value = if left.value <= right.value { 1 } else { 0 };
+
+        Ok(PrimitiveElement { value })
+    }
+
+    fn eq(&mut self, left: PrimitiveElement, right: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
+        let value = if left.value == right.value { 1 } else { 0 };
+
+        Ok(PrimitiveElement { value })
+    }
+
+    fn ne(&mut self, left: PrimitiveElement, right: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
+        let value = if left.value != right.value { 1 } else { 0 };
+
+        Ok(PrimitiveElement { value })
+    }
+
+    fn ge(&mut self, left: PrimitiveElement, right: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
+        let value = if left.value >= right.value { 1 } else { 0 };
+
+        Ok(PrimitiveElement { value })
+    }
+
+    fn gt(&mut self, left: PrimitiveElement, right: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
+        let value = if left.value > right.value { 1 } else { 0 };
 
         Ok(PrimitiveElement { value })
     }

@@ -94,6 +94,21 @@ where
         x if x == InstructionCode::Lt as u8 =>
             Lt::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
 
+        x if x == InstructionCode::Le as u8 =>
+            Le::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Eq as u8 =>
+            Eq::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Ne as u8 =>
+            Ne::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Ge as u8 =>
+            Ge::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Gt as u8 =>
+            Gt::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
+
         code => Err(DecodingError::UnknownInstructionCode(code))
     }
 }
