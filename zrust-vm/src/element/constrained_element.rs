@@ -8,6 +8,7 @@ use std::marker::PhantomData;
 use num_bigint::{BigInt, ToBigInt};
 use num_integer::Integer;
 use std::fmt::{Debug, Display, Formatter, Error};
+use franklin_crypto::circuit::num::AllocatedNum;
 
 #[derive(Debug, Clone)]
 pub struct ConstrainedElement<E: Engine> {
@@ -278,6 +279,39 @@ where
         Ok(ConstrainedElement {
             value: neg_value,
             variable: neg_variable,
+        })
+    }
+
+    fn lt(&mut self, left: ConstrainedElement<E>, right: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let diff = self.sub(right, left)?;
+        let one = self.constant_u64(1)?;
+        let diff = self.sub(diff, one)?;
+
+        let mut cs = self.cs_namespace();
+
+        let diff_num = AllocatedNum::alloc(
+            cs.namespace(|| "diff_num variable"),
+            || diff.value.ok_or(SynthesisError::AssignmentMissing))
+            .map_err(|_| RuntimeError::SynthesisError)?;
+
+        // TODO: enforce diff == diff_num
+
+        let bits = diff_num.into_bits_le_fixed(cs.namespace(|| "diff_num bits"), 32)
+            .map_err(|_| RuntimeError::SynthesisError)?;
+
+        let diff_num_repacked = AllocatedNum::pack_bits_to_element(
+            cs.namespace(|| "diff_num_repacked"),
+            bits.as_slice())
+            .map_err(|_| RuntimeError::SynthesisError)?;
+
+        let lt = AllocatedNum::equals(
+            cs.namespace(|| "equals"),
+            &diff_num, &diff_num_repacked)
+            .map_err(|_| RuntimeError::SynthesisError)?;
+
+        Ok(ConstrainedElement {
+            value: lt.get_value_field::<E>(),
+            variable: lt.get_variable(),
         })
     }
 }

@@ -91,6 +91,9 @@ where
 //        x if x == InstructionCode::Xor as u8 =>
 //            Xor::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
 
+        x if x == InstructionCode::Lt as u8 =>
+            Lt::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
+
         code => Err(DecodingError::UnknownInstructionCode(code))
     }
 }

@@ -26,7 +26,7 @@ pub trait ElementOperator<E: Element> {
 //    fn or(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
 //    fn xor(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
 //
-//    fn lt(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
+    fn lt(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
 //    fn le(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
 //    fn eq(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
 //    fn ne(&mut self, left: E, right: E) -> Result<E, RuntimeError>;

@@ -67,4 +67,10 @@ impl ElementOperator<PrimitiveElement> for PrimitiveElementOperator {
         let value: u128 = (0 as u128).wrapping_sub(element.value);
         Ok(PrimitiveElement { value })
     }
+
+    fn lt(&mut self, left: PrimitiveElement, right: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
+        let value = if left.value < right.value { 1 } else { 0 };
+
+        Ok(PrimitiveElement { value })
+    }
 }
