@@ -25,18 +25,17 @@ mod test {
     #[test]
     fn test_rem() -> Result<(), RuntimeError> {
         let mut bytecode = testing_utils::create_instructions_vec();
-        bytecode.push(Box::new(Push { value: BigInt::from(0x10) }));
         bytecode.push(Box::new(Push { value: BigInt::from(0x04) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(0x10) }));
         bytecode.push(Box::new(Rem));
-        bytecode.push(Box::new(Push { value: BigInt::from(0x9) }));
         bytecode.push(Box::new(Push { value: BigInt::from(0x4) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(0x9) }));
         bytecode.push(Box::new(Rem));
 
-        let stack = testing_utils::execute(bytecode.as_slice())?;
+        let mut vm = testing_utils::create_vm();
+        vm.run(bytecode.as_mut_slice())?;
 
-        assert_eq!(stack.len(), 2);
-        testing_utils::assert_stack_value(&stack, 0, "0x01");
-        testing_utils::assert_stack_value(&stack, 1, "0x00");
+        testing_utils::assert_stack_eq(&vm, &[0x01, 0x00]);
 
         Ok(())
     }

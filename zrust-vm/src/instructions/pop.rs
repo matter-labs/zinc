@@ -24,16 +24,15 @@ mod test {
     #[test]
     fn test_pop() -> Result<(), RuntimeError> {
         let mut bytecode = testing_utils::create_instructions_vec();
-        bytecode.push(Box::new(Push { value: BigUint::from(0x01) }));
-        bytecode.push(Box::new(Push { value: BigUint::from(0x02) }));
-        bytecode.push(Box::new(Pop));
-        bytecode.push(Box::new(Push { value: BigUint::from(0x03) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(0x01) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(0x02) }));
+        bytecode.push(Box::new(Pop::new(1)));
+        bytecode.push(Box::new(Push { value: BigInt::from(0x03) }));
 
-        let stack = testing_utils::execute(bytecode.as_slice())?;
+        let mut vm = testing_utils::create_vm();
+        vm.run(bytecode.as_mut_slice())?;
 
-        assert_eq!(stack.len(), 2);
-        testing_utils::assert_stack_value(&stack, 0, "0x03");
-        testing_utils::assert_stack_value(&stack, 1, "0x01");
+        testing_utils::assert_stack_eq(&vm, &[0x03, 0x01]);
 
         Ok(())
     }

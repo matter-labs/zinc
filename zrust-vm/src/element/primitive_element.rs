@@ -1,6 +1,6 @@
 use crate::element::{Element, ElementOperator};
 use crate::RuntimeError;
-use num_bigint::BigInt;
+use num_bigint::{BigInt, ToBigInt};
 use num_traits::ToPrimitive;
 use std::fmt::{Debug, Display, Formatter, Error};
 
@@ -12,6 +12,12 @@ pub struct PrimitiveElement {
 impl Display for PrimitiveElement {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         Display::fmt(&self.value, f)
+    }
+}
+
+impl ToBigInt for PrimitiveElement {
+    fn to_bigint(&self) -> Option<BigInt> {
+        Some(self.value.into())
     }
 }
 
@@ -55,5 +61,10 @@ impl ElementOperator<PrimitiveElement> for PrimitiveElementOperator {
            PrimitiveElement { value: div },
            PrimitiveElement { value: rem },
         ))
+    }
+
+    fn neg(&mut self, element: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
+        let value: u128 = (0 as u128).wrapping_sub(element.value);
+        Ok(PrimitiveElement { value })
     }
 }

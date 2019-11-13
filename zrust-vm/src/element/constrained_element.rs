@@ -5,7 +5,7 @@ use franklin_crypto::bellman::{SynthesisError, Namespace};
 use crate::element::{ElementOperator, Element, utils};
 use crate::RuntimeError;
 use std::marker::PhantomData;
-use num_bigint::BigInt;
+use num_bigint::{BigInt, ToBigInt};
 use num_integer::Integer;
 use std::fmt::{Debug, Display, Formatter, Error};
 
@@ -24,6 +24,12 @@ impl <E: Engine> Display for ConstrainedElement<E> {
             },
             None => Display::fmt("none", f)
         }
+    }
+}
+
+impl <E: Engine> ToBigInt for ConstrainedElement<E> {
+    fn to_bigint(&self) -> Option<BigInt> {
+        self.value.map(|fr| -> BigInt { utils::fr_to_bigint::<E>(&fr) })
     }
 }
 
@@ -197,7 +203,6 @@ where
             value: prod,
             variable: sum_var,
         })
-
     }
 
     fn div_rem(&mut self, left: ConstrainedElement<E>, right: ConstrainedElement<E>)
@@ -244,6 +249,36 @@ where
             ConstrainedElement { value: quotient, variable: qutioent_var },
             ConstrainedElement { value: remainder, variable: remainder_var }
         ))
+    }
+
+    fn neg(&mut self, element: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let neg_value = match element.value {
+            Some(value) => {
+                let mut neg = E::Fr::zero();
+                neg.sub_assign(&value);
+                Some(neg)
+            }
+            _ => None
+        };
+
+        let mut cs = self.cs_namespace();
+
+        let neg_variable = cs.alloc(
+            || "neg variable",
+            || neg_value.ok_or(SynthesisError::AssignmentMissing))
+            .map_err(|_| RuntimeError::SynthesisError)?;
+
+        cs.enforce(
+            || "neg constraint",
+            |lc| lc + element.variable,
+            |lc| lc + CS::one(),
+            |lc| lc - neg_variable,
+        );
+
+        Ok(ConstrainedElement {
+            value: neg_value,
+            variable: neg_variable,
+        })
     }
 }
 

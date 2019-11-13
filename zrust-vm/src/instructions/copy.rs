@@ -28,14 +28,10 @@ mod test {
         bytecode.push(Box::new(Copy { index: 0 }));
         bytecode.push(Box::new(Copy { index: 2 }));
 
-        let stack = testing_utils::execute(bytecode.as_slice())?;
+        let mut vm = testing_utils::create_vm();
+        vm.run(bytecode.as_mut_slice())?;
 
-        assert_eq!(stack.len(), 5);
-        testing_utils::assert_stack_value(&stack, 0, "0x02");
-        testing_utils::assert_stack_value(&stack, 1, "0x03");
-        testing_utils::assert_stack_value(&stack, 2, "0x03");
-        testing_utils::assert_stack_value(&stack, 3, "0x02");
-        testing_utils::assert_stack_value(&stack, 4, "0x01");
+        testing_utils::assert_stack_eq(&vm, &[0x02, 0x03, 0x03, 0x02, 0x01]);
 
         Ok(())
     }

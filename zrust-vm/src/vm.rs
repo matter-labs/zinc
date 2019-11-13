@@ -65,7 +65,7 @@ where
             .ok_or(RuntimeError::StackUnderflow)
     }
 
-    pub fn stack_get(&mut self, index: usize) -> Result<E, RuntimeError> {
+    pub fn stack_get(&self, index: usize) -> Result<E, RuntimeError> {
         let last = self.stack.len();
         self.stack
             .get(last - index - 1)

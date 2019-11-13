@@ -27,12 +27,10 @@ mod test {
         bytecode.push(Box::new(Push { value: BigInt::from(0x42) }));
         bytecode.push(Box::new(Push { value: BigInt::from(0xABCD) }));
 
-        let stack = testing_utils::execute(bytecode.as_slice())?;
+        let mut vm = testing_utils::create_vm();
+        vm.run(bytecode.as_mut_slice())?;
 
-        assert_eq!(stack.len(), 3);
-        testing_utils::assert_stack_value(&stack, 0, "0xABCD");
-        testing_utils::assert_stack_value(&stack, 1, "0x42");
-        testing_utils::assert_stack_value(&stack, 2, "0x00");
+        testing_utils::assert_stack_eq(&vm, &[0xABCD, 0x42, 0x00]);
 
         Ok(())
     }
