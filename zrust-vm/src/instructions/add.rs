@@ -10,10 +10,7 @@ where E: Element, O: ElementOperator<E>
         let left = vm.stack_pop()?;
         let right = vm.stack_pop()?;
 
-        let sum = {
-            let op = vm.get_operator();
-            op.add(left, right)?
-        };
+        let sum = vm.get_operator().add(left, right)?;
 
         vm.stack_push(sum)
     }

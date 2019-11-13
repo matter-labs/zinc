@@ -24,10 +24,10 @@ pub trait ElementOperator<E: Element> {
     fn neg(&mut self, element: E) -> Result<E, RuntimeError>;
 
     fn not(&mut self, element: E) -> Result<E, RuntimeError>;
-//    fn and(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
-//    fn or(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
-//    fn xor(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
-//
+    fn and(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
+    fn or(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
+    fn xor(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
+
     fn lt(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
     fn le(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
     fn eq(&mut self, left: E, right: E) -> Result<E, RuntimeError>;

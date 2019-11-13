@@ -78,6 +78,24 @@ impl ElementOperator<PrimitiveElement> for PrimitiveElementOperator {
         Ok(PrimitiveElement { value })
     }
 
+    fn and(&mut self, left: PrimitiveElement, right: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
+        let value = if left.value != 0 && right.value != 0 { 1 } else { 0 };
+
+        Ok(PrimitiveElement { value })
+    }
+
+    fn or(&mut self, left: PrimitiveElement, right: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
+        let value = if left.value != 0 || right.value != 0 { 1 } else { 0 };
+
+        Ok(PrimitiveElement { value })
+    }
+
+    fn xor(&mut self, left: PrimitiveElement, right: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
+        let value = if (left.value != 0) != (right.value != 0) { 1 } else { 0 };
+
+        Ok(PrimitiveElement { value })
+    }
+
     fn lt(&mut self, left: PrimitiveElement, right: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
         let value = if left.value < right.value { 1 } else { 0 };
 

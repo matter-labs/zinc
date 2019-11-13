@@ -293,6 +293,92 @@ where
         self.sub(one, element)
     }
 
+    fn and(&mut self, left: ConstrainedElement<E>, right: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let mut cs = self.cs_namespace();
+
+        let value = match (left.value, right.value) {
+            (Some(a), Some(b)) => {
+                let mut conj = a;
+                conj.mul_assign(&b);
+                Some(conj)
+            }
+            _ => None
+        };
+
+        let variable = cs.alloc(
+            || "and",
+            || value.ok_or(SynthesisError::AssignmentMissing)
+        ).map_err(|_| RuntimeError::SynthesisError)?;
+
+        cs.enforce(
+            || "equality",
+            |lc| lc + left.variable,
+            |lc| lc + right.variable,
+            |lc| lc + variable
+        );
+
+        Ok(ConstrainedElement { value, variable })
+    }
+
+    fn or(&mut self, left: ConstrainedElement<E>, right: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let mut cs = self.cs_namespace();
+
+        let value = match (left.value, right.value) {
+            (Some(a), Some(b)) => {
+                if a.is_zero() && b.is_zero() {
+                    Some(E::Fr::zero())
+                } else {
+                    Some(E::Fr::one())
+                }
+            }
+            _ => None
+        };
+
+        let variable = cs.alloc(
+            || "or",
+            || value.ok_or(SynthesisError::AssignmentMissing)
+        ).map_err(|_| RuntimeError::SynthesisError)?;
+
+        cs.enforce(
+            || "equality",
+            |lc| lc + CS::one() - left.variable,
+            |lc| lc + CS::one() - right.variable,
+            |lc| lc + CS::one() - variable
+        );
+
+        Ok(ConstrainedElement { value, variable })
+    }
+
+    fn xor(&mut self, left: ConstrainedElement<E>, right: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let mut cs = self.cs_namespace();
+
+        let value = match (left.value, right.value) {
+            (Some(a), Some(b)) => {
+                if a.is_zero() == b.is_zero() {
+                    Some(E::Fr::zero())
+                } else {
+                    Some(E::Fr::one())
+                }
+            }
+            _ => None
+        };
+
+        let variable = cs.alloc(
+            || "conjunction",
+            || value.ok_or(SynthesisError::AssignmentMissing)
+        ).map_err(|_| RuntimeError::SynthesisError)?;
+
+        // (a + a) * (b) = (a + b - c)
+        cs.enforce(
+            || "equality",
+            |lc| lc + left.variable + left.variable,
+            |lc| lc + right.variable,
+            |lc| lc + left.variable + right.variable - variable
+        );
+
+        Ok(ConstrainedElement { value, variable })
+    }
+
     fn lt(&mut self, left: ConstrainedElement<E>, right: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
         let one = Self::one();
         let right_minus_one = self.sub(right, one)?;
