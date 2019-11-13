@@ -24,3 +24,4 @@ pub mod ge;
 pub mod gt;
 
 pub mod cs;
+pub mod r#loop;

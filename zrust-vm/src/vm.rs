@@ -10,6 +10,7 @@ pub enum RuntimeError {
     SynthesisError,
     InternalError,
     IntegerOverflow,
+    UnexpectedLoopExit,
 }
 
 pub struct VirtualMachine<E, O>
@@ -19,6 +20,13 @@ where
 {
     stack: Vec<E>,
     operator: O,
+    instruction_counter: usize,
+    loop_stack: Vec<LoopFrame>,
+}
+
+struct LoopFrame {
+    first_instruction_index: usize,
+    iterations_left: usize,
 }
 
 impl <E, O> VirtualMachine<E, O>
@@ -30,15 +38,19 @@ where
         Self {
             stack: Vec::new(),
             operator,
+            instruction_counter: 0,
+            loop_stack: Vec::new(),
         }
     }
 
     pub fn run(&mut self, instructions: &mut [Box<dyn VMInstruction<E, O>>])
         -> Result<(), RuntimeError>
     {
-        for instr in instructions.iter_mut() {
-            log::info!(">>> {}", instr.to_assembly());
-            instr.execute(self)?;
+        while self.instruction_counter < instructions.len() {
+            let instruction = &mut instructions[self.instruction_counter];
+            self.instruction_counter += 1;
+            log::info!(">>> {}", instruction.to_assembly());
+            instruction.execute(self)?;
             self.log_stack();
         }
 
@@ -75,5 +87,26 @@ where
 
     pub fn get_operator(&mut self) -> &mut O {
         &mut self.operator
+    }
+
+    pub fn loop_begin(&mut self, iterations: usize) -> Result<(), RuntimeError> {
+        self.loop_stack.push(LoopFrame {
+            first_instruction_index: self.instruction_counter,
+            iterations_left: iterations - 1,
+        });
+
+        Ok(())
+    }
+
+    pub fn loop_end(&mut self) -> Result<(), RuntimeError> {
+        let mut frame = self.loop_stack.pop().ok_or(RuntimeError::UnexpectedLoopExit)?;
+
+        if frame.iterations_left != 0 {
+            self.instruction_counter = frame.first_instruction_index;
+            frame.iterations_left -= 1;
+            self.loop_stack.push(frame);
+        }
+
+        Ok(())
     }
 }
