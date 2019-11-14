@@ -23,14 +23,16 @@ mod test {
     #[test]
     fn test_push() -> Result<(), RuntimeError> {
         let mut bytecode = testing_utils::create_instructions_vec();
-        bytecode.push(Box::new(Push { value: BigInt::from(0x00) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(0x42) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(0) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(42) }));
         bytecode.push(Box::new(Push { value: BigInt::from(0xABCD) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(-1) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(-1000) }));
 
         let mut vm = testing_utils::create_vm();
         vm.run(bytecode.as_mut_slice())?;
 
-        testing_utils::assert_stack_eq(&vm, &[0xABCD, 0x42, 0x00]);
+        testing_utils::assert_stack_eq(&vm, &[-1000, -1, 0xABCD, 42, 0]);
 
         Ok(())
     }

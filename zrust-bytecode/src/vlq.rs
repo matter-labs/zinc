@@ -1,4 +1,4 @@
-use num_bigint::{BigInt, ToBigInt};
+use num_bigint::BigInt;
 use num_traits::{ToPrimitive, Signed};
 use std::ops::Rem;
 
@@ -66,6 +66,7 @@ pub fn decode(bytes: &[u8]) -> Option<(BigInt, usize)> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use num_bigint::ToBigInt;
 
     #[test]
     fn test_encode() {

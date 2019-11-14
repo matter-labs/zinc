@@ -25,17 +25,20 @@ mod test {
     #[test]
     fn test_div() -> Result<(), RuntimeError> {
         let mut bytecode = testing_utils::create_instructions_vec();
-        bytecode.push(Box::new(Push { value: BigInt::from(0x04) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(0x10) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(4) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(16) }));
         bytecode.push(Box::new(Div));
-        bytecode.push(Box::new(Push { value: BigInt::from(0x4) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(0x9) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(4) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(9) }));
+        bytecode.push(Box::new(Div));
+        bytecode.push(Box::new(Push { value: BigInt::from(-4) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(9) }));
         bytecode.push(Box::new(Div));
 
         let mut vm = testing_utils::create_vm();
         vm.run(bytecode.as_mut_slice())?;
 
-        testing_utils::assert_stack_eq(&vm, &[0x02, 0x04]);
+        testing_utils::assert_stack_eq(&vm, &[-2, 2, 4]);
 
         Ok(())
     }
