@@ -1,30 +1,14 @@
-# Bytecode Reference
+# Instructions Reference
 
 ## Contents
 
-- [Bytecode Overview](#Bytecode-Overview)
-    - [Parameter Encoding](#Parameter-Encoding)
-- [Instructions](#Instructions)
-    - [General](#General)
-    - [Stack](#Stack)
-    - [Arithmetic](#Arithmetic)
-    - [Boolean](#Boolean)
-    - [Comparison](#Comparison)
-    - [Conditional](#Conditional)
-    - [Loops](#Loops)
-
-## Bytecode Overview
-
-Bytecode is a sequence of operators encoded into byte array.
-
-Operators are encoded as single-byte operation code optionally followed by operator parameters.
-
-Operator can *consume* (remove from top of the stack) some elements and *push* another ones.
-
-### Parameter Encoding
-
-Parameters that are placed into bytecode are encoded using sort of
-[variable-length quantity](https://en.wikipedia.org/wiki/Variable-length_quantity) encoding.
+- [General](#General)
+- [Stack](#Stack)
+- [Arithmetic](#Arithmetic)
+- [Boolean](#Boolean)
+- [Comparison](#Comparison)
+- [Conditional](#Conditional)
+- [Loops](#Loops)
 
 ## Instructions
 
