@@ -13,7 +13,7 @@ pub fn decode_simple_instruction<T>(bytes: &[u8], code: InstructionCode, instr: 
 
 pub fn encode_with_vlq_argument(code: InstructionCode, value: &BigInt) -> Vec<u8> {
     let mut bytes = vec![code as u8];
-    bytes.append(vlq::encode(value.clone()).as_mut());
+    bytes.append(vlq::encode(value).as_mut());
     bytes
 }
 
