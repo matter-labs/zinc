@@ -68,15 +68,32 @@ Instruction can *consume* (remove from top of the stack) some elements and *push
 Parameters that are placed into bytecode are encoded using sort of
 [variable-length quantity](https://en.wikipedia.org/wiki/Variable-length_quantity) encoding.
 
-Number is encoded to a sequence of bytes. The most significant byte is a marker of
+A number is encoded to a sequence of bytes. The most significant bit in each byte is a marker of
 continuation of sequence. Only last byte hast its most significant bit set to 0.
 
-First byte has continuation marker bit (8th), sign bit (7th)
+The first byte has the continuation marker bit (8th), the sign bit (7th)
 and 6 least significant bits of encoded number (1st to 6th bits).
 
-For each next byte, number is right-shifted to discard already encoded bytes,
-then `1` is subtracted (to remove redundancy in encoding and extend represented range)
-and `7` least significant bits of the result are written alongside with continuation marker.
+For each next byte, the number is right-shifted to discard already encoded bytes,
+then 1 is subtracted (to remove redundancy in encoding and extend represented range)
+and 7 least significant bits of the result are written alongside with continuation marker.
 
-Negative numbers are encoded as their absolute value decreased by `1`
-(again, to remove redundancy, i.e. no difference between `0` and `-0`).
+Negative numbers are encoded as their absolute value decreased by 1
+(again, to remove redundancy, i.e. no difference between 0 and -0).
+
+Here are some examples:
+
+| Value | Bits        | VLQ-encoded |
+|-------|-------------|-------------|
+| 0     | `        0` | `00000000`
+| 1     | `        1` | `00000001`
+| -1    | `-       1` | `01000000`
+| -2    | `-      10` | `01000001`
+| 63    | `   111111` | `00111111`
+| -64   | `- 1000000` | `01111111`
+| 64    | `  1000000` | `10000000 00000000`
+| 65    | `  1000001` | `10000001 00000000`
+| -65   | `- 1000001` | `11000000 00000000`
+| -66   | `- 1000010` | `11000001 00000000`
+| 8255  | `00100000 00111111` | `10111111 01111111`
+| -8256 | `00100000 00111111` | `11111111 01111111`
