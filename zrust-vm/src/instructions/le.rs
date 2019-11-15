@@ -35,11 +35,22 @@ mod test {
         bytecode.push(Box::new(Push { value: BigInt::from(2) }));
         bytecode.push(Box::new(Push { value: BigInt::from(1) }));
         bytecode.push(Box::new(Le));
+        bytecode.push(Box::new(Push { value: BigInt::from(2) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(-2) }));
+        bytecode.push(Box::new(Le));
+        bytecode.push(Box::new(Push { value: BigInt::from(-2) }));
+        bytecode.push(Box::new(Push { value: BigInt::from(2) }));
+        bytecode.push(Box::new(Le));
+
 
         let mut vm = testing_utils::create_vm();
         vm.run(bytecode.as_mut_slice())?;
 
-        testing_utils::assert_stack_eq(&vm, &[1, 1, 0]);
+        testing_utils::assert_stack_eq(&vm, &[0, 1, 1, 1, 0]);
+
+        let cs = vm.get_operator().constraint_system();
+        assert_eq!(cs.find_unconstrained(), "", "unconstrained variables");
+        assert!(cs.is_satisfied(), "satisfied");
 
         Ok(())
     }

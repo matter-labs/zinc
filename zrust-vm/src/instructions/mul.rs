@@ -34,6 +34,10 @@ mod test {
 
         testing_utils::assert_stack_eq(&vm, &[0x0C]);
 
+        let cs = vm.get_operator().constraint_system();
+        assert_eq!(cs.find_unconstrained(), "", "unconstrained variables");
+        assert!(cs.is_satisfied(), "satisfied");
+
         Ok(())
     }
 }

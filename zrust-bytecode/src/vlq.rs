@@ -87,7 +87,6 @@ mod test {
         for &value in [0, 1, 63, 64, 65, -1, -63, -64, -65, -66].iter() {
             let bytes = encode(&value.to_bigint().unwrap());
             let (decoded, len) = decode(bytes.as_slice()).unwrap();
-            dbg!(&bytes);
             assert_eq!(decoded.to_i32(), Some(value));
             assert_eq!(len, bytes.len())
         }

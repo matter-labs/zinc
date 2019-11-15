@@ -6,7 +6,6 @@ use crate::element::{ElementOperator, Element, utils};
 use crate::RuntimeError;
 use std::marker::PhantomData;
 use num_bigint::{BigInt, ToBigInt};
-use num_integer::Integer;
 use std::fmt::{Debug, Display, Formatter, Error};
 use franklin_crypto::circuit::num::AllocatedNum;
 
@@ -50,7 +49,7 @@ where
 
 impl <E, CS> ConstrainedElementOperator<E, CS>
     where
-        E: Engine,
+        E: Engine + Debug,
         CS: ConstraintSystem<E>
 {
     pub fn new(cs: CS) -> Self {
@@ -67,9 +66,37 @@ impl <E, CS> ConstrainedElementOperator<E, CS>
         self.cs.namespace(|| s)
     }
 
+    fn zero(&mut self) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let value = E::Fr::zero();
+        let mut cs = self.cs_namespace();
+        let variable = cs.alloc(|| "zero_var", || Ok(value))
+            .map_err(|_| RuntimeError::SynthesisError)?;
+
+        cs.enforce(
+            || "zero constraint",
+            |lc| lc + variable,
+            |lc| lc + CS::one(),
+            |lc| lc,
+        );
+
+        Ok(ConstrainedElement { value: Some(value), variable })
+    }
+
     fn one() -> ConstrainedElement<E> {
         ConstrainedElement { value: Some(E::Fr::one()), variable: CS::one() }
     }
+
+    pub fn constraint_system(&mut self) -> &mut CS {
+        &mut self.cs
+    }
+
+    fn abs(&mut self, value: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let zero = self.zero()?;
+        let neg = ElementOperator::neg(self, value.clone())?;
+        let lt0 = ElementOperator::lt(self, value.clone(), zero)?;
+        self.conditional_select(lt0, neg, value)
+    }
+
 }
 
 impl <E, CS> ElementOperator<ConstrainedElement<E>> for ConstrainedElementOperator<E, CS>
@@ -218,44 +245,58 @@ where
         let nominator = left;
         let denominator = right;
 
-        let mut quotient: Option<E::Fr> = None;
-        let mut remainder: Option<E::Fr> = None;
+        let mut quotient_value: Option<E::Fr> = None;
+        let mut remainder_value: Option<E::Fr> = None;
 
         if let (Some(nom), Some(denom)) = (nominator.value, denominator.value) {
             let nom_bi = utils::fr_to_bigint::<E>(&nom);
             let denom_bi = utils::fr_to_bigint::<E>(&denom);
 
-            let (q, r) = nom_bi.div_rem(&denom_bi);
+            let (q, r) = utils::euclidean_div_rem(&nom_bi, &denom_bi);
 
-            quotient = utils::bigint_to_fr::<E>(&q);
-            remainder = utils::bigint_to_fr::<E>(&r);
+            quotient_value = utils::bigint_to_fr::<E>(&q);
+            remainder_value = utils::bigint_to_fr::<E>(&r);
         }
 
+        let (quotient, remainder) = {
+            let mut cs = self.cs_namespace();
+
+            let qutioent_var = cs.alloc(
+                || "qutioent",
+                || quotient_value.ok_or(SynthesisError::AssignmentMissing))
+                .map_err(|_| RuntimeError::SynthesisError)?;
+
+            let remainder_var = cs.alloc(
+                || "remainder",
+                || remainder_value.ok_or(SynthesisError::AssignmentMissing))
+                .map_err(|_| RuntimeError::SynthesisError)?;
+
+            cs.enforce(
+                || "equality",
+                |lc| lc + qutioent_var,
+                |lc| lc + denominator.variable,
+                |lc| lc + nominator.variable - remainder_var
+            );
+
+            let quotient = ConstrainedElement { value: quotient_value, variable: qutioent_var };
+            let remainder = ConstrainedElement { value: remainder_value, variable: remainder_var };
+
+            (quotient, remainder)
+        };
+
+        let abs_denominator = self.abs(denominator)?;
+        let lt = self.lt(remainder.clone(), abs_denominator)?;
+        let zero = self.zero()?;
+        let ge = self.ge(remainder.clone(), zero)?;
         let mut cs = self.cs_namespace();
-
-        let qutioent_var = cs.alloc(
-            || "qutioent",
-            || quotient.ok_or(SynthesisError::AssignmentMissing))
-            .map_err(|_| RuntimeError::SynthesisError)?;
-
-        let remainder_var = cs.alloc(
-            || "remainder",
-            || remainder.ok_or(SynthesisError::AssignmentMissing))
-            .map_err(|_| RuntimeError::SynthesisError)?;
-
         cs.enforce(
-            || "equality",
-            |lc| lc + qutioent_var,
-            |lc| lc + denominator.variable,
-            |lc| lc + nominator.variable - remainder_var
+            || "0 <= rem < |denominator|",
+            |lc| lc + CS::one() - lt.variable,
+            |lc| lc + CS::one() - ge.variable,
+            |lc| lc,
         );
 
-        // TODO: add constraint `rem < denom`
-
-        Ok((
-            ConstrainedElement { value: quotient, variable: qutioent_var },
-            ConstrainedElement { value: remainder, variable: remainder_var }
-        ))
+        Ok((quotient, remainder))
     }
 
     fn neg(&mut self, element: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
@@ -402,12 +443,12 @@ where
             |lc| lc + diff_num.get_variable(),
         );
 
-        let bits = diff_num.into_bits_le_fixed(cs.namespace(|| "diff_num bits"), 32)
+        let bits = diff_num.into_bits_le(cs.namespace(|| "diff_num bits"))
             .map_err(|_| RuntimeError::SynthesisError)?;
 
         let diff_num_repacked = AllocatedNum::pack_bits_to_element(
             cs.namespace(|| "diff_num_repacked"),
-            bits.as_slice())
+            &bits[0..(E::Fr::CAPACITY as usize - 1)])
             .map_err(|_| RuntimeError::SynthesisError)?;
 
         let lt = AllocatedNum::equals(
