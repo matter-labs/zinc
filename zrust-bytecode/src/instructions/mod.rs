@@ -30,6 +30,8 @@ mod cast;
 mod cs;
 mod loop_begin;
 mod loop_end;
+mod call;
+mod ret;
 
 pub use noop::NoOperation;
 
@@ -61,3 +63,5 @@ pub use cast::Cast;
 pub use cs::ConditionalSelect;
 pub use loop_begin::LoopBegin;
 pub use loop_end::LoopEnd;
+pub use call::Call;
+pub use ret::Return;

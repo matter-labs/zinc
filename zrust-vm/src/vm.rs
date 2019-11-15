@@ -13,6 +13,20 @@ pub enum RuntimeError {
     UnexpectedLoopExit,
 }
 
+struct LoopFrame {
+    first_instruction_index: usize,
+    iterations_left: usize,
+}
+
+struct FunctionFrame {
+    return_index: usize,
+}
+
+enum Frame {
+    LoopFrame(LoopFrame),
+    FunctionFrame(FunctionFrame),
+}
+
 pub struct VirtualMachine<E, O>
 where
     E: Element,
@@ -21,12 +35,7 @@ where
     stack: Vec<E>,
     operator: O,
     instruction_counter: usize,
-    loop_stack: Vec<LoopFrame>,
-}
-
-struct LoopFrame {
-    first_instruction_index: usize,
-    iterations_left: usize,
+    execution_stack: Vec<Frame>,
 }
 
 impl <E, O> VirtualMachine<E, O>
@@ -39,7 +48,7 @@ where
             stack: Vec::new(),
             operator,
             instruction_counter: 0,
-            loop_stack: Vec::new(),
+            execution_stack: Vec::new(),
         }
     }
 
@@ -90,23 +99,24 @@ where
     }
 
     pub fn loop_begin(&mut self, iterations: usize) -> Result<(), RuntimeError> {
-        self.loop_stack.push(LoopFrame {
+        self.execution_stack.push(Frame::LoopFrame(LoopFrame {
             first_instruction_index: self.instruction_counter,
             iterations_left: iterations - 1,
-        });
+        }));
 
         Ok(())
     }
 
     pub fn loop_end(&mut self) -> Result<(), RuntimeError> {
-        let mut frame = self.loop_stack.pop().ok_or(RuntimeError::UnexpectedLoopExit)?;
-
-        if frame.iterations_left != 0 {
-            self.instruction_counter = frame.first_instruction_index;
-            frame.iterations_left -= 1;
-            self.loop_stack.push(frame);
+        if let Some(Frame::LoopFrame(mut frame)) = self.execution_stack.pop() {
+            if frame.iterations_left != 0 {
+                self.instruction_counter = frame.first_instruction_index;
+                frame.iterations_left -= 1;
+                self.execution_stack.push(Frame::LoopFrame(frame));
+            }
+            Ok(())
+        } else {
+            Err(RuntimeError::UnexpectedLoopExit)
         }
-
-        Ok(())
     }
 }
