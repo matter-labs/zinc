@@ -11,6 +11,7 @@ pub enum RuntimeError {
     InternalError,
     IntegerOverflow,
     UnexpectedLoopExit,
+    UnexpectedReturn,
 }
 
 struct LoopFrame {
@@ -117,6 +118,22 @@ where
             Ok(())
         } else {
             Err(RuntimeError::UnexpectedLoopExit)
+        }
+    }
+
+    pub fn function_call(&mut self, address: usize) -> Result<(), RuntimeError> {
+        let frame = FunctionFrame { return_index: self.instruction_counter };
+        self.execution_stack.push(Frame::FunctionFrame(frame));
+        self.instruction_counter = address;
+        Ok(())
+    }
+
+    pub fn function_return(&mut self) -> Result<(), RuntimeError> {
+        if let Some(Frame::FunctionFrame(frame)) = self.execution_stack.pop() {
+            self.instruction_counter = frame.return_index;
+            Ok(())
+        } else {
+            Err(RuntimeError::UnexpectedReturn)
         }
     }
 }

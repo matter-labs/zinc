@@ -4,7 +4,7 @@ use num_traits::ToPrimitive;
 
 #[derive(Debug)]
 pub struct Call {
-    address: usize,
+    pub address: usize,
 }
 
 impl Instruction for Call {
