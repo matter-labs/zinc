@@ -37,12 +37,12 @@ impl fmt::Display for Expression {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{{ ")?;
         for statement in self.statements.iter() {
-            write!(f, "{};", statement)?;
+            write!(f, "{}; ", statement)?;
         }
         if let Some(ref expression) = self.expression {
-            write!(f, "{}", expression)?;
+            write!(f, "{} ", expression)?;
         }
-        write!(f, " }}")?;
+        write!(f, "}}")?;
         Ok(())
     }
 }

@@ -12,12 +12,11 @@ pub enum Error {
     UndeclaredItem(String),
     #[fail(display = "redeclared item '{}'", _0)]
     RedeclaredItem(String),
-
     #[fail(display = "mutating an immutable object '{}'", _0)]
     MutatingImmutable(String),
     #[fail(
-        display = "the value being assigned has type '{}', but expected '{}'",
+        display = "assigning a value of type '{}' to a variable of type '{}'",
         _0, _1
     )]
-    AssignmentInvalidType(TypeVariant, TypeVariant),
+    VariableTypeMismatch(TypeVariant, TypeVariant),
 }

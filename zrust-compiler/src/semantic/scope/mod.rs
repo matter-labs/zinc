@@ -23,6 +23,7 @@ use crate::syntax::TypeVariant;
 #[derive(Debug, Default)]
 pub struct Scope {
     parent: Option<Rc<RefCell<Self>>>,
+    stack_size: usize,
     items: HashMap<String, Item>,
     constants: HashMap<String, Value>,
     variables: HashMap<String, Variable>,
@@ -34,45 +35,20 @@ impl Scope {
     pub fn new(parent: Option<Rc<RefCell<Self>>>) -> Self {
         Self {
             parent,
-            items: Default::default(),
-            constants: Default::default(),
-            variables: Default::default(),
-            types: Default::default(),
-            modules: Default::default(),
+            ..Default::default()
         }
     }
 
-    pub fn get_value(&self, place: &Place) -> Result<Value, Error> {
-        if let Some(variable) = self.variables.get(&place.identifier) {
-            Ok(variable.value.to_owned())
-        } else {
-            match self.parent {
-                Some(ref parent) => parent.borrow().get_value(place),
-                None => Err(Error::UndeclaredItem(place.identifier.to_owned())),
-            }
-        }
+    pub fn stack_size(&self) -> usize {
+        self.stack_size
     }
 
-    pub fn update_value(&mut self, place: &Place, new_value: Value) -> Result<(), Error> {
-        if let Some(variable) = self.variables.get_mut(&place.identifier) {
-            if !variable.is_mutable {
-                return Err(Error::MutatingImmutable(place.identifier.to_owned()));
+    pub fn stack_size_recursive(&self) -> usize {
+        self.stack_size
+            + match self.parent.as_ref() {
+                Some(parent) => parent.borrow().stack_size_recursive(),
+                None => 0,
             }
-            let value = &mut variable.value;
-            if !value.has_the_same_type_as(&new_value) {
-                return Err(Error::AssignmentInvalidType(
-                    new_value.type_variant(),
-                    value.type_variant(),
-                ));
-            }
-            *value = new_value;
-            Ok(())
-        } else {
-            match self.parent {
-                Some(ref mut parent) => parent.borrow_mut().update_value(place, new_value),
-                None => Err(Error::UndeclaredItem(place.identifier.to_owned())),
-            }
-        }
     }
 
     pub fn declare_variable(
@@ -84,10 +60,49 @@ impl Scope {
         if let Ok(_item) = self.get_item_type(&name) {
             return Err(Error::RedeclaredItem(name));
         }
-        self.variables
-            .insert(name.clone(), Variable::new(value, is_mutable));
+        self.variables.insert(
+            name.clone(),
+            Variable::new(value, self.stack_size_recursive(), is_mutable),
+        );
         self.items.insert(name, Item::Variable);
+        self.stack_size += 1;
         Ok(())
+    }
+
+    pub fn get_variable(&self, place: &Place) -> Result<Variable, Error> {
+        if let Some(variable) = self.variables.get(&place.identifier.name) {
+            Ok(variable.to_owned())
+        } else {
+            match self.parent {
+                Some(ref parent) => parent.borrow().get_variable(place),
+                None => Err(Error::UndeclaredItem(place.identifier.name.to_owned())),
+            }
+        }
+    }
+
+    pub fn update_variable(&mut self, place: &Place, new_value: Value) -> Result<(), Error> {
+        let new_address = self.stack_size_recursive();
+        if let Some(variable) = self.variables.get_mut(&place.identifier.name) {
+            if !variable.is_mutable {
+                return Err(Error::MutatingImmutable(place.identifier.name.to_owned()));
+            }
+            let value = &mut variable.value;
+            if !value.has_the_same_type_as(&new_value) {
+                return Err(Error::VariableTypeMismatch(
+                    new_value.type_variant(),
+                    value.type_variant(),
+                ));
+            }
+            *value = new_value;
+            variable.address = new_address;
+            self.stack_size += 1;
+            Ok(())
+        } else {
+            match self.parent {
+                Some(ref mut parent) => parent.borrow_mut().update_variable(place, new_value),
+                None => Err(Error::UndeclaredItem(place.identifier.name.to_owned())),
+            }
+        }
     }
 
     pub fn declare_type(&mut self, name: String, type_variant: TypeVariant) -> Result<(), Error> {

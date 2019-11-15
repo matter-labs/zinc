@@ -228,3 +228,24 @@ let c: u8 = Order::First; // casting to an integer of enough bitlength
 2. Value expression
 
 **Returns** `()`.
+
+# Operator precedence
+
+The top one is executed the first.
+
+```
+|    Operator      |  Associativity  |
+|----------------- |-----------------|
+|        ::        |  left to right  |
+|       [] .       |  left to right  |
+|        - !       |      unary      |
+|        as        |  left to right  |
+|       * / %      |  left to right  |
+|        + -       |  left to right  |
+|  == != <= >= < > |   parenthesis   |
+|        &&        |  left to right  |
+|        ^^        |  left to right  |
+|        ⎮⎮        |  left to right  |
+|      .. ..=      |     single      |
+|         =        |     single      |
+```

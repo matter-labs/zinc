@@ -12,6 +12,8 @@ use crate::syntax::TypeVariant;
 pub enum Error {
     #[fail(display = "operand types mismatch: '{}' and '{}'", _0, _1)]
     OperandTypesMismatch(TypeVariant, TypeVariant),
+    #[fail(display = "division by zero")]
+    DivisionByZero,
     #[fail(display = "the integer bitlength is too big for negation: {}", _0)]
     Negation(usize),
     #[fail(display = "inference: {}", _0)]

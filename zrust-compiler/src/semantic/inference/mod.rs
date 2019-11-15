@@ -22,7 +22,7 @@ pub fn integer_literal(literal: &IntegerLiteral) -> Result<(BigInt, usize), Erro
     let mut exponent = BigInt::from(crate::MAX_VALUE_BYTE);
     while number >= exponent {
         if bitlength == crate::BITLENGTH_MAX_INT {
-            exponent *= crate::MAX_VALUE_BYTE / 2 / 2;
+            exponent *= crate::MAX_VALUE_BYTE / 4;
             bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
         } else if bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::LiteralTooLarge(literal.to_owned(), bitlength));
@@ -35,13 +35,13 @@ pub fn integer_literal(literal: &IntegerLiteral) -> Result<(BigInt, usize), Erro
     Ok((number, bitlength))
 }
 
-//pub fn enough_bitlength(literals: &[&IntegerLiteral]) -> Result<usize, Error> {
-//    let mut max = 0;
-//    for literal in literals.iter() {
-//        let bitlength = integer_literal(literal)?.1;
-//        if bitlength > max {
-//            max = bitlength;
-//        }
-//    }
-//    Ok(max)
-//}
+pub fn enough_bitlength(literals: &[&IntegerLiteral]) -> Result<usize, Error> {
+    let mut max = 0;
+    for literal in literals.iter() {
+        let bitlength = integer_literal(literal)?.1;
+        if bitlength > max {
+            max = bitlength;
+        }
+    }
+    Ok(max)
+}

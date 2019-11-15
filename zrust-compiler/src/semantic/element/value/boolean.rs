@@ -2,10 +2,6 @@
 //! The semantic analyzer element boolean value.
 //!
 
-mod error;
-
-pub use self::error::Error;
-
 use std::fmt;
 
 use num_bigint::BigInt;
@@ -15,26 +11,21 @@ use num_traits::Zero;
 use zrust_bytecode::Push;
 
 use crate::lexical::BooleanLiteral;
+use crate::syntax::TypeVariant;
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, PartialEq)]
 pub struct Boolean {
     pub value: Option<bool>,
 }
 
 impl Boolean {
-    pub fn new_from_bool(value: bool) -> Self {
-        Self { value: Some(value) }
-    }
-
-    pub fn new_from_literal(literal: BooleanLiteral) -> Self {
-        Self {
-            value: Some(literal.into()),
-        }
+    pub fn type_variant(&self) -> TypeVariant {
+        TypeVariant::new_boolean()
     }
 
     pub fn or(self, other: Self) -> Self {
         match (self.value, other.value) {
-            (Some(value_1), Some(value_2)) => Self::new_from_bool(value_1 || value_2),
+            (Some(value_1), Some(value_2)) => Self::from(value_1 || value_2),
             _ => Self::default(),
         }
     }
@@ -42,7 +33,7 @@ impl Boolean {
     pub fn xor(self, other: Self) -> Self {
         match (self.value, other.value) {
             (Some(value_1), Some(value_2)) => {
-                Self::new_from_bool((!value_1 && value_2) || (value_1 && !value_2))
+                Self::from((!value_1 && value_2) || (value_1 && !value_2))
             }
             _ => Self::default(),
         }
@@ -50,9 +41,25 @@ impl Boolean {
 
     pub fn and(self, other: Self) -> Self {
         match (self.value, other.value) {
-            (Some(value_1), Some(value_2)) => Self::new_from_bool(value_1 && value_2),
+            (Some(value_1), Some(value_2)) => Self::from(value_1 && value_2),
             _ => Self::default(),
         }
+    }
+
+    pub fn not(self) -> Self {
+        match self.value {
+            Some(value) => Self::from(!value),
+            None => Self::default(),
+        }
+    }
+
+    pub fn to_push(&self) -> Push {
+        let value = self.value.expect("Must contain a value");
+        Push::new(
+            if value { BigInt::one() } else { BigInt::zero() },
+            false,
+            crate::BITLENGTH_BYTE,
+        )
     }
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -60,20 +67,17 @@ impl Boolean {
     }
 }
 
-impl PartialEq<Self> for Boolean {
-    fn eq(&self, other: &Self) -> bool {
-        self.value == other.value
+impl From<bool> for Boolean {
+    fn from(value: bool) -> Self {
+        Self { value: Some(value) }
     }
 }
 
-impl Into<Push> for Boolean {
-    fn into(self) -> Push {
-        let value = self.value.expect("Must contain a value");
-        Push::new(
-            if value { BigInt::one() } else { BigInt::zero() },
-            false,
-            crate::BITLENGTH_BYTE,
-        )
+impl From<BooleanLiteral> for Boolean {
+    fn from(value: BooleanLiteral) -> Self {
+        Self {
+            value: Some(value.into()),
+        }
     }
 }
 

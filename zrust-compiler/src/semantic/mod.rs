@@ -14,6 +14,7 @@ mod scope;
 pub use self::analyzer::Analyzer;
 pub use self::casting::validate as validate_casting;
 pub use self::casting::Error as CastingError;
+pub use self::element::Boolean;
 pub use self::element::Element;
 pub use self::element::Error as ElementError;
 pub use self::element::Integer;

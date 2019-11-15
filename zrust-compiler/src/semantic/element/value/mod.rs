@@ -7,11 +7,11 @@ mod error;
 mod integer;
 
 pub use self::boolean::Boolean;
-pub use self::boolean::Error as BooleanError;
 pub use self::error::Error;
 pub use self::integer::Error as IntegerError;
 pub use self::integer::Integer;
 
+use std::convert::TryFrom;
 use std::fmt;
 
 use zrust_bytecode::Push;
@@ -27,27 +27,24 @@ pub enum Value {
 }
 
 impl Value {
-    pub fn new_boolean_from_literal(literal: BooleanLiteral) -> Self {
-        Self::Boolean(Boolean::new_from_literal(literal))
-    }
-
-    pub fn new_integer_from_literal(
-        literal: IntegerLiteral,
-        bitlength: Option<usize>,
-    ) -> Result<Self, Error> {
-        Integer::new_from_literal(literal, bitlength)
-            .map(Self::Integer)
-            .map_err(Error::Integer)
-    }
-
-    pub fn new_integer_from_usize(bitlength: usize) -> Self {
-        Self::Integer(Integer::new_from_usize(bitlength))
+    pub fn new(type_variant: TypeVariant) -> Self {
+        match type_variant {
+            TypeVariant::Boolean { .. } => Self::Boolean(Boolean::default()),
+            TypeVariant::IntegerUnsigned { bitlength } => {
+                Self::Integer(Integer::new(false, bitlength))
+            }
+            TypeVariant::IntegerSigned { bitlength } => {
+                Self::Integer(Integer::new(true, bitlength))
+            }
+            TypeVariant::Field => Self::Integer(Integer::new(false, crate::BITLENGTH_FIELD)),
+            _ => panic!("Always checked by some branches above"),
+        }
     }
 
     pub fn type_variant(&self) -> TypeVariant {
         match self {
-            Self::Boolean { .. } => TypeVariant::new_boolean(),
-            Self::Integer(value) => value.type_variant(),
+            Self::Boolean(boolean) => boolean.type_variant(),
+            Self::Integer(integer) => integer.type_variant(),
         }
     }
 
@@ -127,6 +124,94 @@ impl Value {
                 Err(Error::ExpectedInteger("not_equals", value_2.type_variant()))
             }
         }
+    }
+
+    pub fn greater_equals(self, other: Self) -> Result<Self, Error> {
+        let integer_1 = match self {
+            Self::Integer(integer) => integer,
+            value => {
+                return Err(Error::ExpectedInteger(
+                    "greater_equals",
+                    value.type_variant(),
+                ))
+            }
+        };
+
+        let integer_2 = match other {
+            Self::Integer(integer) => integer,
+            value => {
+                return Err(Error::ExpectedInteger(
+                    "greater_equals",
+                    value.type_variant(),
+                ))
+            }
+        };
+
+        integer_1
+            .greater_equals(integer_2)
+            .map(Self::Boolean)
+            .map_err(Error::Integer)
+    }
+
+    pub fn lesser_equals(self, other: Self) -> Result<Self, Error> {
+        let integer_1 = match self {
+            Self::Integer(integer) => integer,
+            value => {
+                return Err(Error::ExpectedInteger(
+                    "lesser_equals",
+                    value.type_variant(),
+                ))
+            }
+        };
+
+        let integer_2 = match other {
+            Self::Integer(integer) => integer,
+            value => {
+                return Err(Error::ExpectedInteger(
+                    "lesser_equals",
+                    value.type_variant(),
+                ))
+            }
+        };
+
+        integer_1
+            .lesser_equals(integer_2)
+            .map(Self::Boolean)
+            .map_err(Error::Integer)
+    }
+
+    pub fn greater(self, other: Self) -> Result<Self, Error> {
+        let integer_1 = match self {
+            Self::Integer(integer) => integer,
+            value => return Err(Error::ExpectedInteger("greater", value.type_variant())),
+        };
+
+        let integer_2 = match other {
+            Self::Integer(integer) => integer,
+            value => return Err(Error::ExpectedInteger("greater", value.type_variant())),
+        };
+
+        integer_1
+            .greater(integer_2)
+            .map(Self::Boolean)
+            .map_err(Error::Integer)
+    }
+
+    pub fn lesser(self, other: Self) -> Result<Self, Error> {
+        let integer_1 = match self {
+            Self::Integer(integer) => integer,
+            value => return Err(Error::ExpectedInteger("lesser", value.type_variant())),
+        };
+
+        let integer_2 = match other {
+            Self::Integer(integer) => integer,
+            value => return Err(Error::ExpectedInteger("lesser", value.type_variant())),
+        };
+
+        integer_1
+            .lesser(integer_2)
+            .map(Self::Boolean)
+            .map_err(Error::Integer)
     }
 
     pub fn add(self, other: Self) -> Result<Self, Error> {
@@ -214,7 +299,7 @@ impl Value {
             .map_err(Error::Integer)
     }
 
-    pub fn cast(self, type_variant: TypeVariant) -> Result<Self, Error> {
+    pub fn cast(self, type_variant: TypeVariant) -> Result<(Self, usize), Error> {
         let integer = match self {
             Self::Integer(value) => value,
             value => return Err(Error::ExpectedInteger("cast", value.type_variant())),
@@ -222,7 +307,7 @@ impl Value {
 
         integer
             .cast(type_variant)
-            .map(Self::Integer)
+            .map(|(integer, bitlength)| (Self::Integer(integer), bitlength))
             .map_err(Error::Integer)
     }
 
@@ -237,11 +322,16 @@ impl Value {
 
     pub fn not(self) -> Result<Self, Error> {
         match self {
-            Self::Boolean { .. } => {}
-            value => return Err(Error::ExpectedBoolean("not", value.type_variant())),
+            Self::Boolean(boolean) => Ok(Self::Boolean(boolean.not())),
+            value => Err(Error::ExpectedBoolean("not", value.type_variant())),
         }
+    }
 
-        Ok(Self::Boolean(Boolean::default()))
+    pub fn to_push(&self) -> Push {
+        match self {
+            Self::Boolean(value) => value.to_push(),
+            Self::Integer(value) => value.to_push(),
+        }
     }
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -252,12 +342,19 @@ impl Value {
     }
 }
 
-impl Into<Push> for Value {
-    fn into(self) -> Push {
-        match self {
-            Self::Boolean(value) => value.into(),
-            Self::Integer(value) => value.into(),
-        }
+impl From<BooleanLiteral> for Value {
+    fn from(value: BooleanLiteral) -> Self {
+        Self::Boolean(Boolean::from(value))
+    }
+}
+
+impl TryFrom<IntegerLiteral> for Value {
+    type Error = Error;
+
+    fn try_from(value: IntegerLiteral) -> Result<Self, Self::Error> {
+        Integer::try_from(value)
+            .map(Self::Integer)
+            .map_err(Error::Integer)
     }
 }
 

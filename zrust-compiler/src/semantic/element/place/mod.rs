@@ -11,15 +11,16 @@ pub use self::error::Error;
 use std::fmt;
 
 use crate::semantic::Value;
+use crate::syntax::Identifier;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Place {
-    pub identifier: String,
+    pub identifier: Identifier,
     pub elements: Vec<Descriptor>,
 }
 
 impl Place {
-    pub fn new(identifier: String) -> Self {
+    pub fn new(identifier: Identifier) -> Self {
         Self {
             identifier,
             elements: Vec::new(),
@@ -55,7 +56,7 @@ impl Place {
     pub fn access_structure(&mut self, place: Place) -> Result<(), Error> {
         let field = place.identifier;
 
-        self.elements.push(Descriptor::StructureField(field));
+        self.elements.push(Descriptor::StructureField(field.name));
         Ok(())
     }
 }

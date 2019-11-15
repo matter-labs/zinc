@@ -6,6 +6,7 @@ mod error;
 
 pub use self::error::Error;
 
+use std::convert::TryFrom;
 use std::fmt;
 
 use num_bigint::BigInt;
@@ -15,9 +16,10 @@ use zrust_bytecode::Push;
 
 use crate::lexical::IntegerLiteral;
 use crate::semantic;
+use crate::semantic::Boolean;
 use crate::syntax::TypeVariant;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Integer {
     pub value: BigInt,
     pub is_signed: bool,
@@ -25,27 +27,12 @@ pub struct Integer {
 }
 
 impl Integer {
-    pub fn new_from_usize(bitlength: usize) -> Self {
+    pub fn new(is_signed: bool, bitlength: usize) -> Self {
         Self {
             value: BigInt::zero(),
-            is_signed: false,
+            is_signed,
             bitlength,
         }
-    }
-
-    pub fn new_from_literal(
-        literal: IntegerLiteral,
-        bitlength: Option<usize>,
-    ) -> Result<Self, Error> {
-        let (value, inferred_bitlength) =
-            semantic::infer_integer_literal(&literal).map_err(Error::Inference)?;
-        let bitlength = bitlength.unwrap_or(inferred_bitlength);
-
-        Ok(Self {
-            value,
-            is_signed: false,
-            bitlength,
-        })
     }
 
     pub fn type_variant(&self) -> TypeVariant {
@@ -54,12 +41,64 @@ impl Integer {
             (is_signed, bitlength) if bitlength < crate::BITLENGTH_FIELD => {
                 TypeVariant::new_integer(is_signed, bitlength)
             }
-            (..) => panic!("Always checked by the branches above"),
+            _ => panic!("Always checked by the branches above"),
         }
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
         self.is_signed == other.is_signed && self.bitlength == other.bitlength
+    }
+
+    pub fn greater_equals(self, other: Self) -> Result<Boolean, Error> {
+        if !self.has_the_same_type_as(&other) {
+            return Err(Error::OperandTypesMismatch(
+                self.type_variant(),
+                other.type_variant(),
+            ));
+        }
+
+        let result = self.value >= other.value;
+
+        Ok(Boolean::from(result))
+    }
+
+    pub fn lesser_equals(self, other: Self) -> Result<Boolean, Error> {
+        if !self.has_the_same_type_as(&other) {
+            return Err(Error::OperandTypesMismatch(
+                self.type_variant(),
+                other.type_variant(),
+            ));
+        }
+
+        let result = self.value <= other.value;
+
+        Ok(Boolean::from(result))
+    }
+
+    pub fn greater(self, other: Self) -> Result<Boolean, Error> {
+        if !self.has_the_same_type_as(&other) {
+            return Err(Error::OperandTypesMismatch(
+                self.type_variant(),
+                other.type_variant(),
+            ));
+        }
+
+        let result = self.value > other.value;
+
+        Ok(Boolean::from(result))
+    }
+
+    pub fn lesser(self, other: Self) -> Result<Boolean, Error> {
+        if !self.has_the_same_type_as(&other) {
+            return Err(Error::OperandTypesMismatch(
+                self.type_variant(),
+                other.type_variant(),
+            ));
+        }
+
+        let result = self.value < other.value;
+
+        Ok(Boolean::from(result))
     }
 
     pub fn add(self, other: Self) -> Result<Self, Error> {
@@ -121,6 +160,10 @@ impl Integer {
             ));
         }
 
+        if other.value.is_zero() {
+            return Err(Error::DivisionByZero);
+        }
+
         let result = Self {
             value: self.value / other.value,
             is_signed: self.is_signed,
@@ -138,6 +181,10 @@ impl Integer {
             ));
         }
 
+        if other.value.is_zero() {
+            return Err(Error::DivisionByZero);
+        }
+
         let result = Self {
             value: self.value % other.value,
             is_signed: self.is_signed,
@@ -147,7 +194,7 @@ impl Integer {
         Ok(result)
     }
 
-    pub fn cast(self, to: TypeVariant) -> Result<Self, Error> {
+    pub fn cast(self, to: TypeVariant) -> Result<(Self, usize), Error> {
         let from = self.type_variant();
         semantic::validate_casting(&from, &to).map_err(Error::Casting)?;
         let (is_signed, bitlength) = match to {
@@ -163,7 +210,7 @@ impl Integer {
             bitlength,
         };
 
-        Ok(result)
+        Ok((result, bitlength))
     }
 
     pub fn negate(self) -> Result<Self, Error> {
@@ -180,20 +227,27 @@ impl Integer {
         Ok(result)
     }
 
+    pub fn to_push(&self) -> Push {
+        Push::new(self.value.clone(), self.is_signed, self.bitlength)
+    }
+
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}: {}", self.value, self.type_variant())
     }
 }
 
-impl PartialEq<Self> for Integer {
-    fn eq(&self, other: &Self) -> bool {
-        self.has_the_same_type_as(other)
-    }
-}
+impl TryFrom<IntegerLiteral> for Integer {
+    type Error = Error;
 
-impl Into<Push> for Integer {
-    fn into(self) -> Push {
-        Push::new(self.value, self.is_signed, self.bitlength)
+    fn try_from(value: IntegerLiteral) -> Result<Self, Self::Error> {
+        let (value, bitlength) =
+            semantic::infer_integer_literal(&value).map_err(Error::Inference)?;
+
+        Ok(Self {
+            value,
+            is_signed: false,
+            bitlength,
+        })
     }
 }
 

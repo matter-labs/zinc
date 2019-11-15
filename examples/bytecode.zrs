@@ -4,4 +4,24 @@ witness {}
 
 output {}
 
-25 + 49 - 60 + 2 * 10 / 4;
+let a = true || false;
+let b = true ^^ false;
+let c = true && false;
+2 + 2 * 2 - (42 - 7 * 3) == 6 - 21 +
+    {
+        let x = 5;
+        let y = 7;
+        let z = 9;
+        42 + 42
+    } &&
+    (false ^^ (true || (2 + 2 == -5))) && a && b && c;
+for i in 0..=25 {
+    for j in 0..1000 {
+        let x = 2;
+        let y = 5 + x;
+        let z = 42 + x + y;
+    };
+    let x = 2;
+    let y = 5;
+    let z = 42;
+};
