@@ -8,6 +8,7 @@ use std::rc::Rc;
 use crate::error::Error;
 use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
+use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
@@ -47,7 +48,18 @@ impl Parser {
 
         let (path, next) = PathExpressionParser::default().parse(stream, None)?;
         self.builder.set_path(path);
-        Ok((self.builder.finish(), next))
+
+        match next.expect("Always contains a value") {
+            Token {
+                lexeme: Lexeme::Symbol(Symbol::Semicolon),
+                ..
+            } => Ok((self.builder.finish(), None)),
+            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
+                location,
+                vec![";"],
+                lexeme,
+            ))),
+        }
     }
 }
 
@@ -57,10 +69,7 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::lexical::Lexeme;
     use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Expression;
     use crate::syntax::ExpressionElement;
@@ -109,10 +118,7 @@ mod tests {
                     ],
                 ),
             ),
-            Some(Token::new(
-                Lexeme::Symbol(Symbol::Semicolon),
-                Location::new(1, 27),
-            )),
+            None,
         ));
 
         let result = Parser::default().parse(

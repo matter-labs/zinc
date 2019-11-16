@@ -94,24 +94,28 @@ fn main() -> Result<(), Error> {
         log::info!("{}", meta);
     }
 
-    let instructions = zrust_compiler::Analyzer::default()
-        .compile(circuit)
-        .map_err(|error| {
-            log::error!("{}", error);
-            Error::Compiler(error)
-        })?;
-
     log::info!("Output: {:?}", args.output);
-    let mut output_file = File::create(&args.output)
+    File::create(&args.output)
         .map_err(OutputError::Creating)
+        .map_err(Error::Output)?
+        .write_all(
+            zrust_compiler::Analyzer::default()
+                .compile(circuit)
+                .map(|instructions| {
+                    instructions
+                        .into_iter()
+                        .map(|instruction| instruction.encode())
+                        .flatten()
+                        .collect::<Vec<u8>>()
+                })
+                .map_err(|error| {
+                    log::error!("{}", error);
+                    Error::Compiler(error)
+                })?
+                .as_slice(),
+        )
+        .map_err(OutputError::Writing)
         .map_err(Error::Output)?;
-    for instruction in instructions.into_iter() {
-        log::info!("{:?}", instruction);
-        output_file
-            .write_all(instruction.encode().as_slice())
-            .map_err(OutputError::Writing)
-            .map_err(Error::Output)?;
-    }
 
     Ok(())
 }

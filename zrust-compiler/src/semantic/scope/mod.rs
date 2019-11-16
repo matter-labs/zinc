@@ -12,7 +12,6 @@ pub use self::variable::Variable;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::collections::HashSet;
 use std::rc::Rc;
 use std::str;
 
@@ -23,12 +22,12 @@ use crate::syntax::TypeVariant;
 #[derive(Debug, Default)]
 pub struct Scope {
     parent: Option<Rc<RefCell<Self>>>,
-    stack_size: usize,
     items: HashMap<String, Item>,
-    constants: HashMap<String, Value>,
+
     variables: HashMap<String, Variable>,
+    assignments: HashMap<String, usize>,
+
     types: HashMap<String, TypeVariant>,
-    modules: HashSet<String>,
 }
 
 impl Scope {
@@ -39,67 +38,56 @@ impl Scope {
         }
     }
 
-    pub fn stack_size(&self) -> usize {
-        self.stack_size
-    }
-
-    pub fn stack_size_recursive(&self) -> usize {
-        self.stack_size
-            + match self.parent.as_ref() {
-                Some(parent) => parent.borrow().stack_size_recursive(),
-                None => 0,
-            }
-    }
-
     pub fn declare_variable(
         &mut self,
         name: String,
         value: Value,
         is_mutable: bool,
+        address: usize,
     ) -> Result<(), Error> {
         if let Ok(_item) = self.get_item_type(&name) {
             return Err(Error::RedeclaredItem(name));
         }
-        self.variables.insert(
-            name.clone(),
-            Variable::new(value, self.stack_size_recursive(), is_mutable),
-        );
+        self.variables
+            .insert(name.clone(), Variable::new(value, is_mutable));
+        self.assignments.insert(name.clone(), address);
         self.items.insert(name, Item::Variable);
-        self.stack_size += 1;
         Ok(())
     }
 
-    pub fn get_variable(&self, place: &Place) -> Result<Variable, Error> {
-        if let Some(variable) = self.variables.get(&place.identifier.name) {
-            Ok(variable.to_owned())
+    pub fn update_variable(&mut self, identifier: &str, address: usize) -> Result<(), Error> {
+        if let Some(variable) = self.variables.get_mut(identifier) {
+            if !variable.is_mutable {
+                return Err(Error::MutatingImmutable(identifier.to_owned()));
+            }
         } else {
             match self.parent {
-                Some(ref parent) => parent.borrow().get_variable(place),
+                Some(ref mut parent) => parent.borrow_mut().update_variable(identifier, address)?,
+                None => return Err(Error::UndeclaredItem(identifier.to_owned())),
+            }
+        }
+
+        self.assignments.insert(identifier.to_owned(), address);
+        Ok(())
+    }
+
+    pub fn get_variable_value(&self, place: &Place) -> Result<Value, Error> {
+        if let Some(variable) = self.variables.get(&place.identifier.name) {
+            Ok(variable.value.to_owned())
+        } else {
+            match self.parent {
+                Some(ref parent) => parent.borrow().get_variable_value(place),
                 None => Err(Error::UndeclaredItem(place.identifier.name.to_owned())),
             }
         }
     }
 
-    pub fn update_variable(&mut self, place: &Place, new_value: Value) -> Result<(), Error> {
-        let new_address = self.stack_size_recursive();
-        if let Some(variable) = self.variables.get_mut(&place.identifier.name) {
-            if !variable.is_mutable {
-                return Err(Error::MutatingImmutable(place.identifier.name.to_owned()));
-            }
-            let value = &mut variable.value;
-            if !value.has_the_same_type_as(&new_value) {
-                return Err(Error::VariableTypeMismatch(
-                    new_value.type_variant(),
-                    value.type_variant(),
-                ));
-            }
-            *value = new_value;
-            variable.address = new_address;
-            self.stack_size += 1;
-            Ok(())
+    pub fn get_variable_address(&self, place: &Place) -> Result<usize, Error> {
+        if let Some(address) = self.assignments.get(&place.identifier.name).copied() {
+            Ok(address)
         } else {
             match self.parent {
-                Some(ref mut parent) => parent.borrow_mut().update_variable(place, new_value),
+                Some(ref parent) => parent.borrow().get_variable_address(place),
                 None => Err(Error::UndeclaredItem(place.identifier.name.to_owned())),
             }
         }
@@ -132,6 +120,27 @@ impl Scope {
             parent.borrow().get_item_type(name)
         } else {
             Err(Error::UndeclaredItem(name.to_owned()))
+        }
+    }
+
+    pub fn get_assignments(&self) -> HashMap<String, usize> {
+        self.assignments.clone()
+    }
+
+    pub fn add_assignments(&mut self, assignments: HashMap<String, usize>) {
+        self.assignments.extend(assignments)
+    }
+
+    pub fn move_assignments(&mut self) {
+        for (identifier, address) in self.assignments.drain() {
+            if !self.variables.contains_key(&identifier) {
+                self.parent
+                    .as_mut()
+                    .expect("Always contains a value")
+                    .borrow_mut()
+                    .assignments
+                    .insert(identifier, address);
+            }
         }
     }
 }

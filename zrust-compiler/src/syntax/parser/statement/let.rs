@@ -27,6 +27,7 @@ pub enum State {
     Type,
     Equals,
     Expression,
+    Semicolon,
 }
 
 impl Default for State {
@@ -39,6 +40,7 @@ impl Default for State {
 pub struct Parser {
     state: State,
     builder: LetStatementBuilder,
+    next: Option<Token>,
 }
 
 impl Parser {
@@ -162,7 +164,26 @@ impl Parser {
                     let (expression, next) =
                         ExpressionParser::default().parse(stream.clone(), None)?;
                     self.builder.set_expression(expression);
-                    return Ok((self.builder.finish(), next));
+                    self.next = next;
+                    self.state = State::Semicolon;
+                }
+                State::Semicolon => {
+                    match match self.next {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::Semicolon),
+                            ..
+                        } => return Ok((self.builder.finish(), None)),
+                        Token { lexeme, location } => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                vec![";"],
+                                lexeme,
+                            )));
+                        }
+                    }
                 }
             }
         }
@@ -181,7 +202,6 @@ mod tests {
     use crate::lexical::Lexeme;
     use crate::lexical::Location;
     use crate::lexical::Symbol;
-    use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Error as SyntaxError;
     use crate::syntax::Expression;
@@ -215,10 +235,7 @@ mod tests {
                     )],
                 ),
             ),
-            Some(Token::new(
-                Lexeme::Symbol(Symbol::Semicolon),
-                Location::new(1, 11),
-            )),
+            None,
         ));
 
         let result = Parser::default().parse(
@@ -253,10 +270,7 @@ mod tests {
                     )],
                 ),
             ),
-            Some(Token::new(
-                Lexeme::Symbol(Symbol::Semicolon),
-                Location::new(1, 21),
-            )),
+            None,
         ));
 
         let result = Parser::default().parse(

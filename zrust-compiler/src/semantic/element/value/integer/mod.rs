@@ -16,12 +16,11 @@ use zrust_bytecode::Push;
 
 use crate::lexical::IntegerLiteral;
 use crate::semantic;
-use crate::semantic::Boolean;
 use crate::syntax::TypeVariant;
 
 #[derive(Clone, PartialEq)]
 pub struct Integer {
-    pub value: BigInt,
+    pub value: Option<BigInt>,
     pub is_signed: bool,
     pub bitlength: usize,
 }
@@ -29,7 +28,7 @@ pub struct Integer {
 impl Integer {
     pub fn new(is_signed: bool, bitlength: usize) -> Self {
         Self {
-            value: BigInt::zero(),
+            value: None,
             is_signed,
             bitlength,
         }
@@ -49,7 +48,7 @@ impl Integer {
         self.is_signed == other.is_signed && self.bitlength == other.bitlength
     }
 
-    pub fn greater_equals(self, other: Self) -> Result<Boolean, Error> {
+    pub fn greater_equals(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::OperandTypesMismatch(
                 self.type_variant(),
@@ -57,12 +56,10 @@ impl Integer {
             ));
         }
 
-        let result = self.value >= other.value;
-
-        Ok(Boolean::from(result))
+        Ok(())
     }
 
-    pub fn lesser_equals(self, other: Self) -> Result<Boolean, Error> {
+    pub fn lesser_equals(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::OperandTypesMismatch(
                 self.type_variant(),
@@ -70,12 +67,10 @@ impl Integer {
             ));
         }
 
-        let result = self.value <= other.value;
-
-        Ok(Boolean::from(result))
+        Ok(())
     }
 
-    pub fn greater(self, other: Self) -> Result<Boolean, Error> {
+    pub fn greater(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::OperandTypesMismatch(
                 self.type_variant(),
@@ -83,12 +78,10 @@ impl Integer {
             ));
         }
 
-        let result = self.value > other.value;
-
-        Ok(Boolean::from(result))
+        Ok(())
     }
 
-    pub fn lesser(self, other: Self) -> Result<Boolean, Error> {
+    pub fn lesser(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::OperandTypesMismatch(
                 self.type_variant(),
@@ -96,12 +89,10 @@ impl Integer {
             ));
         }
 
-        let result = self.value < other.value;
-
-        Ok(Boolean::from(result))
+        Ok(())
     }
 
-    pub fn add(self, other: Self) -> Result<Self, Error> {
+    pub fn add(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::OperandTypesMismatch(
                 self.type_variant(),
@@ -109,16 +100,10 @@ impl Integer {
             ));
         }
 
-        let result = Self {
-            value: self.value + other.value,
-            is_signed: self.is_signed,
-            bitlength: self.bitlength,
-        };
-
-        Ok(result)
+        Ok(())
     }
 
-    pub fn subtract(self, other: Self) -> Result<Self, Error> {
+    pub fn subtract(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::OperandTypesMismatch(
                 self.type_variant(),
@@ -126,16 +111,10 @@ impl Integer {
             ));
         }
 
-        let result = Self {
-            value: self.value - other.value,
-            is_signed: self.is_signed,
-            bitlength: self.bitlength,
-        };
-
-        Ok(result)
+        Ok(())
     }
 
-    pub fn multiply(self, other: Self) -> Result<Self, Error> {
+    pub fn multiply(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::OperandTypesMismatch(
                 self.type_variant(),
@@ -143,16 +122,10 @@ impl Integer {
             ));
         }
 
-        let result = Self {
-            value: self.value * other.value,
-            is_signed: self.is_signed,
-            bitlength: self.bitlength,
-        };
-
-        Ok(result)
+        Ok(())
     }
 
-    pub fn divide(self, other: Self) -> Result<Self, Error> {
+    pub fn divide(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::OperandTypesMismatch(
                 self.type_variant(),
@@ -160,20 +133,16 @@ impl Integer {
             ));
         }
 
-        if other.value.is_zero() {
-            return Err(Error::DivisionByZero);
+        if let Some(ref other) = other.value {
+            if other.is_zero() {
+                return Err(Error::DivisionByZero);
+            }
         }
 
-        let result = Self {
-            value: self.value / other.value,
-            is_signed: self.is_signed,
-            bitlength: self.bitlength,
-        };
-
-        Ok(result)
+        Ok(())
     }
 
-    pub fn modulo(self, other: Self) -> Result<Self, Error> {
+    pub fn modulo(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::OperandTypesMismatch(
                 self.type_variant(),
@@ -181,58 +150,46 @@ impl Integer {
             ));
         }
 
-        if other.value.is_zero() {
-            return Err(Error::DivisionByZero);
+        if let Some(ref other) = other.value {
+            if other.is_zero() {
+                return Err(Error::DivisionByZero);
+            }
         }
 
-        let result = Self {
-            value: self.value % other.value,
-            is_signed: self.is_signed,
-            bitlength: self.bitlength,
-        };
-
-        Ok(result)
+        Ok(())
     }
 
-    pub fn cast(self, to: TypeVariant) -> Result<(Self, usize), Error> {
+    pub fn cast(&self, to: &TypeVariant) -> Result<(bool, usize), Error> {
         let from = self.type_variant();
         semantic::validate_casting(&from, &to).map_err(Error::Casting)?;
         let (is_signed, bitlength) = match to {
-            TypeVariant::IntegerUnsigned { bitlength } => (false, bitlength),
-            TypeVariant::IntegerSigned { bitlength } => (true, bitlength),
+            TypeVariant::IntegerUnsigned { bitlength } => (false, *bitlength),
+            TypeVariant::IntegerSigned { bitlength } => (true, *bitlength),
             TypeVariant::Field => (false, crate::BITLENGTH_FIELD),
             _ => panic!("Always checked by some branches above"),
         };
 
-        let result = Self {
-            value: self.value,
-            is_signed,
-            bitlength,
-        };
-
-        Ok((result, bitlength))
+        Ok((is_signed, bitlength))
     }
 
-    pub fn negate(self) -> Result<Self, Error> {
+    pub fn negate(&self) -> Result<(), Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::Negation(self.bitlength));
         }
 
-        let result = Self {
-            value: -self.value,
-            is_signed: true,
-            bitlength: self.bitlength,
-        };
-
-        Ok(result)
+        Ok(())
     }
 
     pub fn to_push(&self) -> Push {
-        Push::new(self.value.clone(), self.is_signed, self.bitlength)
+        Push::new(
+            self.value.to_owned().expect("Must contain a value"),
+            self.is_signed,
+            self.bitlength,
+        )
     }
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}: {}", self.value, self.type_variant())
+        write!(f, "{}", self.type_variant())
     }
 }
 
@@ -244,7 +201,7 @@ impl TryFrom<IntegerLiteral> for Integer {
             semantic::infer_integer_literal(&value).map_err(Error::Inference)?;
 
         Ok(Self {
-            value,
+            value: Some(value),
             is_signed: false,
             bitlength,
         })

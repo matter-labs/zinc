@@ -26,4 +26,14 @@ pub enum Error {
     LetImplicitCasting(Location, IntegerError),
     #[fail(display = "{} inference: {}", _0, _1)]
     Inference(Location, InferenceError),
+    #[fail(
+        display = "{} conditional expected a boolean expression, but got '{}'",
+        _0, _1
+    )]
+    ConditionalExpectedBooleanExpression(Location, TypeVariant),
+    #[fail(
+        display = "{} conditional branches return different types: '{}' and '{}'",
+        _0, _1, _2
+    )]
+    ConditionalBranchTypeMismatch(Location, TypeVariant, TypeVariant),
 }

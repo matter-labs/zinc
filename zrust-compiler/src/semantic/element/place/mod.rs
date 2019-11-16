@@ -63,16 +63,19 @@ impl Place {
 
 impl fmt::Display for Place {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let indexes = self
-            .elements
-            .iter()
-            .map(|element| match element {
-                Descriptor::ArrayIndex(index) => format!("[{}]", index),
-                Descriptor::TupleField(index) => format!(".{}", index),
-                Descriptor::StructureField(identifier) => format!(".{}", identifier),
-            })
-            .collect::<Vec<String>>()
-            .join("");
-        write!(f, "{}{}", self.identifier, indexes)
+        write!(
+            f,
+            "{}{}",
+            self.identifier,
+            self.elements
+                .iter()
+                .map(|element| match element {
+                    Descriptor::ArrayIndex(index) => format!("[{}]", index),
+                    Descriptor::TupleField(index) => format!(".{}", index),
+                    Descriptor::StructureField(identifier) => format!(".{}", identifier),
+                })
+                .collect::<Vec<String>>()
+                .join("")
+        )
     }
 }

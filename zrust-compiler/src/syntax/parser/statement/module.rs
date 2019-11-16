@@ -8,6 +8,7 @@ use std::rc::Rc;
 use crate::error::Error;
 use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
+use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
@@ -53,11 +54,25 @@ impl Parser {
             } => {
                 let identifier = Identifier::new(location, identifier.name);
                 self.builder.set_identifier(identifier);
-                Ok(self.builder.finish())
             }
+            Token { lexeme, location } => {
+                return Err(Error::Syntax(SyntaxError::Expected(
+                    location,
+                    vec!["{identifier}"],
+                    lexeme,
+                )))
+            }
+        }
+
+        let next = stream.borrow_mut().next()?;
+        match next {
+            Token {
+                lexeme: Lexeme::Symbol(Symbol::Semicolon),
+                ..
+            } => Ok(self.builder.finish()),
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
                 location,
-                vec!["{identifier}"],
+                vec![";"],
                 lexeme,
             ))),
         }

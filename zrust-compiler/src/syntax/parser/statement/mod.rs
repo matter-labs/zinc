@@ -29,15 +29,14 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
 use crate::syntax::ExpressionParser;
 use crate::syntax::Statement;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
     Statement,
-    Semicolon,
     SemicolonOptional,
+    End,
 }
 
 impl Default for State {
@@ -78,7 +77,7 @@ impl Parser {
                                 let (statement, next) =
                                     LetParser::default().parse(stream.clone(), Some(token))?;
                                 self.next = next;
-                                self.state = State::Semicolon;
+                                self.state = State::End;
                                 Statement::Let(statement)
                             }
                             token @ Token {
@@ -87,7 +86,7 @@ impl Parser {
                             } => {
                                 let statement =
                                     LoopParser::default().parse(stream.clone(), Some(token))?;
-                                self.state = State::Semicolon;
+                                self.state = State::End;
                                 Statement::Loop(statement)
                             }
                             token @ Token {
@@ -96,7 +95,7 @@ impl Parser {
                             } => {
                                 let statement =
                                     TypeParser::default().parse(stream.clone(), Some(token))?;
-                                self.state = State::Semicolon;
+                                self.state = State::End;
                                 Statement::Type(statement)
                             }
                             token @ Token {
@@ -106,7 +105,7 @@ impl Parser {
                                 let (statement, next) =
                                     StructParser::default().parse(stream.clone(), Some(token))?;
                                 self.next = next;
-                                self.state = State::Semicolon;
+                                self.state = State::End;
                                 Statement::Struct(statement)
                             }
                             token @ Token {
@@ -116,7 +115,7 @@ impl Parser {
                                 let (statement, next) =
                                     EnumParser::default().parse(stream.clone(), Some(token))?;
                                 self.next = next;
-                                self.state = State::Semicolon;
+                                self.state = State::End;
                                 Statement::Enum(statement)
                             }
                             token @ Token {
@@ -125,7 +124,7 @@ impl Parser {
                             } => {
                                 let statement =
                                     FnParser::default().parse(stream.clone(), Some(token))?;
-                                self.state = State::Semicolon;
+                                self.state = State::End;
                                 Statement::Fn(statement)
                             }
                             token @ Token {
@@ -134,7 +133,7 @@ impl Parser {
                             } => {
                                 let statement =
                                     ModParser::default().parse(stream.clone(), Some(token))?;
-                                self.state = State::Semicolon;
+                                self.state = State::End;
                                 Statement::Mod(statement)
                             }
                             token @ Token {
@@ -144,7 +143,7 @@ impl Parser {
                                 let (statement, next) =
                                     UseParser::default().parse(stream.clone(), Some(token))?;
                                 self.next = next;
-                                self.state = State::Semicolon;
+                                self.state = State::End;
                                 Statement::Use(statement)
                             }
                             token => {
@@ -156,30 +155,6 @@ impl Parser {
                             }
                         },
                     );
-                }
-                State::Semicolon => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
-                        Token {
-                            lexeme: Lexeme::Symbol(Symbol::Semicolon),
-                            ..
-                        } => {
-                            return Ok((
-                                self.statement.take().expect("Always contains a value"),
-                                None,
-                                false,
-                            ))
-                        }
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec![";"],
-                                lexeme,
-                            )));
-                        }
-                    }
                 }
                 State::SemicolonOptional => {
                     match self.next.take().expect("Always contains a value") {
@@ -201,6 +176,13 @@ impl Parser {
                             ));
                         }
                     }
+                }
+                State::End => {
+                    return Ok((
+                        self.statement.take().expect("Always contains a value"),
+                        None,
+                        false,
+                    ))
                 }
             }
         }

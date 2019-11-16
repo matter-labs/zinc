@@ -23,36 +23,6 @@ impl Boolean {
         TypeVariant::new_boolean()
     }
 
-    pub fn or(self, other: Self) -> Self {
-        match (self.value, other.value) {
-            (Some(value_1), Some(value_2)) => Self::from(value_1 || value_2),
-            _ => Self::default(),
-        }
-    }
-
-    pub fn xor(self, other: Self) -> Self {
-        match (self.value, other.value) {
-            (Some(value_1), Some(value_2)) => {
-                Self::from((!value_1 && value_2) || (value_1 && !value_2))
-            }
-            _ => Self::default(),
-        }
-    }
-
-    pub fn and(self, other: Self) -> Self {
-        match (self.value, other.value) {
-            (Some(value_1), Some(value_2)) => Self::from(value_1 && value_2),
-            _ => Self::default(),
-        }
-    }
-
-    pub fn not(self) -> Self {
-        match self.value {
-            Some(value) => Self::from(!value),
-            None => Self::default(),
-        }
-    }
-
     pub fn to_push(&self) -> Push {
         let value = self.value.expect("Must contain a value");
         Push::new(

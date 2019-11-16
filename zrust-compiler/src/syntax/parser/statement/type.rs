@@ -23,6 +23,7 @@ pub enum State {
     Identifier,
     Equals,
     Type,
+    Semicolon,
 }
 
 impl Default for State {
@@ -105,7 +106,23 @@ impl Parser {
                 State::Type => {
                     let r#type = TypeParser::default().parse(stream.clone(), None)?;
                     self.builder.set_type(r#type);
-                    return Ok(self.builder.finish());
+                    self.state = State::Semicolon;
+                }
+                State::Semicolon => {
+                    let next = stream.borrow_mut().next()?;
+                    match next {
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::Semicolon),
+                            ..
+                        } => return Ok(self.builder.finish()),
+                        Token { lexeme, location } => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                vec![";"],
+                                lexeme,
+                            )));
+                        }
+                    }
                 }
             }
         }

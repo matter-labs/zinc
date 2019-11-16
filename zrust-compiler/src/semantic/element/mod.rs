@@ -37,18 +37,21 @@ impl Element {
         })
     }
 
-    pub fn assign(self, other: Self) -> Result<(Place, Value), Error> {
-        let place = match self {
-            Self::Place(place) => place,
+    pub fn assign(self, other: Self, scope: &Scope) -> Result<Place, Error> {
+        let (value_1, place) = match self {
+            Self::Place(place) => (Self::resolve(&place, scope)?, place),
             element => return Err(Error::ExpectedPlaceExpression("assign", element)),
         };
 
-        let value = match other {
+        let value_2 = match other {
             Self::Value(value) => value,
             element => return Err(Error::ExpectedValueExpression("assign", element)),
         };
 
-        Ok((place, value))
+        value_1
+            .assign(&value_2)
+            .map(|_| place)
+            .map_err(Error::Value)
     }
 
     pub fn or(self, other: Self, scope: &Scope) -> Result<Self, Error> {
@@ -64,7 +67,7 @@ impl Element {
             element => return Err(Error::ExpectedValueExpression("or", element)),
         };
 
-        value_1.or(value_2).map(Self::Value).map_err(Error::Value)
+        value_1.or(&value_2).map(Self::Value).map_err(Error::Value)
     }
 
     pub fn xor(self, other: Self, scope: &Scope) -> Result<Self, Error> {
@@ -80,7 +83,7 @@ impl Element {
             element => return Err(Error::ExpectedValueExpression("xor", element)),
         };
 
-        value_1.xor(value_2).map(Self::Value).map_err(Error::Value)
+        value_1.xor(&value_2).map(Self::Value).map_err(Error::Value)
     }
 
     pub fn and(self, other: Self, scope: &Scope) -> Result<Self, Error> {
@@ -96,7 +99,7 @@ impl Element {
             element => return Err(Error::ExpectedValueExpression("and", element)),
         };
 
-        value_1.and(value_2).map(Self::Value).map_err(Error::Value)
+        value_1.and(&value_2).map(Self::Value).map_err(Error::Value)
     }
 
     pub fn equals(self, other: Self, scope: &Scope) -> Result<Self, Error> {
@@ -214,7 +217,7 @@ impl Element {
             element => return Err(Error::ExpectedValueExpression("add", element)),
         };
 
-        value_1.add(value_2).map(Self::Value).map_err(Error::Value)
+        value_1.add(&value_2).map(Self::Value).map_err(Error::Value)
     }
 
     pub fn subtract(self, other: Self, scope: &Scope) -> Result<Self, Error> {
@@ -231,7 +234,7 @@ impl Element {
         };
 
         value_1
-            .subtract(value_2)
+            .subtract(&value_2)
             .map(Self::Value)
             .map_err(Error::Value)
     }
@@ -250,7 +253,7 @@ impl Element {
         };
 
         value_1
-            .multiply(value_2)
+            .multiply(&value_2)
             .map(Self::Value)
             .map_err(Error::Value)
     }
@@ -269,7 +272,7 @@ impl Element {
         };
 
         value_1
-            .divide(value_2)
+            .divide(&value_2)
             .map(Self::Value)
             .map_err(Error::Value)
     }
@@ -288,12 +291,12 @@ impl Element {
         };
 
         value_1
-            .modulo(value_2)
+            .modulo(&value_2)
             .map(Self::Value)
             .map_err(Error::Value)
     }
 
-    pub fn cast(self, other: Self, scope: &Scope) -> Result<(Self, usize), Error> {
+    pub fn cast(self, other: Self, scope: &Scope) -> Result<(bool, usize), Error> {
         let value = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
@@ -305,10 +308,7 @@ impl Element {
             element => return Err(Error::ExpectedTypeExpression("cast", element)),
         };
 
-        value
-            .cast(r#type)
-            .map(|(value, bitlength)| (Self::Value(value), bitlength))
-            .map_err(Error::Value)
+        value.cast(&r#type).map_err(Error::Value)
     }
 
     pub fn negate(self, scope: &Scope) -> Result<Self, Error> {
@@ -332,7 +332,7 @@ impl Element {
     }
 
     pub fn resolve(place: &Place, scope: &Scope) -> Result<Value, Error> {
-        Ok(scope.get_variable(place).map_err(Error::Scope)?.value)
+        scope.get_variable_value(place).map_err(Error::Scope)
     }
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
