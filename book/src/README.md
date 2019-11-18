@@ -1,2 +1,2 @@
-# Getting started
+# Table of contents
 

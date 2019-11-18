@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Getting started](README.md)
+* [Table of contents](README.md)
 * [Introduction](00-introduction.md)
 * [Design](01-design.md)
 * [Examples](02-examples.md)
