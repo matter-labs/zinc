@@ -65,7 +65,7 @@ Casting allowed:
 - integers to types of greater bitlength
 - enums to integers of enough bitlength
 
-```rust
+```rust,no_run,noplaypen
 let a = -1; // inference
 let b: u16 = a as u16; // ok, casted to the opposite sign with greater bitlength 
 let c: u8 = Order::First; // casting to an integer of enough bitlength
@@ -228,24 +228,3 @@ let c: u8 = Order::First; // casting to an integer of enough bitlength
 2. Value expression
 
 **Returns** `()`.
-
-# Operator precedence
-
-The top one is executed the first.
-
-```
-|    Operator      |  Associativity  |
-|----------------- |-----------------|
-|        ::        |  left to right  |
-|       [] .       |  left to right  |
-|        - !       |      unary      |
-|        as        |  left to right  |
-|       * / %      |  left to right  |
-|        + -       |  left to right  |
-|  == != <= >= < > |   parenthesis   |
-|        &&        |  left to right  |
-|        ^^        |  left to right  |
-|        ⎮⎮        |  left to right  |
-|      .. ..=      |     single      |
-|         =        |     single      |
-```

@@ -13,7 +13,7 @@ Actually, `input`, `witness` and the output can be of any type, but using
 structures is considered a good design as it makes their use in the code more
 explicit.
 
-```rust
+```rust,no_run,noplaypen
 struct Input {
     {identifier}: {type},
     ...

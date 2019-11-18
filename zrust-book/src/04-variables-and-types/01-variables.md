@@ -5,7 +5,7 @@ variables are immutable by default. If you are going to change their values,
 you must explicitly mark them as mutable. It protects your data from accidental
 mutating where the compiler is unable to check your intentions.
 
-```rust
+```rust,no_run,noplaypen
 fn test() {
     let x = 0;
     // compile error: mutating an immutable variable
@@ -29,7 +29,7 @@ In contrast to Rust, variables can only be declared in functions. If you need a
 global variable, you should declare a constant. This limitation is devised to
 prevent unwanted side effects, polluting the global namespace, and bad design.
 
-```rust
+```rust,no_run,noplaypen
 const VALUE: field = 0; // ok
 
 fn test() {
@@ -43,7 +43,7 @@ warning-as-error development workflow, forbidding shadowing as a potentially
 unsafe trick. You should use mutable variables and type suffixes if you have
 several variables with similar logical meaning.
 
-```rust
+```rust,no_run,noplaypen
 fn test() {
     let mut x = 5;
     {

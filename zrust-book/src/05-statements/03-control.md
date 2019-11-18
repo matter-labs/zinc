@@ -12,7 +12,7 @@ The `for` loop statement behaves just like in Rust, but it is merged with the
 of the loop. The `while` condition expression has access to the inner scope and
 can use its variables and the loop iterator.
 
-```rust
+```rust,no_run,noplaypen
 for i in 0..10 while i % x != 8 {
     // do something
 };

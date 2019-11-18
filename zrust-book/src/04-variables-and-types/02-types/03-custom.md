@@ -16,7 +16,7 @@ verbosity as possible.
 Structure fields can be accessed via the dot operator, which is explained in details
 in **Chapter 5**.
 
-```rust
+```rust,no_run,noplaypen
 struct Person {
     age: u8,
     id: u64,
@@ -35,7 +35,7 @@ Enums allow you to define a type by enumerating its possible values. Only simple
 C-like enums are supported for now, which are basically groups of constants,
 following the Rust syntax:
 
-```rust
+```rust,no_run,noplaypen
 enum Order {
     FIRST = 0,
     SECOND = 1,
@@ -45,7 +45,7 @@ enum Order {
 Enum values can be used with `match` expressions to define the behavior in every
 possible case:
 
-```rust
+```rust,no_run,noplaypen
 let value = Order::FIRST;
 let result = match value {
     Order::FIRST => do_this(),
@@ -56,7 +56,7 @@ let result = match value {
 The enum values can be implicitly casted to unsigned integers of enough
 bitlength using `let` statements or explicitly using the `as` operator:
 
-```rust
+```rust,no_run,noplaypen
 let x = Order::FIRST; // the type is Order (inference)
 let y: u8 = Order::SECOND; // the type is u8 (implicit casting)
 let z = Order::SECOND as u8; // the type is u8 (explicit casting)
@@ -76,7 +76,7 @@ returned by value. If the return type is omitted, the function is considered
 to return the result of type `()`. The code block can access the global scope,
 but it has no information about where the function has been called from.
 
-```rust
+```rust,no_run,noplaypen
 const GLOBAL: u8 = 31;
 
 fn wierd_sum(a: u8, b: u8) -> u8 {

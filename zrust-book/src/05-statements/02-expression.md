@@ -13,7 +13,7 @@ The expression statement is an expression terminated with a `;` in order
 to ignore its result. The most common use is the assignment to a mutable
 variable:
 
-```rust
+```rust,no_run,noplaypen
 let mut a = 0;
 a = 42; // an expression statement ignoring the '()' result of the assignment
 ```
@@ -27,7 +27,7 @@ in ZRust to get rid of some ambiguities regarding block and conditional
 expressions. Let us compare the examples of Rust and ZRust to illustrate the
 problem.
 
-```rust
+```rust,no_run,noplaypen
 fn blocks() -> i32 {
     {
         get_unit()
@@ -43,7 +43,7 @@ meaning depends on the block return type. ZRust solves this problem by enforcing
 all expression statements to be explictly terminated with a semicolon, like in
 the following ZRust example:
 
-```rust
+```rust,no_run,noplaypen
 fn blocks() -> i32 {
     {
         get_unit()

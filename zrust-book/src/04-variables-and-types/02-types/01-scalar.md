@@ -15,13 +15,13 @@ used by any operators or casted back and forth.
 
 The unit type can exist as a standalone value:
 
-```rust
+```rust,no_run,noplaypen
 let x = (); // ()
 ```
 
 It can be returned by blocks or functions:
 
-```rust
+```rust,no_run,noplaypen
 fn check(value: bool) {
     // several statements
 };
@@ -45,7 +45,7 @@ Boolean values cannot be casted to or from.
 
 ### Examples
 
-```rust
+```rust,no_run,noplaypen
 let a = true;
 let b: bool = false;
 
@@ -99,7 +99,7 @@ If the literal type is not specified, the minimal possible bitlength is inferred
 
 ### Examples
 
-```rust
+```rust,no_run,noplaypen
 let a = 0; // u8
 let a: i24 = 0; // i24
 let b = 256; // u16

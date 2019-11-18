@@ -2,7 +2,7 @@
 
 Expressions consist of operands and operators.
 
-Operators have already been described in the **Chapter 5**.
+Operators have already been described in the **Chapter 6**.
 
 ## Operands
 

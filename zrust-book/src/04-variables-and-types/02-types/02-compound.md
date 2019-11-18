@@ -13,7 +13,7 @@ integer literal for now.
 
 Arrays support the index operator, which is explained in detail in **Chapter 5**.
 
-```rust
+```rust,no_run,noplaypen
 let element = fibbonaci[3];
 fibbonaci[2] = 1;
 ```
@@ -29,7 +29,7 @@ and `(value,)` is a tuple with one element.
 Tuple fields can be accessed via the dot operator, which is explained in details
 in **Chapter 5**.
 
-```rust
+```rust,no_run,noplaypen
 let mut tuple: (u8, field) = (0xff, 0 as field);
 tuple.0 = 42;
 debug(tuple.1);

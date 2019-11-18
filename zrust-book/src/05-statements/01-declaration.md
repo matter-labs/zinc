@@ -12,7 +12,7 @@ uninitialized variables.
 The type is optional and is used mostly to cast integer literal or double check
 the expression result type, otherwise it is inferred.
 
-```rust
+```rust,no_run,noplaypen
 let mut variable: field = 0;
 ```
 
@@ -22,7 +22,7 @@ let mut variable: field = 0;
 
 The `type` statement declares a type alias to avoid repeating complex types.
 
-```rust
+```rust,no_run,noplaypen
 type Alias = (field, u8, [field; 8]);
 ```
 
@@ -30,7 +30,7 @@ type Alias = (field, u8, [field; 8]);
 
 The `struct` statement declares a structure.
 
-```rust
+```rust,no_run,noplaypen
 struct Data {
     a: field,
     b: u8,
@@ -42,7 +42,7 @@ struct Data {
 
 The `enum` statement declares an enumeration.
 
-```rust
+```rust,no_run,noplaypen
 enum List {
     A = 1,
     B = 2,
@@ -54,7 +54,7 @@ enum List {
 
 The `fn` statement declares a function.
 
-```rust
+```rust,no_run,noplaypen
 fn sum(a: u8, b: u8) -> u8 {
     a + b
 }
