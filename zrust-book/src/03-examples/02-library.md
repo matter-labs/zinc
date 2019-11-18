@@ -1,6 +1,6 @@
 # Library
 
-```rust
+```rust,no_run,noplaypen
 /// 
 /// './lib.rs'
 /// 

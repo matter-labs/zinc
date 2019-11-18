@@ -1,8 +1,7 @@
 # Operator precedence
 
-The top one is executed the first.
+The top one is executed first.
 
-```
 |    Operator      |  Associativity  |
 |----------------- |-----------------|
 |        ::        |  left to right  |
@@ -17,4 +16,3 @@ The top one is executed the first.
 |        ⎮⎮        |  left to right  |
 |      .. ..=      |     single      |
 |         =        |     single      |
-```

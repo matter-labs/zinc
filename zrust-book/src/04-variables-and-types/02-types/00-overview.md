@@ -20,7 +20,7 @@ details, check the **subchapter 4**.
 You can also declare type aliases in ZRust, which allow you to shorten type
 signatures of complex types by giving them a name:
 
-```rust
+```rust,no_run,noplaypen
 type ComplexType = [(u8, [bool; 8], field); 16];
 
 fn example(data: ComplexType) {}
@@ -43,7 +43,7 @@ the `as` operator. **Chapter 5** explains the operator behavior in details.
 The `let` statement can perform implicit type casting of integers if the type
 is specified to the left of the assignment symbol. Let us examine the statement:
 
-```rust
+```rust,no_run,noplaypen
 let a: field = 42 as u32;
 ```
 
@@ -56,7 +56,7 @@ The second case of implicit casting is the negation operator, which always
 returns a signed integer type value of the same bitlength, regardless of the
 input argument.
 
-```rust
+```rust,no_run,noplaypen
 let positive = 100; // u8
 let negative = -positive; // i8
 ```
@@ -73,7 +73,7 @@ must be implicitly casted using the negation operator.
 
 The `let` statement can infer types in case its type is not specified.
 
-```rust
+```rust,no_run,noplaypen
 let value = 0xffffffff_ffffffff_ffffffff_ffffffff;
 ```
 

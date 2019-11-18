@@ -1,7 +1,7 @@
 # Keywords
 
 #### Declarations
-```rust
+```rust,no_run,noplaypen
 let
 mut
 type
@@ -11,7 +11,7 @@ fn
 ```
 
 #### Controls
-```rust
+```rust,no_run,noplaypen
 for
 in
 while
@@ -21,7 +21,7 @@ match
 ```
 
 #### Types
-```rust
+```rust,no_run,noplaypen
 bool
 u8 ... u248
 i8 ... i248
@@ -29,18 +29,18 @@ field
 ```
 
 #### Literals
-```rust
+```rust,no_run,noplaypen
 true
 false
 ```
 
 #### Operators
-```rust
+```rust,no_run,noplaypen
 as
 ```
 
 ## Reserved
-```rust
+```rust,no_run,noplaypen
 pub
 ref
 ```

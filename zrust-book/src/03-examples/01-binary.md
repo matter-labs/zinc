@@ -1,6 +1,6 @@
 # Binary
 
-```rust
+```rust,no_run,noplaypen
 /// 
 /// './main.rs'
 ///
