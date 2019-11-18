@@ -26,3 +26,15 @@ in ZRust. This not only allows more efficient R1CS circuit construction but
 also makes formal verifiability about the call and stack safety easier and
 eliminates the gas computation problem inherent to Turing-complete smart
 contract platforms, such as EVM.
+
+# Key features
+
+- Type safety
+- Type inference
+- Immutability
+- Movable resources as a first-class citizen
+- Module definition and import
+- Expressive syntax
+- Industrial-grade compiler optimizations
+- Turing incompleteness: no recursion or unbounded looping
+- Flat learning curve for Rust/JS/Solidity/C++ developers
