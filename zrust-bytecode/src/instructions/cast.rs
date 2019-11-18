@@ -19,7 +19,7 @@ impl Instruction for Cast {
 }
 
 impl Cast {
-    pub fn new(_length: u8) -> Self{
+    pub fn new(_signed: bool, _length: u8) -> Self{
         Cast
     }
 
