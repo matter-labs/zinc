@@ -27,7 +27,7 @@ impl Copy {
     }
 
     pub fn decode(bytes: &[u8]) -> Result<(Copy, usize), DecodingError> {
-        let (value, len) = utils::decode_with_vlq_argument(InstructionCode::Push, bytes)?;
+        let (value, len) = utils::decode_with_vlq_argument(InstructionCode::Copy, bytes)?;
         let index = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
         Ok((Copy { index }, len))
     }
