@@ -1,8 +1,8 @@
-# Operator precedence
+# Precedence
 
 The top one is executed the first.
 
-```
+```text
 |    Operator      |  Associativity  |
 |----------------- |-----------------|
 |        ::        |  left to right  |
@@ -18,3 +18,4 @@ The top one is executed the first.
 |      .. ..=      |     single      |
 |         =        |     single      |
 ```
+

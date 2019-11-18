@@ -1,8 +1,8 @@
-# Interpreter
+# Interpreter CLI
 
 ## Interface
 
-```
+```text
 zrusti 0.5.0
 The ZRust language interpreter
 
@@ -21,3 +21,4 @@ OPTIONS:
 ## Output
 
 The interpreter outputs using the debug function only.
+

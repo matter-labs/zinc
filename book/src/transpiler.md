@@ -1,8 +1,8 @@
-# Transpiler
+# Transpiler CLI
 
 ## Interface
 
-```
+```text
 zrustc 0.5.0
 The ZRust language compiler
 
@@ -24,7 +24,7 @@ OPTIONS:
 
 ### Meta info
 
-```json
+```javascript
 {
     "inputs": [
         {
@@ -45,7 +45,7 @@ OPTIONS:
 
 The cost profiler prints number of constraints for each line:
 
-```json
+```javascript
 {
     "file": "filename.zrs",
     "md5":  "000011112222333344445555666677778888",
@@ -60,8 +60,7 @@ The cost profiler prints number of constraints for each line:
 
 Each line must sum up constraints in all statements that begin in this line.
 
-If a line contains the beginning of a block enclosed in `{ ... }`, the costs
-must include the total cost of the block in curly brackets:
+If a line contains the beginning of a block enclosed in `{ ... }`, the costs must include the total cost of the block in curly brackets:
 
 ```rust
 1: if a == b { // 3 constraints
@@ -71,9 +70,9 @@ must include the total cost of the block in curly brackets:
 5: }
 ```
 
-=>
+=&gt;
 
-```json
+```javascript
 "constraints": {
     "1": { "inline": 3, "block": 4 },
     "2": 1,
@@ -83,3 +82,4 @@ must include the total cost of the block in curly brackets:
 ```
 
 This information will be used to visualize the cost with IDE plugins.
+

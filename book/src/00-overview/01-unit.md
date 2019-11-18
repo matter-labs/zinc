@@ -2,8 +2,7 @@
 
 No known differences from the Rust behavior.
 
-`()` is the literal for both unit type and value. The unit type cannot be used
-by any operators and cannot be casted to or from.
+`()` is the literal for both unit type and value. The unit type cannot be used by any operators and cannot be casted to or from.
 
 The unit type can exist as a standalone value:
 
@@ -20,3 +19,4 @@ fn check(value: bool) {
 
 let y = check(true); // ()
 ```
+

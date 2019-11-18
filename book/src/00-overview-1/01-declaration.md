@@ -1,4 +1,4 @@
-# Declaration statements
+# Declaration
 
 The declaration statements declare a new item.
 
@@ -6,13 +6,11 @@ The declaration statements declare a new item.
 
 `let [mut] {identifier}[: {type}] = {expression};`
 
-The `let` declaration behaves just like in Rust, but it does not allow
-uninitialized variables.
+The `let` declaration behaves just like in Rust, but it does not allow uninitialized variables.
 
-The type is optional and is used mostly to cast integer literal or double check
-the expression result type, otherwise it is inferred.
+The type is optional and is used mostly to cast integer literal or double check the expression result type, otherwise it is inferred.
 
-Shadowing is not allowed (already or yet).
+Shadowing is not allowed \(already or yet\).
 
 ```rust
 let mut variable: field = 0;
@@ -54,8 +52,7 @@ enum List {
 
 ## `fn` declaration
 
-The `fn` statement declares a function, which is basically a callable type
-differing in its input arguments and return type.
+The `fn` statement declares a function, which is basically a callable type differing in its input arguments and return type.
 
 ```rust
 fn sum(a: u8, b: u8) -> u8 {
@@ -73,5 +70,5 @@ The `mod` statement declares a new module and behaves the same way as in Rust.
 
 `use {path};`
 
-The `use` statement imports an item from another namespace and behaves the same
-way as in Rust.
+The `use` statement imports an item from another namespace and behaves the same way as in Rust.
+

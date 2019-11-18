@@ -1,13 +1,15 @@
-# Keywords
+# C - Keywords
 
-#### Built-ins
+### Built-ins
+
 ```rust
 input
 witness
 output
 ```
 
-#### Declarations
+### Declarations
+
 ```rust
 let
 mut
@@ -17,7 +19,8 @@ enum
 fn
 ```
 
-#### Controls
+### Controls
+
 ```rust
 for
 in
@@ -27,7 +30,8 @@ else
 match
 ```
 
-#### Types
+### Types
+
 ```rust
 bool
 u8 ... u248
@@ -35,19 +39,23 @@ i8 ... i248
 field
 ```
 
-#### Literals
+### Literals
+
 ```rust
 true
 false
 ```
 
-#### Operators
+### Operators
+
 ```rust
 as
 ```
 
 ## Reserved
+
 ```rust
 pub
 ref
 ```
+

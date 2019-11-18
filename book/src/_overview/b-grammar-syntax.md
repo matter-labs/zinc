@@ -1,6 +1,6 @@
-# Syntax grammar
+# B - Syntax grammar
 
-```
+```text
 (* Domain *)
 file = binary | library ;
 
@@ -98,5 +98,5 @@ tuple_expression =
 struct_expression = 'struct', path_expression, [ '{', field_list, '}' ] ;
 
 path_expression = identifier, { '::', identifier } ;
-
 ```
+

@@ -10,3 +10,4 @@ fn sum(a: u8, b: u8) -> u8 {
 let result = sum(42, 27);
 require(result == 69);
 ```
+

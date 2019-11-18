@@ -4,9 +4,7 @@
 
 `::`
 
-**Accepts**
-1. Module or enum
-2. Identifier or module
+**Accepts** 1. Module or enum 2. Identifier or module
 
 **Returns** the second operand.
 
@@ -14,9 +12,7 @@
 
 `[]`
 
-**Accepts**
-1. Array expression
-2. Integer literal
+**Accepts** 1. Array expression 2. Integer literal
 
 **Returns** the array element or an out of range error.
 
@@ -26,9 +22,7 @@
 
 `.`
 
-**Accepts**
-1. Tuple expression
-2. Integer literal
+**Accepts** 1. Tuple expression 2. Integer literal
 
 **Returns** the tuple or structure element or an nonexistent field error.
 
@@ -36,8 +30,7 @@
 
 `-`
 
-**Accepts**
-1. Integer expression
+**Accepts** 1. Integer expression
 
 **Returns** the integer result.
 
@@ -45,8 +38,7 @@
 
 `!`
 
-**Accepts**
-1. Boolean expression
+**Accepts** 1. Boolean expression
 
 **Returns** the boolean result.
 
@@ -54,16 +46,14 @@
 
 `as`
 
-**Accepts**
-1. Integer expression
-2. Integer type
+**Accepts** 1. Integer expression 2. Integer type
 
 **Returns** the integer result.
 
 Casting allowed:
 
-- integers to types of greater bitlength
-- enums to integers of enough bitlength
+* integers to types of greater bitlength
+* enums to integers of enough bitlength
 
 ```rust
 let a = -1; // `i8`, after a cast using the unary minus and the `let` inference
@@ -75,9 +65,7 @@ let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
 
 `*`
 
-**Accepts**
-1. Integer expression
-2. Integer expression
+**Accepts** 1. Integer expression 2. Integer expression
 
 **Returns** the integer result.
 
@@ -85,9 +73,7 @@ let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
 
 `/`
 
-**Accepts**
-1. Integer expression
-2. Integer expression
+**Accepts** 1. Integer expression 2. Integer expression
 
 **Returns** the integer result.
 
@@ -95,9 +81,7 @@ let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
 
 `%`
 
-**Accepts**
-1. Integer expression
-2. Integer expression
+**Accepts** 1. Integer expression 2. Integer expression
 
 **Returns** the integer result.
 
@@ -105,9 +89,7 @@ let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
 
 `+`
 
-**Accepts**
-1. Integer expression
-2. Integer expression
+**Accepts** 1. Integer expression 2. Integer expression
 
 **Returns** the integer result.
 
@@ -115,9 +97,7 @@ let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
 
 `-`
 
-**Accepts**
-1. Integer expression
-2. Integer expression
+**Accepts** 1. Integer expression 2. Integer expression
 
 **Returns** the integer result.
 
@@ -125,9 +105,7 @@ let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
 
 `==`
 
-**Accepts**
-1. Integer **or** boolean expression
-2. Integer **or** boolean expression
+**Accepts** 1. Integer **or** boolean expression 2. Integer **or** boolean expression
 
 **Returns** the boolean result.
 
@@ -135,9 +113,7 @@ let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
 
 `!=`
 
-**Accepts**
-1. Integer **or** boolean expression
-2. Integer **or** boolean expression
+**Accepts** 1. Integer **or** boolean expression 2. Integer **or** boolean expression
 
 **Returns** the boolean result.
 
@@ -145,9 +121,7 @@ let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
 
 `<=`
 
-**Accepts**
-1. Integer expression
-2. Integer expression
+**Accepts** 1. Integer expression 2. Integer expression
 
 **Returns** the boolean result.
 
@@ -155,9 +129,7 @@ let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
 
 `>=`
 
-**Accepts**
-1. Integer expression
-2. Integer expression
+**Accepts** 1. Integer expression 2. Integer expression
 
 **Returns** the boolean result.
 
@@ -165,9 +137,7 @@ let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
 
 `<`
 
-**Accepts**
-1. Integer expression
-2. Integer expression
+**Accepts** 1. Integer expression 2. Integer expression
 
 **Returns** the boolean result.
 
@@ -175,9 +145,7 @@ let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
 
 `>`
 
-**Accepts**
-1. Integer expression
-2. Integer expression
+**Accepts** 1. Integer expression 2. Integer expression
 
 **Returns** the boolean result.
 
@@ -185,9 +153,7 @@ let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
 
 `&&`
 
-**Accepts**
-1. Boolean expression
-2. Boolean expression
+**Accepts** 1. Boolean expression 2. Boolean expression
 
 **Returns** the boolean result.
 
@@ -195,9 +161,7 @@ let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
 
 `^^`
 
-**Accepts**
-1. Boolean expression
-2. Boolean expression
+**Accepts** 1. Boolean expression 2. Boolean expression
 
 **Returns** the boolean result.
 
@@ -205,17 +169,15 @@ let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
 
 `||`
 
-**Accepts**
-1. Boolean expression
-2. Boolean expression
+**Accepts** 1. Boolean expression 2. Boolean expression
 
 **Returns** the boolean result.
 
-## Exclusive range (TODO)
+## Exclusive range \(TODO\)
 
 `..`
 
-## Inclusive range (TODO)
+## Inclusive range \(TODO\)
 
 `..=`
 
@@ -223,8 +185,7 @@ let c: u8 = Order::FIRST; // ok, enum implicit casting to the enough bitlength
 
 `=`
 
-**Accepts**
-1. Place expression
-2. Value expression
+**Accepts** 1. Place expression 2. Value expression
 
 **Returns** `()`.
+
