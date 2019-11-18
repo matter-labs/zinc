@@ -12,20 +12,32 @@ pub enum RuntimeError {
     IntegerOverflow,
     UnexpectedLoopExit,
     UnexpectedReturn,
+    UnexpectedFrameExit,
 }
 
+#[derive(Copy, Clone)]
+struct StackFrame {
+    stack_address: usize,
+    io_size: usize,
+}
+
+#[derive(Copy, Clone)]
 struct LoopFrame {
     first_instruction_index: usize,
     iterations_left: usize,
+    io_size: usize,
 }
 
+#[derive(Copy, Clone)]
 struct FunctionFrame {
     return_index: usize,
 }
 
+#[derive(Copy, Clone)]
 enum Frame {
     LoopFrame(LoopFrame),
     FunctionFrame(FunctionFrame),
+    StackFrame(StackFrame),
 }
 
 pub struct VirtualMachine<E, O>
@@ -34,9 +46,9 @@ where
     O: ElementOperator<E>
 {
     stack: Vec<E>,
+    frames: Vec<Frame>,
     operator: O,
     instruction_counter: usize,
-    execution_stack: Vec<Frame>,
 }
 
 impl <E, O> VirtualMachine<E, O>
@@ -49,7 +61,7 @@ where
             stack: Vec::new(),
             operator,
             instruction_counter: 0,
-            execution_stack: Vec::new(),
+            frames: Vec::new(),
         }
     }
 
@@ -98,21 +110,27 @@ where
         &mut self.operator
     }
 
-    pub fn loop_begin(&mut self, iterations: usize) -> Result<(), RuntimeError> {
-        self.execution_stack.push(Frame::LoopFrame(LoopFrame {
+    pub fn loop_begin(&mut self, iterations: usize, io_size: usize) -> Result<(), RuntimeError> {
+        self.frames.push(Frame::LoopFrame(LoopFrame {
             first_instruction_index: self.instruction_counter,
             iterations_left: iterations - 1,
+            io_size
         }));
+
+        self.stack_frame_push(io_size)?;
 
         Ok(())
     }
 
     pub fn loop_end(&mut self) -> Result<(), RuntimeError> {
-        if let Some(Frame::LoopFrame(mut frame)) = self.execution_stack.pop() {
+        self.stack_frame_pop()?;
+
+        if let Some(Frame::LoopFrame(mut frame)) = self.frames.pop() {
             if frame.iterations_left != 0 {
                 self.instruction_counter = frame.first_instruction_index;
                 frame.iterations_left -= 1;
-                self.execution_stack.push(Frame::LoopFrame(frame));
+                self.frames.push(Frame::LoopFrame(frame));
+                self.stack_frame_push(frame.io_size);
             }
             Ok(())
         } else {
@@ -122,17 +140,47 @@ where
 
     pub fn function_call(&mut self, address: usize) -> Result<(), RuntimeError> {
         let frame = FunctionFrame { return_index: self.instruction_counter };
-        self.execution_stack.push(Frame::FunctionFrame(frame));
+        self.frames.push(Frame::FunctionFrame(frame));
         self.instruction_counter = address;
         Ok(())
     }
 
     pub fn function_return(&mut self) -> Result<(), RuntimeError> {
-        if let Some(Frame::FunctionFrame(frame)) = self.execution_stack.pop() {
+        if let Some(Frame::FunctionFrame(frame)) = self.frames.pop() {
             self.instruction_counter = frame.return_index;
             Ok(())
         } else {
             Err(RuntimeError::UnexpectedReturn)
+        }
+    }
+
+    pub fn stack_frame_push(&mut self, io_size: usize) -> Result<(), RuntimeError> {
+        if io_size > self.stack.len() {
+            return Err(RuntimeError::StackUnderflow);
+        }
+
+        let address = self.stack.len() - io_size;
+        self.frames.push(Frame::StackFrame(StackFrame {
+            stack_address: address, io_size
+        }));
+
+        Ok(())
+    }
+
+    pub fn stack_frame_pop(&mut self) -> Result<(), RuntimeError> {
+        if let Some(Frame::StackFrame(frame)) = self.frames.pop() {
+            if frame.stack_address + frame.io_size > self.stack.len() {
+                return Err(RuntimeError::StackUnderflow);
+            }
+
+            let output_address = self.stack.len() - frame.io_size;
+            let mut output = Vec::from(&self.stack[output_address..]);
+            self.stack.truncate(frame.stack_address);
+            self.stack.append(&mut output);
+
+            Ok(())
+        } else {
+            Err(RuntimeError::UnexpectedFrameExit)
         }
     }
 }
