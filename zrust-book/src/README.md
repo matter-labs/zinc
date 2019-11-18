@@ -1,3 +1,5 @@
+<img src="./zrust.svg"/>
+
 # Introduction
 
 Recent rapid advances in R1CS-based SNARKs finally make application of
