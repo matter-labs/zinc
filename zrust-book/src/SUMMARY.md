@@ -2,8 +2,7 @@
 
 [Introduction](README.md)
 
-- [Design background](01-design-background/00-design-background.md)
-    - [Comparison to Rust](01-design-background/01-comparison-to-rust.md)
+- [Design background](01-design-background.md)
 - [Getting started](02-basic-concepts/00-overview.md)
     - [Inputs, witnesses and output](02-basic-concepts/01-input-output.md)
     - [Standard library](02-basic-concepts/02-standard-library.md)
