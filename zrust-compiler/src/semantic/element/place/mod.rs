@@ -11,20 +11,23 @@ pub use self::error::Error;
 use std::fmt;
 
 use crate::semantic::Value;
-use crate::syntax::Identifier;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Place {
-    pub identifier: Identifier,
+    pub identifier: String,
     pub elements: Vec<Descriptor>,
 }
 
 impl Place {
-    pub fn new(identifier: Identifier) -> Self {
+    pub fn new(identifier: String) -> Self {
         Self {
             identifier,
             elements: Vec::new(),
         }
+    }
+
+    pub fn name(&self) -> String {
+        self.identifier.clone()
     }
 
     pub fn index(&mut self, value: Value) -> Result<(), Error> {
@@ -56,7 +59,7 @@ impl Place {
     pub fn access_structure(&mut self, place: Place) -> Result<(), Error> {
         let field = place.identifier;
 
-        self.elements.push(Descriptor::StructureField(field.name));
+        self.elements.push(Descriptor::StructureField(field));
         Ok(())
     }
 }

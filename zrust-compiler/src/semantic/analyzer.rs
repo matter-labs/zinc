@@ -111,7 +111,10 @@ impl Analyzer {
                             self.scope().borrow().deref(),
                         )
                         .map_err(|error| Error::Element(location, error))?;
-                    self.push_instruction(Box::new(zrust_bytecode::Cast::new(bitlength as u8)));
+                    self.push_instruction(Box::new(zrust_bytecode::Cast::new(
+                        is_signed,
+                        bitlength as u8,
+                    )));
                     let_type_variant
                 } else {
                     let operand_1 = self.get_unary_operand(true)?;
@@ -124,10 +127,10 @@ impl Analyzer {
                 self.scope()
                     .borrow_mut()
                     .declare_variable(
-                        r#let.identifier.name,
+                        Place::new(r#let.identifier.name),
                         Value::new(type_variant),
                         r#let.is_mutable,
-                        self.stack_height,
+                        self.stack_height - 1,
                     )
                     .map_err(|error| Error::Scope(location, error))?;
             }
@@ -150,10 +153,10 @@ impl Analyzer {
                 self.scope()
                     .borrow_mut()
                     .declare_variable(
-                        r#loop.index_identifier.name,
+                        Place::new(r#loop.index_identifier.name),
                         value,
                         false,
-                        self.stack_height,
+                        self.stack_height - 1,
                     )
                     .map_err(|error| Error::Scope(location, error))?;
                 self.evaluate_block_expression(r#loop.block)?;
@@ -233,7 +236,7 @@ impl Analyzer {
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.scope()
                         .borrow_mut()
-                        .update_variable(&place.identifier.name, self.stack_height)
+                        .update_variable(place, self.stack_height - 1)
                         .map_err(|error| Error::Scope(element.location, error))?;
                     self.push_operand(StackElement::Element(Element::Value(Value::Unit)));
                 }
@@ -384,11 +387,13 @@ impl Analyzer {
                     let (is_signed, bitlength) = operand_1
                         .cast(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_instruction(Box::new(zrust_bytecode::Cast::new(bitlength as u8)));
-                    self.operands
-                        .push(StackElement::Element(Element::Value(Value::new(
-                            TypeVariant::new_integer(is_signed, bitlength),
-                        ))));
+                    self.push_instruction(Box::new(zrust_bytecode::Cast::new(
+                        is_signed,
+                        bitlength as u8,
+                    )));
+                    self.push_operand(StackElement::Element(Element::Value(Value::new(
+                        TypeVariant::new_integer(is_signed, bitlength),
+                    ))));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Negation) => {
                     let operand_1 = self.get_unary_operand(true)?;
@@ -443,16 +448,21 @@ impl Analyzer {
         identifier: Identifier,
         is_for_stack: bool,
     ) -> Result<(), Error> {
-        let place = Place::new(identifier);
+        let place = Place::new(identifier.name);
         let address = self
             .scope()
             .borrow()
             .get_variable_address(&place)
             .map_err(|error| Error::Scope(Location::new(0, 0), error))?;
+        let value = self
+            .scope()
+            .borrow()
+            .get_variable_value(&place)
+            .map_err(|error| Error::Scope(Location::new(0, 0), error))?;
 
         if is_for_stack {
             self.push_instruction(Box::new(zrust_bytecode::Copy::new(address)));
-            self.push_operand(self.operands[address].clone());
+            self.push_operand(StackElement::Element(Element::Value(value)));
             self.stack_height += 1;
         } else {
             self.push_operand(StackElement::Element(Element::Place(place)));
@@ -462,8 +472,7 @@ impl Analyzer {
     }
 
     fn evaluate_type(&mut self, r#type: Type) -> Result<(), Error> {
-        self.operands
-            .push(StackElement::Element(Element::Type(r#type.variant)));
+        self.push_operand(StackElement::Element(Element::Type(r#type.variant)));
 
         Ok(())
     }
@@ -475,8 +484,7 @@ impl Analyzer {
         if let Some(expression) = block.expression {
             self.evaluate_expression(*expression)?;
         } else {
-            self.operands
-                .push(StackElement::Element(Element::Value(Value::Unit)));
+            self.push_operand(StackElement::Element(Element::Value(Value::Unit)));
         }
 
         Ok(())
@@ -522,8 +530,7 @@ impl Analyzer {
             self.pop_scope();
             (self.get_unary_operand(true)?, self.stack_height)
         } else {
-            self.operands
-                .push(StackElement::Element(Element::Value(Value::Unit)));
+            self.push_operand(StackElement::Element(Element::Value(Value::Unit)));
             (Element::Value(Value::Unit), self.stack_height)
         };
 
@@ -550,22 +557,22 @@ impl Analyzer {
             }
         }
 
-        let mut assignments = HashMap::<String, usize>::new();
-        let mut conditional_assignments = HashMap::<String, (usize, usize)>::new();
-        for (identifier, address_1) in main_assignments.into_iter() {
-            if let Some(address_2) = else_assignments.get(&identifier).copied() {
-                conditional_assignments.insert(identifier, (address_1, address_2));
+        let mut assignments = HashMap::<Place, usize>::new();
+        let mut conditional_assignments = HashMap::<Place, (usize, usize)>::new();
+        for (place, address_1) in main_assignments.into_iter() {
+            if let Some(address_2) = else_assignments.get(&place).copied() {
+                conditional_assignments.insert(place, (address_1, address_2));
             } else {
-                assignments.insert(identifier, address_1);
+                assignments.insert(place, address_1);
             }
         }
-        for (identifier, address) in else_assignments.into_iter() {
-            if !conditional_assignments.contains_key(&identifier) {
-                assignments.insert(identifier, address);
+        for (place, address) in else_assignments.into_iter() {
+            if !conditional_assignments.contains_key(&place) {
+                assignments.insert(place, address);
             }
         }
         self.scope().borrow_mut().add_assignments(assignments);
-        for (identifier, (address_1, address_2)) in conditional_assignments.into_iter() {
+        for (place, (address_1, address_2)) in conditional_assignments.into_iter() {
             self.push_instruction(Box::new(zrust_bytecode::Copy::new(condition_address)));
             self.push_instruction(Box::new(zrust_bytecode::Copy::new(address_1)));
             self.push_instruction(Box::new(zrust_bytecode::Copy::new(address_2)));
@@ -573,7 +580,7 @@ impl Analyzer {
             self.stack_height += 1;
             self.scope()
                 .borrow_mut()
-                .update_variable(&identifier, self.stack_height)
+                .update_variable(place, self.stack_height)
                 .map_err(|error| Error::Scope(location, error))?;
         }
 
@@ -581,34 +588,32 @@ impl Analyzer {
     }
 
     fn evaluate_operand(&mut self, is_for_stack: bool) -> Result<Element, Error> {
-        Ok(
-            match self.operands.pop().expect("Always contains an element") {
-                StackElement::Operand(operand) => {
-                    match operand {
-                        ExpressionOperand::Literal(literal) => self.evaluate_literal(literal)?,
-                        ExpressionOperand::Identifier(identifier) => {
-                            self.evaluate_identifier(identifier, is_for_stack)?
-                        }
-                        ExpressionOperand::Type(r#type) => self.evaluate_type(r#type)?,
-                        ExpressionOperand::Block(block) => {
-                            self.push_scope();
-                            self.evaluate_block_expression(block)?;
-                            self.scope().borrow_mut().move_assignments();
-                            self.pop_scope();
-                        }
-                        ExpressionOperand::Conditional(conditional) => {
-                            self.evaluate_conditional_expression(conditional)?;
-                        }
-                        _ => unimplemented!(),
+        Ok(match self.pop_operand() {
+            StackElement::Operand(operand) => {
+                match operand {
+                    ExpressionOperand::Literal(literal) => self.evaluate_literal(literal)?,
+                    ExpressionOperand::Identifier(identifier) => {
+                        self.evaluate_identifier(identifier, is_for_stack)?
                     }
-                    match self.operands.pop().expect("Always contains an element") {
-                        StackElement::Element(element) => element,
-                        _ => panic!("Always checked by some branches above"),
+                    ExpressionOperand::Type(r#type) => self.evaluate_type(r#type)?,
+                    ExpressionOperand::Block(block) => {
+                        self.push_scope();
+                        self.evaluate_block_expression(block)?;
+                        self.scope().borrow_mut().move_assignments();
+                        self.pop_scope();
                     }
+                    ExpressionOperand::Conditional(conditional) => {
+                        self.evaluate_conditional_expression(conditional)?;
+                    }
+                    _ => unimplemented!(),
                 }
-                StackElement::Element(element) => element,
-            },
-        )
+                match self.pop_operand() {
+                    StackElement::Element(element) => element,
+                    _ => panic!("Always checked by some branches above"),
+                }
+            }
+            StackElement::Element(element) => element,
+        })
     }
 
     fn get_unary_operand(&mut self, is_for_stack: bool) -> Result<Element, Error> {
@@ -626,8 +631,12 @@ impl Analyzer {
     }
 
     fn push_operand(&mut self, operand: StackElement) {
-        log::trace!("!!! {}", self.stack_height);
+        //        log::trace!("!!! {}", self.stack_height);
         self.operands.push(operand);
+    }
+
+    fn pop_operand(&mut self) -> StackElement {
+        self.operands.pop().expect("Always contains an element")
     }
 
     fn push_instruction(&mut self, instruction: Box<dyn Instruction>) {

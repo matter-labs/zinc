@@ -440,7 +440,7 @@ dependencies = [
 [[package]]
 name = "zrust-bytecode"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/zrust-vm?branch=development#854bd77ed8fe7687f4d24a42d7c054c07f1099cf"
+source = "git+https://github.com/matter-labs/zrust-vm?branch=development#700e93d0e498fae176932c16371d1974ce8e3803"
 dependencies = [
  "enum-primitive-derive 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
