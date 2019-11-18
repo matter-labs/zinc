@@ -415,7 +415,21 @@ impl Analyzer {
                 }
                 ExpressionObject::Operator(ExpressionOperator::Indexing) => {}
                 ExpressionObject::Operator(ExpressionOperator::Field) => {}
-                ExpressionObject::Operator(ExpressionOperator::Call) => {}
+                ExpressionObject::Operator(ExpressionOperator::Call) => {
+                    let (operand_1, operand_2) = self.get_binary_operands(false, false)?;
+
+                    let type_variant = match operand_1 {
+                        Element::Type(type_variant) => type_variant,
+                        element => return Err(Error::CallingNotCallable(element.to_string())),
+                    };
+                    //                    let arguments = match operand_2 {
+                    //                        Element::Value(Value::List(arguments)) => arguments,
+                    //                        _ => panic!("Always is an argument list"),
+                    //                    };
+                    //
+                    //                    let value = self.evaluate_function_call(type_variant, arguments)?;
+                    //                    self.push_operand(Element::Value(value));
+                }
                 ExpressionObject::Operator(ExpressionOperator::Path) => {}
             }
         }
@@ -587,6 +601,17 @@ impl Analyzer {
         Ok(())
     }
 
+    fn evaluate_list_expression(&mut self, list: Vec<Expression>) -> Result<usize, Error> {
+        log::trace!("List expression        : {:?}", list);
+
+        let input_length = list.len();
+        for expression in list.into_iter() {
+            self.evaluate_expression(expression)?;
+        }
+
+        Ok(input_length)
+    }
+
     fn evaluate_operand(&mut self, is_for_stack: bool) -> Result<Element, Error> {
         Ok(match self.pop_operand() {
             StackElement::Operand(operand) => {
@@ -604,6 +629,9 @@ impl Analyzer {
                     }
                     ExpressionOperand::Conditional(conditional) => {
                         self.evaluate_conditional_expression(conditional)?;
+                    }
+                    ExpressionOperand::List(list) => {
+                        self.evaluate_list_expression(list)?;
                     }
                     _ => unimplemented!(),
                 }
@@ -631,7 +659,6 @@ impl Analyzer {
     }
 
     fn push_operand(&mut self, operand: StackElement) {
-        //        log::trace!("!!! {}", self.stack_height);
         self.operands.push(operand);
     }
 

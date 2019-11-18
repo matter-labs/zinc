@@ -7,7 +7,7 @@ zrustc 0.5.0
 The ZRust compiler
 
 USAGE:
-    zrustc.exe [FLAGS] --input <input> --output <output>
+    zrustc [FLAGS] --input <input> --output <output>
 
 FLAGS:
     -h, --help       Prints help information

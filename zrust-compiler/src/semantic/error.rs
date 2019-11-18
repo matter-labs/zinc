@@ -36,4 +36,6 @@ pub enum Error {
         _0, _1, _2
     )]
     ConditionalBranchTypeMismatch(Location, TypeVariant, TypeVariant),
+    #[fail(display = "calling a not-callable object '{}'", _0)]
+    CallingNotCallable(String),
 }

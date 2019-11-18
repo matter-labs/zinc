@@ -4,7 +4,13 @@ witness {}
 
 output {}
 
-let mut a = 5;
-if false {
-    1 / a;
-};
+let mut a = 5; // a1
+if true { // cond1
+    if true { // cond2
+        a = 10; // a2
+    } else {
+        a = 15; // a3
+    } // a4
+} else {
+    a = 20; // a5
+}; // a6
