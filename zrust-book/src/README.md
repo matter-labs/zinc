@@ -1,4 +1,6 @@
-<img src="./zrust.svg"/>
+<svg>
+    <img width="200" height="200" src="./zrust.svg"/>
+</svg>
 
 # Introduction
 
