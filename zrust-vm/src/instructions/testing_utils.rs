@@ -26,7 +26,7 @@ where
     O: ElementOperator<E>,
     BI: Into<BigInt> + Copy,
 {
-    for (i, expected) in expected_stack.iter().enumerate() {
+    for (i, expected) in expected_stack.iter().rev().enumerate() {
         let value = vm.stack_get(i).expect("expected stack value is missing");
         assert_eq!(
             value.to_bigint(),

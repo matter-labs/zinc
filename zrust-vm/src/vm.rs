@@ -88,9 +88,8 @@ where
     }
 
     pub fn stack_get(&self, index: usize) -> Result<E, RuntimeError> {
-        let last = self.stack.len();
         self.stack
-            .get(last - index - 1)
+            .get(index)
             .ok_or(RuntimeError::StackUnderflow)
             .map(|e| (*e).clone())
     }
