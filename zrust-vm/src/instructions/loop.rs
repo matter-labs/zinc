@@ -22,29 +22,21 @@ impl<E, O> VMInstruction<E, O> for LoopEnd
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::instructions::testing_utils;
-    use num_bigint::BigInt;
     use zrust_bytecode::{Push, Add};
+    use crate::instructions::testing_utils::{VMTestRunner, TestingError};
 
     #[test]
-    fn test_loop() -> Result<(), RuntimeError> {
-        let mut bytecode = testing_utils::create_instructions_vec();
-        bytecode.push(Box::new(Push { value: BigInt::from(42) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(0) }));
-        bytecode.push(Box::new(LoopBegin::new(10, 1)));
-        bytecode.push(Box::new(Push { value: BigInt::from(1) }));
-        bytecode.push(Box::new(Add));
-        bytecode.push(Box::new(LoopEnd));
+    fn test_loop() -> Result<(), TestingError> {
+        env_logger::builder().is_test(true).try_init();
 
-        let mut vm = testing_utils::new_test_constrained_vm();
-        vm.run(bytecode.as_mut_slice())?;
+        VMTestRunner::new()
+            .add(Push { value: 42.into() })
+            .add(Push { value: 0.into() })
+            .add(LoopBegin::new(10, 1))
+            .add(Push { value: 1.into() })
+            .add(Add)
+            .add(LoopEnd)
 
-        testing_utils::assert_stack_eq(&vm, &[10, 42]);
-
-        let cs = vm.get_operator().constraint_system();
-        assert_eq!(cs.find_unconstrained(), "", "unconstrained variables");
-        assert!(cs.is_satisfied(), "satisfied");
-
-        Ok(())
+            .test(&[10, 42])
     }
 }

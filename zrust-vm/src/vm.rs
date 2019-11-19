@@ -16,53 +16,67 @@ pub enum RuntimeError {
 }
 
 #[derive(Copy, Clone)]
-struct StackFrame {
-    stack_address: usize,
-    inputs_count: usize,
-}
-
-#[derive(Copy, Clone)]
-struct LoopFrame {
+struct Loop {
     first_instruction_index: usize,
     iterations_left: usize,
     io_size: usize,
 }
 
 #[derive(Copy, Clone)]
-struct FunctionFrame {
-    return_index: usize,
+struct Function {
+    return_address: usize,
 }
 
-#[derive(Copy, Clone)]
-enum Frame {
-    LoopFrame(LoopFrame),
-    FunctionFrame(FunctionFrame),
-    StackFrame(StackFrame),
+enum Scope {
+    Loop(Loop),
+    Function(Function),
 }
 
-pub struct VirtualMachine<E, O>
-where
-    E: Element,
-    O: ElementOperator<E>
-{
+#[derive(Clone)]
+struct Frame {
+    address: usize
+}
+
+pub struct VirtualMachine<E: Element, O: ElementOperator<E>> {
+    instruction_counter: usize,
     stack: Vec<E>,
     frames: Vec<Frame>,
+    scopes: Vec<Scope>,
     operator: O,
-    instruction_counter: usize,
 }
 
-impl <E, O> VirtualMachine<E, O>
-where
-    E: Element,
-    O: ElementOperator<E>
-{
+impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     pub fn new(operator: O) -> Self {
         Self {
-            stack: Vec::new(),
-            operator,
             instruction_counter: 0,
-            frames: Vec::new(),
+            stack: vec![],
+            frames: vec![Frame { address: 0 }],
+            scopes: vec![],
+            operator
         }
+    }
+
+    pub fn stack_push(&mut self, element: E) -> Result<(), RuntimeError> {
+        self.stack.push(element);
+        Ok(())
+    }
+
+    pub fn stack_pop(&mut self) -> Result<E, RuntimeError> {
+        let frame = self.frames.last().ok_or(RuntimeError::StackUnderflow)?;
+
+        if self.stack.len() > frame.address {
+            self.stack.pop().ok_or(RuntimeError::InternalError)
+        } else {
+            Err(RuntimeError::StackUnderflow)
+        }
+    }
+
+    pub fn stack_get(&self, index: usize) -> Result<E, RuntimeError> {
+        let frame = self.frames.last().ok_or(RuntimeError::StackUnderflow)?;
+        self.stack
+            .get(frame.address + index)
+            .ok_or(RuntimeError::InternalError)
+            .map(|e| (*e).clone())
     }
 
     pub fn run(&mut self, instructions: &mut [Box<dyn VMInstruction<E, O>>])
@@ -80,119 +94,91 @@ where
     }
 
     pub fn log_stack(&self) {
-        let mut s = String::new();
-        for e in self.stack.iter().rev() {
-            s += format!("{} ", e).as_str();
-        }
-        log::info!("{}", s)
-    }
-
-    pub fn stack_push(&mut self, element: E) -> Result<(), RuntimeError> {
-        self.stack.push(element);
-
-        Ok(())
-    }
-
-    pub fn stack_pop(&mut self) -> Result<E, RuntimeError> {
-        self.stack
-            .pop()
-            .ok_or(RuntimeError::StackUnderflow)
-    }
-
-    pub fn stack_get(&self, index: usize) -> Result<E, RuntimeError> {
-        self.stack
-            .get(index)
-            .ok_or(RuntimeError::StackUnderflow)
-            .map(|e| (*e).clone())
+//        let mut s = String::new();
+//        for e in self.stack.iter().rev() {
+//            s += format!("{} ", e).as_str();
+//        }
+//        log::info!("{}", s)
     }
 
     pub fn get_operator(&mut self) -> &mut O {
         &mut self.operator
     }
 
+    /// Take `inputs_count` values from current frame and push them into new one.
+    fn frame_push(&mut self, inputs_count: usize) -> Result<(), RuntimeError> {
+        let frame = self.frames.last().ok_or(RuntimeError::StackUnderflow)?;
+        let address = self.stack.len().checked_sub(inputs_count).ok_or(RuntimeError::StackUnderflow)?;
+        if address < frame.address {
+            return Err(RuntimeError::StackUnderflow);
+        }
+        self.frames.push(Frame { address: address });
+        Ok(())
+    }
+
+    /// Drop current frame and push `outputs_count` top values into the frame below.
+    fn frame_pop(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
+        let frame = self.frames.pop().ok_or(RuntimeError::StackUnderflow)?;
+        let outputs_address = self.stack.len().checked_sub(outputs_count).ok_or(RuntimeError::StackUnderflow)?;
+
+        if outputs_address < frame.address {
+            return Err(RuntimeError::StackUnderflow)
+        }
+
+        let mut outputs = Vec::from(&self.stack[outputs_address..]);
+        self.stack.truncate(frame.address);
+        self.stack.append(&mut outputs);
+
+        Ok(())
+    }
+
     pub fn loop_begin(&mut self, iterations: usize, io_size: usize) -> Result<(), RuntimeError> {
-        let frame = LoopFrame {
+        let loop_frame = Loop {
             first_instruction_index: self.instruction_counter,
             iterations_left: iterations - 1,
             io_size
         };
-        self.frames.push(Frame::LoopFrame(frame));
-        self.stack_frame_push(io_size)?;
+        self.scopes.push(Scope::Loop(loop_frame));
+        self.frame_push(io_size)?;
 
         Ok(())
     }
 
     pub fn loop_end(&mut self) -> Result<(), RuntimeError> {
-        self.stack_frame_pop(None)?;
+        let mut frame = match self.scopes.pop() {
+            Some(Scope::Loop(frame)) => Ok(frame),
+            _ => Err(RuntimeError::UnexpectedLoopExit),
+        }?;
 
-        if let Some(Frame::LoopFrame(mut frame)) = self.frames.pop() {
-            if frame.iterations_left != 0 {
-                self.instruction_counter = frame.first_instruction_index;
-                frame.iterations_left -= 1;
-                self.frames.push(Frame::LoopFrame(frame));
-                self.stack_frame_push(frame.io_size)?;
-            }
-            Ok(())
-        } else {
-            Err(RuntimeError::UnexpectedLoopExit)
+        self.frame_pop(frame.io_size)?;
+
+        if frame.iterations_left != 0 {
+            frame.iterations_left -= 1;
+            self.frame_push(frame.io_size)?;
+            self.instruction_counter = frame.first_instruction_index;
+            self.scopes.push(Scope::Loop(frame));
         }
+
+        Ok(())
     }
 
-    pub fn function_call(&mut self, address: usize, inputs_count: usize) -> Result<(), RuntimeError> {
-        let frame = FunctionFrame { return_index: self.instruction_counter };
-        self.frames.push(Frame::FunctionFrame(frame));
-        self.stack_frame_push(inputs_count)?;
+    pub fn call(&mut self, address: usize, inputs_count: usize) -> Result<(), RuntimeError> {
+        let frame = Function { return_address: self.instruction_counter };
+        self.frame_push(inputs_count)?;
+        self.scopes.push(Scope::Function(frame));
         self.instruction_counter = address;
         Ok(())
     }
 
-    pub fn function_return(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
-        self.stack_frame_pop(Some(outputs_count))?;
+    pub fn ret(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
+        let mut frame = match self.scopes.pop() {
+            Some(Scope::Function(loop_frame)) => Ok(loop_frame),
+            _ => Err(RuntimeError::UnexpectedReturn),
+        }?;
 
-        if let Some(Frame::FunctionFrame(frame)) = self.frames.pop() {
-            self.instruction_counter = frame.return_index;
-            Ok(())
-        } else {
-            Err(RuntimeError::UnexpectedReturn)
-        }
-    }
-
-    pub fn stack_frame_push(&mut self, inputs_count: usize) -> Result<(), RuntimeError> {
-        if inputs_count > self.stack.len() {
-            return Err(RuntimeError::StackUnderflow);
-        }
-
-        let stack_address = self.stack.len() - inputs_count;
-        self.frames.push(Frame::StackFrame(StackFrame {
-            stack_address,
-            inputs_count,
-        }));
+        self.frame_pop(outputs_count)?;
+        self.instruction_counter = frame.return_address;
 
         Ok(())
     }
-
-    pub fn stack_frame_pop(&mut self, outputs_count: Option<usize>) -> Result<(), RuntimeError> {
-        if let Some(Frame::StackFrame(frame)) = self.frames.pop() {
-            let outputs = outputs_count.unwrap_or(frame.inputs_count);
-
-            if frame.stack_address + outputs > self.stack.len() {
-                return Err(RuntimeError::StackUnderflow);
-            }
-
-            let outputs_address = self.stack.len() - outputs;
-            let mut output = Vec::from(&self.stack[outputs_address..]);
-            self.stack.truncate(frame.stack_address);
-            self.stack.append(&mut output);
-
-            Ok(())
-        } else {
-            Err(RuntimeError::UnexpectedFrameExit)
-        }
-    }
-}
-
-
-trait VM {
-    fn call(address: usize, inputs_count: usize) -> Result<(), RuntimeError>;
-    fn ret(outputs_count: usize) -> Result<(), RuntimeError>;
 }
