@@ -16,6 +16,14 @@ impl Instruction for Ne {
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::Ne as u8]
     }
+
+    fn inputs_count(&self) -> usize {
+        2
+    }
+
+    fn outputs_count(&self) -> usize {
+        1
+    }
 }
 
 impl Ne {

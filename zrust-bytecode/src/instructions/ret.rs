@@ -19,6 +19,14 @@ impl Instruction for Return {
     fn encode(&self) -> Vec<u8> {
         utils::encode_with_vlq_argument(InstructionCode::Return, &BigInt::from(self.outputs_count))
     }
+
+    fn inputs_count(&self) -> usize {
+        0
+    }
+
+    fn outputs_count(&self) -> usize {
+        0
+    }
 }
 
 impl Return {

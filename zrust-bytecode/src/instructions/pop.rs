@@ -19,6 +19,14 @@ impl Instruction for Pop {
     fn encode(&self) -> Vec<u8> {
         utils::encode_with_vlq_argument(InstructionCode::Pop, &self.count.to_bigint().unwrap())
     }
+
+    fn inputs_count(&self) -> usize {
+        1
+    }
+
+    fn outputs_count(&self) -> usize {
+        0
+    }
 }
 
 impl Pop {

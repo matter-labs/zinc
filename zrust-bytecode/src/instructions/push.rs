@@ -18,6 +18,14 @@ impl Instruction for Push {
     fn encode(&self) -> Vec<u8> {
         utils::encode_with_vlq_argument(InstructionCode::Push, &self.value)
     }
+
+    fn inputs_count(&self) -> usize {
+        0
+    }
+
+    fn outputs_count(&self) -> usize {
+        1
+    }
 }
 
 impl Push {

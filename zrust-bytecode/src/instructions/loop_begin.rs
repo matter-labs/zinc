@@ -23,6 +23,14 @@ impl Instruction for LoopBegin {
         bytes.append(vlq::encode(&BigInt::from(self.io_size)).as_mut());
         bytes
     }
+
+    fn inputs_count(&self) -> usize {
+        0
+    }
+
+    fn outputs_count(&self) -> usize {
+        0
+    }
 }
 
 impl LoopBegin {

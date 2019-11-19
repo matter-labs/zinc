@@ -54,6 +54,8 @@ pub trait Instruction: Debug {
     fn to_assembly(&self) -> String;
     fn code(&self) -> InstructionCode;
     fn encode(&self) -> Vec<u8>;
+    fn inputs_count(&self) -> usize;
+    fn outputs_count(&self) -> usize;
 }
 
 #[derive(Debug)]

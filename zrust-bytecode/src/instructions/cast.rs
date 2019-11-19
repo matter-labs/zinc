@@ -16,6 +16,14 @@ impl Instruction for Cast {
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::Cast as u8]
     }
+
+    fn inputs_count(&self) -> usize {
+        1
+    }
+
+    fn outputs_count(&self) -> usize {
+        1
+    }
 }
 
 impl Cast {

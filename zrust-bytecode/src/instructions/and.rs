@@ -16,6 +16,14 @@ impl Instruction for And {
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::And as u8]
     }
+
+    fn inputs_count(&self) -> usize {
+        2
+    }
+
+    fn outputs_count(&self) -> usize {
+        1
+    }
 }
 
 impl And {

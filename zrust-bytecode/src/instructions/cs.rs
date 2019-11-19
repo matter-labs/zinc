@@ -16,6 +16,14 @@ impl Instruction for ConditionalSelect {
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::ConditionalSelect as u8]
     }
+
+    fn inputs_count(&self) -> usize {
+        3
+    }
+
+    fn outputs_count(&self) -> usize {
+        1
+    }
 }
 
 impl ConditionalSelect {

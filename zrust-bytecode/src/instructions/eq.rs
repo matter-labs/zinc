@@ -16,6 +16,14 @@ impl Instruction for Eq {
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::Eq as u8]
     }
+
+    fn inputs_count(&self) -> usize {
+        2
+    }
+
+    fn outputs_count(&self) -> usize {
+        1
+    }
 }
 
 impl Eq {

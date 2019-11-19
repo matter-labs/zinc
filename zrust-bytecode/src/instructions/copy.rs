@@ -19,6 +19,14 @@ impl Instruction for Copy {
     fn encode(&self) -> Vec<u8> {
         utils::encode_with_vlq_argument(InstructionCode::Copy, &self.index.to_bigint().unwrap())
     }
+
+    fn inputs_count(&self) -> usize {
+        0
+    }
+
+    fn outputs_count(&self) -> usize {
+        1
+    }
 }
 
 impl Copy {

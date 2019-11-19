@@ -16,6 +16,14 @@ impl Instruction for NoOperation {
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::NoOperation as u8]
     }
+
+    fn inputs_count(&self) -> usize {
+        0
+    }
+
+    fn outputs_count(&self) -> usize {
+        0
+    }
 }
 
 impl NoOperation {

@@ -130,7 +130,7 @@ where
                 self.instruction_counter = frame.first_instruction_index;
                 frame.iterations_left -= 1;
                 self.frames.push(Frame::LoopFrame(frame));
-                self.stack_frame_push(frame.io_size);
+                self.stack_frame_push(frame.io_size)?;
             }
             Ok(())
         } else {
@@ -141,7 +141,7 @@ where
     pub fn function_call(&mut self, address: usize, inputs_count: usize) -> Result<(), RuntimeError> {
         let frame = FunctionFrame { return_index: self.instruction_counter };
         self.frames.push(Frame::FunctionFrame(frame));
-        self.stack_frame_push(inputs_count);
+        self.stack_frame_push(inputs_count)?;
         self.instruction_counter = address;
         Ok(())
     }

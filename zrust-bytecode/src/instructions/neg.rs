@@ -16,6 +16,14 @@ impl Instruction for Neg {
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::Neg as u8]
     }
+
+    fn inputs_count(&self) -> usize {
+        1
+    }
+
+    fn outputs_count(&self) -> usize {
+        1
+    }
 }
 
 impl Neg {

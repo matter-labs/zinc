@@ -23,6 +23,14 @@ impl Instruction for Call {
         bytes.append(vlq::encode(&BigInt::from(self.inputs_count)).as_mut());
         bytes
     }
+
+    fn inputs_count(&self) -> usize {
+        0
+    }
+
+    fn outputs_count(&self) -> usize {
+        0
+    }
 }
 
 impl Call {

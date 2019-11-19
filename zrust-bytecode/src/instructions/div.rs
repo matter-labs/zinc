@@ -16,6 +16,14 @@ impl Instruction for Div {
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::Div as u8]
     }
+
+    fn inputs_count(&self) -> usize {
+        2
+    }
+
+    fn outputs_count(&self) -> usize {
+        1
+    }
 }
 
 impl Div {

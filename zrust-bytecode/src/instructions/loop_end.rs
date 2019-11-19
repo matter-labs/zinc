@@ -16,6 +16,14 @@ impl Instruction for LoopEnd {
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::LoopEnd as u8]
     }
+
+    fn inputs_count(&self) -> usize {
+        0
+    }
+
+    fn outputs_count(&self) -> usize {
+        0
+    }
 }
 
 impl LoopEnd {
