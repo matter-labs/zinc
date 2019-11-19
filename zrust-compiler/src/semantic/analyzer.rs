@@ -13,7 +13,6 @@ use zrust_bytecode::Instruction;
 
 use crate::error::Error as CompilerError;
 use crate::lexical::Literal as InnerLiteral;
-use crate::lexical::Location;
 use crate::semantic::inference;
 use crate::semantic::Element;
 use crate::semantic::ElementError;
@@ -140,25 +139,26 @@ impl Analyzer {
                 let range_bitlength =
                     inference::enough_bitlength(&[&r#loop.range_start, &r#loop.range_end])
                         .map_err(|error| Error::Inference(location, error))?;
-                let value = Value::new(TypeVariant::new_integer_unsigned(range_bitlength));
 
                 let range_start: usize = r#loop.range_start.into();
                 let range_end: usize = r#loop.range_end.into();
                 let iterations_number = cmp::max(range_start, range_end)
                     - cmp::min(range_start, range_end)
                     + if r#loop.is_range_inclusive { 1 } else { 0 };
+                let is_reverse = range_start > range_end;
+                let index = Integer::range_bound(range_start, range_bitlength);
 
+                self.push_instruction(Box::new(index.to_push()));
                 self.push_instruction(Box::new(zrust_bytecode::LoopBegin::new(
                     iterations_number,
                     1,
                 )));
-                self.push_instruction(Box::new(value.to_push()));
                 self.push_scope();
                 self.scope()
                     .borrow_mut()
                     .declare_variable(
                         Place::new(r#loop.index_identifier.name),
-                        value,
+                        Value::Integer(index),
                         false,
                         self.stack_height,
                     )
@@ -166,9 +166,13 @@ impl Analyzer {
                 self.stack_height += 1;
                 self.evaluate_block_expression(r#loop.block)?;
                 self.pop_scope();
-                self.push_instruction(Box::new(zrust_bytecode::Copy::new(self.stack_height - 1)));
                 self.push_instruction(Box::new(Integer::increment(range_bitlength).to_push()));
-                self.push_instruction(Box::new(zrust_bytecode::Add));
+                self.push_instruction(Box::new(zrust_bytecode::Copy::new(self.stack_height - 1)));
+                self.push_instruction(if is_reverse {
+                    Box::new(zrust_bytecode::Sub)
+                } else {
+                    Box::new(zrust_bytecode::Add)
+                });
                 self.push_instruction(Box::new(zrust_bytecode::LoopEnd));
             }
             Statement::Type(r#type) => {
@@ -570,18 +574,6 @@ impl Analyzer {
             ));
         }
 
-        match main_type {
-            TypeVariant::Unit => {}
-            _ => {
-                self.push_instruction(Box::new(zrust_bytecode::Copy::new(main_result_address)));
-                self.push_instruction(Box::new(zrust_bytecode::Copy::new(else_result_address)));
-                self.push_instruction(Box::new(zrust_bytecode::Copy::new(condition_address)));
-                self.push_instruction(Box::new(zrust_bytecode::ConditionalSelect));
-                self.stack_height += 1;
-                self.push_operand(StackElement::Element(main_result));
-            }
-        }
-
         let mut assignments = HashMap::<Place, usize>::new();
         let mut conditional_assignments = HashMap::<Place, (usize, usize)>::new();
         for (place, address_1) in main_assignments.into_iter() {
@@ -606,6 +598,19 @@ impl Analyzer {
                 .borrow_mut()
                 .update_variable(place, self.stack_height)
                 .map_err(|error| Error::Scope(location, error))?;
+            self.stack_height += 1;
+        }
+
+        match main_type {
+            TypeVariant::Unit => {}
+            _ => {
+                self.push_instruction(Box::new(zrust_bytecode::Copy::new(else_result_address)));
+                self.push_instruction(Box::new(zrust_bytecode::Copy::new(main_result_address)));
+                self.push_instruction(Box::new(zrust_bytecode::Copy::new(condition_address)));
+                self.push_instruction(Box::new(zrust_bytecode::ConditionalSelect));
+                self.stack_height += 1;
+                self.push_operand(StackElement::Element(main_result));
+            }
         }
 
         Ok(())

@@ -8,5 +8,5 @@
 # Book
 /zrust-book/build/
 
-# Generated
-/transpiler/circuit/src/lib.rs
+# Binary
+/*.zrsb

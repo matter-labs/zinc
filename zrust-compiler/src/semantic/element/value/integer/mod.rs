@@ -35,6 +35,14 @@ impl Integer {
         }
     }
 
+    pub fn range_bound(value: usize, bitlength: usize) -> Self {
+        Self {
+            value: Some(BigInt::from(value)),
+            is_signed: false,
+            bitlength,
+        }
+    }
+
     pub fn increment(bitlength: usize) -> Self {
         Self {
             value: Some(BigInt::one()),
