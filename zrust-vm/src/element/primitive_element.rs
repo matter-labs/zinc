@@ -10,7 +10,7 @@ use std::fmt::{Debug, Display, Formatter, Error};
 /// It's purpose is to provide faster computation.
 #[derive(Debug, Clone)]
 pub struct PrimitiveElement {
-    value: u128,
+    value: i128,
 }
 
 impl Display for PrimitiveElement {
@@ -37,12 +37,12 @@ impl PrimitiveElementOperator {
 
 impl ElementOperator<PrimitiveElement> for PrimitiveElementOperator {
     fn constant_u64(&mut self, value: u64) -> Result<PrimitiveElement, RuntimeError> {
-        Ok(PrimitiveElement {value: value as u128})
+        Ok(PrimitiveElement {value: value as i128})
     }
 
     fn constant_bigint(&mut self, value: &BigInt) -> Result<PrimitiveElement, RuntimeError> {
-        let v = value.to_u128().ok_or(RuntimeError::IntegerOverflow)?;
-        Ok(PrimitiveElement { value: v })
+        let value = value.to_i128().ok_or(RuntimeError::IntegerOverflow)?;
+        Ok(PrimitiveElement { value })
     }
 
     fn add(&mut self, left: PrimitiveElement, right: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
@@ -64,8 +64,19 @@ impl ElementOperator<PrimitiveElement> for PrimitiveElementOperator {
     fn div_rem(&mut self, left: PrimitiveElement, right: PrimitiveElement)
         -> Result<(PrimitiveElement, PrimitiveElement), RuntimeError>
     {
-        let div = left.value.checked_div(right.value).ok_or(RuntimeError::IntegerOverflow)?;
-        let rem = left.value.checked_rem(right.value).ok_or(RuntimeError::IntegerOverflow)?;
+        let nominator = left.value;
+        let denominator = right.value;
+        let mut div = nominator / denominator;
+
+        if div * denominator > nominator {
+            if denominator > 0 {
+                div -= 1;
+            } else {
+                div += 1;
+            }
+        }
+
+        let rem = nominator - div * denominator;
 
         Ok((
            PrimitiveElement { value: div },
@@ -74,7 +85,7 @@ impl ElementOperator<PrimitiveElement> for PrimitiveElementOperator {
     }
 
     fn neg(&mut self, element: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
-        let value: u128 = (0 as u128).wrapping_sub(element.value);
+        let value = (0 as i128).wrapping_sub(element.value);
         Ok(PrimitiveElement { value })
     }
 

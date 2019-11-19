@@ -17,7 +17,7 @@ where E: Element, O: ElementOperator<E>
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use zrust_bytecode::*;
     use crate::instructions::testing_utils::{VMTestRunner, TestingError};

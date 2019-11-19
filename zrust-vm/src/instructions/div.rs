@@ -18,35 +18,28 @@ impl<E, O> VMInstruction<E, O> for Div
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::instructions::testing_utils;
     use zrust_bytecode::*;
-    use num_bigint::BigInt;
+    use crate::instructions::testing_utils::{VMTestRunner, TestingError};
 
     #[test]
-    fn test_div() -> Result<(), RuntimeError> {
-        let mut bytecode = testing_utils::create_instructions_vec();
-        bytecode.push(Box::new(Push { value: BigInt::from(4) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(9) }));
-        bytecode.push(Box::new(Div));
-        bytecode.push(Box::new(Push { value: BigInt::from(-4) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(9) }));
-        bytecode.push(Box::new(Div));
-        bytecode.push(Box::new(Push { value: BigInt::from(4) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(-9) }));
-        bytecode.push(Box::new(Div));
-        bytecode.push(Box::new(Push { value: BigInt::from(-4) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(-9) }));
-        bytecode.push(Box::new(Div));
+    fn test_div() -> Result<(), TestingError> {
+        VMTestRunner::new()
+            .add(Push { value: (4).into() })
+            .add(Push { value: (9).into() })
+            .add(Div)
 
-        let mut vm = testing_utils::new_test_constrained_vm();
-        vm.run(bytecode.as_mut_slice())?;
+            .add(Push { value: (-4).into() })
+            .add(Push { value: (9).into() })
+            .add(Div)
 
-        testing_utils::assert_stack_eq(&vm, &[3, -3, -2, 2]);
+            .add(Push { value: (4).into() })
+            .add(Push { value: (-9).into() })
+            .add(Div)
 
-        let cs = vm.get_operator().constraint_system();
-        assert_eq!(cs.find_unconstrained(), "", "unconstrained variables");
-        assert!(cs.is_satisfied(), "satisfied");
+            .add(Push { value: (-4).into() })
+            .add(Push { value: (-9).into() })
+            .add(Div)
 
-        Ok(())
+            .test(&[3, -3, -2, 2])
     }
 }

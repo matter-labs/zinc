@@ -17,37 +17,30 @@ impl<E, O> VMInstruction<E, O> for Xor
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
-    use crate::instructions::testing_utils;
     use zrust_bytecode::*;
-    use num_bigint::BigInt;
+    use crate::instructions::testing_utils::{VMTestRunner, TestingError};
 
     #[test]
-    fn test_xor() -> Result<(), RuntimeError> {
-        let mut bytecode = testing_utils::create_instructions_vec();
-        bytecode.push(Box::new(Push { value: BigInt::from(0) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(0) }));
-        bytecode.push(Box::new(Xor));
-        bytecode.push(Box::new(Push { value: BigInt::from(0) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(1) }));
-        bytecode.push(Box::new(Xor));
-        bytecode.push(Box::new(Push { value: BigInt::from(1) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(0) }));
-        bytecode.push(Box::new(Xor));
-        bytecode.push(Box::new(Push { value: BigInt::from(1) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(1) }));
-        bytecode.push(Box::new(Xor));
+    fn test_xor() -> Result<(), TestingError> {
+        VMTestRunner::new()
+            .add(Push { value: 0.into() })
+            .add(Push { value: 0.into() })
+            .add(Xor)
 
-        let mut vm = testing_utils::new_test_constrained_vm();
-        vm.run(bytecode.as_mut_slice())?;
+            .add(Push { value: 0.into() })
+            .add(Push { value: 1.into() })
+            .add(Xor)
 
-        testing_utils::assert_stack_eq(&vm, &[0, 1, 1, 0]);
+            .add(Push { value: 1.into() })
+            .add(Push { value: 0.into() })
+            .add(Xor)
 
-        let cs = vm.get_operator().constraint_system();
-        assert_eq!(cs.find_unconstrained(), "", "unconstrained variables");
-        assert!(cs.is_satisfied(), "satisfied");
+            .add(Push { value: 1.into() })
+            .add(Push { value: 1.into() })
+            .add(Xor)
 
-        Ok(())
+            .test(&[0, 1, 1, 0])
     }
 }

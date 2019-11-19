@@ -15,29 +15,19 @@ impl<E, O> VMInstruction<E, O> for Push
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
-    use crate::instructions::testing_utils;
-    use num_bigint::BigInt;
+    use crate::instructions::testing_utils::{VMTestRunner, TestingError};
 
     #[test]
-    fn test_push() -> Result<(), RuntimeError> {
-        let mut bytecode = testing_utils::create_instructions_vec();
-        bytecode.push(Box::new(Push { value: BigInt::from(0) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(42) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(0xABCD) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(-1) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(-1000) }));
+    fn test_push() -> Result<(), TestingError> {
+        VMTestRunner::new()
+            .add(Push { value: 0.into() })
+            .add(Push { value: 42.into() })
+            .add(Push { value: 0xABCD.into() })
+            .add(Push { value: (-1).into() })
+            .add(Push { value: (-1000).into() })
 
-        let mut vm = testing_utils::new_test_constrained_vm();
-        vm.run(bytecode.as_mut_slice())?;
-
-        testing_utils::assert_stack_eq(&vm, &[-1000, -1, 0xABCD, 42, 0]);
-
-        let cs = vm.get_operator().constraint_system();
-        assert_eq!(cs.find_unconstrained(), "", "unconstrained variables");
-        assert!(cs.is_satisfied(), "satisfied");
-
-        Ok(())
+            .test(&[-1000, -1, 0xABCD, 42, 0])
     }
 }
