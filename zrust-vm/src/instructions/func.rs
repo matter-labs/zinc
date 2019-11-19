@@ -27,7 +27,7 @@ mod tests {
 
     #[test]
     fn test_func() -> Result<(), TestingError> {
-        env_logger::builder().is_test(true).try_init();
+        let _ = env_logger::builder().is_test(true).try_init();
 
         VMTestRunner::new()
             // call main

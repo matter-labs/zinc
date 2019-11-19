@@ -171,7 +171,7 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     }
 
     pub fn ret(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
-        let mut frame = match self.scopes.pop() {
+        let frame = match self.scopes.pop() {
             Some(Scope::Function(loop_frame)) => Ok(loop_frame),
             _ => Err(RuntimeError::UnexpectedReturn),
         }?;

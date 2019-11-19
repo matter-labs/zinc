@@ -2,7 +2,7 @@ use crate::{Instruction, InstructionCode, DecodingError, vlq};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub struct Call {
     pub address: usize,
     pub inputs_count: usize,

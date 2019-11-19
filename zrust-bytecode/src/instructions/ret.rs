@@ -2,7 +2,7 @@ use crate::{Instruction, InstructionCode, DecodingError, utils};
 use num_traits::ToPrimitive;
 use num_bigint::BigInt;
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub struct Return {
     pub outputs_count: usize,
 }

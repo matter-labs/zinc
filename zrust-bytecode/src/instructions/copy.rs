@@ -2,7 +2,7 @@ use crate::{Instruction, InstructionCode, DecodingError, utils};
 use num_traits::ToPrimitive;
 use num_bigint::ToBigInt;
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub struct Copy {
     pub index: usize
 }

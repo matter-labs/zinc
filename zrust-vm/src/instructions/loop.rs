@@ -27,7 +27,7 @@ mod test {
 
     #[test]
     fn test_loop() -> Result<(), TestingError> {
-        env_logger::builder().is_test(true).try_init();
+        let _ = env_logger::builder().is_test(true).try_init();
 
         VMTestRunner::new()
             .add(Push { value: 42.into() })

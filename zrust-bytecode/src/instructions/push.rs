@@ -1,7 +1,7 @@
 use crate::{Instruction, InstructionCode, DecodingError, utils};
 use num_bigint::BigInt;
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub struct Push {
     pub value: BigInt
 }

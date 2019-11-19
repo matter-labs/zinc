@@ -1,7 +1,7 @@
 use crate::{Instruction, InstructionCode, DecodingError};
 use crate::instructions::utils::decode_simple_instruction;
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub struct Ne;
 
 impl Instruction for Ne {

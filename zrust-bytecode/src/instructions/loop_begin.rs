@@ -2,7 +2,7 @@ use crate::{Instruction, InstructionCode, DecodingError, vlq};
 use num_traits::ToPrimitive;
 use num_bigint::BigInt;
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub struct LoopBegin {
     pub iterations: usize,
     pub io_size: usize,
