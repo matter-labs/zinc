@@ -1,6 +1,4 @@
-<svg>
-    <img width="200" height="200" src="./zrust.svg"/>
-</svg>
+<img style="display: block; margin: auto;" width="200" height="200" src="./zrust-color.png"/>
 
 # Introduction
 

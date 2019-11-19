@@ -18,6 +18,7 @@ use crate::semantic::inference;
 use crate::semantic::Element;
 use crate::semantic::ElementError;
 use crate::semantic::Error;
+use crate::semantic::Integer;
 use crate::semantic::Place;
 use crate::semantic::Scope;
 use crate::semantic::Value;
@@ -136,10 +137,10 @@ impl Analyzer {
             }
             Statement::Loop(r#loop) => {
                 let location = r#loop.location;
-                let enough_bitlength =
+                let range_bitlength =
                     inference::enough_bitlength(&[&r#loop.range_start, &r#loop.range_end])
                         .map_err(|error| Error::Inference(location, error))?;
-                let value = Value::new(TypeVariant::new_integer_unsigned(enough_bitlength));
+                let value = Value::new(TypeVariant::new_integer_unsigned(range_bitlength));
 
                 let range_start: usize = r#loop.range_start.into();
                 let range_end: usize = r#loop.range_end.into();
@@ -147,20 +148,27 @@ impl Analyzer {
                     - cmp::min(range_start, range_end)
                     + if r#loop.is_range_inclusive { 1 } else { 0 };
 
-                self.push_instruction(Box::new(zrust_bytecode::LoopBegin::new(iterations_number)));
+                self.push_instruction(Box::new(zrust_bytecode::LoopBegin::new(
+                    iterations_number,
+                    1,
+                )));
+                self.push_instruction(Box::new(value.to_push()));
                 self.push_scope();
-                self.stack_height += 1;
                 self.scope()
                     .borrow_mut()
                     .declare_variable(
                         Place::new(r#loop.index_identifier.name),
                         value,
                         false,
-                        self.stack_height - 1,
+                        self.stack_height,
                     )
                     .map_err(|error| Error::Scope(location, error))?;
+                self.stack_height += 1;
                 self.evaluate_block_expression(r#loop.block)?;
                 self.pop_scope();
+                self.push_instruction(Box::new(zrust_bytecode::Copy::new(self.stack_height - 1)));
+                self.push_instruction(Box::new(Integer::increment(range_bitlength).to_push()));
+                self.push_instruction(Box::new(zrust_bytecode::Add));
                 self.push_instruction(Box::new(zrust_bytecode::LoopEnd));
             }
             Statement::Type(r#type) => {
@@ -462,22 +470,23 @@ impl Analyzer {
         identifier: Identifier,
         is_for_stack: bool,
     ) -> Result<(), Error> {
+        let location = identifier.location;
         let place = Place::new(identifier.name);
         let address = self
             .scope()
             .borrow()
             .get_variable_address(&place)
-            .map_err(|error| Error::Scope(Location::new(0, 0), error))?;
+            .map_err(|error| Error::Scope(location, error))?;
         let value = self
             .scope()
             .borrow()
             .get_variable_value(&place)
-            .map_err(|error| Error::Scope(Location::new(0, 0), error))?;
+            .map_err(|error| Error::Scope(location, error))?;
 
         if is_for_stack {
             self.push_instruction(Box::new(zrust_bytecode::Copy::new(address)));
-            self.push_operand(StackElement::Element(Element::Value(value)));
             self.stack_height += 1;
+            self.push_operand(StackElement::Element(Element::Value(value)));
         } else {
             self.push_operand(StackElement::Element(Element::Place(place)));
         }
@@ -512,7 +521,7 @@ impl Analyzer {
         let condition_location = conditional.condition.location;
 
         self.evaluate_expression(*conditional.condition)?;
-        let condition_address = self.stack_height;
+        let condition_address = self.stack_height - 1;
         match self
             .get_unary_operand(true)?
             .type_variant(self.scope().borrow().deref())
@@ -529,20 +538,21 @@ impl Analyzer {
 
         self.push_scope();
         self.evaluate_block_expression(conditional.main_block)?;
-        let (main_result, main_result_address) = (self.get_unary_operand(true)?, self.stack_height);
+        let (main_result, main_result_address) =
+            (self.get_unary_operand(true)?, self.stack_height - 1);
         let main_assignments = self.scope().borrow().get_assignments();
         self.pop_scope();
 
         let mut else_assignments = HashMap::new();
         let (else_result, else_result_address) = if let Some(else_if) = conditional.else_if {
             self.evaluate_conditional_expression(*else_if)?;
-            (self.get_unary_operand(true)?, self.stack_height)
+            (self.get_unary_operand(true)?, self.stack_height - 1)
         } else if let Some(else_block) = conditional.else_block {
             self.push_scope();
             self.evaluate_block_expression(else_block)?;
             else_assignments = self.scope().borrow().get_assignments();
             self.pop_scope();
-            (self.get_unary_operand(true)?, self.stack_height)
+            (self.get_unary_operand(true)?, self.stack_height - 1)
         } else {
             self.push_operand(StackElement::Element(Element::Value(Value::Unit)));
             (Element::Value(Value::Unit), self.stack_height)
@@ -563,11 +573,12 @@ impl Analyzer {
         match main_type {
             TypeVariant::Unit => {}
             _ => {
-                self.push_instruction(Box::new(zrust_bytecode::Copy::new(condition_address)));
                 self.push_instruction(Box::new(zrust_bytecode::Copy::new(main_result_address)));
                 self.push_instruction(Box::new(zrust_bytecode::Copy::new(else_result_address)));
+                self.push_instruction(Box::new(zrust_bytecode::Copy::new(condition_address)));
                 self.push_instruction(Box::new(zrust_bytecode::ConditionalSelect));
                 self.stack_height += 1;
+                self.push_operand(StackElement::Element(main_result));
             }
         }
 
@@ -587,11 +598,10 @@ impl Analyzer {
         }
         self.scope().borrow_mut().add_assignments(assignments);
         for (place, (address_1, address_2)) in conditional_assignments.into_iter() {
-            self.push_instruction(Box::new(zrust_bytecode::Copy::new(condition_address)));
-            self.push_instruction(Box::new(zrust_bytecode::Copy::new(address_1)));
             self.push_instruction(Box::new(zrust_bytecode::Copy::new(address_2)));
+            self.push_instruction(Box::new(zrust_bytecode::Copy::new(address_1)));
+            self.push_instruction(Box::new(zrust_bytecode::Copy::new(condition_address)));
             self.push_instruction(Box::new(zrust_bytecode::ConditionalSelect));
-            self.stack_height += 1;
             self.scope()
                 .borrow_mut()
                 .update_variable(place, self.stack_height)
@@ -659,6 +669,7 @@ impl Analyzer {
     }
 
     fn push_operand(&mut self, operand: StackElement) {
+        log::trace!("!!! {:?}", operand);
         self.operands.push(operand);
     }
 

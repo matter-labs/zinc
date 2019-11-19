@@ -5,12 +5,16 @@ witness {}
 output {}
 
 let mut a = 5; // a1
-if true { // cond1
+let b = if false { // cond1
     if true { // cond2
         a = 10; // a2
+        2
     } else {
         a = 15; // a3
+        3
     } // a4
 } else {
     a = 20; // a5
+    4
 }; // a6
+let c = a * b;

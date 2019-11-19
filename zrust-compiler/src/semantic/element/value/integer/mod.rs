@@ -10,6 +10,7 @@ use std::convert::TryFrom;
 use std::fmt;
 
 use num_bigint::BigInt;
+use num_traits::One;
 use num_traits::Zero;
 
 use zrust_bytecode::Push;
@@ -30,6 +31,14 @@ impl Integer {
         Self {
             value: None,
             is_signed,
+            bitlength,
+        }
+    }
+
+    pub fn increment(bitlength: usize) -> Self {
+        Self {
+            value: Some(BigInt::one()),
+            is_signed: false,
             bitlength,
         }
     }
