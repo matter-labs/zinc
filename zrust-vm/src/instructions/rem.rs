@@ -38,7 +38,7 @@ mod test {
         bytecode.push(Box::new(Push { value: BigInt::from(-9) }));
         bytecode.push(Box::new(Rem));
 
-        let mut vm = testing_utils::create_vm();
+        let mut vm = testing_utils::new_test_constrained_vm();
         vm.run(bytecode.as_mut_slice())?;
 
         testing_utils::assert_stack_eq(&vm, &[3, 3, 1, 1]);

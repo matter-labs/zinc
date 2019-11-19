@@ -29,7 +29,7 @@ mod test {
         bytecode.push(Box::new(Push { value: BigInt::from(0x04) }));
         bytecode.push(Box::new(Mul));
 
-        let mut vm = testing_utils::create_vm();
+        let mut vm = testing_utils::new_test_constrained_vm();
         vm.run(bytecode.as_mut_slice())?;
 
         testing_utils::assert_stack_eq(&vm, &[0x0C]);

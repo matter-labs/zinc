@@ -1,8 +1,11 @@
-use crate::{Instruction, InstructionCode, DecodingError};
-use crate::instructions::utils::decode_simple_instruction;
+use crate::{Instruction, InstructionCode, DecodingError, utils};
+use num_traits::ToPrimitive;
+use num_bigint::BigInt;
 
 #[derive(Debug)]
-pub struct Return;
+pub struct Return {
+    pub outputs_count: usize,
+}
 
 impl Instruction for Return {
     fn to_assembly(&self) -> String {
@@ -14,12 +17,18 @@ impl Instruction for Return {
     }
 
     fn encode(&self) -> Vec<u8> {
-        vec![InstructionCode::Return as u8]
+        utils::encode_with_vlq_argument(InstructionCode::Return, &BigInt::from(self.outputs_count))
     }
 }
 
 impl Return {
+    pub fn new(outputs_count: usize) -> Self {
+        Self { outputs_count }
+    }
+
     pub fn decode(bytes: &[u8]) -> Result<(Return, usize), DecodingError> {
-        decode_simple_instruction(bytes, InstructionCode::Return, Return)
+        let (value, len) = utils::decode_with_vlq_argument(InstructionCode::Return, bytes)?;
+        let count = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
+        Ok((Self::new(count), len))
     }
 }

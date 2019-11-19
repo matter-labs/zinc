@@ -1,6 +1,6 @@
-use crate::{Instruction, InstructionCode, DecodingError, utils, vlq};
+use crate::{Instruction, InstructionCode, DecodingError, vlq};
 use num_traits::ToPrimitive;
-use num_bigint::{ToBigInt, BigInt};
+use num_bigint::BigInt;
 
 #[derive(Debug)]
 pub struct LoopBegin {

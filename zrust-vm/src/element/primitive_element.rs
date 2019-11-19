@@ -29,6 +29,12 @@ impl Element for PrimitiveElement {}
 
 pub struct PrimitiveElementOperator {}
 
+impl PrimitiveElementOperator {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
 impl ElementOperator<PrimitiveElement> for PrimitiveElementOperator {
     fn constant_u64(&mut self, value: u64) -> Result<PrimitiveElement, RuntimeError> {
         Ok(PrimitiveElement {value: value as u128})

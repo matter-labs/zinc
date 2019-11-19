@@ -7,7 +7,7 @@ impl<E, O> VMInstruction<E, O> for Call
     where E: Element, O: ElementOperator<E>
 {
     fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        vm.function_call(self.address)
+        vm.function_call(self.address, self.inputs_count)
     }
 }
 
@@ -15,42 +15,37 @@ impl<E, O> VMInstruction<E, O> for Return
     where E: Element, O: ElementOperator<E>
 {
     fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        vm.function_return()
+        vm.function_return(self.outputs_count)
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::instructions::testing_utils;
-    use num_bigint::BigInt;
     use zrust_bytecode::*;
+    use crate::instructions::testing_utils::{VMTestRunner, TestingError};
 
     #[test]
-    fn test_func() -> Result<(), RuntimeError> {
-        let mut bytecode = testing_utils::create_instructions_vec();
-        /* 00 */ bytecode.push(Box::new(Call::new(4)));
+    fn test_func() -> Result<(), TestingError> {
+        VMTestRunner::new()
+            // call main
+            .add(Call::new(8, 0))
 
-        // func double(field) -> field
-        /* 01 */ bytecode.push(Box::new(Push { value: BigInt::from(2) }));
-        /* 02 */ bytecode.push(Box::new(Mul));
-        /* 03 */ bytecode.push(Box::new(Return));
+            // func min(field, field) -> field
+            .add(Copy::new(1))
+            .add(Copy::new(0))
+            .add(Copy::new(1))
+            .add(Copy::new(0))
+            .add(Lt)
+            .add(ConditionalSelect)
+            .add(Return::new(1))
 
-        // func main
-        /* 04 */ bytecode.push(Box::new(Push { value: BigInt::from(10) }));
-        /* 05 */ bytecode.push(Box::new(Call::new(1)));
-        /* 06 */ bytecode.push(Box::new(Push { value: BigInt::from(2) }));
-        /* 07 */ bytecode.push(Box::new(Add));
+            // func main
+            .add(Push { value: 42.into() })
+            .add(Push { value: 3.into() })
+            .add(Push { value: 5.into() })
+            .add(Call::new(1, 2))
 
-        let mut vm = testing_utils::create_vm();
-        vm.run(bytecode.as_mut_slice())?;
-
-        testing_utils::assert_stack_eq(&vm, &[22]);
-
-        let cs = vm.get_operator().constraint_system();
-        assert_eq!(cs.find_unconstrained(), "", "unconstrained variables");
-        assert!(cs.is_satisfied(), "satisfied");
-
-        Ok(())
+            .test(&[3, 42])
     }
 }
