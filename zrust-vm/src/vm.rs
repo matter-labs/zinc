@@ -44,6 +44,7 @@ pub struct VirtualMachine<E: Element, O: ElementOperator<E>> {
     frames: Vec<Frame>,
     scopes: Vec<Scope>,
     operator: O,
+    conditions: Vec<E>,
 }
 
 impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
@@ -53,7 +54,8 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             stack: vec![],
             frames: vec![Frame { address: 0 }],
             scopes: vec![],
-            operator
+            operator,
+            conditions: vec![]
         }
     }
 
@@ -83,6 +85,9 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     pub fn run(&mut self, instructions: &mut [Box<dyn VMInstruction<E, O>>])
         -> Result<(), RuntimeError>
     {
+        let one = self.operator.constant_u64(1)?;
+        self.condition_push(one)?;
+
         while self.instruction_counter < instructions.len() {
             let instruction = &mut instructions[self.instruction_counter];
             self.instruction_counter += 1;
@@ -181,5 +186,20 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
         self.instruction_counter = frame.return_address;
 
         Ok(())
+    }
+
+    pub fn condition_push(&mut self, element: E) -> Result<(), RuntimeError> {
+        self.conditions.push(element);
+        Ok(())
+    }
+
+    pub fn condition_pop(&mut self) -> Result<E, RuntimeError> {
+        self.conditions.pop().ok_or(RuntimeError::StackUnderflow)
+    }
+
+    pub fn condition_top(&mut self) -> Result<E, RuntimeError> {
+        self.conditions.last()
+            .map(|e| (*e).clone())
+            .ok_or(RuntimeError::StackUnderflow)
     }
 }

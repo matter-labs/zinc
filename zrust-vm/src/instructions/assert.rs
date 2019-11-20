@@ -8,7 +8,10 @@ impl<E, O> VMInstruction<E, O> for Assert
 {
     fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let value = vm.stack_pop()?;
-        vm.get_operator().assert(value)?;
+        let c = vm.condition_top()?;
+        let not_c = vm.get_operator().not(c)?;
+        let cond_value = vm.get_operator().or(value, not_c)?;
+        vm.get_operator().assert(cond_value)?;
         Ok(())
     }
 }
@@ -39,5 +42,18 @@ mod tests {
             .test::<i32>(&[]);
 
         assert_eq!(res.unwrap_err(), TestingError::RuntimeError(RuntimeError::AssertionError));
+    }
+
+    #[test]
+    fn test_assert_in_condition() -> Result<(), TestingError> {
+        VMTestRunner::new()
+
+            .add(Push { value: 0.into() })
+            .add(PushCondition)
+            .add(Push { value: 0.into() })
+            .add(Assert)
+            .add(PopCondition)
+
+            .test::<i32>(&[])
     }
 }

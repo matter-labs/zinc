@@ -552,20 +552,3 @@ where
         Ok(())
     }
 }
-
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    use franklin_crypto::circuit::test::TestConstraintSystem;
-    use bellman::pairing::bn256::Bn256;
-
-    #[test]
-    fn test_constrained_element() {
-        let cs = TestConstraintSystem::<Bn256>::new();
-        let mut operator = ConstrainedElementOperator::new(cs);
-        let a = operator.constant_u64(42).unwrap();
-        let b = operator.constant_u64(7).unwrap();
-        let _ = operator.add(a, b).unwrap();
-    }
-}

@@ -49,7 +49,9 @@ pub enum InstructionCode {
     Call,
     Return,
 
-    Assert
+    Assert,
+    PushCondition,
+    PopCondition,
 }
 
 pub trait Instruction: Debug {
