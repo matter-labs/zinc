@@ -35,17 +35,25 @@ impl Integer {
         }
     }
 
-    pub fn range_bound(value: usize, bitlength: usize) -> Self {
+    pub fn new_constant(value: BigInt, is_signed: bool, bitlength: usize) -> Self {
         Self {
-            value: Some(BigInt::from(value)),
+            value: Some(value),
+            is_signed,
+            bitlength,
+        }
+    }
+
+    pub fn new_one(bitlength: usize) -> Self {
+        Self {
+            value: Some(BigInt::one()),
             is_signed: false,
             bitlength,
         }
     }
 
-    pub fn increment(bitlength: usize) -> Self {
+    pub fn new_range_bound(value: usize, bitlength: usize) -> Self {
         Self {
-            value: Some(BigInt::one()),
+            value: Some(BigInt::from(value)),
             is_signed: false,
             bitlength,
         }

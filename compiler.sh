@@ -17,6 +17,7 @@ export INPUT="${2}"
 export OUTPUT="${3}"
 
 cargo fmt --package "${LIBRARY_NAME}"
+cargo test --package "${LIBRARY_NAME}"
 cargo build --package "${LIBRARY_NAME}"
 
-"./target/${BUILD_MODE}/${BINARY_NAME}" --meta --input "${INPUT}" --output "${OUTPUT}"
+"./target/${BUILD_MODE}/${BINARY_NAME}" --input "${INPUT}" --output "${OUTPUT}"

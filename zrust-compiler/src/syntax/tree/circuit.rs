@@ -2,16 +2,9 @@
 //! The circuit.
 //!
 
-use serde_derive::Serialize;
+use crate::syntax::OuterStatement;
 
-use crate::syntax::Field;
-use crate::syntax::Statement;
-
-#[derive(Debug, Clone, Serialize, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CircuitProgram {
-    pub inputs: Vec<Field>,
-    pub witnesses: Vec<Field>,
-    pub outputs: Vec<Field>,
-    #[serde(skip_serializing)]
-    pub statements: Vec<Statement>,
+    pub statements: Vec<OuterStatement>,
 }

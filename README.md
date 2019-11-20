@@ -1,4 +1,4 @@
-# The ZRust translator
+# The ZRust compiler
 
 ## Roadmap
 

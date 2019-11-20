@@ -26,6 +26,7 @@ pub enum Element {
     Place(Place),
     Value(Value),
     Type(TypeVariant),
+    ValueList(Vec<Value>),
 }
 
 impl Element {
@@ -34,6 +35,7 @@ impl Element {
             Self::Place(place) => Self::resolve(&place, scope)?.type_variant(),
             Self::Value(value) => value.type_variant(),
             Self::Type(type_variant) => type_variant.to_owned(),
+            Self::ValueList { .. } => panic!("Value lists should be checked for the type"),
         })
     }
 
@@ -340,6 +342,15 @@ impl Element {
             Self::Place(place) => write!(f, "{}", place),
             Self::Value(value) => write!(f, "{}", value),
             Self::Type(r#type) => write!(f, "{}", r#type),
+            Self::ValueList(values) => write!(
+                f,
+                "{}",
+                values
+                    .iter()
+                    .map(|value| value.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
         }
     }
 }

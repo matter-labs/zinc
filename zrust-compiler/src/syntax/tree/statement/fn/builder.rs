@@ -28,8 +28,8 @@ impl Builder {
         self.identifier = Some(value);
     }
 
-    pub fn push_argument(&mut self, value: Field) {
-        self.arguments.push(value);
+    pub fn set_arguments(&mut self, value: Vec<Field>) {
+        self.arguments = value;
     }
 
     pub fn set_return_type(&mut self, value: Type) {

@@ -8,15 +8,12 @@ pub use self::builder::Builder;
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
 use crate::lexical::IntegerLiteral;
 use crate::lexical::Location;
 use crate::syntax::Identifier;
 
-#[derive(Debug, Clone, Serialize, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Variant {
-    #[serde(skip_serializing)]
     pub location: Location,
     pub identifier: Identifier,
     pub literal: IntegerLiteral,

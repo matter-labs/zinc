@@ -13,7 +13,7 @@ use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::BlockExpressionParser;
 use crate::syntax::Error as SyntaxError;
-use crate::syntax::FieldParser;
+use crate::syntax::FieldListParser;
 use crate::syntax::FnStatement;
 use crate::syntax::FnStatementBuilder;
 use crate::syntax::Identifier;
@@ -24,8 +24,8 @@ pub enum State {
     KeywordFn,
     Identifier,
     ParenthesisLeft,
-    Field,
-    CommaOrParenthesisRight,
+    ArgumentList,
+    ParenthesisRight,
     ArrowOrBody,
     ReturnType,
     Body,
@@ -99,7 +99,7 @@ impl Parser {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                             ..
-                        } => self.state = State::Field,
+                        } => self.state = State::ArgumentList,
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
@@ -109,18 +109,18 @@ impl Parser {
                         }
                     }
                 }
-                State::Field => {
-                    let field = FieldParser::default().parse(stream.clone(), None)?;
-                    self.builder.push_argument(field);
-                    self.state = State::CommaOrParenthesisRight;
+                State::ArgumentList => {
+                    let (arguments, next) =
+                        FieldListParser::default().parse(stream.clone(), None)?;
+                    self.builder.set_arguments(arguments);
+                    self.next = next;
+                    self.state = State::ParenthesisRight;
                 }
-                State::CommaOrParenthesisRight => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
-                        Token {
-                            lexeme: Lexeme::Symbol(Symbol::Comma),
-                            ..
-                        } => self.state = State::Field,
+                State::ParenthesisRight => {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                             ..

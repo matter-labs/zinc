@@ -4,15 +4,19 @@
 
 mod r#enum;
 mod r#fn;
+mod inner;
 mod r#let;
 mod r#loop;
 mod module;
+mod outer;
 mod r#struct;
 mod r#type;
 mod r#use;
 
+pub use self::inner::Statement as InnerStatement;
 pub use self::module::Builder as ModBuilder;
 pub use self::module::Mod;
+pub use self::outer::Statement as OuterStatement;
 pub use self::r#enum::Builder as EnumBuilder;
 pub use self::r#enum::Enum;
 pub use self::r#fn::Builder as FnBuilder;
@@ -27,38 +31,3 @@ pub use self::r#type::Builder as TypeBuilder;
 pub use self::r#type::Type;
 pub use self::r#use::Builder as UseBuilder;
 pub use self::r#use::Use;
-
-use std::fmt;
-
-use crate::syntax::Expression;
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum Statement {
-    Empty,
-    Let(Let),
-    Loop(Loop),
-    Type(Type),
-    Struct(Struct),
-    Enum(Enum),
-    Fn(Fn),
-    Mod(Mod),
-    Use(Use),
-    Expression(Expression),
-}
-
-impl fmt::Display for Statement {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Empty => write!(f, ";"),
-            Self::Let(statement) => write!(f, "{}", statement),
-            Self::Loop(statement) => write!(f, "{}", statement),
-            Self::Type(statement) => write!(f, "{}", statement),
-            Self::Struct(statement) => write!(f, "{}", statement),
-            Self::Enum(statement) => write!(f, "{}", statement),
-            Self::Fn(statement) => write!(f, "{}", statement),
-            Self::Mod(statement) => write!(f, "{}", statement),
-            Self::Use(statement) => write!(f, "{}", statement),
-            Self::Expression(statement) => write!(f, "{}", statement),
-        }
-    }
-}

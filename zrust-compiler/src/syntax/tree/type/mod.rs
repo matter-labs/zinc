@@ -10,13 +10,10 @@ pub use self::variant::Variant;
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
 use crate::lexical::Location;
 
-#[derive(Debug, Clone, Serialize, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Type {
-    #[serde(skip_serializing)]
     pub location: Location,
     pub variant: Variant,
 }

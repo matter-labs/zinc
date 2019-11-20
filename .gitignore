@@ -1,12 +1,12 @@
-# Rust
-/target/
-
 # IDE
 /.idea/
 /.vscode/
 
-# Book
+# Rust build
+/target/
+
+# Book build
 /zrust-book/build/
 
-# Binary
-/*.zrsb
+# ZRust build
+/examples/build/

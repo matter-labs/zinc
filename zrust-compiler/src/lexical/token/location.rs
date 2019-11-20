@@ -4,9 +4,7 @@
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
-#[derive(Debug, Default, Clone, Copy, Serialize, PartialEq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Location {
     pub line: usize,
     pub column: usize,

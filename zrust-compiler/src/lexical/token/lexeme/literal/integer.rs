@@ -4,9 +4,7 @@
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
-#[derive(Debug, Clone, Serialize, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Integer {
     Decimal { value: String },
     Hexadecimal { value: String },

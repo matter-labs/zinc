@@ -11,7 +11,6 @@ USAGE:
 
 FLAGS:
     -h, --help       Prints help information
-    -m, --meta       Generates meta info
     -V, --version    Prints version information
 
 OPTIONS:

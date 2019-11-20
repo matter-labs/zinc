@@ -65,7 +65,7 @@ impl Scope {
                 Some(ref mut parent) => parent
                     .borrow_mut()
                     .update_variable(place.clone(), address)?,
-                None => return Err(Error::UndeclaredItem(place.identifier)),
+                None => return Err(Error::UndeclaredVariable(place.identifier)),
             }
         }
 
@@ -79,7 +79,7 @@ impl Scope {
         } else {
             match self.parent {
                 Some(ref parent) => parent.borrow().get_variable_value(place),
-                None => Err(Error::UndeclaredItem(place.identifier.to_owned())),
+                None => Err(Error::UndeclaredVariable(place.identifier.to_owned())),
             }
         }
     }
@@ -90,7 +90,7 @@ impl Scope {
         } else {
             match self.parent {
                 Some(ref parent) => parent.borrow().get_variable_address(place),
-                None => Err(Error::UndeclaredItem(place.identifier.to_owned())),
+                None => Err(Error::UndeclaredVariable(place.identifier.to_owned())),
             }
         }
     }
@@ -110,7 +110,7 @@ impl Scope {
             Some(type_variant) => Ok(type_variant.to_owned()),
             None => match self.parent {
                 Some(ref parent) => parent.borrow().resolve_type(name),
-                None => Err(Error::UndeclaredItem(name.to_owned())),
+                None => Err(Error::UndeclaredType(name.to_owned())),
             },
         }
     }
@@ -131,18 +131,5 @@ impl Scope {
 
     pub fn add_assignments(&mut self, assignments: HashMap<Place, usize>) {
         self.assignments.extend(assignments)
-    }
-
-    pub fn move_assignments(&mut self) {
-        //        for (place, address) in self.assignments.drain() {
-        //            if !self.variables.contains_key(&place) {
-        //                self.parent
-        //                    .as_mut()
-        //                    .expect("Always contains a value")
-        //                    .borrow_mut()
-        //                    .assignments
-        //                    .insert(place, address);
-        //            }
-        //        }
     }
 }

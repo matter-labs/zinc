@@ -10,6 +10,7 @@ mod element;
 mod error;
 mod inference;
 mod scope;
+mod tests;
 
 pub use self::analyzer::Analyzer;
 pub use self::casting::validate as validate_casting;

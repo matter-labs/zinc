@@ -5,9 +5,9 @@
 use failure::Fail;
 
 use crate::lexical::Location;
+use crate::semantic::Element;
 use crate::semantic::ElementError;
 use crate::semantic::InferenceError;
-use crate::semantic::IntegerError;
 use crate::semantic::ScopeError;
 use crate::syntax::TypeVariant;
 
@@ -17,15 +17,9 @@ pub enum Error {
     Element(Location, ElementError),
     #[fail(display = "{} scope: {}", _0, _1)]
     Scope(Location, ScopeError),
-    #[fail(
-        display = "{} let declaration invalid type: '{}' cannot be casted to '{}'",
-        _0, _1, _2
-    )]
-    LetInvalidType(Location, TypeVariant, TypeVariant),
-    #[fail(display = "{} let declaration implicit semantic.casting: {}", _0, _1)]
-    LetImplicitCasting(Location, IntegerError),
     #[fail(display = "{} inference: {}", _0, _1)]
-    Inference(Location, InferenceError),
+    LoopBoundsTypeInference(Location, InferenceError),
+
     #[fail(
         display = "{} conditional expected a boolean expression, but got '{}'",
         _0, _1
@@ -36,6 +30,24 @@ pub enum Error {
         _0, _1, _2
     )]
     ConditionalBranchTypeMismatch(Location, TypeVariant, TypeVariant),
-    #[fail(display = "calling a not-callable object '{}'", _0)]
-    CallingNotCallable(String),
+
+    #[fail(display = "{} calling a not-callable object '{}'", _0, _1)]
+    FunctionCallOnNotCallable(Location, Element),
+    #[fail(
+        display = "{} function '{}' expected {} arguments, but got {}",
+        _0, _1, _2, _3
+    )]
+    FunctionArgumentCountMismatch(Location, String, usize, usize),
+    #[fail(
+        display = "{} function '{}' argument '{}' type mismatch: expected '{}', but got '{}'",
+        _0, _1, _2, _3, _4
+    )]
+    FunctionArgumentTypeMismatch(Location, String, String, TypeVariant, TypeVariant),
+    #[fail(
+        display = "{} function '{}' return type mismatch: expected '{}', but got '{}'",
+        _0, _1, _2, _3
+    )]
+    FunctionReturnTypeMismatch(Location, String, TypeVariant, TypeVariant),
+    #[fail(display = "function 'main' is missing")]
+    FunctionMainMissing,
 }

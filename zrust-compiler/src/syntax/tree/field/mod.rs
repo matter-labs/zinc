@@ -8,15 +8,12 @@ pub use self::builder::Builder;
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
 use crate::lexical::Location;
 use crate::syntax::Identifier;
 use crate::syntax::Type;
 
-#[derive(Debug, Clone, Serialize, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Field {
-    #[serde(skip_serializing)]
     pub location: Location,
     pub identifier: Identifier,
     pub r#type: Type,

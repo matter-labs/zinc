@@ -4,13 +4,10 @@
 
 use std::fmt;
 
-use serde_derive::Serialize;
-
 use crate::lexical::Location;
 
-#[derive(Debug, Clone, Serialize, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Identifier {
-    #[serde(skip_serializing)]
     pub location: Location,
     pub name: String,
 }

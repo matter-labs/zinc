@@ -15,8 +15,6 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "zrustc", about = "The ZRust compiler")]
 struct Arguments {
-    #[structopt(short = "m", long = "meta", help = "Generates meta info")]
-    meta: bool,
     #[structopt(
         short = "i",
         long = "input",
@@ -89,11 +87,6 @@ fn main() -> Result<(), Error> {
             Error::Compiler(error)
         })?;
 
-    if args.meta {
-        let meta = serde_json::to_string(&circuit).expect("Always valid");
-        log::info!("{}", meta);
-    }
-
     log::info!("Output: {:?}", args.output);
     File::create(&args.output)
         .map_err(OutputError::Creating)
@@ -104,7 +97,11 @@ fn main() -> Result<(), Error> {
                 .map(|instructions| {
                     instructions
                         .into_iter()
-                        .map(|instruction| instruction.encode())
+                        .enumerate()
+                        .map(|(index, instruction)| {
+                            log::debug!("{:03} {:?}", index, instruction);
+                            instruction.encode()
+                        })
                         .flatten()
                         .collect::<Vec<u8>>()
                 })

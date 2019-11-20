@@ -6,9 +6,9 @@ These are the ZRust syntax grammar rules in the EWBF notation.
 (* Domain *)
 file = binary | library ;
 
-binary = { statement } ;
+binary = { outer_statement } ;
 
-library = { statement } ;
+library = { outer_statement } ;
 
 type =
     'bool'
@@ -32,16 +32,18 @@ variant = identifier, '=', integer ;
 variant_list = [ variant, { ',', variant } ] ;
 
 (* Statements *)
-statement =
-    empty_statement
-  | let_statement
-  | loop_statement
-  | type_statement
+outer_statement =
+    type_statement
   | struct_statement
   | enum_statement
   | fn_statement
   | mod_statement
   | use_statement
+
+inner_statement =
+    empty_statement
+  | let_statement
+  | loop_statement
   | expression
 ';' ;
 
@@ -79,7 +81,7 @@ operand_access
 
 expression_list = [ expression, { ',', expression } ] ;
 
-block_expression = '{', { statement }, [ expression ], '}' ;
+block_expression = '{', { inner_statement }, [ expression ], '}' ;
 
 conditional_expression = 'if', expression, block_expression, [ 'else', conditional_expression | block_expression ] ;
 

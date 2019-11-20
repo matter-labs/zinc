@@ -5,14 +5,10 @@
 use std::collections::BTreeMap;
 use std::fmt;
 
-use serde_derive::Serialize;
-
 use crate::lexical::IntegerLiteral;
-use crate::syntax::BlockExpression;
+use crate::syntax::Identifier;
 
-#[derive(Debug, Clone, Serialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
-#[serde(tag = "name")]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Variant {
     Unit,
     Boolean,
@@ -31,16 +27,17 @@ pub enum Variant {
         type_variants: Vec<Self>,
     },
     Structure {
+        identifier: Identifier,
         fields: BTreeMap<String, Self>,
     },
     Enumeration {
+        identifier: Identifier,
         variants: BTreeMap<String, IntegerLiteral>,
     },
     Function {
+        identifier: Identifier,
         arguments: Vec<(String, Self)>,
         return_type: Box<Self>,
-        #[serde(skip_serializing)]
-        body: BlockExpression,
     },
     Alias {
         identifier: String,
@@ -87,27 +84,33 @@ impl Variant {
         Self::Tuple { type_variants }
     }
 
-    pub fn new_structure(fields: Vec<(String, Self)>) -> Self {
+    pub fn new_structure(identifier: Identifier, fields: Vec<(String, Self)>) -> Self {
         let fields = fields.into_iter().collect::<BTreeMap<String, Self>>();
-        Self::Structure { fields }
+        Self::Structure { identifier, fields }
     }
 
-    pub fn new_enumeration(variants: Vec<(String, IntegerLiteral)>) -> Self {
+    pub fn new_enumeration(
+        identifier: Identifier,
+        variants: Vec<(String, IntegerLiteral)>,
+    ) -> Self {
         let variants = variants
             .into_iter()
             .collect::<BTreeMap<String, IntegerLiteral>>();
-        Self::Enumeration { variants }
+        Self::Enumeration {
+            identifier,
+            variants,
+        }
     }
 
     pub fn new_function(
+        identifier: Identifier,
         arguments: Vec<(String, Self)>,
         return_type: Self,
-        body: BlockExpression,
     ) -> Self {
         Self::Function {
+            identifier,
             arguments,
             return_type: Box::new(return_type),
-            body,
         }
     }
 
@@ -134,18 +137,23 @@ impl fmt::Display for Variant {
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
-            Self::Structure { fields } => write!(
+            Self::Structure { identifier, fields } => write!(
                 f,
-                "{{ {} }}",
+                "struct {} {{ {} }}",
+                identifier,
                 fields
                     .iter()
                     .map(|(identiifer, type_variant)| format!("{}: {}", identiifer, type_variant))
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
-            Self::Enumeration { variants } => write!(
+            Self::Enumeration {
+                identifier,
+                variants,
+            } => write!(
                 f,
-                "{{ {} }}",
+                "enum {} {{ {} }}",
+                identifier,
                 variants
                     .iter()
                     .map(|(identiifer, value)| format!("{} = {}", identiifer, value))
@@ -153,19 +161,19 @@ impl fmt::Display for Variant {
                     .join(", ")
             ),
             Self::Function {
+                identifier,
                 arguments,
                 return_type,
-                body,
             } => write!(
                 f,
-                "fn ({}) -> {} {{ {} }}",
+                "fn {}({}) -> {}",
+                identifier,
                 arguments
                     .iter()
                     .map(|(identiifer, type_variant)| format!("{}: {}", identiifer, type_variant))
                     .collect::<Vec<String>>()
                     .join(", "),
                 return_type,
-                body,
             ),
             Self::Alias { identifier } => write!(f, "{}", identifier),
         }
