@@ -133,6 +133,9 @@ where
         x if x == InstructionCode::PopCondition as u8 =>
             PopCondition::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
 
+        x if x == InstructionCode::Exit as u8 =>
+            Exit::decode(bytes).map(|(s, len)| -> (Box<dyn VMInstruction<E, O>>, usize) {(Box::new(s), len)}),
+
         code => Err(DecodingError::UnknownInstructionCode(code))
     }
 }

@@ -202,4 +202,8 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             .map(|e| (*e).clone())
             .ok_or(RuntimeError::StackUnderflow)
     }
+
+    pub fn exit(&mut self) {
+        self.instruction_counter = std::usize::MAX;
+    }
 }

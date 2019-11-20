@@ -37,6 +37,8 @@ mod assert;
 mod push_condition;
 mod pop_condition;
 
+mod exit;
+
 pub use noop::NoOperation;
 
 pub use push::Push;
@@ -73,3 +75,5 @@ pub use ret::Return;
 pub use assert::Assert;
 pub use push_condition::PushCondition;
 pub use pop_condition::PopCondition;
+
+pub use exit::Exit;

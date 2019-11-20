@@ -30,3 +30,5 @@ pub mod func;
 pub mod assert;
 pub mod push_condition;
 pub mod pop_condition;
+
+pub mod exit;

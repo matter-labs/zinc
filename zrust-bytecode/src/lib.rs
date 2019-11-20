@@ -43,15 +43,19 @@ pub enum InstructionCode {
 
     Cast,
 
+    // Flow control
     ConditionalSelect,
     LoopBegin,
     LoopEnd,
     Call,
     Return,
 
+    // Condition utils
     Assert,
     PushCondition,
     PopCondition,
+
+    Exit,
 }
 
 pub trait Instruction: Debug {

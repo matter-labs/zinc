@@ -1,0 +1,29 @@
+extern crate franklin_crypto;
+
+use crate::{RuntimeError, VirtualMachine, VMInstruction, ElementOperator, Element};
+use zrust_bytecode::instructions::Exit;
+
+impl<E, O> VMInstruction<E, O> for Exit
+    where E: Element, O: ElementOperator<E>
+{
+    fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+        vm.exit();
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use zrust_bytecode::*;
+    use crate::instructions::testing_utils::{VMTestRunner, TestingError};
+
+    #[test]
+    fn test_exit() -> Result<(), TestingError> {
+        VMTestRunner::new()
+            .add(Push { value: 1.into()})
+            .add(Exit)
+            .add(Push { value: 2.into()})
+            .test(&[1])
+    }
+}
