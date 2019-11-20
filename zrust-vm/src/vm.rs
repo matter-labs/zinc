@@ -1,6 +1,6 @@
 use crate::{Element, ElementOperator, VMInstruction};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum RuntimeError {
     InvalidOperation(u8),
     InvalidArguments,
@@ -13,6 +13,7 @@ pub enum RuntimeError {
     UnexpectedLoopExit,
     UnexpectedReturn,
     UnexpectedFrameExit,
+    AssertionError,
 }
 
 #[derive(Copy, Clone)]

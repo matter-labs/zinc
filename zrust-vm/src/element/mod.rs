@@ -36,4 +36,5 @@ pub trait ElementOperator<E: Element> {
     fn gt(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
 
     fn conditional_select(&mut self, condition: E, if_true: E, if_false: E) -> Result<E, RuntimeError>;
+    fn assert(&mut self, element: E) -> Result<(), RuntimeError>;
 }

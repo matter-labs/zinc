@@ -48,6 +48,8 @@ pub enum InstructionCode {
     LoopEnd,
     Call,
     Return,
+
+    Assert
 }
 
 pub trait Instruction: Debug {
@@ -58,7 +60,7 @@ pub trait Instruction: Debug {
     fn outputs_count(&self) -> usize;
 }
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub enum DecodingError {
     UnexpectedEOF,
     UnknownInstructionCode(u8),
@@ -169,6 +171,9 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Box<dyn Instruction>, usize),
 
         x if x == InstructionCode::Return as u8 =>
             Return::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+
+        x if x == InstructionCode::Assert as u8 =>
+            Assert::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
 
         code => Err(DecodingError::UnknownInstructionCode(code))
     }

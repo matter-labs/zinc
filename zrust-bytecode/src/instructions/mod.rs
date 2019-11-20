@@ -33,6 +33,8 @@ mod loop_end;
 mod call;
 mod ret;
 
+mod assert;
+
 pub use noop::NoOperation;
 
 pub use push::Push;
@@ -65,3 +67,5 @@ pub use loop_begin::LoopBegin;
 pub use loop_end::LoopEnd;
 pub use call::Call;
 pub use ret::Return;
+
+pub use assert::Assert;

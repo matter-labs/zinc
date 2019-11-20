@@ -530,6 +530,27 @@ where
 
         Ok(ConstrainedElement { value, variable })
     }
+
+    fn assert(&mut self, element: ConstrainedElement<E>) -> Result<(), RuntimeError> {
+        let value = match element.value {
+            None => Err(SynthesisError::AssignmentMissing),
+            Some(fr) => {
+                fr.inverse().ok_or(SynthesisError::Unsatisfiable)
+            },
+        };
+
+        let mut cs = self.cs_namespace();
+        let inverse_variable = cs.alloc(|| "inverse", || value)
+            .map_err(|_| RuntimeError::SynthesisError)?;
+
+        cs.enforce(
+            || "assertion",
+            |lc| lc + element.variable,
+            |lc| lc + inverse_variable,
+            |lc| lc + CS::one());
+
+        Ok(())
+    }
 }
 
 

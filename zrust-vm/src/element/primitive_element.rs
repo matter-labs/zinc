@@ -154,4 +154,11 @@ impl ElementOperator<PrimitiveElement> for PrimitiveElementOperator {
 
         Ok(PrimitiveElement { value })
     }
+
+    fn assert(&mut self, element: PrimitiveElement) -> Result<(), RuntimeError> {
+        match element.value {
+            0 => Err(RuntimeError::AssertionError),
+            _ => Ok(())
+        }
+    }
 }
