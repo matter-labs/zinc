@@ -1,5 +1,5 @@
 [workspace]
 members = [
     "zrust-bytecode",
-    "zrust-vm",
+    "zrustm",
 ]

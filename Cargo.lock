@@ -845,10 +845,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "zrust-vm"
+name = "zrustm"
 version = "0.1.0"
 dependencies = [
  "bellman_ce 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "ff_ce 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "franklin-crypto 0.0.5 (git+https://github.com/matter-labs/franklin-crypto.git)",
@@ -857,7 +858,6 @@ dependencies = [
  "num-integer 0.1.41 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "pairing_ce 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "structopt 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "zrust-bytecode 0.1.0",
 ]
 
