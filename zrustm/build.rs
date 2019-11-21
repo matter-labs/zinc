@@ -1,11 +1,9 @@
-extern crate clap;
-
 use clap::Shell;
 
 include!("src/cli.rs");
 
 fn main() {
-    let out_dir = match std::env::var_os("CARGO_SHELL_COMPLETE_OUT_DIR") {
+    let out_dir = match std::env::var_os("SHELL_COMPLETION_DIR") {
         None => return,
         Some(outdir) => outdir,
     };

@@ -1,4 +1,5 @@
 use crate::{Element, ElementOperator, VMInstruction};
+use num_bigint::BigInt;
 
 #[derive(Debug, PartialEq)]
 pub enum RuntimeError {
@@ -82,11 +83,16 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             .map(|e| (*e).clone())
     }
 
-    pub fn run(&mut self, instructions: &mut [Box<dyn VMInstruction<E, O>>])
+    pub fn run(&mut self, instructions: &mut [Box<dyn VMInstruction<E, O>>], inputs: &[BigInt])
         -> Result<(), RuntimeError>
     {
-        let one = self.operator.constant_u64(1)?;
+        let one = self.operator.constant_bigint(&1.into())?;
         self.condition_push(one)?;
+
+        for input in inputs.iter() {
+            let e = self.operator.input_bigint(input)?;
+            self.stack_push(e)?;
+        }
 
         while self.instruction_counter < instructions.len() {
             let instruction = &mut instructions[self.instruction_counter];

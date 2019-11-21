@@ -74,7 +74,7 @@ impl VMTestRunner {
         let mut vm = VirtualMachine::new(PrimitiveElementOperator::new());
 
         vm
-            .run(instructions.as_mut_slice())
+            .run(instructions.as_mut_slice(), &[])
             .map_err(|e| TestingError::RuntimeError(e))?;
 
         assert_stack_eq(&vm, expected_stack);
@@ -90,7 +90,7 @@ impl VMTestRunner {
         let mut vm = new_test_constrained_vm();
 
         vm
-            .run(instructions.as_mut_slice())
+            .run(instructions.as_mut_slice(), &[])
             .map_err(|e| TestingError::RuntimeError(e))?;
 
 

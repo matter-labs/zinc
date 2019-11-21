@@ -104,27 +104,17 @@ where
     E: Debug + Engine,
     CS: ConstraintSystem<E>
 {
-    fn constant_u64(&mut self, value: u64) -> Result<ConstrainedElement<E>, RuntimeError> {
-        let val = E::Fr::from_str(&value.to_string()).ok_or(RuntimeError::InternalError)?;
+    fn input_bigint(&mut self, value: &BigInt) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let value = utils::bigint_to_fr::<E>(value).ok_or(RuntimeError::InternalError)?;
 
         let mut cs = self.cs_namespace();
 
-        let var = cs.alloc(
+        let variable = cs.alloc_input(
             || "constant value",
-            || Ok(val))
+            || Ok(value))
             .map_err(|_| RuntimeError::SynthesisError)?;
 
-        cs.enforce(
-            || "constant constraint",
-            |lc| lc + CS::one(),
-            |lc| lc + (val, CS::one()),
-            |lc| lc + var,
-        );
-
-        Ok(ConstrainedElement {
-            value: Some(val),
-            variable: var
-        })
+        Ok(ConstrainedElement { value: Some(value), variable })
     }
 
     fn constant_bigint(&mut self, value: &BigInt) -> Result<ConstrainedElement<E>, RuntimeError> {

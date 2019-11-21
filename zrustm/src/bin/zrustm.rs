@@ -3,6 +3,8 @@ use zrust_bytecode::DecodingError;
 use zrustm::{RuntimeError, cli, VirtualMachine, ConstrainedElementOperator, decode_all_vm_instructions, ConstrainedElement};
 use bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
+use num_bigint::BigInt;
+use std::str::FromStr;
 
 #[derive(Debug)]
 enum Error {
@@ -12,7 +14,8 @@ enum Error {
 }
 
 struct ExecArguments {
-    circuit_file: String
+    circuit_file: String,
+    witness: Vec<BigInt>,
 }
 
 struct GenKeyArguments;
@@ -56,7 +59,7 @@ fn exec(args: ExecArguments) -> Result<(), Error> {
         .map_err(|e| Error::DecodingError(e))?;
 
     vm
-        .run(instructions.as_mut_slice())
+        .run(instructions.as_mut_slice(), args.witness.as_slice())
         .map_err(|e| Error::RuntimeError(e))?;
 
     Ok(())
@@ -68,7 +71,18 @@ fn parse_arguments() -> Arguments {
     match args.subcommand() {
         ("exec", Some(command_args)) => {
             let circuit_file = command_args.value_of("circuit").expect("--circuit is required");
-            Arguments::Exec(ExecArguments { circuit_file: circuit_file.into() })
+            let witness = {
+                command_args
+                    .values_of("witness")
+                    .unwrap()
+                    .into_iter()
+                    .map(|s| BigInt::from_str(s).unwrap())
+                    .collect()
+            };
+            Arguments::Exec(ExecArguments {
+                circuit_file: circuit_file.into(),
+                witness,
+            })
         },
         ("gen-key", Some(_command_args)) => {
             Arguments::GenKey(GenKeyArguments)

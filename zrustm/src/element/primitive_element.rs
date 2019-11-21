@@ -36,8 +36,8 @@ impl PrimitiveElementOperator {
 }
 
 impl ElementOperator<PrimitiveElement> for PrimitiveElementOperator {
-    fn constant_u64(&mut self, value: u64) -> Result<PrimitiveElement, RuntimeError> {
-        Ok(PrimitiveElement {value: value as i128})
+    fn input_bigint(&mut self, value: &BigInt) -> Result<PrimitiveElement, RuntimeError> {
+        self.constant_bigint(value)
     }
 
     fn constant_bigint(&mut self, value: &BigInt) -> Result<PrimitiveElement, RuntimeError> {

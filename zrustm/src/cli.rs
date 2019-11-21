@@ -1,4 +1,13 @@
-use clap::*;
+use clap::{App, Arg, SubCommand};
+use num_bigint::BigInt;
+use std::str::FromStr;
+
+fn witness_validator(w: String) -> Result<(), String> {
+    match BigInt::from_str(w.as_str()) {
+        Ok(_) => Ok(()),
+        Err(_) => Err("Witness should be an integer".into()),
+    }
+}
 
 pub fn build_arguments() -> App<'static, 'static> {
     let circuit_arg = Arg::with_name("circuit")
@@ -13,8 +22,10 @@ pub fn build_arguments() -> App<'static, 'static> {
         .short("w")
         .long("witness")
         .value_name("WITNESS")
-        .help("Witness")
-        .takes_value(true);
+        .help("Witness values")
+        .takes_value(true)
+        .multiple(true)
+        .validator(witness_validator);
 
     let output_arg = Arg::with_name("output")
         .short("o")
@@ -43,9 +54,6 @@ pub fn build_arguments() -> App<'static, 'static> {
     App::new("zrustm")
         .version("0.1")
         .about("ZRust Virtual Machine")
-        .arg(Arg::with_name("version")
-            .short("v")
-            .help("Prints out the version of zrustm"))
         .subcommand(SubCommand::with_name("exec")
             .about("Executes circuit and prints program's output")
             .arg(circuit_arg.clone())
