@@ -30,6 +30,7 @@ impl Element for PrimitiveElement {}
 pub struct PrimitiveElementOperator {}
 
 impl PrimitiveElementOperator {
+    #[allow(dead_code)]
     pub fn new() -> Self {
         Self {}
     }

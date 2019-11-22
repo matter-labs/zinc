@@ -86,6 +86,7 @@ impl <E, CS> ConstrainedElementOperator<E, CS>
         ConstrainedElement { value: Some(E::Fr::one()), variable: CS::one() }
     }
 
+    #[allow(dead_code)]
     pub fn constraint_system(&mut self) -> &mut CS {
         &mut self.cs
     }

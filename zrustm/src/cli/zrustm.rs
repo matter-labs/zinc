@@ -3,10 +3,10 @@ mod arguments;
 use std::{io, fs};
 use zrust_bytecode::{DecodingError, decode_all_instructions};
 use bellman::pairing::bn256::Bn256;
-use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::BigInt;
 use std::str::FromStr;
 use zrustm::RuntimeError;
+use log::LevelFilter;
 
 #[derive(Debug)]
 enum Error {
@@ -33,12 +33,16 @@ enum Arguments {
 }
 
 fn main() -> Result<(), Error> {
-    env_logger::init();
+    env_logger::Builder::from_default_env()
+        .format_timestamp(None)
+        .filter_level(LevelFilter::Info)
+        .init();
+
     let args = parse_arguments();
 
     match args {
         Arguments::Exec(args) => exec(args)?,
-        Arguments::GenKey(args) => unimplemented!(),
+        Arguments::GenKey(_args) => unimplemented!(),
         Arguments::GenProof(_args) => unimplemented!(),
         Arguments::Verify(_args) => unimplemented!(),
         Arguments::Empty => {},
@@ -51,7 +55,7 @@ fn exec(args: ExecArguments) -> Result<(), Error> {
     let bytes = fs::read(args.circuit_file)
         .map_err(|e| Error::IOError(e))?;
 
-    let mut code = decode_all_instructions(bytes.as_slice())
+    let code = decode_all_instructions(bytes.as_slice())
         .map_err(|e| Error::DecodingError(e))?;
 
     let outputs = zrustm::exec::<Bn256>(code.as_slice(), args.witness.as_slice())

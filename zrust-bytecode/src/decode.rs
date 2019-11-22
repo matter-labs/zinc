@@ -14,7 +14,7 @@ pub fn decode_all_instructions(bytes: &[u8]) -> Result<Vec<Instruction>, Decodin
             },
             Err(err) => {
                 let last = cmp::min(bytes.len(), offset + 10);
-                log::warn!("failed to decode bytes {:?} at offset {}", &bytes[offset..last], offset);
+                log::warn!("Failed to decode bytes {:?} at offset {}", &bytes[offset..last], offset);
                 return Err(err);
             }
         };

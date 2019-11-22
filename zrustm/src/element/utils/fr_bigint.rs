@@ -9,7 +9,7 @@ pub fn fr_to_bigint<E: Engine>(fr: &E::Fr) -> BigInt {
     match fr.into_repr().write_be(&mut buf) {
         Ok(_) => {},
         Err(_) => {
-            log::error!("failed to convert Fr to BigInt: {:?}", fr);
+            log::error!("Failed to convert Fr to BigInt: {:?}", fr);
         }
     }
 

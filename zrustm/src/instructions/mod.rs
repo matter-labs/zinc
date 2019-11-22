@@ -1,3 +1,4 @@
+#[cfg(test)]
 pub mod testing_utils;
 
 pub mod noop;
