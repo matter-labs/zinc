@@ -9,7 +9,7 @@ impl<E, O> VMInstruction<E, O> for Exit
     where E: Element, O: ElementOperator<E>
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        vm.exit();
+        vm.exit(self.outputs_count)?;
         Ok(())
     }
 }

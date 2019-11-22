@@ -1,6 +1,7 @@
 use num_bigint::BigInt;
 use crate::element::{Element, ElementOperator};
 use zrust_bytecode::{Instruction, InstructionInfo};
+use crate::vm::RuntimeError::StackUnderflow;
 
 pub trait VMInstruction<E, O>: InstructionInfo
     where
@@ -55,6 +56,7 @@ pub struct VirtualMachine<E: Element, O: ElementOperator<E>> {
     scopes: Vec<Scope>,
     operator: O,
     conditions: Vec<E>,
+    outputs: Vec<E>,
 }
 
 impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
@@ -65,7 +67,8 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             frames: vec![Frame { address: 0 }],
             scopes: vec![],
             operator,
-            conditions: vec![]
+            conditions: vec![],
+            outputs: vec![]
         }
     }
 
@@ -111,7 +114,12 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             self.log_stack();
         }
 
-        Ok(Vec::new())
+        let res = self.outputs
+            .iter()
+            .map(|o| o.to_bigint())
+            .collect();
+
+        Ok(res)
     }
 
     pub fn log_stack(&self) {
@@ -218,7 +226,15 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             .ok_or(RuntimeError::StackUnderflow)
     }
 
-    pub fn exit(&mut self) {
+    pub fn exit(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
+        if self.stack.len() < outputs_count {
+            return Err(StackUnderflow);
+        }
+
+        let index = self.stack.len() - outputs_count;
+        self.outputs = Vec::from(&self.stack[index..]);
+
         self.instruction_counter = std::usize::MAX;
+        Ok(())
     }
 }
