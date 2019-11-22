@@ -14,8 +14,10 @@ pub trait Element: Sized + Clone + Debug + Display + ToBigInt {}
 
 /// ElementOperator is an entity that knows how to operate on Element.
 pub trait ElementOperator<E: Element> {
-    fn input_bigint(&mut self, value: &BigInt) -> Result<E, RuntimeError>;
+    fn variable_none(&mut self) -> Result<E, RuntimeError>;
+    fn variable_bigint(&mut self, value: &BigInt) -> Result<E, RuntimeError>;
     fn constant_bigint(&mut self, value: &BigInt) -> Result<E, RuntimeError>;
+    fn output(&mut self, element: E) -> Result<E, RuntimeError>;
 
     fn add(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
     fn sub(&mut self, left: E, right: E) -> Result<E, RuntimeError>;

@@ -14,7 +14,7 @@ use rand::ThreadRng;
 
 struct VMCircuit<'a, 'b, 'c> {
     code: &'a [Instruction],
-    inputs: &'b [BigInt],
+    inputs: Option<&'b [BigInt]>,
     result: &'c mut Option<Result<Vec<Option<BigInt>>, RuntimeError>>,
 }
 
@@ -26,14 +26,12 @@ impl<E: Engine + Debug> Circuit<E> for VMCircuit<'_, '_, '_> {
     }
 }
 
-fn generate_parameters<E: Engine + Debug>(code: &[Instruction], inputs: &[BigInt])
-    -> Result<Parameters<E>, RuntimeError>
-{
+fn generate_parameters<E: Engine + Debug>(code: &[Instruction]) -> Result<Parameters<E>, RuntimeError> {
     let rng = &mut rand::thread_rng();
     let mut result = None;
     let circuit = VMCircuit {
         code,
-        inputs,
+        inputs: None,
         result: &mut result
     };
 
@@ -46,12 +44,12 @@ pub fn exec<E: Engine>(code: &[Instruction], inputs: &[BigInt])
 {
     let cs = TestConstraintSystem::<Bn256>::new();
     let mut vm = VirtualMachine::new(ConstrainedElementOperator::new(cs));
-    vm.run(code, inputs)
+    vm.run(code, Some(inputs))
 }
 
-pub fn gen_key<E: Engine + Debug>(code: &[Instruction], inputs: &[BigInt]) -> Result<PreparedVerifyingKey<E>, RuntimeError>
+pub fn gen_key<E: Engine + Debug>(code: &[Instruction]) -> Result<PreparedVerifyingKey<E>, RuntimeError>
 {
-    let params = generate_parameters::<E>(code, inputs)?;
+    let params = generate_parameters::<E>(code)?;
     Ok(groth16::prepare_verifying_key(&params.vk))
 }
 
@@ -59,13 +57,13 @@ pub fn gen_proof<E: Engine + Debug>(code: &[Instruction], inputs: &[BigInt])
     -> Result<Proof<E>, RuntimeError>
 {
     let rng = &mut rand::thread_rng();
-    let params = generate_parameters::<E>(code, inputs)?;
+    let params = generate_parameters::<E>(code)?;
 
     let (result, proof) = {
         let mut result = None;
         let circuit = VMCircuit {
             code,
-            inputs,
+            inputs: Some(inputs),
             result: &mut result
         };
 

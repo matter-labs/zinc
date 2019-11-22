@@ -37,13 +37,21 @@ impl PrimitiveElementOperator {
 }
 
 impl ElementOperator<PrimitiveElement> for PrimitiveElementOperator {
-    fn input_bigint(&mut self, value: &BigInt) -> Result<PrimitiveElement, RuntimeError> {
+    fn variable_none(&mut self) -> Result<PrimitiveElement, RuntimeError> {
+        Ok(PrimitiveElement { value: 0 })
+    }
+
+    fn variable_bigint(&mut self, value: &BigInt) -> Result<PrimitiveElement, RuntimeError> {
         self.constant_bigint(value)
     }
 
     fn constant_bigint(&mut self, value: &BigInt) -> Result<PrimitiveElement, RuntimeError> {
         let value = value.to_i128().ok_or(RuntimeError::IntegerOverflow)?;
         Ok(PrimitiveElement { value })
+    }
+
+    fn output(&mut self, element: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {
+        Ok(element)
     }
 
     fn add(&mut self, left: PrimitiveElement, right: PrimitiveElement) -> Result<PrimitiveElement, RuntimeError> {

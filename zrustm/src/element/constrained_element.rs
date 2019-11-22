@@ -105,13 +105,24 @@ where
     E: Debug + Engine,
     CS: ConstraintSystem<E>
 {
-    fn input_bigint(&mut self, value: &BigInt) -> Result<ConstrainedElement<E>, RuntimeError> {
+    fn variable_none(&mut self) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let mut cs = self.cs_namespace();
+
+        let variable = cs.alloc(
+            || "variable value",
+            || Err(SynthesisError::AssignmentMissing))
+            .map_err(|_| RuntimeError::SynthesisError)?;
+
+        Ok(ConstrainedElement { value: None, variable })
+    }
+
+    fn variable_bigint(&mut self, value: &BigInt) -> Result<ConstrainedElement<E>, RuntimeError> {
         let value = utils::bigint_to_fr::<E>(value).ok_or(RuntimeError::InternalError)?;
 
         let mut cs = self.cs_namespace();
 
-        let variable = cs.alloc_input(
-            || "constant value",
+        let variable = cs.alloc(
+            || "variable value",
             || Ok(value))
             .map_err(|_| RuntimeError::SynthesisError)?;
 
@@ -136,6 +147,24 @@ where
         );
 
         Ok(ConstrainedElement { value: Some(value), variable })
+    }
+
+    fn output(&mut self, element: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
+        let mut cs = self.cs_namespace();
+
+        let variable = cs.alloc_input(
+            || "output value",
+            || element.value.ok_or(SynthesisError::AssignmentMissing))
+            .map_err(|_| RuntimeError::SynthesisError)?;
+
+        cs.enforce(
+            || "enforce output equality",
+            |lc| lc + variable,
+            |lc| lc + CS::one(),
+            |lc| lc + element.variable,
+        );
+
+        Ok(ConstrainedElement { value: element.value, variable })
     }
 
     fn add(&mut self, left: ConstrainedElement<E>, right: ConstrainedElement<E>)

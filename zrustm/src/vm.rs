@@ -25,6 +25,8 @@ pub enum RuntimeError {
     UnexpectedReturn,
     UnexpectedFrameExit,
     AssertionError,
+    FirstInstructionNotCall,
+    WrongInputsCount,
 }
 
 #[derive(Copy, Clone)]
@@ -95,39 +97,70 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             .map(|e| (*e).clone())
     }
 
-    pub fn run(&mut self, instructions: &[Instruction], inputs: &[BigInt])
+    pub fn run(&mut self, instructions: &[Instruction], inputs: Option<&[BigInt]>)
         -> Result<Vec<Option<BigInt>>, RuntimeError>
     {
         let one = self.operator.constant_bigint(&1.into())?;
         self.condition_push(one)?;
 
-        for input in inputs.iter() {
-            let e = self.operator.input_bigint(input)?;
-            self.stack_push(e)?;
+        if let Some(instruction) = instructions.first() {
+            self.push_inputs(instruction, inputs)?;
         }
 
         while self.instruction_counter < instructions.len() {
             let instruction = &instructions[self.instruction_counter];
             self.instruction_counter += 1;
-            log::info!(">>> {}", dispatch_instruction!(instruction => instruction.to_assembly()));
+            log::info!("executing: {}", dispatch_instruction!(instruction => instruction.to_assembly()));
             dispatch_instruction!(instruction => instruction.execute(self))?;
-            self.log_stack();
+            log::info!("stack: {}", self.stack_to_string());
         }
 
-        let res = self.outputs
-            .iter()
-            .map(|o| o.to_bigint())
-            .collect();
-
-        Ok(res)
+        self.get_outputs()
     }
 
-    pub fn log_stack(&self) {
-//        let mut s = String::new();
-//        for e in self.stack.iter().rev() {
-//            s += format!("{} ", e).as_str();
-//        }
-//        log::info!("{}", s)
+    fn push_inputs(&mut self, instruction: &Instruction, inputs: Option<&[BigInt]>) -> Result<(), RuntimeError> {
+        let call = match instruction {
+            Instruction::Call(call) => Ok(call),
+            _ => Err(RuntimeError::FirstInstructionNotCall),
+        }?;
+
+        if let Some(values) = inputs {
+            if values.len() != call.inputs_count {
+                return Err(RuntimeError::WrongInputsCount);
+            }
+
+            for value in values.iter() {
+                let var = self.operator.variable_bigint(value)?;
+                self.stack_push(var)?;
+            }
+
+            Ok(())
+        } else {
+            for _ in 0..call.inputs_count {
+                let var = self.operator.variable_none()?;
+                self.stack_push(var)?;
+            }
+            Ok(())
+        }
+    }
+
+    fn get_outputs(&mut self) -> Result<Vec<Option<BigInt>>, RuntimeError> {
+        let mut outputs = Vec::new();
+
+        for o in self.outputs.iter() {
+            let e = self.operator.output(o.clone())?;
+            outputs.push(e.to_bigint());
+        }
+
+        Ok(outputs)
+    }
+
+    pub fn stack_to_string(&self) -> String {
+        let mut s = String::new();
+        for e in self.stack.iter().rev() {
+            s += format!("{:?} ", e).as_str();
+        }
+        s
     }
 
     pub fn get_operator(&mut self) -> &mut O {
