@@ -1,12 +1,14 @@
 extern crate franklin_crypto;
 
-use crate::{RuntimeError, VirtualMachine, VMInstruction, ElementOperator, Element};
+use crate::vm::VMInstruction;
+use crate::element::{Element, ElementOperator};
+use crate::vm::{VirtualMachine, RuntimeError};
 use zrust_bytecode::instructions::Assert;
 
 impl<E, O> VMInstruction<E, O> for Assert
     where E: Element, O: ElementOperator<E>
 {
-    fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let value = vm.stack_pop()?;
         let c = vm.condition_top()?;
         let not_c = vm.get_operator().not(c)?;

@@ -1,20 +1,24 @@
-use crate::{Instruction, InstructionCode, DecodingError};
+use crate::{InstructionInfo, InstructionCode, DecodingError};
 use crate::instructions::utils::decode_simple_instruction;
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Default)]
 pub struct Assert;
 
-impl Instruction for Assert {
+impl InstructionInfo for Assert {
     fn to_assembly(&self) -> String {
         "assert".into()
     }
 
-    fn code(&self) -> InstructionCode {
+    fn code() -> InstructionCode {
         InstructionCode::Assert
     }
 
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::Assert as u8]
+    }
+
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
+        decode_simple_instruction(bytes)
     }
 
     fn inputs_count(&self) -> usize {
@@ -23,11 +27,5 @@ impl Instruction for Assert {
 
     fn outputs_count(&self) -> usize {
         0
-    }
-}
-
-impl Assert {
-    pub fn decode(bytes: &[u8]) -> Result<(Assert, usize), DecodingError> {
-        decode_simple_instruction(bytes, InstructionCode::Assert, Assert)
     }
 }

@@ -1,12 +1,14 @@
 extern crate franklin_crypto;
 
-use crate::{RuntimeError, VirtualMachine, VMInstruction, ElementOperator, Element};
+use crate::vm::VMInstruction;
+use crate::element::{Element, ElementOperator};
+use crate::vm::{VirtualMachine, RuntimeError};
 use zrust_bytecode::instructions::Xor;
 
 impl<E, O> VMInstruction<E, O> for Xor
     where E: Element, O: ElementOperator<E>
 {
-    fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let left = vm.stack_pop()?;
         let right = vm.stack_pop()?;
 

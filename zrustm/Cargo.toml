@@ -5,10 +5,15 @@ authors = ["Alexander Movchan <am@matterlabs.dev>"]
 edition = "2018"
 build = "build.rs"
 
+[[bin]]
+name = "zrustm"
+path = "src/cli/zrustm.rs"
+
 [dependencies]
 log = "0.4"
 env_logger = "0.7"
 clap = "2.33.0"
+rand = "0.4.5"
 
 pairing = { package = "pairing_ce", version = "0.17.0" }
 bellman = { package = "bellman_ce", version = "0.3.0" }

@@ -1,12 +1,14 @@
 extern crate franklin_crypto;
 
-use crate::{RuntimeError, VirtualMachine, VMInstruction, ElementOperator, Element};
+use crate::vm::VMInstruction;
+use crate::element::{Element, ElementOperator};
+use crate::vm::{VirtualMachine, RuntimeError};
 use zrust_bytecode::instructions::Not;
 
 impl<E, O> VMInstruction<E, O> for Not
     where E: Element, O: ElementOperator<E>
 {
-    fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let value = vm.stack_pop()?;
 
         let not = vm.get_operator().not(value)?;

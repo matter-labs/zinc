@@ -1,12 +1,14 @@
 extern crate franklin_crypto;
 
-use crate::{RuntimeError, VirtualMachine, VMInstruction, ElementOperator, Element};
+use crate::vm::VMInstruction;
+use crate::element::{Element, ElementOperator};
+use crate::vm::{VirtualMachine, RuntimeError};
 use zrust_bytecode::{LoopBegin, LoopEnd};
 
 impl<E, O> VMInstruction<E, O> for LoopBegin
     where E: Element, O: ElementOperator<E>
 {
-    fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.loop_begin(self.iterations, self.io_size)
     }
 }
@@ -14,7 +16,7 @@ impl<E, O> VMInstruction<E, O> for LoopBegin
 impl<E, O> VMInstruction<E, O> for LoopEnd
     where E: Element, O: ElementOperator<E>
 {
-    fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.loop_end()
     }
 }

@@ -3,7 +3,7 @@ use bellman::pairing::Engine;
 use ff::{Field, PrimeField};
 use franklin_crypto::bellman::{SynthesisError, Namespace};
 use crate::element::{ElementOperator, Element, utils};
-use crate::RuntimeError;
+use crate::vm::RuntimeError;
 use std::marker::PhantomData;
 use num_bigint::{BigInt, ToBigInt};
 use std::fmt::{Debug, Display, Formatter, Error};

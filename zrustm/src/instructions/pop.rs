@@ -1,12 +1,14 @@
 extern crate franklin_crypto;
 
-use crate::{RuntimeError, VirtualMachine, VMInstruction, ElementOperator, Element};
 use zrust_bytecode::instructions::Pop;
+use crate::vm::VMInstruction;
+use crate::element::{ElementOperator, Element};
+use crate::vm::{VirtualMachine, RuntimeError};
 
 impl<E, O> VMInstruction<E, O> for Pop
     where E: Element, O: ElementOperator<E>
 {
-    fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         for _ in 0..self.count {
             vm.stack_pop()?;
         }

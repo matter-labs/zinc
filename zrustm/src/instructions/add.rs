@@ -1,12 +1,14 @@
 extern crate franklin_crypto;
 
-use crate::{RuntimeError, VirtualMachine, VMInstruction, ElementOperator, Element};
 use zrust_bytecode::instructions::Add;
+use crate::vm::VMInstruction;
+use crate::element::{Element, ElementOperator};
+use crate::vm::{VirtualMachine, RuntimeError};
 
 impl<E, O> VMInstruction<E, O> for Add
 where E: Element, O: ElementOperator<E>
 {
-    fn execute(&mut self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let left = vm.stack_pop()?;
         let right = vm.stack_pop()?;
 

@@ -1,4 +1,4 @@
-use crate::{Instruction, InstructionCode, DecodingError, vlq};
+use crate::{InstructionInfo, InstructionCode, DecodingError, vlq};
 use num_traits::ToPrimitive;
 use num_bigint::BigInt;
 
@@ -8,12 +8,18 @@ pub struct LoopBegin {
     pub io_size: usize,
 }
 
-impl Instruction for LoopBegin {
+impl LoopBegin {
+    pub fn new(iterations: usize, io_size: usize) -> Self {
+        Self { iterations, io_size }
+    }
+}
+
+impl InstructionInfo for LoopBegin {
     fn to_assembly(&self) -> String {
         format!("loop_begin {}", self.iterations).into()
     }
 
-    fn code(&self) -> InstructionCode {
+    fn code() -> InstructionCode {
         InstructionCode::LoopBegin
     }
 
@@ -24,21 +30,7 @@ impl Instruction for LoopBegin {
         bytes
     }
 
-    fn inputs_count(&self) -> usize {
-        0
-    }
-
-    fn outputs_count(&self) -> usize {
-        0
-    }
-}
-
-impl LoopBegin {
-    pub fn new(iterations: usize, io_size: usize) -> Self {
-        Self { iterations, io_size }
-    }
-
-    pub fn decode(bytes: &[u8]) -> Result<(LoopBegin, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(LoopBegin, usize), DecodingError> {
         if bytes.len() < 3 {
             Err(DecodingError::UnexpectedEOF)
         } else if bytes[0] != InstructionCode::LoopBegin as u8 {
@@ -58,5 +50,13 @@ impl LoopBegin {
 
             Ok((Self::new(iterations, io_size), 1 + iter_len + io_size_len))
         }
+    }
+
+    fn inputs_count(&self) -> usize {
+        0
+    }
+
+    fn outputs_count(&self) -> usize {
+        0
     }
 }

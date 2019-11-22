@@ -1,20 +1,24 @@
-use crate::{Instruction, InstructionCode, DecodingError};
+use crate::{InstructionInfo, InstructionCode, DecodingError};
 use crate::instructions::utils::decode_simple_instruction;
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Default)]
 pub struct ConditionalSelect;
 
-impl Instruction for ConditionalSelect {
+impl InstructionInfo for ConditionalSelect {
     fn to_assembly(&self) -> String {
         "cs".into()
     }
 
-    fn code(&self) -> InstructionCode {
+    fn code() -> InstructionCode {
         InstructionCode::ConditionalSelect
     }
 
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::ConditionalSelect as u8]
+    }
+
+    fn decode(bytes: &[u8]) -> Result<(ConditionalSelect, usize), DecodingError> {
+        decode_simple_instruction(bytes)
     }
 
     fn inputs_count(&self) -> usize {
@@ -23,11 +27,5 @@ impl Instruction for ConditionalSelect {
 
     fn outputs_count(&self) -> usize {
         1
-    }
-}
-
-impl ConditionalSelect {
-    pub fn decode(bytes: &[u8]) -> Result<(ConditionalSelect, usize), DecodingError> {
-        decode_simple_instruction(bytes, InstructionCode::ConditionalSelect, ConditionalSelect)
     }
 }

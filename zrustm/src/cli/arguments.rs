@@ -1,4 +1,4 @@
-use clap::{App, Arg, SubCommand};
+use clap::{App, Arg, SubCommand, AppSettings};
 use num_bigint::BigInt;
 use std::str::FromStr;
 
@@ -54,6 +54,7 @@ pub fn build_arguments() -> App<'static, 'static> {
     App::new("zrustm")
         .version("0.1")
         .about("ZRust Virtual Machine")
+        .setting(AppSettings::SubcommandRequiredElseHelp)
         .subcommand(SubCommand::with_name("exec")
             .about("Executes circuit and prints program's output")
             .arg(circuit_arg.clone())

@@ -1,8 +1,8 @@
 use crate::element::{Element, ElementOperator};
-use crate::RuntimeError;
 use num_bigint::{BigInt, ToBigInt};
 use num_traits::ToPrimitive;
 use std::fmt::{Debug, Display, Formatter, Error};
+use crate::vm::RuntimeError;
 
 /// PrimitiveElement is an Element implementation
 /// that uses rust's primitive integer type to represent a value.

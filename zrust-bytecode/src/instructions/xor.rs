@@ -1,20 +1,24 @@
-use crate::{Instruction, InstructionCode, DecodingError};
+use crate::{InstructionInfo, InstructionCode, DecodingError};
 use crate::instructions::utils::decode_simple_instruction;
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Default)]
 pub struct Xor;
 
-impl Instruction for Xor {
+impl InstructionInfo for Xor {
     fn to_assembly(&self) -> String {
         "xor".into()
     }
 
-    fn code(&self) -> InstructionCode {
+    fn code() -> InstructionCode {
         InstructionCode::Xor
     }
 
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::Xor as u8]
+    }
+
+    fn decode(bytes: &[u8]) -> Result<(Xor, usize), DecodingError> {
+        decode_simple_instruction(bytes)
     }
 
     fn inputs_count(&self) -> usize {
@@ -23,11 +27,5 @@ impl Instruction for Xor {
 
     fn outputs_count(&self) -> usize {
         1
-    }
-}
-
-impl Xor {
-    pub fn decode(bytes: &[u8]) -> Result<(Xor, usize), DecodingError> {
-        decode_simple_instruction(bytes, InstructionCode::Xor, Xor)
     }
 }

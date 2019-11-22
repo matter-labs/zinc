@@ -5,7 +5,7 @@ pub mod utils;
 pub use primitive_element::*;
 pub use constrained_element::*;
 
-use crate::RuntimeError;
+use crate::vm::RuntimeError;
 use num_bigint::{BigInt, ToBigInt};
 use std::fmt::{Debug, Display};
 

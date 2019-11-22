@@ -1,5 +1,14 @@
-use crate::{Element, ElementOperator, VMInstruction};
 use num_bigint::BigInt;
+use crate::element::{Element, ElementOperator};
+use zrust_bytecode::{Instruction, InstructionInfo};
+
+pub trait VMInstruction<E, O>: InstructionInfo
+    where
+        E: Element,
+        O: ElementOperator<E>
+{
+    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError>;
+}
 
 #[derive(Debug, PartialEq)]
 pub enum RuntimeError {
@@ -83,8 +92,8 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             .map(|e| (*e).clone())
     }
 
-    pub fn run(&mut self, instructions: &mut [Box<dyn VMInstruction<E, O>>], inputs: &[BigInt])
-        -> Result<(), RuntimeError>
+    pub fn run(&mut self, instructions: &[Instruction], inputs: &[BigInt])
+        -> Result<Vec<Option<BigInt>>, RuntimeError>
     {
         let one = self.operator.constant_bigint(&1.into())?;
         self.condition_push(one)?;
@@ -95,14 +104,14 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
         }
 
         while self.instruction_counter < instructions.len() {
-            let instruction = &mut instructions[self.instruction_counter];
+            let instruction = &instructions[self.instruction_counter];
             self.instruction_counter += 1;
-            log::info!(">>> {}", instruction.to_assembly());
-            instruction.execute(self)?;
+            log::info!(">>> {}", dispatch_instruction!(instruction => instruction.to_assembly()));
+            dispatch_instruction!(instruction => instruction.execute(self))?;
             self.log_stack();
         }
 
-        Ok(())
+        Ok(Vec::new())
     }
 
     pub fn log_stack(&self) {

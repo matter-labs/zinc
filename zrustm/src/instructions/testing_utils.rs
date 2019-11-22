@@ -1,15 +1,15 @@
-use crate::{VMInstruction, VirtualMachine, ElementOperator, Element, ConstrainedElement, ConstrainedElementOperator, RuntimeError, decode_all_vm_instructions, PrimitiveElement, PrimitiveElementOperator};
 use franklin_crypto::circuit::test::TestConstraintSystem;
 use bellman::pairing::bn256::Bn256;
 use num_bigint::BigInt;
-use zrust_bytecode::{Instruction, DecodingError};
+use zrust_bytecode::{InstructionInfo, DecodingError, Instruction, decode_all_instructions};
+use crate::element::{ConstrainedElement, ConstrainedElementOperator, Element, ElementOperator, PrimitiveElementOperator};
+use crate::vm::{VirtualMachine, RuntimeError};
 
 type TestElement = ConstrainedElement<Bn256>;
 type TestElementOperator = ConstrainedElementOperator<Bn256, TestConstraintSystem<Bn256>>;
-type TestInstruction = dyn VMInstruction<TestElement, TestElementOperator>;
 type TestVirtualMachine = VirtualMachine<TestElement, TestElementOperator>;
 
-pub fn create_instructions_vec() -> Vec<Box<TestInstruction>>
+pub fn create_instructions_vec() -> Vec<Instruction>
 {
     Vec::new()
 }
@@ -54,7 +54,7 @@ impl VMTestRunner {
         Self { bytecode: vec![] }
     }
 
-    pub fn add<I: Instruction>(&mut self, instruction: I) -> &mut Self {
+    pub fn add<I: InstructionInfo>(&mut self, instruction: I) -> &mut Self {
         self.bytecode.append(&mut instruction.encode());
         self
     }
@@ -67,8 +67,7 @@ impl VMTestRunner {
     }
 
     fn test_primitive<T: Into<BigInt> + Copy>(&mut self, expected_stack: &[T]) -> Result<(), TestingError> {
-        let mut instructions = decode_all_vm_instructions
-            ::<PrimitiveElement, PrimitiveElementOperator>(self.bytecode.as_slice())
+        let mut instructions = decode_all_instructions(self.bytecode.as_slice())
             .map_err(|e| TestingError::DecodingError(e))?;
 
         let mut vm = VirtualMachine::new(PrimitiveElementOperator::new());
@@ -83,8 +82,7 @@ impl VMTestRunner {
     }
 
     fn test_constrained<T: Into<BigInt> + Copy>(&mut self, expected_stack: &[T]) -> Result<(), TestingError> {
-        let mut instructions = decode_all_vm_instructions
-            ::<TestElement, TestElementOperator>(self.bytecode.as_slice())
+        let mut instructions = decode_all_instructions(self.bytecode.as_slice())
             .map_err(|e| TestingError::DecodingError(e))?;
 
         let mut vm = new_test_constrained_vm();

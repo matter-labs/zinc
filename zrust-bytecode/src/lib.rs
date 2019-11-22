@@ -1,22 +1,35 @@
-//!
-//! ZRust bytecode library.
-//!
-
 pub mod instructions;
 pub mod vlq;
+mod decode;
 
-pub use crate::instructions::*;
+pub use instructions::*;
+pub use decode::*;
 
 use std::fmt::Debug;
-use std::cmp;
+
+pub trait InstructionInfo: Debug + Sized {
+    fn to_assembly(&self) -> String;
+    fn code() -> InstructionCode;
+    fn encode(&self) -> Vec<u8>;
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError>;
+    fn inputs_count(&self) -> usize;
+    fn outputs_count(&self) -> usize;
+}
+
+#[derive(Debug,PartialEq)]
+pub enum DecodingError {
+    UnexpectedEOF,
+    UnknownInstructionCode(u8),
+    ConstantTooLong,
+}
 
 #[derive(Debug)]
 pub enum InstructionCode {
     NoOperation,
 
     // Stack
-    Pop,
     Push,
+    Pop,
     Copy,
 
     // Arithmetic
@@ -58,129 +71,105 @@ pub enum InstructionCode {
     Exit,
 }
 
-pub trait Instruction: Debug {
-    fn to_assembly(&self) -> String;
-    fn code(&self) -> InstructionCode;
-    fn encode(&self) -> Vec<u8>;
-    fn inputs_count(&self) -> usize;
-    fn outputs_count(&self) -> usize;
+#[derive(Debug)]
+pub enum Instruction {
+    NoOperation(NoOperation),
+
+    // Stack
+    Push(Push),
+    Pop(Pop),
+    Copy(Copy),
+
+    // Arithmetic
+    Add(Add),
+    Sub(Sub),
+    Mul(Mul),
+    Div(Div),
+    Rem(Rem),
+    Neg(Neg),
+
+    // Boolean
+    Not(Not),
+    And(And),
+    Or(Or),
+    Xor(Xor),
+
+    // Comparison
+    Lt(Lt),
+    Le(Le),
+    Eq(Eq),
+    Ne(Ne),
+    Ge(Ge),
+    Gt(Gt),
+
+    Cast(Cast),
+
+    // Flow control
+    ConditionalSelect(ConditionalSelect),
+    LoopBegin(LoopBegin),
+    LoopEnd(LoopEnd),
+    Call(Call),
+    Return(Return),
+
+    // Condition utils
+    Assert(Assert),
+    PushCondition(PushCondition),
+    PopCondition(PopCondition),
+
+    Exit(Exit),
 }
 
-#[derive(Debug,PartialEq)]
-pub enum DecodingError {
-    UnexpectedEOF,
-    UnknownInstructionCode(u8),
-    ConstantTooLong,
-}
+/// Useful macro to avoid duplicating `match` constructions.
+///
+/// ```
+/// # use zrust_bytecode::Instruction;
+/// # use zrust_bytecode::instructions::Add;
+/// let i = Instruction::Add(Add);
+/// let opcode = dispatch_instruction!(i => i.assemly());
+/// assert_eq!(opcode, "add");
+/// ```
+#[macro_export]
+macro_rules! dispatch_instruction {
+    ($pattern:ident => $expression:expr) => {
+        match $pattern {
+            Instruction::NoOperation($pattern) => $expression,
 
-pub fn decode_all_instructions(bytes: &[u8]) -> Result<Vec<Box<dyn Instruction>>, DecodingError> {
-    let mut instructions = Vec::new();
+            Instruction::Push($pattern) => $expression,
+            Instruction::Pop($pattern) => $expression,
+            Instruction::Copy($pattern) => $expression,
 
-    let mut offset = 0;
-    while offset < bytes.len() {
-        match decode_instruction(&bytes[offset..]) {
-            Ok((instr, len)) => {
-                instructions.push(instr);
-                offset += len;
-            },
-            Err(err) => {
-                let last = cmp::min(bytes.len(), offset + 10);
-                log::warn!("failed to decode bytes {:?} at offset {}", &bytes[offset..last], offset);
-                return Err(err);
-            }
-        };
-    }
+            Instruction::Add($pattern) => $expression,
+            Instruction::Sub($pattern) => $expression,
+            Instruction::Mul($pattern) => $expression,
+            Instruction::Div($pattern) => $expression,
+            Instruction::Rem($pattern) => $expression,
+            Instruction::Neg($pattern) => $expression,
 
-    Ok(instructions)
-}
+            Instruction::Not($pattern) => $expression,
+            Instruction::And($pattern) => $expression,
+            Instruction::Or($pattern) => $expression,
+            Instruction::Xor($pattern) => $expression,
 
-pub fn decode_instruction(bytes: &[u8]) -> Result<(Box<dyn Instruction>, usize), DecodingError> {
-    if bytes.len() < 1 {
-        return Err(DecodingError::UnexpectedEOF);
-    }
+            Instruction::Lt($pattern) => $expression,
+            Instruction::Le($pattern) => $expression,
+            Instruction::Eq($pattern) => $expression,
+            Instruction::Ne($pattern) => $expression,
+            Instruction::Ge($pattern) => $expression,
+            Instruction::Gt($pattern) => $expression,
 
-    match bytes[0] {
-        x if x == InstructionCode::NoOperation as u8 =>
-            NoOperation::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+            Instruction::Cast($pattern) => $expression,
 
-        x if x == InstructionCode::Push as u8 =>
-            Push::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+            Instruction::ConditionalSelect($pattern) => $expression,
+            Instruction::LoopBegin($pattern) => $expression,
+            Instruction::LoopEnd($pattern) => $expression,
+            Instruction::Call($pattern) => $expression,
+            Instruction::Return($pattern) => $expression,
 
-        x if x == InstructionCode::Pop as u8 =>
-            Pop::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
+            Instruction::Assert($pattern) => $expression,
+            Instruction::PushCondition($pattern) => $expression,
+            Instruction::PopCondition($pattern) => $expression,
 
-        x if x == InstructionCode::Copy as u8 =>
-            Copy::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Add as u8 =>
-            Add::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Sub as u8 =>
-            Sub::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Mul as u8 =>
-            Mul::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Div as u8 =>
-            Div::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Rem as u8 =>
-            Rem::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Neg as u8 =>
-            Neg::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Not as u8 =>
-            Not::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::And as u8 =>
-            And::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Or as u8 =>
-            Or::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Xor as u8 =>
-            Xor::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Lt as u8 =>
-            Lt::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Le as u8 =>
-            Le::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Eq as u8 =>
-            Eq::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Ne as u8 =>
-            Ne::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Ge as u8 =>
-            Ge::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Gt as u8 =>
-            Gt::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Cast as u8 =>
-            Cast::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::ConditionalSelect as u8 =>
-            ConditionalSelect::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::LoopBegin as u8 =>
-            LoopBegin::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::LoopEnd as u8 =>
-            LoopEnd::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Call as u8 =>
-            Call::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Return as u8 =>
-            Return::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        x if x == InstructionCode::Assert as u8 =>
-            Assert::decode(bytes).map(|(s, len)| -> (Box<dyn Instruction>, usize) {(Box::new(s), len)}),
-
-        code => Err(DecodingError::UnknownInstructionCode(code))
-    }
+            Instruction::Exit($pattern) => $expression,
+        }
+    };
 }

@@ -1,20 +1,24 @@
-use crate::{Instruction, InstructionCode, DecodingError};
+use crate::{InstructionInfo, InstructionCode, DecodingError};
 use crate::instructions::utils::decode_simple_instruction;
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Default)]
 pub struct Ne;
 
-impl Instruction for Ne {
+impl InstructionInfo for Ne {
     fn to_assembly(&self) -> String {
         "ne".into()
     }
 
-    fn code(&self) -> InstructionCode {
+    fn code() -> InstructionCode {
         InstructionCode::Ne
     }
 
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::Ne as u8]
+    }
+
+    fn decode(bytes: &[u8]) -> Result<(Ne, usize), DecodingError> {
+        decode_simple_instruction(bytes)
     }
 
     fn inputs_count(&self) -> usize {
@@ -23,11 +27,5 @@ impl Instruction for Ne {
 
     fn outputs_count(&self) -> usize {
         1
-    }
-}
-
-impl Ne {
-    pub fn decode(bytes: &[u8]) -> Result<(Ne, usize), DecodingError> {
-        decode_simple_instruction(bytes, InstructionCode::Ne, Ne)
     }
 }

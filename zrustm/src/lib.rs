@@ -1,10 +1,10 @@
-pub mod instructions;
+#[macro_use]
+extern crate zrust_bytecode;
 
 mod vm;
-mod vm_instruction;
 mod element;
-pub mod cli;
+mod instructions;
 
-pub use vm::*;
-pub use vm_instruction::*;
-pub use element::*;
+mod facade;
+pub use facade::*;
+pub use vm::RuntimeError;

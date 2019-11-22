@@ -1,20 +1,24 @@
-use crate::{Instruction, InstructionCode, DecodingError};
+use crate::{InstructionInfo, InstructionCode, DecodingError};
 use crate::instructions::utils::decode_simple_instruction;
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Default)]
 pub struct Not;
 
-impl Instruction for Not {
+impl InstructionInfo for Not {
     fn to_assembly(&self) -> String {
         "not".into()
     }
 
-    fn code(&self) -> InstructionCode {
+    fn code() -> InstructionCode {
         InstructionCode::Not
     }
 
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::Not as u8]
+    }
+
+    fn decode(bytes: &[u8]) -> Result<(Not, usize), DecodingError> {
+        decode_simple_instruction(bytes)
     }
 
     fn inputs_count(&self) -> usize {
@@ -23,11 +27,5 @@ impl Instruction for Not {
 
     fn outputs_count(&self) -> usize {
         1
-    }
-}
-
-impl Not {
-    pub fn decode(bytes: &[u8]) -> Result<(Not, usize), DecodingError> {
-        decode_simple_instruction(bytes, InstructionCode::Not, Not)
     }
 }

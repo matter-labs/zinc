@@ -1,20 +1,24 @@
-use crate::{Instruction, InstructionCode, DecodingError};
+use crate::{InstructionInfo, InstructionCode, DecodingError};
 use crate::instructions::utils::decode_simple_instruction;
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Default)]
 pub struct PopCondition;
 
-impl Instruction for PopCondition {
+impl InstructionInfo for PopCondition {
     fn to_assembly(&self) -> String {
         "pop_cond".into()
     }
 
-    fn code(&self) -> InstructionCode {
+    fn code() -> InstructionCode {
         InstructionCode::PopCondition
     }
 
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::PopCondition as u8]
+    }
+
+    fn decode(bytes: &[u8]) -> Result<(PopCondition, usize), DecodingError> {
+        decode_simple_instruction(bytes)
     }
 
     fn inputs_count(&self) -> usize {
@@ -23,11 +27,5 @@ impl Instruction for PopCondition {
 
     fn outputs_count(&self) -> usize {
         0
-    }
-}
-
-impl PopCondition {
-    pub fn decode(bytes: &[u8]) -> Result<(PopCondition, usize), DecodingError> {
-        decode_simple_instruction(bytes, InstructionCode::PopCondition, PopCondition)
     }
 }

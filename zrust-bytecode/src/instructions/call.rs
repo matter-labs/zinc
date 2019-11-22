@@ -1,4 +1,4 @@
-use crate::{Instruction, InstructionCode, DecodingError, vlq};
+use crate::{InstructionInfo, InstructionCode, DecodingError, vlq};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 
@@ -8,12 +8,18 @@ pub struct Call {
     pub inputs_count: usize,
 }
 
-impl Instruction for Call {
+impl Call {
+    pub fn new(address: usize, inputs_count: usize) -> Self {
+        Self { address, inputs_count }
+    }
+}
+
+impl InstructionInfo for Call {
     fn to_assembly(&self) -> String {
         "call".into()
     }
 
-    fn code(&self) -> InstructionCode {
+    fn code() -> InstructionCode {
         InstructionCode::Call
     }
 
@@ -24,21 +30,7 @@ impl Instruction for Call {
         bytes
     }
 
-    fn inputs_count(&self) -> usize {
-        0
-    }
-
-    fn outputs_count(&self) -> usize {
-        0
-    }
-}
-
-impl Call {
-    pub fn new(address: usize, inputs_count: usize) -> Self {
-        Self { address, inputs_count }
-    }
-
-    pub fn decode(bytes: &[u8]) -> Result<(Call, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Call, usize), DecodingError> {
         if bytes.len() < 3 {
             Err(DecodingError::UnexpectedEOF)
         } else if bytes[0] != InstructionCode::Call as u8 {
@@ -58,5 +50,13 @@ impl Call {
 
             Ok((Self::new(address, inputs_size), 1 + len1 + len2))
         }
+    }
+
+    fn inputs_count(&self) -> usize {
+        0
+    }
+
+    fn outputs_count(&self) -> usize {
+        0
     }
 }

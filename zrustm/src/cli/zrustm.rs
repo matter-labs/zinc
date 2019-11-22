@@ -1,10 +1,12 @@
+mod arguments;
+
 use std::{io, fs};
-use zrust_bytecode::DecodingError;
-use zrustm::{RuntimeError, cli, VirtualMachine, ConstrainedElementOperator, decode_all_vm_instructions, ConstrainedElement};
+use zrust_bytecode::{DecodingError, decode_all_instructions};
 use bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::BigInt;
 use std::str::FromStr;
+use zrustm::RuntimeError;
 
 #[derive(Debug)]
 enum Error {
@@ -36,7 +38,7 @@ fn main() -> Result<(), Error> {
 
     match args {
         Arguments::Exec(args) => exec(args)?,
-        Arguments::GenKey(_args) => unimplemented!(),
+        Arguments::GenKey(args) => unimplemented!(),
         Arguments::GenProof(_args) => unimplemented!(),
         Arguments::Verify(_args) => unimplemented!(),
         Arguments::Empty => {},
@@ -49,24 +51,37 @@ fn exec(args: ExecArguments) -> Result<(), Error> {
     let bytes = fs::read(args.circuit_file)
         .map_err(|e| Error::IOError(e))?;
 
-    let cs = TestConstraintSystem::<Bn256>::new();
-    let mut vm = VirtualMachine::new(ConstrainedElementOperator::new(cs));
-
-    let mut instructions = decode_all_vm_instructions::<
-        ConstrainedElement<Bn256>,
-        ConstrainedElementOperator<Bn256, TestConstraintSystem<Bn256>>
-    >(bytes.as_slice())
+    let mut code = decode_all_instructions(bytes.as_slice())
         .map_err(|e| Error::DecodingError(e))?;
 
-    vm
-        .run(instructions.as_mut_slice(), args.witness.as_slice())
+    let outputs = zrustm::exec::<Bn256>(code.as_slice(), args.witness.as_slice())
         .map_err(|e| Error::RuntimeError(e))?;
+
+    for value in outputs.iter() {
+        match value {
+            None => println!("None"),
+            Some(value) => println!("{}", value),
+        }
+    }
 
     Ok(())
 }
 
+//fn gen_key(args: GenKeyArguments) -> Result<(), Error> {
+//    let bytes = fs::read(args.circuit_file)
+//        .map_err(|e| Error::IOError(e))?;
+//
+//    let mut code = decode_all_instructions(bytes.as_slice())
+//        .map_err(|e| Error::DecodingError(e))?;
+//
+//    let key = zrustm::gen_key::<Bn256>(code.as_slice())
+//        .map_err(|e| Error::RuntimeError(e))?;
+//
+//    Ok(())
+//}
+
 fn parse_arguments() -> Arguments {
-    let args = cli::build_arguments().get_matches();
+    let args = arguments::build_arguments().get_matches();
 
     match args.subcommand() {
         ("exec", Some(command_args)) => {

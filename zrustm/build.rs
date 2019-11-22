@@ -1,6 +1,6 @@
 use clap::Shell;
 
-include!("src/cli.rs");
+include!("src/cli/arguments.rs");
 
 fn main() {
     let out_dir = match std::env::var_os("SHELL_COMPLETION_DIR") {

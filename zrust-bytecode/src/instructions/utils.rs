@@ -1,13 +1,17 @@
-use crate::{InstructionCode, DecodingError, vlq};
+use crate::{InstructionCode, DecodingError, vlq, InstructionInfo};
 use num_bigint::BigInt;
 
-pub fn decode_simple_instruction<T>(bytes: &[u8], code: InstructionCode, instr: T) -> Result<(T, usize), DecodingError> {
+pub fn decode_simple_instruction<T>(bytes: &[u8])
+    -> Result<(T, usize), DecodingError>
+where
+    T: InstructionInfo + Default
+{
     if bytes.len() < 1 {
         Err(DecodingError::UnexpectedEOF)
-    } else if bytes[0] != code as u8 {
+    } else if bytes[0] != T::code() as u8 {
         Err(DecodingError::UnknownInstructionCode(bytes[0]))
     } else {
-        Ok((instr, 1))
+        Ok((T::default(), 1))
     }
 }
 

@@ -1,20 +1,24 @@
-use crate::{Instruction, InstructionCode, DecodingError};
+use crate::{InstructionInfo, InstructionCode, DecodingError};
 use crate::instructions::utils::decode_simple_instruction;
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Default)]
 pub struct Mul;
 
-impl Instruction for Mul {
+impl InstructionInfo for Mul {
     fn to_assembly(&self) -> String {
         "mul".into()
     }
 
-    fn code(&self) -> InstructionCode {
+    fn code() -> InstructionCode {
         InstructionCode::Mul
     }
 
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::Mul as u8]
+    }
+
+    fn decode(bytes: &[u8]) -> Result<(Mul, usize), DecodingError> {
+        decode_simple_instruction(bytes)
     }
 
     fn inputs_count(&self) -> usize {
@@ -23,11 +27,5 @@ impl Instruction for Mul {
 
     fn outputs_count(&self) -> usize {
         1
-    }
-}
-
-impl Mul {
-    pub fn decode(bytes: &[u8]) -> Result<(Mul, usize), DecodingError> {
-        decode_simple_instruction(bytes, InstructionCode::Mul, Mul)
     }
 }

@@ -1,12 +1,13 @@
 extern crate franklin_crypto;
 
-use crate::{RuntimeError, VirtualMachine, VMInstruction, ElementOperator, Element};
 use zrust_bytecode::instructions::NoOperation;
+use crate::element::{Element, ElementOperator};
+use crate::vm::{VirtualMachine, RuntimeError, VMInstruction};
 
 impl<E, O> VMInstruction<E, O> for NoOperation
     where E: Element, O: ElementOperator<E>
 {
-    fn execute(&mut self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         Ok(())
     }
 }

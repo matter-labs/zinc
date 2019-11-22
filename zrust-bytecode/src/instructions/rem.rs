@@ -1,20 +1,24 @@
-use crate::{Instruction, InstructionCode, DecodingError};
+use crate::{InstructionInfo, InstructionCode, DecodingError};
 use crate::instructions::utils::decode_simple_instruction;
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Default)]
 pub struct Rem;
 
-impl Instruction for Rem {
+impl InstructionInfo for Rem {
     fn to_assembly(&self) -> String {
         "rem".into()
     }
 
-    fn code(&self) -> InstructionCode {
+    fn code() -> InstructionCode {
         InstructionCode::Rem
     }
 
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::Rem as u8]
+    }
+
+    fn decode(bytes: &[u8]) -> Result<(Rem, usize), DecodingError> {
+        decode_simple_instruction(bytes)
     }
 
     fn inputs_count(&self) -> usize {
@@ -23,11 +27,5 @@ impl Instruction for Rem {
 
     fn outputs_count(&self) -> usize {
         1
-    }
-}
-
-impl Rem {
-    pub fn decode(bytes: &[u8]) -> Result<(Rem, usize), DecodingError> {
-        decode_simple_instruction(bytes, InstructionCode::Rem, Rem)
     }
 }

@@ -1,20 +1,24 @@
-use crate::{Instruction, InstructionCode, DecodingError};
+use crate::{InstructionInfo, InstructionCode, DecodingError};
 use crate::instructions::utils::decode_simple_instruction;
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Default)]
 pub struct Neg;
 
-impl Instruction for Neg {
+impl InstructionInfo for Neg {
     fn to_assembly(&self) -> String {
         "neg".into()
     }
 
-    fn code(&self) -> InstructionCode {
+    fn code() -> InstructionCode {
         InstructionCode::Neg
     }
 
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::Neg as u8]
+    }
+
+    fn decode(bytes: &[u8]) -> Result<(Neg, usize), DecodingError> {
+        decode_simple_instruction(bytes)
     }
 
     fn inputs_count(&self) -> usize {
@@ -23,11 +27,5 @@ impl Instruction for Neg {
 
     fn outputs_count(&self) -> usize {
         1
-    }
-}
-
-impl Neg {
-    pub fn decode(bytes: &[u8]) -> Result<(Neg, usize), DecodingError> {
-        decode_simple_instruction(bytes, InstructionCode::Neg, Neg)
     }
 }

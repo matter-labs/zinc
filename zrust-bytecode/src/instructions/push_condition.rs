@@ -1,20 +1,24 @@
-use crate::{Instruction, InstructionCode, DecodingError};
+use crate::{InstructionInfo, InstructionCode, DecodingError};
 use crate::instructions::utils::decode_simple_instruction;
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Default)]
 pub struct PushCondition;
 
-impl Instruction for PushCondition {
+impl InstructionInfo for PushCondition {
     fn to_assembly(&self) -> String {
         "push_cond".into()
     }
 
-    fn code(&self) -> InstructionCode {
+    fn code() -> InstructionCode {
         InstructionCode::PushCondition
     }
 
     fn encode(&self) -> Vec<u8> {
         vec![InstructionCode::PushCondition as u8]
+    }
+
+    fn decode(bytes: &[u8]) -> Result<(PushCondition, usize), DecodingError> {
+        decode_simple_instruction(bytes)
     }
 
     fn inputs_count(&self) -> usize {
@@ -23,11 +27,5 @@ impl Instruction for PushCondition {
 
     fn outputs_count(&self) -> usize {
         1
-    }
-}
-
-impl PushCondition {
-    pub fn decode(bytes: &[u8]) -> Result<(PushCondition, usize), DecodingError> {
-        decode_simple_instruction(bytes, InstructionCode::PushCondition, PushCondition)
     }
 }
