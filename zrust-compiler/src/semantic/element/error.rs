@@ -28,6 +28,11 @@ pub enum Error {
     )]
     ExpectedValueExpression(&'static str, Element),
     #[fail(
+        display = "operator '{}' expected a value or place expression, but got '{}'",
+        _0, _1
+    )]
+    ExpectedValueOrPlaceExpression(&'static str, Element),
+    #[fail(
         display = "operator '{}' expected a type expression, but got '{}'",
         _0, _1
     )]

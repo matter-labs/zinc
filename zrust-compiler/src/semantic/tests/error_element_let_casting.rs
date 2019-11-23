@@ -23,7 +23,7 @@ fn main() {
 }
 "#;
 
-    let expected: Result<Vec<u8>, Error> = Err(Error::Semantic(SemanticError::Element(
+    let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 5),
         ElementError::Value(ValueError::Integer(IntegerError::Casting(
             CastingError::ToInvalidType(
@@ -33,19 +33,11 @@ fn main() {
         ))),
     )));
 
-    let result = Analyzer::default()
-        .compile(
-            Parser::default()
-                .parse(input.to_owned())
-                .expect("Syntax error"),
-        )
-        .map(|instructions| {
-            instructions
-                .into_iter()
-                .map(|instruction| instruction.encode())
-                .flatten()
-                .collect::<Vec<u8>>()
-        });
+    let result = Analyzer::default().compile(
+        Parser::default()
+            .parse(input.to_owned())
+            .expect("Syntax error"),
+    );
 
     assert_eq!(expected, result);
 }

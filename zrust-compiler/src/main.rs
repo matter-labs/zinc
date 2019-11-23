@@ -12,6 +12,10 @@ use std::path::PathBuf;
 use failure::Fail;
 use structopt::StructOpt;
 
+use zrust_bytecode::dispatch_instruction;
+use zrust_bytecode::Instruction;
+use zrust_bytecode::InstructionInfo;
+
 #[derive(Debug, StructOpt)]
 #[structopt(name = "zrustc", about = "The ZRust compiler")]
 struct Arguments {
@@ -99,8 +103,8 @@ fn main() -> Result<(), Error> {
                         .into_iter()
                         .enumerate()
                         .map(|(index, instruction)| {
-                            log::debug!("{:03} {:?}", index, instruction);
-                            instruction.encode()
+                            log::info!(">>> {:03} {:?}", index, instruction);
+                            dispatch_instruction!(instruction => instruction.encode())
                         })
                         .flatten()
                         .collect::<Vec<u8>>()

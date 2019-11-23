@@ -117,6 +117,17 @@ impl Variant {
     pub fn new_alias(identifier: String) -> Self {
         Self::Alias { identifier }
     }
+
+    pub fn size(&self) -> usize {
+        match self {
+            Self::Unit => 0,
+            Self::Boolean => 1,
+            Self::IntegerUnsigned { .. } => 1,
+            Self::IntegerSigned { .. } => 1,
+            Self::Field => 1,
+            _ => 1,
+        }
+    }
 }
 
 impl fmt::Display for Variant {

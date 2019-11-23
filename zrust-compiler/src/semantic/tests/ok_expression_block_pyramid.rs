@@ -4,31 +4,50 @@
 
 #![cfg(test)]
 
-use parser::Parser;
+use num_bigint::BigInt;
 
-use crate::Interpreter;
+use zrust_bytecode::Add;
+use zrust_bytecode::Call;
+use zrust_bytecode::Exit;
+use zrust_bytecode::Instruction;
+use zrust_bytecode::Push;
+
+use crate::semantic::Analyzer;
+use crate::syntax::Parser;
 
 #[test]
 fn test() {
     let input = r#"
-input {}
-witness {}
-output {}
-
-let pyramid = 1 + {
-    2 + {
-        3 + {
-            4
-        } + 3
-    } + 2
-} + 1;
-
-require(pyramid == 16);
+fn main() {
+    let pyramid = 1 + {
+        2 + {
+            3 + {
+                4
+            } + 3
+        } + 2
+    } + 1;
+}
 "#;
 
-    let expected = Ok(());
+    let expected = Ok(vec![
+        Instruction::Call(Call::new(2, 0)),
+        Instruction::Exit(Exit::new(0)),
+        Instruction::Push(Push::new(BigInt::from(4), false, 8)),
+        Instruction::Push(Push::new(BigInt::from(3), false, 8)),
+        Instruction::Add(Add),
+        Instruction::Push(Push::new(BigInt::from(3), false, 8)),
+        Instruction::Add(Add),
+        Instruction::Push(Push::new(BigInt::from(2), false, 8)),
+        Instruction::Add(Add),
+        Instruction::Push(Push::new(BigInt::from(2), false, 8)),
+        Instruction::Add(Add),
+        Instruction::Push(Push::new(BigInt::from(1), false, 8)),
+        Instruction::Add(Add),
+        Instruction::Push(Push::new(BigInt::from(1), false, 8)),
+        Instruction::Add(Add),
+    ]);
 
-    let result = Interpreter::default().interpret(
+    let result = Analyzer::default().compile(
         Parser::default()
             .parse(input.to_owned())
             .expect("Syntax error"),

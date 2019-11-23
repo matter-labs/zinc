@@ -19,26 +19,18 @@ fn main() {
 }
 "#;
 
-    let expected: Result<Vec<u8>, Error> = Err(Error::Semantic(
+    let expected = Err(Error::Semantic(
         SemanticError::ConditionalExpectedBooleanExpression(
             Location::new(3, 8),
             TypeVariant::new_integer_unsigned(8),
         ),
     ));
 
-    let result = Analyzer::default()
-        .compile(
-            Parser::default()
-                .parse(input.to_owned())
-                .expect("Syntax error"),
-        )
-        .map(|instructions| {
-            instructions
-                .into_iter()
-                .map(|instruction| instruction.encode())
-                .flatten()
-                .collect::<Vec<u8>>()
-        });
+    let result = Analyzer::default().compile(
+        Parser::default()
+            .parse(input.to_owned())
+            .expect("Syntax error"),
+    );
 
     assert_eq!(expected, result);
 }

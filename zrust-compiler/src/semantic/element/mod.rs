@@ -333,8 +333,45 @@ impl Element {
         value.not().map(Self::Value).map_err(Error::Value)
     }
 
+    pub fn index(self, other: Self) -> Result<Self, Error> {
+        let mut place = match self {
+            Self::Place(place) => place,
+            element => return Err(Error::ExpectedPlaceExpression("index", element)),
+        };
+
+        let value = match other {
+            Self::Value(value) => value,
+            element => return Err(Error::ExpectedValueExpression("index", element)),
+        };
+
+        place.index(value).map_err(Error::Place)?;
+        Ok(Self::Place(place))
+    }
+
+    pub fn field(self, other: Self) -> Result<Self, Error> {
+        let mut place = match self {
+            Self::Place(place) => place,
+            element => return Err(Error::ExpectedPlaceExpression("field", element)),
+        };
+
+        match other {
+            Self::Value(value) => {
+                place.access_tuple(value).map_err(Error::Place)?;
+                Ok(Self::Place(place))
+            }
+            Self::Place(field) => {
+                place.access_structure(field).map_err(Error::Place)?;
+                Ok(Self::Place(place))
+            }
+            element => Err(Error::ExpectedValueOrPlaceExpression("field", element)),
+        }
+    }
+
     pub fn resolve(place: &Place, scope: &Scope) -> Result<Value, Error> {
-        scope.get_variable_value(place).map_err(Error::Scope)
+        scope
+            .get_declaration(place)
+            .map(|declaration| declaration.value)
+            .map_err(Error::Scope)
     }
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

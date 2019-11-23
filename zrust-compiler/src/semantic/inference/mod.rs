@@ -17,10 +17,10 @@ pub fn integer_literal(literal: &IntegerLiteral) -> Result<(BigInt, usize), Erro
         IntegerLiteral::Hexadecimal { value } => (value, crate::BASE_HEXADECIMAL as u32),
     };
 
-    let number = BigInt::from_str_radix(string, base).expect("Always valid");
+    let value = BigInt::from_str_radix(string, base).expect("Always valid");
     let mut bitlength = crate::BITLENGTH_BYTE;
     let mut exponent = BigInt::from(crate::MAX_VALUE_BYTE);
-    while number >= exponent {
+    while value >= exponent {
         if bitlength == crate::BITLENGTH_MAX_INT {
             exponent *= crate::MAX_VALUE_BYTE / 4;
             bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
@@ -32,7 +32,7 @@ pub fn integer_literal(literal: &IntegerLiteral) -> Result<(BigInt, usize), Erro
         }
     }
 
-    Ok((number, bitlength))
+    Ok((value, bitlength))
 }
 
 pub fn enough_bitlength(literals: &[&IntegerLiteral]) -> Result<usize, Error> {

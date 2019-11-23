@@ -6,10 +6,13 @@ use std::cell::RefCell;
 use std::cmp;
 use std::collections::HashMap;
 use std::convert::TryFrom;
+use std::iter::FromIterator;
 use std::ops::Deref;
 use std::rc::Rc;
 
+use zrust_bytecode::dispatch_instruction;
 use zrust_bytecode::Instruction;
+use zrust_bytecode::InstructionInfo;
 
 use crate::error::Error as CompilerError;
 use crate::lexical::Literal as InnerLiteral;
@@ -20,8 +23,10 @@ use crate::semantic::Error;
 use crate::semantic::Integer;
 use crate::semantic::Place;
 use crate::semantic::Scope;
+use crate::semantic::ScopeAssignment;
 use crate::semantic::ScopeItem;
 use crate::semantic::Value;
+use crate::syntax::ArrayExpression;
 use crate::syntax::BlockExpression;
 use crate::syntax::ConditionalExpression;
 use crate::syntax::Expression;
@@ -32,22 +37,26 @@ use crate::syntax::Identifier;
 use crate::syntax::InnerStatement;
 use crate::syntax::Literal;
 use crate::syntax::OuterStatement;
+use crate::syntax::StructureExpression;
+use crate::syntax::TupleExpression;
 use crate::syntax::Type;
 use crate::syntax::TypeVariant;
 use crate::CircuitProgram;
 
+static PANIC_RESOLUTION_FUNCTION_MAIN: &str = "Presence of the 'main' function is checked above";
+
 pub struct Analyzer {
     scopes: Vec<Rc<RefCell<Scope>>>,
     operands: Vec<StackElement>,
-    instructions: Vec<Box<dyn Instruction>>,
+    instructions: Vec<Instruction>,
     stack_height: usize,
     function_addresses: HashMap<String, usize>,
 }
 
 #[derive(Debug, Clone)]
 enum StackElement {
-    Operand(ExpressionOperand),
-    Element(Element),
+    NotEvaluated(ExpressionOperand),
+    Evaluated(Element),
 }
 
 impl Default for Analyzer {
@@ -78,12 +87,9 @@ impl Analyzer {
         }
     }
 
-    pub fn compile(
-        mut self,
-        program: CircuitProgram,
-    ) -> Result<Vec<Box<dyn Instruction>>, CompilerError> {
-        self.push_instruction(Box::new(zrust_bytecode::NoOperation));
-        self.push_instruction(Box::new(zrust_bytecode::NoOperation));
+    pub fn compile(mut self, program: CircuitProgram) -> Result<Vec<Instruction>, CompilerError> {
+        self.push_instruction(Instruction::NoOperation(zrust_bytecode::NoOperation));
+        self.push_instruction(Instruction::NoOperation(zrust_bytecode::NoOperation));
 
         for statement in program.statements.into_iter() {
             self.outer_statement(statement)
@@ -96,8 +102,31 @@ impl Analyzer {
             .copied()
             .ok_or(Error::FunctionMainMissing)
             .map_err(CompilerError::Semantic)?;
-        self.instructions[0] = Box::new(zrust_bytecode::Call::new(main_function_address, 0));
-        self.instructions[1] = Box::new(zrust_bytecode::Exit);
+        match self
+            .scope()
+            .borrow()
+            .resolve_type("main")
+            .expect(PANIC_RESOLUTION_FUNCTION_MAIN)
+        {
+            TypeVariant::Function {
+                arguments,
+                return_type,
+                ..
+            } => {
+                self.instructions[0] = Instruction::Call(zrust_bytecode::Call::new(
+                    main_function_address,
+                    arguments
+                        .into_iter()
+                        .map(|(_arg_name, arg_type)| arg_type.size())
+                        .sum(),
+                ));
+                log::trace!(">>> {:03} {:?}", 0, self.instructions[0]);
+                self.instructions[1] =
+                    Instruction::Exit(zrust_bytecode::Exit::new(return_type.size()));
+                log::trace!(">>> {:03} {:?}", 1, self.instructions[1]);
+            }
+            _ => panic!(PANIC_RESOLUTION_FUNCTION_MAIN),
+        }
 
         Ok(self.instructions)
     }
@@ -147,8 +176,8 @@ impl Analyzer {
                 let type_variant = TypeVariant::new_function(
                     r#fn.identifier.clone(),
                     r#fn.arguments
-                        .into_iter()
-                        .map(|field| (field.identifier.name, field.r#type.variant))
+                        .iter()
+                        .map(|field| (field.identifier.name.clone(), field.r#type.variant.clone()))
                         .collect(),
                     r#fn.return_type.variant.clone(),
                 );
@@ -158,16 +187,27 @@ impl Analyzer {
                     .map_err(|error| Error::Scope(location, error))?;
                 self.function_addresses
                     .insert(r#fn.identifier.name.clone(), self.instructions.len());
-                self.stack_height = 0;
                 self.push_scope();
-                self.evaluate_block_expression(r#fn.body)?;
+                for argument in r#fn.arguments.into_iter() {
+                    self.stack_height += 1;
+                    self.scope()
+                        .borrow_mut()
+                        .declare_variable(
+                            Place::new(argument.identifier.name),
+                            Value::new(argument.r#type.variant),
+                            false,
+                            self.stack_last_index(),
+                        )
+                        .map_err(|error| Error::Scope(location, error))?;
+                }
+                self.block_expression(r#fn.body)?;
                 self.pop_scope();
 
-                let result = self.get_unary_operand(true)?;
+                let result = self.evaluate_unary_operand(true)?;
                 let return_type = result
                     .type_variant(self.scope().borrow().deref())
                     .map_err(|error| Error::Element(location, error))?;
-                self.push_operand(StackElement::Element(result));
+                self.push_operand(StackElement::Evaluated(result));
 
                 if r#fn.return_type.variant != return_type {
                     return Err(Error::FunctionReturnTypeMismatch(
@@ -178,13 +218,14 @@ impl Analyzer {
                     ));
                 }
 
-                match r#fn.return_type.variant {
-                    TypeVariant::Unit => {}
-                    _ => self.push_instruction(Box::new(zrust_bytecode::Return::new(1))),
+                if r#fn.identifier.name.as_str() != "main" {
+                    self.push_instruction(Instruction::Return(zrust_bytecode::Return::new(
+                        r#fn.return_type.variant.size(),
+                    )));
                 }
             }
-            OuterStatement::Mod(_mod) => unimplemented!(),
-            OuterStatement::Use(_use) => unimplemented!(),
+            OuterStatement::Mod(_mod) => {}
+            OuterStatement::Use(_use) => {}
         }
 
         Ok(())
@@ -195,7 +236,7 @@ impl Analyzer {
             InnerStatement::Empty => {}
             InnerStatement::Let(r#let) => {
                 let location = r#let.location;
-                self.evaluate_expression(r#let.expression)?;
+                self.expression(r#let.expression)?;
                 let type_variant = if let Some(r#type) = r#let.r#type {
                     let let_type_variant = match r#type.variant {
                         TypeVariant::Alias { identifier } => {
@@ -208,20 +249,20 @@ impl Analyzer {
                         type_variant => type_variant,
                     };
 
-                    let operand_1 = self.get_unary_operand(true)?;
+                    let operand_1 = self.evaluate_unary_operand(true)?;
                     let (is_signed, bitlength) = operand_1
                         .cast(
                             Element::Type(let_type_variant.clone()),
                             self.scope().borrow().deref(),
                         )
                         .map_err(|error| Error::Element(location, error))?;
-                    self.push_instruction(Box::new(zrust_bytecode::Cast::new(
+                    self.push_instruction(Instruction::Cast(zrust_bytecode::Cast::new(
                         is_signed,
                         bitlength as u8,
                     )));
                     let_type_variant
                 } else {
-                    let operand_1 = self.get_unary_operand(true)?;
+                    let operand_1 = self.evaluate_unary_operand(true)?;
                     operand_1
                         .type_variant(self.scope().borrow().deref())
                         .map_err(|error| Error::Element(location, error))?
@@ -245,18 +286,14 @@ impl Analyzer {
 
                 let range_start: usize = r#loop.range_start.into();
                 let range_end: usize = r#loop.range_end.into();
-                let iterations_number = cmp::max(range_start, range_end)
+                let iterations_count = cmp::max(range_start, range_end)
                     - cmp::min(range_start, range_end)
                     + if r#loop.is_range_inclusive { 1 } else { 0 };
                 let is_reverse = range_start > range_end;
-                let index = Integer::new_range_bound(range_start, range_bitlength);
 
-                self.push_instruction(Box::new(index.to_push()));
-                self.push_instruction(Box::new(zrust_bytecode::LoopBegin::new(
-                    iterations_number,
-                    1,
-                )));
                 self.push_scope();
+                let index = Integer::new_range_bound(range_start, range_bitlength);
+                self.push_instruction(Instruction::Push(index.to_push()));
                 let index_address = self.stack_last_index();
                 self.scope()
                     .borrow_mut()
@@ -267,33 +304,48 @@ impl Analyzer {
                         index_address,
                     )
                     .map_err(|error| Error::Scope(location, error))?;
-                self.evaluate_block_expression(r#loop.block)?;
-                self.pop_scope();
-                self.push_instruction(Box::new(Integer::new_one(range_bitlength).to_push()));
-                self.push_instruction(Box::new(zrust_bytecode::Copy::new(index_address)));
+                self.push_instruction(Instruction::NoOperation(zrust_bytecode::NoOperation));
+                let loop_begin_index = self.instructions.len() - 1;
+                self.block_expression(r#loop.block)?;
+                let scope = self.pop_scope();
+                let outputs = scope.get_ordered_outer_assignments();
+                let outputs_count = outputs.len() + 1;
+                self.instructions[loop_begin_index] = Instruction::LoopBegin(
+                    zrust_bytecode::LoopBegin::new(iterations_count, outputs_count),
+                );
+                for (_place, assignment) in outputs.iter() {
+                    self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
+                        assignment.address,
+                    )));
+                }
+                self.push_instruction(Instruction::Push(
+                    Integer::new_one(range_bitlength).to_push(),
+                ));
+                self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(index_address)));
                 self.push_instruction(if is_reverse {
-                    Box::new(zrust_bytecode::Sub)
+                    Instruction::Sub(zrust_bytecode::Sub)
                 } else {
-                    Box::new(zrust_bytecode::Add)
+                    Instruction::Add(zrust_bytecode::Add)
                 });
-                self.push_instruction(Box::new(zrust_bytecode::LoopEnd));
+                self.push_instruction(Instruction::LoopEnd(zrust_bytecode::LoopEnd));
+                self.stack_height -= outputs_count;
             }
             InnerStatement::Expression(expression) => {
-                self.evaluate_expression(expression)?;
+                self.expression(expression)?;
             }
         }
 
         Ok(())
     }
 
-    fn evaluate_expression(&mut self, expression: Expression) -> Result<(), Error> {
+    fn expression(&mut self, expression: Expression) -> Result<(), Error> {
         for element in expression.into_iter() {
             match element.object {
                 ExpressionObject::Operand(operand) => {
-                    self.push_operand(StackElement::Operand(operand))
+                    self.push_operand(StackElement::NotEvaluated(operand))
                 }
                 ExpressionObject::Operator(ExpressionOperator::Assignment) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(false, true)?;
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(false, true)?;
                     let place = operand_1
                         .assign(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
@@ -301,171 +353,185 @@ impl Analyzer {
                         .borrow_mut()
                         .update_variable(place, self.stack_last_index())
                         .map_err(|error| Error::Scope(element.location, error))?;
-                    self.push_operand(StackElement::Element(Element::Value(Value::Unit)));
+                    self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Range) => unimplemented!(),
                 ExpressionObject::Operator(ExpressionOperator::RangeInclusive) => unimplemented!(),
                 ExpressionObject::Operator(ExpressionOperator::Or) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(true, true)?;
-                    self.push_instruction(Box::new(zrust_bytecode::Or));
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(true, true)?;
+                    self.push_instruction(Instruction::Or(zrust_bytecode::Or));
 
                     let result = operand_1
                         .or(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Element(result));
+                    self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Xor) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(true, true)?;
-                    self.push_instruction(Box::new(zrust_bytecode::Xor));
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(true, true)?;
+                    self.push_instruction(Instruction::Xor(zrust_bytecode::Xor));
 
                     let result = operand_1
                         .xor(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Element(result));
+                    self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::And) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(true, true)?;
-                    self.push_instruction(Box::new(zrust_bytecode::And));
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(true, true)?;
+                    self.push_instruction(Instruction::And(zrust_bytecode::And));
 
                     let result = operand_1
                         .and(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Element(result));
+                    self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Equals) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(true, true)?;
-                    self.push_instruction(Box::new(zrust_bytecode::Eq));
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(true, true)?;
+                    self.push_instruction(Instruction::Eq(zrust_bytecode::Eq));
 
                     let result = operand_1
                         .equals(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Element(result));
+                    self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::NotEquals) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(true, true)?;
-                    self.push_instruction(Box::new(zrust_bytecode::Ne));
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(true, true)?;
+                    self.push_instruction(Instruction::Ne(zrust_bytecode::Ne));
 
                     let result = operand_1
                         .not_equals(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Element(result));
+                    self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::GreaterEquals) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(true, true)?;
-                    self.push_instruction(Box::new(zrust_bytecode::Ge));
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(true, true)?;
+                    self.push_instruction(Instruction::Ge(zrust_bytecode::Ge));
 
                     let result = operand_1
                         .greater_equals(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Element(result));
+                    self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::LesserEquals) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(true, true)?;
-                    self.push_instruction(Box::new(zrust_bytecode::Le));
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(true, true)?;
+                    self.push_instruction(Instruction::Le(zrust_bytecode::Le));
 
                     let result = operand_1
                         .lesser_equals(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Element(result));
+                    self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Greater) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(true, true)?;
-                    self.push_instruction(Box::new(zrust_bytecode::Gt));
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(true, true)?;
+                    self.push_instruction(Instruction::Gt(zrust_bytecode::Gt));
 
                     let result = operand_1
                         .greater(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Element(result));
+                    self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Lesser) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(true, true)?;
-                    self.push_instruction(Box::new(zrust_bytecode::Lt));
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(true, true)?;
+                    self.push_instruction(Instruction::Lt(zrust_bytecode::Lt));
 
                     let result = operand_1
                         .lesser(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Element(result));
+                    self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Addition) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(true, true)?;
-                    self.push_instruction(Box::new(zrust_bytecode::Add));
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(true, true)?;
+                    self.push_instruction(Instruction::Add(zrust_bytecode::Add));
 
                     let result = operand_1
                         .add(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Element(result));
+                    self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Subtraction) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(true, true)?;
-                    self.push_instruction(Box::new(zrust_bytecode::Sub));
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(true, true)?;
+                    self.push_instruction(Instruction::Sub(zrust_bytecode::Sub));
 
                     let result = operand_1
                         .subtract(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Element(result));
+                    self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Multiplication) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(true, true)?;
-                    self.push_instruction(Box::new(zrust_bytecode::Mul));
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(true, true)?;
+                    self.push_instruction(Instruction::Mul(zrust_bytecode::Mul));
 
                     let result = operand_1
                         .multiply(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Element(result));
+                    self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Division) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(true, true)?;
-                    self.push_instruction(Box::new(zrust_bytecode::Div));
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(true, true)?;
+                    self.push_instruction(Instruction::Div(zrust_bytecode::Div));
 
                     let result = operand_1
                         .divide(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Element(result));
+                    self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Remainder) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(true, true)?;
-                    self.push_instruction(Box::new(zrust_bytecode::Rem));
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(true, true)?;
+                    self.push_instruction(Instruction::Rem(zrust_bytecode::Rem));
 
                     let result = operand_1
                         .modulo(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Element(result));
+                    self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Casting) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(true, false)?;
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(true, false)?;
                     let (is_signed, bitlength) = operand_1
                         .cast(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_instruction(Box::new(zrust_bytecode::Cast::new(
+                    self.push_instruction(Instruction::Cast(zrust_bytecode::Cast::new(
                         is_signed,
                         bitlength as u8,
                     )));
-                    self.push_operand(StackElement::Element(Element::Value(Value::new(
+                    self.push_operand(StackElement::Evaluated(Element::Value(Value::new(
                         TypeVariant::new_integer(is_signed, bitlength),
                     ))));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Negation) => {
-                    let operand_1 = self.get_unary_operand(true)?;
-                    self.push_instruction(Box::new(zrust_bytecode::Neg));
+                    let operand_1 = self.evaluate_unary_operand(true)?;
+                    self.push_instruction(Instruction::Neg(zrust_bytecode::Neg));
 
                     let result = operand_1
                         .negate(self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Element(result));
+                    self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Not) => {
-                    let operand_1 = self.get_unary_operand(true)?;
-                    self.push_instruction(Box::new(zrust_bytecode::Not));
+                    let operand_1 = self.evaluate_unary_operand(true)?;
+                    self.push_instruction(Instruction::Not(zrust_bytecode::Not));
 
                     let result = operand_1
                         .not(self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Element(result));
+                    self.push_operand(StackElement::Evaluated(result));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Indexing) => unimplemented!(),
-                ExpressionObject::Operator(ExpressionOperator::Field) => unimplemented!(),
+                ExpressionObject::Operator(ExpressionOperator::Indexing) => {
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(false, false)?;
+
+                    let result = operand_1
+                        .index(operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    self.push_operand(StackElement::Evaluated(result));
+                }
+                ExpressionObject::Operator(ExpressionOperator::Field) => {
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(false, false)?;
+
+                    let result = operand_1
+                        .field(operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    self.push_operand(StackElement::Evaluated(result));
+                }
                 ExpressionObject::Operator(ExpressionOperator::Call) => {
-                    let (operand_1, operand_2) = self.get_binary_operands(false, false)?;
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(false, false)?;
 
                     let (identifier, argument_types, return_type) = match operand_1 {
                         Element::Type(TypeVariant::Function {
@@ -482,14 +548,14 @@ impl Analyzer {
                         Element::ValueList(values) => values,
                         _ => panic!("Ensured to be an expression list during the syntax analysis"),
                     };
-                    let arguments_types_number = argument_types.len();
-                    let arguments_values_number = argument_values.len();
+                    let argument_types_count = argument_types.len();
+                    let argument_values_count = argument_values.len();
                     if argument_values.len() != argument_types.len() {
                         return Err(Error::FunctionArgumentCountMismatch(
                             element.location,
                             identifier.name,
-                            arguments_types_number,
-                            arguments_values_number,
+                            argument_types_count,
+                            argument_values_count,
                         ));
                     }
 
@@ -508,15 +574,18 @@ impl Analyzer {
                         }
                     }
 
-                    self.push_instruction(Box::new(zrust_bytecode::Call::new(
-                        self.function_addresses
-                            .get(&identifier.name)
-                            .copied()
-                            .expect("Presence checked during the function type resolution"),
-                        arguments_values_number,
+                    let function_address = self
+                        .function_addresses
+                        .get(&identifier.name)
+                        .copied()
+                        .expect("Presence checked during the function type resolution");
+
+                    self.push_instruction(Instruction::Call(zrust_bytecode::Call::new(
+                        function_address,
+                        argument_values_count,
                     )));
 
-                    self.push_operand(StackElement::Element(Element::Value(Value::new(
+                    self.push_operand(StackElement::Evaluated(Element::Value(Value::new(
                         *return_type,
                     ))))
                 }
@@ -525,12 +594,12 @@ impl Analyzer {
         }
 
         let element = self.evaluate_operand(true)?;
-        self.push_operand(StackElement::Element(element));
+        self.push_operand(StackElement::Evaluated(element));
 
         Ok(())
     }
 
-    fn evaluate_literal(&mut self, literal: Literal) -> Result<(), Error> {
+    fn literal(&mut self, literal: Literal) -> Result<(), Error> {
         let location = literal.location;
 
         let value = match literal.data {
@@ -540,17 +609,13 @@ impl Analyzer {
                 .map_err(|error| Error::Element(location, error))?,
             InnerLiteral::String { .. } => panic!("String literals cannot be used in expressions"),
         };
-        self.push_instruction(Box::new(value.to_push()));
-        self.push_operand(StackElement::Element(Element::Value(value)));
+        self.push_instruction(Instruction::Push(value.to_push()));
+        self.push_operand(StackElement::Evaluated(Element::Value(value)));
 
         Ok(())
     }
 
-    fn evaluate_identifier(
-        &mut self,
-        identifier: Identifier,
-        is_for_stack: bool,
-    ) -> Result<(), Error> {
+    fn identifier(&mut self, identifier: Identifier, is_for_stack: bool) -> Result<(), Error> {
         let location = identifier.location;
 
         if is_for_stack {
@@ -560,13 +625,13 @@ impl Analyzer {
                 .borrow()
                 .get_variable_address(&place)
                 .map_err(|error| Error::Scope(location, error))?;
-            let value = self
+            let declaration = self
                 .scope()
                 .borrow()
-                .get_variable_value(&place)
+                .get_declaration(&place)
                 .map_err(|error| Error::Scope(location, error))?;
-            self.push_instruction(Box::new(zrust_bytecode::Copy::new(address)));
-            self.push_operand(StackElement::Element(Element::Value(value)));
+            self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(address)));
+            self.push_operand(StackElement::Evaluated(Element::Value(declaration.value)));
         } else {
             let item_type = self
                 .scope()
@@ -576,7 +641,7 @@ impl Analyzer {
             match item_type {
                 ScopeItem::Variable => {
                     let place = Place::new(identifier.name.clone());
-                    self.push_operand(StackElement::Element(Element::Place(place)))
+                    self.push_operand(StackElement::Evaluated(Element::Place(place)))
                 }
                 ScopeItem::Type => {
                     let type_variant = self
@@ -584,7 +649,7 @@ impl Analyzer {
                         .borrow()
                         .resolve_type(&identifier.name)
                         .map_err(|error| Error::Scope(location, error))?;
-                    self.push_operand(StackElement::Element(Element::Type(type_variant)));
+                    self.push_operand(StackElement::Evaluated(Element::Type(type_variant)));
                 }
                 ScopeItem::Variant => {}
             }
@@ -593,7 +658,7 @@ impl Analyzer {
         Ok(())
     }
 
-    fn evaluate_type(&mut self, r#type: Type) -> Result<(), Error> {
+    fn r#type(&mut self, r#type: Type) -> Result<(), Error> {
         let location = r#type.location;
         let resolved_type_variant = match r#type.variant {
             TypeVariant::Alias { identifier } => self
@@ -603,36 +668,34 @@ impl Analyzer {
                 .map_err(|error| Error::Scope(location, error))?,
             type_variant => type_variant,
         };
-        self.push_operand(StackElement::Element(Element::Type(resolved_type_variant)));
+        self.push_operand(StackElement::Evaluated(Element::Type(
+            resolved_type_variant,
+        )));
 
         Ok(())
     }
 
-    fn evaluate_block_expression(&mut self, block: BlockExpression) -> Result<(), Error> {
+    fn block_expression(&mut self, block: BlockExpression) -> Result<(), Error> {
         for statement in block.statements.into_iter() {
             self.inner_statement(statement)?;
         }
         if let Some(expression) = block.expression {
-            self.evaluate_expression(*expression)?;
+            self.expression(*expression)?;
         } else {
-            self.push_operand(StackElement::Element(Element::Value(Value::Unit)));
+            self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
         }
 
         Ok(())
     }
 
-    fn evaluate_conditional_expression(
-        &mut self,
-        conditional: ConditionalExpression,
-    ) -> Result<(), Error> {
+    fn conditional_expression(&mut self, conditional: ConditionalExpression) -> Result<(), Error> {
         let location = conditional.location;
         let condition_location = conditional.condition.location;
 
-        self.evaluate_expression(*conditional.condition)?;
-        self.push_instruction(Box::new(zrust_bytecode::PushCondition));
+        self.expression(*conditional.condition)?;
         let condition_address = self.stack_last_index();
         match self
-            .get_unary_operand(true)?
+            .evaluate_unary_operand(true)?
             .type_variant(self.scope().borrow().deref())
             .map_err(|error| Error::Element(location, error))?
         {
@@ -645,25 +708,98 @@ impl Analyzer {
             }
         }
 
-        self.push_scope();
-        self.evaluate_block_expression(conditional.main_block)?;
-        let (main_result, main_result_address) =
-            (self.get_unary_operand(true)?, self.stack_last_index());
-        let main_assignments = self.scope().borrow().get_assignments();
-        self.pop_scope();
+        // copy the 'true' variant of the condition
+        self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
+            condition_address,
+        )));
+        self.push_instruction(Instruction::PushCondition(zrust_bytecode::PushCondition));
 
-        let mut else_assignments = HashMap::new();
+        // remember the initial stack position, push the scope and start the frame
+        let stack_frame_start = self.stack_height;
+        self.push_scope();
+        // TODO: frame start
+
+        // evaluate the main block and get the result
+        self.block_expression(conditional.main_block)?;
+        let (main_result, main_result_address) =
+            (self.evaluate_unary_operand(true)?, self.stack_last_index());
+
+        // pop the scope and the condition
+        let scope = self.pop_scope();
+        self.push_instruction(Instruction::PopCondition(zrust_bytecode::PopCondition));
+
+        // get the ordered list of the outer assignments
+        let main_assignments = scope.get_ordered_outer_assignments();
+        let main_assignments_count = main_assignments.len();
+
+        // set the stack position to the initial one
+        self.stack_height = stack_frame_start + main_assignments_count;
+
+        // reassign the outer variables and release the frame
+        for (place, assignment) in main_assignments.iter() {
+            self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
+                assignment.address,
+            )));
+            self.scope()
+                .borrow_mut()
+                .update_variable(place.to_owned(), self.stack_last_index())
+                .expect("The variable address always exists as it is checked during the block evaluation");
+        }
+        // TODO: frame end
+
+        let mut else_assignments = Vec::new();
         let (else_result, else_result_address) = if let Some(else_if) = conditional.else_if {
-            self.evaluate_conditional_expression(*else_if)?;
-            (self.get_unary_operand(true)?, self.stack_last_index())
+            // evaluate the main block and get the result
+            self.conditional_expression(*else_if)?;
+            let (else_result, else_result_address) =
+                (self.evaluate_unary_operand(true)?, self.stack_last_index());
+
+            (else_result, else_result_address)
         } else if let Some(else_block) = conditional.else_block {
+            // copy the 'false' variant of the condition
+            self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
+                condition_address,
+            )));
+            self.push_instruction(Instruction::Not(zrust_bytecode::Not));
+            self.push_instruction(Instruction::PushCondition(zrust_bytecode::PushCondition));
+
+            // remember the initial stack position, push the scope and start the frame
+            let stack_frame_start = self.stack_height;
             self.push_scope();
-            self.evaluate_block_expression(else_block)?;
-            else_assignments = self.scope().borrow().get_assignments();
-            self.pop_scope();
-            (self.get_unary_operand(true)?, self.stack_last_index())
+            // TODO: frame start
+
+            // evaluate the main block and get the result
+            self.block_expression(else_block)?;
+            let (else_result, else_result_address) =
+                (self.evaluate_unary_operand(true)?, self.stack_last_index());
+
+            // pop the scope and the condition
+            let scope = self.pop_scope();
+            self.push_instruction(Instruction::PopCondition(zrust_bytecode::PopCondition));
+
+            // set the ordered list of the outer assignments
+            else_assignments = scope.get_ordered_outer_assignments();
+            let else_assignments_count = else_assignments.len();
+
+            // set the stack position to the initial one
+            self.stack_height = stack_frame_start + else_assignments_count;
+
+            // reassign the outer variables and release the frame
+            for (place, assignment) in else_assignments.iter() {
+                self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
+                    assignment.address,
+                )));
+                self.scope()
+                    .borrow_mut()
+                    .update_variable(place.to_owned(), self.stack_last_index())
+                    .expect("The variable address always exists as it is checked during the block evaluation");
+            }
+            // TODO: frame end
+
+            (else_result, else_result_address)
         } else {
-            self.push_operand(StackElement::Element(Element::Value(Value::Unit)));
+            // the else block is absent, returning a unit value
+            self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
             (Element::Value(Value::Unit), self.stack_last_index())
         };
 
@@ -679,26 +815,29 @@ impl Analyzer {
             ));
         }
 
-        let mut assignments = HashMap::<Place, usize>::new();
         let mut conditional_assignments = HashMap::<Place, (usize, usize)>::new();
-        for (place, address_1) in main_assignments.into_iter() {
-            if let Some(address_2) = else_assignments.get(&place).copied() {
-                conditional_assignments.insert(place, (address_1, address_2));
+        let else_assignments =
+            HashMap::<Place, ScopeAssignment>::from_iter(else_assignments.into_iter());
+        for (place, assignment_1) in main_assignments.into_iter() {
+            if let Some(assignment_2) = else_assignments.get(&place) {
+                conditional_assignments.insert(place, (assignment_1.address, assignment_2.address));
             } else {
-                assignments.insert(place, address_1);
+                let old_address = self.scope().borrow()
+                    .get_variable_address(&place)
+                    .expect("The variable address always exists as it is checked during the block evaluation");
+                conditional_assignments.insert(place, (assignment_1.address, old_address));
             }
         }
-        for (place, address) in else_assignments.into_iter() {
-            if !conditional_assignments.contains_key(&place) {
-                assignments.insert(place, address);
-            }
-        }
-        self.scope().borrow_mut().add_assignments(assignments);
+
         for (place, (address_1, address_2)) in conditional_assignments.into_iter() {
-            self.push_instruction(Box::new(zrust_bytecode::Copy::new(address_2)));
-            self.push_instruction(Box::new(zrust_bytecode::Copy::new(address_1)));
-            self.push_instruction(Box::new(zrust_bytecode::Copy::new(condition_address)));
-            self.push_instruction(Box::new(zrust_bytecode::ConditionalSelect));
+            self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(address_2)));
+            self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(address_1)));
+            self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
+                condition_address,
+            )));
+            self.push_instruction(Instruction::ConditionalSelect(
+                zrust_bytecode::ConditionalSelect,
+            ));
             self.scope()
                 .borrow_mut()
                 .update_variable(place, self.stack_last_index())
@@ -707,65 +846,135 @@ impl Analyzer {
 
         match main_type {
             TypeVariant::Unit => {}
-            _ => {
-                self.push_instruction(Box::new(zrust_bytecode::Copy::new(else_result_address)));
-                self.push_instruction(Box::new(zrust_bytecode::Copy::new(main_result_address)));
-                self.push_instruction(Box::new(zrust_bytecode::Copy::new(condition_address)));
-                self.push_instruction(Box::new(zrust_bytecode::ConditionalSelect));
-                self.push_operand(StackElement::Element(main_result));
+            type_variant => {
+                self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
+                    else_result_address,
+                )));
+                self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
+                    main_result_address,
+                )));
+                self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
+                    condition_address,
+                )));
+                self.push_instruction(Instruction::ConditionalSelect(
+                    zrust_bytecode::ConditionalSelect,
+                ));
+                self.push_operand(StackElement::Evaluated(main_result));
+                self.stack_height += type_variant.size();
             }
         }
-
-        self.push_instruction(Box::new(zrust_bytecode::PopCondition));
 
         Ok(())
     }
 
-    fn evaluate_list_expression(&mut self, list: Vec<Expression>) -> Result<usize, Error> {
+    fn array_expression(&mut self, array: ArrayExpression) -> Result<(), Error> {
+        for element in array.elements.into_iter() {
+            self.expression(element)?;
+            self.pop_operand();
+        }
+
+        Ok(())
+    }
+
+    fn tuple_expression(&mut self, tuple: TupleExpression) -> Result<(), Error> {
+        for element in tuple.elements.into_iter() {
+            self.expression(element)?;
+            self.pop_operand();
+        }
+
+        Ok(())
+    }
+
+    fn structure_expression(&mut self, structure: StructureExpression) -> Result<(), Error> {
+        for (_identifier, expression) in structure.fields.into_iter() {
+            self.expression(expression)?;
+            self.pop_operand();
+        }
+
+        Ok(())
+    }
+
+    fn list_expression(&mut self, list: Vec<Expression>) -> Result<usize, Error> {
         let input_length = list.len();
         let mut values = Vec::with_capacity(input_length);
         for expression in list.into_iter() {
-            self.evaluate_expression(expression)?;
-            match self.get_unary_operand(true)? {
+            self.expression(expression)?;
+            match self.evaluate_unary_operand(true)? {
                 Element::Value(value) => values.push(value),
                 _ => panic!("Is always put as a value by the evaluator above"),
             }
         }
-        self.push_operand(StackElement::Element(Element::ValueList(values)));
+        self.push_operand(StackElement::Evaluated(Element::ValueList(values)));
 
         Ok(input_length)
     }
 
     fn evaluate_operand(&mut self, is_for_stack: bool) -> Result<Element, Error> {
         Ok(match self.pop_operand() {
-            StackElement::Operand(operand) => {
+            StackElement::NotEvaluated(operand) => {
                 match operand {
-                    ExpressionOperand::Literal(literal) => self.evaluate_literal(literal)?,
+                    ExpressionOperand::Unit => {}
+                    ExpressionOperand::Literal(literal) => self.literal(literal)?,
                     ExpressionOperand::Identifier(identifier) => {
-                        self.evaluate_identifier(identifier, is_for_stack)?
-                    }
-                    ExpressionOperand::Type(r#type) => self.evaluate_type(r#type)?,
-                    ExpressionOperand::Block(block) => {
-                        self.push_scope();
-                        self.evaluate_block_expression(block)?;
-                        self.pop_scope();
-                    }
-                    ExpressionOperand::Conditional(conditional) => {
-                        self.evaluate_conditional_expression(conditional)?;
+                        self.identifier(identifier, is_for_stack)?
                     }
                     ExpressionOperand::List(list) => {
-                        self.evaluate_list_expression(list)?;
+                        self.list_expression(list)?;
                     }
-                    _ => unimplemented!(),
+                    ExpressionOperand::Type(r#type) => self.r#type(r#type)?,
+                    ExpressionOperand::Block(block) => {
+                        let location = block.location;
+
+                        // push the scope and remember the stack position
+                        self.push_scope();
+                        let stack_frame_start = self.stack_height;
+                        // TODO: push frame
+
+                        // evaluate the block and get the result type
+                        self.block_expression(block)?;
+                        let result = self.evaluate_unary_operand(true)?;
+                        let result_type = result
+                            .type_variant(self.scope().borrow().deref())
+                            .map_err(|error| Error::Element(location, error))?;
+                        self.push_operand(StackElement::Evaluated(result));
+
+                        let scope = self.pop_scope();
+                        let outputs = scope.get_ordered_outer_assignments();
+
+                        // move the stack pointer
+                        self.stack_height = stack_frame_start + result_type.size();
+
+                        for (place, assignment) in outputs.into_iter() {
+                            self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
+                                assignment.address,
+                            )));
+                            self.scope()
+                                .borrow_mut()
+                                .update_variable(place, self.stack_last_index())
+                                .expect("The variable address always exists as it is checked during the block evaluation");
+                        }
+                        // TODO: end frame
+                    }
+                    ExpressionOperand::Conditional(conditional) => {
+                        self.conditional_expression(conditional)?;
+                    }
+                    ExpressionOperand::Match(_match) => unimplemented!(),
+                    ExpressionOperand::Array(array) => {
+                        self.array_expression(array)?;
+                    }
+                    ExpressionOperand::Tuple(tuple) => {
+                        self.tuple_expression(tuple)?;
+                    }
+                    ExpressionOperand::Structure(structure) => {
+                        self.structure_expression(structure)?;
+                    }
                 }
                 match self.pop_operand() {
-                    StackElement::Element(element) => element,
-                    StackElement::Operand { .. } => {
-                        panic!("Is always put as an element by the evaluators above")
-                    }
+                    StackElement::Evaluated(element) => element,
+                    StackElement::NotEvaluated { .. } => panic!("Is evaluated above"),
                 }
             }
-            StackElement::Element(element) => element,
+            StackElement::Evaluated(element) => element,
         })
     }
 
@@ -781,15 +990,21 @@ impl Analyzer {
             .push(Rc::new(RefCell::new(Scope::new(Some(self.scope())))));
     }
 
-    fn pop_scope(&mut self) {
-        self.scopes.pop();
+    fn pop_scope(&mut self) -> Scope {
+        let scope = self
+            .scopes
+            .pop()
+            .expect("Should not be called even when there is only the global scope left");
+        Rc::try_unwrap(scope)
+            .expect("The innermost scope has no other references")
+            .into_inner()
     }
 
-    fn get_unary_operand(&mut self, is_for_stack: bool) -> Result<Element, Error> {
+    fn evaluate_unary_operand(&mut self, is_for_stack: bool) -> Result<Element, Error> {
         self.evaluate_operand(is_for_stack)
     }
 
-    fn get_binary_operands(
+    fn evaluate_binary_operands(
         &mut self,
         is_for_stack_1: bool,
         is_for_stack_2: bool,
@@ -809,10 +1024,12 @@ impl Analyzer {
             .expect("Should be called if there are no operands to pop")
     }
 
-    fn push_instruction(&mut self, instruction: Box<dyn Instruction>) {
-        //        log::trace!(">>> {:?}", instruction);
-        let stack_difference =
-            (instruction.outputs_count() as isize) - (instruction.inputs_count() as isize);
+    fn push_instruction(&mut self, instruction: Instruction) {
+        log::trace!(">>> {:03} {:?}", self.instructions.len(), instruction);
+        let instruction_ref = &instruction;
+        let stack_difference = (dispatch_instruction!(instruction_ref => instruction_ref.outputs_count())
+            as isize)
+            - (dispatch_instruction!(instruction_ref => instruction_ref.inputs_count()) as isize);
         self.stack_resize(stack_difference);
         self.instructions.push(instruction);
     }
