@@ -1,12 +1,14 @@
 extern crate franklin_crypto;
 
-use crate::vm::VMInstruction;
 use crate::element::{Element, ElementOperator};
-use crate::vm::{VirtualMachine, RuntimeError};
+use crate::vm::VMInstruction;
+use crate::vm::{RuntimeError, VirtualMachine};
 use zrust_bytecode::instructions::Gt;
 
 impl<E, O> VMInstruction<E, O> for Gt
-    where E: Element, O: ElementOperator<E>
+where
+    E: Element,
+    O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let left = vm.stack_pop()?;
@@ -22,20 +24,32 @@ impl<E, O> VMInstruction<E, O> for Gt
 mod test {
     use super::*;
     use crate::instructions::testing_utils;
-    use zrust_bytecode::*;
     use num_bigint::BigInt;
+    use zrust_bytecode::*;
 
     #[test]
     fn test_gt() -> Result<(), RuntimeError> {
         let mut bytecode = testing_utils::create_instructions_vec();
-        bytecode.push(Box::new(Push { value: BigInt::from(1) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(2) }));
+        bytecode.push(Box::new(Push {
+            value: BigInt::from(1),
+        }));
+        bytecode.push(Box::new(Push {
+            value: BigInt::from(2),
+        }));
         bytecode.push(Box::new(Gt));
-        bytecode.push(Box::new(Push { value: BigInt::from(2) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(2) }));
+        bytecode.push(Box::new(Push {
+            value: BigInt::from(2),
+        }));
+        bytecode.push(Box::new(Push {
+            value: BigInt::from(2),
+        }));
         bytecode.push(Box::new(Gt));
-        bytecode.push(Box::new(Push { value: BigInt::from(2) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(1) }));
+        bytecode.push(Box::new(Push {
+            value: BigInt::from(2),
+        }));
+        bytecode.push(Box::new(Push {
+            value: BigInt::from(1),
+        }));
         bytecode.push(Box::new(Gt));
 
         let mut vm = testing_utils::new_test_constrained_vm();

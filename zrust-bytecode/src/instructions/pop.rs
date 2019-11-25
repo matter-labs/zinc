@@ -1,10 +1,10 @@
-use crate::{InstructionInfo, InstructionCode, DecodingError, utils};
-use num_traits::ToPrimitive;
+use crate::{utils, DecodingError, InstructionCode, InstructionInfo};
 use num_bigint::ToBigInt;
+use num_traits::ToPrimitive;
 
-#[derive(Debug,PartialEq,Default)]
+#[derive(Debug, PartialEq, Default)]
 pub struct Pop {
-    pub count: usize
+    pub count: usize,
 }
 
 impl Pop {

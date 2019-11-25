@@ -1,13 +1,13 @@
 use bellman::pairing::Engine;
-use num_bigint::BigInt;
-use num_traits::{Zero, Signed};
 use ff::{Field, PrimeField, PrimeFieldRepr};
+use num_bigint::BigInt;
+use num_traits::{Signed, Zero};
 use std::ops::Neg;
 
 pub fn fr_to_bigint<E: Engine>(fr: &E::Fr) -> BigInt {
     let mut buf: Vec<u8> = Vec::new();
     match fr.into_repr().write_be(&mut buf) {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(_) => {
             log::error!("Failed to convert Fr to BigInt: {:?}", fr);
         }
@@ -24,7 +24,7 @@ pub fn fr_to_bigint<E: Engine>(fr: &E::Fr) -> BigInt {
     } else {
         let mut fr_neg = fr.clone();
         fr_neg.negate();
-        - fr_to_bigint::<E>(&fr_neg)
+        -fr_to_bigint::<E>(&fr_neg)
     }
 }
 
@@ -38,7 +38,7 @@ pub fn bigint_to_fr<E: Engine>(bigint: &BigInt) -> Option<E::Fr> {
                 fr.sub_assign(&abs);
                 Some(fr)
             }
-            None => None
+            None => None,
         }
     }
 }

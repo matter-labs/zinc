@@ -1,10 +1,10 @@
-use crate::{InstructionInfo, InstructionCode, DecodingError, utils};
-use num_traits::ToPrimitive;
+use crate::{utils, DecodingError, InstructionCode, InstructionInfo};
 use num_bigint::ToBigInt;
+use num_traits::ToPrimitive;
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Copy {
-    pub index: usize
+    pub index: usize,
 }
 
 impl Copy {

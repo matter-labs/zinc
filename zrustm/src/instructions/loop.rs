@@ -1,12 +1,14 @@
 extern crate franklin_crypto;
 
-use crate::vm::VMInstruction;
 use crate::element::{Element, ElementOperator};
-use crate::vm::{VirtualMachine, RuntimeError};
+use crate::vm::VMInstruction;
+use crate::vm::{RuntimeError, VirtualMachine};
 use zrust_bytecode::{LoopBegin, LoopEnd};
 
 impl<E, O> VMInstruction<E, O> for LoopBegin
-    where E: Element, O: ElementOperator<E>
+where
+    E: Element,
+    O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.loop_begin(self.iterations, self.io_size)
@@ -14,7 +16,9 @@ impl<E, O> VMInstruction<E, O> for LoopBegin
 }
 
 impl<E, O> VMInstruction<E, O> for LoopEnd
-    where E: Element, O: ElementOperator<E>
+where
+    E: Element,
+    O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.loop_end()
@@ -24,8 +28,8 @@ impl<E, O> VMInstruction<E, O> for LoopEnd
 #[cfg(test)]
 mod test {
     use super::*;
-    use zrust_bytecode::{Push, Add};
-    use crate::instructions::testing_utils::{VMTestRunner, TestingError};
+    use crate::instructions::testing_utils::{TestingError, VMTestRunner};
+    use zrust_bytecode::{Add, Push};
 
     #[test]
     fn test_loop() -> Result<(), TestingError> {
@@ -38,7 +42,6 @@ mod test {
             .add(Push { value: 1.into() })
             .add(Add)
             .add(LoopEnd)
-
             .test(&[10, 42])
     }
 }

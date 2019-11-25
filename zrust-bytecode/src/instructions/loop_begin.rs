@@ -1,8 +1,8 @@
-use crate::{InstructionInfo, InstructionCode, DecodingError, vlq};
-use num_traits::ToPrimitive;
+use crate::{vlq, DecodingError, InstructionCode, InstructionInfo};
 use num_bigint::BigInt;
+use num_traits::ToPrimitive;
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct LoopBegin {
     pub iterations: usize,
     pub io_size: usize,
@@ -10,7 +10,10 @@ pub struct LoopBegin {
 
 impl LoopBegin {
     pub fn new(iterations: usize, io_size: usize) -> Self {
-        Self { iterations, io_size }
+        Self {
+            iterations,
+            io_size,
+        }
     }
 }
 
@@ -36,16 +39,18 @@ impl InstructionInfo for LoopBegin {
         } else if bytes[0] != InstructionCode::LoopBegin as u8 {
             Err(DecodingError::UnknownInstructionCode(bytes[0]))
         } else {
-            let (iterations_bi, iter_len) = vlq::decode(&bytes[1..])
-                .ok_or(DecodingError::UnexpectedEOF)?;
+            let (iterations_bi, iter_len) =
+                vlq::decode(&bytes[1..]).ok_or(DecodingError::UnexpectedEOF)?;
 
-            let iterations = iterations_bi.to_usize()
+            let iterations = iterations_bi
+                .to_usize()
                 .ok_or(DecodingError::ConstantTooLong)?;
 
-            let (io_size_bi, io_size_len) = vlq::decode(&bytes[(iter_len + 1)..])
-                .ok_or(DecodingError::UnexpectedEOF)?;
+            let (io_size_bi, io_size_len) =
+                vlq::decode(&bytes[(iter_len + 1)..]).ok_or(DecodingError::UnexpectedEOF)?;
 
-            let io_size = io_size_bi.to_usize()
+            let io_size = io_size_bi
+                .to_usize()
                 .ok_or(DecodingError::ConstantTooLong)?;
 
             Ok((Self::new(iterations, io_size), 1 + iter_len + io_size_len))

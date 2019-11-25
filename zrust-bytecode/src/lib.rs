@@ -1,13 +1,13 @@
+mod decode;
 pub mod instructions;
 pub mod vlq;
-mod decode;
 
-pub use instructions::*;
 pub use decode::*;
+pub use instructions::*;
 
 use std::fmt::Debug;
 
-pub trait InstructionInfo: Debug + Sized {
+pub trait InstructionInfo: PartialEq + Debug + Sized {
     fn to_assembly(&self) -> String;
     fn code() -> InstructionCode;
     fn encode(&self) -> Vec<u8>;
@@ -16,7 +16,7 @@ pub trait InstructionInfo: Debug + Sized {
     fn outputs_count(&self) -> usize;
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum DecodingError {
     UnexpectedEOF,
     UnknownInstructionCode(u8),

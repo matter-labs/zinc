@@ -1,12 +1,14 @@
 extern crate franklin_crypto;
 
-use crate::vm::VMInstruction;
 use crate::element::{Element, ElementOperator};
-use crate::vm::{VirtualMachine, RuntimeError};
+use crate::vm::VMInstruction;
+use crate::vm::{RuntimeError, VirtualMachine};
 use zrust_bytecode::{Call, Return};
 
 impl<E, O> VMInstruction<E, O> for Call
-    where E: Element, O: ElementOperator<E>
+where
+    E: Element,
+    O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.call(self.address, self.inputs_count)
@@ -14,7 +16,9 @@ impl<E, O> VMInstruction<E, O> for Call
 }
 
 impl<E, O> VMInstruction<E, O> for Return
-    where E: Element, O: ElementOperator<E>
+where
+    E: Element,
+    O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.ret(self.outputs_count)
@@ -24,8 +28,8 @@ impl<E, O> VMInstruction<E, O> for Return
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::instructions::testing_utils::{TestingError, VMTestRunner};
     use zrust_bytecode::*;
-    use crate::instructions::testing_utils::{VMTestRunner, TestingError};
 
     #[test]
     fn test_func() -> Result<(), TestingError> {
@@ -34,7 +38,6 @@ mod tests {
         VMTestRunner::new()
             // call main
             .add(Call::new(8, 0))
-
             // func min(field, field) -> field
             .add(Copy::new(1))
             .add(Copy::new(0))
@@ -43,13 +46,11 @@ mod tests {
             .add(Lt)
             .add(ConditionalSelect)
             .add(Return::new(1))
-
             // func main
             .add(Push { value: 42.into() })
             .add(Push { value: 5.into() })
             .add(Push { value: 3.into() })
             .add(Call::new(1, 2))
-
             .test(&[3, 42])
     }
 }

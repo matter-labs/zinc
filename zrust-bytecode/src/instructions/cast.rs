@@ -1,11 +1,11 @@
-use crate::{InstructionInfo, InstructionCode, DecodingError};
 use crate::instructions::utils::decode_simple_instruction;
+use crate::{DecodingError, InstructionCode, InstructionInfo};
 
-#[derive(Debug,PartialEq,Default)]
+#[derive(Debug, PartialEq, Default)]
 pub struct Cast;
 
 impl Cast {
-    pub fn new(_signed: bool, _length: u8) -> Self{
+    pub fn new(_signed: bool, _length: u8) -> Self {
         Cast
     }
 }

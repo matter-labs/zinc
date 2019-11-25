@@ -1,9 +1,9 @@
-mod primitive_element;
 mod constrained_element;
+mod primitive_element;
 pub mod utils;
 
-pub use primitive_element::*;
 pub use constrained_element::*;
+pub use primitive_element::*;
 
 use crate::vm::RuntimeError;
 use num_bigint::{BigInt, ToBigInt};
@@ -37,6 +37,11 @@ pub trait ElementOperator<E: Element> {
     fn ge(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
     fn gt(&mut self, left: E, right: E) -> Result<E, RuntimeError>;
 
-    fn conditional_select(&mut self, condition: E, if_true: E, if_false: E) -> Result<E, RuntimeError>;
+    fn conditional_select(
+        &mut self,
+        condition: E,
+        if_true: E,
+        if_false: E,
+    ) -> Result<E, RuntimeError>;
     fn assert(&mut self, element: E) -> Result<(), RuntimeError>;
 }

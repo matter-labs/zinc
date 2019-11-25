@@ -1,16 +1,18 @@
-use franklin_crypto::circuit::test::TestConstraintSystem;
+use crate::element::{
+    ConstrainedElement, ConstrainedElementOperator, Element, ElementOperator,
+    PrimitiveElementOperator,
+};
+use crate::vm::{RuntimeError, VirtualMachine};
 use bellman::pairing::bn256::Bn256;
+use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::BigInt;
-use zrust_bytecode::{InstructionInfo, DecodingError, Instruction, decode_all_instructions};
-use crate::element::{ConstrainedElement, ConstrainedElementOperator, Element, ElementOperator, PrimitiveElementOperator};
-use crate::vm::{VirtualMachine, RuntimeError};
+use zrust_bytecode::{decode_all_instructions, DecodingError, Instruction, InstructionInfo};
 
 type TestElement = ConstrainedElement<Bn256>;
 type TestElementOperator = ConstrainedElementOperator<Bn256, TestConstraintSystem<Bn256>>;
 type TestVirtualMachine = VirtualMachine<TestElement, TestElementOperator>;
 
-pub fn create_instructions_vec() -> Vec<Instruction>
-{
+pub fn create_instructions_vec() -> Vec<Instruction> {
     Vec::new()
 }
 
@@ -32,12 +34,13 @@ where
         assert_eq!(
             value.to_bigint(),
             Some(expected.clone().into()),
-            "wrong value on stack at position {}", i
+            "wrong value on stack at position {}",
+            i
         );
     }
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum TestingError {
     DecodingError(DecodingError),
     RuntimeError(RuntimeError),
@@ -46,7 +49,7 @@ pub enum TestingError {
 }
 
 pub struct VMTestRunner {
-    bytecode: Vec<u8>
+    bytecode: Vec<u8>,
 }
 
 impl VMTestRunner {
@@ -59,21 +62,26 @@ impl VMTestRunner {
         self
     }
 
-    pub fn test<T: Into<BigInt> + Copy>(&mut self, expected_stack: &[T]) -> Result<(), TestingError> {
+    pub fn test<T: Into<BigInt> + Copy>(
+        &mut self,
+        expected_stack: &[T],
+    ) -> Result<(), TestingError> {
         self.test_primitive(expected_stack)?;
         self.test_constrained(expected_stack)?;
 
         Ok(())
     }
 
-    fn test_primitive<T: Into<BigInt> + Copy>(&mut self, expected_stack: &[T]) -> Result<(), TestingError> {
+    fn test_primitive<T: Into<BigInt> + Copy>(
+        &mut self,
+        expected_stack: &[T],
+    ) -> Result<(), TestingError> {
         let mut instructions = decode_all_instructions(self.bytecode.as_slice())
             .map_err(|e| TestingError::DecodingError(e))?;
 
         let mut vm = VirtualMachine::new(PrimitiveElementOperator::new());
 
-        vm
-            .run(instructions.as_mut_slice(), &[])
+        vm.run(instructions.as_mut_slice(), &[])
             .map_err(|e| TestingError::RuntimeError(e))?;
 
         assert_stack_eq(&vm, expected_stack);
@@ -81,16 +89,17 @@ impl VMTestRunner {
         Ok(())
     }
 
-    fn test_constrained<T: Into<BigInt> + Copy>(&mut self, expected_stack: &[T]) -> Result<(), TestingError> {
+    fn test_constrained<T: Into<BigInt> + Copy>(
+        &mut self,
+        expected_stack: &[T],
+    ) -> Result<(), TestingError> {
         let mut instructions = decode_all_instructions(self.bytecode.as_slice())
             .map_err(|e| TestingError::DecodingError(e))?;
 
         let mut vm = new_test_constrained_vm();
 
-        vm
-            .run(instructions.as_mut_slice(), &[])
+        vm.run(instructions.as_mut_slice(), &[])
             .map_err(|e| TestingError::RuntimeError(e))?;
-
 
         let cs = vm.get_operator().constraint_system();
 

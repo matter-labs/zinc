@@ -1,6 +1,6 @@
 use num_bigint::BigInt;
-use std::ops::Div;
 use num_traits::Signed;
+use std::ops::Div;
 
 /// Euclidean division of BigInt.
 ///

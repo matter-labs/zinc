@@ -1,12 +1,12 @@
-use num_bigint::BigInt;
 use crate::element::{Element, ElementOperator};
-use zrust_bytecode::{Instruction, InstructionInfo};
 use crate::vm::RuntimeError::StackUnderflow;
+use num_bigint::BigInt;
+use zrust_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 
 pub trait VMInstruction<E, O>: InstructionInfo
-    where
-        E: Element,
-        O: ElementOperator<E>
+where
+    E: Element,
+    O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError>;
 }
@@ -48,7 +48,7 @@ enum Scope {
 
 #[derive(Clone)]
 struct Frame {
-    address: usize
+    address: usize,
 }
 
 pub struct VirtualMachine<E: Element, O: ElementOperator<E>> {
@@ -61,7 +61,7 @@ pub struct VirtualMachine<E: Element, O: ElementOperator<E>> {
     outputs: Vec<E>,
 }
 
-impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
+impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     pub fn new(operator: O) -> Self {
         Self {
             instruction_counter: 0,
@@ -70,7 +70,7 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             scopes: vec![],
             operator,
             conditions: vec![],
-            outputs: vec![]
+            outputs: vec![],
         }
     }
 
@@ -97,9 +97,11 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             .map(|e| (*e).clone())
     }
 
-    pub fn run(&mut self, instructions: &[Instruction], inputs: Option<&[BigInt]>)
-        -> Result<Vec<Option<BigInt>>, RuntimeError>
-    {
+    pub fn run(
+        &mut self,
+        instructions: &[Instruction],
+        inputs: Option<&[BigInt]>,
+    ) -> Result<Vec<Option<BigInt>>, RuntimeError> {
         let one = self.operator.constant_bigint(&1.into())?;
         self.condition_push(one)?;
 
@@ -110,7 +112,10 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
         while self.instruction_counter < instructions.len() {
             let instruction = &instructions[self.instruction_counter];
             self.instruction_counter += 1;
-            log::info!("executing: {}", dispatch_instruction!(instruction => instruction.to_assembly()));
+            log::info!(
+                "executing: {}",
+                dispatch_instruction!(instruction => instruction.to_assembly())
+            );
             dispatch_instruction!(instruction => instruction.execute(self))?;
             log::info!("stack: {}", self.stack_to_string());
         }
@@ -118,7 +123,11 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
         self.get_outputs()
     }
 
-    fn push_inputs(&mut self, instruction: &Instruction, inputs: Option<&[BigInt]>) -> Result<(), RuntimeError> {
+    fn push_inputs(
+        &mut self,
+        instruction: &Instruction,
+        inputs: Option<&[BigInt]>,
+    ) -> Result<(), RuntimeError> {
         let call = match instruction {
             Instruction::Call(call) => Ok(call),
             _ => Err(RuntimeError::FirstInstructionNotCall),
@@ -170,7 +179,11 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     /// Take `inputs_count` values from current frame and push them into new one.
     fn frame_push(&mut self, inputs_count: usize) -> Result<(), RuntimeError> {
         let frame = self.frames.last().ok_or(RuntimeError::StackUnderflow)?;
-        let address = self.stack.len().checked_sub(inputs_count).ok_or(RuntimeError::StackUnderflow)?;
+        let address = self
+            .stack
+            .len()
+            .checked_sub(inputs_count)
+            .ok_or(RuntimeError::StackUnderflow)?;
         if address < frame.address {
             return Err(RuntimeError::StackUnderflow);
         }
@@ -181,10 +194,14 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     /// Drop current frame and push `outputs_count` top values into the frame below.
     fn frame_pop(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
         let frame = self.frames.pop().ok_or(RuntimeError::StackUnderflow)?;
-        let outputs_address = self.stack.len().checked_sub(outputs_count).ok_or(RuntimeError::StackUnderflow)?;
+        let outputs_address = self
+            .stack
+            .len()
+            .checked_sub(outputs_count)
+            .ok_or(RuntimeError::StackUnderflow)?;
 
         if outputs_address < frame.address {
-            return Err(RuntimeError::StackUnderflow)
+            return Err(RuntimeError::StackUnderflow);
         }
 
         let mut outputs = Vec::from(&self.stack[outputs_address..]);
@@ -198,7 +215,7 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
         let loop_frame = Loop {
             first_instruction_index: self.instruction_counter,
             iterations_left: iterations - 1,
-            io_size
+            io_size,
         };
         self.scopes.push(Scope::Loop(loop_frame));
         self.frame_push(io_size)?;
@@ -225,7 +242,9 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     }
 
     pub fn call(&mut self, address: usize, inputs_count: usize) -> Result<(), RuntimeError> {
-        let frame = Function { return_address: self.instruction_counter };
+        let frame = Function {
+            return_address: self.instruction_counter,
+        };
         self.frame_push(inputs_count)?;
         self.scopes.push(Scope::Function(frame));
         self.instruction_counter = address;
@@ -254,7 +273,8 @@ impl <E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     }
 
     pub fn condition_top(&mut self) -> Result<E, RuntimeError> {
-        self.conditions.last()
+        self.conditions
+            .last()
             .map(|e| (*e).clone())
             .ok_or(RuntimeError::StackUnderflow)
     }

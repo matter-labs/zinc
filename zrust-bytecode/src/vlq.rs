@@ -1,5 +1,5 @@
 use num_bigint::BigInt;
-use num_traits::{ToPrimitive, Signed};
+use num_traits::{Signed, ToPrimitive};
 use std::ops::Rem;
 
 #[allow(dead_code)]
@@ -17,7 +17,7 @@ pub fn encode(value: &BigInt) -> Vec<u8> {
     chunks.push(sign | abs.clone().rem(64u8).to_u8().unwrap());
     abs >>= 6;
 
-    while abs.is_positive()  {
+    while abs.is_positive() {
         abs -= 1;
         chunks.push(abs.clone().rem(128u8).to_u8().unwrap());
         abs >>= 7;
@@ -35,7 +35,7 @@ pub fn encode(value: &BigInt) -> Vec<u8> {
 #[allow(dead_code)]
 pub fn decode(bytes: &[u8]) -> Option<(BigInt, usize)> {
     if bytes.is_empty() {
-        return None
+        return None;
     }
 
     let first = bytes[0];
@@ -56,9 +56,9 @@ pub fn decode(bytes: &[u8]) -> Option<(BigInt, usize)> {
         number += BigInt::from(v) << (7 * i + 6);
 
         if b & 128 == 0 {
-            return Some((sign * number, len))
+            return Some((sign * number, len));
         }
-    };
+    }
 
     None
 }

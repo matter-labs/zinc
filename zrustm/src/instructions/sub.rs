@@ -1,12 +1,14 @@
 extern crate franklin_crypto;
 
-use crate::vm::VMInstruction;
 use crate::element::{Element, ElementOperator};
-use crate::vm::{VirtualMachine, RuntimeError};
+use crate::vm::VMInstruction;
+use crate::vm::{RuntimeError, VirtualMachine};
 use zrust_bytecode::instructions::Sub;
 
 impl<E, O> VMInstruction<E, O> for Sub
-    where E: Element, O: ElementOperator<E>
+where
+    E: Element,
+    O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let left = vm.stack_pop()?;
@@ -21,14 +23,18 @@ impl<E, O> VMInstruction<E, O> for Sub
 mod test {
     use super::*;
     use crate::instructions::testing_utils;
-    use zrust_bytecode::*;
     use num_bigint::BigInt;
+    use zrust_bytecode::*;
 
     #[test]
     fn test_sub() -> Result<(), RuntimeError> {
         let mut bytecode = testing_utils::create_instructions_vec();
-        bytecode.push(Box::new(Push { value: BigInt::from(0x01) }));
-        bytecode.push(Box::new(Push { value: BigInt::from(0x02) }));
+        bytecode.push(Box::new(Push {
+            value: BigInt::from(0x01),
+        }));
+        bytecode.push(Box::new(Push {
+            value: BigInt::from(0x02),
+        }));
         bytecode.push(Box::new(Sub));
 
         let mut vm = testing_utils::new_test_constrained_vm();

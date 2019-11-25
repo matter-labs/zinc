@@ -1,9 +1,9 @@
-use crate::{InstructionInfo, InstructionCode, DecodingError, utils};
+use crate::{utils, DecodingError, InstructionCode, InstructionInfo};
 use num_bigint::BigInt;
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Push {
-    pub value: BigInt
+    pub value: BigInt,
 }
 
 impl Push {

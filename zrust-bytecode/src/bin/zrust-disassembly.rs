@@ -6,9 +6,9 @@ use std::path::PathBuf;
 
 use structopt::StructOpt;
 
-use zrust_bytecode::DecodingError;
 use std::fs::File;
 use std::io::Read;
+use zrust_bytecode::{dispatch_instruction, DecodingError, Instruction, InstructionInfo};
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "zrustv", about = "The ZRust bytecode viewer")]
@@ -32,7 +32,10 @@ fn main() -> Result<(), DecodingError> {
 
     let instructions = zrust_bytecode::decode_all_instructions(input.as_slice())?;
     for instruction in instructions.iter() {
-        println!("{}", instruction.to_assembly());
+        println!(
+            "{}",
+            dispatch_instruction!(instruction => instruction.to_assembly())
+        );
     }
 
     Ok(())

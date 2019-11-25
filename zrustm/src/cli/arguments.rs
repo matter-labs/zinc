@@ -1,4 +1,4 @@
-use clap::{App, Arg, SubCommand, AppSettings};
+use clap::{App, AppSettings, Arg, SubCommand};
 use num_bigint::BigInt;
 use std::str::FromStr;
 
@@ -55,22 +55,30 @@ pub fn build_arguments() -> App<'static, 'static> {
         .version("0.1")
         .about("ZRust Virtual Machine")
         .setting(AppSettings::SubcommandRequiredElseHelp)
-        .subcommand(SubCommand::with_name("exec")
-            .about("Executes circuit and prints program's output")
-            .arg(circuit_arg.clone())
-            .arg(witness_arg.clone()))
-        .subcommand(SubCommand::with_name("gen-key")
-            .about("Generates proving key for the circuit")
-            .arg(circuit_arg.clone())
-            .arg(output_arg.clone()))
-        .subcommand(SubCommand::with_name("gen-proof")
-            .about("Generate zero-knowledge proof for given witness")
-            .arg(circuit_arg.clone())
-            .arg(witness_arg.clone())
-            .arg(key_arg.clone())
-            .arg(output_arg.clone()))
-        .subcommand(SubCommand::with_name("verify")
-            .about("Verifies zero-knowledge proof")
-            .arg(key_arg.clone())
-            .arg(proof_arg.clone()))
+        .subcommand(
+            SubCommand::with_name("exec")
+                .about("Executes circuit and prints program's output")
+                .arg(circuit_arg.clone())
+                .arg(witness_arg.clone()),
+        )
+        .subcommand(
+            SubCommand::with_name("gen-key")
+                .about("Generates proving key for the circuit")
+                .arg(circuit_arg.clone())
+                .arg(output_arg.clone()),
+        )
+        .subcommand(
+            SubCommand::with_name("prove")
+                .about("Generate zero-knowledge proof for given witness")
+                .arg(circuit_arg.clone())
+                .arg(witness_arg.clone())
+                .arg(key_arg.clone())
+                .arg(output_arg.clone()),
+        )
+        .subcommand(
+            SubCommand::with_name("verify")
+                .about("Verifies zero-knowledge proof")
+                .arg(key_arg.clone())
+                .arg(proof_arg.clone()),
+        )
 }

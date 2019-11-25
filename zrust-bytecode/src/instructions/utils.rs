@@ -1,10 +1,9 @@
-use crate::{InstructionCode, DecodingError, vlq, InstructionInfo};
+use crate::{vlq, DecodingError, InstructionCode, InstructionInfo};
 use num_bigint::BigInt;
 
-pub fn decode_simple_instruction<T>(bytes: &[u8])
-    -> Result<(T, usize), DecodingError>
+pub fn decode_simple_instruction<T>(bytes: &[u8]) -> Result<(T, usize), DecodingError>
 where
-    T: InstructionInfo + Default
+    T: InstructionInfo + Default,
 {
     if bytes.len() < 1 {
         Err(DecodingError::UnexpectedEOF)
@@ -21,7 +20,10 @@ pub fn encode_with_vlq_argument(code: InstructionCode, value: &BigInt) -> Vec<u8
     bytes
 }
 
-pub fn decode_with_vlq_argument(code: InstructionCode, bytes: &[u8]) -> Result<(BigInt, usize), DecodingError> {
+pub fn decode_with_vlq_argument(
+    code: InstructionCode,
+    bytes: &[u8],
+) -> Result<(BigInt, usize), DecodingError> {
     if bytes.len() < 2 {
         Err(DecodingError::UnexpectedEOF)
     } else if bytes[0] != code as u8 {

@@ -1,12 +1,14 @@
 extern crate franklin_crypto;
 
-use crate::vm::VMInstruction;
 use crate::element::{Element, ElementOperator};
-use crate::vm::{VirtualMachine, RuntimeError};
+use crate::vm::VMInstruction;
+use crate::vm::{RuntimeError, VirtualMachine};
 use zrust_bytecode::instructions::PopCondition;
 
 impl<E, O> VMInstruction<E, O> for PopCondition
-    where E: Element, O: ElementOperator<E>
+where
+    E: Element,
+    O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.condition_pop()?;
@@ -17,7 +19,7 @@ impl<E, O> VMInstruction<E, O> for PopCondition
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::instructions::testing_utils::{VMTestRunner, TestingError};
+    use crate::instructions::testing_utils::{TestingError, VMTestRunner};
     use zrust_bytecode::{Push, PushCondition};
 
     #[test]
@@ -26,7 +28,6 @@ mod tests {
             .add(Push { value: 0.into() })
             .add(PushCondition)
             .add(PopCondition)
-
             .test::<i32>(&[])
     }
 }

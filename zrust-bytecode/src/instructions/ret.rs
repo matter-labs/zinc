@@ -1,8 +1,8 @@
-use crate::{InstructionInfo, InstructionCode, DecodingError, utils};
-use num_traits::ToPrimitive;
+use crate::{utils, DecodingError, InstructionCode, InstructionInfo};
 use num_bigint::BigInt;
+use num_traits::ToPrimitive;
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Return {
     pub outputs_count: usize,
 }

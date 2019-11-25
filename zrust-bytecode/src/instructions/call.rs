@@ -1,8 +1,8 @@
-use crate::{InstructionInfo, InstructionCode, DecodingError, vlq};
+use crate::{vlq, DecodingError, InstructionCode, InstructionInfo};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Call {
     pub address: usize,
     pub inputs_count: usize,
@@ -10,7 +10,10 @@ pub struct Call {
 
 impl Call {
     pub fn new(address: usize, inputs_count: usize) -> Self {
-        Self { address, inputs_count }
+        Self {
+            address,
+            inputs_count,
+        }
     }
 }
 
@@ -36,16 +39,18 @@ impl InstructionInfo for Call {
         } else if bytes[0] != InstructionCode::Call as u8 {
             Err(DecodingError::UnknownInstructionCode(bytes[0]))
         } else {
-            let (address_bi, len1) = vlq::decode(&bytes[1..])
-                .ok_or(DecodingError::UnexpectedEOF)?;
+            let (address_bi, len1) =
+                vlq::decode(&bytes[1..]).ok_or(DecodingError::UnexpectedEOF)?;
 
-            let address = address_bi.to_usize()
+            let address = address_bi
+                .to_usize()
                 .ok_or(DecodingError::ConstantTooLong)?;
 
-            let (inputs_size_bi, len2) = vlq::decode(&bytes[(len1 + 1)..])
-                .ok_or(DecodingError::UnexpectedEOF)?;
+            let (inputs_size_bi, len2) =
+                vlq::decode(&bytes[(len1 + 1)..]).ok_or(DecodingError::UnexpectedEOF)?;
 
-            let inputs_size = inputs_size_bi.to_usize()
+            let inputs_size = inputs_size_bi
+                .to_usize()
                 .ok_or(DecodingError::ConstantTooLong)?;
 
             Ok((Self::new(address, inputs_size), 1 + len1 + len2))
