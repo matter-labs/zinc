@@ -67,8 +67,8 @@ fn exec(args: ExecArguments) -> Result<(), Error> {
 
     let code = decode_all_instructions(bytes.as_slice()).map_err(Error::Decoding)?;
 
-    let outputs = zrustm::exec::<Bn256>(code.as_slice(), args.witness.as_slice())
-        .map_err(Error::Runtime)?;
+    let outputs =
+        zrustm::exec::<Bn256>(code.as_slice(), args.witness.as_slice()).map_err(Error::Runtime)?;
 
     for value in outputs.iter() {
         match value {
@@ -98,8 +98,8 @@ fn gen_proof(args: GenProofArguments) -> Result<(), Error> {
 
     let code = decode_all_instructions(bytes.as_slice()).map_err(Error::Decoding)?;
 
-    let proof = zrustm::prove::<Bn256>(code.as_slice(), args.witness.as_slice())
-        .map_err(Error::Runtime)?;
+    let proof =
+        zrustm::prove::<Bn256>(code.as_slice(), args.witness.as_slice()).map_err(Error::Runtime)?;
 
     dbg!(proof);
 

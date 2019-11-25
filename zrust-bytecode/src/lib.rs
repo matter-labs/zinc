@@ -17,7 +17,7 @@ pub trait InstructionInfo: PartialEq + Debug + Sized {
     fn wrap(&self) -> Instruction;
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum DecodingError {
     UnexpectedEOF,
     UnknownInstructionCode(u8),
@@ -74,7 +74,7 @@ pub enum InstructionCode {
     Exit,
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Instruction {
     NoOperation(NoOperation),
 

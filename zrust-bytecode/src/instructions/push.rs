@@ -1,4 +1,4 @@
-use crate::{utils, DecodingError, InstructionCode, InstructionInfo, Instruction};
+use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
 use num_bigint::BigInt;
 
 #[derive(Debug, PartialEq, Clone)]

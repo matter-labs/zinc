@@ -51,7 +51,7 @@ mod test {
 
     #[test]
     fn test_fr_to_bigint() {
-        let values = [0, 1, 2, 42, 1234567890];
+        let values = [0, 1, 2, 42, 1_234_567_890];
 
         for v in values.iter() {
             let fr = Fr::from_str(&v.to_string()).unwrap();
@@ -62,7 +62,7 @@ mod test {
 
     #[test]
     fn test_bigint_to_fr() {
-        let values = [0, 1, 2, 42, 1234567890];
+        let values = [0, 1, 2, 42, 1_234_567_890];
 
         for &v in values.iter() {
             let bigint = BigInt::from(v);
@@ -73,7 +73,7 @@ mod test {
 
     #[test]
     fn test_negatives() {
-        let values = [-1 as isize, -42, -123456789098761];
+        let values = [-1 as isize, -42, -123_456_789_098_761];
 
         for &v in values.iter() {
             let expected = BigInt::from(v);

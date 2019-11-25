@@ -6,9 +6,9 @@ use crate::vm::{RuntimeError, VirtualMachine};
 use zrust_bytecode::{FrameBegin, FrameEnd};
 
 impl<E, O> VMInstruction<E, O> for FrameBegin
-    where
-        E: Element,
-        O: ElementOperator<E>,
+where
+    E: Element,
+    O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.frame_push(None)
@@ -16,9 +16,9 @@ impl<E, O> VMInstruction<E, O> for FrameBegin
 }
 
 impl<E, O> VMInstruction<E, O> for FrameEnd
-    where
-        E: Element,
-        O: ElementOperator<E>,
+where
+    E: Element,
+    O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.frame_pop(self.outputs_count)
@@ -27,7 +27,6 @@ impl<E, O> VMInstruction<E, O> for FrameEnd
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
     use zrust_bytecode::*;
 

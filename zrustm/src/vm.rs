@@ -67,7 +67,10 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
         Self {
             instruction_counter: 0,
             stack: vec![],
-            frames: vec![Frame { frame_address: 0, index_address: 0 }],
+            frames: vec![Frame {
+                frame_address: 0,
+                index_address: 0,
+            }],
             scopes: vec![],
             operator,
             conditions: vec![],

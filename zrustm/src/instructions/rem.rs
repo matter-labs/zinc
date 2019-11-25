@@ -22,10 +22,8 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::instructions::testing_utils;
-    use num_bigint::BigInt;
-    use zrust_bytecode::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
+    use zrust_bytecode::*;
 
     #[test]
     fn test_rem() -> Result<(), TestingError> {

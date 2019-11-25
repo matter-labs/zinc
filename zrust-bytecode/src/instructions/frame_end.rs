@@ -1,4 +1,4 @@
-use crate::{DecodingError, InstructionCode, InstructionInfo, utils, Instruction};
+use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 

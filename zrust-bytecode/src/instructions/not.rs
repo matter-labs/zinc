@@ -1,5 +1,5 @@
 use crate::instructions::utils::decode_simple_instruction;
-use crate::{DecodingError, InstructionCode, InstructionInfo, Instruction};
+use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
 
 #[derive(Debug, PartialEq, Default, Clone)]
 pub struct Not;
