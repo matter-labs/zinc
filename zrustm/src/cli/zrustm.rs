@@ -31,8 +31,8 @@ struct GenProofArguments {
 }
 
 struct VerifyArguments {
-    circuit_file: String,
-    proof: String,
+    _circuit_file: String,
+    _proof: String,
 }
 
 enum Arguments {
@@ -172,8 +172,8 @@ fn parse_arguments() -> Arguments {
                 .expect("--circuit is required");
             let proof = command_args.value_of("proof").expect("--proof is required");
             Arguments::Verify(VerifyArguments {
-                circuit_file: circuit_file.to_string(),
-                proof: proof.to_string(),
+                _circuit_file: circuit_file.to_string(),
+                _proof: proof.to_string(),
             })
         }
         ("", _) => Arguments::Empty,

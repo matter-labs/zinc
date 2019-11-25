@@ -28,6 +28,8 @@ mod gt;
 mod cast;
 
 mod cs;
+mod frame_begin;
+mod frame_end;
 mod loop_begin;
 mod loop_end;
 mod call;
@@ -67,6 +69,8 @@ pub use gt::Gt;
 pub use cast::Cast;
 
 pub use cs::ConditionalSelect;
+pub use frame_begin::FrameBegin;
+pub use frame_end::FrameEnd;
 pub use loop_begin::LoopBegin;
 pub use loop_end::LoopEnd;
 pub use call::Call;

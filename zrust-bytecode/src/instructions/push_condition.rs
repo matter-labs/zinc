@@ -26,6 +26,6 @@ impl InstructionInfo for PushCondition {
     }
 
     fn outputs_count(&self) -> usize {
-        1
+        0
     }
 }

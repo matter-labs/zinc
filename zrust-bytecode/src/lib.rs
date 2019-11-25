@@ -16,7 +16,7 @@ pub trait InstructionInfo: PartialEq + Debug + Sized {
     fn outputs_count(&self) -> usize;
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug,PartialEq)]
 pub enum DecodingError {
     UnexpectedEOF,
     UnknownInstructionCode(u8),
@@ -58,6 +58,8 @@ pub enum InstructionCode {
 
     // Flow control
     ConditionalSelect,
+    FrameBegin,
+    FrameEnd,
     LoopBegin,
     LoopEnd,
     Call,
@@ -71,7 +73,7 @@ pub enum InstructionCode {
     Exit,
 }
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub enum Instruction {
     NoOperation(NoOperation),
 
@@ -106,6 +108,8 @@ pub enum Instruction {
 
     // Flow control
     ConditionalSelect(ConditionalSelect),
+    FrameBegin(FrameBegin),
+    FrameEnd(FrameEnd),
     LoopBegin(LoopBegin),
     LoopEnd(LoopEnd),
     Call(Call),
@@ -160,6 +164,8 @@ macro_rules! dispatch_instruction {
             Instruction::Cast($pattern) => $expression,
 
             Instruction::ConditionalSelect($pattern) => $expression,
+            Instruction::FrameBegin($pattern) => $expression,
+            Instruction::FrameEnd($pattern) => $expression,
             Instruction::LoopBegin($pattern) => $expression,
             Instruction::LoopEnd($pattern) => $expression,
             Instruction::Call($pattern) => $expression,

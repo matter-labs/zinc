@@ -28,6 +28,7 @@ pub mod ge;
 pub mod gt;
 
 pub mod cs;
+pub mod frame;
 pub mod r#loop;
 pub mod func;
 

@@ -102,6 +102,12 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Instruction, usize), Decoding
         x if x == InstructionCode::LoopBegin as u8 => {
             LoopBegin::decode(bytes).map(|(i, l)| (Instruction::LoopBegin(i), l))
         }
+        x if x == InstructionCode::FrameBegin as u8 => {
+            LoopBegin::decode(bytes).map(|(i, l)| (Instruction::LoopBegin(i), l))
+        }
+        x if x == InstructionCode::FrameEnd as u8 => {
+            LoopBegin::decode(bytes).map(|(i, l)| (Instruction::LoopBegin(i), l))
+        }
         x if x == InstructionCode::LoopEnd as u8 => {
             LoopEnd::decode(bytes).map(|(i, l)| (Instruction::LoopEnd(i), l))
         }

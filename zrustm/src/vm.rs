@@ -177,7 +177,7 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     }
 
     /// Take `inputs_count` values from current frame and push them into new one.
-    fn frame_push(&mut self, inputs_count: usize) -> Result<(), RuntimeError> {
+    pub fn frame_push(&mut self, inputs_count: usize) -> Result<(), RuntimeError> {
         let frame = self.frames.last().ok_or(RuntimeError::StackUnderflow)?;
         let address = self
             .stack
@@ -192,7 +192,7 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     }
 
     /// Drop current frame and push `outputs_count` top values into the frame below.
-    fn frame_pop(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
+    pub fn frame_pop(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
         let frame = self.frames.pop().ok_or(RuntimeError::StackUnderflow)?;
         let outputs_address = self
             .stack
