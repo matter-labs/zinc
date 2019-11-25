@@ -27,6 +27,7 @@ pub enum RuntimeError {
     AssertionError,
     FirstInstructionNotCall,
     WrongInputsCount,
+    StackIndexOutOfRange
 }
 
 #[derive(Copy, Clone)]
@@ -96,8 +97,8 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     pub fn stack_get(&self, index: usize) -> Result<E, RuntimeError> {
         let frame = self.frames.last().ok_or(RuntimeError::StackUnderflow)?;
         self.stack
-            .get(frame.frame_address + index)
-            .ok_or(RuntimeError::InternalError)
+            .get(frame.index_address + index)
+            .ok_or(RuntimeError::StackIndexOutOfRange)
             .map(|e| (*e).clone())
     }
 

@@ -1,21 +1,11 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
-use num_bigint::BigInt;
-use num_traits::ToPrimitive;
 
-#[derive(Debug, PartialEq, Clone)]
-pub struct FrameBegin {
-    pub inputs_count: usize,
-}
-
-impl FrameBegin {
-    pub fn new(inputs_count: usize) -> Self {
-        Self { inputs_count }
-    }
-}
+#[derive(Debug, PartialEq, Default, Clone)]
+pub struct FrameBegin;
 
 impl InstructionInfo for FrameBegin {
     fn to_assembly(&self) -> String {
-        format!("frame_begin {}", self.inputs_count)
+        format!("frame_begin")
     }
 
     fn code() -> InstructionCode {
@@ -23,13 +13,11 @@ impl InstructionInfo for FrameBegin {
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_vlq_argument(Self::code(), &BigInt::from(self.inputs_count))
+        vec![Self::code() as u8]
     }
 
     fn decode(bytes: &[u8]) -> Result<(FrameBegin, usize), DecodingError> {
-        let (value, len) = utils::decode_with_vlq_argument(Self::code(), bytes)?;
-        let inputs_count = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
-        Ok((Self::new(inputs_count), len))
+        utils::decode_simple_instruction(bytes)
     }
 
     fn inputs_count(&self) -> usize {

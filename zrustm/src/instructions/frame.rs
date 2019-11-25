@@ -35,21 +35,18 @@ mod tests {
         let _ = env_logger::builder().is_test(true).try_init();
 
         VMTestRunner::new()
-            // call main
-            .add(Call::new(8, 0))
-            // func min(field, field) -> field
-            .add(Copy::new(1))
-            .add(Copy::new(0))
-            .add(Copy::new(1))
-            .add(Copy::new(0))
-            .add(Lt)
-            .add(ConditionalSelect)
-            .add(Return::new(1))
-            // func main
-            .add(Push { value: 42.into() })
-            .add(Push { value: 5.into() })
             .add(Push { value: 3.into() })
-            .add(Call::new(1, 2))
-            .test(&[3, 42])
+            .add(Push { value: 5.into() })
+            .add(FrameBegin)
+            .add(Push { value: 1.into() })
+            .add(Push { value: 100.into() })
+            .add(Push { value: 200.into() })
+            .add(FrameEnd::new(2))
+            .add(FrameBegin)
+            .add(Copy::new(3))
+            .add(Push { value: 1.into() })
+            .add(Add)
+            .add(FrameEnd::new(1))
+            .test(&[201, 200, 100, 5, 3])
     }
 }
