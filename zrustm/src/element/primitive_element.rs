@@ -73,7 +73,7 @@ impl ElementOperator<PrimitiveElement> for PrimitiveElementOperator {
     ) -> Result<PrimitiveElement, RuntimeError> {
         let value = left
             .value
-            .checked_add(right.value)
+            .checked_sub(right.value)
             .ok_or(RuntimeError::IntegerOverflow)?;
         Ok(PrimitiveElement { value })
     }

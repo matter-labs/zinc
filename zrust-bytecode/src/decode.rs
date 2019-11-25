@@ -130,7 +130,7 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Instruction, usize), Decoding
         x if x == InstructionCode::Exit as u8 => {
             decode_and_wrap::<Exit>(bytes)
         }
-        x => Err(DecodingError::UnknownInstructionCode(x)),
+        x =>Err(DecodingError::UnknownInstructionCode(x)),
     }
 }
 

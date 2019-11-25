@@ -18,9 +18,10 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::instructions::testing_utils::{VMTestRunner, TestingError};
 
     #[test]
-    fn test_cast() -> Result<(), RuntimeError> {
+    fn test_cast() -> Result<(), TestingError> {
         Ok(())
     }
 }

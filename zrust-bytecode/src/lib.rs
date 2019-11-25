@@ -127,11 +127,11 @@ pub enum Instruction {
 /// Useful macro to avoid duplicating `match` constructions.
 ///
 /// ```
-/// # use zrust_bytecode::Instruction;
+/// # use zrust_bytecode::{dispatch_instruction, Instruction, InstructionInfo, NoOperation};
 /// # use zrust_bytecode::instructions::Add;
-/// let i = Instruction::Add(Add);
-/// let opcode = dispatch_instruction!(i => i.assemly());
-/// assert_eq!(opcode, "add");
+/// let ins = NoOperation.wrap();
+/// let assembly = dispatch_instruction!(ins => ins.to_assembly());
+/// assert_eq!(assembly, "noop");
 /// ```
 #[macro_export]
 macro_rules! dispatch_instruction {

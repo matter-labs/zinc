@@ -25,48 +25,23 @@ mod test {
     use crate::instructions::testing_utils;
     use num_bigint::BigInt;
     use zrust_bytecode::*;
+    use crate::instructions::testing_utils::{TestingError, VMTestRunner};
 
     #[test]
-    fn test_rem() -> Result<(), RuntimeError> {
-        let mut bytecode = testing_utils::create_instructions_vec();
-        bytecode.push(Box::new(Push {
-            value: BigInt::from(4),
-        }));
-        bytecode.push(Box::new(Push {
-            value: BigInt::from(9),
-        }));
-        bytecode.push(Box::new(Rem));
-        bytecode.push(Box::new(Push {
-            value: BigInt::from(-4),
-        }));
-        bytecode.push(Box::new(Push {
-            value: BigInt::from(9),
-        }));
-        bytecode.push(Box::new(Rem));
-        bytecode.push(Box::new(Push {
-            value: BigInt::from(4),
-        }));
-        bytecode.push(Box::new(Push {
-            value: BigInt::from(-9),
-        }));
-        bytecode.push(Box::new(Rem));
-        bytecode.push(Box::new(Push {
-            value: BigInt::from(-4),
-        }));
-        bytecode.push(Box::new(Push {
-            value: BigInt::from(-9),
-        }));
-        bytecode.push(Box::new(Rem));
-
-        let mut vm = testing_utils::new_test_constrained_vm();
-        vm.run(bytecode.as_mut_slice())?;
-
-        testing_utils::assert_stack_eq(&vm, &[3, 3, 1, 1]);
-
-        let cs = vm.get_operator().constraint_system();
-        assert_eq!(cs.find_unconstrained(), "", "unconstrained variables");
-        assert!(cs.is_satisfied(), "satisfied");
-
-        Ok(())
+    fn test_rem() -> Result<(), TestingError> {
+        VMTestRunner::new()
+            .add(Push { value: 4.into() })
+            .add(Push { value: 9.into() })
+            .add(Rem)
+            .add(Push { value: (-4).into() })
+            .add(Push { value: 9.into() })
+            .add(Rem)
+            .add(Push { value: 4.into() })
+            .add(Push { value: (-9).into() })
+            .add(Rem)
+            .add(Push { value: (-4).into() })
+            .add(Push { value: (-9).into() })
+            .add(Rem)
+            .test(&[3, 3, 1, 1])
     }
 }

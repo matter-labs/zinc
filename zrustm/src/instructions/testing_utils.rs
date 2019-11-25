@@ -6,7 +6,7 @@ use crate::vm::{RuntimeError, VirtualMachine};
 use bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::BigInt;
-use zrust_bytecode::{decode_all_instructions, DecodingError, Instruction, InstructionInfo};
+use zrust_bytecode::{decode_all_instructions, DecodingError, Instruction, InstructionInfo, Call};
 
 type TestElement = ConstrainedElement<Bn256>;
 type TestElementOperator = ConstrainedElementOperator<Bn256, TestConstraintSystem<Bn256>>;
@@ -54,7 +54,7 @@ pub struct VMTestRunner {
 
 impl VMTestRunner {
     pub fn new() -> Self {
-        Self { bytecode: vec![] }
+        Self { bytecode: Call::new(1, 0).encode() }
     }
 
     pub fn add<I: InstructionInfo>(&mut self, instruction: I) -> &mut Self {
@@ -81,7 +81,7 @@ impl VMTestRunner {
 
         let mut vm = VirtualMachine::new(PrimitiveElementOperator::new());
 
-        vm.run(instructions.as_mut_slice(), &[])
+        vm.run(instructions.as_mut_slice(), Some(&[]))
             .map_err(|e| TestingError::RuntimeError(e))?;
 
         assert_stack_eq(&vm, expected_stack);
@@ -98,7 +98,7 @@ impl VMTestRunner {
 
         let mut vm = new_test_constrained_vm();
 
-        vm.run(instructions.as_mut_slice(), &[])
+        vm.run(instructions.as_mut_slice(), Some(&[]))
             .map_err(|e| TestingError::RuntimeError(e))?;
 
         let cs = vm.get_operator().constraint_system();

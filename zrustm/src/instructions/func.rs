@@ -37,7 +37,7 @@ mod tests {
 
         VMTestRunner::new()
             // call main
-            .add(Call::new(8, 0))
+            .add(Call::new(9, 0))
             // func min(field, field) -> field
             .add(Copy::new(1))
             .add(Copy::new(0))
@@ -50,7 +50,7 @@ mod tests {
             .add(Push { value: 42.into() })
             .add(Push { value: 5.into() })
             .add(Push { value: 3.into() })
-            .add(Call::new(1, 2))
+            .add(Call::new(2, 2))
             .test(&[3, 42])
     }
 }

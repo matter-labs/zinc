@@ -29,40 +29,19 @@ mod test {
     use crate::instructions::testing_utils;
     use num_bigint::BigInt;
     use zrust_bytecode::*;
+    use crate::instructions::testing_utils::{TestingError, VMTestRunner};
 
     #[test]
-    fn test_cs() -> Result<(), RuntimeError> {
-        let mut bytecode = testing_utils::create_instructions_vec();
-        bytecode.push(Box::new(Push {
-            value: BigInt::from(1337),
-        }));
-        bytecode.push(Box::new(Push {
-            value: BigInt::from(42),
-        }));
-        bytecode.push(Box::new(Push {
-            value: BigInt::from(0),
-        }));
-        bytecode.push(Box::new(ConditionalSelect));
-        bytecode.push(Box::new(Push {
-            value: BigInt::from(420),
-        }));
-        bytecode.push(Box::new(Push {
-            value: BigInt::from(69),
-        }));
-        bytecode.push(Box::new(Push {
-            value: BigInt::from(1),
-        }));
-        bytecode.push(Box::new(ConditionalSelect));
-
-        let mut vm = testing_utils::new_test_constrained_vm();
-        vm.run(bytecode.as_mut_slice())?;
-
-        testing_utils::assert_stack_eq(&vm, &[69, 1337]);
-
-        let cs = vm.get_operator().constraint_system();
-        assert_eq!(cs.find_unconstrained(), "", "unconstrained variables");
-        assert!(cs.is_satisfied(), "satisfied");
-
-        Ok(())
+    fn test_cs() -> Result<(), TestingError> {
+        VMTestRunner::new()
+            .add(Push { value: 1337.into() })
+            .add(Push { value: 42.into() })
+            .add(Push { value: 0.into() })
+            .add(ConditionalSelect)
+            .add(Push { value: 420.into() })
+            .add(Push { value: 69.into() })
+            .add(Push { value: 1.into() })
+            .add(ConditionalSelect)
+            .test(&[69, 1337])
     }
 }

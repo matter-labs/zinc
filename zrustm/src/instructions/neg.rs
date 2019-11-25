@@ -24,9 +24,10 @@ mod test {
     use crate::instructions::testing_utils;
     use num_bigint::BigInt;
     use zrust_bytecode::*;
+    use crate::instructions::testing_utils::TestingError;
 
     #[test]
-    fn test_neg() -> Result<(), RuntimeError> {
+    fn test_neg() -> Result<(), TestingError> {
         Ok(())
     }
 }

@@ -25,27 +25,14 @@ mod test {
     use crate::instructions::testing_utils;
     use num_bigint::BigInt;
     use zrust_bytecode::*;
+    use crate::instructions::testing_utils::{VMTestRunner, TestingError};
 
     #[test]
-    fn test_mul() -> Result<(), RuntimeError> {
-        let mut bytecode = testing_utils::create_instructions_vec();
-        bytecode.push(Box::new(Push {
-            value: BigInt::from(0x03),
-        }));
-        bytecode.push(Box::new(Push {
-            value: BigInt::from(0x04),
-        }));
-        bytecode.push(Box::new(Mul));
-
-        let mut vm = testing_utils::new_test_constrained_vm();
-        vm.run(bytecode.as_mut_slice())?;
-
-        testing_utils::assert_stack_eq(&vm, &[0x0C]);
-
-        let cs = vm.get_operator().constraint_system();
-        assert_eq!(cs.find_unconstrained(), "", "unconstrained variables");
-        assert!(cs.is_satisfied(), "satisfied");
-
-        Ok(())
+    fn test_mul() -> Result<(), TestingError> {
+        VMTestRunner::new()
+            .add(Push { value: 3.into() })
+            .add(Push { value: 4.into() })
+            .add(Mul)
+            .test(&[12])
     }
 }
