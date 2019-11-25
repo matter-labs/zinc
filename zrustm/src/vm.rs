@@ -182,22 +182,17 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     }
 
     /// Take `inputs_count` values from current frame and push them into new one.
-    pub fn frame_push(&mut self, inputs_count: Option<usize>) -> Result<(), RuntimeError> {
+    pub fn frame_push(&mut self, inputs_count: usize, new_scope: bool) -> Result<(), RuntimeError> {
         let old_frame = self.frames.last().ok_or(RuntimeError::StackUnderflow)?;
-        let new_frame = if let Some(count) = inputs_count {
+        let new_frame = {
             let address = self
                 .stack
                 .len()
-                .checked_sub(count)
+                .checked_sub(inputs_count)
                 .ok_or(RuntimeError::StackUnderflow)?;
             Frame {
                 frame_address: address,
-                index_address: address,
-            }
-        } else {
-            Frame {
-                frame_address: self.stack.len(),
-                index_address: old_frame.index_address,
+                index_address: if new_scope { address } else { old_frame.index_address },
             }
         };
         if new_frame.frame_address < old_frame.frame_address {
@@ -234,7 +229,7 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             io_size,
         };
         self.scopes.push(Scope::Loop(loop_frame));
-        self.frame_push(Some(io_size))?;
+        self.frame_push(io_size, false)?;
 
         Ok(())
     }
@@ -249,7 +244,7 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
 
         if frame.iterations_left != 0 {
             frame.iterations_left -= 1;
-            self.frame_push(Some(frame.io_size))?;
+            self.frame_push(frame.io_size, false)?;
             self.instruction_counter = frame.first_instruction_index;
             self.scopes.push(Scope::Loop(frame));
         }
@@ -261,7 +256,7 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
         let frame = Function {
             return_address: self.instruction_counter,
         };
-        self.frame_push(Some(inputs_count))?;
+        self.frame_push(inputs_count, true)?;
         self.scopes.push(Scope::Function(frame));
         self.instruction_counter = address;
         Ok(())

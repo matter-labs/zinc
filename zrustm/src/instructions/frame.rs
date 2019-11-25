@@ -11,7 +11,7 @@ where
     O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        vm.frame_push(None)
+        vm.frame_push(0, false)
     }
 }
 
