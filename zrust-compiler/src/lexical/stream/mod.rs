@@ -152,7 +152,11 @@ impl TokenStream {
                 }
             }
 
-            panic!("Always checked by the branches above");
+            panic!(
+                "{}'{}'",
+                crate::lexical::PANIC_UNROUTED_CHARACTER,
+                character
+            );
         }
 
         Ok(Token::new(Lexeme::Eof, self.location))

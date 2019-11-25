@@ -103,7 +103,11 @@ impl Parser {
                     }
                 }
                 State::CommaOrBracketSquareRight => {
-                    match self.next.take().expect("Always contains a value") {
+                    match self
+                        .next
+                        .take()
+                        .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
+                    {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
@@ -124,7 +128,11 @@ impl Parser {
                     }
                 }
                 State::CommaOrSemicolonOrBracketSquareRight => {
-                    match self.next.take().expect("Always contains a value") {
+                    match self
+                        .next
+                        .take()
+                        .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
+                    {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..

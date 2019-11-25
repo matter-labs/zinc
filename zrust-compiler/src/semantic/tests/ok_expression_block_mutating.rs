@@ -9,6 +9,8 @@ use num_bigint::BigInt;
 use zrust_bytecode::Call;
 use zrust_bytecode::Copy;
 use zrust_bytecode::Exit;
+use zrust_bytecode::FrameBegin;
+use zrust_bytecode::FrameEnd;
 use zrust_bytecode::Instruction;
 use zrust_bytecode::Push;
 
@@ -30,8 +32,10 @@ fn main() {
         Instruction::Call(Call::new(2, 0)),
         Instruction::Exit(Exit::new(0)),
         Instruction::Push(Push::new(BigInt::from(25), false, 8)),
+        Instruction::FrameBegin(FrameBegin),
         Instruction::Push(Push::new(BigInt::from(50), false, 8)),
         Instruction::Copy(Copy::new(1)),
+        Instruction::FrameEnd(FrameEnd::new(1)),
     ]);
 
     let result = Analyzer::default().compile(

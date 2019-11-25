@@ -10,6 +10,8 @@ use zrust_bytecode::Call;
 use zrust_bytecode::ConditionalSelect;
 use zrust_bytecode::Copy;
 use zrust_bytecode::Exit;
+use zrust_bytecode::FrameBegin;
+use zrust_bytecode::FrameEnd;
 use zrust_bytecode::Instruction;
 use zrust_bytecode::PopCondition;
 use zrust_bytecode::Push;
@@ -36,10 +38,12 @@ fn main() {
         Instruction::Push(Push::new(BigInt::from(0), false, 1)),
         Instruction::Copy(Copy::new(1)),
         Instruction::PushCondition(PushCondition),
+        Instruction::FrameBegin(FrameBegin),
         Instruction::Push(Push::new(BigInt::from(10), false, 8)),
-        Instruction::PopCondition(PopCondition),
         Instruction::Copy(Copy::new(2)),
-        Instruction::Copy(Copy::new(3)),
+        Instruction::FrameEnd(FrameEnd::new(1)),
+        Instruction::PopCondition(PopCondition),
+        Instruction::Copy(Copy::new(0)),
         Instruction::Copy(Copy::new(2)),
         Instruction::Copy(Copy::new(1)),
         Instruction::ConditionalSelect(ConditionalSelect),

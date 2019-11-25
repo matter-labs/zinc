@@ -40,11 +40,29 @@ impl Builder {
 
     pub fn finish(mut self) -> LetStatement {
         LetStatement::new(
-            self.location.take().expect("Missing location"),
-            self.identifier.take().expect("Missing identifier"),
+            self.location.take().unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "location"
+                )
+            }),
+            self.identifier.take().unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "identifier"
+                )
+            }),
             self.is_mutable,
             self.r#type.take(),
-            self.expression.take().expect("Missing expression"),
+            self.expression.take().unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "expression"
+                )
+            }),
         )
     }
 }

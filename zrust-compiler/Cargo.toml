@@ -17,5 +17,4 @@ failure = "0.1"
 num-traits = "0.2"
 num-bigint = "0.2"
 
-#zrust-bytecode = { git = "https://github.com/matter-labs/zrust-vm", branch = "development" }
-zrust-bytecode = { path = "../../zrust-vm/zrust-bytecode" }
+zrust-bytecode = { git = "https://github.com/matter-labs/zrust-vm", branch = "development" }

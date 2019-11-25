@@ -34,7 +34,13 @@ impl Builder {
     }
 
     pub fn finish(mut self) -> Pattern {
-        let location = self.location.take().expect("Missing location");
+        let location = self.location.take().unwrap_or_else(|| {
+            panic!(
+                "{}{}",
+                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                "location"
+            )
+        });
 
         let variant = if self.ignoring {
             PatternVariant::Ignoring
@@ -43,7 +49,11 @@ impl Builder {
         } else if let Some(identifier) = self.binding.take() {
             PatternVariant::Binding(identifier)
         } else {
-            panic!("Missing variant data");
+            panic!(
+                "{}{}",
+                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                "literal | binding | ignoring"
+            );
         };
 
         Pattern { location, variant }

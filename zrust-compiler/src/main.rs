@@ -103,7 +103,7 @@ fn main() -> Result<(), Error> {
                         .into_iter()
                         .enumerate()
                         .map(|(index, instruction)| {
-                            log::info!(">>> {:03} {:?}", index, instruction);
+                            log::debug!(">>> {:03} {:?}", index, instruction);
                             dispatch_instruction!(instruction => instruction.encode())
                         })
                         .flatten()

@@ -23,14 +23,26 @@ impl Builder {
     }
 
     pub fn fill(&mut self, size: IntegerLiteral) {
-        let expression = self.elements.pop().expect("Missing expression");
+        let expression = self.elements.pop().unwrap_or_else(|| {
+            panic!(
+                "{}{}",
+                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                "expression"
+            )
+        });
         let size: usize = size.into();
         self.elements = vec![expression; size];
     }
 
     pub fn finish(mut self) -> ArrayExpression {
         ArrayExpression::new(
-            self.location.take().expect("Missing location"),
+            self.location.take().unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "location"
+                )
+            }),
             self.elements,
         )
     }

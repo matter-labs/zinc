@@ -28,19 +28,47 @@ impl Builder {
     }
 
     pub fn set_field_expression(&mut self, value: Expression) {
-        self.fields.last_mut().expect("Missing field identifier").1 = Some(value);
+        self.fields
+            .last_mut()
+            .unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "field identifier"
+                )
+            })
+            .1 = Some(value);
     }
 
     pub fn finish(mut self) -> StructureExpression {
         StructureExpression::new(
-            self.location.expect("Missing location"),
-            self.path_expression
-                .take()
-                .expect("Missing path expression"),
+            self.location.unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "location"
+                )
+            }),
+            self.path_expression.take().unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "path expression"
+                )
+            }),
             self.fields
                 .into_iter()
                 .map(|(identifier, expression)| {
-                    (identifier, expression.expect("Missing field expression"))
+                    (
+                        identifier,
+                        expression.unwrap_or_else(|| {
+                            panic!(
+                                "{}{}",
+                                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                                "field expression"
+                            )
+                        }),
+                    )
                 })
                 .collect::<Vec<(Identifier, Expression)>>(),
         )

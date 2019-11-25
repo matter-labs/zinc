@@ -28,3 +28,9 @@ pub use self::token::Location;
 pub use self::token::StringLiteral;
 pub use self::token::Symbol;
 pub use self::token::Token;
+
+static PANIC_UNCHECKED_SYMBOL: &str =
+    "All symbols must be checked or ruled out at this point, but this one ended up here: ";
+static PANIC_UNROUTED_CHARACTER: &str =
+    "All characters must be checked for being in the alphabet and routed at this point, but this one ended up here: ";
+static PANIC_INTEGER_VALIDATED_DURING_SCANNING: &str = "Validity must be checked during scanning";

@@ -34,20 +34,38 @@ impl Builder {
         match (self.elements.len(), self.has_comma) {
             (0, false) => {
                 let mut builder = ExpressionBuilder::default();
-                let location = self.location.take().expect("Missing location");
+                let location = self.location.take().unwrap_or_else(|| {
+                    panic!(
+                        "{}{}",
+                        crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                        "location"
+                    )
+                });
                 builder.set_location(location);
                 builder.push_operand(location, ExpressionOperand::Unit);
                 builder.finish()
             }
             (1, false) => {
                 let mut builder = ExpressionBuilder::default();
-                let location = self.location.take().expect("Missing location");
+                let location = self.location.take().unwrap_or_else(|| {
+                    panic!(
+                        "{}{}",
+                        crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                        "location"
+                    )
+                });
                 builder.set_location(location);
                 builder.extend_with_expressions(self.elements);
                 builder.finish()
             }
             (_size, true) => {
-                let location = self.location.take().expect("Missing location");
+                let location = self.location.take().unwrap_or_else(|| {
+                    panic!(
+                        "{}{}",
+                        crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                        "location"
+                    )
+                });
                 Expression::new(
                     location,
                     vec![ExpressionElement::new(
@@ -59,7 +77,7 @@ impl Builder {
                     )],
                 )
             }
-            _ => panic!("Always checked by the branches above"),
+            _ => panic!(crate::syntax::PANIC_ALL_TUPLE_CASES_ARE_COVERED_ABOVE),
         }
     }
 }

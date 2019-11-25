@@ -17,6 +17,8 @@ use crate::lexical::SymbolParserError;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 
+static PANIC_INPUT_ENDS_WITH_EOF: &str = "The input must end with an EOF lexeme";
+
 #[test]
 fn ok() {
     let input = r#"
@@ -142,7 +144,7 @@ let mut c: u232 = 2 + 2;
     let mut result = Vec::with_capacity(expected.len());
     let mut stream = TokenStream::new(input.to_owned());
     loop {
-        match stream.next().expect("Lexical error") {
+        match stream.next().expect(PANIC_INPUT_ENDS_WITH_EOF) {
             Token {
                 lexeme: Lexeme::Eof,
                 ..

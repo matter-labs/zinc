@@ -84,20 +84,28 @@ impl Parser {
                     );
                 }
                 State::SemicolonOptional => {
-                    match self.next.take().expect("Always contains a value") {
+                    match self
+                        .next
+                        .take()
+                        .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
+                    {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Semicolon),
                             ..
                         } => {
                             return Ok((
-                                self.statement.take().expect("Always contains a value"),
+                                self.statement
+                                    .take()
+                                    .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS),
                                 None,
                                 false,
                             ));
                         }
                         token => {
                             return Ok((
-                                self.statement.take().expect("Always contains a value"),
+                                self.statement
+                                    .take()
+                                    .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS),
                                 Some(token),
                                 true,
                             ));
@@ -106,7 +114,9 @@ impl Parser {
                 }
                 State::End => {
                     return Ok((
-                        self.statement.take().expect("Always contains a value"),
+                        self.statement
+                            .take()
+                            .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS),
                         None,
                         false,
                     ))

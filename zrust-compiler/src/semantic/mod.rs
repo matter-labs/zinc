@@ -32,3 +32,5 @@ pub use self::scope::Assignment as ScopeAssignment;
 pub use self::scope::Error as ScopeError;
 pub use self::scope::Item as ScopeItem;
 pub use self::scope::Scope;
+
+static PANIC_RESOLUTION_FUNCTION_MAIN: &str = "Presence of the 'main' function is checked above";

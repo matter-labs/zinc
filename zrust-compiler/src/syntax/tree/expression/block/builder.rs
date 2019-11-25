@@ -29,7 +29,13 @@ impl Builder {
 
     pub fn finish(mut self) -> BlockExpression {
         BlockExpression::new(
-            self.location.take().expect("Missing location"),
+            self.location.take().unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "location"
+                )
+            }),
             self.statements,
             self.expression.take(),
         )

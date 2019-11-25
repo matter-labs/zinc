@@ -82,7 +82,7 @@ impl From<&str> for Symbol {
             "=>" => Self::EqualsGreater,
             "->" => Self::MinusGreater,
 
-            _ => panic!("Always checked by the branches above"),
+            symbol => panic!("{}{}", crate::lexical::PANIC_UNCHECKED_SYMBOL, symbol),
         }
     }
 }

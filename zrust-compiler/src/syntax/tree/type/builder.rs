@@ -57,7 +57,13 @@ impl Builder {
     }
 
     pub fn finish(mut self) -> Type {
-        let location = self.location.take().expect("Missing location");
+        let location = self.location.take().unwrap_or_else(|| {
+            panic!(
+                "{}{}",
+                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                "location"
+            )
+        });
 
         let variant = if let Some(identifier) = self.alias_identifier.take() {
             TypeVariant::new_alias(identifier.name)
@@ -67,23 +73,31 @@ impl Builder {
                 Keyword::U { bitlength } => TypeVariant::new_integer_unsigned(bitlength),
                 Keyword::I { bitlength } => TypeVariant::new_integer_signed(bitlength),
                 Keyword::Field => TypeVariant::new_field(),
-                _ => panic!("Always checked by the branches above"),
+                _ => panic!(crate::syntax::PANIC_ALL_TYPE_KEYWORDS_ARE_CHECKED_ABOVE),
             }
         } else if let Some(array_type) = self.array_type_variant.take() {
             TypeVariant::new_array(
                 array_type,
-                self.array_size.take().expect("Missing array size"),
+                self.array_size.take().unwrap_or_else(|| {
+                    panic!(
+                        "{}{}",
+                        crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                        "array size"
+                    )
+                }),
             )
         } else if !self.tuple_types.is_empty() {
             if !self.tuple_has_comma {
-                self.tuple_types.pop().expect("Always contains an element")
+                self.tuple_types
+                    .pop()
+                    .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
             } else {
                 TypeVariant::new_tuple(self.tuple_types)
             }
         } else if self.is_unit {
             TypeVariant::new_unit()
         } else {
-            panic!("Always checked by the branches above");
+            panic!(crate::syntax::PANIC_ALL_TYPE_CASES_ARE_CHECKED_ABOVE);
         };
 
         Type { location, variant }

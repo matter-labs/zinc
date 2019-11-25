@@ -6,7 +6,6 @@ use std::cell::RefCell;
 use std::cmp;
 use std::collections::HashMap;
 use std::convert::TryFrom;
-use std::iter::FromIterator;
 use std::ops::Deref;
 use std::rc::Rc;
 
@@ -23,7 +22,6 @@ use crate::semantic::Error;
 use crate::semantic::Integer;
 use crate::semantic::Place;
 use crate::semantic::Scope;
-use crate::semantic::ScopeAssignment;
 use crate::semantic::ScopeItem;
 use crate::semantic::Value;
 use crate::syntax::ArrayExpression;
@@ -42,8 +40,6 @@ use crate::syntax::TupleExpression;
 use crate::syntax::Type;
 use crate::syntax::TypeVariant;
 use crate::CircuitProgram;
-
-static PANIC_RESOLUTION_FUNCTION_MAIN: &str = "Presence of the 'main' function is checked above";
 
 pub struct Analyzer {
     scopes: Vec<Rc<RefCell<Scope>>>,
@@ -106,7 +102,7 @@ impl Analyzer {
             .scope()
             .borrow()
             .resolve_type("main")
-            .expect(PANIC_RESOLUTION_FUNCTION_MAIN)
+            .expect(crate::semantic::PANIC_RESOLUTION_FUNCTION_MAIN)
         {
             TypeVariant::Function {
                 arguments,
@@ -125,7 +121,7 @@ impl Analyzer {
                     Instruction::Exit(zrust_bytecode::Exit::new(return_type.size()));
                 log::trace!(">>> {:03} {:?}", 1, self.instructions[1]);
             }
-            _ => panic!(PANIC_RESOLUTION_FUNCTION_MAIN),
+            _ => panic!(crate::semantic::PANIC_RESOLUTION_FUNCTION_MAIN),
         }
 
         Ok(self.instructions)
@@ -717,45 +713,47 @@ impl Analyzer {
         // remember the initial stack position, push the scope and start the frame
         let stack_frame_start = self.stack_height;
         self.push_scope();
-        // TODO: frame start
+        self.push_instruction(Instruction::FrameBegin(zrust_bytecode::FrameBegin));
 
         // evaluate the main block and get the result
         self.block_expression(conditional.main_block)?;
         let (main_result, main_result_address) =
             (self.evaluate_unary_operand(true)?, self.stack_last_index());
+        let main_type = main_result
+            .type_variant(self.scope().borrow().deref())
+            .map_err(|error| Error::Element(location, error))?;
 
-        // pop the scope and the condition
+        // pop the scope
         let scope = self.pop_scope();
-        self.push_instruction(Instruction::PopCondition(zrust_bytecode::PopCondition));
 
         // get the ordered list of the outer assignments
         let main_assignments = scope.get_ordered_outer_assignments();
-        let main_assignments_count = main_assignments.len();
-
-        // set the stack position to the initial one
-        self.stack_height = stack_frame_start + main_assignments_count;
+        let main_outputs_count = main_assignments.len() + main_type.size();
+        let mut conditional_assignments = HashMap::<Place, (usize, usize)>::new();
 
         // reassign the outer variables and release the frame
+        self.stack_height = stack_frame_start;
         for (place, assignment) in main_assignments.iter() {
             self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
                 assignment.address,
             )));
-            self.scope()
-                .borrow_mut()
-                .update_variable(place.to_owned(), self.stack_last_index())
-                .expect("The variable address always exists as it is checked during the block evaluation");
+            let old_address = self.scope().borrow().get_variable_address(&place).expect(
+                "The variable address always exists as it is checked during the block evaluation",
+            );
+            conditional_assignments
+                .insert(place.to_owned(), (self.stack_last_index(), old_address));
         }
-        // TODO: frame end
+        self.stack_height += main_type.size();
 
-        let mut else_assignments = Vec::new();
-        let (else_result, else_result_address) = if let Some(else_if) = conditional.else_if {
-            // evaluate the main block and get the result
-            self.conditional_expression(*else_if)?;
-            let (else_result, else_result_address) =
-                (self.evaluate_unary_operand(true)?, self.stack_last_index());
+        // release the frame
+        self.push_instruction(Instruction::FrameEnd(zrust_bytecode::FrameEnd::new(
+            main_outputs_count,
+        )));
 
-            (else_result, else_result_address)
-        } else if let Some(else_block) = conditional.else_block {
+        // pop the condition
+        self.push_instruction(Instruction::PopCondition(zrust_bytecode::PopCondition));
+
+        let (else_type, else_result_address) = if let Some(else_block) = conditional.else_block {
             // copy the 'false' variant of the condition
             self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
                 condition_address,
@@ -766,67 +764,60 @@ impl Analyzer {
             // remember the initial stack position, push the scope and start the frame
             let stack_frame_start = self.stack_height;
             self.push_scope();
-            // TODO: frame start
+            self.push_instruction(Instruction::FrameBegin(zrust_bytecode::FrameBegin));
 
             // evaluate the main block and get the result
             self.block_expression(else_block)?;
             let (else_result, else_result_address) =
                 (self.evaluate_unary_operand(true)?, self.stack_last_index());
+            let else_type = else_result
+                .type_variant(self.scope().borrow().deref())
+                .map_err(|error| Error::Element(location, error))?;
 
-            // pop the scope and the condition
+            // pop the scope
             let scope = self.pop_scope();
-            self.push_instruction(Instruction::PopCondition(zrust_bytecode::PopCondition));
 
             // set the ordered list of the outer assignments
-            else_assignments = scope.get_ordered_outer_assignments();
-            let else_assignments_count = else_assignments.len();
-
-            // set the stack position to the initial one
-            self.stack_height = stack_frame_start + else_assignments_count;
+            let else_assignments = scope.get_ordered_outer_assignments();
+            let else_outputs_count = else_assignments.len() + else_type.size();
 
             // reassign the outer variables and release the frame
+            self.stack_height = stack_frame_start;
             for (place, assignment) in else_assignments.iter() {
                 self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
                     assignment.address,
                 )));
-                self.scope()
-                    .borrow_mut()
-                    .update_variable(place.to_owned(), self.stack_last_index())
+                let old_address = self.scope().borrow()
+                    .get_variable_address(&place)
                     .expect("The variable address always exists as it is checked during the block evaluation");
+                if let Some(assignment) = conditional_assignments.get_mut(place) {
+                    assignment.1 = self.stack_last_index();
+                } else {
+                    conditional_assignments
+                        .insert(place.to_owned(), (old_address, self.stack_last_index()));
+                }
             }
-            // TODO: frame end
+            self.stack_height += else_type.size();
 
-            (else_result, else_result_address)
+            // release the frame
+            self.push_instruction(Instruction::FrameEnd(zrust_bytecode::FrameEnd::new(
+                else_outputs_count,
+            )));
+
+            // pop the condition
+            self.push_instruction(Instruction::PopCondition(zrust_bytecode::PopCondition));
+
+            (else_type, else_result_address)
         } else {
             // the else block is absent, returning a unit value
             self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
-            (Element::Value(Value::Unit), self.stack_last_index())
+            (TypeVariant::Unit, self.stack_last_index())
         };
 
-        let main_type = main_result
-            .type_variant(self.scope().borrow().deref())
-            .map_err(|error| Error::Element(location, error))?;
-        let else_type = else_result
-            .type_variant(self.scope().borrow().deref())
-            .map_err(|error| Error::Element(location, error))?;
         if main_type != else_type {
             return Err(Error::ConditionalBranchTypeMismatch(
                 location, main_type, else_type,
             ));
-        }
-
-        let mut conditional_assignments = HashMap::<Place, (usize, usize)>::new();
-        let else_assignments =
-            HashMap::<Place, ScopeAssignment>::from_iter(else_assignments.into_iter());
-        for (place, assignment_1) in main_assignments.into_iter() {
-            if let Some(assignment_2) = else_assignments.get(&place) {
-                conditional_assignments.insert(place, (assignment_1.address, assignment_2.address));
-            } else {
-                let old_address = self.scope().borrow()
-                    .get_variable_address(&place)
-                    .expect("The variable address always exists as it is checked during the block evaluation");
-                conditional_assignments.insert(place, (assignment_1.address, old_address));
-            }
         }
 
         for (place, (address_1, address_2)) in conditional_assignments.into_iter() {
@@ -928,7 +919,7 @@ impl Analyzer {
                         // push the scope and remember the stack position
                         self.push_scope();
                         let stack_frame_start = self.stack_height;
-                        // TODO: push frame
+                        self.push_instruction(Instruction::FrameBegin(zrust_bytecode::FrameBegin));
 
                         // evaluate the block and get the result type
                         self.block_expression(block)?;
@@ -940,10 +931,9 @@ impl Analyzer {
 
                         let scope = self.pop_scope();
                         let outputs = scope.get_ordered_outer_assignments();
+                        let outputs_count = outputs.len() + result_type.size();
 
-                        // move the stack pointer
-                        self.stack_height = stack_frame_start + result_type.size();
-
+                        self.stack_height = stack_frame_start;
                         for (place, assignment) in outputs.into_iter() {
                             self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
                                 assignment.address,
@@ -953,7 +943,10 @@ impl Analyzer {
                                 .update_variable(place, self.stack_last_index())
                                 .expect("The variable address always exists as it is checked during the block evaluation");
                         }
-                        // TODO: end frame
+                        self.stack_height += result_type.size();
+                        self.push_instruction(Instruction::FrameEnd(
+                            zrust_bytecode::FrameEnd::new(outputs_count),
+                        ));
                     }
                     ExpressionOperand::Conditional(conditional) => {
                         self.conditional_expression(conditional)?;

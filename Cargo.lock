@@ -367,6 +367,7 @@ dependencies = [
 [[package]]
 name = "zrust-bytecode"
 version = "0.1.0"
+source = "git+https://github.com/matter-labs/zrust-vm?branch=development#5df981c03c4d6c09dbe9650916d3b154dc4d4cd0"
 dependencies = [
  "env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -387,7 +388,7 @@ dependencies = [
  "num-bigint 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "zrust-bytecode 0.1.0",
+ "zrust-bytecode 0.1.0 (git+https://github.com/matter-labs/zrust-vm?branch=development)",
 ]
 
 [metadata]
@@ -438,3 +439,4 @@ dependencies = [
 "checksum winapi-util 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7168bab6e1daee33b4557efd0e95d5ca70a03706d39fa5f3fe7a236f584b03c9"
 "checksum winapi-x86_64-pc-windows-gnu 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 "checksum wincolor 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "96f5016b18804d24db43cebf3c77269e7569b8954a8464501c216cc5e070eaa9"
+"checksum zrust-bytecode 0.1.0 (git+https://github.com/matter-labs/zrust-vm?branch=development)" = "<none>"

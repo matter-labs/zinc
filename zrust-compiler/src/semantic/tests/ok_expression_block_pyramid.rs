@@ -9,6 +9,8 @@ use num_bigint::BigInt;
 use zrust_bytecode::Add;
 use zrust_bytecode::Call;
 use zrust_bytecode::Exit;
+use zrust_bytecode::FrameBegin;
+use zrust_bytecode::FrameEnd;
 use zrust_bytecode::Instruction;
 use zrust_bytecode::Push;
 
@@ -32,15 +34,21 @@ fn main() {
     let expected = Ok(vec![
         Instruction::Call(Call::new(2, 0)),
         Instruction::Exit(Exit::new(0)),
+        Instruction::FrameBegin(FrameBegin),
+        Instruction::FrameBegin(FrameBegin),
+        Instruction::FrameBegin(FrameBegin),
         Instruction::Push(Push::new(BigInt::from(4), false, 8)),
+        Instruction::FrameEnd(FrameEnd::new(1)),
         Instruction::Push(Push::new(BigInt::from(3), false, 8)),
         Instruction::Add(Add),
         Instruction::Push(Push::new(BigInt::from(3), false, 8)),
         Instruction::Add(Add),
+        Instruction::FrameEnd(FrameEnd::new(1)),
         Instruction::Push(Push::new(BigInt::from(2), false, 8)),
         Instruction::Add(Add),
         Instruction::Push(Push::new(BigInt::from(2), false, 8)),
         Instruction::Add(Add),
+        Instruction::FrameEnd(FrameEnd::new(1)),
         Instruction::Push(Push::new(BigInt::from(1), false, 8)),
         Instruction::Add(Add),
         Instruction::Push(Push::new(BigInt::from(1), false, 8)),
