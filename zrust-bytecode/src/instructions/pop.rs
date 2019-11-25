@@ -1,8 +1,8 @@
-use crate::{utils, DecodingError, InstructionCode, InstructionInfo};
+use crate::{utils, DecodingError, InstructionCode, InstructionInfo, Instruction};
 use num_bigint::ToBigInt;
 use num_traits::ToPrimitive;
 
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Default, Clone)]
 pub struct Pop {
     pub count: usize,
 }
@@ -15,7 +15,7 @@ impl Pop {
 
 impl InstructionInfo for Pop {
     fn to_assembly(&self) -> String {
-        format!("pop {}", self.count).into()
+        format!("pop {}", self.count)
     }
 
     fn code() -> InstructionCode {
@@ -38,5 +38,9 @@ impl InstructionInfo for Pop {
 
     fn outputs_count(&self) -> usize {
         0
+    }
+
+    fn wrap(&self) -> Instruction {
+        Instruction::Pop((*self).clone())
     }
 }

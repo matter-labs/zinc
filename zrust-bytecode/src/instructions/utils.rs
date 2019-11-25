@@ -5,7 +5,7 @@ pub fn decode_simple_instruction<T>(bytes: &[u8]) -> Result<(T, usize), Decoding
 where
     T: InstructionInfo + Default,
 {
-    if bytes.len() < 1 {
+    if bytes.is_empty() {
         Err(DecodingError::UnexpectedEOF)
     } else if bytes[0] != T::code() as u8 {
         Err(DecodingError::UnknownInstructionCode(bytes[0]))

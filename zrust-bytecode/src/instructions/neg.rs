@@ -1,7 +1,7 @@
 use crate::instructions::utils::decode_simple_instruction;
-use crate::{DecodingError, InstructionCode, InstructionInfo};
+use crate::{DecodingError, InstructionCode, InstructionInfo, Instruction};
 
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Default, Clone)]
 pub struct Neg;
 
 impl InstructionInfo for Neg {
@@ -27,5 +27,9 @@ impl InstructionInfo for Neg {
 
     fn outputs_count(&self) -> usize {
         1
+    }
+
+    fn wrap(&self) -> Instruction {
+        Instruction::Neg((*self).clone())
     }
 }

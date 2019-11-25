@@ -1,7 +1,7 @@
 use crate::instructions::utils::decode_simple_instruction;
-use crate::{DecodingError, InstructionCode, InstructionInfo};
+use crate::{DecodingError, InstructionCode, InstructionInfo, Instruction};
 
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Default, Clone)]
 pub struct Eq;
 
 impl InstructionInfo for Eq {
@@ -27,5 +27,9 @@ impl InstructionInfo for Eq {
 
     fn outputs_count(&self) -> usize {
         1
+    }
+
+    fn wrap(&self) -> Instruction {
+        Instruction::Eq((*self).clone())
     }
 }

@@ -1,7 +1,7 @@
 use crate::instructions::utils::decode_simple_instruction;
-use crate::{DecodingError, InstructionCode, InstructionInfo};
+use crate::{DecodingError, InstructionCode, InstructionInfo, Instruction};
 
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Default, Clone)]
 pub struct PushCondition;
 
 impl InstructionInfo for PushCondition {
@@ -27,5 +27,9 @@ impl InstructionInfo for PushCondition {
 
     fn outputs_count(&self) -> usize {
         0
+    }
+
+    fn wrap(&self) -> Instruction {
+        Instruction::PushCondition((*self).clone())
     }
 }

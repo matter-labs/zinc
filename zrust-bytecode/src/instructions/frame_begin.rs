@@ -1,8 +1,8 @@
-use crate::{DecodingError, InstructionCode, InstructionInfo, utils};
+use crate::{DecodingError, InstructionCode, InstructionInfo, utils, Instruction};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct FrameBegin {
     pub inputs_count: usize,
 }
@@ -15,7 +15,7 @@ impl FrameBegin {
 
 impl InstructionInfo for FrameBegin {
     fn to_assembly(&self) -> String {
-        format!("frame_begin {}", self.inputs_count).into()
+        format!("frame_begin {}", self.inputs_count)
     }
 
     fn code() -> InstructionCode {
@@ -38,5 +38,9 @@ impl InstructionInfo for FrameBegin {
 
     fn outputs_count(&self) -> usize {
         0
+    }
+
+    fn wrap(&self) -> Instruction {
+        Instruction::FrameBegin((*self).clone())
     }
 }

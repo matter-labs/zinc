@@ -1,8 +1,8 @@
-use crate::{utils, DecodingError, InstructionCode, InstructionInfo};
+use crate::{utils, DecodingError, InstructionCode, InstructionInfo, Instruction};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Return {
     pub outputs_count: usize,
 }
@@ -38,5 +38,9 @@ impl InstructionInfo for Return {
 
     fn outputs_count(&self) -> usize {
         0
+    }
+
+    fn wrap(&self) -> Instruction {
+        Instruction::Return((*self).clone())
     }
 }

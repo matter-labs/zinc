@@ -1,7 +1,7 @@
-use crate::{utils, DecodingError, InstructionCode, InstructionInfo};
+use crate::{utils, DecodingError, InstructionCode, InstructionInfo, Instruction};
 use num_bigint::BigInt;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Push {
     pub value: BigInt,
 }
@@ -14,7 +14,7 @@ impl Push {
 
 impl InstructionInfo for Push {
     fn to_assembly(&self) -> String {
-        format!("push {}", self.value).into()
+        format!("push {}", self.value)
     }
 
     fn code() -> InstructionCode {
@@ -37,5 +37,9 @@ impl InstructionInfo for Push {
 
     fn outputs_count(&self) -> usize {
         1
+    }
+
+    fn wrap(&self) -> Instruction {
+        Instruction::Push((*self).clone())
     }
 }

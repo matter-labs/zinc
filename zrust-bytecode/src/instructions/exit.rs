@@ -1,8 +1,8 @@
 use crate::instructions::utils;
-use crate::{DecodingError, InstructionCode, InstructionInfo};
+use crate::{DecodingError, InstructionCode, InstructionInfo, Instruction};
 use num_traits::ToPrimitive;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Exit {
     pub outputs_count: usize,
 }
@@ -38,5 +38,9 @@ impl InstructionInfo for Exit {
 
     fn outputs_count(&self) -> usize {
         0
+    }
+
+    fn wrap(&self) -> Instruction {
+        Instruction::Exit((*self).clone())
     }
 }

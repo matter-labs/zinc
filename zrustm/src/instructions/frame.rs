@@ -11,7 +11,7 @@ impl<E, O> VMInstruction<E, O> for FrameBegin
         O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        vm.frame_push(self.inputs_count)
+        vm.frame_push(None)
     }
 }
 

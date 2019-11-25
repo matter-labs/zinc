@@ -27,108 +27,115 @@ pub fn decode_all_instructions(bytes: &[u8]) -> Result<Vec<Instruction>, Decodin
     Ok(instructions)
 }
 
+#[allow(clippy::cognitive_complexity)]
 pub fn decode_instruction(bytes: &[u8]) -> Result<(Instruction, usize), DecodingError> {
-    if bytes.len() < 1 {
+    if bytes.is_empty() {
         return Err(DecodingError::UnexpectedEOF);
     }
-
+    
     match bytes[0] {
         x if x == InstructionCode::NoOperation as u8 => {
-            NoOperation::decode(bytes).map(|(i, l)| (Instruction::NoOperation(i), l))
+            decode_and_wrap::<NoOperation>(bytes)
         }
         x if x == InstructionCode::Push as u8 => {
-            Push::decode(bytes).map(|(i, l)| (Instruction::Push(i), l))
+            decode_and_wrap::<Push>(bytes)
         }
         x if x == InstructionCode::Pop as u8 => {
-            Pop::decode(bytes).map(|(i, l)| (Instruction::Pop(i), l))
+            decode_and_wrap::<Pop>(bytes)
         }
         x if x == InstructionCode::Copy as u8 => {
-            Copy::decode(bytes).map(|(i, l)| (Instruction::Copy(i), l))
+            decode_and_wrap::<Copy>(bytes)
         }
         x if x == InstructionCode::Add as u8 => {
-            Add::decode(bytes).map(|(i, l)| (Instruction::Add(i), l))
+            decode_and_wrap::<Add>(bytes)
         }
         x if x == InstructionCode::Sub as u8 => {
-            Sub::decode(bytes).map(|(i, l)| (Instruction::Sub(i), l))
+            decode_and_wrap::<Sub>(bytes)
         }
         x if x == InstructionCode::Mul as u8 => {
-            Mul::decode(bytes).map(|(i, l)| (Instruction::Mul(i), l))
+            decode_and_wrap::<Mul>(bytes)
         }
         x if x == InstructionCode::Div as u8 => {
-            Div::decode(bytes).map(|(i, l)| (Instruction::Div(i), l))
+            decode_and_wrap::<Div>(bytes)
         }
         x if x == InstructionCode::Rem as u8 => {
-            Rem::decode(bytes).map(|(i, l)| (Instruction::Rem(i), l))
+            decode_and_wrap::<Rem>(bytes)
         }
         x if x == InstructionCode::Neg as u8 => {
-            Neg::decode(bytes).map(|(i, l)| (Instruction::Neg(i), l))
+            decode_and_wrap::<Neg>(bytes)
         }
         x if x == InstructionCode::Not as u8 => {
-            Not::decode(bytes).map(|(i, l)| (Instruction::Not(i), l))
+            decode_and_wrap::<Not>(bytes)
         }
         x if x == InstructionCode::And as u8 => {
-            And::decode(bytes).map(|(i, l)| (Instruction::And(i), l))
+            decode_and_wrap::<And>(bytes)
         }
         x if x == InstructionCode::Or as u8 => {
-            Or::decode(bytes).map(|(i, l)| (Instruction::Or(i), l))
+            decode_and_wrap::<Or>(bytes)
         }
         x if x == InstructionCode::Xor as u8 => {
-            Xor::decode(bytes).map(|(i, l)| (Instruction::Xor(i), l))
+            decode_and_wrap::<Xor>(bytes)
         }
         x if x == InstructionCode::Lt as u8 => {
-            Lt::decode(bytes).map(|(i, l)| (Instruction::Lt(i), l))
+            decode_and_wrap::<Lt>(bytes)
         }
         x if x == InstructionCode::Le as u8 => {
-            Le::decode(bytes).map(|(i, l)| (Instruction::Le(i), l))
+            decode_and_wrap::<Le>(bytes)
         }
         x if x == InstructionCode::Eq as u8 => {
-            Eq::decode(bytes).map(|(i, l)| (Instruction::Eq(i), l))
+            decode_and_wrap::<Eq>(bytes)
         }
         x if x == InstructionCode::Ne as u8 => {
-            Ne::decode(bytes).map(|(i, l)| (Instruction::Ne(i), l))
+            decode_and_wrap::<Ne>(bytes)
         }
         x if x == InstructionCode::Ge as u8 => {
-            Ge::decode(bytes).map(|(i, l)| (Instruction::Ge(i), l))
+            decode_and_wrap::<Ge>(bytes)
         }
         x if x == InstructionCode::Gt as u8 => {
-            Gt::decode(bytes).map(|(i, l)| (Instruction::Gt(i), l))
+            decode_and_wrap::<Gt>(bytes)
         }
         x if x == InstructionCode::Cast as u8 => {
-            Cast::decode(bytes).map(|(i, l)| (Instruction::Cast(i), l))
+            decode_and_wrap::<Cast>(bytes)
         }
         x if x == InstructionCode::ConditionalSelect as u8 => {
-            ConditionalSelect::decode(bytes).map(|(i, l)| (Instruction::ConditionalSelect(i), l))
+            decode_and_wrap::<ConditionalSelect>(bytes)
         }
         x if x == InstructionCode::LoopBegin as u8 => {
-            LoopBegin::decode(bytes).map(|(i, l)| (Instruction::LoopBegin(i), l))
+            decode_and_wrap::<LoopBegin>(bytes)
         }
         x if x == InstructionCode::FrameBegin as u8 => {
-            LoopBegin::decode(bytes).map(|(i, l)| (Instruction::LoopBegin(i), l))
+            decode_and_wrap::<LoopBegin>(bytes)
         }
         x if x == InstructionCode::FrameEnd as u8 => {
-            LoopBegin::decode(bytes).map(|(i, l)| (Instruction::LoopBegin(i), l))
+            decode_and_wrap::<LoopBegin>(bytes)
         }
         x if x == InstructionCode::LoopEnd as u8 => {
-            LoopEnd::decode(bytes).map(|(i, l)| (Instruction::LoopEnd(i), l))
+            decode_and_wrap::<LoopEnd>(bytes)
         }
         x if x == InstructionCode::Call as u8 => {
-            Call::decode(bytes).map(|(i, l)| (Instruction::Call(i), l))
+            decode_and_wrap::<Call>(bytes)
         }
         x if x == InstructionCode::Return as u8 => {
-            Return::decode(bytes).map(|(i, l)| (Instruction::Return(i), l))
+            decode_and_wrap::<Return>(bytes)
         }
         x if x == InstructionCode::Assert as u8 => {
-            Assert::decode(bytes).map(|(i, l)| (Instruction::Assert(i), l))
+            decode_and_wrap::<Assert>(bytes)
         }
         x if x == InstructionCode::PushCondition as u8 => {
-            PushCondition::decode(bytes).map(|(i, l)| (Instruction::PushCondition(i), l))
+            decode_and_wrap::<PushCondition>(bytes)
         }
         x if x == InstructionCode::PopCondition as u8 => {
-            PopCondition::decode(bytes).map(|(i, l)| (Instruction::PopCondition(i), l))
+            decode_and_wrap::<PopCondition>(bytes)
         }
         x if x == InstructionCode::Exit as u8 => {
-            Exit::decode(bytes).map(|(i, l)| (Instruction::Exit(i), l))
+            decode_and_wrap::<Exit>(bytes)
         }
         x => Err(DecodingError::UnknownInstructionCode(x)),
     }
+}
+
+fn decode_and_wrap<I: InstructionInfo>(bytes: &[u8])
+    -> Result<(Instruction, usize), DecodingError>
+{
+    I::decode(bytes).map(|(i, l)| (i.wrap(), l))
 }

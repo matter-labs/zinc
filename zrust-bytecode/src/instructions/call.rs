@@ -1,8 +1,8 @@
-use crate::{vlq, DecodingError, InstructionCode, InstructionInfo};
+use crate::{vlq, DecodingError, InstructionCode, InstructionInfo, Instruction};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Call {
     pub address: usize,
     pub inputs_count: usize,
@@ -63,5 +63,9 @@ impl InstructionInfo for Call {
 
     fn outputs_count(&self) -> usize {
         0
+    }
+
+    fn wrap(&self) -> Instruction {
+        Instruction::Call((*self).clone())
     }
 }

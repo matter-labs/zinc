@@ -1,7 +1,7 @@
 use crate::instructions::utils::decode_simple_instruction;
-use crate::{DecodingError, InstructionCode, InstructionInfo};
+use crate::{DecodingError, InstructionCode, InstructionInfo, Instruction};
 
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Default, Clone)]
 pub struct Gt;
 
 impl InstructionInfo for Gt {
@@ -27,5 +27,9 @@ impl InstructionInfo for Gt {
 
     fn outputs_count(&self) -> usize {
         1
+    }
+
+    fn wrap(&self) -> Instruction {
+        Instruction::Gt((*self).clone())
     }
 }

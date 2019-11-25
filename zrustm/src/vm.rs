@@ -48,7 +48,8 @@ enum Scope {
 
 #[derive(Clone)]
 struct Frame {
-    address: usize,
+    frame_address: usize,
+    index_address: usize,
 }
 
 pub struct VirtualMachine<E: Element, O: ElementOperator<E>> {
@@ -66,7 +67,7 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
         Self {
             instruction_counter: 0,
             stack: vec![],
-            frames: vec![Frame { address: 0 }],
+            frames: vec![Frame { frame_address: 0, index_address: 0 }],
             scopes: vec![],
             operator,
             conditions: vec![],
@@ -82,7 +83,7 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     pub fn stack_pop(&mut self) -> Result<E, RuntimeError> {
         let frame = self.frames.last().ok_or(RuntimeError::StackUnderflow)?;
 
-        if self.stack.len() > frame.address {
+        if self.stack.len() > frame.frame_address {
             self.stack.pop().ok_or(RuntimeError::InternalError)
         } else {
             Err(RuntimeError::StackUnderflow)
@@ -92,7 +93,7 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     pub fn stack_get(&self, index: usize) -> Result<E, RuntimeError> {
         let frame = self.frames.last().ok_or(RuntimeError::StackUnderflow)?;
         self.stack
-            .get(frame.address + index)
+            .get(frame.frame_address + index)
             .ok_or(RuntimeError::InternalError)
             .map(|e| (*e).clone())
     }
@@ -177,17 +178,28 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     }
 
     /// Take `inputs_count` values from current frame and push them into new one.
-    pub fn frame_push(&mut self, inputs_count: usize) -> Result<(), RuntimeError> {
-        let frame = self.frames.last().ok_or(RuntimeError::StackUnderflow)?;
-        let address = self
-            .stack
-            .len()
-            .checked_sub(inputs_count)
-            .ok_or(RuntimeError::StackUnderflow)?;
-        if address < frame.address {
+    pub fn frame_push(&mut self, inputs_count: Option<usize>) -> Result<(), RuntimeError> {
+        let old_frame = self.frames.last().ok_or(RuntimeError::StackUnderflow)?;
+        let new_frame = if let Some(count) = inputs_count {
+            let address = self
+                .stack
+                .len()
+                .checked_sub(count)
+                .ok_or(RuntimeError::StackUnderflow)?;
+            Frame {
+                frame_address: address,
+                index_address: address,
+            }
+        } else {
+            Frame {
+                frame_address: self.stack.len(),
+                index_address: old_frame.index_address,
+            }
+        };
+        if new_frame.frame_address < old_frame.frame_address {
             return Err(RuntimeError::StackUnderflow);
         }
-        self.frames.push(Frame { address: address });
+        self.frames.push(new_frame);
         Ok(())
     }
 
@@ -200,12 +212,12 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             .checked_sub(outputs_count)
             .ok_or(RuntimeError::StackUnderflow)?;
 
-        if outputs_address < frame.address {
+        if outputs_address < frame.frame_address {
             return Err(RuntimeError::StackUnderflow);
         }
 
         let mut outputs = Vec::from(&self.stack[outputs_address..]);
-        self.stack.truncate(frame.address);
+        self.stack.truncate(frame.frame_address);
         self.stack.append(&mut outputs);
 
         Ok(())
@@ -218,7 +230,7 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             io_size,
         };
         self.scopes.push(Scope::Loop(loop_frame));
-        self.frame_push(io_size)?;
+        self.frame_push(Some(io_size))?;
 
         Ok(())
     }
@@ -233,7 +245,7 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
 
         if frame.iterations_left != 0 {
             frame.iterations_left -= 1;
-            self.frame_push(frame.io_size)?;
+            self.frame_push(Some(frame.io_size))?;
             self.instruction_counter = frame.first_instruction_index;
             self.scopes.push(Scope::Loop(frame));
         }
@@ -245,7 +257,7 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
         let frame = Function {
             return_address: self.instruction_counter,
         };
-        self.frame_push(inputs_count)?;
+        self.frame_push(Some(inputs_count))?;
         self.scopes.push(Scope::Function(frame));
         self.instruction_counter = address;
         Ok(())

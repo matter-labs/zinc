@@ -14,6 +14,7 @@ pub trait InstructionInfo: PartialEq + Debug + Sized {
     fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError>;
     fn inputs_count(&self) -> usize;
     fn outputs_count(&self) -> usize;
+    fn wrap(&self) -> Instruction;
 }
 
 #[derive(Debug,PartialEq)]

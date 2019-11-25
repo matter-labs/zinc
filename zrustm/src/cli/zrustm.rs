@@ -11,9 +11,9 @@ use zrustm::RuntimeError;
 
 #[derive(Debug)]
 enum Error {
-    IOError(io::Error),
-    DecodingError(DecodingError),
-    RuntimeError(RuntimeError),
+    IO(io::Error),
+    Decoding(DecodingError),
+    Runtime(RuntimeError),
 }
 
 struct ExecArguments {
@@ -63,12 +63,12 @@ fn main() -> Result<(), Error> {
 }
 
 fn exec(args: ExecArguments) -> Result<(), Error> {
-    let bytes = fs::read(args.circuit_file).map_err(|e| Error::IOError(e))?;
+    let bytes = fs::read(args.circuit_file).map_err(Error::IO)?;
 
-    let code = decode_all_instructions(bytes.as_slice()).map_err(|e| Error::DecodingError(e))?;
+    let code = decode_all_instructions(bytes.as_slice()).map_err(Error::Decoding)?;
 
     let outputs = zrustm::exec::<Bn256>(code.as_slice(), args.witness.as_slice())
-        .map_err(|e| Error::RuntimeError(e))?;
+        .map_err(Error::Runtime)?;
 
     for value in outputs.iter() {
         match value {
@@ -81,11 +81,11 @@ fn exec(args: ExecArguments) -> Result<(), Error> {
 }
 
 fn gen_key(args: GenKeyArguments) -> Result<(), Error> {
-    let bytes = fs::read(args.circuit_file).map_err(|e| Error::IOError(e))?;
+    let bytes = fs::read(args.circuit_file).map_err(Error::IO)?;
 
-    let code = decode_all_instructions(bytes.as_slice()).map_err(|e| Error::DecodingError(e))?;
+    let code = decode_all_instructions(bytes.as_slice()).map_err(Error::Decoding)?;
 
-    let _key = zrustm::gen_key::<Bn256>(code.as_slice()).map_err(|e| Error::RuntimeError(e))?;
+    let _key = zrustm::gen_key::<Bn256>(code.as_slice()).map_err(Error::Runtime)?;
 
     println!("Successfully generated key");
     //    dbg!(key);
@@ -94,12 +94,12 @@ fn gen_key(args: GenKeyArguments) -> Result<(), Error> {
 }
 
 fn gen_proof(args: GenProofArguments) -> Result<(), Error> {
-    let bytes = fs::read(args.circuit_file).map_err(|e| Error::IOError(e))?;
+    let bytes = fs::read(args.circuit_file).map_err(Error::IO)?;
 
-    let code = decode_all_instructions(bytes.as_slice()).map_err(|e| Error::DecodingError(e))?;
+    let code = decode_all_instructions(bytes.as_slice()).map_err(Error::Decoding)?;
 
     let proof = zrustm::prove::<Bn256>(code.as_slice(), args.witness.as_slice())
-        .map_err(|e| Error::RuntimeError(e))?;
+        .map_err(Error::Runtime)?;
 
     dbg!(proof);
 
@@ -132,7 +132,6 @@ fn parse_arguments() -> Arguments {
                 command_args
                     .values_of("witness")
                     .expect("--witness is required")
-                    .into_iter()
                     .map(|s| BigInt::from_str(s).unwrap())
                     .collect()
             };
@@ -157,7 +156,6 @@ fn parse_arguments() -> Arguments {
                 command_args
                     .values_of("witness")
                     .expect("--witness is required")
-                    .into_iter()
                     .map(|s| BigInt::from_str(s).unwrap())
                     .collect()
             };

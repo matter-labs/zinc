@@ -1,8 +1,8 @@
-use crate::{vlq, DecodingError, InstructionCode, InstructionInfo};
+use crate::{vlq, DecodingError, InstructionCode, InstructionInfo, Instruction};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct LoopBegin {
     pub iterations: usize,
     pub io_size: usize,
@@ -19,7 +19,7 @@ impl LoopBegin {
 
 impl InstructionInfo for LoopBegin {
     fn to_assembly(&self) -> String {
-        format!("loop_begin {}", self.iterations).into()
+        format!("loop_begin {}", self.iterations)
     }
 
     fn code() -> InstructionCode {
@@ -63,5 +63,9 @@ impl InstructionInfo for LoopBegin {
 
     fn outputs_count(&self) -> usize {
         0
+    }
+
+    fn wrap(&self) -> Instruction {
+        Instruction::LoopBegin((*self).clone())
     }
 }

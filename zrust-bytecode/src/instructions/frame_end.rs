@@ -1,8 +1,8 @@
-use crate::{DecodingError, InstructionCode, InstructionInfo, utils};
+use crate::{DecodingError, InstructionCode, InstructionInfo, utils, Instruction};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct FrameEnd {
     pub outputs_count: usize,
 }
@@ -15,7 +15,7 @@ impl FrameEnd {
 
 impl InstructionInfo for FrameEnd {
     fn to_assembly(&self) -> String {
-        format!("frame_end {}", self.outputs_count).into()
+        format!("frame_end {}", self.outputs_count)
     }
 
     fn code() -> InstructionCode {
@@ -38,5 +38,9 @@ impl InstructionInfo for FrameEnd {
 
     fn outputs_count(&self) -> usize {
         0
+    }
+
+    fn wrap(&self) -> Instruction {
+        Instruction::FrameEnd((*self).clone())
     }
 }

@@ -1,7 +1,7 @@
 use crate::instructions::utils::decode_simple_instruction;
-use crate::{DecodingError, InstructionCode, InstructionInfo};
+use crate::{DecodingError, InstructionCode, InstructionInfo, Instruction};
 
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Default, Clone)]
 pub struct Assert;
 
 impl InstructionInfo for Assert {
@@ -27,5 +27,9 @@ impl InstructionInfo for Assert {
 
     fn outputs_count(&self) -> usize {
         0
+    }
+
+    fn wrap(&self) -> Instruction {
+        Instruction::Assert((*self).clone())
     }
 }

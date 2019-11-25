@@ -1,8 +1,8 @@
-use crate::{utils, DecodingError, InstructionCode, InstructionInfo};
+use crate::{utils, DecodingError, InstructionCode, InstructionInfo, Instruction};
 use num_bigint::ToBigInt;
 use num_traits::ToPrimitive;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Copy {
     pub index: usize,
 }
@@ -15,7 +15,7 @@ impl Copy {
 
 impl InstructionInfo for Copy {
     fn to_assembly(&self) -> String {
-        format!("copy {}", self.index).into()
+        format!("copy {}", self.index)
     }
 
     fn code() -> InstructionCode {
@@ -38,5 +38,9 @@ impl InstructionInfo for Copy {
 
     fn outputs_count(&self) -> usize {
         1
+    }
+
+    fn wrap(&self) -> Instruction {
+        Instruction::Copy((*self).clone())
     }
 }

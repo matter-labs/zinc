@@ -22,7 +22,7 @@ pub fn fr_to_bigint<E: Engine>(fr: &E::Fr) -> BigInt {
     if bigint.bits() < E::Fr::CAPACITY as usize {
         bigint
     } else {
-        let mut fr_neg = fr.clone();
+        let mut fr_neg = *fr;
         fr_neg.negate();
         -fr_to_bigint::<E>(&fr_neg)
     }
