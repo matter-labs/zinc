@@ -688,6 +688,9 @@ impl Analyzer {
         let location = conditional.location;
         let condition_location = conditional.condition.location;
 
+        let outer_stack_frame_start = self.stack_height;
+        self.push_instruction(Instruction::FrameBegin(zrust_bytecode::FrameBegin));
+
         self.expression(*conditional.condition)?;
         let condition_address = self.stack_last_index();
         match self
@@ -820,6 +823,9 @@ impl Analyzer {
             ));
         }
 
+        let mut outputs_count = conditional_assignments.len();
+
+        self.stack_height = outer_stack_frame_start;
         for (place, (address_1, address_2)) in conditional_assignments.into_iter() {
             self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(address_2)));
             self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(address_1)));
@@ -837,7 +843,7 @@ impl Analyzer {
 
         match main_type {
             TypeVariant::Unit => {}
-            type_variant => {
+            _ => {
                 self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
                     else_result_address,
                 )));
@@ -851,9 +857,13 @@ impl Analyzer {
                     zrust_bytecode::ConditionalSelect,
                 ));
                 self.push_operand(StackElement::Evaluated(main_result));
-                self.stack_height += type_variant.size();
+                outputs_count += 1;
             }
         }
+
+        self.push_instruction(Instruction::FrameEnd(zrust_bytecode::FrameEnd::new(
+            outputs_count,
+        )));
 
         Ok(())
     }

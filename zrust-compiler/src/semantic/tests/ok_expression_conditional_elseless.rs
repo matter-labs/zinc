@@ -35,6 +35,7 @@ fn main() {
         Instruction::Call(Call::new(2, 0)),
         Instruction::Exit(Exit::new(0)),
         Instruction::Push(Push::new(BigInt::from(5), false, 8)),
+        Instruction::FrameBegin(FrameBegin),
         Instruction::Push(Push::new(BigInt::from(0), false, 1)),
         Instruction::Copy(Copy::new(1)),
         Instruction::PushCondition(PushCondition),
@@ -47,6 +48,7 @@ fn main() {
         Instruction::Copy(Copy::new(2)),
         Instruction::Copy(Copy::new(1)),
         Instruction::ConditionalSelect(ConditionalSelect),
+        Instruction::FrameEnd(FrameEnd::new(1)),
     ]);
 
     let result = Analyzer::default().compile(
