@@ -8,8 +8,9 @@ use std::str::FromStr;
 use std::{fs, io};
 use zrust_bytecode::{decode_all_instructions, DecodingError};
 use zrustm::{RuntimeError, VerificationError};
-use franklin_crypto::bellman::groth16::Proof;
+use franklin_crypto::bellman::groth16::{Proof, Parameters};
 use std::process::exit;
+use colored::*;
 
 #[derive(Debug)]
 enum Error {
@@ -26,20 +27,27 @@ struct ExecArguments {
 
 struct ProveArguments {
     circuit_file: String,
-    witness: Vec<BigInt>,
+    params_file: String,
     output_file: String,
+    witness: Vec<BigInt>,
 }
 
 struct VerifyArguments {
-    circuit_file: String,
+    params_file: String,
     proof_file: String,
-    input: Vec<BigInt>,
+    public_input: Vec<BigInt>,
+}
+
+struct SetupArguments {
+    circuit_file: String,
+    output_file: String,
 }
 
 enum CommandArgs {
     Exec(ExecArguments),
     Prove(ProveArguments),
     Verify(VerifyArguments),
+    Setup(SetupArguments),
 }
 
 struct Args {
@@ -59,6 +67,7 @@ fn main() -> Result<(), Error> {
         CommandArgs::Exec(args) => exec(args)?,
         CommandArgs::Prove(args) => prove(args)?,
         CommandArgs::Verify(args) => verify(args)?,
+        CommandArgs::Setup(args) => setup(args)?,
     }
 
     Ok(())
@@ -83,40 +92,56 @@ fn exec(args: ExecArguments) -> Result<(), Error> {
 }
 
 fn prove(args: ProveArguments) -> Result<(), Error> {
-    let bytes = fs::read(args.circuit_file).map_err(Error::IO)?;
-
-    let code = decode_all_instructions(bytes.as_slice()).map_err(Error::Decoding)?;
-
-    let proof =
-        zrustm::prove::<Bn256>(code.as_slice(), args.witness.as_slice()).map_err(Error::Runtime)?;
-
-    let file = fs::File::create(args.output_file).map_err(Error::IO)?;
-    proof.write(file).map_err(Error::IO)?;
-
-    Ok(())
-}
-
-fn verify(args: VerifyArguments) -> Result<(), Error> {
     let bytes = fs::read(args.circuit_file)
         .map_err(Error::IO)?;
 
     let code = decode_all_instructions(bytes.as_slice())
         .map_err(Error::Decoding)?;
 
-    let key = zrustm::gen_key::<Bn256>(code.as_slice())
+    let file = fs::File::open(args.params_file)
+        .map_err(Error::IO)?;
+
+    let params = Parameters::<Bn256>::read(file, true)
+        .map_err(Error::IO)?;
+
+    let proof = zrustm::prove::<Bn256>(code.as_slice(), &params, args.witness.as_slice())
         .map_err(Error::Runtime)?;
 
-    let file = fs::File::open(args.proof_file).map_err(Error::IO)?;
-    let proof = Proof::<Bn256>::read(file).map_err(Error::IO)?;
+    let file = fs::File::create(args.output_file)
+        .map_err(Error::IO)?;
 
-    let verified = zrustm::verify(&key, &proof, args.input.as_slice()).map_err(Error::Verification)?;
+    proof.write(file)
+        .map_err(Error::IO)?;
+
+    Ok(())
+}
+
+fn verify(args: VerifyArguments) -> Result<(), Error> {
+    let params_file = fs::File::open(args.params_file).map_err(Error::IO)?;
+    let params = Parameters::<Bn256>::read(params_file, true).map_err(Error::IO)?;
+
+    let proof_file = fs::File::open(args.proof_file).map_err(Error::IO)?;
+    let proof = Proof::<Bn256>::read(proof_file).map_err(Error::IO)?;
+
+    let verified = zrustm::verify(&params, &proof, args.public_input.as_slice()).map_err(Error::Verification)?;
 
     if verified {
-        println!("Ok");
+        println!("{}", "Ok".bold().green());
     } else {
-        println!("Failed");
+        println!("{}", "Verification failed".bold().red());
         exit(1);
     }
+
+    Ok(())
+}
+
+fn setup(args: SetupArguments) -> Result<(), Error> {
+    let bytes = fs::read(args.circuit_file).map_err(Error::IO)?;
+    let code = decode_all_instructions(bytes.as_slice()).map_err(Error::Decoding)?;
+    let params = zrustm::setup::<Bn256>(code.as_slice()).map_err(Error::Runtime)?;
+
+    let file = fs::File::create(args.output_file).map_err(Error::IO)?;
+    params.write(file).map_err(Error::IO)?;
 
     Ok(())
 }
@@ -153,6 +178,9 @@ fn parse_arguments() -> Args {
             let output_file = command_args
                 .value_of("output")
                 .expect("--output is required");
+            let params_file = command_args
+                .value_of("params")
+                .expect("--params is required");
             let witness = {
                 match command_args.values_of("witness") {
                     Some(values) => {
@@ -166,18 +194,19 @@ fn parse_arguments() -> Args {
             CommandArgs::Prove(ProveArguments {
                 circuit_file: circuit_file.into(),
                 witness,
-                output_file: output_file.into()
+                output_file: output_file.into(),
+                params_file: params_file.into(),
             })
         }
         ("verify", Some(command_args)) => {
-            let circuit_file = command_args
-                .value_of("circuit")
-                .expect("--circuit is required");
-            let proof = command_args
+            let params_file = command_args
+                .value_of("params")
+                .expect("--params is required");
+            let proof_file = command_args
                 .value_of("proof")
                 .expect("--proof is required");
             let input = {
-                match command_args.values_of("input") {
+                match command_args.values_of("public-input") {
                     Some(values) => {
                         values
                             .map(|s| BigInt::from_str(s).unwrap())
@@ -187,9 +216,21 @@ fn parse_arguments() -> Args {
                 }
             };
             CommandArgs::Verify(VerifyArguments {
+                params_file: params_file.to_string(),
+                proof_file: proof_file.to_string(),
+                public_input: input,
+            })
+        },
+        ("setup", Some(command_args)) => {
+            let circuit_file = command_args
+                .value_of("circuit")
+                .expect("--circuit is required");
+            let output_file = command_args
+                .value_of("output")
+                .expect("--output is required");
+            CommandArgs::Setup(SetupArguments {
                 circuit_file: circuit_file.to_string(),
-                proof_file: proof.to_string(),
-                input,
+                output_file: output_file.to_string()
             })
         }
         (command, _) => panic!("Unknown command {:?}", command),

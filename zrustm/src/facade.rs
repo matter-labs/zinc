@@ -5,7 +5,7 @@ use crate::RuntimeError;
 use bellman::groth16;
 use bellman::pairing::bn256::Bn256;
 use bellman::pairing::Engine;
-use franklin_crypto::bellman::groth16::{Parameters, PreparedVerifyingKey, Proof};
+use franklin_crypto::bellman::groth16::{Parameters, Proof};
 use franklin_crypto::bellman::{Circuit, ConstraintSystem, SynthesisError};
 use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::BigInt;
@@ -27,7 +27,16 @@ impl<E: Engine + Debug> Circuit<E> for VMCircuit<'_, '_, '_> {
     }
 }
 
-fn generate_parameters<E: Engine + Debug>(
+pub fn exec<E: Engine>(
+    code: &[Instruction],
+    inputs: &[BigInt],
+) -> Result<Vec<Option<BigInt>>, RuntimeError> {
+    let cs = TestConstraintSystem::<Bn256>::new();
+    let mut vm = VirtualMachine::new(ConstrainedElementOperator::new(cs));
+    vm.run(code, Some(inputs))
+}
+
+pub fn setup<E: Engine + Debug>(
     code: &[Instruction],
 ) -> Result<Parameters<E>, RuntimeError> {
     let rng = &mut rand::thread_rng();
@@ -42,38 +51,22 @@ fn generate_parameters<E: Engine + Debug>(
         .map_err(|_| RuntimeError::SynthesisError)
 }
 
-pub fn exec<E: Engine>(
-    code: &[Instruction],
-    inputs: &[BigInt],
-) -> Result<Vec<Option<BigInt>>, RuntimeError> {
-    let cs = TestConstraintSystem::<Bn256>::new();
-    let mut vm = VirtualMachine::new(ConstrainedElementOperator::new(cs));
-    vm.run(code, Some(inputs))
-}
-
-pub fn gen_key<E: Engine + Debug>(
-    code: &[Instruction],
-) -> Result<PreparedVerifyingKey<E>, RuntimeError> {
-    let params = generate_parameters::<E>(code)?;
-    Ok(groth16::prepare_verifying_key(&params.vk))
-}
-
 pub fn prove<E: Engine + Debug>(
     code: &[Instruction],
-    inputs: &[BigInt],
+    params: &Parameters<E>,
+    witness: &[BigInt],
 ) -> Result<Proof<E>, RuntimeError> {
     let rng = &mut rand::thread_rng();
-    let params = generate_parameters::<E>(code)?;
 
     let (result, proof) = {
         let mut result = None;
         let circuit = VMCircuit {
             code,
-            inputs: Some(inputs),
+            inputs: Some(witness),
             result: &mut result,
         };
 
-        let proof = groth16::create_random_proof(circuit, &params, rng)
+        let proof = groth16::create_random_proof(circuit, params, rng)
             .map_err(|_| RuntimeError::SynthesisError)?;
 
         (result, proof)
@@ -95,17 +88,18 @@ pub enum VerificationError {
 }
 
 pub fn verify<E: Engine + Debug>(
-    key: &PreparedVerifyingKey<E>,
+    params: &Parameters<E>,
     proof: &Proof<E>,
-    outputs: &[BigInt],
+    pub_inputs: &[BigInt],
 ) -> Result<bool, VerificationError> {
-    let mut inputs = Vec::new();
-    for v in outputs.iter() {
+    let mut pub_inputs_fr = Vec::new();
+    for v in pub_inputs.iter() {
         let fr = bigint_to_fr::<E>(v).ok_or(VerificationError::InputFormatError)?;
-        inputs.push(fr);
+        pub_inputs_fr.push(fr);
     }
 
-    let success = groth16::verify_proof(key, proof, inputs.as_slice())
+    let key = groth16::prepare_verifying_key(&params.vk);
+    let success = groth16::verify_proof(&key, proof, pub_inputs_fr.as_slice())
         .map_err(|_| VerificationError::SynthesisError)?;
 
     Ok(success)

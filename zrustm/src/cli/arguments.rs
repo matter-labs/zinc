@@ -27,9 +27,9 @@ pub fn build_arguments() -> App<'static, 'static> {
         .multiple(true)
         .validator(witness_validator);
 
-    let input_arg = Arg::with_name("input")
+    let input_arg = Arg::with_name("public-input")
         .short("i")
-        .long("input")
+        .long("public-input")
         .value_name("INPUT")
         .help("Public input values (i.e. program outputs)")
         .takes_value(true)
@@ -49,6 +49,14 @@ pub fn build_arguments() -> App<'static, 'static> {
         .long("proof")
         .value_name("FILE")
         .help("Zero-knowledge proof file")
+        .required(true)
+        .takes_value(true);
+
+    let params_arg = Arg::with_name("params")
+        .short("P")
+        .long("params")
+        .value_name("FILE")
+        .help("Generated parameters for prover and verifier")
         .required(true)
         .takes_value(true);
 
@@ -74,6 +82,7 @@ pub fn build_arguments() -> App<'static, 'static> {
                 .about("Generate zero-knowledge proof for given witness")
                 .arg(circuit_arg.clone())
                 .arg(witness_arg.clone())
+                .arg(params_arg.clone())
                 .arg(output_arg.clone()),
         )
         .subcommand(
@@ -81,6 +90,13 @@ pub fn build_arguments() -> App<'static, 'static> {
                 .about("Verifies zero-knowledge proof")
                 .arg(circuit_arg.clone())
                 .arg(proof_arg.clone())
+                .arg(params_arg.clone())
                 .arg(input_arg.clone()),
+        )
+        .subcommand(
+            SubCommand::with_name("setup")
+                .about("Generates parameters for prover and verifier")
+                .arg(circuit_arg.clone())
+                .arg(output_arg.clone()),
         )
 }
