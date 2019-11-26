@@ -95,7 +95,11 @@ impl Parser {
                     }
                 }
                 State::BracketCurlyLeftOrEnd => {
-                    match self.next.take().expect("Always contains a value") {
+                    match self
+                        .next
+                        .take()
+                        .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
+                    {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
@@ -151,7 +155,11 @@ impl Parser {
                     self.state = State::CommaOrBracketCurlyRight;
                 }
                 State::CommaOrBracketCurlyRight => {
-                    match self.next.take().expect("Always contains a value") {
+                    match self
+                        .next
+                        .take()
+                        .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
+                    {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
@@ -365,7 +373,7 @@ mod tests {
     }
 
     #[test]
-    fn error_expected_comma() {
+    fn err_expected_comma() {
         let input = r#"
     struct Test {
         a: 1;

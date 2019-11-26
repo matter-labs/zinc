@@ -9,7 +9,7 @@ to verify the satisfiability of the proof.
 The output data defined as the `Output` type contain the result of a
 circuit execution.
 
-Actually, `input`, `witness` and the output can be of any type, but using
+Actually, input, witness, and output can be of any type, but using
 structures is considered a good design as it makes their use in the code more
 explicit.
 

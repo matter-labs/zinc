@@ -32,14 +32,18 @@ impl Into<String> for Integer {
 impl Into<usize> for Integer {
     fn into(self) -> usize {
         let string: String = self.into();
-        string.parse::<usize>().expect("Always valid")
+        string
+            .parse::<usize>()
+            .expect(crate::lexical::PANIC_INTEGER_VALIDATED_DURING_SCANNING)
     }
 }
 
 impl Into<usize> for &Integer {
     fn into(self) -> usize {
         let string: String = self.to_string();
-        string.parse::<usize>().expect("Always valid")
+        string
+            .parse::<usize>()
+            .expect(crate::lexical::PANIC_INTEGER_VALIDATED_DURING_SCANNING)
     }
 }
 

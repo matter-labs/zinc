@@ -1,7 +1,7 @@
 # Other types
 
-Other types does not belong to any type classes, but provide some features which
-may be changed in the future. One of such types is the string.
+Other types do not belong to any type class but provide some features which
+may be changed in the future. One such type is the string.
 
 ## String
 

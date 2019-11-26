@@ -56,7 +56,11 @@ impl Parser {
                     self.state = State::LogicalAndOperator;
                 }
                 State::LogicalAndOperator => {
-                    match self.next.take().expect("Always contains a value") {
+                    match self
+                        .next
+                        .take()
+                        .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
+                    {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::DoubleAmpersand),
                             location,

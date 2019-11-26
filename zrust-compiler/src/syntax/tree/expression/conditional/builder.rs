@@ -12,7 +12,6 @@ pub struct Builder {
     location: Option<Location>,
     condition: Option<Expression>,
     main_block: Option<BlockExpression>,
-    else_if: Option<ConditionalExpression>,
     else_block: Option<BlockExpression>,
 }
 
@@ -29,20 +28,33 @@ impl Builder {
         self.main_block = Some(value);
     }
 
-    pub fn set_else_if(&mut self, value: ConditionalExpression) {
-        self.else_if = Some(value);
-    }
-
     pub fn set_else_block(&mut self, value: BlockExpression) {
         self.else_block = Some(value);
     }
 
     pub fn finish(mut self) -> ConditionalExpression {
         ConditionalExpression::new(
-            self.location.take().expect("Missing location"),
-            self.condition.take().expect("Missing condition"),
-            self.main_block.take().expect("Missing main block"),
-            self.else_if.take(),
+            self.location.take().unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "location"
+                )
+            }),
+            self.condition.take().unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "condition"
+                )
+            }),
+            self.main_block.take().unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "main block"
+                )
+            }),
             self.else_block.take(),
         )
     }

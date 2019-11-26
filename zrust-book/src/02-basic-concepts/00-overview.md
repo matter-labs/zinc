@@ -3,7 +3,7 @@
 A ZRust project consists of a binary file called `main.zrs` and zero or more
 library files whose contents can be imported into the binary file.
 
-Binary file must contain the `main` function, which accepts input and witness
+The binary file must contain the `main` function, which accepts input and witness
 data, and returns the output data.
 
 Library files may contain only declarations of types, functions, and constants.

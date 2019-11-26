@@ -20,24 +20,16 @@ fn main() {
 }
 "#;
 
-    let expected: Result<Vec<u8>, Error> = Err(Error::Semantic(SemanticError::Scope(
+    let expected = Err(Error::Semantic(SemanticError::Scope(
         Location::new(4, 5),
         ScopeError::RedeclaredItem("result".to_owned()),
     )));
 
-    let result = Analyzer::default()
-        .compile(
-            Parser::default()
-                .parse(input.to_owned())
-                .expect("Syntax error"),
-        )
-        .map(|instructions| {
-            instructions
-                .into_iter()
-                .map(|instruction| instruction.encode())
-                .flatten()
-                .collect::<Vec<u8>>()
-        });
+    let result = Analyzer::default().compile(
+        Parser::default()
+            .parse(input.to_owned())
+            .expect("Syntax error"),
+    );
 
     assert_eq!(expected, result);
 }

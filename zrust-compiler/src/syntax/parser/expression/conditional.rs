@@ -11,10 +11,15 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
+use crate::syntax::BlockExpression;
 use crate::syntax::BlockExpressionParser;
 use crate::syntax::ConditionalExpression;
 use crate::syntax::ConditionalExpressionBuilder;
 use crate::syntax::Error as SyntaxError;
+use crate::syntax::Expression;
+use crate::syntax::ExpressionElement;
+use crate::syntax::ExpressionObject;
+use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionParser;
 
 #[derive(Debug, Clone, Copy)]
@@ -101,7 +106,20 @@ impl Parser {
                         } => {
                             let (expression, next) =
                                 Self::default().parse(stream.clone(), Some(token))?;
-                            self.builder.set_else_if(expression);
+                            let block = BlockExpression::new(
+                                expression.location,
+                                Vec::new(),
+                                Some(Expression::new(
+                                    expression.location,
+                                    vec![ExpressionElement::new(
+                                        expression.location,
+                                        ExpressionObject::Operand(ExpressionOperand::Conditional(
+                                            expression,
+                                        )),
+                                    )],
+                                )),
+                            );
+                            self.builder.set_else_block(block);
                             return Ok((self.builder.finish(), next));
                         }
                         token @ Token {
@@ -179,57 +197,75 @@ mod tests {
                         )],
                     )),
                 ),
-                Some(ConditionalExpression::new(
+                Some(BlockExpression::new(
                     Location::new(1, 20),
-                    Expression::new(
-                        Location::new(1, 23),
+                    vec![],
+                    Some(Expression::new(
+                        Location::new(1, 20),
                         vec![ExpressionElement::new(
-                            Location::new(1, 23),
-                            ExpressionObject::Operand(ExpressionOperand::Literal(Literal::new(
-                                Location::new(1, 23),
-                                lexical::Literal::Boolean(BooleanLiteral::False),
-                            ))),
+                            Location::new(1, 20),
+                            ExpressionObject::Operand(ExpressionOperand::Conditional(
+                                ConditionalExpression::new(
+                                    Location::new(1, 20),
+                                    Expression::new(
+                                        Location::new(1, 23),
+                                        vec![ExpressionElement::new(
+                                            Location::new(1, 23),
+                                            ExpressionObject::Operand(ExpressionOperand::Literal(
+                                                Literal::new(
+                                                    Location::new(1, 23),
+                                                    lexical::Literal::Boolean(
+                                                        BooleanLiteral::False,
+                                                    ),
+                                                ),
+                                            )),
+                                        )],
+                                    ),
+                                    BlockExpression::new(
+                                        Location::new(1, 29),
+                                        vec![],
+                                        Some(Expression::new(
+                                            Location::new(1, 31),
+                                            vec![ExpressionElement::new(
+                                                Location::new(1, 31),
+                                                ExpressionObject::Operand(
+                                                    ExpressionOperand::Literal(Literal::new(
+                                                        Location::new(1, 31),
+                                                        lexical::Literal::Integer(
+                                                            IntegerLiteral::new_decimal(
+                                                                "2".to_owned(),
+                                                            ),
+                                                        ),
+                                                    )),
+                                                ),
+                                            )],
+                                        )),
+                                    ),
+                                    Some(BlockExpression::new(
+                                        Location::new(1, 40),
+                                        vec![],
+                                        Some(Expression::new(
+                                            Location::new(1, 42),
+                                            vec![ExpressionElement::new(
+                                                Location::new(1, 42),
+                                                ExpressionObject::Operand(
+                                                    ExpressionOperand::Literal(Literal::new(
+                                                        Location::new(1, 42),
+                                                        lexical::Literal::Integer(
+                                                            IntegerLiteral::new_decimal(
+                                                                "3".to_owned(),
+                                                            ),
+                                                        ),
+                                                    )),
+                                                ),
+                                            )],
+                                        )),
+                                    )),
+                                ),
+                            )),
                         )],
-                    ),
-                    BlockExpression::new(
-                        Location::new(1, 29),
-                        vec![],
-                        Some(Expression::new(
-                            Location::new(1, 31),
-                            vec![ExpressionElement::new(
-                                Location::new(1, 31),
-                                ExpressionObject::Operand(ExpressionOperand::Literal(
-                                    Literal::new(
-                                        Location::new(1, 31),
-                                        lexical::Literal::Integer(IntegerLiteral::new_decimal(
-                                            "2".to_owned(),
-                                        )),
-                                    ),
-                                )),
-                            )],
-                        )),
-                    ),
-                    None,
-                    Some(BlockExpression::new(
-                        Location::new(1, 40),
-                        vec![],
-                        Some(Expression::new(
-                            Location::new(1, 42),
-                            vec![ExpressionElement::new(
-                                Location::new(1, 42),
-                                ExpressionObject::Operand(ExpressionOperand::Literal(
-                                    Literal::new(
-                                        Location::new(1, 42),
-                                        lexical::Literal::Integer(IntegerLiteral::new_decimal(
-                                            "3".to_owned(),
-                                        )),
-                                    ),
-                                )),
-                            )],
-                        )),
                     )),
                 )),
-                None,
             ),
             None,
         ));

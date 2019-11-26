@@ -131,7 +131,7 @@ mod tests {
     }
 
     #[test]
-    fn error_single_line_unexpected_end() {
+    fn err_single_line_unexpected_end() {
         let input = "//mega ultra comment text";
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
@@ -139,7 +139,7 @@ mod tests {
     }
 
     #[test]
-    fn error_multi_line_unexpected_end() {
+    fn err_multi_line_unexpected_end() {
         let input = r#"/* This is the mega ultra test application!"#;
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
@@ -147,7 +147,7 @@ mod tests {
     }
 
     #[test]
-    fn error_not_a_comment() {
+    fn err_not_a_comment() {
         let input = "not a comment text";
         let expected = Err(Error::NotAComment);
         let result = parse(input);
@@ -155,7 +155,7 @@ mod tests {
     }
 
     #[test]
-    fn error_not_a_comment_one_slash() {
+    fn err_not_a_comment_one_slash() {
         let input = "/almost a comment text";
         let expected = Err(Error::NotAComment);
         let result = parse(input);

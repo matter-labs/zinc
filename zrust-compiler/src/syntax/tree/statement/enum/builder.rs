@@ -1,5 +1,5 @@
 //!
-//! The struct statement builder.
+//! The enum statement builder.
 //!
 
 use crate::lexical::Location;
@@ -29,8 +29,20 @@ impl Builder {
 
     pub fn finish(mut self) -> EnumStatement {
         EnumStatement::new(
-            self.location.take().expect("Missing location"),
-            self.identifier.take().expect("Missing identifier"),
+            self.location.take().unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "location"
+                )
+            }),
+            self.identifier.take().unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "identifier"
+                )
+            }),
             self.variants,
         )
     }

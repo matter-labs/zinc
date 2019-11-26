@@ -9,8 +9,8 @@ The declaration statements declare a new item, that is, a type, variable or modu
 The `let` declaration behaves just like in Rust, but it does not allow
 uninitialized variables.
 
-The type is optional and is used mostly to cast integer literal or double check
-the expression result type, otherwise it is inferred.
+The type is optional and is used mostly to cast integer literal or double-check
+the expression result type, otherwise, it is inferred.
 
 ```rust,no_run,noplaypen
 let mut variable: field = 0;

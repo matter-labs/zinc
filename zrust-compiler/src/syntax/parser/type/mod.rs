@@ -263,7 +263,7 @@ mod tests {
     }
 
     #[test]
-    fn error_array_expected_semicolon() {
+    fn err_array_expected_semicolon() {
         let input = "[field, 8]";
 
         let expected = Err(Error::Syntax(SyntaxError::Expected(

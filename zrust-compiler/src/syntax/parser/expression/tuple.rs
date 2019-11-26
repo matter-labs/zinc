@@ -1,11 +1,6 @@
 //!
 //! The tuple expression parser.
 //!
-//! The result can be either of:
-//! 1. A unit type value
-//! 2. A parenthesized expression
-//! 3. A tuple of one or more elements
-//!
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -40,6 +35,12 @@ pub struct Parser {
     next: Option<Token>,
 }
 
+///
+/// The result can be either of:
+/// 1. A unit type value
+/// 2. A parenthesized expression
+/// 3. A tuple of one or more elements
+///
 impl Parser {
     pub fn parse(
         mut self,
@@ -89,7 +90,11 @@ impl Parser {
                     }
                 }
                 State::CommaOrParenthesisRight => {
-                    match self.next.take().expect("Always contains a value") {
+                    match self
+                        .next
+                        .take()
+                        .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
+                    {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..

@@ -175,7 +175,7 @@ mod tests {
     }
 
     #[test]
-    fn error_unexpected_end() {
+    fn err_unexpected_end() {
         let input = "";
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
@@ -183,7 +183,7 @@ mod tests {
     }
 
     #[test]
-    fn error_not_an_integer() {
+    fn err_not_an_integer() {
         let input = "xyz";
         let expected = Err(Error::NotAnInteger);
         let result = parse(input);
@@ -191,7 +191,7 @@ mod tests {
     }
 
     #[test]
-    fn error_invalid_decimal_character() {
+    fn err_invalid_decimal_character() {
         let input = "25x";
         let expected = Err(Error::InvalidDecimalCharacter('x', 3, "25x".to_owned()));
         let result = parse(input);
@@ -199,7 +199,7 @@ mod tests {
     }
 
     #[test]
-    fn error_invalid_hexadecimal_character() {
+    fn err_invalid_hexadecimal_character() {
         let input = "0xABC_X";
         let expected = Err(Error::InvalidHexadecimalCharacter(
             'X',
@@ -211,7 +211,7 @@ mod tests {
     }
 
     #[test]
-    fn error_empty_hexadecimal_literal() {
+    fn err_empty_hexadecimal_literal() {
         let input = "0x";
         let expected = Err(Error::EmptyHexadecimalLiteral);
         let result = parse(input);

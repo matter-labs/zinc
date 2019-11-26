@@ -1,3 +1,5 @@
+# Design background
+
 The goal of ZRust is to make writing safe zero-knowledge programs and ZKP-based
 smart contracts easy. It has been designed with the following principles in mind:
 

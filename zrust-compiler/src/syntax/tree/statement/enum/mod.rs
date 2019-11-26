@@ -1,5 +1,5 @@
 //!
-//! The struct statement.
+//! The enum statement.
 //!
 
 mod builder;

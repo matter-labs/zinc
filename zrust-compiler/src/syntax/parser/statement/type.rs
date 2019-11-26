@@ -165,7 +165,7 @@ mod tests {
     }
 
     #[test]
-    fn error_no_value() {
+    fn err_no_value() {
         let input = r#"type X;"#;
 
         let expected = Err(Error::Syntax(SyntaxError::Expected(

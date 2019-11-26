@@ -1,5 +1,5 @@
 //!
-//! The mod statement parser.
+//! The use statement parser.
 //!
 
 use std::cell::RefCell;
@@ -49,7 +49,7 @@ impl Parser {
         let (path, next) = PathExpressionParser::default().parse(stream, None)?;
         self.builder.set_path(path);
 
-        match next.expect("Always contains a value") {
+        match next.expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS) {
             Token {
                 lexeme: Lexeme::Symbol(Symbol::Semicolon),
                 ..

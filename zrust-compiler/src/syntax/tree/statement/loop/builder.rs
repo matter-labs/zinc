@@ -51,15 +51,39 @@ impl Builder {
 
     pub fn finish(mut self) -> LoopStatement {
         LoopStatement::new(
-            self.location.take().expect("Missing location"),
-            self.index_identifier
-                .take()
-                .expect("Missing index identifier"),
-            self.range_start.take().expect("Missing range start"),
-            self.range_end.take().expect("Missing range end"),
+            self.location.take().unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "location"
+                )
+            }),
+            self.index_identifier.take().unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "index identifier"
+                )
+            }),
+            self.range_start.take().unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "range start"
+                )
+            }),
+            self.range_end.take().unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "range end"
+                )
+            }),
             self.is_range_inclusive,
             self.while_condition.take(),
-            self.block.take().expect("Missing block"),
+            self.block.take().unwrap_or_else(|| {
+                panic!("{}{}", crate::syntax::PANIC_BUILDER_REQUIRES_VALUE, "block")
+            }),
         )
     }
 }

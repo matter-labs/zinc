@@ -41,14 +41,28 @@ impl Builder {
     }
 
     pub fn finish(mut self) -> FnStatement {
-        let location = self.location.take().expect("Missing location");
+        let location = self.location.take().unwrap_or_else(|| {
+            panic!(
+                "{}{}",
+                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                "location"
+            )
+        });
         FnStatement::new(
             location,
-            self.identifier.take().expect("Missing identifier"),
+            self.identifier.take().unwrap_or_else(|| {
+                panic!(
+                    "{}{}",
+                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    "identifier"
+                )
+            }),
             self.arguments,
             self.return_type
                 .unwrap_or_else(|| Type::new(location, TypeVariant::new_unit())),
-            self.body.take().expect("Missing body"),
+            self.body.take().unwrap_or_else(|| {
+                panic!("{}{}", crate::syntax::PANIC_BUILDER_REQUIRES_VALUE, "body")
+            }),
         )
     }
 }

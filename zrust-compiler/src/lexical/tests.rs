@@ -17,123 +17,61 @@ use crate::lexical::SymbolParserError;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 
+static PANIC_INPUT_ENDS_WITH_EOF: &str = "The input must end with an EOF lexeme";
+
 #[test]
 fn ok() {
     let input = r#"
 /*
     This is the mega ultra test application!
 */
-input {
-    a: u8, // input 1
-}
-
-witness {
-    b: i248, /* witness 1 */
-}
-
-let mut c: u232 = 2 + 2;
+let mut c: u8 = 2 + 2;
 "#;
 
     let expected = vec![
         Token {
-            lexeme: Lexeme::Keyword(Keyword::Input),
+            lexeme: Lexeme::Keyword(Keyword::Let),
             location: Location::new(5, 1),
         },
         Token {
-            lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
-            location: Location::new(5, 7),
-        },
-        Token {
-            lexeme: Lexeme::Identifier(Identifier::new("a".to_owned())),
-            location: Location::new(6, 5),
-        },
-        Token {
-            lexeme: Lexeme::Symbol(Symbol::Colon),
-            location: Location::new(6, 6),
-        },
-        Token {
-            lexeme: Lexeme::Keyword(Keyword::new_integer_unsigned(8)),
-            location: Location::new(6, 8),
-        },
-        Token {
-            lexeme: Lexeme::Symbol(Symbol::Comma),
-            location: Location::new(6, 10),
-        },
-        Token {
-            lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
-            location: Location::new(7, 1),
-        },
-        Token {
-            lexeme: Lexeme::Keyword(Keyword::Witness),
-            location: Location::new(9, 1),
-        },
-        Token {
-            lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
-            location: Location::new(9, 9),
-        },
-        Token {
-            lexeme: Lexeme::Identifier(Identifier::new("b".to_owned())),
-            location: Location::new(10, 5),
-        },
-        Token {
-            lexeme: Lexeme::Symbol(Symbol::Colon),
-            location: Location::new(10, 6),
-        },
-        Token {
-            lexeme: Lexeme::Keyword(Keyword::new_integer_signed(248)),
-            location: Location::new(10, 8),
-        },
-        Token {
-            lexeme: Lexeme::Symbol(Symbol::Comma),
-            location: Location::new(10, 12),
-        },
-        Token {
-            lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
-            location: Location::new(11, 1),
-        },
-        Token {
-            lexeme: Lexeme::Keyword(Keyword::Let),
-            location: Location::new(13, 1),
-        },
-        Token {
             lexeme: Lexeme::Keyword(Keyword::Mut),
-            location: Location::new(13, 5),
+            location: Location::new(5, 5),
         },
         Token {
             lexeme: Lexeme::Identifier(Identifier::new("c".to_owned())),
-            location: Location::new(13, 9),
+            location: Location::new(5, 9),
         },
         Token {
             lexeme: Lexeme::Symbol(Symbol::Colon),
-            location: Location::new(13, 10),
+            location: Location::new(5, 10),
         },
         Token {
-            lexeme: Lexeme::Keyword(Keyword::new_integer_unsigned(232)),
-            location: Location::new(13, 12),
+            lexeme: Lexeme::Keyword(Keyword::new_integer_unsigned(8)),
+            location: Location::new(5, 12),
         },
         Token {
             lexeme: Lexeme::Symbol(Symbol::Equals),
-            location: Location::new(13, 17),
+            location: Location::new(5, 15),
         },
         Token {
             lexeme: Lexeme::Literal(Literal::Integer(IntegerLiteral::new_decimal(
                 "2".to_owned(),
             ))),
-            location: Location::new(13, 19),
+            location: Location::new(5, 17),
         },
         Token {
             lexeme: Lexeme::Symbol(Symbol::Plus),
-            location: Location::new(13, 21),
+            location: Location::new(5, 19),
         },
         Token {
             lexeme: Lexeme::Literal(Literal::Integer(IntegerLiteral::new_decimal(
                 "2".to_owned(),
             ))),
-            location: Location::new(13, 23),
+            location: Location::new(5, 21),
         },
         Token {
             lexeme: Lexeme::Symbol(Symbol::Semicolon),
-            location: Location::new(13, 24),
+            location: Location::new(5, 22),
         },
     ]
     .into_iter()
@@ -142,7 +80,7 @@ let mut c: u232 = 2 + 2;
     let mut result = Vec::with_capacity(expected.len());
     let mut stream = TokenStream::new(input.to_owned());
     loop {
-        match stream.next().expect("Lexical error") {
+        match stream.next().expect(PANIC_INPUT_ENDS_WITH_EOF) {
             Token {
                 lexeme: Lexeme::Eof,
                 ..
@@ -155,7 +93,7 @@ let mut c: u232 = 2 + 2;
 }
 
 #[test]
-fn error_unexpected_end() {
+fn err_unexpected_end() {
     let input = "&";
 
     let expected: Result<Token, Error> = Err(Error::UnexpectedEnd(Location::new(1, 1)));
@@ -166,7 +104,7 @@ fn error_unexpected_end() {
 }
 
 #[test]
-fn error_unknown_character() {
+fn err_unknown_character() {
     let input = "#";
 
     let expected: Result<Token, Error> = Err(Error::InvalidCharacter(Location::new(1, 1), '#'));
@@ -177,7 +115,7 @@ fn error_unknown_character() {
 }
 
 #[test]
-fn error_invalid_symbol() {
+fn err_invalid_symbol() {
     let input = "|#";
 
     let expected: Result<Token, Error> = Err(Error::InvalidSymbol(
@@ -191,7 +129,7 @@ fn error_invalid_symbol() {
 }
 
 #[test]
-fn error_invalid_integer_literal() {
+fn err_invalid_integer_literal() {
     let input = "0xCRAP";
 
     let expected: Result<Token, Error> = Err(Error::InvalidIntegerLiteral(

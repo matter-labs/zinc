@@ -56,7 +56,7 @@ if a && !b {
 
 ## Integer
 
-Integer types are somewhat different from those of Rust, since they are
+Integer types are somewhat different from those of Rust since they are
 extended to be able to use any size between 1 and 32 bytes. This feature was
 borrowed from Solidity and it helps to reduce the number of constraints and
 smart contract size. Internal integer representation uses the BN256 field of
@@ -71,12 +71,12 @@ different bitlength.
 Integer types bitlength step equals 8, that is, only the following bitlengths
 are possible: `8`, `16`, ..., `240`, `248`.
 
-`field` is a native field element of the elliptic curve used in the constraint
-system. It represents an unsigned integer of bitlength equal to the field
-modulus length (e.g. for BN256 the field modulus length is `254` bit).
+A `field` value is a native field element of the elliptic curve used in the
+constraint system. It represents an unsigned integer of bitlength equal to the
+field modulus length (e.g. for BN256 the field modulus length is `254` bit).
 
 All the types are represented using `field` as their basic building block.
-When integers variables are allocated, their bitlength must be enforced in the
+When an integer variable is allocated, its bitlength must be enforced in the
 constraint system.
 
 ### Literals

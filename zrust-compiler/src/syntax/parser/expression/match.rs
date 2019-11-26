@@ -75,11 +75,15 @@ impl Parser {
                     let (expression, next) =
                         ExpressionParser::default().parse(stream.clone(), None)?;
                     self.next = next;
-                    self.builder.set_match_expression(expression);
+                    self.builder.set_scrutinee_expression(expression);
                     self.state = State::BracketCurlyLeft;
                 }
                 State::BracketCurlyLeft => {
-                    match self.next.take().expect("Always contains a value") {
+                    match self
+                        .next
+                        .take()
+                        .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
+                    {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
@@ -132,7 +136,11 @@ impl Parser {
                     self.state = State::CommaOrBracketCurlyRight;
                 }
                 State::CommaOrBracketCurlyRight => {
-                    match self.next.take().expect("Always contains a value") {
+                    match self
+                        .next
+                        .take()
+                        .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
+                    {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
@@ -349,7 +357,7 @@ mod tests {
     }
 
     #[test]
-    fn error_expected_comma() {
+    fn err_expected_comma() {
         let input = r#"
     match test {
         1 => 1;

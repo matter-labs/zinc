@@ -15,8 +15,8 @@ pub enum Error {
     Value(ValueError),
     #[fail(display = "place: {}", _0)]
     Place(PlaceError),
-    #[fail(display = "scope: {}", _0)]
-    Scope(ScopeError),
+    #[fail(display = "resolving: {}", _0)]
+    Resolving(ScopeError),
     #[fail(
         display = "operator '{}' expected a place expression, but got '{}'",
         _0, _1
@@ -27,6 +27,11 @@ pub enum Error {
         _0, _1
     )]
     ExpectedValueExpression(&'static str, Element),
+    #[fail(
+        display = "operator '{}' expected a resolvable expression, but got '{}'",
+        _0, _1
+    )]
+    ExpectedResolvableExpression(&'static str, Element),
     #[fail(
         display = "operator '{}' expected a type expression, but got '{}'",
         _0, _1

@@ -8,7 +8,7 @@ zero-knowledge proofs practical for bringing scalability and privacy to blockcha
 At the same time, most existing languages and frameworks for constructing R1CS
 circuits, while being useful in academic research and prototyping, do not
 provide a satisfying degree of expressiveness and brevity to write readable and
-easily maintainable programs. A notable exception is *xjsnark*, but being
+easily maintainable programs. A notable exception is *xJsnark*, but being
 based on Java it lacks a lot of safety features of modern functional languages.
 
 Further, existing frameworks completely lack functionality specific for
@@ -16,7 +16,7 @@ smart contracts. Security and safety aspects are crucial for developing smart
 contracts since they deal with valuable financial assets. Modern smart contract
 languages, such as *Simplicity* or Libra's *Move*, deliberately made design
 choices that favor safety and formal verifiability of the code over generalistic
- expressiveness.
+expressiveness.
 
 ZRust was created to fill the gap between these two worlds: provide a smart
 contract language optimized for R1CS circuits, which is reliable and simple at

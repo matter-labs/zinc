@@ -91,3 +91,9 @@ pub use self::tree::UseStatement;
 pub use self::tree::UseStatementBuilder;
 pub use self::tree::Variant;
 pub use self::tree::VariantBuilder;
+
+static PANIC_ALL_TYPE_CASES_ARE_CHECKED_ABOVE: &str = "All the type cases are covered above";
+static PANIC_ALL_TYPE_KEYWORDS_ARE_CHECKED_ABOVE: &str = "All the type keywords are covered above";
+static PANIC_ALL_TUPLE_CASES_ARE_COVERED_ABOVE: &str = "All the tuple cases are covered above";
+static PANIC_BUILDER_REQUIRES_VALUE: &str = "The builder requires a value: ";
+static PANIC_VALUE_ALWAYS_EXISTS: &str = "The value always exists at this point";

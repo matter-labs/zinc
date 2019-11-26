@@ -11,16 +11,21 @@ use num_traits::Num;
 
 use crate::lexical::IntegerLiteral;
 
+///
+/// Converts `literal` to a `BigInt` and its bitlength.
+/// For now, the minimal bitlength enough to contain the number is inferred.
+///
 pub fn integer_literal(literal: &IntegerLiteral) -> Result<(BigInt, usize), Error> {
     let (string, base) = match literal {
         IntegerLiteral::Decimal { value } => (value, crate::BASE_DECIMAL as u32),
         IntegerLiteral::Hexadecimal { value } => (value, crate::BASE_HEXADECIMAL as u32),
     };
 
-    let number = BigInt::from_str_radix(string, base).expect("Always valid");
+    let value = BigInt::from_str_radix(string, base)
+        .expect(crate::semantic::PANIC_VALIDATED_DURING_LEXICAL_ANALYSIS);
     let mut bitlength = crate::BITLENGTH_BYTE;
     let mut exponent = BigInt::from(crate::MAX_VALUE_BYTE);
-    while number >= exponent {
+    while value >= exponent {
         if bitlength == crate::BITLENGTH_MAX_INT {
             exponent *= crate::MAX_VALUE_BYTE / 4;
             bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
@@ -32,9 +37,12 @@ pub fn integer_literal(literal: &IntegerLiteral) -> Result<(BigInt, usize), Erro
         }
     }
 
-    Ok((number, bitlength))
+    Ok((value, bitlength))
 }
 
+///
+/// Deduces the enough bitlength to represent the biggest number in `literals`.
+///
 pub fn enough_bitlength(literals: &[&IntegerLiteral]) -> Result<usize, Error> {
     let mut max = 0;
     for literal in literals.iter() {

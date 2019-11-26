@@ -33,7 +33,7 @@ impl Identifier {
         character.is_ascii_alphabetic() || character == '_'
     }
 
-    pub fn can_contain_since_index_1(character: char) -> bool {
+    pub fn can_contain_after_start(character: char) -> bool {
         character.is_ascii_alphanumeric() || character == '_'
     }
 }

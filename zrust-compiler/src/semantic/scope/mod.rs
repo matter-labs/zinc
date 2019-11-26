@@ -2,13 +2,15 @@
 //! The semantic analyzer scope.
 //!
 
+mod assignment;
+mod declaration;
 mod error;
 mod item;
-mod variable;
 
+pub use self::assignment::Assignment;
+pub use self::declaration::Declaration;
 pub use self::error::Error;
 pub use self::item::Item;
-pub use self::variable::Variable;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -16,7 +18,6 @@ use std::rc::Rc;
 use std::str;
 
 use crate::semantic::Place;
-use crate::semantic::Value;
 use crate::syntax::TypeVariant;
 
 #[derive(Debug, Default)]
@@ -24,8 +25,8 @@ pub struct Scope {
     parent: Option<Rc<RefCell<Self>>>,
     items: HashMap<String, Item>,
 
-    variables: HashMap<Place, Variable>,
-    assignments: HashMap<Place, usize>,
+    declarations: HashMap<Place, Declaration>,
+    assignments: HashMap<Place, Assignment>,
 
     types: HashMap<String, TypeVariant>,
 }
@@ -41,7 +42,7 @@ impl Scope {
     pub fn declare_variable(
         &mut self,
         place: Place,
-        value: Value,
+        type_variant: TypeVariant,
         is_mutable: bool,
         address: usize,
     ) -> Result<(), Error> {
@@ -49,44 +50,58 @@ impl Scope {
             return Err(Error::RedeclaredItem(place.identifier));
         }
         self.items.insert(place.identifier.clone(), Item::Variable);
-        self.variables
-            .insert(place.clone(), Variable::new(value, is_mutable));
-        self.assignments.insert(place, address);
+        self.declarations.insert(
+            place.clone(),
+            Declaration::new(type_variant.clone(), is_mutable),
+        );
+        self.assignments
+            .insert(place, Assignment::new(type_variant, address, false));
         Ok(())
     }
 
     pub fn update_variable(&mut self, place: Place, address: usize) -> Result<(), Error> {
-        if let Some(variable) = self.variables.get_mut(&place) {
-            if !variable.is_mutable {
-                return Err(Error::MutatingImmutable(place.identifier));
+        match self.declarations.get_mut(&place) {
+            Some(declaration) => {
+                if !declaration.is_mutable {
+                    return Err(Error::MutatingImmutable(place.identifier.to_owned()));
+                }
+                self.assignments.insert(
+                    place,
+                    Assignment::new(declaration.type_variant.clone(), address, false),
+                );
             }
-        } else {
-            match self.parent {
-                Some(ref mut parent) => parent
-                    .borrow_mut()
-                    .update_variable(place.clone(), address)?,
-                None => return Err(Error::UndeclaredVariable(place.identifier)),
-            }
+            None => match self.parent {
+                Some(ref parent) => {
+                    let declaration = parent.borrow().get_declaration(&place)?;
+                    if !declaration.is_mutable {
+                        return Err(Error::MutatingImmutable(place.identifier.to_owned()));
+                    }
+                    self.assignments.insert(
+                        place,
+                        Assignment::new(declaration.type_variant, address, true),
+                    );
+                }
+                None => return Err(Error::UndeclaredVariable(place.identifier.to_owned())),
+            },
         }
 
-        self.assignments.insert(place, address);
         Ok(())
     }
 
-    pub fn get_variable_value(&self, place: &Place) -> Result<Value, Error> {
-        if let Some(variable) = self.variables.get(place) {
-            Ok(variable.value.to_owned())
+    pub fn get_declaration(&self, place: &Place) -> Result<Declaration, Error> {
+        if let Some(declaration) = self.declarations.get(place) {
+            Ok(declaration.to_owned())
         } else {
             match self.parent {
-                Some(ref parent) => parent.borrow().get_variable_value(place),
+                Some(ref parent) => parent.borrow().get_declaration(place),
                 None => Err(Error::UndeclaredVariable(place.identifier.to_owned())),
             }
         }
     }
 
     pub fn get_variable_address(&self, place: &Place) -> Result<usize, Error> {
-        if let Some(address) = self.assignments.get(place).copied() {
-            Ok(address)
+        if let Some(assignment) = self.assignments.get(place) {
+            Ok(assignment.address)
         } else {
             match self.parent {
                 Some(ref parent) => parent.borrow().get_variable_address(place),
@@ -125,11 +140,22 @@ impl Scope {
         }
     }
 
-    pub fn get_assignments(&self) -> HashMap<Place, usize> {
+    pub fn get_ordered_outer_assignments(&self) -> Vec<(Place, Assignment)> {
+        let mut assignments = self
+            .assignments
+            .iter()
+            .filter(|(_place, assignment)| assignment.is_outer)
+            .map(|(place, assignment)| (place.to_owned(), assignment.to_owned()))
+            .collect::<Vec<(Place, Assignment)>>();
+        assignments.sort_by(|(_, a), (_, b)| a.address.cmp(&b.address));
+        assignments
+    }
+
+    pub fn get_assignments(&self) -> HashMap<Place, Assignment> {
         self.assignments.clone()
     }
 
-    pub fn add_assignments(&mut self, assignments: HashMap<Place, usize>) {
+    pub fn add_assignments(&mut self, assignments: HashMap<Place, Assignment>) {
         self.assignments.extend(assignments)
     }
 }
