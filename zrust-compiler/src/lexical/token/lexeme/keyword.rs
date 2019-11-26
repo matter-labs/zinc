@@ -11,11 +11,6 @@ use failure::Fail;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Keyword {
-    // built-ins
-    Input,
-    Witness,
-    Output,
-
     // declarations
     Let,
     Mut,
@@ -76,16 +71,7 @@ impl TryFrom<&str> for Keyword {
     type Error = Error;
 
     fn try_from(input: &str) -> Result<Self, Self::Error> {
-        const BITLENGTH_MIN: usize = 1;
-        const BITLENGTH_MAX: usize = 253;
-        const BITLENGTH_MODULO: usize = 8;
-        const BITLENGTH_RANGE: RangeInclusive<usize> = (BITLENGTH_MIN..=BITLENGTH_MAX);
-
         match input {
-            "input" => return Ok(Self::Input),
-            "witness" => return Ok(Self::Witness),
-            "output" => return Ok(Self::Output),
-
             "let" => return Ok(Self::Let),
             "mut" => return Ok(Self::Mut),
             "type" => return Ok(Self::Type),
@@ -112,6 +98,15 @@ impl TryFrom<&str> for Keyword {
 
             _ => {}
         }
+
+        const BITLENGTH_MIN: usize = 1;
+        const BITLENGTH_MAX: usize = 253;
+        const BITLENGTH_MODULO: usize = 8;
+        const BITLENGTH_RANGE: RangeInclusive<usize> = (BITLENGTH_MIN..=BITLENGTH_MAX);
+
+        // The following code checks if the number after the 'u' or 'i' symbol represents a valid
+        // amount of bits for an integer value. If the amount is not a valid bitlength, the word is
+        // considered as an ordinar identifier.
 
         if let Some("u") = input.get(..1) {
             let bitlength = &input[1..];
@@ -166,10 +161,6 @@ impl TryFrom<&str> for Keyword {
 impl fmt::Display for Keyword {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Input => write!(f, "input"),
-            Self::Witness => write!(f, "witness"),
-            Self::Output => write!(f, "output"),
-
             Self::Let => write!(f, "let"),
             Self::Mut => write!(f, "mut"),
             Self::Type => write!(f, "type"),

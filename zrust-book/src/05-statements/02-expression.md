@@ -1,12 +1,5 @@
 # Expression statements
 
-## Empty
-
-The semicolon statement `;` is an empty statement.
-
-It is made mostly to keep backward-compatibility with presence or absence of
-semicolons in some possible cases in the future.
-
 ## Expression
 
 The expression statement is an expression terminated with a `;` in order
@@ -40,7 +33,7 @@ fn blocks() -> i32 {
 
 In the Rust example above, the blocks are completely identical, but their semantic
 meaning depends on the block return type. ZRust solves this problem by enforcing
-all expression statements to be explictly terminated with a semicolon, like in
+all expression statements to be explicitly terminated with a semicolon, like in
 the following ZRust example:
 
 ```rust,no_run,noplaypen

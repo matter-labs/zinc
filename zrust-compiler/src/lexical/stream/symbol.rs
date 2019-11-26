@@ -186,7 +186,7 @@ mod tests {
     }
 
     #[test]
-    fn error_unexpected_end() {
+    fn err_unexpected_end() {
         let input = "|";
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
@@ -194,7 +194,7 @@ mod tests {
     }
 
     #[test]
-    fn error_not_a_symbol() {
+    fn err_not_a_symbol() {
         let input = "5";
         let expected = Err(Error::NotASymbol);
         let result = parse(input);
@@ -202,7 +202,7 @@ mod tests {
     }
 
     #[test]
-    fn error_invalid_character() {
+    fn err_invalid_character() {
         let input = "|5";
         let expected = Err(Error::InvalidCharacter('5', 2, "|5".to_owned()));
         let result = parse(input);

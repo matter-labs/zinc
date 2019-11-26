@@ -16,7 +16,7 @@ fn test() {
 }
 ```
 
-If you are familiar with Rust, you will not have any troubles understanding this
+If you are familiar with Rust, you will not have any trouble understanding this
 concept, since the syntax and semantics are almost identical. However, pattern
 matching and destructuring are not implemented yet.
 

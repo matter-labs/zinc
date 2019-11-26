@@ -1,5 +1,5 @@
 //!
-//! The block expression parser.
+//! The array expression parser.
 //!
 
 use std::cell::RefCell;

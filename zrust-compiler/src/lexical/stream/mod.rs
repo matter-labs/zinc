@@ -43,6 +43,18 @@ impl TokenStream {
         }
     }
 
+    ///
+    /// The function algorithm checks if the character:
+    /// 1. Is contained within the alphabet
+    /// 2. Is a whitespace
+    /// 3. Starts a comment
+    /// 4. Starts a string literal
+    /// 5. Starts a symbol (operator or delimiter)
+    /// 6. Starts a number (decimal or hexadecimal)
+    /// 7. Starts a word (keyword, boolean literal, or identifier)
+    /// 8. Panics if non of the above, thus the alphabet must contain all the characters being
+    /// passed to subscanners
+    ///
     pub fn next(&mut self) -> Result<Token, Error> {
         while let Some(character) = self.input.chars().nth(self.offset) {
             if !Alphabet::contains(character) {

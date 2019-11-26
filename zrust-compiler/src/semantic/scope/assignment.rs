@@ -2,19 +2,19 @@
 //! The semantic analyzer scope assignment.
 //!
 
-use crate::semantic::Value;
+use crate::syntax::TypeVariant;
 
 #[derive(Debug, Clone)]
 pub struct Assignment {
-    pub value: Value,
+    pub type_variant: TypeVariant,
     pub address: usize,
     pub is_outer: bool,
 }
 
 impl Assignment {
-    pub fn new(value: Value, address: usize, is_outer: bool) -> Self {
+    pub fn new(type_variant: TypeVariant, address: usize, is_outer: bool) -> Self {
         Self {
-            value,
+            type_variant,
             address,
             is_outer,
         }

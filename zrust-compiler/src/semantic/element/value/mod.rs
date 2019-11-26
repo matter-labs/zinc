@@ -252,7 +252,7 @@ impl Value {
         }
     }
 
-    pub fn modulo(&self, other: &Self) -> Result<Self, Error> {
+    pub fn remainder(&self, other: &Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1

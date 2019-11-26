@@ -17,6 +17,7 @@ use zrust_bytecode::Not;
 use zrust_bytecode::PopCondition;
 use zrust_bytecode::Push;
 use zrust_bytecode::PushCondition;
+use zrust_bytecode::Return;
 
 use crate::semantic::Analyzer;
 use crate::syntax::Parser;
@@ -48,6 +49,7 @@ fn main() {
         Instruction::PushCondition(PushCondition),
         Instruction::FrameBegin(FrameBegin),
         Instruction::Push(Push::new(BigInt::from(1), false, 1)),
+        Instruction::Copy(Copy::new(1)),
         Instruction::FrameEnd(FrameEnd::new(1)),
         Instruction::PopCondition(PopCondition),
         Instruction::Copy(Copy::new(0)),
@@ -65,6 +67,7 @@ fn main() {
         Instruction::PushCondition(PushCondition),
         Instruction::FrameBegin(FrameBegin),
         Instruction::Push(Push::new(BigInt::from(42), false, 8)),
+        Instruction::Copy(Copy::new(4)),
         Instruction::FrameEnd(FrameEnd::new(1)),
         Instruction::PopCondition(PopCondition),
         Instruction::Copy(Copy::new(3)),
@@ -72,6 +75,7 @@ fn main() {
         Instruction::PushCondition(PushCondition),
         Instruction::FrameBegin(FrameBegin),
         Instruction::Push(Push::new(BigInt::from(2), false, 8)),
+        Instruction::Copy(Copy::new(5)),
         Instruction::FrameEnd(FrameEnd::new(1)),
         Instruction::PopCondition(PopCondition),
         Instruction::Copy(Copy::new(5)),
@@ -79,6 +83,7 @@ fn main() {
         Instruction::Copy(Copy::new(3)),
         Instruction::ConditionalSelect(ConditionalSelect),
         Instruction::FrameEnd(FrameEnd::new(1)),
+        Instruction::Copy(Copy::new(3)),
         Instruction::FrameEnd(FrameEnd::new(1)),
         Instruction::PopCondition(PopCondition),
         Instruction::Copy(Copy::new(2)),
@@ -86,6 +91,7 @@ fn main() {
         Instruction::PushCondition(PushCondition),
         Instruction::FrameBegin(FrameBegin),
         Instruction::Push(Push::new(BigInt::from(3), false, 8)),
+        Instruction::Copy(Copy::new(4)),
         Instruction::FrameEnd(FrameEnd::new(1)),
         Instruction::PopCondition(PopCondition),
         Instruction::Copy(Copy::new(4)),
@@ -93,6 +99,7 @@ fn main() {
         Instruction::Copy(Copy::new(2)),
         Instruction::ConditionalSelect(ConditionalSelect),
         Instruction::FrameEnd(FrameEnd::new(1)),
+        Instruction::Copy(Copy::new(2)),
         Instruction::FrameEnd(FrameEnd::new(1)),
         Instruction::PopCondition(PopCondition),
         Instruction::Copy(Copy::new(2)),
@@ -100,6 +107,7 @@ fn main() {
         Instruction::Copy(Copy::new(0)),
         Instruction::ConditionalSelect(ConditionalSelect),
         Instruction::FrameEnd(FrameEnd::new(1)),
+        Instruction::Return(Return::new(0)),
     ]);
 
     let result = Analyzer::default().compile(

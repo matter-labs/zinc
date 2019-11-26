@@ -8,11 +8,13 @@ use num_bigint::BigInt;
 
 use zrust_bytecode::Add;
 use zrust_bytecode::Call;
+use zrust_bytecode::Copy;
 use zrust_bytecode::Exit;
 use zrust_bytecode::FrameBegin;
 use zrust_bytecode::FrameEnd;
 use zrust_bytecode::Instruction;
 use zrust_bytecode::Push;
+use zrust_bytecode::Return;
 
 use crate::semantic::Analyzer;
 use crate::syntax::Parser;
@@ -38,21 +40,25 @@ fn main() {
         Instruction::FrameBegin(FrameBegin),
         Instruction::FrameBegin(FrameBegin),
         Instruction::Push(Push::new(BigInt::from(4), false, 8)),
+        Instruction::Copy(Copy::new(0)),
         Instruction::FrameEnd(FrameEnd::new(1)),
         Instruction::Push(Push::new(BigInt::from(3), false, 8)),
         Instruction::Add(Add),
         Instruction::Push(Push::new(BigInt::from(3), false, 8)),
         Instruction::Add(Add),
+        Instruction::Copy(Copy::new(0)),
         Instruction::FrameEnd(FrameEnd::new(1)),
         Instruction::Push(Push::new(BigInt::from(2), false, 8)),
         Instruction::Add(Add),
         Instruction::Push(Push::new(BigInt::from(2), false, 8)),
         Instruction::Add(Add),
+        Instruction::Copy(Copy::new(0)),
         Instruction::FrameEnd(FrameEnd::new(1)),
         Instruction::Push(Push::new(BigInt::from(1), false, 8)),
         Instruction::Add(Add),
         Instruction::Push(Push::new(BigInt::from(1), false, 8)),
         Instruction::Add(Add),
+        Instruction::Return(Return::new(0)),
     ]);
 
     let result = Analyzer::default().compile(

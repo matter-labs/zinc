@@ -18,7 +18,7 @@
 1. Array expression
 2. Integer literal
 
-**Returns** the array element or an out of range error.
+**Returns** an array element or error.
 
 **Note**: only integer literals can be array indexes now.
 
@@ -30,7 +30,7 @@
 1. Tuple expression
 2. Integer literal
 
-**Returns** the tuple or structure element or an nonexistent field error.
+**Returns** a tuple or structure element or error.
 
 ## Unary minus
 

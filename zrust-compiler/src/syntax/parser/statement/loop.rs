@@ -316,7 +316,7 @@ mod tests {
     }
 
     #[test]
-    fn error_expected_integer_literal() {
+    fn err_expected_integer_literal() {
         let input = r#"for i in 0..n {};"#;
 
         let expected = Err(Error::Syntax(SyntaxError::Expected(

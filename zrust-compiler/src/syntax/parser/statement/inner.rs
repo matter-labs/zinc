@@ -1,5 +1,5 @@
 //!
-//! The statement parser.
+//! The inner statement parser.
 //!
 
 use std::cell::RefCell;

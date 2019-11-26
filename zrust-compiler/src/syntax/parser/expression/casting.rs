@@ -1,5 +1,5 @@
 //!
-//! The semantic.casting operand parser.
+//! The casting operand parser.
 //!
 
 use std::cell::RefCell;

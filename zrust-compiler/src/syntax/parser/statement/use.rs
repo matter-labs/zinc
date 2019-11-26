@@ -1,5 +1,5 @@
 //!
-//! The mod statement parser.
+//! The use statement parser.
 //!
 
 use std::cell::RefCell;

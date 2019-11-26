@@ -1,5 +1,5 @@
 //!
-//! The expression list parser.
+//! The expression (function argument) list parser.
 //!
 
 use std::cell::RefCell;

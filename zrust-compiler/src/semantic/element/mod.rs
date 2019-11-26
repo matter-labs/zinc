@@ -23,9 +23,13 @@ use crate::syntax::TypeVariant;
 
 #[derive(Clone, PartialEq)]
 pub enum Element {
+    /// Memory descriptor a.k.a. lvalue
     Place(Place),
+    /// Single operand representing a logical piece of data a.k.a. rvalue
     Value(Value),
+    /// Type is used only as the second operand of the casting operator
     Type(TypeVariant),
+    /// Value or argument list is used only as the second operator of the function call operator
     ValueList(Vec<Value>),
 }
 
@@ -35,7 +39,9 @@ impl Element {
             Self::Place(place) => Self::resolve(&place, scope)?.type_variant(),
             Self::Value(value) => value.type_variant(),
             Self::Type(type_variant) => type_variant.to_owned(),
-            Self::ValueList { .. } => panic!("Value lists should be checked for the type"),
+            Self::ValueList(values) => {
+                TypeVariant::new_tuple(values.iter().map(|value| value.type_variant()).collect())
+            }
         })
     }
 
@@ -47,7 +53,8 @@ impl Element {
 
         let value_2 = match other {
             Self::Value(value) => value,
-            element => return Err(Error::ExpectedValueExpression("assign", element)),
+            Self::Place(place) => Self::resolve(&place, scope)?,
+            element => return Err(Error::ExpectedResolvableExpression("assign", element)),
         };
 
         value_1
@@ -60,13 +67,13 @@ impl Element {
         let value_1 = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("or", element)),
+            element => return Err(Error::ExpectedResolvableExpression("or", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("or", element)),
+            element => return Err(Error::ExpectedResolvableExpression("or", element)),
         };
 
         value_1.or(&value_2).map(Self::Value).map_err(Error::Value)
@@ -76,13 +83,13 @@ impl Element {
         let value_1 = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("xor", element)),
+            element => return Err(Error::ExpectedResolvableExpression("xor", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("xor", element)),
+            element => return Err(Error::ExpectedResolvableExpression("xor", element)),
         };
 
         value_1.xor(&value_2).map(Self::Value).map_err(Error::Value)
@@ -92,13 +99,13 @@ impl Element {
         let value_1 = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("and", element)),
+            element => return Err(Error::ExpectedResolvableExpression("and", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("and", element)),
+            element => return Err(Error::ExpectedResolvableExpression("and", element)),
         };
 
         value_1.and(&value_2).map(Self::Value).map_err(Error::Value)
@@ -108,13 +115,13 @@ impl Element {
         let value_1 = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("equals", element)),
+            element => return Err(Error::ExpectedResolvableExpression("equals", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("equals", element)),
+            element => return Err(Error::ExpectedResolvableExpression("equals", element)),
         };
 
         value_1
@@ -127,13 +134,13 @@ impl Element {
         let value_1 = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("not_equals", element)),
+            element => return Err(Error::ExpectedResolvableExpression("not_equals", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("not_equals", element)),
+            element => return Err(Error::ExpectedResolvableExpression("not_equals", element)),
         };
 
         value_1
@@ -143,80 +150,112 @@ impl Element {
     }
 
     pub fn greater_equals(self, other: Self, scope: &Scope) -> Result<Self, Error> {
-        let _value_1 = match self {
+        let value_1 = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("greater_equals", element)),
+            element => {
+                return Err(Error::ExpectedResolvableExpression(
+                    "greater_equals",
+                    element,
+                ))
+            }
         };
 
-        let _value_2 = match other {
+        let value_2 = match other {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("greater_equals", element)),
+            element => {
+                return Err(Error::ExpectedResolvableExpression(
+                    "greater_equals",
+                    element,
+                ))
+            }
         };
 
-        Ok(Self::Value(Value::Boolean(Boolean::default())))
+        value_1
+            .greater_equals(&value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn lesser_equals(self, other: Self, scope: &Scope) -> Result<Self, Error> {
-        let _value_1 = match self {
+        let value_1 = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("lesser_equals", element)),
+            element => {
+                return Err(Error::ExpectedResolvableExpression(
+                    "lesser_equals",
+                    element,
+                ))
+            }
         };
 
-        let _value_2 = match other {
+        let value_2 = match other {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("lesser_equals", element)),
+            element => {
+                return Err(Error::ExpectedResolvableExpression(
+                    "lesser_equals",
+                    element,
+                ))
+            }
         };
 
-        Ok(Self::Value(Value::Boolean(Boolean::default())))
+        value_1
+            .lesser_equals(&value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn greater(self, other: Self, scope: &Scope) -> Result<Self, Error> {
-        let _value_1 = match self {
+        let value_1 = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("greater", element)),
+            element => return Err(Error::ExpectedResolvableExpression("greater", element)),
         };
 
-        let _value_2 = match other {
+        let value_2 = match other {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("greater", element)),
+            element => return Err(Error::ExpectedResolvableExpression("greater", element)),
         };
 
-        Ok(Self::Value(Value::Boolean(Boolean::default())))
+        value_1
+            .greater(&value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn lesser(self, other: Self, scope: &Scope) -> Result<Self, Error> {
-        let _value_1 = match self {
+        let value_1 = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("lesser", element)),
+            element => return Err(Error::ExpectedResolvableExpression("lesser", element)),
         };
 
-        let _value_2 = match other {
+        let value_2 = match other {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("lesser", element)),
+            element => return Err(Error::ExpectedResolvableExpression("lesser", element)),
         };
 
-        Ok(Self::Value(Value::Boolean(Boolean::default())))
+        value_1
+            .lesser(&value_2)
+            .map(Self::Value)
+            .map_err(Error::Value)
     }
 
     pub fn add(self, other: Self, scope: &Scope) -> Result<Self, Error> {
         let value_1 = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("add", element)),
+            element => return Err(Error::ExpectedResolvableExpression("add", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("add", element)),
+            element => return Err(Error::ExpectedResolvableExpression("add", element)),
         };
 
         value_1.add(&value_2).map(Self::Value).map_err(Error::Value)
@@ -226,13 +265,13 @@ impl Element {
         let value_1 = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("subtract", element)),
+            element => return Err(Error::ExpectedResolvableExpression("subtract", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("subtract", element)),
+            element => return Err(Error::ExpectedResolvableExpression("subtract", element)),
         };
 
         value_1
@@ -245,13 +284,13 @@ impl Element {
         let value_1 = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("multiply", element)),
+            element => return Err(Error::ExpectedResolvableExpression("multiply", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("multiply", element)),
+            element => return Err(Error::ExpectedResolvableExpression("multiply", element)),
         };
 
         value_1
@@ -264,13 +303,13 @@ impl Element {
         let value_1 = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("divide", element)),
+            element => return Err(Error::ExpectedResolvableExpression("divide", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("divide", element)),
+            element => return Err(Error::ExpectedResolvableExpression("divide", element)),
         };
 
         value_1
@@ -279,21 +318,21 @@ impl Element {
             .map_err(Error::Value)
     }
 
-    pub fn modulo(self, other: Self, scope: &Scope) -> Result<Self, Error> {
+    pub fn remainder(self, other: Self, scope: &Scope) -> Result<Self, Error> {
         let value_1 = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("modulo", element)),
+            element => return Err(Error::ExpectedResolvableExpression("modulo", element)),
         };
 
         let value_2 = match other {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("modulo", element)),
+            element => return Err(Error::ExpectedResolvableExpression("modulo", element)),
         };
 
         value_1
-            .modulo(&value_2)
+            .remainder(&value_2)
             .map(Self::Value)
             .map_err(Error::Value)
     }
@@ -302,7 +341,7 @@ impl Element {
         let value = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("cast", element)),
+            element => return Err(Error::ExpectedResolvableExpression("cast", element)),
         };
 
         let r#type = match other {
@@ -317,7 +356,7 @@ impl Element {
         let value = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("negate", element)),
+            element => return Err(Error::ExpectedResolvableExpression("negate", element)),
         };
 
         value.negate().map(Self::Value).map_err(Error::Value)
@@ -327,7 +366,7 @@ impl Element {
         let value = match self {
             Self::Value(value) => value,
             Self::Place(place) => Self::resolve(&place, scope)?,
-            element => return Err(Error::ExpectedValueExpression("not", element)),
+            element => return Err(Error::ExpectedResolvableExpression("not", element)),
         };
 
         value.not().map(Self::Value).map_err(Error::Value)
@@ -363,15 +402,15 @@ impl Element {
                 place.access_structure(field).map_err(Error::Place)?;
                 Ok(Self::Place(place))
             }
-            element => Err(Error::ExpectedValueOrPlaceExpression("field", element)),
+            element => Err(Error::ExpectedResolvableExpression("field", element)),
         }
     }
 
     pub fn resolve(place: &Place, scope: &Scope) -> Result<Value, Error> {
         scope
             .get_declaration(place)
-            .map(|declaration| declaration.value)
-            .map_err(Error::Scope)
+            .map(|declaration| Value::new(declaration.type_variant))
+            .map_err(Error::Resolving)
     }
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

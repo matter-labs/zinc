@@ -1,8 +1,8 @@
 # Custom types
 
-Structures, enumerations and function are the custom types. They must be
+Structure, enumeration, and function are the custom types. They must be
 explicitly declared in the code using the `struct`, `enum`, and `fn` statements
-respectively. These types always have a name, which allows to distinguish them,
+respectively. These types always have a name allowing to distinguish them,
 even if their signatures are the same. Thus, compound types facilitate type
 checking and reduce code verbosity and repeatability.
 
@@ -13,8 +13,8 @@ multiple related values that make up a meaningful group. Structures allow you
 to easily build complex data types and pass them around your code with as little
 verbosity as possible.
 
-Structure fields can be accessed via the dot operator, which is explained in details
-in **Chapter 5**.
+Structure fields can be accessed via the dot operator, which is explained in
+detail in **Chapter 5**.
 
 ```rust,no_run,noplaypen
 struct Person {
@@ -32,8 +32,8 @@ person.age = 25;
 ## Enumeration
 
 Enums allow you to define a type by enumerating its possible values. Only simple
-C-like enums are supported for now, which are basically groups of constants,
-following the Rust syntax:
+C-like enums are supported for now, which are groups of constants, following
+the Rust syntax:
 
 ```rust,no_run,noplaypen
 enum Order {
@@ -66,10 +66,10 @@ let z = Order::SECOND as u8; // the type is u8 (explicit casting)
 
 The function is the only callable type in ZRust and it closely follows the Rust
 syntax. However, R1CS specifics require that functions must be executed completely,
-thus there are no `return` statement in ZRust. The only way to return a value is
+thus there is no `return` statement in ZRust. The only way to return a value is
 to specify it as the last unterminated statement of the function block.
 
-Functions consist of several parts: the name, arguments, return type and the
+Functions consist of several parts: the name, arguments, return type, and the
 code block. The name is the function type name and it uniquely defines a function.
 The arguments can be only passed by value, and the function result can only be
 returned by value. If the return type is omitted, the function is considered

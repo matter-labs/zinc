@@ -18,7 +18,6 @@ use std::rc::Rc;
 use std::str;
 
 use crate::semantic::Place;
-use crate::semantic::Value;
 use crate::syntax::TypeVariant;
 
 #[derive(Debug, Default)]
@@ -43,7 +42,7 @@ impl Scope {
     pub fn declare_variable(
         &mut self,
         place: Place,
-        value: Value,
+        type_variant: TypeVariant,
         is_mutable: bool,
         address: usize,
     ) -> Result<(), Error> {
@@ -51,10 +50,12 @@ impl Scope {
             return Err(Error::RedeclaredItem(place.identifier));
         }
         self.items.insert(place.identifier.clone(), Item::Variable);
-        self.declarations
-            .insert(place.clone(), Declaration::new(value.clone(), is_mutable));
+        self.declarations.insert(
+            place.clone(),
+            Declaration::new(type_variant.clone(), is_mutable),
+        );
         self.assignments
-            .insert(place, Assignment::new(value, address, false));
+            .insert(place, Assignment::new(type_variant, address, false));
         Ok(())
     }
 
@@ -66,7 +67,7 @@ impl Scope {
                 }
                 self.assignments.insert(
                     place,
-                    Assignment::new(declaration.value.clone(), address, false),
+                    Assignment::new(declaration.type_variant.clone(), address, false),
                 );
             }
             None => match self.parent {
@@ -75,8 +76,10 @@ impl Scope {
                     if !declaration.is_mutable {
                         return Err(Error::MutatingImmutable(place.identifier.to_owned()));
                     }
-                    self.assignments
-                        .insert(place, Assignment::new(declaration.value, address, true));
+                    self.assignments.insert(
+                        place,
+                        Assignment::new(declaration.type_variant, address, true),
+                    );
                 }
                 None => return Err(Error::UndeclaredVariable(place.identifier.to_owned())),
             },

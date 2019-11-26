@@ -41,6 +41,7 @@ fn main() {
         Instruction::Push(Push::new(BigInt::from(42), false, 8)),
         Instruction::Push(Push::new(BigInt::from(25), false, 8)),
         Instruction::Call(Call::new(2, 2)),
+        Instruction::Return(Return::new(0)),
     ]);
 
     let result = Analyzer::default().compile(

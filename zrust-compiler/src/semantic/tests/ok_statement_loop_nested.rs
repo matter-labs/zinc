@@ -14,6 +14,7 @@ use zrust_bytecode::Instruction;
 use zrust_bytecode::LoopBegin;
 use zrust_bytecode::LoopEnd;
 use zrust_bytecode::Push;
+use zrust_bytecode::Return;
 
 use crate::semantic::Analyzer;
 use crate::syntax::Parser;
@@ -56,6 +57,7 @@ fn main() {
         Instruction::Copy(Copy::new(1)),
         Instruction::Add(Add),
         Instruction::LoopEnd(LoopEnd),
+        Instruction::Return(Return::new(0)),
     ]);
 
     let result = Analyzer::default().compile(

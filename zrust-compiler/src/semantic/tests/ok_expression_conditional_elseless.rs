@@ -16,6 +16,7 @@ use zrust_bytecode::Instruction;
 use zrust_bytecode::PopCondition;
 use zrust_bytecode::Push;
 use zrust_bytecode::PushCondition;
+use zrust_bytecode::Return;
 
 use crate::semantic::Analyzer;
 use crate::syntax::Parser;
@@ -49,6 +50,7 @@ fn main() {
         Instruction::Copy(Copy::new(1)),
         Instruction::ConditionalSelect(ConditionalSelect),
         Instruction::FrameEnd(FrameEnd::new(1)),
+        Instruction::Return(Return::new(0)),
     ]);
 
     let result = Analyzer::default().compile(

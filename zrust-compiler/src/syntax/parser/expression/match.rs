@@ -357,7 +357,7 @@ mod tests {
     }
 
     #[test]
-    fn error_expected_comma() {
+    fn err_expected_comma() {
         let input = r#"
     match test {
         1 => 1;

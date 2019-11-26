@@ -116,10 +116,8 @@ impl Analyzer {
                         .map(|(_arg_name, arg_type)| arg_type.size())
                         .sum(),
                 ));
-                log::trace!(">>> {:03} {:?}", 0, self.instructions[0]);
                 self.instructions[1] =
                     Instruction::Exit(zrust_bytecode::Exit::new(return_type.size()));
-                log::trace!(">>> {:03} {:?}", 1, self.instructions[1]);
             }
             _ => panic!(crate::semantic::PANIC_RESOLUTION_FUNCTION_MAIN),
         }
@@ -190,20 +188,20 @@ impl Analyzer {
                         .borrow_mut()
                         .declare_variable(
                             Place::new(argument.identifier.name),
-                            Value::new(argument.r#type.variant),
+                            argument.r#type.variant,
                             false,
                             self.stack_last_index(),
                         )
                         .map_err(|error| Error::Scope(location, error))?;
                 }
                 self.block_expression(r#fn.body)?;
-                self.pop_scope();
 
                 let result = self.evaluate_unary_operand(true)?;
                 let return_type = result
                     .type_variant(self.scope().borrow().deref())
                     .map_err(|error| Error::Element(location, error))?;
                 self.push_operand(StackElement::Evaluated(result));
+                self.pop_scope();
 
                 if r#fn.return_type.variant != return_type {
                     return Err(Error::FunctionReturnTypeMismatch(
@@ -266,7 +264,7 @@ impl Analyzer {
                     .borrow_mut()
                     .declare_variable(
                         Place::new(r#let.identifier.name),
-                        Value::new(type_variant),
+                        type_variant,
                         r#let.is_mutable,
                         self.stack_last_index(),
                     )
@@ -293,7 +291,7 @@ impl Analyzer {
                     .borrow_mut()
                     .declare_variable(
                         Place::new(r#loop.index_identifier.name),
-                        Value::Integer(index),
+                        TypeVariant::new_integer_unsigned(range_bitlength),
                         false,
                         index_address,
                     )
@@ -473,7 +471,7 @@ impl Analyzer {
                     self.push_instruction(Instruction::Rem(zrust_bytecode::Rem));
 
                     let result = operand_1
-                        .modulo(operand_2, self.scope().borrow().deref())
+                        .remainder(operand_2, self.scope().borrow().deref())
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.push_operand(StackElement::Evaluated(result));
                 }
@@ -619,13 +617,8 @@ impl Analyzer {
                 .borrow()
                 .get_variable_address(&place)
                 .map_err(|error| Error::Scope(location, error))?;
-            let declaration = self
-                .scope()
-                .borrow()
-                .get_declaration(&place)
-                .map_err(|error| Error::Scope(location, error))?;
             self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(address)));
-            self.push_operand(StackElement::Evaluated(Element::Value(declaration.value)));
+            self.push_operand(StackElement::Evaluated(Element::Place(place)));
         } else {
             let item_type = self
                 .scope()
@@ -744,7 +737,12 @@ impl Analyzer {
             conditional_assignments
                 .insert(place.to_owned(), (self.stack_last_index(), old_address));
         }
-        self.stack_height += main_type.size();
+        match main_type {
+            TypeVariant::Unit => {}
+            _ => self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
+                main_result_address,
+            ))),
+        }
 
         // release the frame
         self.push_instruction(Instruction::FrameEnd(zrust_bytecode::FrameEnd::new(
@@ -798,7 +796,12 @@ impl Analyzer {
                         .insert(place.to_owned(), (old_address, self.stack_last_index()));
                 }
             }
-            self.stack_height += else_type.size();
+            match else_type {
+                TypeVariant::Unit => {}
+                _ => self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(
+                    else_result_address,
+                ))),
+            }
 
             // release the frame
             self.push_instruction(Instruction::FrameEnd(zrust_bytecode::FrameEnd::new(
@@ -931,7 +934,8 @@ impl Analyzer {
 
                         // evaluate the block and get the result type
                         self.block_expression(block)?;
-                        let result = self.evaluate_unary_operand(true)?;
+                        let (result, result_address) =
+                            (self.evaluate_unary_operand(true)?, self.stack_last_index());
                         let result_type = result
                             .type_variant(self.scope().borrow().deref())
                             .map_err(|error| Error::Element(location, error))?;
@@ -951,7 +955,12 @@ impl Analyzer {
                                 .update_variable(place, self.stack_last_index())
                                 .expect("The variable address always exists as it is checked during the block evaluation");
                         }
-                        self.stack_height += result_type.size();
+                        match result_type {
+                            TypeVariant::Unit => {}
+                            _ => self.push_instruction(Instruction::Copy(
+                                zrust_bytecode::Copy::new(result_address),
+                            )),
+                        }
                         self.push_instruction(Instruction::FrameEnd(
                             zrust_bytecode::FrameEnd::new(outputs_count),
                         ));
@@ -1026,7 +1035,7 @@ impl Analyzer {
     }
 
     fn push_instruction(&mut self, instruction: Instruction) {
-        log::trace!(">>> {:03} {:?}", self.instructions.len(), instruction);
+        //        log::trace!(">>> {:03} {:?}", self.instructions.len(), instruction);
         let instruction_ref = &instruction;
         let stack_difference = (dispatch_instruction!(instruction_ref => instruction_ref.outputs_count())
             as isize)

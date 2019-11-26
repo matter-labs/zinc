@@ -1,12 +1,6 @@
 //!
 //! The lexical word parser.
 //!
-//! The result can be either of:
-//! 1. An identifier
-//! 2. A keyword
-//! 3. A boolean literal
-//! 4. An underscore symbol
-//!
 
 use std::convert::TryFrom;
 
@@ -43,7 +37,7 @@ pub fn parse(input: &str) -> Result<(usize, Lexeme), Error> {
                 state = State::Continue;
             }
             State::Continue => {
-                if !Identifier::can_contain_since_index_1(character) {
+                if !Identifier::can_contain_after_start(character) {
                     break;
                 }
             }
@@ -51,6 +45,12 @@ pub fn parse(input: &str) -> Result<(usize, Lexeme), Error> {
 
         size += 1;
     }
+
+    // The result can be either of:
+    // 1. An identifier
+    // 2. A keyword
+    // 3. A boolean literal
+    // 4. An underscore symbol
 
     let lexeme = match Identifier::try_from(&input[..size]) {
         Ok(identifier) => Lexeme::Identifier(identifier),
@@ -166,7 +166,7 @@ mod tests {
     }
 
     #[test]
-    fn error_empty_identifier() {
+    fn err_empty_identifier() {
         let input = "";
         let expected = Err(Error::EmptyIdentifier);
         let result = parse(input);

@@ -15,6 +15,7 @@ use zrust_bytecode::Instruction;
 use zrust_bytecode::Mul;
 use zrust_bytecode::Or;
 use zrust_bytecode::Push;
+use zrust_bytecode::Return;
 use zrust_bytecode::Sub;
 use zrust_bytecode::Xor;
 
@@ -57,6 +58,7 @@ fn main() {
         Instruction::Push(Push::new(BigInt::from(0), false, 1)),
         Instruction::Xor(Xor),
         Instruction::And(And),
+        Instruction::Return(Return::new(0)),
     ]);
 
     let result = Analyzer::default().compile(

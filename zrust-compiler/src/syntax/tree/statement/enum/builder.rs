@@ -1,5 +1,5 @@
 //!
-//! The struct statement builder.
+//! The enum statement builder.
 //!
 
 use crate::lexical::Location;

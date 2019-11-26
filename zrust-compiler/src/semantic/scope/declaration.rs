@@ -2,16 +2,19 @@
 //! The semantic analyzer scope declaration.
 //!
 
-use crate::semantic::Value;
+use crate::syntax::TypeVariant;
 
 #[derive(Debug, Clone)]
 pub struct Declaration {
-    pub value: Value,
+    pub type_variant: TypeVariant,
     pub is_mutable: bool,
 }
 
 impl Declaration {
-    pub fn new(value: Value, is_mutable: bool) -> Self {
-        Self { value, is_mutable }
+    pub fn new(type_variant: TypeVariant, is_mutable: bool) -> Self {
+        Self {
+            type_variant,
+            is_mutable,
+        }
     }
 }

@@ -13,7 +13,7 @@ use crate::syntax::Error as SyntaxError;
 use crate::syntax::Parser;
 
 #[test]
-fn error_expected() {
+fn err_expected() {
     let input = "let";
 
     let result: Result<CircuitProgram, Error> = Parser::default().parse(input.to_owned());
@@ -28,7 +28,7 @@ fn error_expected() {
 }
 
 #[test]
-fn error_unexpected_eof() {
+fn err_expected_not_eof() {
     let input = "fn";
 
     let result: Result<CircuitProgram, Error> = Parser::default().parse(input.to_owned());
