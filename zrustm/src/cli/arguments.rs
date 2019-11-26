@@ -22,7 +22,16 @@ pub fn build_arguments() -> App<'static, 'static> {
         .short("w")
         .long("witness")
         .value_name("WITNESS")
-        .help("Witness values")
+        .help("Witness values (i.e. program inputs)")
+        .takes_value(true)
+        .multiple(true)
+        .validator(witness_validator);
+
+    let input_arg = Arg::with_name("input")
+        .short("i")
+        .long("input")
+        .value_name("INPUT")
+        .help("Public input values (i.e. program outputs)")
         .takes_value(true)
         .multiple(true)
         .validator(witness_validator);
@@ -35,14 +44,6 @@ pub fn build_arguments() -> App<'static, 'static> {
         .required(true)
         .takes_value(true);
 
-    let key_arg = Arg::with_name("key")
-        .short("k")
-        .long("key")
-        .value_name("FILE")
-        .help("Proving key file")
-        .required(true)
-        .takes_value(true);
-
     let proof_arg = Arg::with_name("proof")
         .short("p")
         .long("proof")
@@ -51,10 +52,17 @@ pub fn build_arguments() -> App<'static, 'static> {
         .required(true)
         .takes_value(true);
 
+    let verbose_arg = Arg::with_name("verbose")
+        .short("v")
+        .long("verbose")
+        .takes_value(false)
+        .help("Shows verbose logs");
+
     App::new("zrustm")
         .version("0.1")
         .about("ZRust Virtual Machine")
         .setting(AppSettings::SubcommandRequiredElseHelp)
+        .arg(verbose_arg)
         .subcommand(
             SubCommand::with_name("exec")
                 .about("Executes circuit and prints program's output")
@@ -62,23 +70,17 @@ pub fn build_arguments() -> App<'static, 'static> {
                 .arg(witness_arg.clone()),
         )
         .subcommand(
-            SubCommand::with_name("gen-key")
-                .about("Generates proving key for the circuit")
-                .arg(circuit_arg.clone())
-                .arg(output_arg.clone()),
-        )
-        .subcommand(
             SubCommand::with_name("prove")
                 .about("Generate zero-knowledge proof for given witness")
                 .arg(circuit_arg.clone())
                 .arg(witness_arg.clone())
-                .arg(key_arg.clone())
                 .arg(output_arg.clone()),
         )
         .subcommand(
             SubCommand::with_name("verify")
                 .about("Verifies zero-knowledge proof")
-                .arg(key_arg.clone())
-                .arg(proof_arg.clone()),
+                .arg(circuit_arg.clone())
+                .arg(proof_arg.clone())
+                .arg(input_arg.clone()),
         )
 }
