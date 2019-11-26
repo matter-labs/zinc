@@ -28,5 +28,6 @@
     - [A - Lexical grammar](appendix/A-grammar-lexical.md)
     - [B - Syntax grammar](appendix/B-grammar-syntax.md)
     - [C - Keywords](appendix/C-keywords.md)
+    - [D - Built-in functions](appendix/D-built-in-functions.md)
 
 [Compiler CLI](compiler.md)

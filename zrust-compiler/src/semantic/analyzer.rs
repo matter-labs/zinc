@@ -214,11 +214,9 @@ impl Analyzer {
                     ));
                 }
 
-                if r#fn.identifier.name.as_str() != "main" {
-                    self.push_instruction(Instruction::Return(zrust_bytecode::Return::new(
-                        r#fn.return_type.variant.size(),
-                    )));
-                }
+                self.push_instruction(Instruction::Return(zrust_bytecode::Return::new(
+                    r#fn.return_type.variant.size(),
+                )));
             }
             OuterStatement::Mod(_mod) => {}
             OuterStatement::Use(_use) => {}
