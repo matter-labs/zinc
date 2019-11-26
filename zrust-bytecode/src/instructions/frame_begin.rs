@@ -5,7 +5,7 @@ pub struct FrameBegin;
 
 impl InstructionInfo for FrameBegin {
     fn to_assembly(&self) -> String {
-        format!("frame_begin")
+        "frame_begin".into()
     }
 
     fn code() -> InstructionCode {

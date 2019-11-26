@@ -129,11 +129,14 @@ fn parse_arguments() -> Arguments {
                 .value_of("circuit")
                 .expect("--circuit is required");
             let witness = {
-                command_args
-                    .values_of("witness")
-                    .expect("--witness is required")
-                    .map(|s| BigInt::from_str(s).unwrap())
-                    .collect()
+                match command_args.values_of("witness") {
+                    Some(values) => {
+                        values
+                            .map(|s| BigInt::from_str(s).unwrap())
+                            .collect()
+                    },
+                    None => Vec::new(),
+                }
             };
             Arguments::Exec(ExecArguments {
                 circuit_file: circuit_file.into(),

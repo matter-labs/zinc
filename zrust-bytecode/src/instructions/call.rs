@@ -19,7 +19,7 @@ impl Call {
 
 impl InstructionInfo for Call {
     fn to_assembly(&self) -> String {
-        "call".into()
+        format!("call {} {}", self.address, self.inputs_count)
     }
 
     fn code() -> InstructionCode {

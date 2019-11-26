@@ -118,11 +118,11 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             let instruction = &instructions[self.instruction_counter];
             self.instruction_counter += 1;
             log::info!(
-                "executing: {}",
+                "> {}",
                 dispatch_instruction!(instruction => instruction.to_assembly())
             );
             dispatch_instruction!(instruction => instruction.execute(self))?;
-            log::info!("stack: {}", self.stack_to_string());
+            log::info!("{}", self.stack_to_string());
         }
 
         self.get_outputs()
@@ -169,10 +169,10 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
         Ok(outputs)
     }
 
-    pub fn stack_to_string(&self) -> String {
+    fn stack_to_string(&self) -> String {
         let mut s = String::new();
         for e in self.stack.iter().rev() {
-            s += format!("{:?} ", e).as_str();
+            s += format!("{} ", e).as_str();
         }
         s
     }
