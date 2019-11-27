@@ -367,7 +367,7 @@ dependencies = [
 [[package]]
 name = "zrust-bytecode"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/zrust-vm?branch=development#82e2c191b8862ef690c4eef91d57376ce984966a"
+source = "git+https://github.com/matter-labs/zrust-vm?branch=development#728b681a16d93d628c0d3704ada84b3c419046c4"
 dependencies = [
  "env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",

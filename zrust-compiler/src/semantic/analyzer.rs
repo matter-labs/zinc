@@ -15,6 +15,7 @@ use zrust_bytecode::InstructionInfo;
 
 use crate::error::Error as CompilerError;
 use crate::lexical::Literal as InnerLiteral;
+use crate::lexical::Location;
 use crate::semantic::inference;
 use crate::semantic::Element;
 use crate::semantic::ElementError;
@@ -47,6 +48,7 @@ pub struct Analyzer {
     instructions: Vec<Instruction>,
     stack_height: usize,
     function_addresses: HashMap<String, usize>,
+    is_next_call_instruction: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -78,6 +80,7 @@ impl Analyzer {
             instructions: Vec::with_capacity(Self::VECTOR_INSTRUCTION_INITIAL_CAPACITY),
             stack_height: 0,
             function_addresses: HashMap::with_capacity(Self::HASHMAP_FUNCTIONS_INITIAL_CAPACITY),
+            is_next_call_instruction: false,
         }
     }
 
@@ -85,6 +88,30 @@ impl Analyzer {
         // insert the placeholders the 'main' function call
         self.push_instruction(Instruction::NoOperation(zrust_bytecode::NoOperation));
         self.push_instruction(Instruction::NoOperation(zrust_bytecode::NoOperation));
+
+        self.scope()
+            .borrow_mut()
+            .declare_type(
+                "dbg".to_owned(),
+                TypeVariant::new_function(
+                    Identifier::new(Location::default(), "dbg".to_owned()),
+                    vec![],
+                    TypeVariant::Unit,
+                ),
+            )
+            .expect(crate::semantic::PANIC_INSTRUCTION_FUNCTION_DECLARATION);
+
+        self.scope()
+            .borrow_mut()
+            .declare_type(
+                "assert".to_owned(),
+                TypeVariant::new_function(
+                    Identifier::new(Location::default(), "assert".to_owned()),
+                    vec![("condition".to_owned(), TypeVariant::Boolean)],
+                    TypeVariant::Unit,
+                ),
+            )
+            .expect(crate::semantic::PANIC_INSTRUCTION_FUNCTION_DECLARATION);
 
         // compile all the outer statements which generally only declare new items
         for statement in program.statements.into_iter() {
@@ -550,8 +577,15 @@ impl Analyzer {
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.push_operand(StackElement::Evaluated(result));
                 }
+                ExpressionObject::Operator(ExpressionOperator::InstructionCall) => {
+                    self.is_next_call_instruction = true;
+                }
                 ExpressionObject::Operator(ExpressionOperator::Call) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(false, false)?;
+
+                    // check if the call is a direct instruction call like 'dbg' or 'assert'
+                    let is_instruction = self.is_next_call_instruction;
+                    self.is_next_call_instruction = false;
 
                     // check if the first operand is a function and get its data
                     let (identifier, argument_types, return_type) = match operand_1 {
@@ -572,42 +606,62 @@ impl Analyzer {
                     };
                     let argument_types_count = argument_types.len();
                     let argument_values_count = argument_values.len();
-                    if argument_values.len() != argument_types.len() {
-                        return Err(Error::FunctionArgumentCountMismatch(
-                            element.location,
-                            identifier.name,
-                            argument_types_count,
-                            argument_values_count,
-                        ));
-                    }
 
-                    // check the argument types
-                    for (argument_index, (argument_name, expected_type)) in
-                        argument_types.into_iter().enumerate()
-                    {
-                        let actual_type = argument_values[argument_index].type_variant();
-                        if expected_type != actual_type {
-                            return Err(Error::FunctionArgumentTypeMismatch(
+                    if !is_instruction && identifier.name.as_str() != "dbg" {
+                        if argument_values.len() != argument_types.len() {
+                            return Err(Error::FunctionArgumentCountMismatch(
                                 element.location,
                                 identifier.name,
-                                argument_name,
-                                expected_type,
-                                actual_type,
+                                argument_types_count,
+                                argument_values_count,
                             ));
+                        }
+
+                        // check the argument types
+                        for (argument_index, (argument_name, expected_type)) in
+                            argument_types.into_iter().enumerate()
+                        {
+                            let actual_type = argument_values[argument_index].type_variant();
+                            if expected_type != actual_type {
+                                return Err(Error::FunctionArgumentTypeMismatch(
+                                    element.location,
+                                    identifier.name,
+                                    argument_name,
+                                    expected_type,
+                                    actual_type,
+                                ));
+                            }
                         }
                     }
 
-                    // get the function address
-                    let function_address = self
-                        .function_addresses
-                        .get(&identifier.name)
-                        .copied()
-                        .expect("Presence checked during the function type resolution");
+                    if is_instruction {
+                        let instruction = match identifier.name.as_str() {
+                            "dbg" => Instruction::Log(zrust_bytecode::Dbg::new(
+                                "DEBUG".to_owned(), // TODO: pass an actual string
+                                argument_values_count,
+                            )),
+                            "assert" => Instruction::Assert(zrust_bytecode::Assert),
+                            instruction => {
+                                return Err(Error::InstructionUnknown(
+                                    identifier.location,
+                                    instruction.to_owned(),
+                                ))
+                            }
+                        };
+                        self.push_instruction(instruction);
+                    } else {
+                        // get the function address
+                        let function_address = self
+                            .function_addresses
+                            .get(&identifier.name)
+                            .copied()
+                            .expect("Presence checked during the function type resolution");
 
-                    self.push_instruction(Instruction::Call(zrust_bytecode::Call::new(
-                        function_address,
-                        argument_values_count,
-                    )));
+                        self.push_instruction(Instruction::Call(zrust_bytecode::Call::new(
+                            function_address,
+                            argument_values_count,
+                        )));
+                    }
 
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::new(
                         *return_type,

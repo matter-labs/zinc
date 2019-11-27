@@ -33,6 +33,8 @@ pub use self::scope::Error as ScopeError;
 pub use self::scope::Item as ScopeItem;
 pub use self::scope::Scope;
 
+static PANIC_INSTRUCTION_FUNCTION_DECLARATION: &str =
+    "Instruction functions are declared without errors";
 static PANIC_RESOLUTION_FUNCTION_MAIN: &str = "Presence of the 'main' function is checked above";
 static PANIC_VALIDATED_DURING_LEXICAL_ANALYSIS: &str =
     "Integer literals are validated during the lexical analysis";

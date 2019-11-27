@@ -50,4 +50,7 @@ pub enum Error {
     FunctionReturnTypeMismatch(Location, String, TypeVariant, TypeVariant),
     #[fail(display = "function 'main' is missing")]
     FunctionMainMissing,
+
+    #[fail(display = "{} instruction '{}' is unknown", _0, _1)]
+    InstructionUnknown(Location, String),
 }

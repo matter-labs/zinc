@@ -16,7 +16,7 @@ use crate::syntax::Expression;
 use crate::syntax::ExpressionBuilder;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
-use crate::syntax::Identifier;
+use crate::syntax::IdentifierBuilder;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -56,12 +56,12 @@ impl Parser {
                             location,
                         } => {
                             self.builder.set_location_if_unset(location);
+                            let mut identifier_builder = IdentifierBuilder::default();
+                            identifier_builder.set_location(location);
+                            identifier_builder.set_name(identifier.name);
                             self.builder.push_operand(
                                 location,
-                                ExpressionOperand::Identifier(Identifier::new(
-                                    location,
-                                    identifier.name,
-                                )),
+                                ExpressionOperand::Identifier(identifier_builder.finish()),
                             );
                             if let Some((location, operator)) = self.operator.take() {
                                 self.builder.push_operator(location, operator);

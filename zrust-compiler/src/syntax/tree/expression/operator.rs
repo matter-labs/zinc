@@ -46,6 +46,7 @@ pub enum Operator {
     Indexing,
     Field,
     Call,
+    InstructionCall,
     Path,
 }
 
@@ -83,6 +84,7 @@ impl fmt::Display for Operator {
             Self::Indexing => write!(f, "[]"),
             Self::Field => write!(f, "."),
             Self::Call => write!(f, "()"),
+            Self::InstructionCall => write!(f, "!"),
             Self::Path => write!(f, "::"),
         }
     }

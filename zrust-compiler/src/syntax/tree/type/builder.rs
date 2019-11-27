@@ -100,6 +100,6 @@ impl Builder {
             panic!(crate::syntax::PANIC_ALL_TYPE_CASES_ARE_CHECKED_ABOVE);
         };
 
-        Type { location, variant }
+        Type::new(location, variant)
     }
 }

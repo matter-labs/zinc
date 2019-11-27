@@ -56,6 +56,6 @@ impl Builder {
             );
         };
 
-        Pattern { location, variant }
+        Pattern::new(location, variant)
     }
 }

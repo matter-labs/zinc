@@ -76,7 +76,7 @@ operand_access
   | match_expression
   | struct_expression
   | literal
-  | path_expression
+  | path_expression, [ '!' ]
 ;
 
 expression_list = [ expression, { ',', expression } ] ;

@@ -32,6 +32,7 @@ use crate::syntax::TupleExpressionParser;
 #[derive(Debug, Clone, Copy)]
 pub enum State {
     Operand,
+    InstructionCallOrNext,
     AccessOrCallOrEnd,
     IndexExpression,
     BracketSquareRight,
@@ -161,7 +162,7 @@ impl Parser {
                                 .parse(stream.clone(), Some(token))?;
                             self.next = next;
                             self.builder.extend_with_expression(expression);
-                            self.state = State::AccessOrCallOrEnd;
+                            self.state = State::InstructionCallOrNext;
                         }
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
@@ -180,6 +181,21 @@ impl Parser {
                             )))
                         }
                     }
+                }
+                State::InstructionCallOrNext => {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
+                            location,
+                        } => self
+                            .builder
+                            .push_operator(location, ExpressionOperator::InstructionCall),
+                        token => self.next = Some(token),
+                    }
+                    self.state = State::AccessOrCallOrEnd;
                 }
                 State::AccessOrCallOrEnd => {
                     match match self.next.take() {

@@ -16,5 +16,7 @@ fn another(x: u8) -> u8 {
 }
 
 fn main(input: u8) -> u8 {
+    dbg!(input);
+    assert!(input > 0);
     another(input)
 }
