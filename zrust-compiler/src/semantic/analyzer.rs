@@ -181,6 +181,7 @@ impl Analyzer {
                     .map_err(|error| Error::Scope(location, error))?;
                 self.function_addresses
                     .insert(r#fn.identifier.name.clone(), self.instructions.len());
+                self.stack_height = 0;
                 self.push_scope();
                 for argument in r#fn.arguments.into_iter() {
                     self.stack_height += 1;
