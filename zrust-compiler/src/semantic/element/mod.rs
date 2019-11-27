@@ -408,7 +408,7 @@ impl Element {
 
     pub fn resolve(place: &Place, scope: &Scope) -> Result<Value, Error> {
         scope
-            .get_declaration(place)
+            .get_declaration(&place.identifier)
             .map(|declaration| Value::new(declaration.type_variant))
             .map_err(Error::Resolving)
     }

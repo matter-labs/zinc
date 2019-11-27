@@ -187,7 +187,7 @@ impl Analyzer {
                     self.scope()
                         .borrow_mut()
                         .declare_variable(
-                            Place::new(argument.identifier.name),
+                            argument.identifier.name,
                             argument.r#type.variant,
                             false,
                             self.stack_last_index(),
@@ -263,7 +263,7 @@ impl Analyzer {
                 self.scope()
                     .borrow_mut()
                     .declare_variable(
-                        Place::new(r#let.identifier.name),
+                        r#let.identifier.name,
                         type_variant,
                         r#let.is_mutable,
                         self.stack_last_index(),
@@ -290,7 +290,7 @@ impl Analyzer {
                 self.scope()
                     .borrow_mut()
                     .declare_variable(
-                        Place::new(r#loop.index_identifier.name),
+                        r#loop.index_identifier.name,
                         TypeVariant::new_integer_unsigned(range_bitlength),
                         false,
                         index_address,
@@ -617,8 +617,14 @@ impl Analyzer {
                 .borrow()
                 .get_variable_address(&place)
                 .map_err(|error| Error::Scope(location, error))?;
+            let value = self
+                .scope()
+                .borrow()
+                .get_declaration(&place.identifier)
+                .map(|declaration| Value::new(declaration.type_variant))
+                .map_err(|error| Error::Scope(location, error))?;
             self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(address)));
-            self.push_operand(StackElement::Evaluated(Element::Place(place)));
+            self.push_operand(StackElement::Evaluated(Element::Value(value)));
         } else {
             let item_type = self
                 .scope()

@@ -25,7 +25,7 @@ pub struct Scope {
     parent: Option<Rc<RefCell<Self>>>,
     items: HashMap<String, Item>,
 
-    declarations: HashMap<Place, Declaration>,
+    declarations: HashMap<String, Declaration>,
     assignments: HashMap<Place, Assignment>,
 
     types: HashMap<String, TypeVariant>,
@@ -41,26 +41,28 @@ impl Scope {
 
     pub fn declare_variable(
         &mut self,
-        place: Place,
+        identifier: String,
         type_variant: TypeVariant,
         is_mutable: bool,
         address: usize,
     ) -> Result<(), Error> {
-        if let Ok(_item) = self.get_item_type(&place.identifier) {
-            return Err(Error::RedeclaredItem(place.identifier));
+        if let Ok(_item) = self.get_item_type(&identifier) {
+            return Err(Error::RedeclaredItem(identifier));
         }
-        self.items.insert(place.identifier.clone(), Item::Variable);
+        self.items.insert(identifier.clone(), Item::Variable);
         self.declarations.insert(
-            place.clone(),
+            identifier.clone(),
             Declaration::new(type_variant.clone(), is_mutable),
         );
-        self.assignments
-            .insert(place, Assignment::new(type_variant, address, false));
+        self.assignments.insert(
+            Place::new(identifier),
+            Assignment::new(type_variant, address, false),
+        );
         Ok(())
     }
 
     pub fn update_variable(&mut self, place: Place, address: usize) -> Result<(), Error> {
-        match self.declarations.get_mut(&place) {
+        match self.declarations.get_mut(&place.identifier) {
             Some(declaration) => {
                 if !declaration.is_mutable {
                     return Err(Error::MutatingImmutable(place.identifier.to_owned()));
@@ -72,7 +74,7 @@ impl Scope {
             }
             None => match self.parent {
                 Some(ref parent) => {
-                    let declaration = parent.borrow().get_declaration(&place)?;
+                    let declaration = parent.borrow().get_declaration(&place.identifier)?;
                     if !declaration.is_mutable {
                         return Err(Error::MutatingImmutable(place.identifier.to_owned()));
                     }
@@ -88,13 +90,13 @@ impl Scope {
         Ok(())
     }
 
-    pub fn get_declaration(&self, place: &Place) -> Result<Declaration, Error> {
-        if let Some(declaration) = self.declarations.get(place) {
+    pub fn get_declaration(&self, identifier: &str) -> Result<Declaration, Error> {
+        if let Some(declaration) = self.declarations.get(identifier) {
             Ok(declaration.to_owned())
         } else {
             match self.parent {
-                Some(ref parent) => parent.borrow().get_declaration(place),
-                None => Err(Error::UndeclaredVariable(place.identifier.to_owned())),
+                Some(ref parent) => parent.borrow().get_declaration(identifier),
+                None => Err(Error::UndeclaredVariable(identifier.to_owned())),
             }
         }
     }
@@ -110,33 +112,37 @@ impl Scope {
         }
     }
 
-    pub fn declare_type(&mut self, name: String, type_variant: TypeVariant) -> Result<(), Error> {
-        if let Ok(_item) = self.get_item_type(&name) {
-            return Err(Error::RedeclaredItem(name));
+    pub fn declare_type(
+        &mut self,
+        identifier: String,
+        type_variant: TypeVariant,
+    ) -> Result<(), Error> {
+        if let Ok(_item) = self.get_item_type(&identifier) {
+            return Err(Error::RedeclaredItem(identifier));
         }
-        self.types.insert(name.clone(), type_variant);
-        self.items.insert(name, Item::Type);
+        self.types.insert(identifier.clone(), type_variant);
+        self.items.insert(identifier, Item::Type);
         Ok(())
     }
 
-    pub fn resolve_type(&self, name: &str) -> Result<TypeVariant, Error> {
-        match self.types.get(name) {
+    pub fn resolve_type(&self, identifier: &str) -> Result<TypeVariant, Error> {
+        match self.types.get(identifier) {
             Some(TypeVariant::Alias { identifier }) => self.resolve_type(identifier),
             Some(type_variant) => Ok(type_variant.to_owned()),
             None => match self.parent {
-                Some(ref parent) => parent.borrow().resolve_type(name),
-                None => Err(Error::UndeclaredType(name.to_owned())),
+                Some(ref parent) => parent.borrow().resolve_type(identifier),
+                None => Err(Error::UndeclaredType(identifier.to_owned())),
             },
         }
     }
 
-    pub fn get_item_type(&self, name: &str) -> Result<Item, Error> {
-        if let Some(item) = self.items.get(name).copied() {
+    pub fn get_item_type(&self, identifier: &str) -> Result<Item, Error> {
+        if let Some(item) = self.items.get(identifier).copied() {
             Ok(item)
         } else if let Some(ref parent) = self.parent {
-            parent.borrow().get_item_type(name)
+            parent.borrow().get_item_type(identifier)
         } else {
-            Err(Error::UndeclaredItem(name.to_owned()))
+            Err(Error::UndeclaredItem(identifier.to_owned()))
         }
     }
 
@@ -149,13 +155,5 @@ impl Scope {
             .collect::<Vec<(Place, Assignment)>>();
         assignments.sort_by(|(_, a), (_, b)| a.address.cmp(&b.address));
         assignments
-    }
-
-    pub fn get_assignments(&self) -> HashMap<Place, Assignment> {
-        self.assignments.clone()
-    }
-
-    pub fn add_assignments(&mut self, assignments: HashMap<Place, Assignment>) {
-        self.assignments.extend(assignments)
     }
 }

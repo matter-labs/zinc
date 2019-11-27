@@ -12,10 +12,9 @@ fn another(x: u8) -> u8 {
         a = 20; // a5
         4
     }; // a6
-    a = a;
     a * b * x
 }
 
 fn main(input: u8) -> u8 {
-    another(3)
+    another(input)
 }
