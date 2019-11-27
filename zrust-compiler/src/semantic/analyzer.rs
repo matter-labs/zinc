@@ -64,34 +64,35 @@ impl Default for Analyzer {
 impl Analyzer {
     const STACK_SCOPE_INITIAL_CAPACITY: usize = 16;
     const STACK_OPERAND_INITIAL_CAPACITY: usize = 16;
+    const HASHMAP_FUNCTIONS_INITIAL_CAPACITY: usize = 16;
     const VECTOR_INSTRUCTION_INITIAL_CAPACITY: usize = 1024;
 
     pub fn new(scope: Scope) -> Self {
-        let mut scopes = Vec::with_capacity(Self::STACK_SCOPE_INITIAL_CAPACITY);
-        scopes.push(Rc::new(RefCell::new(scope)));
-
-        let operands = Vec::with_capacity(Self::STACK_OPERAND_INITIAL_CAPACITY);
-
-        let instructions = Vec::with_capacity(Self::VECTOR_INSTRUCTION_INITIAL_CAPACITY);
-
         Self {
-            scopes,
-            operands,
-            instructions,
+            scopes: {
+                let mut scopes = Vec::with_capacity(Self::STACK_SCOPE_INITIAL_CAPACITY);
+                scopes.push(Rc::new(RefCell::new(scope)));
+                scopes
+            },
+            operands: Vec::with_capacity(Self::STACK_OPERAND_INITIAL_CAPACITY),
+            instructions: Vec::with_capacity(Self::VECTOR_INSTRUCTION_INITIAL_CAPACITY),
             stack_height: 0,
-            function_addresses: HashMap::new(),
+            function_addresses: HashMap::with_capacity(Self::HASHMAP_FUNCTIONS_INITIAL_CAPACITY),
         }
     }
 
     pub fn compile(mut self, program: CircuitProgram) -> Result<Vec<Instruction>, CompilerError> {
+        // insert the placeholders the 'main' function call
         self.push_instruction(Instruction::NoOperation(zrust_bytecode::NoOperation));
         self.push_instruction(Instruction::NoOperation(zrust_bytecode::NoOperation));
 
+        // compile all the outer statements which generally only declare new items
         for statement in program.statements.into_iter() {
             self.outer_statement(statement)
                 .map_err(CompilerError::Semantic)?;
         }
 
+        // replace the placeholders inserted above with an actual 'main' function call
         let main_function_address = self
             .function_addresses
             .get("main")
@@ -167,6 +168,8 @@ impl Analyzer {
             }
             OuterStatement::Fn(r#fn) => {
                 let location = r#fn.location;
+
+                // declare the function as a new type
                 let type_variant = TypeVariant::new_function(
                     r#fn.identifier.clone(),
                     r#fn.arguments
@@ -179,9 +182,15 @@ impl Analyzer {
                     .borrow_mut()
                     .declare_type(r#fn.identifier.name.clone(), type_variant)
                     .map_err(|error| Error::Scope(location, error))?;
+
+                // record the function address in the bytecode
                 self.function_addresses
                     .insert(r#fn.identifier.name.clone(), self.instructions.len());
+
+                // reset the stack frame address counter
                 self.stack_height = 0;
+
+                // start a new scope and declare the function arguments there
                 self.push_scope();
                 for argument in r#fn.arguments.into_iter() {
                     self.stack_height += 1;
@@ -195,8 +204,11 @@ impl Analyzer {
                         )
                         .map_err(|error| Error::Scope(location, error))?;
                 }
+
+                // compile the function block
                 self.block_expression(r#fn.body)?;
 
+                // get the function block result and pop the scope
                 let result = self.evaluate_unary_operand(true)?;
                 let return_type = result
                     .type_variant(self.scope().borrow().deref())
@@ -204,6 +216,7 @@ impl Analyzer {
                 self.push_operand(StackElement::Evaluated(result));
                 self.pop_scope();
 
+                // check the function return type to match the block result
                 if r#fn.return_type.variant != return_type {
                     return Err(Error::FunctionReturnTypeMismatch(
                         r#fn.return_type.location,
@@ -229,8 +242,12 @@ impl Analyzer {
             InnerStatement::Empty => {}
             InnerStatement::Let(r#let) => {
                 let location = r#let.location;
+
+                // compile the expression being assigned
                 self.expression(r#let.expression)?;
+
                 let type_variant = if let Some(r#type) = r#let.r#type {
+                    // get and resolve the type
                     let let_type_variant = match r#type.variant {
                         TypeVariant::Alias { identifier } => {
                             let location = r#type.location;
@@ -242,6 +259,7 @@ impl Analyzer {
                         type_variant => type_variant,
                     };
 
+                    // get the expression result try to cast the expression to the specified type
                     let operand_1 = self.evaluate_unary_operand(true)?;
                     let (is_signed, bitlength) = operand_1
                         .cast(
@@ -255,12 +273,14 @@ impl Analyzer {
                     )));
                     let_type_variant
                 } else {
+                    // just get the expression result
                     let operand_1 = self.evaluate_unary_operand(true)?;
                     operand_1
                         .type_variant(self.scope().borrow().deref())
                         .map_err(|error| Error::Element(location, error))?
                 };
 
+                // declare the variable
                 self.scope()
                     .borrow_mut()
                     .declare_variable(
@@ -273,10 +293,13 @@ impl Analyzer {
             }
             InnerStatement::Loop(r#loop) => {
                 let location = r#loop.location;
+
+                // infer the bitlength of the range start and end
                 let range_bitlength =
                     inference::enough_bitlength(&[&r#loop.range_start, &r#loop.range_end])
                         .map_err(|error| Error::LoopBoundsTypeInference(location, error))?;
 
+                // calculate the iterations number and if the loop is reverse
                 let range_start: usize = r#loop.range_start.into();
                 let range_end: usize = r#loop.range_end.into();
                 let iterations_count = cmp::max(range_start, range_end)
@@ -284,10 +307,13 @@ impl Analyzer {
                     + if r#loop.is_range_inclusive { 1 } else { 0 };
                 let is_reverse = range_start > range_end;
 
-                self.push_scope();
+                // create the index value and get its address
                 let index = Integer::new_range_bound(range_start, range_bitlength);
                 self.push_instruction(Instruction::Push(index.to_push()));
                 let index_address = self.stack_last_index();
+
+                // declare the index variable
+                self.push_scope();
                 self.scope()
                     .borrow_mut()
                     .declare_variable(
@@ -324,6 +350,7 @@ impl Analyzer {
                 self.stack_height -= outputs_count;
             }
             InnerStatement::Expression(expression) => {
+                // just calculate the expression (TODO: remove its result from the bytecode)
                 self.expression(expression)?;
             }
         }
@@ -526,6 +553,7 @@ impl Analyzer {
                 ExpressionObject::Operator(ExpressionOperator::Call) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(false, false)?;
 
+                    // check if the first operand is a function and get its data
                     let (identifier, argument_types, return_type) = match operand_1 {
                         Element::Type(TypeVariant::Function {
                             identifier,
@@ -537,6 +565,7 @@ impl Analyzer {
                         }
                     };
 
+                    // check the number of the arguments
                     let argument_values = match operand_2 {
                         Element::ValueList(values) => values,
                         _ => panic!("Ensured to be an expression list during the syntax analysis"),
@@ -552,6 +581,7 @@ impl Analyzer {
                         ));
                     }
 
+                    // check the argument types
                     for (argument_index, (argument_name, expected_type)) in
                         argument_types.into_iter().enumerate()
                     {
@@ -567,6 +597,7 @@ impl Analyzer {
                         }
                     }
 
+                    // get the function address
                     let function_address = self
                         .function_addresses
                         .get(&identifier.name)
@@ -612,6 +643,7 @@ impl Analyzer {
         let location = identifier.location;
 
         if is_for_stack {
+            // put the identifier as an 'rvalue'
             let place = Place::new(identifier.name.clone());
             let address = self
                 .scope()
@@ -627,6 +659,7 @@ impl Analyzer {
             self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(address)));
             self.push_operand(StackElement::Evaluated(Element::Value(value)));
         } else {
+            // put the identifier as an 'lvalue' part
             let item_type = self
                 .scope()
                 .borrow()
@@ -686,9 +719,12 @@ impl Analyzer {
         let location = conditional.location;
         let condition_location = conditional.condition.location;
 
+        // remember the stack address before the conditional expression
         let outer_stack_frame_start = self.stack_height;
+        // the 'if' itself is also wrapped into a frame to release its outputs and condition
         self.push_instruction(Instruction::FrameBegin(zrust_bytecode::FrameBegin));
 
+        // compile the condition and check if it is boolean
         self.expression(*conditional.condition)?;
         let condition_address = self.stack_last_index();
         match self
@@ -825,14 +861,15 @@ impl Analyzer {
             (TypeVariant::Unit, self.stack_last_index())
         };
 
+        // check if the two branches return equals types
         if main_type != else_type {
             return Err(Error::ConditionalBranchTypeMismatch(
                 location, main_type, else_type,
             ));
         }
 
+        // insert conditional selects for all the outputs
         let mut outputs_count = conditional_assignments.len();
-
         self.stack_height = outer_stack_frame_start;
         for (place, (address_1, address_2)) in conditional_assignments.into_iter() {
             self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(address_2)));
@@ -948,10 +985,12 @@ impl Analyzer {
                             .map_err(|error| Error::Element(location, error))?;
                         self.push_operand(StackElement::Evaluated(result));
 
+                        // pop the scope and get its outputs
                         let scope = self.pop_scope();
                         let outputs = scope.get_ordered_outer_assignments();
                         let outputs_count = outputs.len() + result_type.size();
 
+                        // update the variables in the output scope
                         self.stack_height = stack_frame_start;
                         for (place, assignment) in outputs.into_iter() {
                             self.push_instruction(Instruction::Copy(zrust_bytecode::Copy::new(

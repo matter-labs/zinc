@@ -62,6 +62,7 @@ pub use self::tree::FieldBuilder;
 pub use self::tree::FnStatement;
 pub use self::tree::FnStatementBuilder;
 pub use self::tree::Identifier;
+pub use self::tree::IdentifierBuilder;
 pub use self::tree::InnerStatement;
 pub use self::tree::LetStatement;
 pub use self::tree::LetStatementBuilder;

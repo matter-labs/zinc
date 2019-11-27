@@ -100,6 +100,6 @@ tuple_expression =
 
 struct_expression = 'struct', path_expression, [ '{', field_list, '}' ] ;
 
-path_expression = identifier, { '::', identifier } ;
+path_expression = identifier, [ '!' ], { '::', identifier } ;
 
 ```

@@ -2,6 +2,10 @@
 //! The identifier.
 //!
 
+mod builder;
+
+pub use self::builder::Builder;
+
 use std::fmt;
 
 use crate::lexical::Location;
@@ -10,11 +14,12 @@ use crate::lexical::Location;
 pub struct Identifier {
     pub location: Location,
     pub name: String,
+    pub is_instruction: bool,
 }
 
 impl Identifier {
-    pub fn new(location: Location, name: String) -> Self {
-        Self { location, name }
+    pub fn new(location: Location, name: String, is_instruction: bool) -> Self {
+        Self { location, name, is_instruction }
     }
 }
 
