@@ -2,6 +2,7 @@ use crate::element::{Element, ElementOperator};
 use crate::vm::RuntimeError::StackUnderflow;
 use num_bigint::BigInt;
 use zrust_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
+use franklin_crypto::bellman::SynthesisError;
 
 pub trait VMInstruction<E, O>: InstructionInfo
 where
@@ -11,14 +12,14 @@ where
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError>;
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub enum RuntimeError {
     InvalidOperation(u8),
     InvalidArguments,
     StackUnderflow,
     StackOverflow,
     UnexpectedEndOfFile,
-    SynthesisError,
+    SynthesisError(SynthesisError),
     InternalError,
     IntegerOverflow,
     UnexpectedLoopExit,

@@ -72,7 +72,7 @@ where
         let mut cs = self.cs_namespace();
         let variable = cs
             .alloc(|| "zero_var", || Ok(value))
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         cs.enforce(
             || "zero constraint",
@@ -120,7 +120,7 @@ where
                 || "variable value",
                 || Err(SynthesisError::AssignmentMissing),
             )
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         Ok(ConstrainedElement {
             value: None,
@@ -135,7 +135,7 @@ where
 
         let variable = cs
             .alloc(|| "variable value", || Ok(value))
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         Ok(ConstrainedElement {
             value: Some(value),
@@ -150,7 +150,7 @@ where
 
         let variable = cs
             .alloc(|| "constant value", || Ok(value))
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         cs.enforce(
             || "constant equation",
@@ -176,7 +176,7 @@ where
                 || "output value",
                 || element.value.ok_or(SynthesisError::AssignmentMissing),
             )
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         cs.enforce(
             || "enforce output equality",
@@ -212,7 +212,7 @@ where
                 || "sum variable",
                 || sum.ok_or(SynthesisError::AssignmentMissing),
             )
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         cs.enforce(
             || "sum constraint",
@@ -248,7 +248,7 @@ where
                 || "diff variable",
                 || diff.ok_or(SynthesisError::AssignmentMissing),
             )
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         cs.enforce(
             || "diff constraint",
@@ -284,7 +284,7 @@ where
                 || "prod variable",
                 || prod.ok_or(SynthesisError::AssignmentMissing),
             )
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         cs.enforce(
             || "prod constraint",
@@ -328,14 +328,14 @@ where
                     || "qutioent",
                     || quotient_value.ok_or(SynthesisError::AssignmentMissing),
                 )
-                .map_err(|_| RuntimeError::SynthesisError)?;
+                .map_err(RuntimeError::SynthesisError)?;
 
             let remainder_var = cs
                 .alloc(
                     || "remainder",
                     || remainder_value.ok_or(SynthesisError::AssignmentMissing),
                 )
-                .map_err(|_| RuntimeError::SynthesisError)?;
+                .map_err(RuntimeError::SynthesisError)?;
 
             cs.enforce(
                 || "equality",
@@ -391,7 +391,7 @@ where
                 || "neg variable",
                 || neg_value.ok_or(SynthesisError::AssignmentMissing),
             )
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         cs.enforce(
             || "neg constraint",
@@ -432,7 +432,7 @@ where
 
         let variable = cs
             .alloc(|| "and", || value.ok_or(SynthesisError::AssignmentMissing))
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         cs.enforce(
             || "equality",
@@ -464,7 +464,7 @@ where
 
         let variable = cs
             .alloc(|| "or", || value.ok_or(SynthesisError::AssignmentMissing))
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         cs.enforce(
             || "equality",
@@ -499,7 +499,7 @@ where
                 || "conjunction",
                 || value.ok_or(SynthesisError::AssignmentMissing),
             )
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         // (a + a) * (b) = (a + b - c)
         cs.enforce(
@@ -534,7 +534,7 @@ where
         let diff_num = AllocatedNum::alloc(cs.namespace(|| "diff_num variable"), || {
             diff.value.ok_or(SynthesisError::AssignmentMissing)
         })
-        .map_err(|_| RuntimeError::SynthesisError)?;
+        .map_err(RuntimeError::SynthesisError)?;
 
         cs.enforce(
             || "allocated_num equality",
@@ -545,16 +545,16 @@ where
 
         let bits = diff_num
             .into_bits_le(cs.namespace(|| "diff_num bits"))
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         let diff_num_repacked = AllocatedNum::pack_bits_to_element(
             cs.namespace(|| "diff_num_repacked"),
             &bits[0..(E::Fr::CAPACITY as usize - 1)],
         )
-        .map_err(|_| RuntimeError::SynthesisError)?;
+        .map_err(RuntimeError::SynthesisError)?;
 
         let lt = AllocatedNum::equals(cs.namespace(|| "equals"), &diff_num, &diff_num_repacked)
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         Ok(ConstrainedElement {
             value: lt.get_value_field::<E>(),
@@ -572,15 +572,15 @@ where
         let l_num = AllocatedNum::alloc(cs.namespace(|| "l_num"), || {
             left.value.ok_or(SynthesisError::AssignmentMissing)
         })
-        .map_err(|_| RuntimeError::SynthesisError)?;
+        .map_err(RuntimeError::SynthesisError)?;
 
         let r_num = AllocatedNum::alloc(cs.namespace(|| "r_num"), || {
             right.value.ok_or(SynthesisError::AssignmentMissing)
         })
-        .map_err(|_| RuntimeError::SynthesisError)?;
+        .map_err(RuntimeError::SynthesisError)?;
 
         let eq =
-            AllocatedNum::equals(cs, &l_num, &r_num).map_err(|_| RuntimeError::SynthesisError)?;
+            AllocatedNum::equals(cs, &l_num, &r_num).map_err(RuntimeError::SynthesisError)?;
 
         Ok(ConstrainedElement {
             value: eq.get_value_field::<E>(),
@@ -639,7 +639,7 @@ where
                 || "variable",
                 || value.ok_or(SynthesisError::AssignmentMissing),
             )
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         // Selected, Right, Left, Condition
         // s = r + c * (l - r)
@@ -663,7 +663,7 @@ where
         let mut cs = self.cs_namespace();
         let inverse_variable = cs
             .alloc(|| "inverse", || value)
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         cs.enforce(
             || "assertion",

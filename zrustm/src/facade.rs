@@ -48,7 +48,7 @@ pub fn setup<E: Engine + Debug>(
     };
 
     groth16::generate_random_parameters::<E, VMCircuit, ThreadRng>(circuit, rng)
-        .map_err(|_| RuntimeError::SynthesisError)
+        .map_err(RuntimeError::SynthesisError)
 }
 
 pub fn prove<E: Engine + Debug>(
@@ -67,7 +67,7 @@ pub fn prove<E: Engine + Debug>(
         };
 
         let proof = groth16::create_random_proof(circuit, params, rng)
-            .map_err(|_| RuntimeError::SynthesisError)?;
+            .map_err(RuntimeError::SynthesisError)?;
 
         (result, proof)
     };
