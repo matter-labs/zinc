@@ -5,6 +5,7 @@ pub mod noop;
 pub mod push;
 pub mod pop;
 pub mod copy;
+pub mod copy_global;
 
 pub mod cast;
 
@@ -33,6 +34,7 @@ pub mod r#loop;
 pub mod func;
 
 pub mod assert;
+pub mod dbg;
 pub mod push_condition;
 pub mod pop_condition;
 

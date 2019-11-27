@@ -5,9 +5,9 @@ pub mod vlq;
 pub use decode::*;
 pub use instructions::*;
 
-use std::fmt::Debug;
+use std::fmt;
 
-pub trait InstructionInfo: PartialEq + Debug + Sized {
+pub trait InstructionInfo: PartialEq + fmt::Debug + Sized {
     fn to_assembly(&self) -> String;
     fn code() -> InstructionCode;
     fn encode(&self) -> Vec<u8>;
@@ -32,6 +32,7 @@ pub enum InstructionCode {
     Push,
     Pop,
     Copy,
+    CopyGlobal,
 
     // Arithmetic
     Add,
@@ -68,6 +69,7 @@ pub enum InstructionCode {
 
     // Condition utils
     Assert,
+    Log,
     PushCondition,
     PopCondition,
 
@@ -82,6 +84,7 @@ pub enum Instruction {
     Push(Push),
     Pop(Pop),
     Copy(Copy),
+    CopyGlobal(CopyGlobal),
 
     // Arithmetic
     Add(Add),
@@ -118,6 +121,7 @@ pub enum Instruction {
 
     // Condition utils
     Assert(Assert),
+    Log(Dbg),
     PushCondition(PushCondition),
     PopCondition(PopCondition),
 
@@ -142,6 +146,7 @@ macro_rules! dispatch_instruction {
             Instruction::Push($pattern) => $expression,
             Instruction::Pop($pattern) => $expression,
             Instruction::Copy($pattern) => $expression,
+            Instruction::CopyGlobal($pattern) => $expression,
 
             Instruction::Add($pattern) => $expression,
             Instruction::Sub($pattern) => $expression,
@@ -173,6 +178,7 @@ macro_rules! dispatch_instruction {
             Instruction::Return($pattern) => $expression,
 
             Instruction::Assert($pattern) => $expression,
+            Instruction::Log($pattern) => $expression,
             Instruction::PushCondition($pattern) => $expression,
             Instruction::PopCondition($pattern) => $expression,
 

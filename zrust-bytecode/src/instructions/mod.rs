@@ -5,6 +5,7 @@ mod noop;
 mod push;
 mod pop;
 mod copy;
+mod copy_global;
 
 mod add;
 mod sub;
@@ -36,6 +37,7 @@ mod call;
 mod ret;
 
 mod assert;
+mod dbg;
 mod push_condition;
 mod pop_condition;
 
@@ -46,6 +48,7 @@ pub use noop::NoOperation;
 pub use push::Push;
 pub use pop::Pop;
 pub use copy::Copy;
+pub use copy_global::CopyGlobal;
 
 pub use add::Add;
 pub use sub::Sub;
@@ -77,6 +80,7 @@ pub use call::Call;
 pub use ret::Return;
 
 pub use assert::Assert;
+pub use dbg::Dbg;
 pub use push_condition::PushCondition;
 pub use pop_condition::PopCondition;
 
