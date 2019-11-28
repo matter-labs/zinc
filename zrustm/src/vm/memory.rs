@@ -3,29 +3,33 @@ use crate::RuntimeError;
 
 /// StackFrame is a data structure that represents the state of function execution.
 #[derive(Debug, Clone)]
-pub struct StackFrame<E: Element> {
-    arguments: Vec<E>,
+pub struct Memory<E: Element> {
+//    arguments: Vec<E>,
     stack: Vec<E>,
     storage: Vec<Option<E>>,
 }
 
 
-impl<E: Element> StackFrame<E> {
+impl<E: Element> Memory<E> {
     /// Initialize new stack frame with given arguments.
     pub fn new(arguments: &[E]) -> Self {
         Self {
-            arguments: Vec::from(arguments),
             stack: Vec::from(arguments),
-            storage: vec![]
+            storage: {
+                arguments
+                    .iter()
+                    .map(|arg| Some((*arg).clone()))
+                    .collect()
+            },
         }
     }
 
-    /// Get argument by it's index.
-    pub fn argument(&mut self, index: usize) -> Result<E, RuntimeError>  {
-        self.arguments.get(index)
-            .ok_or(RuntimeError::MissingArgument)
-            .map(|value| (*value).clone())
-    }
+//    /// Get argument by it's index.
+//    pub fn argument(&mut self, index: usize) -> Result<E, RuntimeError>  {
+//        self.arguments.get(index)
+//            .ok_or(RuntimeError::MissingArgument)
+//            .map(|value| (*value).clone())
+//    }
 
     /// Push value onto evaluation stack.
     pub fn push(&mut self, value: E) -> Result<(), RuntimeError> {

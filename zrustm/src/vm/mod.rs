@@ -1,10 +1,10 @@
-mod stack_frame;
+mod memory;
 
 use crate::element::{Element, ElementOperator};
 use num_bigint::BigInt;
 use zrust_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 use franklin_crypto::bellman::SynthesisError;
-use crate::vm::stack_frame::StackFrame;
+use crate::vm::memory::Memory;
 
 pub trait VMInstruction<E, O>: InstructionInfo
 where
@@ -41,15 +41,16 @@ struct Loop {
     io_size: usize,
 }
 
-#[derive(Debug, Copy, Clone)]
-struct Function {
-    return_address: usize,
+#[derive(Debug)]
+enum Block {
+    Loop(Loop),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct Frame<E: Element> {
-    memory: StackFrame<E>,
+    memory: Memory<E>,
     return_address: usize,
+    blocks: Vec<Block>
 }
 
 pub struct VirtualMachine<E: Element, O: ElementOperator<E>> {
@@ -118,8 +119,9 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
                 arguments.push(var);
             }
             self.frames.push(Frame {
-                memory: StackFrame::new(arguments.as_slice()),
+                memory: Memory::new(arguments.as_slice()),
                 return_address: 0,
+                blocks: vec![]
             });
 
             Ok(())
@@ -130,8 +132,9 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
                 arguments.push(var);
             }
             self.frames.push(Frame {
-                memory: StackFrame::new(arguments.as_slice()),
+                memory: Memory::new(arguments.as_slice()),
                 return_address: 0,
+                blocks: vec![]
             });
 
             Ok(())
@@ -176,8 +179,9 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
         }
 
         self.frames.push(Frame {
-            memory: StackFrame::new(arguments.as_slice()),
+            memory: Memory::new(arguments.as_slice()),
             return_address: self.instruction_counter,
+            blocks: vec![]
         });
         self.instruction_counter = address;
         Ok(())
@@ -223,7 +227,7 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             .ok_or(RuntimeError::StackUnderflow)
     }
 
-    pub fn frame(&mut self) -> Result<&mut StackFrame<E>, RuntimeError> {
+    pub fn frame(&mut self) -> Result<&mut Memory<E>, RuntimeError> {
         let frame = self.frames.last_mut().ok_or(RuntimeError::StackUnderflow)?;
         Ok(&mut frame.memory)
     }
