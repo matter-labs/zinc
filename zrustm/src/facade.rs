@@ -74,7 +74,7 @@ pub fn prove<E: Engine + Debug>(
     };
 
     match result {
-        None => Err(RuntimeError::InternalError),
+        None => Err(RuntimeError::InternalError("circuit hasn't generate outputs".into())),
         Some(res) => match res {
             Ok(_) => Ok(proof),
             Err(err) => Err(err),

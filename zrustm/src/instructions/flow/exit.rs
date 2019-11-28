@@ -18,16 +18,16 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-    use zrust_bytecode::*;
-
-    #[test]
-    fn test_exit() -> Result<(), TestingError> {
-        VMTestRunner::new()
-            .add(PushConst { value: 1.into() })
-            .add(Exit::new(0))
-            .add(PushConst { value: 2.into() })
-            .test(&[1])
-    }
+//    use super::*;
+//    use crate::instructions::testing_utils::{TestingError, VMTestRunner};
+//    use zrust_bytecode::*;
+//
+//    #[test]
+//    fn test_exit() -> Result<(), TestingError> {
+//        VMTestRunner::new()
+//            .add(PushConst { value: 1.into() })
+//            .add(Exit::new(0))
+//            .add(PushConst { value: 2.into() })
+//            .test(&[1])
+//    }
 }

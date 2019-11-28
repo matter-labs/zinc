@@ -129,7 +129,8 @@ where
     }
 
     fn variable_bigint(&mut self, value: &BigInt) -> Result<ConstrainedElement<E>, RuntimeError> {
-        let value = utils::bigint_to_fr::<E>(value).ok_or(RuntimeError::InternalError)?;
+        let value = utils::bigint_to_fr::<E>(value)
+            .ok_or_else(|| RuntimeError::InternalError("bigint_to_fr".into()))?;
 
         let mut cs = self.cs_namespace();
 
@@ -144,7 +145,8 @@ where
     }
 
     fn constant_bigint(&mut self, value: &BigInt) -> Result<ConstrainedElement<E>, RuntimeError> {
-        let value = utils::bigint_to_fr::<E>(value).ok_or(RuntimeError::InternalError)?;
+        let value = utils::bigint_to_fr::<E>(value)
+            .ok_or_else(|| RuntimeError::InternalError("bigint_to_fr".into()))?;
 
         let mut cs = self.cs_namespace();
 

@@ -11,7 +11,7 @@ where
     O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let value = vm.stack_pop()?;
+        let value = vm.frame()?.pop()?;
         let c = vm.condition_top()?;
         let not_c = vm.get_operator().not(c)?;
         let cond_value = vm.get_operator().or(value, not_c)?;
@@ -45,10 +45,10 @@ mod tests {
             Err(TestingError::RuntimeError(err)) => {
                 match err {
                     RuntimeError::AssertionError => {},
-                    _ => assert!(false, "Expected AssertionError"),
+                    _ => panic!("Expected AssertionError"),
                 }
             },
-            _ => assert!(false, "Expected AssertionError"),
+            _ => panic!("Expected AssertionError"),
         }
     }
 

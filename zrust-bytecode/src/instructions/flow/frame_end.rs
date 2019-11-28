@@ -3,6 +3,7 @@ use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 
 #[derive(Debug, PartialEq, Clone)]
+#[deprecated(note = "dont use frames")]
 pub struct FrameEnd {
     pub outputs_count: usize,
 }

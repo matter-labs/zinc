@@ -11,8 +11,8 @@ where
     O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let value = vm.stack_get(self.index)?;
-        vm.stack_push(value)
+        let value = vm.frame()?.copy(self.index)?;
+        vm.frame()?.push(value)
     }
 }
 

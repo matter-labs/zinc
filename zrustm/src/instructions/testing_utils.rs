@@ -19,14 +19,17 @@ fn new_test_constrained_vm() -> TestVirtualMachine {
     TestVirtualMachine::new(op)
 }
 
-fn assert_stack_eq<E, O, BI>(vm: &VirtualMachine<E, O>, expected_stack: &[BI])
+fn assert_stack_eq<E, O, BI>(vm: &mut VirtualMachine<E, O>, expected_stack: &[BI])
 where
     E: Element,
     O: ElementOperator<E>,
     BI: Into<BigInt> + Copy,
 {
-    for (i, expected) in expected_stack.iter().rev().enumerate() {
-        let value = vm.stack_get(i).expect("expected stack value is missing");
+    for (i, expected) in expected_stack.iter().enumerate() {
+        let value = vm
+            .frame().expect("expected frame is missing")
+            .pop().expect("expected stack value is missing");
+
         assert_eq!(
             value.to_bigint(),
             Some(expected.clone().into()),
@@ -82,7 +85,7 @@ impl VMTestRunner {
         vm.run(instructions.as_mut_slice(), Some(&[]))
             .map_err(TestingError::RuntimeError)?;
 
-        assert_stack_eq(&vm, expected_stack);
+        assert_stack_eq(&mut vm, expected_stack);
 
         Ok(())
     }
@@ -104,7 +107,7 @@ impl VMTestRunner {
         let unconstrained = cs.find_unconstrained();
         let satisfied = cs.is_satisfied();
 
-        assert_stack_eq(&vm, expected_stack);
+        assert_stack_eq(&mut vm, expected_stack);
 
         if unconstrained != "" {
             Err(TestingError::Unconstrained(unconstrained))

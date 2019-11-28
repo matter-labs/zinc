@@ -1,6 +1,7 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
 
 #[derive(Debug, PartialEq, Default, Clone)]
+#[deprecated(note = "dont use frames")]
 pub struct FrameBegin;
 
 impl InstructionInfo for FrameBegin {

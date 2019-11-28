@@ -1,8 +1,10 @@
+mod stack_frame;
+
 use crate::element::{Element, ElementOperator};
-use crate::vm::RuntimeError::StackUnderflow;
 use num_bigint::BigInt;
 use zrust_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 use franklin_crypto::bellman::SynthesisError;
+use crate::vm::stack_frame::StackFrame;
 
 pub trait VMInstruction<E, O>: InstructionInfo
 where
@@ -14,13 +16,12 @@ where
 
 #[derive(Debug)]
 pub enum RuntimeError {
-    InvalidOperation(u8),
     InvalidArguments,
     StackUnderflow,
     StackOverflow,
     UnexpectedEndOfFile,
     SynthesisError(SynthesisError),
-    InternalError,
+    InternalError(String),
     IntegerOverflow,
     UnexpectedLoopExit,
     UnexpectedReturn,
@@ -28,37 +29,32 @@ pub enum RuntimeError {
     AssertionError,
     FirstInstructionNotCall,
     WrongInputsCount,
-    StackIndexOutOfRange
+    StackIndexOutOfRange,
+    UninitializedStorageAccess,
+    MissingArgument,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 struct Loop {
     first_instruction_index: usize,
     iterations_left: usize,
     io_size: usize,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 struct Function {
     return_address: usize,
 }
 
-enum Scope {
-    Loop(Loop),
-    Function(Function),
-}
-
-#[derive(Clone)]
-struct Frame {
-    frame_address: usize,
-    index_address: usize,
+#[derive(Debug, Clone)]
+struct Frame<E: Element> {
+    memory: StackFrame<E>,
+    return_address: usize,
 }
 
 pub struct VirtualMachine<E: Element, O: ElementOperator<E>> {
     instruction_counter: usize,
-    stack: Vec<E>,
-    frames: Vec<Frame>,
-    scopes: Vec<Scope>,
+    frames: Vec<Frame<E>>,
     operator: O,
     conditions: Vec<E>,
     outputs: Vec<E>,
@@ -68,39 +64,11 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     pub fn new(operator: O) -> Self {
         Self {
             instruction_counter: 0,
-            stack: vec![],
-            frames: vec![Frame {
-                frame_address: 0,
-                index_address: 0,
-            }],
-            scopes: vec![],
+            frames: vec![],
             operator,
             conditions: vec![],
             outputs: vec![],
         }
-    }
-
-    pub fn stack_push(&mut self, element: E) -> Result<(), RuntimeError> {
-        self.stack.push(element);
-        Ok(())
-    }
-
-    pub fn stack_pop(&mut self) -> Result<E, RuntimeError> {
-        let frame = self.frames.last().ok_or(RuntimeError::StackUnderflow)?;
-
-        if self.stack.len() > frame.frame_address {
-            self.stack.pop().ok_or(RuntimeError::InternalError)
-        } else {
-            Err(RuntimeError::StackUnderflow)
-        }
-    }
-
-    pub fn stack_get(&self, index: usize) -> Result<E, RuntimeError> {
-        let frame = self.frames.last().ok_or(RuntimeError::StackUnderflow)?;
-        self.stack
-            .get(frame.index_address + index)
-            .ok_or(RuntimeError::StackIndexOutOfRange)
-            .map(|e| (*e).clone())
     }
 
     pub fn run(
@@ -112,7 +80,7 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
         self.condition_push(one)?;
 
         if let Some(instruction) = instructions.first() {
-            self.push_inputs(instruction, inputs)?;
+            self.push_root_frame(instruction, inputs)?;
         }
 
         while self.instruction_counter < instructions.len() {
@@ -129,7 +97,7 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
         self.get_outputs()
     }
 
-    fn push_inputs(
+    fn push_root_frame(
         &mut self,
         instruction: &Instruction,
         inputs: Option<&[BigInt]>,
@@ -144,17 +112,28 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
                 return Err(RuntimeError::WrongInputsCount);
             }
 
+            let mut arguments = Vec::new();
             for value in values.iter() {
                 let var = self.operator.variable_bigint(value)?;
-                self.stack_push(var)?;
+                arguments.push(var);
             }
+            self.frames.push(Frame {
+                memory: StackFrame::new(arguments.as_slice()),
+                return_address: 0,
+            });
 
             Ok(())
         } else {
+            let mut arguments = Vec::new();
             for _ in 0..call.inputs_count {
                 let var = self.operator.variable_none()?;
-                self.stack_push(var)?;
+                arguments.push(var);
             }
+            self.frames.push(Frame {
+                memory: StackFrame::new(arguments.as_slice()),
+                return_address: 0,
+            });
+
             Ok(())
         }
     }
@@ -171,108 +150,61 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     }
 
     fn stack_to_string(&self) -> String {
-        let mut s = String::new();
-        for e in self.stack.iter().rev() {
-            s += format!("{} ", e).as_str();
-        }
-        s
+        format!("{:?}", self.frames.last())
     }
 
     pub fn get_operator(&mut self) -> &mut O {
         &mut self.operator
     }
 
-    /// Take `inputs_count` values from current frame and push them into new one.
-    pub fn frame_push(&mut self, inputs_count: usize, new_scope: bool) -> Result<(), RuntimeError> {
-        let old_frame = self.frames.last().ok_or(RuntimeError::StackUnderflow)?;
-        let new_frame = {
-            let address = self
-                .stack
-                .len()
-                .checked_sub(inputs_count)
-                .ok_or(RuntimeError::StackUnderflow)?;
-            Frame {
-                frame_address: address,
-                index_address: if new_scope { address } else { old_frame.index_address },
-            }
-        };
-        if new_frame.frame_address < old_frame.frame_address {
-            return Err(RuntimeError::StackUnderflow);
-        }
-        self.frames.push(new_frame);
-        Ok(())
-    }
 
-    /// Drop current frame and push `outputs_count` top values into the frame below.
-    pub fn frame_pop(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
-        let frame = self.frames.pop().ok_or(RuntimeError::StackUnderflow)?;
-        let outputs_address = self
-            .stack
-            .len()
-            .checked_sub(outputs_count)
-            .ok_or(RuntimeError::StackUnderflow)?;
-
-        if outputs_address < frame.frame_address {
-            return Err(RuntimeError::StackUnderflow);
-        }
-
-        let mut outputs = Vec::from(&self.stack[outputs_address..]);
-        self.stack.truncate(frame.frame_address);
-        self.stack.append(&mut outputs);
-
-        Ok(())
-    }
-
-    pub fn loop_begin(&mut self, iterations: usize, io_size: usize) -> Result<(), RuntimeError> {
-        let loop_frame = Loop {
-            first_instruction_index: self.instruction_counter,
-            iterations_left: iterations - 1,
-            io_size,
-        };
-        self.scopes.push(Scope::Loop(loop_frame));
-        self.frame_push(io_size, false)?;
-
-        Ok(())
+    pub fn loop_begin(&mut self, _iterations: usize, _io_size: usize) -> Result<(), RuntimeError> {
+       unimplemented!("loop_begin")
     }
 
     pub fn loop_end(&mut self) -> Result<(), RuntimeError> {
-        let mut frame = match self.scopes.pop() {
-            Some(Scope::Loop(frame)) => Ok(frame),
-            _ => Err(RuntimeError::UnexpectedLoopExit),
-        }?;
-
-        self.frame_pop(frame.io_size)?;
-
-        if frame.iterations_left != 0 {
-            frame.iterations_left -= 1;
-            self.frame_push(frame.io_size, false)?;
-            self.instruction_counter = frame.first_instruction_index;
-            self.scopes.push(Scope::Loop(frame));
-        }
-
-        Ok(())
+        unimplemented!("loop_end")
     }
 
     pub fn call(&mut self, address: usize, inputs_count: usize) -> Result<(), RuntimeError> {
-        let frame = Function {
+        let frame = self.frames.last_mut().unwrap();
+
+        let mut arguments = Vec::new();
+        for _ in 0..inputs_count {
+            let arg = frame.memory.pop()?;
+            arguments.push(arg);
+        }
+
+        self.frames.push(Frame {
+            memory: StackFrame::new(arguments.as_slice()),
             return_address: self.instruction_counter,
-        };
-        self.frame_push(inputs_count, true)?;
-        self.scopes.push(Scope::Function(frame));
+        });
         self.instruction_counter = address;
         Ok(())
     }
 
     pub fn ret(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
-        let frame = match self.scopes.pop() {
-            Some(Scope::Function(loop_frame)) => Ok(loop_frame),
-            _ => Err(RuntimeError::UnexpectedReturn),
+        let mut old_frame = match self.frames.pop() {
+            Some(frame) => Ok(frame),
+            None => Err(RuntimeError::InternalError("Root frame is missing".into())),
         }?;
 
-        self.frame_pop(outputs_count)?;
-        self.instruction_counter = frame.return_address;
+        let mut outputs = Vec::new();
+        for _ in 0..outputs_count {
+            let output = old_frame.memory.pop()?;
+            outputs.push(output);
+        }
 
-        Ok(())
+        match self.frames.last_mut() {
+            Some(frame) => {
+                for v in outputs.iter() {
+                    frame.memory.push((*v).clone())?;
+                }
+                self.instruction_counter = old_frame.return_address;
+                Ok(())
+            },
+            None => Err(RuntimeError::UnexpectedReturn),
+        }
     }
 
     pub fn condition_push(&mut self, element: E) -> Result<(), RuntimeError> {
@@ -291,14 +223,24 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             .ok_or(RuntimeError::StackUnderflow)
     }
 
+    pub fn frame(&mut self) -> Result<&mut StackFrame<E>, RuntimeError> {
+        let frame = self.frames.last_mut().ok_or(RuntimeError::StackUnderflow)?;
+        Ok(&mut frame.memory)
+    }
+
     pub fn exit(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
-        if self.stack.len() < outputs_count {
-            return Err(StackUnderflow);
+        let mut old_frame = match self.frames.pop() {
+            Some(frame) => Ok(frame),
+            None => Err(RuntimeError::InternalError("Root frame is missing".into())),
+        }?;
+
+        let mut outputs = Vec::new();
+        for _ in 0..outputs_count {
+            let output = old_frame.memory.pop()?;
+            outputs.push(output);
         }
 
-        let index = self.stack.len() - outputs_count;
-        self.outputs = Vec::from(&self.stack[index..]);
-
+        self.outputs = outputs;
         self.instruction_counter = std::usize::MAX;
         Ok(())
     }

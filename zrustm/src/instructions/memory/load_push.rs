@@ -10,7 +10,10 @@ impl<E, O> VMInstruction<E, O> for LoadPush
         E: Element,
         O: ElementOperator<E>,
 {
-    fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        unimplemented!()
+    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+        let frame = vm.frame()?;
+
+        let value = frame.load(self.index)?;
+        frame.push(value)
     }
 }
