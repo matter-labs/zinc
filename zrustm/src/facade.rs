@@ -1,7 +1,6 @@
 use crate::element::utils::bigint_to_fr;
 use crate::element::ConstrainedElementOperator;
 use crate::vm::VirtualMachine;
-use crate::RuntimeError;
 use bellman::groth16;
 use bellman::pairing::bn256::Bn256;
 use bellman::pairing::Engine;
@@ -12,6 +11,8 @@ use num_bigint::BigInt;
 use rand::ThreadRng;
 use std::fmt::Debug;
 use zrust_bytecode::Instruction;
+
+pub use crate::vm::RuntimeError;
 
 struct VMCircuit<'a, 'b, 'c> {
     code: &'a [Instruction],
@@ -84,7 +85,7 @@ pub fn prove<E: Engine + Debug>(
 #[derive(Debug)]
 pub enum VerificationError {
     InputFormatError,
-    SynthesisError,
+    SynthesisError(SynthesisError),
 }
 
 pub fn verify<E: Engine + Debug>(
@@ -100,7 +101,7 @@ pub fn verify<E: Engine + Debug>(
 
     let key = groth16::prepare_verifying_key(&params.vk);
     let success = groth16::verify_proof(&key, proof, pub_inputs_fr.as_slice())
-        .map_err(|_| VerificationError::SynthesisError)?;
+        .map_err(VerificationError::SynthesisError)?;
 
     Ok(success)
 }
