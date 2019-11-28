@@ -41,10 +41,15 @@ mod tests {
             .add(Assert)
             .test::<i32>(&[]);
 
-        assert_eq!(
-            res.unwrap_err(),
-            TestingError::RuntimeError(RuntimeError::AssertionError)
-        );
+        match res {
+            Err(TestingError::RuntimeError(err)) => {
+                match err {
+                    RuntimeError::AssertionError => {},
+                    _ => assert!(false, "Expected AssertionError"),
+                }
+            },
+            _ => assert!(false, "Expected AssertionError"),
+        }
     }
 
     #[test]

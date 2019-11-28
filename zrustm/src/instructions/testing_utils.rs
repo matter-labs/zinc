@@ -36,7 +36,7 @@ where
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub enum TestingError {
     DecodingError(DecodingError),
     RuntimeError(RuntimeError),
