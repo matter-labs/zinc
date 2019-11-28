@@ -2,11 +2,11 @@ pub mod utils;
 
 mod memory;
 mod flow;
-mod operators;
+mod builtins;
 
 pub use memory::*;
 pub use flow::*;
-pub use operators::*;
+pub use builtins::*;
 
 mod noop;
 mod cast;
