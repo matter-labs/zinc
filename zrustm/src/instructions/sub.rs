@@ -28,8 +28,8 @@ mod test {
     #[test]
     fn test_sub() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(Push { value: 1.into() })
-            .add(Push { value: 2.into() })
+            .add(PushConst { value: 1.into() })
+            .add(PushConst { value: 2.into() })
             .add(Sub)
             .test(&[1])
     }

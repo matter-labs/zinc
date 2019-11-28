@@ -29,14 +29,14 @@ mod test {
     #[test]
     fn test_ne() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(Push { value: 1.into() })
-            .add(Push { value: 2.into() })
+            .add(PushConst { value: 1.into() })
+            .add(PushConst { value: 2.into() })
             .add(Ne)
-            .add(Push { value: 2.into() })
-            .add(Push { value: 2.into() })
+            .add(PushConst { value: 2.into() })
+            .add(PushConst { value: 2.into() })
             .add(Ne)
-            .add(Push { value: 2.into() })
-            .add(Push { value: 1.into() })
+            .add(PushConst { value: 2.into() })
+            .add(PushConst { value: 1.into() })
             .add(Ne)
             .test(&[1, 0, 1])
     }

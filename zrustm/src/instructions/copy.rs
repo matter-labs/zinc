@@ -25,9 +25,9 @@ mod tests {
     #[test]
     fn test_copy() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(Push { value: 1.into() })
-            .add(Push { value: 2.into() })
-            .add(Push { value: 3.into() })
+            .add(PushConst { value: 1.into() })
+            .add(PushConst { value: 2.into() })
+            .add(PushConst { value: 3.into() })
             .add(Copy::new(0))
             .add(Copy::new(2))
             .test(&[3, 1, 3, 2, 1])

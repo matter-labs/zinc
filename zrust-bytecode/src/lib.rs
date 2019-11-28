@@ -29,10 +29,14 @@ pub enum InstructionCode {
     NoOperation,
 
     // Stack
-    Push,
+    PushConst,
     Pop,
     Copy,
     CopyGlobal,
+
+    // Storage
+    LoadPush,
+    PopStore,
 
     // Arithmetic
     Add,
@@ -81,10 +85,14 @@ pub enum Instruction {
     NoOperation(NoOperation),
 
     // Stack
-    Push(Push),
+    PushConst(PushConst),
     Pop(Pop),
     Copy(Copy),
     CopyGlobal(CopyGlobal),
+
+    // Storage
+    LoadPush(LoadPush),
+    PopStore(PopStore),
 
     // Arithmetic
     Add(Add),
@@ -143,10 +151,12 @@ macro_rules! dispatch_instruction {
         match $pattern {
             Instruction::NoOperation($pattern) => $expression,
 
-            Instruction::Push($pattern) => $expression,
+            Instruction::PushConst($pattern) => $expression,
             Instruction::Pop($pattern) => $expression,
             Instruction::Copy($pattern) => $expression,
             Instruction::CopyGlobal($pattern) => $expression,
+            Instruction::LoadPush($pattern) => $expression,
+            Instruction::PopStore($pattern) => $expression,
 
             Instruction::Add($pattern) => $expression,
             Instruction::Sub($pattern) => $expression,

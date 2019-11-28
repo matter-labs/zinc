@@ -29,8 +29,8 @@ mod tests {
     #[test]
     fn test_add() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(Push { value: 1.into() })
-            .add(Push { value: 2.into() })
+            .add(PushConst { value: 1.into() })
+            .add(PushConst { value: 2.into() })
             .add(Add)
             .test(&[3])
     }

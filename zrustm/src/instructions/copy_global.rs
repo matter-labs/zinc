@@ -25,9 +25,9 @@ mod tests {
     #[test]
     fn test_copy_global() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(Push { value: 1.into() })
-            .add(Push { value: 2.into() })
-            .add(Push { value: 3.into() })
+            .add(PushConst { value: 1.into() })
+            .add(PushConst { value: 2.into() })
+            .add(PushConst { value: 3.into() })
             .add(CopyGlobal::new(0))
             .add(CopyGlobal::new(2))
             .test(&[3, 1, 3, 2, 1])

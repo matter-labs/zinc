@@ -29,7 +29,7 @@ mod tests {
     #[test]
     fn test_assert_ok() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(Push { value: 1.into() })
+            .add(PushConst { value: 1.into() })
             .add(Assert)
             .test::<i32>(&[])
     }
@@ -37,7 +37,7 @@ mod tests {
     #[test]
     fn test_assert_fail() {
         let res = VMTestRunner::new()
-            .add(Push { value: 0.into() })
+            .add(PushConst { value: 0.into() })
             .add(Assert)
             .test::<i32>(&[]);
 
@@ -50,9 +50,9 @@ mod tests {
     #[test]
     fn test_assert_in_condition() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(Push { value: 0.into() })
+            .add(PushConst { value: 0.into() })
             .add(PushCondition)
-            .add(Push { value: 0.into() })
+            .add(PushConst { value: 0.into() })
             .add(Assert)
             .add(PopCondition)
             .test::<i32>(&[])

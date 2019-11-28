@@ -3,6 +3,7 @@ use num_bigint::ToBigInt;
 use num_traits::ToPrimitive;
 
 #[derive(Debug, PartialEq, Clone)]
+#[deprecated(note = "Use storage instead!")]
 pub struct Copy {
     pub index: usize,
 }

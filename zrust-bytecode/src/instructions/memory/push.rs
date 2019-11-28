@@ -1,34 +1,37 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
 use num_bigint::BigInt;
 
+#[deprecated(note = "Use PushConst")]
+pub type Push = PushConst;
+
 #[derive(Debug, PartialEq, Clone)]
-pub struct Push {
+pub struct PushConst {
     pub value: BigInt,
 }
 
-impl Push {
+impl PushConst {
     pub fn new(value: BigInt, _signed: bool, _bit_length: usize) -> Self {
-        Push { value }
+        PushConst { value }
     }
 }
 
-impl InstructionInfo for Push {
+impl InstructionInfo for PushConst {
     fn to_assembly(&self) -> String {
         format!("push {}", self.value)
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::Push
+        InstructionCode::PushConst
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_vlq_argument(InstructionCode::Push, &self.value)
+        utils::encode_with_vlq_argument(InstructionCode::PushConst, &self.value)
     }
 
-    fn decode(bytes: &[u8]) -> Result<(Push, usize), DecodingError> {
-        let (value, len) = utils::decode_with_vlq_argument(InstructionCode::Push, bytes)?;
+    fn decode(bytes: &[u8]) -> Result<(PushConst, usize), DecodingError> {
+        let (value, len) = utils::decode_with_vlq_argument(InstructionCode::PushConst, bytes)?;
 
-        Ok((Push { value }, len))
+        Ok((PushConst { value }, len))
     }
 
     fn inputs_count(&self) -> usize {
@@ -40,6 +43,6 @@ impl InstructionInfo for Push {
     }
 
     fn wrap(&self) -> Instruction {
-        Instruction::Push((*self).clone())
+        Instruction::PushConst((*self).clone())
     }
 }

@@ -20,12 +20,12 @@ where
 mod tests {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-    use zrust_bytecode::{Push, PushCondition};
+    use zrust_bytecode::{PushConst, PushCondition};
 
     #[test]
     fn test_pop_condition() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(Push { value: 0.into() })
+            .add(PushConst { value: 0.into() })
             .add(PushCondition)
             .add(PopCondition)
             .test::<i32>(&[])

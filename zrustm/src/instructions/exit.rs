@@ -25,9 +25,9 @@ mod tests {
     #[test]
     fn test_exit() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(Push { value: 1.into() })
+            .add(PushConst { value: 1.into() })
             .add(Exit::new(0))
-            .add(Push { value: 2.into() })
+            .add(PushConst { value: 2.into() })
             .test(&[1])
     }
 }

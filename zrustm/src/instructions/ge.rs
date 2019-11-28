@@ -29,14 +29,14 @@ mod test {
     #[test]
     fn test_ge() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(Push { value: 1.into() })
-            .add(Push { value: 2.into() })
+            .add(PushConst { value: 1.into() })
+            .add(PushConst { value: 2.into() })
             .add(Ge)
-            .add(Push { value: 2.into() })
-            .add(Push { value: 2.into() })
+            .add(PushConst { value: 2.into() })
+            .add(PushConst { value: 2.into() })
             .add(Ge)
-            .add(Push { value: 2.into() })
-            .add(Push { value: 1.into() })
+            .add(PushConst { value: 2.into() })
+            .add(PushConst { value: 1.into() })
             .add(Ge)
             .test(&[0, 1, 1])
     }

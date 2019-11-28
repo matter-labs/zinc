@@ -29,18 +29,18 @@ where
 mod test {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-    use zrust_bytecode::{Add, Push, Copy};
+    use zrust_bytecode::{Add, PushConst, Copy};
 
     #[test]
     fn test_loop() -> Result<(), TestingError> {
         let _ = env_logger::builder().is_test(true).try_init();
 
         VMTestRunner::new()
-            .add(Push { value: 42.into() })
-            .add(Push { value: 0.into() })
+            .add(PushConst { value: 42.into() })
+            .add(PushConst { value: 0.into() })
             .add(LoopBegin::new(10, 1))
             .add(Copy::new(1))
-            .add(Push { value: 1.into() })
+            .add(PushConst { value: 1.into() })
             .add(Add)
             .add(LoopEnd)
             .test(&[10, 42])

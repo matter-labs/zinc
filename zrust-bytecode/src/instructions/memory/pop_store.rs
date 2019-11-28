@@ -2,34 +2,35 @@ use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo}
 use num_bigint::ToBigInt;
 use num_traits::ToPrimitive;
 
+/// Removes value from the top of the stack and stores it in the storage.
 #[derive(Debug, PartialEq, Clone)]
-pub struct CopyGlobal {
+pub struct PopStore {
     pub index: usize,
 }
 
-impl CopyGlobal {
+impl PopStore {
     pub fn new(index: usize) -> Self {
         Self { index }
     }
 }
 
-impl InstructionInfo for CopyGlobal {
+impl InstructionInfo for PopStore {
     fn to_assembly(&self) -> String {
-        format!("copy_global {}", self.index)
+        format!("load_push {}", self.index)
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::CopyGlobal
+        InstructionCode::PopStore
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_vlq_argument(InstructionCode::CopyGlobal, &self.index.to_bigint().unwrap())
+        utils::encode_with_vlq_argument(InstructionCode::PopStore, &self.index.to_bigint().unwrap())
     }
 
-    fn decode(bytes: &[u8]) -> Result<(CopyGlobal, usize), DecodingError> {
-        let (value, len) = utils::decode_with_vlq_argument(InstructionCode::CopyGlobal, bytes)?;
+    fn decode(bytes: &[u8]) -> Result<(PopStore, usize), DecodingError> {
+        let (value, len) = utils::decode_with_vlq_argument(InstructionCode::PopStore, bytes)?;
         let index = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
-        Ok((CopyGlobal { index }, len))
+        Ok((PopStore { index }, len))
     }
 
     fn inputs_count(&self) -> usize {
@@ -41,6 +42,6 @@ impl InstructionInfo for CopyGlobal {
     }
 
     fn wrap(&self) -> Instruction {
-        Instruction::CopyGlobal((*self).clone())
+        Instruction::PopStore((*self).clone())
     }
 }

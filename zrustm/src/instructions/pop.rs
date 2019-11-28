@@ -28,20 +28,20 @@ mod test {
     #[test]
     fn test_pop() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(Push {
+            .add(PushConst {
                 value: BigInt::from(1),
             })
-            .add(Push {
+            .add(PushConst {
                 value: BigInt::from(2),
             })
             .add(Pop::new(1))
-            .add(Push {
+            .add(PushConst {
                 value: BigInt::from(3),
             })
-            .add(Push {
+            .add(PushConst {
                 value: BigInt::from(4),
             })
-            .add(Push {
+            .add(PushConst {
                 value: BigInt::from(5),
             })
             .add(Pop::new(2))

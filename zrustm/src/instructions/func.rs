@@ -47,9 +47,9 @@ mod tests {
             .add(ConditionalSelect)
             .add(Return::new(1))
             // func main
-            .add(Push { value: 42.into() })
-            .add(Push { value: 5.into() })
-            .add(Push { value: 3.into() })
+            .add(PushConst { value: 42.into() })
+            .add(PushConst { value: 5.into() })
+            .add(PushConst { value: 3.into() })
             .add(Call::new(2, 2))
             .test(&[3, 42])
     }
