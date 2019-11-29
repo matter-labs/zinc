@@ -45,8 +45,8 @@ impl<E: Element> Memory<E> {
 
     /// Store value in the storage.
     pub fn store(&mut self, index: usize, value: E) -> Result<(), RuntimeError> {
-        if self.storage.len() < index {
-            self.storage.append(vec![None; index*2].as_mut());
+        if self.storage.len() <= index {
+            self.storage.append(vec![None; index*2 + 2].as_mut());
         }
 
         self.storage[index] = Some(value);

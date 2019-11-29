@@ -11,8 +11,8 @@ impl<E, O> VMInstruction<E, O> for CopyGlobal
         O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let value = vm.frame()?.copy(self.index)?;
-        vm.frame()?.push(value)
+        let value = vm.memory()?.copy(self.index)?;
+        vm.memory()?.push(value)
     }
 }
 

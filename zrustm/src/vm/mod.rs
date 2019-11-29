@@ -23,7 +23,7 @@ pub enum RuntimeError {
     SynthesisError(SynthesisError),
     InternalError(String),
     IntegerOverflow,
-    UnexpectedLoopExit,
+    UnexpectedLoopEnd,
     UnexpectedReturn,
     UnexpectedFrameExit,
     AssertionError,
@@ -38,7 +38,6 @@ pub enum RuntimeError {
 struct Loop {
     first_instruction_index: usize,
     iterations_left: usize,
-    io_size: usize,
 }
 
 #[derive(Debug)]
@@ -161,12 +160,31 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
     }
 
 
-    pub fn loop_begin(&mut self, _iterations: usize, _io_size: usize) -> Result<(), RuntimeError> {
-       unimplemented!("loop_begin")
+    pub fn loop_begin(&mut self, iterations: usize) -> Result<(), RuntimeError> {
+        let frame = self.frames.last_mut().unwrap();
+        frame.blocks.push(Block::Loop(Loop {
+            first_instruction_index: self.instruction_counter,
+            iterations_left: iterations - 1,
+        }));
+        Ok(())
     }
 
     pub fn loop_end(&mut self) -> Result<(), RuntimeError> {
-        unimplemented!("loop_end")
+        let frame = self.frames.last_mut().unwrap();
+
+        match frame.blocks.pop() {
+            Some(Block::Loop(mut loop_block)) => {
+                if loop_block.iterations_left != 0 {
+                    loop_block.iterations_left -= 1;
+                    self.instruction_counter = loop_block.first_instruction_index;
+                    frame.blocks.push(Block::Loop(loop_block));
+                }
+                Ok(())
+            },
+            _ => {
+                Err(RuntimeError::UnexpectedLoopEnd)
+            }
+        }
     }
 
     pub fn call(&mut self, address: usize, inputs_count: usize) -> Result<(), RuntimeError> {
@@ -227,7 +245,7 @@ impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
             .ok_or(RuntimeError::StackUnderflow)
     }
 
-    pub fn frame(&mut self) -> Result<&mut Memory<E>, RuntimeError> {
+    pub fn memory(&mut self) -> Result<&mut Memory<E>, RuntimeError> {
         let frame = self.frames.last_mut().ok_or(RuntimeError::StackUnderflow)?;
         Ok(&mut frame.memory)
     }

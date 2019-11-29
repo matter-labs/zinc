@@ -16,7 +16,7 @@ impl PopStore {
 
 impl InstructionInfo for PopStore {
     fn to_assembly(&self) -> String {
-        format!("load_push {}", self.index)
+        format!("pop_store {}", self.index)
     }
 
     fn code() -> InstructionCode {

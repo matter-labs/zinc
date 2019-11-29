@@ -11,12 +11,12 @@ where
     O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let left = vm.frame()?.pop()?;
-        let right = vm.frame()?.pop()?;
+        let left = vm.memory()?.pop()?;
+        let right = vm.memory()?.pop()?;
 
         let gt = vm.get_operator().gt(left, right)?;
 
-        vm.frame()?.push(gt)
+        vm.memory()?.push(gt)
     }
 }
 

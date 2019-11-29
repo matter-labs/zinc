@@ -11,15 +11,15 @@ where
     O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let condition = vm.frame()?.pop()?;
-        let if_true = vm.frame()?.pop()?;
-        let if_false = vm.frame()?.pop()?;
+        let condition = vm.memory()?.pop()?;
+        let if_true = vm.memory()?.pop()?;
+        let if_false = vm.memory()?.pop()?;
 
         let selected = vm
             .get_operator()
             .conditional_select(condition, if_true, if_false)?;
 
-        vm.frame()?.push(selected)
+        vm.memory()?.push(selected)
     }
 }
 

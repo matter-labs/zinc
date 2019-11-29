@@ -27,7 +27,7 @@ where
 {
     for (i, expected) in expected_stack.iter().enumerate() {
         let value = vm
-            .frame().expect("expected frame is missing")
+            .memory().expect("expected frame is missing")
             .pop().expect("expected stack value is missing");
 
         assert_eq!(
