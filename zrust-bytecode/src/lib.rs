@@ -31,7 +31,6 @@ pub enum InstructionCode {
     // Stack
     PushConst,
     Pop,
-    Copy,
     CopyGlobal,
 
     // Storage
@@ -64,8 +63,6 @@ pub enum InstructionCode {
 
     // Flow control
     ConditionalSelect,
-    FrameBegin,
-    FrameEnd,
     LoopBegin,
     LoopEnd,
     Call,
@@ -87,7 +84,6 @@ pub enum Instruction {
     // Stack
     PushConst(PushConst),
     Pop(Pop),
-    Copy(Copy),
     CopyGlobal(CopyGlobal),
 
     // Storage
@@ -120,8 +116,6 @@ pub enum Instruction {
 
     // Flow control
     ConditionalSelect(ConditionalSelect),
-    FrameBegin(FrameBegin),
-    FrameEnd(FrameEnd),
     LoopBegin(LoopBegin),
     LoopEnd(LoopEnd),
     Call(Call),
@@ -153,7 +147,6 @@ macro_rules! dispatch_instruction {
 
             Instruction::PushConst($pattern) => $expression,
             Instruction::Pop($pattern) => $expression,
-            Instruction::Copy($pattern) => $expression,
             Instruction::CopyGlobal($pattern) => $expression,
             Instruction::LoadPush($pattern) => $expression,
             Instruction::PopStore($pattern) => $expression,
@@ -180,8 +173,6 @@ macro_rules! dispatch_instruction {
             Instruction::Cast($pattern) => $expression,
 
             Instruction::ConditionalSelect($pattern) => $expression,
-            Instruction::FrameBegin($pattern) => $expression,
-            Instruction::FrameEnd($pattern) => $expression,
             Instruction::LoopBegin($pattern) => $expression,
             Instruction::LoopEnd($pattern) => $expression,
             Instruction::Call($pattern) => $expression,

@@ -1,9 +1,6 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
 use num_bigint::BigInt;
 
-#[deprecated(note = "Use PushConst")]
-pub type Push = PushConst;
-
 #[derive(Debug, PartialEq, Clone)]
 pub struct PushConst {
     pub value: BigInt,

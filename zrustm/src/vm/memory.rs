@@ -13,6 +13,7 @@ pub struct Memory<E: Element> {
 impl<E: Element> Memory<E> {
     /// Initialize new stack frame with given arguments.
     pub fn new(arguments: &[E]) -> Self {
+        // TODO: Remove arguments from evaluation stack.
         Self {
             stack: Vec::from(arguments),
             storage: {

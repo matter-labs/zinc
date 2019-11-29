@@ -37,10 +37,9 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Instruction, usize), Decoding
         x if x == InstructionCode::NoOperation as u8 => decode_and_wrap::<NoOperation>(bytes),
         x if x == InstructionCode::PushConst as u8 => decode_and_wrap::<PushConst>(bytes),
         x if x == InstructionCode::Pop as u8 => decode_and_wrap::<Pop>(bytes),
-        x if x == InstructionCode::Copy as u8 => decode_and_wrap::<Copy>(bytes),
         x if x == InstructionCode::CopyGlobal as u8 => decode_and_wrap::<CopyGlobal>(bytes),
-        x if x == InstructionCode::LoadPush as u8 => decode_and_wrap::<CopyGlobal>(bytes),
-        x if x == InstructionCode::PopStore as u8 => decode_and_wrap::<CopyGlobal>(bytes),
+        x if x == InstructionCode::LoadPush as u8 => decode_and_wrap::<LoadPush>(bytes),
+        x if x == InstructionCode::PopStore as u8 => decode_and_wrap::<PopStore>(bytes),
         x if x == InstructionCode::Add as u8 => decode_and_wrap::<Add>(bytes),
         x if x == InstructionCode::Sub as u8 => decode_and_wrap::<Sub>(bytes),
         x if x == InstructionCode::Mul as u8 => decode_and_wrap::<Mul>(bytes),
@@ -61,8 +60,6 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Instruction, usize), Decoding
         x if x == InstructionCode::ConditionalSelect as u8 => {
             decode_and_wrap::<ConditionalSelect>(bytes)
         }
-        x if x == InstructionCode::FrameBegin as u8 => decode_and_wrap::<FrameBegin>(bytes),
-        x if x == InstructionCode::FrameEnd as u8 => decode_and_wrap::<FrameEnd>(bytes),
         x if x == InstructionCode::LoopBegin as u8 => decode_and_wrap::<LoopBegin>(bytes),
         x if x == InstructionCode::LoopEnd as u8 => decode_and_wrap::<LoopEnd>(bytes),
         x if x == InstructionCode::Call as u8 => decode_and_wrap::<Call>(bytes),
