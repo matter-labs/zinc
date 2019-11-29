@@ -1,7 +1,7 @@
 extern crate franklin_crypto;
 
 use crate::element::{Element, ElementOperator};
-use crate::vm::VMInstruction;
+use crate::vm::{VMInstruction, InternalVM};
 use crate::vm::{RuntimeError, VirtualMachine};
 use zrust_bytecode::instructions::Add;
 

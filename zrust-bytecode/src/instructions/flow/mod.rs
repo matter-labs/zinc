@@ -5,6 +5,9 @@ mod loop_begin;
 mod loop_end;
 mod push_condition;
 mod pop_condition;
+mod r#if;
+mod r#else;
+mod endif;
 
 pub use loop_begin::LoopBegin;
 pub use loop_end::LoopEnd;
@@ -13,3 +16,6 @@ pub use ret::Return;
 pub use push_condition::PushCondition;
 pub use pop_condition::PopCondition;
 pub use exit::Exit;
+pub use r#if::If;
+pub use r#else::Else;
+pub use endif::EndIf;

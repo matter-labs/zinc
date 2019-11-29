@@ -1,25 +1,31 @@
 use crate::element::Element;
 use crate::RuntimeError;
 
-/// StackFrame is a data structure that represents the state of function execution.
 #[derive(Debug, Clone)]
+pub enum StorageCell<E: Element> {
+    None,
+    Unchanged(E),
+    Changed(E),
+}
+
+/// StackFrame is a data structure that represents the state of function execution.
+#[derive(Debug)]
 pub struct Memory<E: Element> {
-//    arguments: Vec<E>,
+    //    arguments: Vec<E>,
     stack: Vec<E>,
-    storage: Vec<Option<E>>,
+    storage: Vec<StorageCell<E>>,
 }
 
 
 impl<E: Element> Memory<E> {
     /// Initialize new stack frame with given arguments.
     pub fn new(arguments: &[E]) -> Self {
-        // TODO: Remove arguments from evaluation stack.
         Self {
-            stack: Vec::from(arguments),
+            stack: vec![],
             storage: {
                 arguments
                     .iter()
-                    .map(|arg| Some((*arg).clone()))
+                    .map(|arg| StorageCell::Unchanged((*arg).clone()))
                     .collect()
             },
         }
@@ -39,28 +45,29 @@ impl<E: Element> Memory<E> {
     }
 
     /// Pop value from evaluation stack.
-    pub fn pop(&mut self) -> Result<E, RuntimeError>  {
+    pub fn pop(&mut self) -> Result<E, RuntimeError> {
         self.stack.pop().ok_or(RuntimeError::StackUnderflow)
     }
 
     /// Store value in the storage.
     pub fn store(&mut self, index: usize, value: E) -> Result<(), RuntimeError> {
         if self.storage.len() <= index {
-            self.storage.append(vec![None; index*2 + 2].as_mut());
+            self.storage.append(vec![StorageCell::None; index * 2 + 2].as_mut());
         }
 
-        self.storage[index] = Some(value);
+        self.storage[index] = StorageCell::Changed(value);
 
         Ok(())
     }
 
     /// Load value from the storage.
-    pub fn load(&mut self, index: usize) -> Result<E, RuntimeError>  {
+    pub fn load(&mut self, index: usize) -> Result<E, RuntimeError> {
         match self.storage.get(index) {
             None => Err(RuntimeError::UninitializedStorageAccess),
             Some(option_value) => match option_value {
-                None => Err(RuntimeError::UninitializedStorageAccess),
-                Some(value) => Ok((*value).clone()),
+                StorageCell::None => Err(RuntimeError::UninitializedStorageAccess),
+                StorageCell::Unchanged(value) |
+                StorageCell::Changed(value) => Ok((*value).clone()),
             },
         }
     }
@@ -72,4 +79,16 @@ impl<E: Element> Memory<E> {
             .ok_or(RuntimeError::StackIndexOutOfRange)
             .map(|value| (*value).clone())
     }
+
+    pub fn fork(&mut self) -> Self {
+        Self {
+            stack: vec![],
+            storage: self.storage.clone(),
+        }
+    }
+
+    pub fn merge<F>(&mut self, condition: E, left: Self, right: Self, merge_func: F)
+        where
+            F: FnMut(E, E, E) -> E
+    {}
 }

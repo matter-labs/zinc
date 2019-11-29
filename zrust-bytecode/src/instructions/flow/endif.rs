@@ -2,35 +2,34 @@ use crate::instructions::utils::decode_simple_instruction;
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
 
 #[derive(Debug, PartialEq, Default, Clone)]
-//#[deprecated(note = "Use If-Else-EndIf instead")]
-pub struct ConditionalSelect;
+pub struct EndIf;
 
-impl InstructionInfo for ConditionalSelect {
+impl InstructionInfo for EndIf {
     fn to_assembly(&self) -> String {
-        "cs".into()
+        "endif".into()
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::ConditionalSelect
+        InstructionCode::EndIf
     }
 
     fn encode(&self) -> Vec<u8> {
-        vec![InstructionCode::ConditionalSelect as u8]
+        vec![InstructionCode::EndIf as u8]
     }
 
-    fn decode(bytes: &[u8]) -> Result<(ConditionalSelect, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(EndIf, usize), DecodingError> {
         decode_simple_instruction(bytes)
     }
 
     fn inputs_count(&self) -> usize {
-        3
+        0
     }
 
     fn outputs_count(&self) -> usize {
-        1
+        0
     }
 
     fn wrap(&self) -> Instruction {
-        Instruction::ConditionalSelect((*self).clone())
+        Instruction::EndIf((*self).clone())
     }
 }

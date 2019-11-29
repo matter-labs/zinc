@@ -62,6 +62,9 @@ pub enum InstructionCode {
     Cast,
 
     // Flow control
+    If,
+    Else,
+    EndIf,
     ConditionalSelect,
     LoopBegin,
     LoopEnd,
@@ -115,6 +118,9 @@ pub enum Instruction {
     Cast(Cast),
 
     // Flow control
+    If(If),
+    Else(Else),
+    EndIf(EndIf),
     ConditionalSelect(ConditionalSelect),
     LoopBegin(LoopBegin),
     LoopEnd(LoopEnd),
@@ -172,6 +178,9 @@ macro_rules! dispatch_instruction {
 
             Instruction::Cast($pattern) => $expression,
 
+            Instruction::If($pattern) => $expression,
+            Instruction::Else($pattern) => $expression,
+            Instruction::EndIf($pattern) => $expression,
             Instruction::ConditionalSelect($pattern) => $expression,
             Instruction::LoopBegin($pattern) => $expression,
             Instruction::LoopEnd($pattern) => $expression,

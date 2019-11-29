@@ -1,5 +1,4 @@
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo, utils};
-use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 
 #[derive(Debug, PartialEq, Clone)]
