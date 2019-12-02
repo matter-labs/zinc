@@ -1,4 +1,4 @@
-use crate::element::Element;
+use crate::element::{Element, ElementOperator};
 use crate::RuntimeError;
 
 #[derive(Debug, Clone)]
@@ -87,8 +87,23 @@ impl<E: Element> Memory<E> {
         }
     }
 
-    pub fn merge<F>(&mut self, condition: E, left: Self, right: Self, merge_func: F)
+    pub fn merge<O>(&mut self, condition: E, left: Self, right: Self, operator: &mut O)
+        -> Result<(), RuntimeError>
         where
-            F: FnMut(E, E, E) -> E
-    {}
+            O: ElementOperator<E>
+    {
+        let ls = left.stack;
+        let rs = right.stack;
+
+        if ls.len() != rs.len() {
+            return Err(RuntimeError::BranchStacksDoNotMatch);
+        }
+
+        for (l, r) in ls.into_iter().zip(rs.into_iter()) {
+            let merged = operator.conditional_select(condition.clone(), l, r)?;
+            self.stack.push(merged);
+        }
+
+        Ok(())
+    }
 }

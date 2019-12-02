@@ -33,7 +33,7 @@ pub fn decode_with_usize(code: InstructionCode, bytes: &[u8], args_count: usize)
     } else {
         let mut args = Vec::new();
         let mut len = 1;
-        for i in 0..args_count {
+        for _ in 0..args_count {
             let (bigint, arg_len) = vlq::decode(&bytes[1..]).ok_or(DecodingError::UnexpectedEOF)?;
             let value = bigint.to_usize().ok_or(DecodingError::ConstantTooLong)?;
             args.push(value);

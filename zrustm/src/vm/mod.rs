@@ -32,12 +32,15 @@ pub enum RuntimeError {
     UnexpectedLoopEnd,
     UnexpectedReturn,
     UnexpectedFrameExit,
+    UnexpectedElse,
+    UnexpectedEndIf,
     AssertionError,
     FirstInstructionNotCall,
     WrongInputsCount,
     StackIndexOutOfRange,
     UninitializedStorageAccess,
     MissingArgument,
+    BranchStacksDoNotMatch,
 }
 
 pub struct VirtualMachine<E: Element, O: ElementOperator<E>> {

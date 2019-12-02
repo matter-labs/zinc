@@ -140,18 +140,59 @@ impl<E, O> InternalVM<E> for VirtualMachine<E, O>
     }
 
     fn branch_else(&mut self) -> Result<(), RuntimeError> {
-//        let frame = self.state.function_frames.last_mut()
-//            .ok_or(RuntimeError::InternalError("Root frame is missing".into()))?;
-//
-//        match frame.blocks.pop() {
-//            None => Err(RuntimeError::UnexpectedElse),
-//            Some(block) => Ok(block),
-//        }
-        unimplemented!()
+        let mut frame = self.state.function_frames.last_mut()
+            .ok_or(RuntimeError::InternalError("Root frame is missing".into()))?;
+
+        let mut branch = match frame.blocks.pop() {
+            Some(Block::Branch(branch)) => Ok(branch),
+            Some(_) | None => Err(RuntimeError::UnexpectedElse),
+        }?;
+
+        if branch.then_memory.is_some() {
+            return Err(RuntimeError::UnexpectedElse)
+        }
+
+        branch.then_memory = frame.memory_snapshots.pop();
+
+        let mem = frame.memory_snapshots.last()
+            .ok_or_else(|| RuntimeError::InternalError("Root block is missing".into()))?;
+
+        frame.memory_snapshots.push(mem.fork());
+        frame.blocks.push(Block::Branch(branch));
+
+        Ok(())
     }
 
     fn branch_end(&mut self) -> Result<(), RuntimeError> {
-        unimplemented!()
+        let mut frame = self.state.function_frames.last_mut()
+            .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
+
+        let mut branch = match frame.blocks.pop() {
+            Some(Block::Branch(branch)) => Ok(branch),
+            Some(_) | None => Err(RuntimeError::UnexpectedEndIf),
+        }?;
+
+        if branch.then_memory.is_none() {
+            branch.then_memory = frame.memory_snapshots.pop();
+        } else {
+            branch.else_memory = frame.memory_snapshots.pop();
+        }
+
+        let mem = frame.memory_snapshots.last_mut()
+            .ok_or_else(|| RuntimeError::InternalError("Root block is missing".into()))?;
+
+        match (branch.then_memory, branch.else_memory) {
+            (Some(t), Some(f)) => {
+                mem.merge(branch.condition, t, f, &mut self.operator);
+                Ok(())
+            }
+            (Some(t), None) => {
+                Ok(())
+            }
+            _ => {
+                unreachable!()
+            }
+        }
     }
 
     fn exit(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
