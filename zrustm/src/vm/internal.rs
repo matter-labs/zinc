@@ -112,16 +112,41 @@ impl<E, O> InternalVM<E> for VirtualMachine<E, O>
 
     fn branch_then(&mut self) -> Result<(), RuntimeError> {
         let condition = self.pop()?;
+
+        let prev = self.state.conditions_stack
+            .last()
+            .ok_or(RuntimeError::InternalError("Root condition is missing".into()))?;
+
+        let next = self.operator.or(condition.clone(), (*prev).clone())?;
+        self.state.conditions_stack.push(next.clone());
+
+        let frame = self.state.function_frames.last_mut()
+            .ok_or(RuntimeError::InternalError("Root frame is missing".into()))?;
+
+        let mem = frame.memory_snapshots.last()
+            .ok_or(RuntimeError::InternalError("Root block is missing".into()))?;
+
+        frame.memory_snapshots.push(mem.fork());
+
         let branch = Branch {
             condition,
-            then_memory: Some(self.memory()?.fork()),
+            then_memory: None,
             else_memory: None
         };
+
+        frame.blocks.push(Block::Branch(branch));
 
         Ok(())
     }
 
     fn branch_else(&mut self) -> Result<(), RuntimeError> {
+//        let frame = self.state.function_frames.last_mut()
+//            .ok_or(RuntimeError::InternalError("Root frame is missing".into()))?;
+//
+//        match frame.blocks.pop() {
+//            None => Err(RuntimeError::UnexpectedElse),
+//            Some(block) => Ok(block),
+//        }
         unimplemented!()
     }
 

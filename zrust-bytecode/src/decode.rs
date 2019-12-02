@@ -40,6 +40,8 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Instruction, usize), Decoding
         x if x == InstructionCode::CopyGlobal as u8 => decode_and_wrap::<CopyGlobal>(bytes),
         x if x == InstructionCode::LoadPush as u8 => decode_and_wrap::<LoadPush>(bytes),
         x if x == InstructionCode::PopStore as u8 => decode_and_wrap::<PopStore>(bytes),
+        x if x == InstructionCode::LoadPushArray as u8 => decode_and_wrap::<LoadPushArray>(bytes),
+        x if x == InstructionCode::PopStoreArray as u8 => decode_and_wrap::<PopStoreArray>(bytes),
         x if x == InstructionCode::Add as u8 => decode_and_wrap::<Add>(bytes),
         x if x == InstructionCode::Sub as u8 => decode_and_wrap::<Sub>(bytes),
         x if x == InstructionCode::Mul as u8 => decode_and_wrap::<Mul>(bytes),

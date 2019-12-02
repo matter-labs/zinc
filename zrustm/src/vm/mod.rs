@@ -11,7 +11,6 @@ use num_bigint::BigInt;
 use zrust_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 use franklin_crypto::bellman::SynthesisError;
 use crate::vm::memory::Memory;
-use crate::element::utils::bigint_to_fr;
 
 pub trait VMInstruction<E, O>: InstructionInfo
 where

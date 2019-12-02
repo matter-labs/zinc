@@ -80,7 +80,7 @@ impl<E: Element> Memory<E> {
             .map(|value| (*value).clone())
     }
 
-    pub fn fork(&mut self) -> Self {
+    pub fn fork(&self) -> Self {
         Self {
             stack: vec![],
             storage: self.storage.clone(),
