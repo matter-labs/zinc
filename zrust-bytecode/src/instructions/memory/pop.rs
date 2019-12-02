@@ -23,11 +23,11 @@ impl InstructionInfo for Pop {
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_vlq_argument(InstructionCode::Pop, &self.count.to_bigint().unwrap())
+        utils::encode_with_bigint(InstructionCode::Pop, &self.count.to_bigint().unwrap())
     }
 
     fn decode(bytes: &[u8]) -> Result<(Pop, usize), DecodingError> {
-        let (value, len) = utils::decode_with_vlq_argument(InstructionCode::Pop, bytes)?;
+        let (value, len) = utils::decode_with_bigint(InstructionCode::Pop, bytes)?;
         let count = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
         Ok((Pop { count }, len))
     }

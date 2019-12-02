@@ -24,11 +24,11 @@ impl InstructionInfo for CopyGlobal {
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_vlq_argument(InstructionCode::CopyGlobal, &self.index.to_bigint().unwrap())
+        utils::encode_with_bigint(InstructionCode::CopyGlobal, &self.index.to_bigint().unwrap())
     }
 
     fn decode(bytes: &[u8]) -> Result<(CopyGlobal, usize), DecodingError> {
-        let (value, len) = utils::decode_with_vlq_argument(InstructionCode::CopyGlobal, bytes)?;
+        let (value, len) = utils::decode_with_bigint(InstructionCode::CopyGlobal, bytes)?;
         let index = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
         Ok((CopyGlobal { index }, len))
     }

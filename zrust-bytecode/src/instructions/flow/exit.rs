@@ -23,11 +23,11 @@ impl InstructionInfo for Exit {
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_vlq_argument(Self::code(), &self.outputs_count.into())
+        utils::encode_with_bigint(Self::code(), &self.outputs_count.into())
     }
 
     fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
-        let (value, len) = utils::decode_with_vlq_argument(Self::code(), bytes)?;
+        let (value, len) = utils::decode_with_bigint(Self::code(), bytes)?;
         let outputs_count = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
         Ok((Self::new(outputs_count), len))
     }

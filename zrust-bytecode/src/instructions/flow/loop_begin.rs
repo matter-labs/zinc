@@ -22,11 +22,11 @@ impl InstructionInfo for LoopBegin {
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_vlq_argument(Self::code(), &self.iterations.into())
+        utils::encode_with_bigint(Self::code(), &self.iterations.into())
     }
 
     fn decode(bytes: &[u8]) -> Result<(LoopBegin, usize), DecodingError> {
-        let (value, len) = utils::decode_with_vlq_argument(Self::code(), bytes)?;
+        let (value, len) = utils::decode_with_bigint(Self::code(), bytes)?;
         let iterations = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
         Ok((Self::new(iterations), len))
     }

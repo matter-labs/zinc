@@ -24,11 +24,11 @@ impl InstructionInfo for PopStore {
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_vlq_argument(InstructionCode::PopStore, &self.index.to_bigint().unwrap())
+        utils::encode_with_bigint(InstructionCode::PopStore, &self.index.to_bigint().unwrap())
     }
 
     fn decode(bytes: &[u8]) -> Result<(PopStore, usize), DecodingError> {
-        let (value, len) = utils::decode_with_vlq_argument(InstructionCode::PopStore, bytes)?;
+        let (value, len) = utils::decode_with_bigint(InstructionCode::PopStore, bytes)?;
         let index = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
         Ok((PopStore { index }, len))
     }

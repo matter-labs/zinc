@@ -1,6 +1,4 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
-use num_bigint::ToBigInt;
-use num_traits::ToPrimitive;
 
 /// Loads value from storage and pushes it onto evaluation stack.
 #[derive(Debug, PartialEq, Clone)]
@@ -24,13 +22,13 @@ impl InstructionInfo for LoadPush {
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_vlq_argument(InstructionCode::LoadPush, &self.index.to_bigint().unwrap())
+        utils::encode_with_usize(Self::code(), &[self.index])
     }
 
     fn decode(bytes: &[u8]) -> Result<(LoadPush, usize), DecodingError> {
-        let (value, len) = utils::decode_with_vlq_argument(InstructionCode::LoadPush, bytes)?;
-        let index = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
-        Ok((LoadPush { index }, len))
+        let (args, len) = utils::decode_with_usize(Self::code(), bytes, 1)?;
+
+        Ok((Self::new(args[0]), len))
     }
 
     fn inputs_count(&self) -> usize {
@@ -43,5 +41,11 @@ impl InstructionInfo for LoadPush {
 
     fn wrap(&self) -> Instruction {
         Instruction::LoadPush((*self).clone())
+    }
+}
+
+impl From<usize> for LoadPush {
+    fn from(value: usize) -> Self {
+        Self::new(value)
     }
 }

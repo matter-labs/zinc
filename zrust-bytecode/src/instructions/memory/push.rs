@@ -22,11 +22,11 @@ impl InstructionInfo for PushConst {
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_vlq_argument(InstructionCode::PushConst, &self.value)
+        utils::encode_with_bigint(InstructionCode::PushConst, &self.value)
     }
 
     fn decode(bytes: &[u8]) -> Result<(PushConst, usize), DecodingError> {
-        let (value, len) = utils::decode_with_vlq_argument(InstructionCode::PushConst, bytes)?;
+        let (value, len) = utils::decode_with_bigint(InstructionCode::PushConst, bytes)?;
 
         Ok((PushConst { value }, len))
     }

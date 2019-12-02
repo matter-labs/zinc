@@ -1,4 +1,4 @@
-use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
+use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo, utils};
 
 /// Removes value from the top of the stack and stores it in the storage.
 #[derive(Debug, PartialEq, Clone)]
@@ -23,11 +23,16 @@ impl InstructionInfo for PopStoreArray {
     }
 
     fn encode(&self) -> Vec<u8> {
-        unimplemented!()
+        utils::encode_with_usize(Self::code(), &[self.address, self.len])
     }
 
-    fn decode(_bytes: &[u8]) -> Result<(PopStoreArray, usize), DecodingError> {
-        unimplemented!()
+    fn decode(bytes: &[u8]) -> Result<(PopStoreArray, usize), DecodingError> {
+        let (args, len) = utils::decode_with_usize(Self::code(), bytes, 2)?;
+
+        Ok((
+            Self::new(args[0], args[1]),
+            len,
+        ))
     }
 
     fn inputs_count(&self) -> usize {

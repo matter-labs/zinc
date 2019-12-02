@@ -115,16 +115,16 @@ impl<E, O> InternalVM<E> for VirtualMachine<E, O>
 
         let prev = self.state.conditions_stack
             .last()
-            .ok_or(RuntimeError::InternalError("Root condition is missing".into()))?;
+            .ok_or_else(|| RuntimeError::InternalError("Root condition is missing".into()))?;
 
         let next = self.operator.or(condition.clone(), (*prev).clone())?;
-        self.state.conditions_stack.push(next.clone());
+        self.state.conditions_stack.push(next);
 
         let frame = self.state.function_frames.last_mut()
-            .ok_or(RuntimeError::InternalError("Root frame is missing".into()))?;
+            .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
 
         let mem = frame.memory_snapshots.last()
-            .ok_or(RuntimeError::InternalError("Root block is missing".into()))?;
+            .ok_or_else(|| RuntimeError::InternalError("Root block is missing".into()))?;
 
         frame.memory_snapshots.push(mem.fork());
 
