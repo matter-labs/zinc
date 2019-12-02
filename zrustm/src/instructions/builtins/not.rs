@@ -11,11 +11,11 @@ where
     O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let value = vm.memory()?.pop()?;
+        let value = vm.pop()?;
 
         let not = vm.get_operator().not(value)?;
 
-        vm.memory()?.push(not)
+        vm.push(not)
     }
 }
 

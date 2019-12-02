@@ -38,12 +38,11 @@ impl<E, O> VMInstruction<E, O> for EndIf
 #[cfg(test)]
 mod tests {
     use crate::instructions::testing_utils::{VMTestRunner, TestingError};
-    use num_bigint::BigInt;
     use zrust_bytecode::*;
     use std::cmp;
 
     #[test]
-    fn test_branching() -> Result<(), TestingError> {
+    fn test_stack() -> Result<(), TestingError> {
         // let a = _;
         // let b = _;
         //
@@ -74,9 +73,46 @@ mod tests {
                 .add(LoadPush::new(1))
                 .add(LoadPush::new(0))
                 .add(EndIf)
-                .test(&[cmp::max((*a), (*b)), cmp::min((*a), (*b))])?;
+                .test(&[cmp::max(*a, *b), cmp::min(*a, *b)])?;
         }
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_storage() -> Result<(), TestingError> {
+        // let mut a = 0;
+        // let c = _;
+        //
+        // if c {
+        //     a += 1;
+        // } else {
+        //     a -= 1;
+        // }
+        let data = [
+            (1, 1),
+            (0, -1),
+        ];
+
+        for (c, r) in data.iter() {
+            VMTestRunner::new()
+                .add(PushConst { value: 0.into() })
+                .add(PopStore::new(0))
+                .add(PushConst { value: (*c).into() })
+                .add(If)
+                .add(PushConst { value: 1.into() })
+                .add(LoadPush::new(0))
+                .add(Add)
+                .add(PopStore::new(0))
+                .add(Else)
+                .add(PushConst { value: 1.into() })
+                .add(LoadPush::new(0))
+                .add(Sub)
+                .add(PopStore::new(0))
+                .add(EndIf)
+                .add(LoadPush::new(0))
+                .test(&[*r])?;
+        }
         Ok(())
     }
 }

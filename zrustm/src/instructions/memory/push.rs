@@ -13,7 +13,7 @@ where
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let op = vm.get_operator();
         let value = op.constant_bigint(&self.value)?;
-        vm.memory()?.push(value)
+        vm.push(value)
     }
 }
 

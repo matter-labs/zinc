@@ -11,7 +11,7 @@ where
     O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let value = vm.memory()?.pop()?;
+        let value = vm.pop()?;
         let prev = vm.condition_top()?;
         let and = vm.get_operator().and(value, prev)?;
         vm.condition_push(and)?;

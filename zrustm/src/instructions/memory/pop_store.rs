@@ -11,9 +11,7 @@ impl<E, O> VMInstruction<E, O> for PopStore
         O: ElementOperator<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let frame = vm.memory()?;
-
-        let value = frame.pop()?;
-        frame.store(self.index, value)
+        let value = vm.pop()?;
+        vm.store(self.index, value)
     }
 }

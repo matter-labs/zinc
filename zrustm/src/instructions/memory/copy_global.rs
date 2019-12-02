@@ -12,7 +12,7 @@ impl<E, O> VMInstruction<E, O> for CopyGlobal
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let value = vm.memory()?.copy(self.index)?;
-        vm.memory()?.push(value)
+        vm.push(value)
     }
 }
 

@@ -1,5 +1,6 @@
 use crate::element::{Element, ElementOperator};
 use crate::RuntimeError;
+use std::cmp;
 
 #[derive(Debug, Clone)]
 pub enum StorageCell<E: Element> {
@@ -88,7 +89,7 @@ impl<E: Element> Memory<E> {
     }
 
     pub fn merge<O>(&mut self, condition: E, left: Self, right: Self, operator: &mut O)
-        -> Result<(), RuntimeError>
+                    -> Result<(), RuntimeError>
         where
             O: ElementOperator<E>
     {
@@ -102,6 +103,27 @@ impl<E: Element> Memory<E> {
         for (l, r) in ls.into_iter().zip(rs.into_iter()) {
             let merged = operator.conditional_select(condition.clone(), l, r)?;
             self.stack.push(merged);
+        }
+
+        let len = cmp::min(left.storage.len(), right.storage.len());
+        for i in 0..len {
+            match (&left.storage[i], &right.storage[i]) {
+                (StorageCell::None, _) |
+                (_, StorageCell::None) |
+                (StorageCell::Unchanged(_), StorageCell::Unchanged(_)) => {
+                    // Do nothing...
+                },
+                (StorageCell::Changed(left), StorageCell::Changed(right)) |
+                (StorageCell::Changed(left), StorageCell::Unchanged(right)) |
+                (StorageCell::Unchanged(left), StorageCell::Changed(right)) => {
+                    let merged = operator.conditional_select(
+                        condition.clone(),
+                        (*left).clone(),
+                        (*right).clone(),
+                    )?;
+                    self.storage[i] = StorageCell::Changed(merged);
+                },
+            }
         }
 
         Ok(())
