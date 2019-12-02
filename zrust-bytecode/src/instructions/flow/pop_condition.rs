@@ -2,6 +2,7 @@ use crate::instructions::utils::decode_simple_instruction;
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
 
 #[derive(Debug, PartialEq, Default, Clone)]
+#[deprecated(note = "Use If-Else-EndIf")]
 pub struct PopCondition;
 
 impl InstructionInfo for PopCondition {
