@@ -1,7 +1,7 @@
 {
-    "name": "zrust-syntax-highlighting",
-    "displayName": "ZRust Syntax Highlighting",
-    "description": "ZRust Syntax Highlighting",
+    "name": "zinc-syntax-highlighting",
+    "displayName": "Zinc Syntax Highlighting",
+    "description": "Zinc Syntax Highlighting",
     "version": "0.0.1",
     "engines": {
         "vscode": "^1.38.0"
@@ -11,15 +11,15 @@
     ],
     "contributes": {
         "languages": [{
-            "id": "zrs",
-            "aliases": ["ZRust", "zrs"],
-            "extensions": [".zrs"],
+            "id": "zn",
+            "aliases": ["Zinc", "zn"],
+            "extensions": [".zn"],
             "configuration": "./language-configuration.json"
         }],
         "grammars": [{
-            "language": "zrs",
-            "scopeName": "source.zrust",
-            "path": "./syntaxes/zrs.tmLanguage.json"
+            "language": "zn",
+            "scopeName": "source.zinc",
+            "path": "./syntaxes/zn.tmLanguage.json"
         }]
     }
 }

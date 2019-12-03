@@ -1,4 +1,4 @@
-# The ZRust compiler
+# The Zinc compiler
 
 ## Roadmap
 

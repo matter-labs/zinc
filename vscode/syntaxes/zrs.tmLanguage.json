@@ -1,6 +1,6 @@
 {
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-	"name": "ZRust",
+	"name": "Zinc",
 	"patterns": [
 		{
 			"include": "#keywords"
@@ -19,7 +19,7 @@
 		"keywords": {
 			"patterns": [
 				{
-					"name": "keyword.control.zrs",
+					"name": "keyword.control.zn",
 					"match": "\\b(let|mut|type|struct|enum|fn|mod|use|for|in|while|if|else|match)\\b"
 				},
 				{
@@ -29,12 +29,12 @@
 			]
 		},
 		"strings": {
-			"name": "string.quoted.double.zrs",
+			"name": "string.quoted.double.zn",
 			"begin": "\"",
 			"end": "\"",
 			"patterns": [
 				{
-					"name": "constant.character.escape.zrs",
+					"name": "constant.character.escape.zn",
 					"match": "\\\\."
 				}
 			]
@@ -42,7 +42,7 @@
 		"constants": {
 			"patterns": [
 				{
-					"name": "constant.numeric.zrs",
+					"name": "constant.numeric.zn",
 					"match": "\\b(0|[1-9][0-9]*|0x[0-9a-fA-F]+)\\b"
 				}
 			]
@@ -50,17 +50,17 @@
 		"comments": {
 			"patterns": [
 				{
-					"name": "comment.line.zrs",
+					"name": "comment.line.zn",
 					"begin": "//",
 					"end": "\n"
 				},
 				{
-					"name": "comment.block.zrs",
+					"name": "comment.block.zn",
 					"begin": "/\\*",
 					"end": "\\*/"
 				}
 			]
 		}
 	},
-	"scopeName": "source.zrust"
+	"scopeName": "source.zinc"
 }

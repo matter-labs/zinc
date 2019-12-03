@@ -3,17 +3,17 @@
 # 'error' | 'warn' | 'info' | 'debug' | 'trace'
 export LOG_LEVEL="${1}"
 
-export LIBRARY_NAME='zrust-compiler'
-export LIBRARY_NAME_LOG='zrust_compiler'
-export BINARY_NAME='zrustc'
+export LIBRARY_NAME='zinc-compiler'
+export LIBRARY_NAME_LOG='zinc_compiler'
+export BINARY_NAME='znc'
 export BUILD_MODE='debug'
 export RUST_LOG="${LIBRARY_NAME_LOG}=${LOG_LEVEL},${BINARY_NAME}=${LOG_LEVEL}"
 export RUST_BACKTRACE=1
 
-# *.zrs
+# *.zn
 export INPUT="${2}"
 
-# *.zrsb
+# *.znb
 export OUTPUT="${3}"
 
 cargo fmt --package "${LIBRARY_NAME}"

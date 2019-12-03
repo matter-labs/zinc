@@ -6,7 +6,7 @@
 /target/
 
 # Book build
-/zrust-book/build/
+/zinc-book/build/
 
-# ZRust build
+# Zinc build
 /examples/build/
