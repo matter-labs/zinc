@@ -904,20 +904,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "zrust-bytecode"
-version = "0.1.0"
-dependencies = [
- "env_logger",
- "failure",
- "log",
- "num-bigint",
- "num-integer",
- "num-traits 0.1.43",
- "structopt",
-]
-
-[[package]]
-name = "zrustm"
+name = "zinc"
 version = "0.1.0"
 dependencies = [
  "bellman_ce",
@@ -932,5 +919,18 @@ dependencies = [
  "num-traits 0.2.10",
  "pairing_ce",
  "rand 0.4.6",
- "zrust-bytecode",
+ "zinc-bytecode",
+]
+
+[[package]]
+name = "zinc-bytecode"
+version = "0.1.0"
+dependencies = [
+ "env_logger",
+ "failure",
+ "log",
+ "num-bigint",
+ "num-integer",
+ "num-traits 0.1.43",
+ "structopt",
 ]
