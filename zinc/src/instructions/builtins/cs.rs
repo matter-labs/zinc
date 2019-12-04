@@ -27,7 +27,7 @@ where
 mod test {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-    use zinc_bytecode::*;
+    use zinc_bytecode::PushConst;
 
     #[test]
     fn test_cs() -> Result<(), TestingError> {

@@ -38,6 +38,8 @@ pub enum InstructionCode {
     PopStore,
     LoadPushArray,
     PopStoreArray,
+    LoadPushByIndex,
+    PopStoreByIndex,
 
     // Arithmetic
     Add,
@@ -96,6 +98,8 @@ pub enum Instruction {
     PopStore(PopStore),
     LoadPushArray(LoadPushArray),
     PopStoreArray(PopStoreArray),
+    LoadPushByIndex(LoadPushByIndex),
+    PopStoreByIndex(PopStoreByIndex),
 
     // Arithmetic
     Add(Add),
@@ -162,6 +166,8 @@ macro_rules! dispatch_instruction {
             Instruction::PopStore($pattern) => $expression,
             Instruction::LoadPushArray($pattern) => $expression,
             Instruction::PopStoreArray($pattern) => $expression,
+            Instruction::LoadPushByIndex($pattern) => $expression,
+            Instruction::PopStoreByIndex($pattern) => $expression,
 
             Instruction::Add($pattern) => $expression,
             Instruction::Sub($pattern) => $expression,

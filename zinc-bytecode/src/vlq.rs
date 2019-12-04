@@ -2,7 +2,6 @@ use num_bigint::BigInt;
 use num_traits::{Signed, ToPrimitive};
 use std::ops::Rem;
 
-#[allow(dead_code)]
 pub fn encode(value: &BigInt) -> Vec<u8> {
     let mut chunks: Vec<u8> = Vec::new();
     let mut abs = value.abs();
@@ -32,7 +31,6 @@ pub fn encode(value: &BigInt) -> Vec<u8> {
         .collect()
 }
 
-#[allow(dead_code)]
 pub fn decode(bytes: &[u8]) -> Option<(BigInt, usize)> {
     if bytes.is_empty() {
         return None;
@@ -65,7 +63,7 @@ pub fn decode(bytes: &[u8]) -> Option<(BigInt, usize)> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use super::{encode, decode};
     use num_bigint::ToBigInt;
 
     #[test]
