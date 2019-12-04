@@ -162,10 +162,16 @@ impl<E, O> InternalVM<E> for VirtualMachine<E, O>
         frame.memory_snapshots.push(fork);
         frame.blocks.push(Block::Branch(branch));
 
+        let prev = self.condition_pop()?;
+        let next = self.operator.not(prev)?;
+        self.condition_push(next)?;
+
         Ok(())
     }
 
     fn branch_end(&mut self) -> Result<(), RuntimeError> {
+        self.condition_pop()?;
+
         let frame = self.state.function_frames.last_mut()
             .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
 

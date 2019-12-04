@@ -75,11 +75,8 @@ pub enum InstructionCode {
     Call,
     Return,
 
-    // Condition utils
     Assert,
     Log,
-    PushCondition,
-    PopCondition,
 
     Exit,
 }
@@ -138,8 +135,6 @@ pub enum Instruction {
     // Condition utils
     Assert(Assert),
     Log(Dbg),
-    PushCondition(PushCondition),
-    PopCondition(PopCondition),
 
     Exit(Exit),
 }
@@ -201,8 +196,6 @@ macro_rules! dispatch_instruction {
 
             Instruction::Assert($pattern) => $expression,
             Instruction::Log($pattern) => $expression,
-            Instruction::PushCondition($pattern) => $expression,
-            Instruction::PopCondition($pattern) => $expression,
 
             Instruction::Exit($pattern) => $expression,
         }

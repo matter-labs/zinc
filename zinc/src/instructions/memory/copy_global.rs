@@ -10,6 +10,7 @@ impl<E, O> VMInstruction<E, O> for CopyGlobal
         E: Element,
         O: ElementOperator<E>,
 {
+    #[allow(deprecated)]
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let value = vm.memory()?.copy(self.index)?;
         vm.push(value)
