@@ -3,24 +3,24 @@ use crate::RuntimeError;
 use std::cmp;
 
 #[derive(Debug, Clone)]
-pub enum StorageCell<E: Primitive> {
+pub enum StorageCell<P: Primitive> {
     None,
-    Unchanged(E),
-    Changed(E),
+    Unchanged(P),
+    Changed(P),
 }
 
 /// StackFrame is a data structure that represents the state of function execution.
 #[derive(Debug)]
-pub struct Memory<E: Primitive> {
+pub struct Memory<P: Primitive> {
     //    arguments: Vec<E>,
-    stack: Vec<E>,
-    storage: Vec<StorageCell<E>>,
+    stack: Vec<P>,
+    storage: Vec<StorageCell<P>>,
 }
 
 
-impl<E: Primitive> Memory<E> {
+impl<P: Primitive> Memory<P> {
     /// Initialize new stack frame with given arguments.
-    pub fn new(arguments: &[E]) -> Self {
+    pub fn new(arguments: &[P]) -> Self {
         Self {
             stack: vec![],
             storage: {
@@ -40,18 +40,18 @@ impl<E: Primitive> Memory<E> {
 //    }
 
     /// Push value onto evaluation stack.
-    pub fn push(&mut self, value: E) -> Result<(), RuntimeError> {
+    pub fn push(&mut self, value: P) -> Result<(), RuntimeError> {
         self.stack.push(value);
         Ok(())
     }
 
     /// Pop value from evaluation stack.
-    pub fn pop(&mut self) -> Result<E, RuntimeError> {
+    pub fn pop(&mut self) -> Result<P, RuntimeError> {
         self.stack.pop().ok_or(RuntimeError::StackUnderflow)
     }
 
     /// Store value in the storage.
-    pub fn store(&mut self, index: usize, value: E) -> Result<(), RuntimeError> {
+    pub fn store(&mut self, index: usize, value: P) -> Result<(), RuntimeError> {
         if self.storage.len() <= index {
             self.storage.append(vec![StorageCell::None; index * 2 + 2].as_mut());
         }
@@ -62,7 +62,7 @@ impl<E: Primitive> Memory<E> {
     }
 
     /// Load value from the storage.
-    pub fn load(&mut self, index: usize) -> Result<E, RuntimeError> {
+    pub fn load(&mut self, index: usize) -> Result<P, RuntimeError> {
         match self.storage.get(index) {
             None => Err(RuntimeError::UninitializedStorageAccess),
             Some(option_value) => match option_value {
@@ -75,7 +75,7 @@ impl<E: Primitive> Memory<E> {
 
     /// Temporary fix for compatibility
     #[deprecated(note = "")]
-    pub fn copy(&mut self, index: usize) -> Result<E, RuntimeError> {
+    pub fn copy(&mut self, index: usize) -> Result<P, RuntimeError> {
         self.stack.get(index)
             .ok_or(RuntimeError::StackIndexOutOfRange)
             .map(|value| (*value).clone())
@@ -88,10 +88,10 @@ impl<E: Primitive> Memory<E> {
         }
     }
 
-    pub fn merge<O>(&mut self, condition: E, left: Self, right: Self, operator: &mut O)
+    pub fn merge<O>(&mut self, condition: P, left: Self, right: Self, operator: &mut O)
                     -> Result<(), RuntimeError>
         where
-            O: PrimitiveOperations<E>
+            O: PrimitiveOperations<P>
     {
         let ls = left.stack;
         let rs = right.stack;

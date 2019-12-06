@@ -1,5 +1,6 @@
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::marker::PhantomData;
+use std::ops::BitAnd;
 
 use bellman::{ConstraintSystem, Variable};
 use bellman::pairing::Engine;
@@ -10,7 +11,6 @@ use num_bigint::{BigInt, ToBigInt};
 
 use crate::primitive::{Primitive, PrimitiveOperations, utils};
 use crate::vm::RuntimeError;
-use std::ops::BitAnd;
 
 /// ConstrainedElement is an implementation of Element
 /// that for every operation on elements generates corresponding R1CS constraints.
@@ -160,10 +160,10 @@ impl<E, CS> ConstrainingFrOperations<E, CS>
     }
 
     fn recursive_select(&mut self, array: &[FrPrimitive<E>], index_bits: &[FrPrimitive<E>])
-        -> Result<FrPrimitive<E>, RuntimeError>
+                        -> Result<FrPrimitive<E>, RuntimeError>
     {
         if array.len() == 1 {
-            return Ok(array[0].clone())
+            return Ok(array[0].clone());
         }
 
         let bit = index_bits.first().expect("recursion error");
@@ -172,8 +172,8 @@ impl<E, CS> ConstrainingFrOperations<E, CS>
         for i in 0..(array.len() / 2) {
             let p = self.conditional_select(
                 bit.clone(),
-                array[i*2+1].clone(),
-                array[i*2].clone(),
+                array[i * 2 + 1].clone(),
+                array[i * 2].clone(),
             )?;
             new_array.push(p);
         }
@@ -764,7 +764,17 @@ impl<E, CS> PrimitiveOperations<FrPrimitive<E>> for ConstrainingFrOperations<E, 
         self.recursive_select(array, bits.as_slice())
     }
 
-    fn array_set(&mut self, _array: &[FrPrimitive<E>], _index: FrPrimitive<E>, _value: FrPrimitive<E>) -> Result<Vec<FrPrimitive<E>>, RuntimeError> {
-        unimplemented!()
+    fn array_set(&mut self, array: &[FrPrimitive<E>], index: FrPrimitive<E>, value: FrPrimitive<E>) -> Result<Vec<FrPrimitive<E>>, RuntimeError> {
+        let mut new_array = Vec::new();
+
+        for (i, p) in array.iter().enumerate() {
+            let curr_index = self.constant_bigint(&i.into())?;
+
+            let cond = self.eq(curr_index, index.clone())?;
+            let value = self.conditional_select(cond, value.clone(), p.clone())?;
+            new_array.push(value);
+        }
+
+        Ok(new_array)
     }
 }

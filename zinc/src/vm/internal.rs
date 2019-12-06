@@ -7,8 +7,8 @@ pub trait InternalVM<E: Primitive> {
     fn push(&mut self, element: E) -> Result<(), RuntimeError>;
     fn pop(&mut self) -> Result<E, RuntimeError>;
 
-    fn store(&mut self, address: usize, element: E) -> Result<(), RuntimeError>;
     fn load(&mut self, address: usize) -> Result<E, RuntimeError>;
+    fn store(&mut self, address: usize, element: E) -> Result<(), RuntimeError>;
 
     fn loop_begin(&mut self, iter_count: usize) -> Result<(), RuntimeError>;
     fn loop_end(&mut self) -> Result<(), RuntimeError>;
@@ -36,12 +36,12 @@ impl<E, O> InternalVM<E> for VirtualMachine<E, O>
         self.memory()?.pop()
     }
 
-    fn store(&mut self, address: usize, element: E) -> Result<(), RuntimeError> {
-        self.memory()?.store(address, element)
-    }
-
     fn load(&mut self, address: usize) -> Result<E, RuntimeError> {
         self.memory()?.load(address)
+    }
+
+    fn store(&mut self, address: usize, element: E) -> Result<(), RuntimeError> {
+        self.memory()?.store(address, element)
     }
 
     fn loop_begin(&mut self, iterations: usize) -> Result<(), RuntimeError> {
