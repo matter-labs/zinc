@@ -1,14 +1,14 @@
 extern crate franklin_crypto;
 
-use crate::element::{Element, ElementOperator};
+use crate::primitive::{Primitive, PrimitiveOperations};
 use crate::vm::{VMInstruction, InternalVM};
 use crate::vm::{RuntimeError, VirtualMachine};
 use zinc_bytecode::{Call, Return};
 
 impl<E, O> VMInstruction<E, O> for Call
 where
-    E: Element,
-    O: ElementOperator<E>,
+    E: Primitive,
+    O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.call(self.address, self.inputs_count)
@@ -17,8 +17,8 @@ where
 
 impl<E, O> VMInstruction<E, O> for Return
 where
-    E: Element,
-    O: ElementOperator<E>,
+    E: Primitive,
+    O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.ret(self.outputs_count)

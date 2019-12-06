@@ -1,4 +1,4 @@
-use crate::element::Element;
+use crate::primitive::Primitive;
 use crate::vm::memory::Memory;
 
 #[derive(Debug)]
@@ -8,34 +8,34 @@ pub struct Loop {
 }
 
 #[derive(Debug)]
-pub struct Branch<E: Element> {
+pub struct Branch<E: Primitive> {
     pub condition: E,
     pub then_memory: Option<Memory<E>>,
     pub else_memory: Option<Memory<E>>,
 }
 
 #[derive(Debug)]
-pub enum Block<E: Element> {
+pub enum Block<E: Primitive> {
     Loop(Loop),
     Branch(Branch<E>),
 }
 
 #[derive(Debug)]
-pub struct FunctionFrame<E: Element> {
+pub struct FunctionFrame<E: Primitive> {
     pub blocks: Vec<Block<E>>,
     pub memory_snapshots: Vec<Memory<E>>,
     pub return_address: usize,
 }
 
 #[derive(Debug)]
-pub struct State<E: Element> {
+pub struct State<E: Primitive> {
     pub instruction_counter: usize,
     pub conditions_stack: Vec<E>,
     pub function_frames: Vec<FunctionFrame<E>>,
 }
 
 
-impl<E: Element> FunctionFrame<E> {
+impl<E: Primitive> FunctionFrame<E> {
     pub fn new(return_address: usize, arguments: &[E]) -> Self {
         Self {
             blocks: vec![],

@@ -1,19 +1,19 @@
-mod constrained_element;
-mod primitive_element;
+mod constrained_primitive;
+mod simple_primitive;
 pub mod utils;
 
-pub use constrained_element::*;
-pub use primitive_element::*;
+pub use constrained_primitive::*;
+pub use simple_primitive::*;
 
 use crate::vm::RuntimeError;
 use num_bigint::{BigInt, ToBigInt};
 use std::fmt::{Debug, Display};
 
-/// Element is a primitive value that can be stored on the stack and operated by VM's instructions.
-pub trait Element: Sized + Clone + Debug + Display + ToBigInt {}
+/// Primitive is a primitive value that can be stored on the stack and operated by VM's instructions.
+pub trait Primitive: Sized + Clone + Debug + Display + ToBigInt {}
 
-/// ElementOperator is an entity that knows how to operate on Element.
-pub trait ElementOperator<E: Element> {
+/// PrimitiveOperations is an entity that knows how to operate with some Primitive.
+pub trait PrimitiveOperations<E: Primitive> {
     fn variable_none(&mut self) -> Result<E, RuntimeError>;
     fn variable_bigint(&mut self, value: &BigInt) -> Result<E, RuntimeError>;
     fn constant_bigint(&mut self, value: &BigInt) -> Result<E, RuntimeError>;

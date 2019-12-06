@@ -1,9 +1,9 @@
-use crate::element::{Element, ElementOperator};
+use crate::primitive::{Primitive, PrimitiveOperations};
 use crate::RuntimeError;
 use crate::vm::{VirtualMachine, Branch, Block, Loop, FunctionFrame};
 
 /// This is an internal interface to virtual machine used by instructions.
-pub trait InternalVM<E: Element> {
+pub trait InternalVM<E: Primitive> {
     fn push(&mut self, element: E) -> Result<(), RuntimeError>;
     fn pop(&mut self) -> Result<E, RuntimeError>;
 
@@ -25,8 +25,8 @@ pub trait InternalVM<E: Element> {
 
 impl<E, O> InternalVM<E> for VirtualMachine<E, O>
     where
-        E: Element,
-        O: ElementOperator<E>,
+        E: Primitive,
+        O: PrimitiveOperations<E>,
 {
     fn push(&mut self, element: E) -> Result<(), RuntimeError> {
         self.memory()?.push(element)

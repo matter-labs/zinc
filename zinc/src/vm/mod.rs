@@ -6,7 +6,7 @@ pub use memory::*;
 pub use state::*;
 pub use internal::*;
 
-use crate::element::{Element, ElementOperator};
+use crate::primitive::{Primitive, PrimitiveOperations};
 use num_bigint::BigInt;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 use franklin_crypto::bellman::SynthesisError;
@@ -14,8 +14,8 @@ use crate::vm::memory::Memory;
 
 pub trait VMInstruction<E, O>: InstructionInfo
 where
-    E: Element,
-    O: ElementOperator<E>,
+    E: Primitive,
+    O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError>;
 }
@@ -43,13 +43,13 @@ pub enum RuntimeError {
     BranchStacksDoNotMatch,
 }
 
-pub struct VirtualMachine<E: Element, O: ElementOperator<E>> {
+pub struct VirtualMachine<E: Primitive, O: PrimitiveOperations<E>> {
     state: State<E>,
     operator: O,
     outputs: Vec<E>,
 }
 
-impl<E: Element, O: ElementOperator<E>> VirtualMachine<E, O> {
+impl<E: Primitive, O: PrimitiveOperations<E>> VirtualMachine<E, O> {
     pub fn new(operator: O) -> Self {
         Self {
             state: State {

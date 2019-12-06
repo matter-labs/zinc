@@ -1,14 +1,14 @@
 extern crate franklin_crypto;
 
-use crate::element::{Element, ElementOperator};
+use crate::primitive::{Primitive, PrimitiveOperations};
 use crate::vm::{VMInstruction, InternalVM};
 use crate::vm::{RuntimeError, VirtualMachine};
 use zinc_bytecode::instructions::Exit;
 
 impl<E, O> VMInstruction<E, O> for Exit
 where
-    E: Element,
-    O: ElementOperator<E>,
+    E: Primitive,
+    O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.exit(self.outputs_count)?;

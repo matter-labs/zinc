@@ -1,4 +1,4 @@
-mod element;
+mod primitive;
 mod instructions;
 mod vm;
 

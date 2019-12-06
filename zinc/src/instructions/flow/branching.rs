@@ -1,14 +1,14 @@
 extern crate franklin_crypto;
 
-use crate::element::{Element, ElementOperator};
+use crate::primitive::{Primitive, PrimitiveOperations};
 use crate::vm::{VMInstruction, InternalVM};
 use crate::vm::{RuntimeError, VirtualMachine};
 use zinc_bytecode::{If, Else, EndIf};
 
 impl<E, O> VMInstruction<E, O> for If
     where
-        E: Element,
-        O: ElementOperator<E>,
+        E: Primitive,
+        O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.branch_then()
@@ -17,8 +17,8 @@ impl<E, O> VMInstruction<E, O> for If
 
 impl<E, O> VMInstruction<E, O> for Else
     where
-        E: Element,
-        O: ElementOperator<E>,
+        E: Primitive,
+        O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.branch_else()
@@ -27,8 +27,8 @@ impl<E, O> VMInstruction<E, O> for Else
 
 impl<E, O> VMInstruction<E, O> for EndIf
     where
-        E: Element,
-        O: ElementOperator<E>,
+        E: Primitive,
+        O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.branch_end()

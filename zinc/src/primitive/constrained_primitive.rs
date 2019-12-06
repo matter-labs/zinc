@@ -1,4 +1,4 @@
-use crate::element::{utils, Element, ElementOperator};
+use crate::primitive::{utils, Primitive, PrimitiveOperations};
 use crate::vm::RuntimeError;
 use bellman::pairing::Engine;
 use bellman::{ConstraintSystem, Variable};
@@ -12,12 +12,12 @@ use std::marker::PhantomData;
 /// ConstrainedElement is an implementation of Element
 /// that for every operation on elements generates corresponding R1CS constraints.
 #[derive(Debug, Clone)]
-pub struct ConstrainedElement<E: Engine> {
+pub struct FrPrimitive<E: Engine> {
     value: Option<E::Fr>,
     variable: Variable,
 }
 
-impl<E: Engine> Display for ConstrainedElement<E> {
+impl<E: Engine> Display for FrPrimitive<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         match &self.value {
             Some(value) => {
@@ -29,16 +29,16 @@ impl<E: Engine> Display for ConstrainedElement<E> {
     }
 }
 
-impl<E: Engine> ToBigInt for ConstrainedElement<E> {
+impl<E: Engine> ToBigInt for FrPrimitive<E> {
     fn to_bigint(&self) -> Option<BigInt> {
         self.value
             .map(|fr| -> BigInt { utils::fr_to_bigint::<E>(&fr) })
     }
 }
 
-impl<EN: Debug + Engine> Element for ConstrainedElement<EN> {}
+impl<EN: Debug + Engine> Primitive for FrPrimitive<EN> {}
 
-pub struct ConstrainedElementOperator<E, CS>
+pub struct ConstrainingFrOperations<E, CS>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -48,7 +48,7 @@ where
     pd: PhantomData<E>,
 }
 
-impl<E, CS> ConstrainedElementOperator<E, CS>
+impl<E, CS> ConstrainingFrOperations<E, CS>
 where
     E: Engine + Debug,
     CS: ConstraintSystem<E>,
@@ -67,7 +67,7 @@ where
         self.cs.namespace(|| s)
     }
 
-    fn zero(&mut self) -> Result<ConstrainedElement<E>, RuntimeError> {
+    fn zero(&mut self) -> Result<FrPrimitive<E>, RuntimeError> {
         let value = E::Fr::zero();
         let mut cs = self.cs_namespace();
         let variable = cs
@@ -81,14 +81,14 @@ where
             |lc| lc,
         );
 
-        Ok(ConstrainedElement {
+        Ok(FrPrimitive {
             value: Some(value),
             variable,
         })
     }
 
-    fn one() -> ConstrainedElement<E> {
-        ConstrainedElement {
+    fn one() -> FrPrimitive<E> {
+        FrPrimitive {
             value: Some(E::Fr::one()),
             variable: CS::one(),
         }
@@ -99,20 +99,20 @@ where
         &mut self.cs
     }
 
-    fn abs(&mut self, value: ConstrainedElement<E>) -> Result<ConstrainedElement<E>, RuntimeError> {
+    fn abs(&mut self, value: FrPrimitive<E>) -> Result<FrPrimitive<E>, RuntimeError> {
         let zero = self.zero()?;
-        let neg = ElementOperator::neg(self, value.clone())?;
-        let lt0 = ElementOperator::lt(self, value.clone(), zero)?;
+        let neg = PrimitiveOperations::neg(self, value.clone())?;
+        let lt0 = PrimitiveOperations::lt(self, value.clone(), zero)?;
         self.conditional_select(lt0, neg, value)
     }
 }
 
-impl<E, CS> ElementOperator<ConstrainedElement<E>> for ConstrainedElementOperator<E, CS>
+impl<E, CS> PrimitiveOperations<FrPrimitive<E>> for ConstrainingFrOperations<E, CS>
 where
     E: Debug + Engine,
     CS: ConstraintSystem<E>,
 {
-    fn variable_none(&mut self) -> Result<ConstrainedElement<E>, RuntimeError> {
+    fn variable_none(&mut self) -> Result<FrPrimitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let variable = cs
@@ -122,13 +122,13 @@ where
             )
             .map_err(RuntimeError::SynthesisError)?;
 
-        Ok(ConstrainedElement {
+        Ok(FrPrimitive {
             value: None,
             variable,
         })
     }
 
-    fn variable_bigint(&mut self, value: &BigInt) -> Result<ConstrainedElement<E>, RuntimeError> {
+    fn variable_bigint(&mut self, value: &BigInt) -> Result<FrPrimitive<E>, RuntimeError> {
         let value = utils::bigint_to_fr::<E>(value)
             .ok_or_else(|| RuntimeError::InternalError("bigint_to_fr".into()))?;
 
@@ -138,13 +138,13 @@ where
             .alloc(|| "variable value", || Ok(value))
             .map_err(RuntimeError::SynthesisError)?;
 
-        Ok(ConstrainedElement {
+        Ok(FrPrimitive {
             value: Some(value),
             variable,
         })
     }
 
-    fn constant_bigint(&mut self, value: &BigInt) -> Result<ConstrainedElement<E>, RuntimeError> {
+    fn constant_bigint(&mut self, value: &BigInt) -> Result<FrPrimitive<E>, RuntimeError> {
         let value = utils::bigint_to_fr::<E>(value)
             .ok_or_else(|| RuntimeError::InternalError("bigint_to_fr".into()))?;
 
@@ -161,7 +161,7 @@ where
             |lc| lc + variable,
         );
 
-        Ok(ConstrainedElement {
+        Ok(FrPrimitive {
             value: Some(value),
             variable,
         })
@@ -169,8 +169,8 @@ where
 
     fn output(
         &mut self,
-        element: ConstrainedElement<E>,
-    ) -> Result<ConstrainedElement<E>, RuntimeError> {
+        element: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let variable = cs
@@ -187,7 +187,7 @@ where
             |lc| lc + element.variable,
         );
 
-        Ok(ConstrainedElement {
+        Ok(FrPrimitive {
             value: element.value,
             variable,
         })
@@ -195,9 +195,9 @@ where
 
     fn add(
         &mut self,
-        left: ConstrainedElement<E>,
-        right: ConstrainedElement<E>,
-    ) -> Result<ConstrainedElement<E>, RuntimeError> {
+        left: FrPrimitive<E>,
+        right: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let sum = match (left.value, right.value) {
             (Some(l), Some(r)) => {
                 let mut sum = l;
@@ -223,7 +223,7 @@ where
             |lc| lc + sum_var,
         );
 
-        Ok(ConstrainedElement {
+        Ok(FrPrimitive {
             value: sum,
             variable: sum_var,
         })
@@ -231,9 +231,9 @@ where
 
     fn sub(
         &mut self,
-        left: ConstrainedElement<E>,
-        right: ConstrainedElement<E>,
-    ) -> Result<ConstrainedElement<E>, RuntimeError> {
+        left: FrPrimitive<E>,
+        right: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let diff = match (left.value, right.value) {
             (Some(l), Some(r)) => {
                 let mut diff = l;
@@ -259,7 +259,7 @@ where
             |lc| lc + sum_var,
         );
 
-        Ok(ConstrainedElement {
+        Ok(FrPrimitive {
             value: diff,
             variable: sum_var,
         })
@@ -267,9 +267,9 @@ where
 
     fn mul(
         &mut self,
-        left: ConstrainedElement<E>,
-        right: ConstrainedElement<E>,
-    ) -> Result<ConstrainedElement<E>, RuntimeError> {
+        left: FrPrimitive<E>,
+        right: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let prod = match (left.value, right.value) {
             (Some(l), Some(r)) => {
                 let mut prod = l;
@@ -295,7 +295,7 @@ where
             |lc| lc + sum_var,
         );
 
-        Ok(ConstrainedElement {
+        Ok(FrPrimitive {
             value: prod,
             variable: sum_var,
         })
@@ -303,9 +303,9 @@ where
 
     fn div_rem(
         &mut self,
-        left: ConstrainedElement<E>,
-        right: ConstrainedElement<E>,
-    ) -> Result<(ConstrainedElement<E>, ConstrainedElement<E>), RuntimeError> {
+        left: FrPrimitive<E>,
+        right: FrPrimitive<E>,
+    ) -> Result<(FrPrimitive<E>, FrPrimitive<E>), RuntimeError> {
         let nominator = left;
         let denominator = right;
 
@@ -346,11 +346,11 @@ where
                 |lc| lc + nominator.variable - remainder_var,
             );
 
-            let quotient = ConstrainedElement {
+            let quotient = FrPrimitive {
                 value: quotient_value,
                 variable: qutioent_var,
             };
-            let remainder = ConstrainedElement {
+            let remainder = FrPrimitive {
                 value: remainder_value,
                 variable: remainder_var,
             };
@@ -375,8 +375,8 @@ where
 
     fn neg(
         &mut self,
-        element: ConstrainedElement<E>,
-    ) -> Result<ConstrainedElement<E>, RuntimeError> {
+        element: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let neg_value = match element.value {
             Some(value) => {
                 let mut neg = E::Fr::zero();
@@ -402,7 +402,7 @@ where
             |lc| lc - neg_variable,
         );
 
-        Ok(ConstrainedElement {
+        Ok(FrPrimitive {
             value: neg_value,
             variable: neg_variable,
         })
@@ -410,17 +410,17 @@ where
 
     fn not(
         &mut self,
-        element: ConstrainedElement<E>,
-    ) -> Result<ConstrainedElement<E>, RuntimeError> {
+        element: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let one = Self::one();
         self.sub(one, element)
     }
 
     fn and(
         &mut self,
-        left: ConstrainedElement<E>,
-        right: ConstrainedElement<E>,
-    ) -> Result<ConstrainedElement<E>, RuntimeError> {
+        left: FrPrimitive<E>,
+        right: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let value = match (left.value, right.value) {
@@ -443,14 +443,14 @@ where
             |lc| lc + variable,
         );
 
-        Ok(ConstrainedElement { value, variable })
+        Ok(FrPrimitive { value, variable })
     }
 
     fn or(
         &mut self,
-        left: ConstrainedElement<E>,
-        right: ConstrainedElement<E>,
-    ) -> Result<ConstrainedElement<E>, RuntimeError> {
+        left: FrPrimitive<E>,
+        right: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let value = match (left.value, right.value) {
@@ -475,14 +475,14 @@ where
             |lc| lc + CS::one() - variable,
         );
 
-        Ok(ConstrainedElement { value, variable })
+        Ok(FrPrimitive { value, variable })
     }
 
     fn xor(
         &mut self,
-        left: ConstrainedElement<E>,
-        right: ConstrainedElement<E>,
-    ) -> Result<ConstrainedElement<E>, RuntimeError> {
+        left: FrPrimitive<E>,
+        right: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let value = match (left.value, right.value) {
@@ -511,14 +511,14 @@ where
             |lc| lc + left.variable + right.variable - variable,
         );
 
-        Ok(ConstrainedElement { value, variable })
+        Ok(FrPrimitive { value, variable })
     }
 
     fn lt(
         &mut self,
-        left: ConstrainedElement<E>,
-        right: ConstrainedElement<E>,
-    ) -> Result<ConstrainedElement<E>, RuntimeError> {
+        left: FrPrimitive<E>,
+        right: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let one = Self::one();
         let right_minus_one = self.sub(right, one)?;
         self.le(left, right_minus_one)
@@ -526,9 +526,9 @@ where
 
     fn le(
         &mut self,
-        left: ConstrainedElement<E>,
-        right: ConstrainedElement<E>,
-    ) -> Result<ConstrainedElement<E>, RuntimeError> {
+        left: FrPrimitive<E>,
+        right: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let diff = self.sub(right, left)?;
 
         let mut cs = self.cs_namespace();
@@ -558,7 +558,7 @@ where
         let lt = AllocatedNum::equals(cs.namespace(|| "equals"), &diff_num, &diff_num_repacked)
             .map_err(RuntimeError::SynthesisError)?;
 
-        Ok(ConstrainedElement {
+        Ok(FrPrimitive {
             value: lt.get_value_field::<E>(),
             variable: lt.get_variable(),
         })
@@ -566,9 +566,9 @@ where
 
     fn eq(
         &mut self,
-        left: ConstrainedElement<E>,
-        right: ConstrainedElement<E>,
-    ) -> Result<ConstrainedElement<E>, RuntimeError> {
+        left: FrPrimitive<E>,
+        right: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let l_num = AllocatedNum::alloc(cs.namespace(|| "l_num"), || {
@@ -584,7 +584,7 @@ where
         let eq =
             AllocatedNum::equals(cs, &l_num, &r_num).map_err(RuntimeError::SynthesisError)?;
 
-        Ok(ConstrainedElement {
+        Ok(FrPrimitive {
             value: eq.get_value_field::<E>(),
             variable: eq.get_variable(),
         })
@@ -592,37 +592,37 @@ where
 
     fn ne(
         &mut self,
-        left: ConstrainedElement<E>,
-        right: ConstrainedElement<E>,
-    ) -> Result<ConstrainedElement<E>, RuntimeError> {
+        left: FrPrimitive<E>,
+        right: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let eq = self.eq(left, right)?;
         self.not(eq)
     }
 
     fn ge(
         &mut self,
-        left: ConstrainedElement<E>,
-        right: ConstrainedElement<E>,
-    ) -> Result<ConstrainedElement<E>, RuntimeError> {
+        left: FrPrimitive<E>,
+        right: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let not_ge = self.lt(left, right)?;
         self.not(not_ge)
     }
 
     fn gt(
         &mut self,
-        left: ConstrainedElement<E>,
-        right: ConstrainedElement<E>,
-    ) -> Result<ConstrainedElement<E>, RuntimeError> {
+        left: FrPrimitive<E>,
+        right: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let not_gt = self.le(left, right)?;
         self.not(not_gt)
     }
 
     fn conditional_select(
         &mut self,
-        condition: ConstrainedElement<E>,
-        if_true: ConstrainedElement<E>,
-        if_false: ConstrainedElement<E>,
-    ) -> Result<ConstrainedElement<E>, RuntimeError> {
+        condition: FrPrimitive<E>,
+        if_true: FrPrimitive<E>,
+        if_false: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let value = match condition.value {
@@ -653,10 +653,10 @@ where
             |lc| lc + variable - if_false.variable,
         );
 
-        Ok(ConstrainedElement { value, variable })
+        Ok(FrPrimitive { value, variable })
     }
 
-    fn assert(&mut self, element: ConstrainedElement<E>) -> Result<(), RuntimeError> {
+    fn assert(&mut self, element: FrPrimitive<E>) -> Result<(), RuntimeError> {
         let value = match element.value {
             None => Err(SynthesisError::AssignmentMissing),
             Some(fr) => fr.inverse().ok_or(SynthesisError::Unsatisfiable),

@@ -1,9 +1,9 @@
-use crate::element::{Element, ElementOperator};
+use crate::primitive::{Primitive, PrimitiveOperations};
 use crate::RuntimeError;
 use std::cmp;
 
 #[derive(Debug, Clone)]
-pub enum StorageCell<E: Element> {
+pub enum StorageCell<E: Primitive> {
     None,
     Unchanged(E),
     Changed(E),
@@ -11,14 +11,14 @@ pub enum StorageCell<E: Element> {
 
 /// StackFrame is a data structure that represents the state of function execution.
 #[derive(Debug)]
-pub struct Memory<E: Element> {
+pub struct Memory<E: Primitive> {
     //    arguments: Vec<E>,
     stack: Vec<E>,
     storage: Vec<StorageCell<E>>,
 }
 
 
-impl<E: Element> Memory<E> {
+impl<E: Primitive> Memory<E> {
     /// Initialize new stack frame with given arguments.
     pub fn new(arguments: &[E]) -> Self {
         Self {
@@ -91,7 +91,7 @@ impl<E: Element> Memory<E> {
     pub fn merge<O>(&mut self, condition: E, left: Self, right: Self, operator: &mut O)
                     -> Result<(), RuntimeError>
         where
-            O: ElementOperator<E>
+            O: PrimitiveOperations<E>
     {
         let ls = left.stack;
         let rs = right.stack;

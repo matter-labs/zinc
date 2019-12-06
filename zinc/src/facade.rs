@@ -1,5 +1,5 @@
-use crate::element::utils::bigint_to_fr;
-use crate::element::ConstrainedElementOperator;
+use crate::primitive::utils::bigint_to_fr;
+use crate::primitive::ConstrainingFrOperations;
 use crate::vm::VirtualMachine;
 use bellman::groth16;
 use bellman::pairing::bn256::Bn256;
@@ -22,7 +22,7 @@ struct VMCircuit<'a, 'b, 'c> {
 
 impl<E: Engine + Debug> Circuit<E> for VMCircuit<'_, '_, '_> {
     fn synthesize<CS: ConstraintSystem<E>>(self, cs: &mut CS) -> Result<(), SynthesisError> {
-        let mut vm = VirtualMachine::new(ConstrainedElementOperator::new(cs));
+        let mut vm = VirtualMachine::new(ConstrainingFrOperations::new(cs));
         *self.result = Some(vm.run(self.code, self.inputs));
         Ok(())
     }
@@ -33,7 +33,7 @@ pub fn exec<E: Engine>(
     inputs: &[BigInt],
 ) -> Result<Vec<Option<BigInt>>, RuntimeError> {
     let cs = TestConstraintSystem::<Bn256>::new();
-    let mut vm = VirtualMachine::new(ConstrainedElementOperator::new(cs));
+    let mut vm = VirtualMachine::new(ConstrainingFrOperations::new(cs));
     vm.run(code, Some(inputs))
 }
 

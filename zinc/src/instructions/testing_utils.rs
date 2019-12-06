@@ -1,5 +1,5 @@
-use crate::element::{
-    ConstrainedElement, ConstrainedElementOperator, Element, ElementOperator,
+use crate::primitive::{
+    FrPrimitive, ConstrainingFrOperations, Primitive, PrimitiveOperations,
     PrimitiveElementOperator,
 };
 use crate::vm::{RuntimeError, VirtualMachine};
@@ -8,8 +8,8 @@ use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::BigInt;
 use zinc_bytecode::{decode_all_instructions, Call, DecodingError, InstructionInfo};
 
-type TestElement = ConstrainedElement<Bn256>;
-type TestElementOperator = ConstrainedElementOperator<Bn256, TestConstraintSystem<Bn256>>;
+type TestElement = FrPrimitive<Bn256>;
+type TestElementOperator = ConstrainingFrOperations<Bn256, TestConstraintSystem<Bn256>>;
 type TestVirtualMachine = VirtualMachine<TestElement, TestElementOperator>;
 
 fn new_test_constrained_vm() -> TestVirtualMachine {
@@ -21,8 +21,8 @@ fn new_test_constrained_vm() -> TestVirtualMachine {
 
 fn assert_stack_eq<E, O, BI>(vm: &mut VirtualMachine<E, O>, expected_stack: &[BI])
 where
-    E: Element,
-    O: ElementOperator<E>,
+    E: Primitive,
+    O: PrimitiveOperations<E>,
     BI: Into<BigInt> + Copy,
 {
     for (i, expected) in expected_stack.iter().enumerate() {
