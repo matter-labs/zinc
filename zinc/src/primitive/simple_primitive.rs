@@ -249,4 +249,23 @@ impl PrimitiveOperations<SimplePrimitive> for PrimitiveElementOperator {
             _ => Ok(()),
         }
     }
+
+    fn array_get(&mut self, array: &[SimplePrimitive], index: SimplePrimitive) -> Result<SimplePrimitive, RuntimeError> {
+        let i = index.value;
+        array
+            .get(i as usize)
+            .map(|p| (*p).clone())
+            .ok_or(RuntimeError::IndexOutOfBounds)
+    }
+
+    fn array_set(&mut self, array: &[SimplePrimitive], index: SimplePrimitive, value: SimplePrimitive) -> Result<Vec<SimplePrimitive>, RuntimeError> {
+        let mut array = Vec::from(array);
+        let i = index.value as usize;
+        if i >= array.len() {
+            Err(RuntimeError::IndexOutOfBounds)
+        } else {
+            array[i] = value;
+            Ok(array)
+        }
+    }
 }

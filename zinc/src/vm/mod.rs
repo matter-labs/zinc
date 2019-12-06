@@ -41,6 +41,7 @@ pub enum RuntimeError {
     UninitializedStorageAccess,
     MissingArgument,
     BranchStacksDoNotMatch,
+    IndexOutOfBounds,
 }
 
 pub struct VirtualMachine<E: Primitive, O: PrimitiveOperations<E>> {
