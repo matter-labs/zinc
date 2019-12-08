@@ -19,6 +19,7 @@ pub use self::tuple::Tuple;
 
 use std::fmt;
 
+use crate::semantic::Caster;
 use crate::semantic::Constant;
 use crate::semantic::Type;
 
@@ -42,7 +43,9 @@ impl Value {
             Type::Field => Self::Integer(Integer::new(false, crate::BITLENGTH_FIELD)),
             Type::Array { r#type, size } => Self::Array(Array::new(*r#type, size)),
             Type::Tuple { types } => Self::Tuple(Tuple::new(types)),
-            Type::Structure { index, fields } => Self::Structure(Structure::new(index, fields)),
+            Type::Structure { identifier, fields } => {
+                Self::Structure(Structure::new(identifier, fields))
+            }
             r#type => panic!(
                 "{}{}",
                 crate::semantic::PANIC_VALUE_CANNOT_BE_CREATED_FROM,
@@ -53,8 +56,8 @@ impl Value {
 
     pub fn r#type(&self) -> Type {
         match self {
-            Self::Unit => Type::Unit,
-            Self::Boolean => Type::Boolean,
+            Self::Unit => Type::new_unit(),
+            Self::Boolean => Type::new_boolean(),
             Self::Integer(integer) => integer.r#type(),
             Self::Array(array) => array.r#type(),
             Self::Tuple(tuple) => tuple.r#type(),
@@ -78,21 +81,15 @@ impl Value {
         }
     }
 
-    pub fn assign(&self, other: &Self) -> Result<(), Error> {
-        if !self.has_the_same_type_as(&other) {
-            return Err(Error::AssignmentTypeMismatch(other.r#type(), self.r#type()));
-        }
-
-        Ok(())
-    }
-
     pub fn or(&self, other: &Self) -> Result<Self, Error> {
         match self {
             Self::Boolean => match other {
                 Self::Boolean => Ok(Self::Boolean),
-                value => Err(Error::ExpectedBoolean("or", value.r#type())),
+                value => Err(Error::OperatorOrSecondOperandExpectedBoolean(
+                    value.r#type(),
+                )),
             },
-            value => Err(Error::ExpectedBoolean("or", value.r#type())),
+            value => Err(Error::OperatorOrFirstOperandExpectedBoolean(value.r#type())),
         }
     }
 
@@ -100,9 +97,13 @@ impl Value {
         match self {
             Self::Boolean => match other {
                 Self::Boolean => Ok(Self::Boolean),
-                value => Err(Error::ExpectedBoolean("xor", value.r#type())),
+                value => Err(Error::OperatorXorSecondOperandExpectedBoolean(
+                    value.r#type(),
+                )),
             },
-            value => Err(Error::ExpectedBoolean("xor", value.r#type())),
+            value => Err(Error::OperatorXorFirstOperandExpectedBoolean(
+                value.r#type(),
+            )),
         }
     }
 
@@ -110,24 +111,31 @@ impl Value {
         match self {
             Self::Boolean => match other {
                 Self::Boolean => Ok(Self::Boolean),
-                value => Err(Error::ExpectedBoolean("and", value.r#type())),
+                value => Err(Error::OperatorAndSecondOperandExpectedBoolean(
+                    value.r#type(),
+                )),
             },
-            value => Err(Error::ExpectedBoolean("and", value.r#type())),
+            value => Err(Error::OperatorAndFirstOperandExpectedBoolean(
+                value.r#type(),
+            )),
         }
     }
 
     pub fn equals(&self, other: &Self) -> Result<Self, Error> {
         match (self, other) {
             (Self::Unit, Self::Unit) => Ok(Self::Boolean),
-            (Self::Unit, value_2) => Err(Error::ExpectedUnit("equals", value_2.r#type())),
+            (Self::Unit, value_2) => Err(Error::OperatorEqualsSecondOperandExpectedUnit(
+                value_2.r#type(),
+            )),
             (Self::Boolean, Self::Boolean) => Ok(Self::Boolean),
-            (Self::Boolean, value_2) => Err(Error::ExpectedBoolean("equals", value_2.r#type())),
-            (Self::Integer { .. }, Self::Integer { .. }) => Ok(Self::Boolean),
-            (Self::Integer { .. }, value_2) => {
-                Err(Error::ExpectedInteger("equals", value_2.r#type()))
-            }
-            (value_1, value_2) => Err(Error::ExpectedPrimitiveTypes(
-                "equals",
+            (Self::Boolean, value_2) => Err(Error::OperatorEqualsSecondOperandExpectedBoolean(
+                value_2.r#type(),
+            )),
+            (Self::Integer(_), Self::Integer(_)) => Ok(Self::Boolean),
+            (Self::Integer(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedInteger(
+                value_2.r#type(),
+            )),
+            (value_1, value_2) => Err(Error::OperatorEqualsExpectedPrimitiveTypes(
                 value_1.r#type(),
                 value_2.r#type(),
             )),
@@ -137,15 +145,18 @@ impl Value {
     pub fn not_equals(&self, other: &Self) -> Result<Self, Error> {
         match (self, other) {
             (Self::Unit, Self::Unit) => Ok(Self::Boolean),
-            (Self::Unit, value_2) => Err(Error::ExpectedUnit("not_equals", value_2.r#type())),
+            (Self::Unit, value_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedUnit(
+                value_2.r#type(),
+            )),
             (Self::Boolean, Self::Boolean) => Ok(Self::Boolean),
-            (Self::Boolean, value_2) => Err(Error::ExpectedBoolean("not_equals", value_2.r#type())),
-            (Self::Integer { .. }, Self::Integer { .. }) => Ok(Self::Boolean),
-            (Self::Integer { .. }, value_2) => {
-                Err(Error::ExpectedInteger("not_equals", value_2.r#type()))
-            }
-            (value_1, value_2) => Err(Error::ExpectedPrimitiveTypes(
-                "not_equals",
+            (Self::Boolean, value_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedBoolean(
+                value_2.r#type(),
+            )),
+            (Self::Integer(_), Self::Integer(_)) => Ok(Self::Boolean),
+            (Self::Integer(_), value_2) => Err(
+                Error::OperatorNotEqualsSecondOperandExpectedInteger(value_2.r#type()),
+            ),
+            (value_1, value_2) => Err(Error::OperatorNotEqualsExpectedPrimitiveTypes(
                 value_1.r#type(),
                 value_2.r#type(),
             )),
@@ -159,9 +170,13 @@ impl Value {
                     .greater_equals(integer_2)
                     .map(|_| Self::Boolean)
                     .map_err(Error::Integer),
-                value => Err(Error::ExpectedInteger("greater_equals", value.r#type())),
+                value => Err(Error::OperatorGreaterEqualsSecondOperandExpectedInteger(
+                    value.r#type(),
+                )),
             },
-            value => Err(Error::ExpectedInteger("greater_equals", value.r#type())),
+            value => Err(Error::OperatorGreaterEqualsFirstOperandExpectedInteger(
+                value.r#type(),
+            )),
         }
     }
 
@@ -172,9 +187,13 @@ impl Value {
                     .lesser_equals(integer_2)
                     .map(|_| Self::Boolean)
                     .map_err(Error::Integer),
-                value => Err(Error::ExpectedInteger("lesser_equals", value.r#type())),
+                value => Err(Error::OperatorLesserEqualsSecondOperandExpectedInteger(
+                    value.r#type(),
+                )),
             },
-            value => Err(Error::ExpectedInteger("lesser_equals", value.r#type())),
+            value => Err(Error::OperatorLesserEqualsFirstOperandExpectedInteger(
+                value.r#type(),
+            )),
         }
     }
 
@@ -185,9 +204,13 @@ impl Value {
                     .greater(integer_2)
                     .map(|_| Self::Boolean)
                     .map_err(Error::Integer),
-                value => Err(Error::ExpectedInteger("greater", value.r#type())),
+                value => Err(Error::OperatorGreaterSecondOperandExpectedInteger(
+                    value.r#type(),
+                )),
             },
-            value => Err(Error::ExpectedInteger("greater", value.r#type())),
+            value => Err(Error::OperatorGreaterFirstOperandExpectedInteger(
+                value.r#type(),
+            )),
         }
     }
 
@@ -198,9 +221,13 @@ impl Value {
                     .lesser(integer_2)
                     .map(|_| Self::Boolean)
                     .map_err(Error::Integer),
-                value => Err(Error::ExpectedInteger("lesser", value.r#type())),
+                value => Err(Error::OperatorLesserSecondOperandExpectedInteger(
+                    value.r#type(),
+                )),
             },
-            value => Err(Error::ExpectedInteger("lesser", value.r#type())),
+            value => Err(Error::OperatorLesserFirstOperandExpectedInteger(
+                value.r#type(),
+            )),
         }
     }
 
@@ -211,9 +238,13 @@ impl Value {
                     .add(integer_2)
                     .map(|_| Self::Integer(integer_1.to_owned()))
                     .map_err(Error::Integer),
-                value => Err(Error::ExpectedInteger("add", value.r#type())),
+                value => Err(Error::OperatorAdditionSecondOperandExpectedInteger(
+                    value.r#type(),
+                )),
             },
-            value => Err(Error::ExpectedInteger("add", value.r#type())),
+            value => Err(Error::OperatorAdditionFirstOperandExpectedInteger(
+                value.r#type(),
+            )),
         }
     }
 
@@ -224,9 +255,13 @@ impl Value {
                     .subtract(integer_2)
                     .map(|_| Self::Integer(integer_1.to_owned()))
                     .map_err(Error::Integer),
-                value => Err(Error::ExpectedInteger("subtract", value.r#type())),
+                value => Err(Error::OperatorSubtractionSecondOperandExpectedInteger(
+                    value.r#type(),
+                )),
             },
-            value => Err(Error::ExpectedInteger("subtract", value.r#type())),
+            value => Err(Error::OperatorSubtractionFirstOperandExpectedInteger(
+                value.r#type(),
+            )),
         }
     }
 
@@ -237,9 +272,13 @@ impl Value {
                     .multiply(integer_2)
                     .map(|_| Self::Integer(integer_1.to_owned()))
                     .map_err(Error::Integer),
-                value => Err(Error::ExpectedInteger("multiply", value.r#type())),
+                value => Err(Error::OperatorMultiplicationSecondOperandExpectedInteger(
+                    value.r#type(),
+                )),
             },
-            value => Err(Error::ExpectedInteger("multiply", value.r#type())),
+            value => Err(Error::OperatorMultiplicationFirstOperandExpectedInteger(
+                value.r#type(),
+            )),
         }
     }
 
@@ -250,9 +289,13 @@ impl Value {
                     .divide(integer_2)
                     .map(|_| Self::Integer(integer_1.to_owned()))
                     .map_err(Error::Integer),
-                value => Err(Error::ExpectedInteger("divide", value.r#type())),
+                value => Err(Error::OperatorDivisionSecondOperandExpectedInteger(
+                    value.r#type(),
+                )),
             },
-            value => Err(Error::ExpectedInteger("divide", value.r#type())),
+            value => Err(Error::OperatorDivisionFirstOperandExpectedInteger(
+                value.r#type(),
+            )),
         }
     }
 
@@ -260,19 +303,27 @@ impl Value {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
-                    .modulo(integer_2)
+                    .remainder(integer_2)
                     .map(|_| Self::Integer(integer_1.to_owned()))
                     .map_err(Error::Integer),
-                value => Err(Error::ExpectedInteger("modulo", value.r#type())),
+                value => Err(Error::OperatorRemainderSecondOperandExpectedInteger(
+                    value.r#type(),
+                )),
             },
-            value => Err(Error::ExpectedInteger("modulo", value.r#type())),
+            value => Err(Error::OperatorRemainderFirstOperandExpectedInteger(
+                value.r#type(),
+            )),
         }
     }
 
-    pub fn cast(&self, r#type: &Type) -> Result<(bool, usize), Error> {
-        match self {
-            Self::Integer(integer) => integer.cast(r#type).map_err(Error::Integer),
-            value => Err(Error::ExpectedInteger("cast", value.r#type())),
+    pub fn cast(&self, to: &Type) -> Result<Option<(bool, usize)>, Error> {
+        let from = self.r#type();
+        Caster::cast(&from, &to).map_err(Error::Casting)?;
+        match to {
+            Type::IntegerUnsigned { bitlength } => Ok(Some((false, *bitlength))),
+            Type::IntegerSigned { bitlength } => Ok(Some((true, *bitlength))),
+            Type::Field => Ok(Some((false, crate::BITLENGTH_FIELD))),
+            _ => Ok(None),
         }
     }
 
@@ -282,14 +333,14 @@ impl Value {
                 .negate()
                 .map(|_| Self::Integer(integer.to_owned()))
                 .map_err(Error::Integer),
-            value => Err(Error::ExpectedInteger("negate", value.r#type())),
+            value => Err(Error::OperatorNegationExpectedInteger(value.r#type())),
         }
     }
 
     pub fn not(&self) -> Result<Self, Error> {
         match self {
             Self::Boolean => Ok(Self::Boolean),
-            value => Err(Error::ExpectedBoolean("not", value.r#type())),
+            value => Err(Error::OperatorNotExpectedInteger(value.r#type())),
         }
     }
 
@@ -307,6 +358,12 @@ impl Value {
 
 impl From<Constant> for Value {
     fn from(constant: Constant) -> Self {
+        Self::new(constant.r#type())
+    }
+}
+
+impl From<&Constant> for Value {
+    fn from(constant: &Constant) -> Self {
         Self::new(constant.r#type())
     }
 }

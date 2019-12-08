@@ -245,7 +245,7 @@ mod tests {
 
     #[test]
     fn ok_with_block() {
-        let input = r#"for i in 0..=4 { 2 + 1 };"#;
+        let input = r#"for i in 0..=4 { 2 + 1 }"#;
 
         let expected = Ok(LoopStatement::new(
             Location::new(1, 1),
@@ -303,7 +303,7 @@ mod tests {
 
     #[test]
     fn ok_with_empty_block() {
-        let input = r#"for i in 0..4 {};"#;
+        let input = r#"for i in 0..4 {}"#;
 
         let expected = Ok(LoopStatement::new(
             Location::new(1, 1),
@@ -331,7 +331,7 @@ mod tests {
 
     #[test]
     fn err_expected_integer_literal() {
-        let input = r#"for i in 0..n {};"#;
+        let input = r#"for i in 0..n {}"#;
 
         let expected = Err(Error::Syntax(SyntaxError::Expected(
             Location::new(1, 13),

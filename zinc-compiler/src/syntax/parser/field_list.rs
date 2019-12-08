@@ -31,7 +31,7 @@ impl Parser {
                 None => stream.borrow_mut().next()?,
             } {
                 token @ Token {
-                    lexeme: Lexeme::Identifier { .. },
+                    lexeme: Lexeme::Identifier(_),
                     ..
                 } => {
                     let (field, next) =

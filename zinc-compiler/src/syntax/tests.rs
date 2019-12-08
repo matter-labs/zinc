@@ -14,14 +14,16 @@ use crate::syntax::Parser;
 
 #[test]
 fn err_expected() {
-    let input = "let";
+    let input = "bool";
 
     let result: Result<CircuitProgram, Error> = Parser::default().parse(input.to_owned());
 
     let expected: Result<CircuitProgram, Error> = Err(Error::Syntax(SyntaxError::Expected(
         Location::new(1, 1),
-        vec!["type", "struct", "enum", "fn", "mod", "use"],
-        Lexeme::Keyword(Keyword::Let),
+        vec![
+            "const", "static", "type", "struct", "enum", "fn", "mod", "use",
+        ],
+        Lexeme::Keyword(Keyword::Bool),
     )));
 
     assert_eq!(expected, result);

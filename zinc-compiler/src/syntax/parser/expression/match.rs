@@ -75,7 +75,7 @@ impl Parser {
                     let (expression, next) =
                         ExpressionParser::default().parse(stream.clone(), None)?;
                     self.next = next;
-                    self.builder.set_scrutinee_expression(expression);
+                    self.builder.set_scrutinee(expression);
                     self.state = State::BracketCurlyLeft;
                 }
                 State::BracketCurlyLeft => {
@@ -169,14 +169,10 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::error::Error;
     use crate::lexical;
-    use crate::lexical::Lexeme;
     use crate::lexical::Location;
-    use crate::lexical::Symbol;
     use crate::lexical::TokenStream;
     use crate::syntax::BooleanLiteral;
-    use crate::syntax::Error as SyntaxError;
     use crate::syntax::Expression;
     use crate::syntax::ExpressionElement;
     use crate::syntax::ExpressionObject;
@@ -348,28 +344,6 @@ mod tests {
             ),
             vec![],
         ));
-
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
-
-        assert_eq!(expected, result);
-    }
-
-    #[test]
-    fn err_expected_comma() {
-        let input = r#"
-    match test {
-        1 => 1;
-    }
-"#;
-
-        let expected = Err(Error::Syntax(SyntaxError::Expected(
-            Location::new(3, 15),
-            vec![",", "}"],
-            Lexeme::Symbol(Symbol::Semicolon),
-        )));
 
         let result = Parser::default().parse(
             Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),

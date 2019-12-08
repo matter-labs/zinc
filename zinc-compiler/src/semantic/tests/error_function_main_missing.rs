@@ -4,7 +4,7 @@
 
 #![cfg(test)]
 
-use crate::semantic::Analyzer;
+use crate::semantic::BinaryAnalyzer;
 use crate::semantic::Error as SemanticError;
 use crate::syntax::Parser;
 use crate::Error;
@@ -19,7 +19,7 @@ fn another() -> u8 {
 
     let expected = Err(Error::Semantic(SemanticError::FunctionMainMissing));
 
-    let result = Analyzer::default().compile(
+    let result = BinaryAnalyzer::default().compile(
         Parser::default()
             .parse(input.to_owned())
             .expect(super::PANIC_SYNTAX_ERROR),

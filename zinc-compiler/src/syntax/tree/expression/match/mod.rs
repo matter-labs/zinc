@@ -13,19 +13,19 @@ use crate::syntax::Pattern;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
     pub location: Location,
-    pub match_expression: syntax::Expression,
+    pub scrutinee: syntax::Expression,
     pub branches: Vec<(Pattern, syntax::Expression)>,
 }
 
 impl Expression {
     pub fn new(
         location: Location,
-        match_expression: syntax::Expression,
+        scrutinee: syntax::Expression,
         branches: Vec<(Pattern, syntax::Expression)>,
     ) -> Self {
         Self {
             location,
-            match_expression,
+            scrutinee,
             branches,
         }
     }

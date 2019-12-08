@@ -1,15 +1,5 @@
-fn another(x: u8) -> u8 {
-    1 + {
-        2 + {
-            3 + {
-                4
-            } + 3
-        } + 2
-    } + 1
-}
-
-fn main(input: u8) -> u8 {
-    dbg!(input);
-    assert!(input > 0);
-    another(input)
+fn main() -> u8 {
+    let array = [1, 2, 3, 4, 5];
+    dbg!(array[4]);
+    array[4]
 }

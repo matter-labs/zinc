@@ -10,7 +10,7 @@ use crate::syntax::Pattern;
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
-    scrutinee_expression: Option<Expression>,
+    scrutinee: Option<Expression>,
     branches: Vec<(Pattern, Option<Expression>)>,
 }
 
@@ -19,8 +19,8 @@ impl Builder {
         self.location = Some(value);
     }
 
-    pub fn set_scrutinee_expression(&mut self, value: Expression) {
-        self.scrutinee_expression = Some(value);
+    pub fn set_scrutinee(&mut self, value: Expression) {
+        self.scrutinee = Some(value);
     }
 
     pub fn push_branch_pattern(&mut self, value: Pattern) {
@@ -49,11 +49,11 @@ impl Builder {
                     "location"
                 )
             }),
-            self.scrutinee_expression.unwrap_or_else(|| {
+            self.scrutinee.unwrap_or_else(|| {
                 panic!(
                     "{}{}",
                     crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "match scrutinee"
+                    "scrutinee"
                 )
             }),
             self.branches

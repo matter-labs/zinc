@@ -4,30 +4,29 @@
 
 #![cfg(test)]
 
-use parser::Location;
-use parser::Parser;
-
-use crate::scope::Error as ScopeError;
+use crate::lexical::Location;
+use crate::semantic::BinaryAnalyzer;
+use crate::semantic::Error as SemanticError;
+use crate::semantic::ScopeError;
+use crate::semantic::Type;
+use crate::syntax::Parser;
 use crate::Error;
-use crate::Interpreter;
 
 #[test]
 fn test() {
     let input = r#"
-input {}
-witness {}
-output {}
-
-let array = [1, 2, 3];
-let result = array[69];
+fn main() {
+    let array = [1, 2, 3];
+    let element = array[4];
+}
 "#;
 
-    let expected = Err(Error::Scope(
-        Location::new(7, 14),
-        ScopeError::ArrayIndexOutOfRange(69, "array".to_owned()),
-    ));
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        Location::new(4, 19),
+        ScopeError::ArrayIndexOutOfRange(4, Type::new_array(Type::new_integer_unsigned(8), 3)),
+    )));
 
-    let result = Interpreter::default().interpret(
+    let result = BinaryAnalyzer::default().compile(
         Parser::default()
             .parse(input.to_owned())
             .expect(super::PANIC_SYNTAX_ERROR),

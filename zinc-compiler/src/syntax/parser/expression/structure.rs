@@ -76,7 +76,7 @@ impl Parser {
                     let next = stream.borrow_mut().next()?;
                     match next {
                         token @ Token {
-                            lexeme: Lexeme::Identifier { .. },
+                            lexeme: Lexeme::Identifier(_),
                             ..
                         } => {
                             let (expression, next) = PathExpressionParser::default()
@@ -188,13 +188,9 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::error::Error;
     use crate::lexical;
-    use crate::lexical::Lexeme;
     use crate::lexical::Location;
-    use crate::lexical::Symbol;
     use crate::lexical::TokenStream;
-    use crate::syntax::Error as SyntaxError;
     use crate::syntax::Expression;
     use crate::syntax::ExpressionElement;
     use crate::syntax::ExpressionObject;
@@ -356,28 +352,6 @@ mod tests {
             ),
             None,
         ));
-
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
-
-        assert_eq!(expected, result);
-    }
-
-    #[test]
-    fn err_expected_comma() {
-        let input = r#"
-    struct Test {
-        a: 1;
-    }
-"#;
-
-        let expected = Err(Error::Syntax(SyntaxError::Expected(
-            Location::new(3, 13),
-            vec![",", "}"],
-            Lexeme::Symbol(Symbol::Semicolon),
-        )));
 
         let result = Parser::default().parse(
             Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),

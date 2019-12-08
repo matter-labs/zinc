@@ -13,7 +13,7 @@ use zinc_bytecode::PopStore;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 
-use crate::semantic::Analyzer;
+use crate::semantic::BinaryAnalyzer;
 use crate::syntax::Parser;
 
 #[test]
@@ -36,7 +36,7 @@ fn main() {
         Instruction::Return(Return::new(0)),
     ]);
 
-    let result = Analyzer::default().compile(
+    let result = BinaryAnalyzer::default().compile(
         Parser::default()
             .parse(input.to_owned())
             .expect(super::PANIC_SYNTAX_ERROR),

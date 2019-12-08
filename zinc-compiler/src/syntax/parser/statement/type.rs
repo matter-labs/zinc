@@ -44,7 +44,7 @@ impl Parser {
         mut self,
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
-    ) -> Result<TypeStatement, Error> {
+    ) -> Result<(TypeStatement, Option<Token>), Error> {
         loop {
             match self.state {
                 State::KeywordType => {
@@ -118,7 +118,7 @@ impl Parser {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Semicolon),
                             ..
-                        } => return Ok(self.builder.finish()),
+                        } => return Ok((self.builder.finish(), None)),
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
@@ -154,10 +154,13 @@ mod tests {
     fn ok() {
         let input = r#"type X = field;"#;
 
-        let expected = Ok(TypeStatement::new(
-            Location::new(1, 1),
-            Identifier::new(Location::new(1, 6), "X".to_owned()),
-            Type::new(Location::new(1, 10), TypeVariant::Field),
+        let expected = Ok((
+            TypeStatement::new(
+                Location::new(1, 1),
+                Identifier::new(Location::new(1, 6), "X".to_owned()),
+                Type::new(Location::new(1, 10), TypeVariant::Field),
+            ),
+            None,
         ));
 
         let result = Parser::default().parse(

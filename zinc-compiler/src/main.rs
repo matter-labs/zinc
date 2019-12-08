@@ -100,7 +100,7 @@ fn main() -> Result<(), Error> {
         .map_err(OutputError::Creating)
         .map_err(Error::Output)?
         .write_all(
-            zinc_compiler::Analyzer::default()
+            zinc_compiler::BinaryAnalyzer::default()
                 .compile(circuit)
                 .map(|instructions| {
                     instructions

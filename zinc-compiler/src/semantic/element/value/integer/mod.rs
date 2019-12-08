@@ -8,7 +8,6 @@ pub use self::error::Error;
 
 use std::fmt;
 
-use crate::semantic;
 use crate::semantic::Type;
 
 #[derive(Clone, PartialEq)]
@@ -38,7 +37,10 @@ impl Integer {
 
     pub fn greater_equals(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperandTypesMismatch(self.r#type(), other.r#type()));
+            return Err(Error::OperatorGreaterEqualsOperandTypesMismatch(
+                self.r#type(),
+                other.r#type(),
+            ));
         }
 
         Ok(())
@@ -46,7 +48,10 @@ impl Integer {
 
     pub fn lesser_equals(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperandTypesMismatch(self.r#type(), other.r#type()));
+            return Err(Error::OperatorLesserEqualsOperandTypesMismatch(
+                self.r#type(),
+                other.r#type(),
+            ));
         }
 
         Ok(())
@@ -54,7 +59,10 @@ impl Integer {
 
     pub fn greater(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperandTypesMismatch(self.r#type(), other.r#type()));
+            return Err(Error::OperatorGreaterOperandTypesMismatch(
+                self.r#type(),
+                other.r#type(),
+            ));
         }
 
         Ok(())
@@ -62,7 +70,10 @@ impl Integer {
 
     pub fn lesser(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperandTypesMismatch(self.r#type(), other.r#type()));
+            return Err(Error::OperatorLesserOperandTypesMismatch(
+                self.r#type(),
+                other.r#type(),
+            ));
         }
 
         Ok(())
@@ -70,7 +81,10 @@ impl Integer {
 
     pub fn add(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperandTypesMismatch(self.r#type(), other.r#type()));
+            return Err(Error::OperatorAdditionOperandTypesMismatch(
+                self.r#type(),
+                other.r#type(),
+            ));
         }
 
         Ok(())
@@ -78,7 +92,10 @@ impl Integer {
 
     pub fn subtract(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperandTypesMismatch(self.r#type(), other.r#type()));
+            return Err(Error::OperatorSubtractionOperandTypesMismatch(
+                self.r#type(),
+                other.r#type(),
+            ));
         }
 
         Ok(())
@@ -86,7 +103,10 @@ impl Integer {
 
     pub fn multiply(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperandTypesMismatch(self.r#type(), other.r#type()));
+            return Err(Error::OperatorMultiplicationOperandTypesMismatch(
+                self.r#type(),
+                other.r#type(),
+            ));
         }
 
         Ok(())
@@ -94,31 +114,24 @@ impl Integer {
 
     pub fn divide(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperandTypesMismatch(self.r#type(), other.r#type()));
+            return Err(Error::OperatorDivisionOperandTypesMismatch(
+                self.r#type(),
+                other.r#type(),
+            ));
         }
 
         Ok(())
     }
 
-    pub fn modulo(&self, other: &Self) -> Result<(), Error> {
+    pub fn remainder(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperandTypesMismatch(self.r#type(), other.r#type()));
+            return Err(Error::OperatorRemainderOperandTypesMismatch(
+                self.r#type(),
+                other.r#type(),
+            ));
         }
 
         Ok(())
-    }
-
-    pub fn cast(&self, to: &Type) -> Result<(bool, usize), Error> {
-        let from = self.r#type();
-        semantic::validate_casting(&from, &to).map_err(Error::Casting)?;
-        let (is_signed, bitlength) = match to {
-            Type::IntegerUnsigned { bitlength } => (false, *bitlength),
-            Type::IntegerSigned { bitlength } => (true, *bitlength),
-            Type::Field => (false, crate::BITLENGTH_FIELD),
-            _ => panic!(crate::semantic::PANIC_VALIDATED_USING_CASTING_MODULE),
-        };
-
-        Ok((is_signed, bitlength))
     }
 
     pub fn negate(&self) -> Result<(), Error> {

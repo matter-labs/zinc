@@ -8,6 +8,6 @@ use crate::semantic::Type;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
-    #[fail(display = "pushing a value of type '{}', but expected '{}'", _0, _1)]
+    #[fail(display = "pushing a value of type '{}' into an array of '{}'", _0, _1)]
     PushingInvalidType(Type, Type),
 }

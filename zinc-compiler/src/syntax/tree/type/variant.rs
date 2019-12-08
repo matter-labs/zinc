@@ -2,8 +2,6 @@
 //! The type variant.
 //!
 
-use std::fmt;
-
 use crate::syntax::Expression;
 use crate::syntax::IntegerLiteral;
 
@@ -72,32 +70,5 @@ impl Variant {
 
     pub fn new_alias(path: Expression) -> Self {
         Self::Alias { path }
-    }
-
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Unit => write!(f, "()"),
-            Self::Boolean => write!(f, "bool"),
-            Self::IntegerUnsigned { bitlength } => write!(f, "u{}", bitlength),
-            Self::IntegerSigned { bitlength } => write!(f, "i{}", bitlength),
-            Self::Field => write!(f, "field"),
-            Self::Array { type_variant, size } => write!(f, "[{}; {}]", type_variant, size.data),
-            Self::Tuple { type_variants } => write!(
-                f,
-                "({})",
-                type_variants
-                    .iter()
-                    .map(|type_variant| type_variant.to_string())
-                    .collect::<Vec<String>>()
-                    .join(", ")
-            ),
-            Self::Alias { path } => write!(f, "{:?}", path),
-        }
-    }
-}
-
-impl fmt::Display for Variant {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
     }
 }

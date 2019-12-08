@@ -41,8 +41,8 @@ impl Parser {
                 location,
             } => match keyword {
                 keyword @ Keyword::Bool
-                | keyword @ Keyword::I { .. }
-                | keyword @ Keyword::U { .. }
+                | keyword @ Keyword::IntegerSigned { .. }
+                | keyword @ Keyword::IntegerUnsigned { .. }
                 | keyword @ Keyword::Field => {
                     self.builder.set_location(location);
                     self.builder.set_keyword(keyword);
@@ -55,7 +55,7 @@ impl Parser {
                 ))),
             },
             token @ Token {
-                lexeme: Lexeme::Identifier { .. },
+                lexeme: Lexeme::Identifier(_),
                 ..
             } => {
                 let location = token.location;

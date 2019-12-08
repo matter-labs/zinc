@@ -50,10 +50,6 @@ impl Parser {
                             Some(token) => token,
                             None => stream.borrow_mut().next()?,
                         } {
-                            Token {
-                                lexeme: Lexeme::Symbol(Symbol::Semicolon),
-                                ..
-                            } => return Ok((InnerStatement::Empty, None, false)),
                             token @ Token {
                                 lexeme: Lexeme::Keyword(Keyword::Let),
                                 ..
@@ -148,20 +144,6 @@ mod tests {
     use crate::syntax::LetStatement;
     use crate::syntax::Type;
     use crate::syntax::TypeVariant;
-
-    #[test]
-    fn ok_empty() {
-        let input = r#";"#;
-
-        let expected = Ok((InnerStatement::Empty, None, false));
-
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
-
-        assert_eq!(expected, result);
-    }
 
     #[test]
     fn ok_semicolon_terminated() {

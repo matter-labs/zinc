@@ -30,7 +30,7 @@ impl Parser {
                 None => stream.borrow_mut().next()?,
             } {
                 token @ Token {
-                    lexeme: Lexeme::Identifier { .. },
+                    lexeme: Lexeme::Identifier(_),
                     ..
                 } => {
                     let variant = VariantParser::default().parse(stream.clone(), Some(token))?;

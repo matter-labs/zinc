@@ -4,23 +4,30 @@
 
 use failure::Fail;
 
-use crate::syntax::TypeVariant;
+use crate::semantic::PlaceDescriptor;
+use crate::semantic::Type;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
     #[fail(display = "undeclared item '{}'", _0)]
-    UndeclaredItem(String),
-    #[fail(display = "undeclared variable '{}'", _0)]
-    UndeclaredVariable(String),
-    #[fail(display = "undeclared type '{}'", _0)]
-    UndeclaredType(String),
+    ItemUndeclared(String),
     #[fail(display = "redeclared item '{}'", _0)]
-    RedeclaredItem(String),
-    #[fail(display = "mutating an immutable object '{}'", _0)]
-    MutatingImmutable(String),
-    #[fail(
-        display = "assigning a value of type '{}' to a variable of type '{}'",
-        _0, _1
-    )]
-    VariableTypeMismatch(TypeVariant, TypeVariant),
+    ItemRedeclared(String),
+    #[fail(display = "item '{}' is not a variable", _0)]
+    ItemNotVariable(String),
+    #[fail(display = "item '{}' is not a type", _0)]
+    ItemNotType(String),
+    #[fail(display = "item '{}' is not an enumeration", _0)]
+    ItemNotEnumeration(String),
+
+    #[fail(display = "type '{}' cannot be accessed with '{}'", _0, _1)]
+    InvalidDescriptor(Type, PlaceDescriptor),
+    #[fail(display = "array index {} is out of range of type '{}'", _0, _1)]
+    ArrayIndexOutOfRange(usize, Type),
+    #[fail(display = "tuple field {} does not exist in '{}'", _0, _1)]
+    TupleFieldDoesNotExist(usize, Type),
+    #[fail(display = "structure field {} does not exist in '{}'", _0, _1)]
+    StructureFieldDoesNotExist(String, Type),
+    #[fail(display = "enumeration variant '{}' does not exist in '{}'", _0, _1)]
+    EnumerationVariantDoesNotExist(String, String),
 }

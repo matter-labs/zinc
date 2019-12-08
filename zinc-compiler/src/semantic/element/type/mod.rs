@@ -23,18 +23,19 @@ pub enum Type {
         types: Vec<Self>,
     },
     Structure {
-        index: usize,
+        identifier: String,
         fields: Vec<(String, Self)>,
     },
     Enumeration {
-        index: usize,
+        identifier: String,
         variants: Vec<(String, usize)>,
     },
     Function {
-        index: usize,
+        identifier: String,
         arguments: Vec<(String, Self)>,
         return_type: Box<Self>,
     },
+    String,
 }
 
 impl Type {
@@ -56,6 +57,10 @@ impl Type {
                 bitlength => Self::new_integer_unsigned(bitlength),
             }
         }
+    }
+
+    pub fn new_unit() -> Self {
+        Self::Unit
     }
 
     pub fn new_boolean() -> Self {
@@ -85,20 +90,31 @@ impl Type {
         Self::Tuple { types }
     }
 
-    pub fn new_structure(index: usize, fields: Vec<(String, Self)>) -> Self {
-        Self::Structure { index, fields }
+    pub fn new_structure(identifier: String, fields: Vec<(String, Self)>) -> Self {
+        Self::Structure { identifier, fields }
     }
 
-    pub fn new_enumeration(index: usize, variants: Vec<(String, usize)>) -> Self {
-        Self::Enumeration { index, variants }
+    pub fn new_enumeration(identifier: String, variants: Vec<(String, usize)>) -> Self {
+        Self::Enumeration {
+            identifier,
+            variants,
+        }
     }
 
-    pub fn new_function(index: usize, arguments: Vec<(String, Self)>, return_type: Self) -> Self {
+    pub fn new_function(
+        identifier: String,
+        arguments: Vec<(String, Self)>,
+        return_type: Self,
+    ) -> Self {
         Self::Function {
-            index,
+            identifier,
             arguments,
             return_type: Box::new(return_type),
         }
+    }
+
+    pub fn new_string() -> Self {
+        Self::String
     }
 
     pub fn size(&self) -> usize {
@@ -115,6 +131,7 @@ impl Type {
             }
             Self::Enumeration { .. } => 1,
             Self::Function { .. } => 0,
+            Self::String { .. } => 1,
         }
     }
 
@@ -135,20 +152,23 @@ impl Type {
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
-            Self::Structure { index, fields } => write!(
+            Self::Structure { identifier, fields } => write!(
                 f,
                 "struct {} {{ {} }}",
-                index,
+                identifier,
                 fields
                     .iter()
                     .map(|(name, r#type)| format!("{}: {}", name, r#type))
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
-            Self::Enumeration { index, variants } => write!(
+            Self::Enumeration {
+                identifier,
+                variants,
+            } => write!(
                 f,
                 "enum {} {{ {} }}",
-                index,
+                identifier,
                 variants
                     .iter()
                     .map(|(name, value)| format!("{} = {}", name, value))
@@ -156,13 +176,13 @@ impl Type {
                     .join(", ")
             ),
             Self::Function {
-                index,
+                identifier,
                 arguments,
                 return_type,
             } => write!(
                 f,
                 "fn {}({}) -> {}",
-                index,
+                identifier,
                 arguments
                     .iter()
                     .map(|(name, r#type)| format!("{}: {}", name, r#type))
@@ -170,6 +190,7 @@ impl Type {
                     .join(", "),
                 return_type,
             ),
+            Self::String => write!(f, "&str"),
         }
     }
 }

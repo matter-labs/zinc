@@ -4,12 +4,10 @@
 
 use failure::Fail;
 
-use crate::semantic::ConstantError;
+use crate::semantic::IntegerConstantError;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
     #[fail(display = "index constant: {}", _0)]
-    IndexConstant(ConstantError),
-    #[fail(display = "tuple access constant: {}", _0)]
-    TupleAccessConstant(ConstantError),
+    IndexConstant(IntegerConstantError),
 }

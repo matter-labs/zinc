@@ -26,7 +26,7 @@ impl Parser {
         mut self,
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
-    ) -> Result<ModStatement, Error> {
+    ) -> Result<(ModStatement, Option<Token>), Error> {
         match match initial.take() {
             Some(token) => token,
             None => stream.borrow_mut().next()?,
@@ -69,7 +69,7 @@ impl Parser {
             Token {
                 lexeme: Lexeme::Symbol(Symbol::Semicolon),
                 ..
-            } => Ok(self.builder.finish()),
+            } => Ok((self.builder.finish(), None)),
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
                 location,
                 vec![";"],
@@ -94,9 +94,12 @@ mod tests {
     fn ok() {
         let input = r#"mod jabberwocky;"#;
 
-        let expected = Ok(ModStatement::new(
-            Location::new(1, 1),
-            Identifier::new(Location::new(1, 5), "jabberwocky".to_owned()),
+        let expected = Ok((
+            ModStatement::new(
+                Location::new(1, 1),
+                Identifier::new(Location::new(1, 5), "jabberwocky".to_owned()),
+            ),
+            None,
         ));
 
         let result = Parser::default().parse(

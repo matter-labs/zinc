@@ -49,7 +49,7 @@ impl Parser {
         mut self,
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
-    ) -> Result<FnStatement, Error> {
+    ) -> Result<(FnStatement, Option<Token>), Error> {
         loop {
             match self.state {
                 State::KeywordFn => {
@@ -157,7 +157,7 @@ impl Parser {
                     let body =
                         BlockExpressionParser::default().parse(stream.clone(), self.next.take())?;
                     self.builder.set_body(body);
-                    return Ok(self.builder.finish());
+                    return Ok((self.builder.finish(), None));
                 }
             }
         }
@@ -183,16 +183,19 @@ mod tests {
     fn ok_returns_unit() {
         let input = r#"fn f(a: field) {}"#;
 
-        let expected = Ok(FnStatement::new(
-            Location::new(1, 1),
-            Identifier::new(Location::new(1, 4), "f".to_owned()),
-            vec![Field::new(
-                Location::new(1, 6),
-                Identifier::new(Location::new(1, 6), "a".to_owned()),
-                Type::new(Location::new(1, 9), TypeVariant::new_field()),
-            )],
-            Type::new(Location::new(1, 1), TypeVariant::new_unit()),
-            BlockExpression::new(Location::new(1, 16), vec![], None),
+        let expected = Ok((
+            FnStatement::new(
+                Location::new(1, 1),
+                Identifier::new(Location::new(1, 4), "f".to_owned()),
+                vec![Field::new(
+                    Location::new(1, 6),
+                    Identifier::new(Location::new(1, 6), "a".to_owned()),
+                    Type::new(Location::new(1, 9), TypeVariant::new_field()),
+                )],
+                Type::new(Location::new(1, 1), TypeVariant::new_unit()),
+                BlockExpression::new(Location::new(1, 16), vec![], None),
+            ),
+            None,
         ));
 
         let result = Parser::default().parse(
@@ -207,16 +210,19 @@ mod tests {
     fn ok_returns_type() {
         let input = r#"fn f(a: field) -> field {}"#;
 
-        let expected = Ok(FnStatement::new(
-            Location::new(1, 1),
-            Identifier::new(Location::new(1, 4), "f".to_owned()),
-            vec![Field::new(
-                Location::new(1, 6),
-                Identifier::new(Location::new(1, 6), "a".to_owned()),
-                Type::new(Location::new(1, 9), TypeVariant::new_field()),
-            )],
-            Type::new(Location::new(1, 19), TypeVariant::new_field()),
-            BlockExpression::new(Location::new(1, 25), vec![], None),
+        let expected = Ok((
+            FnStatement::new(
+                Location::new(1, 1),
+                Identifier::new(Location::new(1, 4), "f".to_owned()),
+                vec![Field::new(
+                    Location::new(1, 6),
+                    Identifier::new(Location::new(1, 6), "a".to_owned()),
+                    Type::new(Location::new(1, 9), TypeVariant::new_field()),
+                )],
+                Type::new(Location::new(1, 19), TypeVariant::new_field()),
+                BlockExpression::new(Location::new(1, 25), vec![], None),
+            ),
+            None,
         ));
 
         let result = Parser::default().parse(

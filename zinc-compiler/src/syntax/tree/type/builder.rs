@@ -70,8 +70,10 @@ impl Builder {
         } else if let Some(keyword) = self.keyword.take() {
             match keyword {
                 Keyword::Bool => TypeVariant::new_boolean(),
-                Keyword::U { bitlength } => TypeVariant::new_integer_unsigned(bitlength),
-                Keyword::I { bitlength } => TypeVariant::new_integer_signed(bitlength),
+                Keyword::IntegerUnsigned { bitlength } => {
+                    TypeVariant::new_integer_unsigned(bitlength)
+                }
+                Keyword::IntegerSigned { bitlength } => TypeVariant::new_integer_signed(bitlength),
                 Keyword::Field => TypeVariant::new_field(),
                 _ => panic!(crate::syntax::PANIC_ALL_TYPE_KEYWORDS_ARE_CHECKED_ABOVE),
             }

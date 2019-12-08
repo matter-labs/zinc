@@ -21,6 +21,8 @@ keyword =
 
   | 'let'
   | 'mut'
+  | 'const'
+  | 'static'
   | 'type'
   | 'struct'
   | 'enum'

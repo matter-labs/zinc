@@ -10,6 +10,8 @@ use crate::syntax::Expression;
 use crate::syntax::Identifier;
 use crate::syntax::IntegerLiteral;
 use crate::syntax::MatchExpression;
+use crate::syntax::MemberInteger;
+use crate::syntax::MemberString;
 use crate::syntax::StringLiteral;
 use crate::syntax::StructureExpression;
 use crate::syntax::TupleExpression;
@@ -21,6 +23,8 @@ pub enum Operand {
     BooleanLiteral(BooleanLiteral),
     IntegerLiteral(IntegerLiteral),
     StringLiteral(StringLiteral),
+    MemberInteger(MemberInteger),
+    MemberString(MemberString),
     Identifier(Identifier),
     List(Vec<Expression>),
     Type(Type),

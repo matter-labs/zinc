@@ -23,9 +23,10 @@ use crate::syntax::ExpressionBuilder;
 use crate::syntax::ExpressionListParser;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
-use crate::syntax::Identifier;
 use crate::syntax::IntegerLiteral;
 use crate::syntax::MatchExpressionParser;
+use crate::syntax::MemberIntegerBuilder;
+use crate::syntax::MemberStringBuilder;
 use crate::syntax::PathExpressionParser;
 use crate::syntax::StringLiteral;
 use crate::syntax::StructureExpressionParser;
@@ -184,7 +185,7 @@ impl Parser {
                             self.state = State::AccessOrCallOrEnd;
                         }
                         token @ Token {
-                            lexeme: Lexeme::Identifier { .. },
+                            lexeme: Lexeme::Identifier(_),
                             ..
                         } => {
                             self.builder.set_location(token.location);
@@ -305,14 +306,18 @@ impl Parser {
                     let next = stream.borrow_mut().next()?;
                     match next {
                         Token {
-                            lexeme: Lexeme::Literal(lexical::Literal::Integer(integer)),
+                            lexeme:
+                                Lexeme::Literal(lexical::Literal::Integer(
+                                    literal @ lexical::IntegerLiteral::Decimal { .. },
+                                )),
                             location,
                         } => {
+                            let mut builder = MemberIntegerBuilder::default();
+                            builder.set_location(location);
+                            builder.set_literal(literal);
                             self.builder.push_operand(
                                 location,
-                                ExpressionOperand::IntegerLiteral(IntegerLiteral::new(
-                                    location, integer,
-                                )),
+                                ExpressionOperand::MemberInteger(builder.finish()),
                             );
                             if let Some((location, operator)) = self.operator.take() {
                                 self.builder.push_operator(location, operator);
@@ -323,12 +328,12 @@ impl Parser {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
                         } => {
+                            let mut builder = MemberStringBuilder::default();
+                            builder.set_location(location);
+                            builder.set_name(identifier.name);
                             self.builder.push_operand(
                                 location,
-                                ExpressionOperand::Identifier(Identifier::new(
-                                    location,
-                                    identifier.name,
-                                )),
+                                ExpressionOperand::MemberString(builder.finish()),
                             );
                             if let Some((location, operator)) = self.operator.take() {
                                 self.builder.push_operator(location, operator);
@@ -338,7 +343,7 @@ impl Parser {
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
-                                vec!["{integer}", "{identifier}"],
+                                vec!["{decimal}", "{identifier}"],
                                 lexeme,
                             )))
                         }

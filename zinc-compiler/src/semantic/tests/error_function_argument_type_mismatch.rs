@@ -5,7 +5,7 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
-use crate::semantic::Analyzer;
+use crate::semantic::BinaryAnalyzer;
 use crate::semantic::Error as SemanticError;
 use crate::semantic::Type;
 use crate::syntax::Parser;
@@ -26,14 +26,14 @@ fn main() {
     let expected = Err(Error::Semantic(
         SemanticError::FunctionArgumentTypeMismatch(
             Location::new(7, 24),
-            3,
+            "another".to_owned(),
             "x".to_owned(),
             Type::new_integer_unsigned(8),
             Type::new_boolean(),
         ),
     ));
 
-    let result = Analyzer::default().compile(
+    let result = BinaryAnalyzer::default().compile(
         Parser::default()
             .parse(input.to_owned())
             .expect(super::PANIC_SYNTAX_ERROR),

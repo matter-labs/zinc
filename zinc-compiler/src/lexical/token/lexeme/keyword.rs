@@ -14,6 +14,8 @@ pub enum Keyword {
     // declarations
     Let,
     Mut,
+    Const,
+    Static,
     Type,
     Struct,
     Enum,
@@ -31,8 +33,8 @@ pub enum Keyword {
 
     // types
     Bool,
-    U { bitlength: usize },
-    I { bitlength: usize },
+    IntegerUnsigned { bitlength: usize },
+    IntegerSigned { bitlength: usize },
     Field,
 
     // literals
@@ -45,11 +47,11 @@ pub enum Keyword {
 
 impl Keyword {
     pub fn new_integer_unsigned(bitlength: usize) -> Self {
-        Self::U { bitlength }
+        Self::IntegerUnsigned { bitlength }
     }
 
     pub fn new_integer_signed(bitlength: usize) -> Self {
-        Self::I { bitlength }
+        Self::IntegerSigned { bitlength }
     }
 }
 
@@ -74,6 +76,8 @@ impl TryFrom<&str> for Keyword {
         match input {
             "let" => return Ok(Self::Let),
             "mut" => return Ok(Self::Mut),
+            "const" => return Ok(Self::Const),
+            "static" => return Ok(Self::Static),
             "type" => return Ok(Self::Type),
             "struct" => return Ok(Self::Struct),
             "enum" => return Ok(Self::Enum),
@@ -163,6 +167,8 @@ impl fmt::Display for Keyword {
         match self {
             Self::Let => write!(f, "let"),
             Self::Mut => write!(f, "mut"),
+            Self::Const => write!(f, "const"),
+            Self::Static => write!(f, "static"),
             Self::Type => write!(f, "type"),
             Self::Struct => write!(f, "struct"),
             Self::Enum => write!(f, "enum"),
@@ -178,8 +184,8 @@ impl fmt::Display for Keyword {
             Self::Match => write!(f, "match"),
 
             Self::Bool => write!(f, "bool"),
-            Self::U { bitlength } => write!(f, "u{}", bitlength),
-            Self::I { bitlength } => write!(f, "i{}", bitlength),
+            Self::IntegerUnsigned { bitlength } => write!(f, "u{}", bitlength),
+            Self::IntegerSigned { bitlength } => write!(f, "i{}", bitlength),
             Self::Field => write!(f, "field"),
 
             Self::True => write!(f, "true"),
