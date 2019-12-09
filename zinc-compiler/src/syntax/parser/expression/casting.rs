@@ -100,7 +100,7 @@ mod tests {
                     ),
                     ExpressionElement::new(
                         Location::new(1, 7),
-                        ExpressionObject::Operand(ExpressionOperand::IntegerLiteral(
+                        ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
                                 Location::new(1, 7),
                                 lexical::IntegerLiteral::new_decimal("42".to_owned()),

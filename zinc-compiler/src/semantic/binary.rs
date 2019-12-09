@@ -31,6 +31,7 @@ use crate::syntax::ArrayExpression;
 use crate::syntax::BlockExpression;
 use crate::syntax::BooleanLiteral;
 use crate::syntax::ConditionalExpression;
+use crate::syntax::ConstStatement;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionObject;
 use crate::syntax::ExpressionOperand;
@@ -112,7 +113,11 @@ impl BinaryAnalyzer {
             .borrow_mut()
             .declare_type(
                 "dbg".to_owned(),
-                Type::new_function("dbg".to_owned(), vec![], Type::Unit),
+                Type::new_function(
+                    "dbg".to_owned(),
+                    vec![("format".to_owned(), Type::String)],
+                    Type::Unit,
+                ),
             )
             .expect(crate::semantic::PANIC_INSTRUCTION_FUNCTION_DECLARATION);
 
@@ -122,7 +127,10 @@ impl BinaryAnalyzer {
                 "assert".to_owned(),
                 Type::new_function(
                     "assert".to_owned(),
-                    vec![("condition".to_owned(), Type::Boolean)],
+                    vec![
+                        ("condition".to_owned(), Type::Boolean),
+                        ("message".to_owned(), Type::String),
+                    ],
                     Type::Unit,
                 ),
             )
@@ -144,14 +152,14 @@ impl BinaryAnalyzer {
         match self
             .scope()
             .borrow()
-            .get_type("main")
+            .get_item("main")
             .expect(crate::semantic::PANIC_RESOLUTION_FUNCTION_MAIN)
         {
-            Type::Function {
+            ScopeItem::Type(Type::Function {
                 arguments,
                 return_type,
                 ..
-            } => {
+            }) => {
                 self.instructions[0] = Instruction::Call(zinc_bytecode::Call::new(
                     main_function_address,
                     arguments
@@ -170,41 +178,7 @@ impl BinaryAnalyzer {
 
     fn outer_statement(&mut self, statement: OuterStatement) -> Result<(), Error> {
         match statement {
-            OuterStatement::Const(statement) => {
-                let location = statement.location;
-
-                // compile the expression being assigned
-                let rvalue = self.expression(statement.expression, ResolutionMode::Value)?;
-
-                let const_type = match statement.r#type.variant {
-                    TypeVariant::Alias { path } => {
-                        let location = path.location;
-                        match self.expression(path, ResolutionMode::Place)? {
-                            Element::Type(r#type) => r#type,
-                            element => return Err(Error::ExpectedType(location, element)),
-                        }
-                    }
-                    type_variant => self.resolve_type(type_variant)?,
-                };
-                let cast_result = rvalue
-                    .cast(&Element::Type(const_type))
-                    .map_err(|error| Error::Element(location, error))?;
-                let constant = match rvalue {
-                    Element::Constant(Constant::Integer(mut constant)) => {
-                        if let Some(cast_result) = cast_result {
-                            constant.is_signed = cast_result.0;
-                            constant.bitlength = cast_result.1;
-                        }
-                        Constant::Integer(constant)
-                    }
-                    element => return Err(Error::ExpectedValue(location, element)),
-                };
-
-                self.scope()
-                    .borrow_mut()
-                    .declare_constant(statement.identifier.name, constant)
-                    .map_err(|error| Error::Scope(location, error))?;
-            }
+            OuterStatement::Const(statement) => self.const_statement(statement)?,
             OuterStatement::Static(statement) => {
                 let location = statement.location;
 
@@ -232,7 +206,7 @@ impl BinaryAnalyzer {
                         }
                         Constant::Integer(constant)
                     }
-                    element => return Err(Error::ExpectedValue(location, element)),
+                    element => return Err(Error::ExpressionIsNotConstant(location, element)),
                 };
                 let size = constant.r#type().size();
                 let address = self.allocate_stack_space(size);
@@ -412,6 +386,7 @@ impl BinaryAnalyzer {
                     )
                     .map_err(|error| Error::Scope(location, error))?;
             }
+            InnerStatement::Const(statement) => self.const_statement(statement)?,
             InnerStatement::Loop(statement) => {
                 let location = statement.location;
 
@@ -438,6 +413,22 @@ impl BinaryAnalyzer {
                     .push(Instruction::PopStore(zinc_bytecode::PopStore::new(
                         index_address,
                     )));
+
+                // create the while allowed condition
+                let while_allowed_address = match statement.while_condition {
+                    Some(_) => {
+                        let while_allowed = Constant::Boolean(true);
+                        let while_allowed_address =
+                            self.allocate_stack_space(while_allowed.r#type().size());
+                        self.instructions.push(while_allowed.into());
+                        self.instructions.push(Instruction::PopStore(
+                            zinc_bytecode::PopStore::new(while_allowed_address),
+                        ));
+                        Some(while_allowed_address)
+                    }
+                    None => None,
+                };
+
                 self.instructions
                     .push(Instruction::LoopBegin(zinc_bytecode::LoopBegin::new(
                         iterations_count,
@@ -456,8 +447,43 @@ impl BinaryAnalyzer {
                         ),
                     )
                     .map_err(|error| Error::Scope(location, error))?;
-                self.block_expression(statement.block)?;
 
+                // check the while condition, set the allowed variable, and execute the loop body
+                if let (Some(expression), Some(while_allowed_address)) =
+                    (statement.while_condition, while_allowed_address)
+                {
+                    let location = expression.location;
+                    let while_result = self.expression(expression, ResolutionMode::Value)?;
+                    match self.element_type(&while_result)? {
+                        Type::Boolean => {}
+                        r#type => {
+                            return Err(Error::LoopWhileExpectedBooleanCondition(location, r#type))
+                        }
+                    }
+
+                    self.instructions.push(Instruction::Not(zinc_bytecode::Not));
+                    self.instructions.push(Instruction::If(zinc_bytecode::If));
+                    self.instructions.push(Constant::Boolean(false).into());
+                    self.add_instruction_pop_store(
+                        while_allowed_address,
+                        Type::new_boolean().size(),
+                    );
+                    self.instructions
+                        .push(Instruction::EndIf(zinc_bytecode::EndIf));
+
+                    self.add_instruction_load_push(
+                        while_allowed_address,
+                        Type::new_boolean().size(),
+                    );
+                    self.instructions.push(Instruction::If(zinc_bytecode::If));
+                    self.block_expression(statement.block)?;
+                    self.instructions
+                        .push(Instruction::EndIf(zinc_bytecode::EndIf));
+                } else {
+                    self.block_expression(statement.block)?;
+                }
+
+                // increment the loop counter
                 self.instructions
                     .push(IntegerConstant::new_one(range_bitlength).into());
                 self.instructions
@@ -482,6 +508,45 @@ impl BinaryAnalyzer {
                 self.expression(expression, ResolutionMode::Value)?;
             }
         }
+
+        Ok(())
+    }
+
+    fn const_statement(&mut self, statement: ConstStatement) -> Result<(), Error> {
+        let location = statement.location;
+        let expression_location = statement.expression.location;
+
+        // compile the expression being assigned
+        let rvalue = self.expression(statement.expression, ResolutionMode::Value)?;
+
+        let const_type = match statement.r#type.variant {
+            TypeVariant::Alias { path } => {
+                let location = path.location;
+                match self.expression(path, ResolutionMode::Place)? {
+                    Element::Type(r#type) => r#type,
+                    element => return Err(Error::ExpectedType(location, element)),
+                }
+            }
+            type_variant => self.resolve_type(type_variant)?,
+        };
+        let cast_result = rvalue
+            .cast(&Element::Type(const_type))
+            .map_err(|error| Error::Element(location, error))?;
+        let constant = match rvalue {
+            Element::Constant(Constant::Integer(mut constant)) => {
+                if let Some(cast_result) = cast_result {
+                    constant.is_signed = cast_result.0;
+                    constant.bitlength = cast_result.1;
+                }
+                Constant::Integer(constant)
+            }
+            element => return Err(Error::ExpressionIsNotConstant(expression_location, element)),
+        };
+
+        self.scope()
+            .borrow_mut()
+            .declare_constant(statement.identifier.name, constant)
+            .map_err(|error| Error::Scope(location, error))?;
 
         Ok(())
     }
@@ -887,18 +952,12 @@ impl BinaryAnalyzer {
         Ok(Element::Constant(constant))
     }
 
-    fn integer_literal(
-        &mut self,
-        literal: IntegerLiteral,
-        resolution_mode: ResolutionMode,
-    ) -> Result<Element, Error> {
+    fn integer_literal(&mut self, literal: IntegerLiteral) -> Result<Element, Error> {
         let location = literal.location;
 
         let integer = IntegerConstant::try_from(&literal)
             .map_err(|error| Error::TypeInferenceConstant(location, error))?;
-        if let ResolutionMode::Value = resolution_mode {
-            self.instructions.push(integer.clone().into());
-        }
+        self.instructions.push(integer.clone().into());
         Ok(Element::Constant(Constant::Integer(integer)))
     }
 
@@ -946,13 +1005,8 @@ impl BinaryAnalyzer {
                         self.add_instruction_load_push(r#static.address, size);
                         Ok(Element::Constant(r#static.data))
                     }
-                    ScopeItem::Type(r#type) => {
-                        Err(Error::ExpectedValue(location, Element::Type(r#type)))
-                    }
-                    ScopeItem::Module(_) => Err(Error::ExpectedValue(
-                        location,
-                        Element::Module(identifier.name.to_owned()),
-                    )),
+                    ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
+                    ScopeItem::Module(_) => Ok(Element::Module(identifier.name)),
                 }
             }
             ResolutionMode::Place => {
@@ -1249,17 +1303,15 @@ impl BinaryAnalyzer {
         match self.pop_operand() {
             StackElement::NotEvaluated(operand) => match operand {
                 ExpressionOperand::Unit => Ok(Element::Value(Value::Unit)),
-                ExpressionOperand::BooleanLiteral(literal) => self.boolean_literal(literal),
-                ExpressionOperand::IntegerLiteral(literal) => {
-                    self.integer_literal(literal, resolution_mode)
-                }
-                ExpressionOperand::StringLiteral(literal) => self.string_literal(literal),
+                ExpressionOperand::LiteralBoolean(literal) => self.boolean_literal(literal),
+                ExpressionOperand::LiteralInteger(literal) => self.integer_literal(literal),
+                ExpressionOperand::LiteralString(literal) => self.string_literal(literal),
                 ExpressionOperand::MemberInteger(integer) => self.member_integer(integer),
                 ExpressionOperand::MemberString(string) => self.member_string(string),
                 ExpressionOperand::Identifier(identifier) => {
                     self.identifier(identifier, resolution_mode)
                 }
-                ExpressionOperand::List(expressions) => self.list_expression(expressions),
+                ExpressionOperand::ExpressionList(expressions) => self.list_expression(expressions),
                 ExpressionOperand::Type(r#type) => self.r#type(r#type),
                 ExpressionOperand::Block(expression) => {
                     self.push_scope();

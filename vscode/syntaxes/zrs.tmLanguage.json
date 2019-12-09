@@ -20,11 +20,11 @@
 			"patterns": [
 				{
 					"name": "keyword.control.zn",
-					"match": "\\b(let|mut|type|struct|enum|fn|mod|use|for|in|while|if|else|match)\\b"
+					"match": "\\b(let|mut|const|static|type|struct|enum|fn|mod|use|for|in|while|if|else|match)\\b"
 				},
 				{
 					"name": "keyword.other",
-					"match": "\\b(bool|uint[0-9]+|int[0-9]+|field|true|false|as)\\b"
+					"match": "\\b(bool|u[0-9]+|i[0-9]+|field|true|false|as)\\b"
 				}
 			]
 		},

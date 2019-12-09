@@ -11,6 +11,7 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
+use crate::syntax::ConstStatementParser;
 use crate::syntax::ExpressionParser;
 use crate::syntax::InnerStatement;
 use crate::syntax::LetStatementParser;
@@ -59,6 +60,16 @@ impl Parser {
                                 self.next = next;
                                 self.state = State::End;
                                 InnerStatement::Let(statement)
+                            }
+                            token @ Token {
+                                lexeme: Lexeme::Keyword(Keyword::Const),
+                                ..
+                            } => {
+                                let (statement, next) = ConstStatementParser::default()
+                                    .parse(stream.clone(), Some(token))?;
+                                self.next = next;
+                                self.state = State::End;
+                                InnerStatement::Const(statement)
                             }
                             token @ Token {
                                 lexeme: Lexeme::Keyword(Keyword::For),
@@ -162,7 +173,7 @@ mod tests {
                     Location::new(1, 19),
                     vec![ExpressionElement::new(
                         Location::new(1, 19),
-                        ExpressionObject::Operand(ExpressionOperand::IntegerLiteral(
+                        ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
                                 Location::new(1, 19),
                                 lexical::IntegerLiteral::new_decimal("42".to_owned()),
@@ -199,7 +210,7 @@ mod tests {
                             Location::new(1, 3),
                             vec![ExpressionElement::new(
                                 Location::new(1, 3),
-                                ExpressionObject::Operand(ExpressionOperand::IntegerLiteral(
+                                ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                                     IntegerLiteral::new(
                                         Location::new(1, 3),
                                         lexical::IntegerLiteral::new_decimal("42".to_owned()),

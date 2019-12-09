@@ -40,7 +40,7 @@ impl Scope {
         identifier: String,
         variable: VariableItem,
     ) -> Result<(), Error> {
-        if self.items.contains_key(&identifier) {
+        if self.is_item_declared(&identifier) {
             return Err(Error::ItemRedeclared(identifier));
         }
         self.items.insert(identifier, Item::Variable(variable));
@@ -52,7 +52,7 @@ impl Scope {
         identifier: String,
         constant: Constant,
     ) -> Result<(), Error> {
-        if self.items.contains_key(&identifier) {
+        if self.is_item_declared(&identifier) {
             return Err(Error::ItemRedeclared(identifier));
         }
         self.items.insert(identifier, Item::Constant(constant));
@@ -64,7 +64,7 @@ impl Scope {
         identifier: String,
         r#static: StaticItem,
     ) -> Result<(), Error> {
-        if self.items.contains_key(&identifier) {
+        if self.is_item_declared(&identifier) {
             return Err(Error::ItemRedeclared(identifier));
         }
         self.items.insert(identifier, Item::Static(r#static));
@@ -72,7 +72,7 @@ impl Scope {
     }
 
     pub fn declare_type(&mut self, identifier: String, r#type: TypeItem) -> Result<(), Error> {
-        if self.items.contains_key(&identifier) {
+        if self.is_item_declared(&identifier) {
             return Err(Error::ItemRedeclared(identifier));
         }
         self.items.insert(identifier, Item::Type(r#type));
@@ -80,7 +80,7 @@ impl Scope {
     }
 
     pub fn declare_module(&mut self, identifier: String, scope: Scope) -> Result<(), Error> {
-        if self.items.contains_key(&identifier) {
+        if self.is_item_declared(&identifier) {
             return Err(Error::ItemRedeclared(identifier));
         }
         self.items.insert(identifier, Item::Module(Rc::new(scope)));
@@ -160,7 +160,7 @@ impl Scope {
 
                 Ok(variable)
             }
-            Some(_item) => Err(Error::ItemNotVariable(place.identifier.to_owned())),
+            Some(_item) => Err(Error::ItemIsNotVariable(place.identifier.to_owned())),
             None => match self.parent {
                 Some(ref parent) => parent.borrow().get_variable(place),
                 None => Err(Error::ItemUndeclared(place.identifier.to_owned())),
@@ -173,17 +173,6 @@ impl Scope {
             Some(item) => Ok(item.to_owned()),
             None => match self.parent {
                 Some(ref parent) => parent.borrow().get_item(identifier),
-                None => Err(Error::ItemUndeclared(identifier.to_owned())),
-            },
-        }
-    }
-
-    pub fn get_type(&self, identifier: &str) -> Result<TypeItem, Error> {
-        match self.items.get(identifier) {
-            Some(Item::Type(r#type)) => Ok(r#type.to_owned()),
-            Some(_item) => Err(Error::ItemNotType(identifier.to_owned())),
-            None => match self.parent {
-                Some(ref parent) => parent.borrow().get_type(identifier),
                 None => Err(Error::ItemUndeclared(identifier.to_owned())),
             },
         }
@@ -202,11 +191,22 @@ impl Scope {
                     enumeration.to_owned(),
                 ))
             }
-            Some(_item) => Err(Error::ItemNotEnumeration(enumeration.to_owned())),
+            Some(_item) => Err(Error::ItemIsNotEnumeration(enumeration.to_owned())),
             None => match self.parent {
                 Some(ref parent) => parent.borrow().get_variant(enumeration, variant),
                 None => Err(Error::ItemUndeclared(enumeration.to_owned())),
             },
+        }
+    }
+
+    pub fn is_item_declared(&self, identifier: &str) -> bool {
+        if self.items.contains_key(identifier) {
+            true
+        } else {
+            match self.parent {
+                Some(ref parent) => parent.borrow().is_item_declared(identifier),
+                None => false,
+            }
         }
     }
 }

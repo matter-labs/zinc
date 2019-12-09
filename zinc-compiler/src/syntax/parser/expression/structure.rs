@@ -226,7 +226,7 @@ mod tests {
                         Location::new(3, 12),
                         vec![ExpressionElement::new(
                             Location::new(3, 12),
-                            ExpressionObject::Operand(ExpressionOperand::IntegerLiteral(
+                            ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                                 IntegerLiteral::new(
                                     Location::new(3, 12),
                                     lexical::IntegerLiteral::new_decimal("1".to_owned()),
@@ -277,7 +277,7 @@ mod tests {
                             Location::new(3, 12),
                             vec![ExpressionElement::new(
                                 Location::new(3, 12),
-                                ExpressionObject::Operand(ExpressionOperand::IntegerLiteral(
+                                ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                                     IntegerLiteral::new(
                                         Location::new(3, 12),
                                         lexical::IntegerLiteral::new_decimal("1".to_owned()),
@@ -292,7 +292,7 @@ mod tests {
                             Location::new(4, 12),
                             vec![ExpressionElement::new(
                                 Location::new(4, 12),
-                                ExpressionObject::Operand(ExpressionOperand::IntegerLiteral(
+                                ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                                     IntegerLiteral::new(
                                         Location::new(4, 12),
                                         lexical::IntegerLiteral::new_decimal("2".to_owned()),
@@ -307,7 +307,7 @@ mod tests {
                             Location::new(5, 12),
                             vec![ExpressionElement::new(
                                 Location::new(5, 12),
-                                ExpressionObject::Operand(ExpressionOperand::IntegerLiteral(
+                                ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                                     IntegerLiteral::new(
                                         Location::new(5, 12),
                                         lexical::IntegerLiteral::new_decimal("3".to_owned()),

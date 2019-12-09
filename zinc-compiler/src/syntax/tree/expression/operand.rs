@@ -20,14 +20,14 @@ use crate::syntax::Type;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Operand {
     Unit,
-    BooleanLiteral(BooleanLiteral),
-    IntegerLiteral(IntegerLiteral),
-    StringLiteral(StringLiteral),
+    LiteralBoolean(BooleanLiteral),
+    LiteralInteger(IntegerLiteral),
+    LiteralString(StringLiteral),
     MemberInteger(MemberInteger),
     MemberString(MemberString),
     Identifier(Identifier),
-    List(Vec<Expression>),
     Type(Type),
+    ExpressionList(Vec<Expression>),
     Block(BlockExpression),
     Conditional(ConditionalExpression),
     Match(MatchExpression),

@@ -4,12 +4,16 @@
 
 mod error_assignment_to_immutable_memory;
 mod error_assignment_types_mismatch;
+mod error_caster_data_loss_possible;
+mod error_caster_from_invalid_type;
+mod error_caster_to_invalid_type;
 mod error_conditional_branch_types_mismatch;
 mod error_conditional_expected_boolean_condition;
-mod error_element_assignment_operator_expected_place_expression;
+mod error_element_assignment_1st_expected_place;
+mod error_element_assignment_2nd_expected_evaluable;
 mod error_element_value_casting_let;
 mod error_expected_type;
-mod error_expected_value;
+mod error_expression_is_not_constant;
 mod error_function_argument_count_mismatch;
 mod error_function_argument_type_mismatch;
 mod error_function_calling_not_callable;
@@ -18,6 +22,7 @@ mod error_function_not_instruction;
 mod error_function_return_type_mismatch;
 mod error_literal_array;
 mod error_literal_structure;
+mod error_loop_while_expected_boolean;
 mod error_match_branch_expression_invalid_type;
 mod error_match_branch_pattern_invalid_type;
 mod error_match_branch_unreachable;
@@ -34,10 +39,8 @@ mod error_type_inference_loop_bounds;
 mod error_type_inference_match_pattern;
 mod ok_algorithm_factorial;
 mod ok_algorithm_fibonacci;
-mod ok_expression_array_nested;
 mod ok_expression_block_mutating;
 mod ok_expression_block_pyramid;
-mod ok_expression_complex_mixed;
 mod ok_expression_complex_operator;
 mod ok_expression_conditional_elseless;
 mod ok_expression_conditional_nested;
@@ -55,13 +58,14 @@ mod ok_statement_loop_inclusive;
 mod ok_statement_loop_nested;
 mod ok_statement_loop_reverted;
 mod ok_statement_loop_scope_popping;
+mod ok_statement_loop_with_while;
 mod ok_statement_mod;
 mod ok_statement_struct;
 mod ok_statement_type;
 mod ok_statement_use;
 
+//mod ok_expression_array_nested;
+//mod ok_expression_complex_mixed;
+
 #[allow(dead_code)]
 static PANIC_SYNTAX_ERROR: &str = "Syntax errors must be eliminated at this point";
-
-//mod error_loop_while_expected_boolean;
-//mod ok_statement_loop_with_while;

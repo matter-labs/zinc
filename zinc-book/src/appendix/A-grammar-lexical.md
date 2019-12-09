@@ -15,11 +15,7 @@ identifier = (
 - keyword ) ;
 
 keyword =
-    'input'
-  | 'witness'
-  | 'output'
-
-  | 'let'
+    'let'
   | 'mut'
   | 'const'
   | 'static'

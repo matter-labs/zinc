@@ -215,7 +215,7 @@ mod tests {
                     Location::new(3, 18),
                     vec![ExpressionElement::new(
                         Location::new(3, 18),
-                        ExpressionObject::Operand(ExpressionOperand::BooleanLiteral(
+                        ExpressionObject::Operand(ExpressionOperand::LiteralBoolean(
                             BooleanLiteral::new(
                                 Location::new(3, 18),
                                 lexical::BooleanLiteral::True,
@@ -268,7 +268,7 @@ mod tests {
                         Location::new(3, 14),
                         vec![ExpressionElement::new(
                             Location::new(3, 14),
-                            ExpressionObject::Operand(ExpressionOperand::IntegerLiteral(
+                            ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                                 IntegerLiteral::new(
                                     Location::new(3, 14),
                                     lexical::IntegerLiteral::new_decimal("1".to_owned()),
@@ -289,7 +289,7 @@ mod tests {
                         Location::new(4, 14),
                         vec![ExpressionElement::new(
                             Location::new(4, 14),
-                            ExpressionObject::Operand(ExpressionOperand::IntegerLiteral(
+                            ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                                 IntegerLiteral::new(
                                     Location::new(4, 14),
                                     lexical::IntegerLiteral::new_decimal("2".to_owned()),
@@ -304,7 +304,7 @@ mod tests {
                         Location::new(5, 14),
                         vec![ExpressionElement::new(
                             Location::new(5, 14),
-                            ExpressionObject::Operand(ExpressionOperand::IntegerLiteral(
+                            ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                                 IntegerLiteral::new(
                                     Location::new(5, 14),
                                     lexical::IntegerLiteral::new_decimal("3".to_owned()),

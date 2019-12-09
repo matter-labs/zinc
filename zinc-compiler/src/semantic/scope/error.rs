@@ -14,11 +14,9 @@ pub enum Error {
     #[fail(display = "redeclared item '{}'", _0)]
     ItemRedeclared(String),
     #[fail(display = "item '{}' is not a variable", _0)]
-    ItemNotVariable(String),
-    #[fail(display = "item '{}' is not a type", _0)]
-    ItemNotType(String),
+    ItemIsNotVariable(String),
     #[fail(display = "item '{}' is not an enumeration", _0)]
-    ItemNotEnumeration(String),
+    ItemIsNotEnumeration(String),
 
     #[fail(display = "type '{}' cannot be accessed with '{}'", _0, _1)]
     InvalidDescriptor(Type, PlaceDescriptor),

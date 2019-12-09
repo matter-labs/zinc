@@ -19,6 +19,7 @@ outer_statement =
 
 inner_statement =
     let_statement
+  | const_statement
   | loop_statement
   | expression
 ';' ;

@@ -152,7 +152,7 @@ impl Parser {
                             self.builder.set_location(location);
                             self.builder.push_operand(
                                 location,
-                                ExpressionOperand::BooleanLiteral(BooleanLiteral::new(
+                                ExpressionOperand::LiteralBoolean(BooleanLiteral::new(
                                     location, boolean,
                                 )),
                             );
@@ -165,7 +165,7 @@ impl Parser {
                             self.builder.set_location(location);
                             self.builder.push_operand(
                                 location,
-                                ExpressionOperand::IntegerLiteral(IntegerLiteral::new(
+                                ExpressionOperand::LiteralInteger(IntegerLiteral::new(
                                     location, integer,
                                 )),
                             );
@@ -178,7 +178,7 @@ impl Parser {
                             self.builder.set_location(location);
                             self.builder.push_operand(
                                 location,
-                                ExpressionOperand::StringLiteral(StringLiteral::new(
+                                ExpressionOperand::LiteralString(StringLiteral::new(
                                     location, string,
                                 )),
                             );
@@ -266,7 +266,7 @@ impl Parser {
                         } => {
                             self.builder.push_operand(
                                 location,
-                                ExpressionOperand::IntegerLiteral(IntegerLiteral::new(
+                                ExpressionOperand::LiteralInteger(IntegerLiteral::new(
                                     location, integer,
                                 )),
                             );
@@ -354,8 +354,10 @@ impl Parser {
                         ExpressionListParser::default().parse(stream.clone(), None)?;
                     self.next = next;
                     if let Some((location, operator)) = self.operator.take() {
-                        self.builder
-                            .push_operand(location, ExpressionOperand::List(expression_list));
+                        self.builder.push_operand(
+                            location,
+                            ExpressionOperand::ExpressionList(expression_list),
+                        );
                         self.builder.push_operator(location, operator);
                     }
                     self.state = State::ParenthesisRight;
@@ -412,7 +414,7 @@ mod tests {
                 Location::new(1, 1),
                 vec![ExpressionElement::new(
                     Location::new(1, 1),
-                    ExpressionObject::Operand(ExpressionOperand::IntegerLiteral(
+                    ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                         IntegerLiteral::new(
                             Location::new(1, 1),
                             lexical::IntegerLiteral::new_decimal("42".to_owned()),

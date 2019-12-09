@@ -104,13 +104,13 @@ mod tests {
                 vec![
                     ExpressionElement::new(
                         Location::new(1, 1),
-                        ExpressionObject::Operand(ExpressionOperand::BooleanLiteral(
+                        ExpressionObject::Operand(ExpressionOperand::LiteralBoolean(
                             BooleanLiteral::new(Location::new(1, 1), lexical::BooleanLiteral::True),
                         )),
                     ),
                     ExpressionElement::new(
                         Location::new(1, 9),
-                        ExpressionObject::Operand(ExpressionOperand::BooleanLiteral(
+                        ExpressionObject::Operand(ExpressionOperand::LiteralBoolean(
                             BooleanLiteral::new(
                                 Location::new(1, 9),
                                 lexical::BooleanLiteral::False,

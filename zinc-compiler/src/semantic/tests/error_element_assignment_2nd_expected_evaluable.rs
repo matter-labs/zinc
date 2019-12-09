@@ -6,6 +6,8 @@
 
 use crate::lexical::Location;
 use crate::semantic::BinaryAnalyzer;
+use crate::semantic::Element;
+use crate::semantic::ElementError;
 use crate::semantic::Error as SemanticError;
 use crate::semantic::Type;
 use crate::syntax::Parser;
@@ -14,20 +16,20 @@ use crate::Error;
 #[test]
 fn test() {
     let input = r#"
+type X = u8;
+
 fn main() {
-    let mut sum = 0;
-    for i in 0..10 while 42 {
-        sum = sum + i;
-    }
+    let mut value = 0;
+    value = X;
 }
 "#;
 
-    let expected = Err(Error::Semantic(
-        SemanticError::LoopWhileExpectedBooleanCondition(
-            Location::new(4, 26),
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(6, 11),
+        ElementError::OperatorAssignmentSecondOperandExpectedEvaluable(Element::Type(
             Type::new_integer_unsigned(8),
-        ),
-    ));
+        )),
+    )));
 
     let result = BinaryAnalyzer::default().compile(
         Parser::default()

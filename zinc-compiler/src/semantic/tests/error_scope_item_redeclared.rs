@@ -16,12 +16,14 @@ fn test() {
     let input = r#"
 fn main() {
     let result = 42;
-    let result = 69;
+    {
+        let result = 69;
+    }
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
-        Location::new(4, 5),
+        Location::new(5, 9),
         ScopeError::ItemRedeclared("result".to_owned()),
     )));
 

@@ -34,6 +34,12 @@ pub enum Error {
     #[fail(display = "{} match pattern type inference: {}", _0, _1)]
     TypeInferenceMatchPattern(Location, IntegerConstantError),
 
+    #[fail(
+        display = "{} loop expected a boolean expression in the while condition: {}",
+        _0, _1
+    )]
+    LoopWhileExpectedBooleanCondition(Location, Type),
+
     #[fail(display = "{} match expression must be exhausted", _0)]
     MatchNotExhausted(Location),
     #[fail(display = "{} match branch is unreachable", _0)]
@@ -52,7 +58,7 @@ pub enum Error {
     #[fail(display = "{} expected a type, but got '{}'", _0, _1)]
     ExpectedType(Location, Element),
     #[fail(display = "{} expected a value, but got '{}'", _0, _1)]
-    ExpectedValue(Location, Element),
+    ExpressionIsNotConstant(Location, Element),
 
     #[fail(
         display = "{} assigning a value of type '{}' to a memory place '{}' of type '{}'",

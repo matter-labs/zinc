@@ -230,7 +230,7 @@ mod tests {
                     Location::new(1, 9),
                     vec![ExpressionElement::new(
                         Location::new(1, 9),
-                        ExpressionObject::Operand(ExpressionOperand::IntegerLiteral(
+                        ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
                                 Location::new(1, 9),
                                 lexical::IntegerLiteral::new_decimal("42".to_owned()),
@@ -267,7 +267,7 @@ mod tests {
                     Location::new(1, 19),
                     vec![ExpressionElement::new(
                         Location::new(1, 19),
-                        ExpressionObject::Operand(ExpressionOperand::IntegerLiteral(
+                        ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
                                 Location::new(1, 19),
                                 lexical::IntegerLiteral::new_decimal("42".to_owned()),
