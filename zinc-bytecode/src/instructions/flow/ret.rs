@@ -15,7 +15,7 @@ impl Return {
 
 impl InstructionInfo for Return {
     fn to_assembly(&self) -> String {
-        "ret".into()
+        format!("ret {}", self.outputs_count)
     }
 
     fn code() -> InstructionCode {

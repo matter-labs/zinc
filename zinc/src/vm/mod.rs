@@ -95,11 +95,9 @@ impl<E: Primitive, O: PrimitiveOperations<E>> VirtualMachine<E, O> {
     }
 
     fn init_root_frame(&mut self, inputs_count: usize, inputs: Option<&[BigInt]>) -> Result<(), RuntimeError> {
-        self.state.function_frames.push(FunctionFrame {
-            blocks: vec![],
-            memory_snapshots: vec![],
-            return_address: std::usize::MAX,
-        });
+        self.state.function_frames.push(
+            FunctionFrame::new(std::usize::MAX, &[])
+        );
 
         match inputs {
             None => {
