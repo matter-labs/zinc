@@ -74,6 +74,9 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Instruction, usize), Decoding
         x if x == InstructionCode::Assert as u8 => decode_and_wrap::<Assert>(bytes),
         x if x == InstructionCode::Log as u8 => decode_and_wrap::<Dbg>(bytes),
         x if x == InstructionCode::Exit as u8 => decode_and_wrap::<Exit>(bytes),
+        x if x == InstructionCode::MerkleInit as u8 => decode_and_wrap::<MerkleInit>(bytes),
+        x if x == InstructionCode::MerkleGet as u8 => decode_and_wrap::<MerkleGet>(bytes),
+        x if x == InstructionCode::MerkleSet as u8 => decode_and_wrap::<MerkleSet>(bytes),
         x => Err(DecodingError::UnknownInstructionCode(x)),
     }
 }

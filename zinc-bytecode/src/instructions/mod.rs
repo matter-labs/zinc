@@ -3,10 +3,12 @@ pub mod utils;
 mod memory;
 mod flow;
 mod builtins;
+mod merkle;
 
 pub use memory::*;
 pub use flow::*;
 pub use builtins::*;
+pub use merkle::*;
 
 mod noop;
 mod cast;

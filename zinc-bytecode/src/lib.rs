@@ -79,6 +79,10 @@ pub enum InstructionCode {
     Log,
 
     Exit,
+
+    MerkleInit,
+    MerkleGet,
+    MerkleSet,
 }
 
 #[derive(Debug, PartialEq)]
@@ -137,6 +141,10 @@ pub enum Instruction {
     Log(Dbg),
 
     Exit(Exit),
+
+    MerkleInit(MerkleInit),
+    MerkleGet(MerkleGet),
+    MerkleSet(MerkleSet),
 }
 
 /// Useful macro to avoid duplicating `match` constructions.
@@ -198,6 +206,10 @@ macro_rules! dispatch_instruction {
             Instruction::Log($pattern) => $expression,
 
             Instruction::Exit($pattern) => $expression,
+
+            Instruction::MerkleInit($pattern) => $expression,
+            Instruction::MerkleGet($pattern) => $expression,
+            Instruction::MerkleSet($pattern) => $expression,
         }
     };
 }

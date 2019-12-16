@@ -9,3 +9,4 @@ pub mod noop;
 pub mod cast;
 pub mod assert;
 pub mod dbg;
+pub mod merkle;
