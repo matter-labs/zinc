@@ -39,7 +39,9 @@ impl<E: Engine> ToBigInt for FrPrimitive<E> {
     }
 }
 
-impl<EN: Debug + Engine> Primitive for FrPrimitive<EN> {}
+impl<EN: Debug + Engine> Primitive for FrPrimitive<EN> {
+    type MerkleTree = ();
+}
 
 pub struct ConstrainingFrOperations<E, CS>
     where

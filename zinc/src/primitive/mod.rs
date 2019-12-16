@@ -10,7 +10,9 @@ use num_bigint::{BigInt, ToBigInt};
 use std::fmt::{Debug, Display};
 
 /// Primitive is a primitive value that can be stored on the stack and operated by VM's instructions.
-pub trait Primitive: Sized + Clone + Debug + Display + ToBigInt {}
+pub trait Primitive: Sized + Clone + Debug + Display + ToBigInt {
+    type MerkleTree: Sized + Clone + Debug;
+}
 
 /// PrimitiveOperations is an entity that knows how to operate with some Primitive.
 pub trait PrimitiveOperations<P: Primitive> {
@@ -47,4 +49,7 @@ pub trait PrimitiveOperations<P: Primitive> {
 
     fn array_get(&mut self, array: &[P], index: P) -> Result<P, RuntimeError>;
     fn array_set(&mut self, array: &[P], index: P, value: P) -> Result<Vec<P>, RuntimeError>;
+
+//    fn merkle_get(&mut self, tree: &MerkleTree, index: P) -> Result<Vec<P>, RuntimeError>;
+//    fn merkle_set(&mut self, tree: &mut MerkleTree, index: P, value: &[P]) -> Result<P, RuntimeError>;
 }

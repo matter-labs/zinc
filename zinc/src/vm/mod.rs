@@ -42,6 +42,7 @@ pub enum RuntimeError {
     MissingArgument,
     BranchStacksDoNotMatch,
     IndexOutOfBounds,
+    UsingMerkleTreeAsValue,
 }
 
 pub struct VirtualMachine<E: Primitive, O: PrimitiveOperations<E>> {

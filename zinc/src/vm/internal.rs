@@ -113,11 +113,9 @@ impl<E, O> InternalVM<E> for VirtualMachine<E, O>
     fn branch_then(&mut self) -> Result<(), RuntimeError> {
         let condition = self.pop()?;
 
-        let prev = self.state.conditions_stack
-            .last()
-            .ok_or_else(|| RuntimeError::InternalError("Root condition is missing".into()))?;
+        let prev = self.condition_top()?;
 
-        let next = self.operator.or(condition.clone(), (*prev).clone())?;
+        let next = self.operator.and(condition.clone(), prev)?;
         self.state.conditions_stack.push(next);
 
         let frame = self.state.function_frames.last_mut()
@@ -159,11 +157,15 @@ impl<E, O> InternalVM<E> for VirtualMachine<E, O>
             .ok_or_else(|| RuntimeError::InternalError("Root block is missing".into()))?
             .fork();
 
+        let condition = branch.condition.clone();
+
         frame.memory_snapshots.push(fork);
         frame.blocks.push(Block::Branch(branch));
 
-        let prev = self.condition_pop()?;
-        let next = self.operator.not(prev)?;
+        self.condition_pop()?;
+        let prev = self.condition_top()?;
+        let not_cond = self.operator.not(condition)?;
+        let next = self.operator.and(prev, not_cond)?;
         self.condition_push(next)?;
 
         Ok(())

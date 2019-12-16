@@ -22,8 +22,10 @@ where
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
     use zinc_bytecode::*;
+    use crate::RuntimeError;
 
     #[test]
     fn test_assert_ok() -> Result<(), TestingError> {
@@ -55,10 +57,10 @@ mod tests {
     fn test_assert_in_condition() -> Result<(), TestingError> {
         VMTestRunner::new()
             .add(PushConst { value: 0.into() })
-            .add(PushCondition)
+            .add(If)
             .add(PushConst { value: 0.into() })
             .add(Assert)
-            .add(PopCondition)
+            .add(EndIf)
             .test::<i32>(&[])
     }
 }

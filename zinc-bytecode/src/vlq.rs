@@ -63,7 +63,7 @@ pub fn decode(bytes: &[u8]) -> Option<(BigInt, usize)> {
 
 #[cfg(test)]
 mod test {
-    use super::{encode, decode};
+    use super::*;
     use num_bigint::ToBigInt;
 
     #[test]

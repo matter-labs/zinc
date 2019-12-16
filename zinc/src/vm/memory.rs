@@ -5,8 +5,10 @@ use std::cmp;
 #[derive(Debug, Clone)]
 pub enum StorageCell<P: Primitive> {
     None,
-    Unchanged(P),
-    Changed(P),
+    UnchangedValue(P),
+    ChangedValue(P),
+    UnchangedMerkleTree(P::MerkleTree),
+    ChangedMerkleTree(P::MerkleTree),
 }
 
 /// StackFrame is a data structure that represents the state of function execution.
@@ -26,7 +28,7 @@ impl<P: Primitive> Memory<P> {
             storage: {
                 arguments
                     .iter()
-                    .map(|arg| StorageCell::Unchanged((*arg).clone()))
+                    .map(|arg| StorageCell::UnchangedValue((*arg).clone()))
                     .collect()
             },
         }
@@ -56,7 +58,7 @@ impl<P: Primitive> Memory<P> {
             self.storage.append(vec![StorageCell::None; index * 2 + 2].as_mut());
         }
 
-        self.storage[index] = StorageCell::Changed(value);
+        self.storage[index] = StorageCell::ChangedValue(value);
 
         Ok(())
     }
@@ -67,8 +69,12 @@ impl<P: Primitive> Memory<P> {
             None => Err(RuntimeError::UninitializedStorageAccess),
             Some(option_value) => match option_value {
                 StorageCell::None => Err(RuntimeError::UninitializedStorageAccess),
-                StorageCell::Unchanged(value) |
-                StorageCell::Changed(value) => Ok((*value).clone()),
+
+                StorageCell::UnchangedValue(value) |
+                StorageCell::ChangedValue(value) => Ok((*value).clone()),
+
+                StorageCell::ChangedMerkleTree(_) |
+                StorageCell::UnchangedMerkleTree(_) => Err(RuntimeError::UsingMerkleTreeAsValue),
             },
         }
     }
@@ -110,19 +116,30 @@ impl<P: Primitive> Memory<P> {
             match (&left.storage[i], &right.storage[i]) {
                 (StorageCell::None, _) |
                 (_, StorageCell::None) |
-                (StorageCell::Unchanged(_), StorageCell::Unchanged(_)) => {
+                (StorageCell::UnchangedValue(_), StorageCell::UnchangedValue(_)) => {
                     // Do nothing...
                 },
-                (StorageCell::Changed(left), StorageCell::Changed(right)) |
-                (StorageCell::Changed(left), StorageCell::Unchanged(right)) |
-                (StorageCell::Unchanged(left), StorageCell::Changed(right)) => {
+                (StorageCell::ChangedValue(left), StorageCell::ChangedValue(right)) |
+                (StorageCell::ChangedValue(left), StorageCell::UnchangedValue(right)) |
+                (StorageCell::UnchangedValue(left), StorageCell::ChangedValue(right)) => {
                     let merged = operator.conditional_select(
                         condition.clone(),
                         (*left).clone(),
                         (*right).clone(),
                     )?;
-                    self.storage[i] = StorageCell::Changed(merged);
+                    self.storage[i] = StorageCell::ChangedValue(merged);
                 },
+
+                (StorageCell::ChangedMerkleTree(_), StorageCell::ChangedMerkleTree(_)) |
+                (StorageCell::ChangedMerkleTree(_), StorageCell::UnchangedMerkleTree(_)) |
+                (StorageCell::UnchangedMerkleTree(_), StorageCell::ChangedMerkleTree(_)) |
+                (StorageCell::UnchangedMerkleTree(_), StorageCell::UnchangedMerkleTree(_)) => {
+                    unimplemented!();
+                }
+
+                _ => {
+                    unimplemented!();
+                }
             }
         }
 
