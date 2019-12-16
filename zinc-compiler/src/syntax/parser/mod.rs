@@ -54,7 +54,7 @@ use crate::error::Error;
 use crate::lexical::Lexeme;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::CircuitProgram;
+use crate::syntax::SyntaxTree;
 
 #[derive(Default)]
 pub struct Parser {
@@ -62,7 +62,7 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, input: String) -> Result<CircuitProgram, Error> {
+    pub fn parse(mut self, input: String) -> Result<SyntaxTree, Error> {
         let stream = TokenStream::new(input);
         let stream = Rc::new(RefCell::new(stream));
 
@@ -86,6 +86,6 @@ impl Parser {
             }
         }
 
-        Ok(CircuitProgram { statements })
+        Ok(SyntaxTree { statements })
     }
 }

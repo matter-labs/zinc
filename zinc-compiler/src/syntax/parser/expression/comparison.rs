@@ -55,11 +55,10 @@ impl Parser {
                     }
                     self.state = State::AddSubOperator;
                 }
-                State::AddSubOperator => match self
-                    .next
-                    .take()
-                    .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
-                {
+                State::AddSubOperator => match match self.next.take() {
+                    Some(token) => token,
+                    None => stream.borrow_mut().next()?,
+                } {
                     Token {
                         lexeme: Lexeme::Symbol(Symbol::Plus),
                         location,

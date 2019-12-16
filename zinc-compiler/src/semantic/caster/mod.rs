@@ -24,7 +24,7 @@ impl Caster {
     /// `b1` and `b2` are bitlengths
     /// `a` and `b` are types
     ///
-    pub fn cast(from: &Type, to: &Type) -> Result<(), Error> {
+    pub fn validate(from: &Type, to: &Type) -> Result<(), Error> {
         match (from, to) {
             (Type::IntegerUnsigned { bitlength: b1 }, Type::IntegerUnsigned { bitlength: b2 }) => {
                 let (b1, b2) = (*b1, *b2);
@@ -44,7 +44,7 @@ impl Caster {
             }
             (Type::IntegerUnsigned { .. }, Type::Field) => Ok(()),
             (from @ Type::IntegerUnsigned { .. }, to) => {
-                Err(Error::ToInvalidType(from.to_owned(), to.to_owned()))
+                Err(Error::ToInvalidType(from.to_string(), to.to_string()))
             }
             (Type::IntegerSigned { bitlength: b1 }, Type::IntegerSigned { bitlength: b2 }) => {
                 let (b1, b2) = (*b1, *b2);
@@ -64,13 +64,13 @@ impl Caster {
             }
             (Type::IntegerSigned { .. }, Type::Field) => Ok(()),
             (from @ Type::IntegerSigned { .. }, to) => {
-                Err(Error::ToInvalidType(from.to_owned(), to.to_owned()))
+                Err(Error::ToInvalidType(from.to_string(), to.to_string()))
             }
             (from, to) => {
                 if from == to {
                     Ok(())
                 } else {
-                    Err(Error::FromInvalidType(from.to_owned(), to.to_owned()))
+                    Err(Error::FromInvalidType(from.to_string(), to.to_string()))
                 }
             }
         }

@@ -2,9 +2,9 @@
 //! The variant builder.
 //!
 
-use crate::lexical::IntegerLiteral;
 use crate::lexical::Location;
 use crate::syntax::Identifier;
+use crate::syntax::IntegerLiteral;
 use crate::syntax::Variant;
 
 #[derive(Default)]

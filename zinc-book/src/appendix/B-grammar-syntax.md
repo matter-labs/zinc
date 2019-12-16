@@ -43,8 +43,8 @@ operand_add_sub = operand_mul_div_rem, { '*' | '/' | '%', operand_mul_div_rem } 
 operand_mul_div_rem = operand_as, { 'as', type } ;
 operand_as =
     '-' | '!', operand_as
-  | operand_access, { '[', integer, ']' | '.', integer | '.', member_name | '(', expression_list, ')' }
-operand_access
+  | operand_access, { '[', expression, ']' | '.', integer | '.', member_name | [ '!' ], '(', expression_list, ')' }
+operand_access =
     tuple_expression
   | block_expression
   | array_expression
@@ -52,7 +52,7 @@ operand_access
   | match_expression
   | struct_expression
   | literal
-  | path_expression, [ '!' ]
+  | path_expression
 ;
 
 expression_list = [ expression, { ',', expression } ] ;
@@ -76,7 +76,7 @@ tuple_expression =
 
 struct_expression = 'struct', path_expression, [ '{', field_list, '}' ] ;
 
-path_expression = identifier, [ '!' ], { '::', identifier } ;
+path_expression = identifier, { '::', identifier } ;
 
 (* Parts *)
 type =

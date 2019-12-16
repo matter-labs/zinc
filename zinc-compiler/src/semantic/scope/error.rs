@@ -5,7 +5,6 @@
 use failure::Fail;
 
 use crate::semantic::PlaceDescriptor;
-use crate::semantic::Type;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
@@ -13,19 +12,13 @@ pub enum Error {
     ItemUndeclared(String),
     #[fail(display = "redeclared item '{}'", _0)]
     ItemRedeclared(String),
-    #[fail(display = "item '{}' is not a variable", _0)]
-    ItemIsNotVariable(String),
-    #[fail(display = "item '{}' is not an enumeration", _0)]
-    ItemIsNotEnumeration(String),
 
     #[fail(display = "type '{}' cannot be accessed with '{}'", _0, _1)]
-    InvalidDescriptor(Type, PlaceDescriptor),
+    InvalidDescriptor(String, PlaceDescriptor),
     #[fail(display = "array index {} is out of range of type '{}'", _0, _1)]
-    ArrayIndexOutOfRange(usize, Type),
+    ArrayIndexOutOfRange(usize, String),
     #[fail(display = "tuple field {} does not exist in '{}'", _0, _1)]
-    TupleFieldDoesNotExist(usize, Type),
+    TupleFieldDoesNotExist(usize, String),
     #[fail(display = "structure field {} does not exist in '{}'", _0, _1)]
-    StructureFieldDoesNotExist(String, Type),
-    #[fail(display = "enumeration variant '{}' does not exist in '{}'", _0, _1)]
-    EnumerationVariantDoesNotExist(String, String),
+    StructureFieldDoesNotExist(String, String),
 }

@@ -1,0 +1,7 @@
+/*
+    Module 3
+*/
+
+fn factor(a: field, b: field) -> field {
+    a * b
+}

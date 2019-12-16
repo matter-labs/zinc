@@ -57,12 +57,13 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::lexical::IntegerLiteral;
+    use crate::lexical;
     use crate::lexical::Lexeme;
     use crate::lexical::Location;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Identifier;
+    use crate::syntax::IntegerLiteral;
     use crate::syntax::Variant;
 
     #[test]
@@ -73,7 +74,10 @@ mod tests {
             vec![Variant::new(
                 Location::new(1, 1),
                 Identifier::new(Location::new(1, 1), "A".to_owned()),
-                IntegerLiteral::new_decimal("1".to_owned()),
+                IntegerLiteral::new(
+                    Location::new(1, 5),
+                    lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                ),
             )],
             Some(Token::new(Lexeme::Eof, Location::new(1, 6))),
         ));
@@ -94,7 +98,10 @@ mod tests {
             vec![Variant::new(
                 Location::new(1, 1),
                 Identifier::new(Location::new(1, 1), "A".to_owned()),
-                IntegerLiteral::new_decimal("1".to_owned()),
+                IntegerLiteral::new(
+                    Location::new(1, 5),
+                    lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                ),
             )],
             Some(Token::new(Lexeme::Eof, Location::new(1, 7))),
         ));

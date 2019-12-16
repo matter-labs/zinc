@@ -1,0 +1,7 @@
+/*
+    Module 2
+*/
+
+fn diff(a: field, b: field) -> field {
+    a - b
+}

@@ -4,51 +4,50 @@
 
 use failure::Fail;
 
-use crate::semantic::Type;
-
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
     #[fail(
         display = "'==' operator operand types mismatch: '{}' and '{}'",
         _0, _1
     )]
-    OperatorEqualsOperandTypesMismatch(Type, Type),
+    TypesMismatchEquals(String, String),
     #[fail(
         display = "'!=' operator operand types mismatch: '{}' and '{}'",
         _0, _1
     )]
-    OperatorNotEqualsOperandTypesMismatch(Type, Type),
+    TypesMismatchNotEquals(String, String),
     #[fail(
         display = "'>=' operator operand types mismatch: '{}' and '{}'",
         _0, _1
     )]
-    OperatorGreaterEqualsOperandTypesMismatch(Type, Type),
+    TypesMismatchGreaterEquals(String, String),
     #[fail(
         display = "'<=' operator operand types mismatch: '{}' and '{}'",
         _0, _1
     )]
-    OperatorLesserEqualsOperandTypesMismatch(Type, Type),
+    TypesMismatchLesserEquals(String, String),
     #[fail(display = "'>' operator operand types mismatch: '{}' and '{}'", _0, _1)]
-    OperatorGreaterOperandTypesMismatch(Type, Type),
+    TypesMismatchGreater(String, String),
     #[fail(display = "'<' operator operand types mismatch: '{}' and '{}'", _0, _1)]
-    OperatorLesserOperandTypesMismatch(Type, Type),
+    TypesMismatchLesser(String, String),
     #[fail(display = "'+' operator operand types mismatch: '{}' and '{}'", _0, _1)]
-    OperatorAdditionOperandTypesMismatch(Type, Type),
+    TypesMismatchAddition(String, String),
     #[fail(display = "'-' operator operand types mismatch: '{}' and '{}'", _0, _1)]
-    OperatorSubtractionOperandTypesMismatch(Type, Type),
+    TypesMismatchSubtraction(String, String),
     #[fail(display = "'*' operator operand types mismatch: '{}' and '{}'", _0, _1)]
-    OperatorMultiplicationOperandTypesMismatch(Type, Type),
+    TypesMismatchMultiplication(String, String),
     #[fail(display = "'/' operator operand types mismatch: '{}' and '{}'", _0, _1)]
-    OperatorDivisionOperandTypesMismatch(Type, Type),
-    #[fail(display = "'/' operator division by zero")]
-    OperatorDivisionZero,
+    TypesMismatchDivision(String, String),
     #[fail(display = "'%' operator operand types mismatch: '{}' and '{}'", _0, _1)]
-    OperatorRemainderOperandTypesMismatch(Type, Type),
-    #[fail(display = "'%' operator division by zero")]
-    OperatorRemainderZero,
+    TypesMismatchRemainder(String, String),
 
     #[fail(display = "integer bitlength is too big for negation: {}", _0)]
-    OperatorNegationBitlengthTooBig(usize),
+    NegationBitlengthTooBig(usize),
+
+    #[fail(display = "'/' operator division by zero")]
+    DivisionZero,
+    #[fail(display = "'%' operator division by zero")]
+    RemainderZero,
 
     #[fail(display = "literal '{}' is larger than {} bits", _0, _1)]
     LiteralTooLargeForIndex(String, usize),

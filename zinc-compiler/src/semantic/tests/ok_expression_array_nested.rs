@@ -63,11 +63,7 @@ fn main () {
         Instruction::Return(Return::new(0)),
     ]);
 
-    let result = BinaryAnalyzer::default().compile(
-        Parser::default()
-            .parse(input.to_owned())
-            .expect(super::PANIC_SYNTAX_ERROR),
-    );
+    let result = super::instructions(input);
 
     assert_eq!(expected, result);
 }

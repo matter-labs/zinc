@@ -79,11 +79,10 @@ impl Parser {
                     self.state = State::BracketCurlyLeft;
                 }
                 State::BracketCurlyLeft => {
-                    match self
-                        .next
-                        .take()
-                        .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
-                    {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
@@ -136,11 +135,10 @@ impl Parser {
                     self.state = State::CommaOrBracketCurlyRight;
                 }
                 State::CommaOrBracketCurlyRight => {
-                    match self
-                        .next
-                        .take()
-                        .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
-                    {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..

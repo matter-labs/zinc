@@ -2,14 +2,20 @@
 //! The semantic analysis.
 //!
 
-mod binary;
+mod analyzer;
+mod bytecode;
 mod caster;
 mod element;
-mod error;
 mod scope;
 mod tests;
 
-pub use self::binary::BinaryAnalyzer;
+pub use self::analyzer::BinaryAnalyzer;
+pub use self::analyzer::Error;
+pub use self::analyzer::ExpressionAnalyzer;
+pub use self::analyzer::LibraryAnalyzer;
+pub use self::analyzer::ResolutionHint;
+pub use self::analyzer::StatementAnalyzer;
+pub use self::bytecode::Bytecode;
 pub use self::caster::Caster;
 pub use self::caster::Error as CasterError;
 pub use self::element::Array;
@@ -31,7 +37,6 @@ pub use self::element::Tuple;
 pub use self::element::Type;
 pub use self::element::Value;
 pub use self::element::ValueError;
-pub use self::error::Error;
 pub use self::scope::Error as ScopeError;
 pub use self::scope::Item as ScopeItem;
 pub use self::scope::Scope;
@@ -40,14 +45,19 @@ pub use self::scope::VariableItem as ScopeVariableItem;
 
 static PANIC_VALIDATED_DURING_LEXICAL_ANALYSIS: &str = "Validated during the lexical analysis";
 static PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS: &str = "Validated during the syntax analysis";
-static PANIC_INSTRUCTION_FUNCTION_DECLARATION: &str =
+
+static PANIC_FUNCTION_INSTRUCTION_DECLARATION: &str =
     "Instruction functions are declared without errors";
-static PANIC_RESOLUTION_FUNCTION_MAIN: &str = "Presence of the 'main' function is checked above";
-static PANIC_RANGE_OPERATORS_ARE_UNAVAILABLE: &str = "Range operators are unavailable yet";
+static PANIC_FUNCTION_RESOLUTION_MAIN: &str = "'main' function is checked above";
 static PANIC_FUNCTION_ADDRESS_ALWAYS_EXISTS: &str =
     "Function address exists because the function type has been resolved above";
-static PANIC_VALUE_CANNOT_BE_CREATED_FROM: &str = "Impossible to create a value from type: ";
+
 static PANIC_THERE_MUST_ALWAYS_BE_A_SCOPE: &str =
-    "Scope stack balance is ensured by the evaluation logic";
+    "Scope stack balance is kept by the evaluation logic";
 static PANIC_THERE_MUST_ALWAYS_BE_AN_OPERAND: &str =
-    "Operand stack balance is ensured by the evaluation logic";
+    "Operand stack balance is kept by the evaluation logic";
+static PANIC_THERE_MUST_ALWAYS_BE_A_CALL_STACK_POINTER: &str =
+    "Call stack balance is kept by the evaluation logic";
+
+static PANIC_RANGE_OPERATORS_ARE_UNAVAILABLE: &str = "Range operators are unavailable yet";
+static PANIC_VALUE_CANNOT_BE_CREATED_FROM: &str = "Impossible to create a value from type: ";

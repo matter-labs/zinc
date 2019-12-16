@@ -13,9 +13,6 @@ use zinc_bytecode::PopStore;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 
-use crate::semantic::BinaryAnalyzer;
-use crate::syntax::Parser;
-
 #[test]
 fn test() {
     let input = r#"
@@ -37,11 +34,7 @@ fn main() {
         Instruction::Return(Return::new(0)),
     ]);
 
-    let result = BinaryAnalyzer::default().compile(
-        Parser::default()
-            .parse(input.to_owned())
-            .expect(super::PANIC_SYNTAX_ERROR),
-    );
+    let result = super::instructions(input);
 
     assert_eq!(expected, result);
 }

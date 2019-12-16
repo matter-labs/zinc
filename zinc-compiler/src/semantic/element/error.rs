@@ -5,7 +5,6 @@
 use failure::Fail;
 
 use crate::semantic::ConstantError;
-use crate::semantic::Element;
 use crate::semantic::PlaceError;
 use crate::semantic::ValueError;
 
@@ -22,208 +21,219 @@ pub enum Error {
         display = "'=' operator expected a place expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorAssignmentFirstOperandExpectedPlace(Element),
+    OperatorAssignmentFirstOperandExpectedPlace(String),
     #[fail(
         display = "'=' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorAssignmentSecondOperandExpectedEvaluable(Element),
+    OperatorAssignmentSecondOperandExpectedEvaluable(String),
 
     #[fail(
         display = "'||' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorOrFirstOperandExpectedEvaluable(Element),
+    OperatorOrFirstOperandExpectedEvaluable(String),
     #[fail(
         display = "'||' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorOrSecondOperandExpectedEvaluable(Element),
+    OperatorOrSecondOperandExpectedEvaluable(String),
 
     #[fail(
         display = "'^^' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorXorFirstOperandExpectedEvaluable(Element),
+    OperatorXorFirstOperandExpectedEvaluable(String),
     #[fail(
         display = "'^^' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorXorSecondOperandExpectedEvaluable(Element),
+    OperatorXorSecondOperandExpectedEvaluable(String),
 
     #[fail(
         display = "'&&' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorAndFirstOperandExpectedEvaluable(Element),
+    OperatorAndFirstOperandExpectedEvaluable(String),
     #[fail(
         display = "'&&' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorAndSecondOperandExpectedEvaluable(Element),
+    OperatorAndSecondOperandExpectedEvaluable(String),
 
     #[fail(
         display = "'==' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorEqualsFirstOperandExpectedEvaluable(Element),
+    OperatorEqualsFirstOperandExpectedEvaluable(String),
     #[fail(
         display = "'==' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorEqualsSecondOperandExpectedEvaluable(Element),
+    OperatorEqualsSecondOperandExpectedEvaluable(String),
 
     #[fail(
         display = "'!=' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorNotEqualsFirstOperandExpectedEvaluable(Element),
+    OperatorNotEqualsFirstOperandExpectedEvaluable(String),
     #[fail(
         display = "'!=' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorNotEqualsSecondOperandExpectedEvaluable(Element),
+    OperatorNotEqualsSecondOperandExpectedEvaluable(String),
 
     #[fail(
         display = "'>=' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorGreaterEqualsFirstOperandExpectedEvaluable(Element),
+    OperatorGreaterEqualsFirstOperandExpectedEvaluable(String),
     #[fail(
         display = "'>=' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorGreaterEqualsSecondOperandExpectedEvaluable(Element),
+    OperatorGreaterEqualsSecondOperandExpectedEvaluable(String),
 
     #[fail(
         display = "'<=' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorLesserEqualsFirstOperandExpectedEvaluable(Element),
+    OperatorLesserEqualsFirstOperandExpectedEvaluable(String),
     #[fail(
         display = "'<=' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorLesserEqualsSecondOperandExpectedEvaluable(Element),
+    OperatorLesserEqualsSecondOperandExpectedEvaluable(String),
 
     #[fail(
         display = "'>' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorGreaterFirstOperandExpectedEvaluable(Element),
+    OperatorGreaterFirstOperandExpectedEvaluable(String),
     #[fail(
         display = "'>' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorGreaterSecondOperandExpectedEvaluable(Element),
+    OperatorGreaterSecondOperandExpectedEvaluable(String),
 
     #[fail(
         display = "'<' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorLesserFirstOperandExpectedEvaluable(Element),
+    OperatorLesserFirstOperandExpectedEvaluable(String),
     #[fail(
         display = "'<' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorLesserSecondOperandExpectedEvaluable(Element),
+    OperatorLesserSecondOperandExpectedEvaluable(String),
 
     #[fail(
         display = "'+' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorAdditionFirstOperandExpectedEvaluable(Element),
+    OperatorAdditionFirstOperandExpectedEvaluable(String),
     #[fail(
         display = "'+' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorAdditionSecondOperandExpectedEvaluable(Element),
+    OperatorAdditionSecondOperandExpectedEvaluable(String),
 
     #[fail(
         display = "'-' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorSubtractionFirstOperandExpectedEvaluable(Element),
+    OperatorSubtractionFirstOperandExpectedEvaluable(String),
     #[fail(
         display = "'-' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorSubtractionSecondOperandExpectedEvaluable(Element),
+    OperatorSubtractionSecondOperandExpectedEvaluable(String),
 
     #[fail(
         display = "'*' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorMultiplicationFirstOperandExpectedEvaluable(Element),
+    OperatorMultiplicationFirstOperandExpectedEvaluable(String),
     #[fail(
         display = "'*' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorMultiplicationSecondOperandExpectedEvaluable(Element),
+    OperatorMultiplicationSecondOperandExpectedEvaluable(String),
 
     #[fail(
         display = "'/' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorDivisionFirstOperandExpectedEvaluable(Element),
+    OperatorDivisionFirstOperandExpectedEvaluable(String),
     #[fail(
         display = "'/' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorDivisionSecondOperandExpectedEvaluable(Element),
+    OperatorDivisionSecondOperandExpectedEvaluable(String),
 
     #[fail(
         display = "'%' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorRemainderFirstOperandExpectedEvaluable(Element),
+    OperatorRemainderFirstOperandExpectedEvaluable(String),
     #[fail(
         display = "'%' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorRemainderSecondOperandExpectedEvaluable(Element),
+    OperatorRemainderSecondOperandExpectedEvaluable(String),
 
     #[fail(
         display = "'as' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorCastingFirstOperandExpectedEvaluable(Element),
+    OperatorCastingFirstOperandExpectedEvaluable(String),
     #[fail(
         display = "'as' operator expected a type expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorCastingSecondOperandExpectedType(Element),
+    OperatorCastingSecondOperandExpectedType(String),
 
     #[fail(
         display = "unary '-' operator expected an evaluable expression as the operand, but got '{}'",
         _0
     )]
-    OperatorNegationExpectedEvaluable(Element),
+    OperatorNegationExpectedEvaluable(String),
     #[fail(
         display = "'!' operator expected an evaluable expression as the operand, but got '{}'",
         _0
     )]
-    OperatorNotExpectedEvaluable(Element),
+    OperatorNotExpectedEvaluable(String),
 
     #[fail(
         display = "'[]' operator expected a place expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorIndexFirstOperandExpectedPlace(Element),
+    OperatorIndexFirstOperandExpectedPlace(String),
     #[fail(
         display = "'[]' operator expected a constant expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorIndexSecondOperandExpectedIntegerConstant(Element),
+    OperatorIndexSecondOperandExpectedInteger(String),
 
     #[fail(
         display = "'.' operator expected a place expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorFieldAccessFirstOperandExpectedPlace(Element),
+    OperatorFieldFirstOperandExpectedPlace(String),
     #[fail(
         display = "'.' operator expected a member identifier as the second operand, but got '{}'",
         _0
     )]
-    OperatorFieldAccessSecondOperandExpectedMember(Element),
+    OperatorFieldSecondOperandExpectedMember(String),
+
+    #[fail(
+        display = "'::' operator expected a place expression as the first operand, but got '{}'",
+        _0
+    )]
+    OperatorPathFirstOperandExpectedPlace(String),
+    #[fail(
+        display = "'::' operator expected a member string as the second operand, but got '{}'",
+        _0
+    )]
+    OperatorPathSecondOperandExpectedMemberString(String),
 }

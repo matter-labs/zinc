@@ -13,6 +13,7 @@ use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::Identifier;
+use crate::syntax::IntegerLiteral;
 use crate::syntax::Variant;
 use crate::syntax::VariantBuilder;
 
@@ -67,9 +68,10 @@ impl Parser {
         match next {
             Token {
                 lexeme: Lexeme::Literal(lexical::Literal::Integer(literal)),
-                ..
+                location,
             } => {
-                self.builder.set_literal(literal);
+                self.builder
+                    .set_literal(IntegerLiteral::new(location, literal));
                 Ok(self.builder.finish())
             }
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
@@ -87,10 +89,11 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::lexical::IntegerLiteral;
+    use crate::lexical;
     use crate::lexical::Location;
     use crate::lexical::TokenStream;
     use crate::syntax::Identifier;
+    use crate::syntax::IntegerLiteral;
     use crate::syntax::Variant;
 
     #[test]
@@ -100,7 +103,10 @@ mod tests {
         let expected = Ok(Variant::new(
             Location::new(1, 1),
             Identifier::new(Location::new(1, 1), "A".to_owned()),
-            IntegerLiteral::new_decimal("1".to_owned()),
+            IntegerLiteral::new(
+                Location::new(1, 5),
+                lexical::IntegerLiteral::new_decimal("1".to_owned()),
+            ),
         ));
 
         let result = Parser::default().parse(

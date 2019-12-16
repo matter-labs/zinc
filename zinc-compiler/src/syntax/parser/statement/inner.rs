@@ -17,23 +17,8 @@ use crate::syntax::InnerStatement;
 use crate::syntax::LetStatementParser;
 use crate::syntax::LoopStatementParser;
 
-#[derive(Debug, Clone, Copy)]
-pub enum State {
-    Statement,
-    SemicolonOptional,
-    End,
-}
-
-impl Default for State {
-    fn default() -> Self {
-        State::Statement
-    }
-}
-
 #[derive(Default)]
 pub struct Parser {
-    state: State,
-    statement: Option<InnerStatement>,
     next: Option<Token>,
 }
 
@@ -43,92 +28,55 @@ impl Parser {
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
     ) -> Result<(InnerStatement, Option<Token>, bool), Error> {
-        loop {
-            match self.state {
-                State::Statement => {
-                    self.statement = Some(
-                        match match initial.take() {
-                            Some(token) => token,
-                            None => stream.borrow_mut().next()?,
-                        } {
-                            token @ Token {
-                                lexeme: Lexeme::Keyword(Keyword::Let),
-                                ..
-                            } => {
-                                let (statement, next) = LetStatementParser::default()
-                                    .parse(stream.clone(), Some(token))?;
-                                self.next = next;
-                                self.state = State::End;
-                                InnerStatement::Let(statement)
-                            }
-                            token @ Token {
-                                lexeme: Lexeme::Keyword(Keyword::Const),
-                                ..
-                            } => {
-                                let (statement, next) = ConstStatementParser::default()
-                                    .parse(stream.clone(), Some(token))?;
-                                self.next = next;
-                                self.state = State::End;
-                                InnerStatement::Const(statement)
-                            }
-                            token @ Token {
-                                lexeme: Lexeme::Keyword(Keyword::For),
-                                ..
-                            } => {
-                                let statement = LoopStatementParser::default()
-                                    .parse(stream.clone(), Some(token))?;
-                                self.state = State::End;
-                                InnerStatement::Loop(statement)
-                            }
-                            token => {
-                                let (expression, next) = ExpressionParser::default()
-                                    .parse(stream.clone(), Some(token))?;
-                                self.next = next;
-                                self.state = State::SemicolonOptional;
-                                InnerStatement::Expression(expression)
-                            }
-                        },
-                    );
-                }
-                State::SemicolonOptional => {
-                    match self
-                        .next
-                        .take()
-                        .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
-                    {
-                        Token {
-                            lexeme: Lexeme::Symbol(Symbol::Semicolon),
-                            ..
-                        } => {
-                            return Ok((
-                                self.statement
-                                    .take()
-                                    .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS),
-                                None,
-                                false,
-                            ));
-                        }
-                        token => {
-                            return Ok((
-                                self.statement
-                                    .take()
-                                    .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS),
-                                Some(token),
-                                true,
-                            ));
-                        }
-                    }
-                }
-                State::End => {
-                    return Ok((
-                        self.statement
-                            .take()
-                            .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS),
-                        None,
-                        false,
-                    ))
-                }
+        let statement = match match initial.take() {
+            Some(token) => token,
+            None => stream.borrow_mut().next()?,
+        } {
+            token @ Token {
+                lexeme: Lexeme::Keyword(Keyword::Let),
+                ..
+            } => {
+                let (statement, next) =
+                    LetStatementParser::default().parse(stream.clone(), Some(token))?;
+                self.next = next;
+                InnerStatement::Let(statement)
             }
+            token @ Token {
+                lexeme: Lexeme::Keyword(Keyword::Const),
+                ..
+            } => {
+                let (statement, next) =
+                    ConstStatementParser::default().parse(stream.clone(), Some(token))?;
+                self.next = next;
+                InnerStatement::Const(statement)
+            }
+            token @ Token {
+                lexeme: Lexeme::Keyword(Keyword::For),
+                ..
+            } => {
+                let statement =
+                    LoopStatementParser::default().parse(stream.clone(), Some(token))?;
+                InnerStatement::Loop(statement)
+            }
+            token => {
+                let (expression, next) =
+                    ExpressionParser::default().parse(stream.clone(), Some(token))?;
+                self.next = next;
+                InnerStatement::Expression(expression)
+            }
+        };
+        match statement {
+            statement @ InnerStatement::Expression { .. } => match match self.next.take() {
+                Some(token) => token,
+                None => stream.borrow_mut().next()?,
+            } {
+                Token {
+                    lexeme: Lexeme::Symbol(Symbol::Semicolon),
+                    ..
+                } => Ok((statement, None, false)),
+                token => Ok((statement, Some(token), true)),
+            },
+            statement => Ok((statement, None, false)),
         }
     }
 }

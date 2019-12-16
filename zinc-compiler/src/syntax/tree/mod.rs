@@ -14,7 +14,7 @@ mod statement;
 mod r#type;
 mod variant;
 
-pub use self::circuit::CircuitProgram;
+pub use self::circuit::SyntaxTree;
 pub use self::expression::ArrayExpression;
 pub use self::expression::ArrayExpressionBuilder;
 pub use self::expression::BlockExpression;

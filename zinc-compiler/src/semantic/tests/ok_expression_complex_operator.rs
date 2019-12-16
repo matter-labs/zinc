@@ -20,14 +20,11 @@ use zinc_bytecode::Return;
 use zinc_bytecode::Sub;
 use zinc_bytecode::Xor;
 
-use crate::semantic::BinaryAnalyzer;
-use crate::syntax::Parser;
-
 #[test]
 fn test() {
     let input = r#"
 fn main() {
-    let result = 2 + 2 * 2 - (42 - 7 * 3) == 6 - 21 && (false ^^ (true || (2 + 2 == 5)));
+    let result = 2 + 2 * 2 - (42 - 7 * 3) == { 6 - 21 } && (false ^^ (true || (2 + 2 == 5)));
 }
 "#;
 
@@ -63,11 +60,7 @@ fn main() {
         Instruction::Return(Return::new(0)),
     ]);
 
-    let result = BinaryAnalyzer::default().compile(
-        Parser::default()
-            .parse(input.to_owned())
-            .expect(super::PANIC_SYNTAX_ERROR),
-    );
+    let result = super::instructions(input);
 
     assert_eq!(expected, result);
 }

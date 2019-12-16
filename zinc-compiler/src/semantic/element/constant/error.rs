@@ -59,10 +59,10 @@ pub enum Error {
     )]
     OperatorEqualsSecondOperandExpectedInteger(Constant),
     #[fail(
-        display = "'==' operator expected two primitive type constants, but got '{}' and '{}'",
-        _0, _1
+        display = "'==' operator expected a primitive type constant as the first operand, but got '{}'",
+        _0
     )]
-    OperatorEqualsExpectedPrimitiveTypes(Constant, Constant),
+    OperatorEqualsFirstOperandExpectedPrimitiveType(Constant),
 
     #[fail(
         display = "'!=' operator expected unit as the second operand, but got '{}'",
@@ -80,10 +80,10 @@ pub enum Error {
     )]
     OperatorNotEqualsSecondOperandExpectedInteger(Constant),
     #[fail(
-        display = "'!=' operator expected two primitive type constants, but got '{}' and '{}'",
-        _0, _1
+        display = "'!=' operator expected a primitive type constant as the first operand, but got '{}'",
+        _0
     )]
-    OperatorNotEqualsExpectedPrimitiveTypes(Constant, Constant),
+    OperatorNotEqualsFirstOperandExpectedPrimitiveType(Constant),
 
     #[fail(
         display = "'>=' operator expected integer as the first operand, but got '{}'",
@@ -193,7 +193,7 @@ pub enum Error {
         display = "'!' operator expected a boolean as the operand, but got '{}'",
         _0
     )]
-    OperatorNotExpectedInteger(Constant),
+    OperatorNotExpectedBoolean(Constant),
 
     #[fail(display = "integer: {}", _0)]
     Integer(IntegerConstantError),

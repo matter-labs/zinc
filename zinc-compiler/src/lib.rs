@@ -9,8 +9,11 @@ mod syntax;
 
 pub use self::error::Error;
 pub use self::semantic::BinaryAnalyzer;
-pub use self::syntax::CircuitProgram;
+pub use self::semantic::Bytecode;
+pub use self::semantic::LibraryAnalyzer;
+pub use self::semantic::Scope;
 pub use self::syntax::Parser;
+pub use self::syntax::SyntaxTree;
 
 pub const BASE_DECIMAL: usize = 10;
 pub const BASE_HEXADECIMAL: usize = 16;

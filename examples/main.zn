@@ -1,0 +1,17 @@
+/*
+    Mega ultra test example
+*/
+
+mod module_1;
+mod module_2;
+mod module_3;
+
+static STATIC: field = 5;
+
+const CONST: field = 42;
+
+fn main() -> field {
+    let var: field = 69;
+
+    module_3::factor(module_2::diff(module_1::sum(STATIC, CONST), var), 5 as field)
+}

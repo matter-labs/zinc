@@ -86,10 +86,12 @@ impl Value {
             Self::Boolean => match other {
                 Self::Boolean => Ok(Self::Boolean),
                 value => Err(Error::OperatorOrSecondOperandExpectedBoolean(
-                    value.r#type(),
+                    value.r#type().to_string(),
                 )),
             },
-            value => Err(Error::OperatorOrFirstOperandExpectedBoolean(value.r#type())),
+            value => Err(Error::OperatorOrFirstOperandExpectedBoolean(
+                value.r#type().to_string(),
+            )),
         }
     }
 
@@ -98,11 +100,11 @@ impl Value {
             Self::Boolean => match other {
                 Self::Boolean => Ok(Self::Boolean),
                 value => Err(Error::OperatorXorSecondOperandExpectedBoolean(
-                    value.r#type(),
+                    value.r#type().to_string(),
                 )),
             },
             value => Err(Error::OperatorXorFirstOperandExpectedBoolean(
-                value.r#type(),
+                value.r#type().to_string(),
             )),
         }
     }
@@ -112,11 +114,11 @@ impl Value {
             Self::Boolean => match other {
                 Self::Boolean => Ok(Self::Boolean),
                 value => Err(Error::OperatorAndSecondOperandExpectedBoolean(
-                    value.r#type(),
+                    value.r#type().to_string(),
                 )),
             },
             value => Err(Error::OperatorAndFirstOperandExpectedBoolean(
-                value.r#type(),
+                value.r#type().to_string(),
             )),
         }
     }
@@ -125,19 +127,18 @@ impl Value {
         match (self, other) {
             (Self::Unit, Self::Unit) => Ok(Self::Boolean),
             (Self::Unit, value_2) => Err(Error::OperatorEqualsSecondOperandExpectedUnit(
-                value_2.r#type(),
+                value_2.r#type().to_string(),
             )),
             (Self::Boolean, Self::Boolean) => Ok(Self::Boolean),
             (Self::Boolean, value_2) => Err(Error::OperatorEqualsSecondOperandExpectedBoolean(
-                value_2.r#type(),
+                value_2.r#type().to_string(),
             )),
             (Self::Integer(_), Self::Integer(_)) => Ok(Self::Boolean),
             (Self::Integer(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedInteger(
-                value_2.r#type(),
+                value_2.r#type().to_string(),
             )),
-            (value_1, value_2) => Err(Error::OperatorEqualsExpectedPrimitiveTypes(
-                value_1.r#type(),
-                value_2.r#type(),
+            (value_1, _) => Err(Error::OperatorEqualsFirstOperandExpectedPrimitiveType(
+                value_1.r#type().to_string(),
             )),
         }
     }
@@ -146,19 +147,18 @@ impl Value {
         match (self, other) {
             (Self::Unit, Self::Unit) => Ok(Self::Boolean),
             (Self::Unit, value_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedUnit(
-                value_2.r#type(),
+                value_2.r#type().to_string(),
             )),
             (Self::Boolean, Self::Boolean) => Ok(Self::Boolean),
             (Self::Boolean, value_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedBoolean(
-                value_2.r#type(),
+                value_2.r#type().to_string(),
             )),
             (Self::Integer(_), Self::Integer(_)) => Ok(Self::Boolean),
             (Self::Integer(_), value_2) => Err(
-                Error::OperatorNotEqualsSecondOperandExpectedInteger(value_2.r#type()),
+                Error::OperatorNotEqualsSecondOperandExpectedInteger(value_2.r#type().to_string()),
             ),
-            (value_1, value_2) => Err(Error::OperatorNotEqualsExpectedPrimitiveTypes(
-                value_1.r#type(),
-                value_2.r#type(),
+            (value_1, _) => Err(Error::OperatorNotEqualsFirstOperandExpectedPrimitiveType(
+                value_1.r#type().to_string(),
             )),
         }
     }
@@ -171,11 +171,11 @@ impl Value {
                     .map(|_| Self::Boolean)
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorGreaterEqualsSecondOperandExpectedInteger(
-                    value.r#type(),
+                    value.r#type().to_string(),
                 )),
             },
             value => Err(Error::OperatorGreaterEqualsFirstOperandExpectedInteger(
-                value.r#type(),
+                value.r#type().to_string(),
             )),
         }
     }
@@ -188,11 +188,11 @@ impl Value {
                     .map(|_| Self::Boolean)
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorLesserEqualsSecondOperandExpectedInteger(
-                    value.r#type(),
+                    value.r#type().to_string(),
                 )),
             },
             value => Err(Error::OperatorLesserEqualsFirstOperandExpectedInteger(
-                value.r#type(),
+                value.r#type().to_string(),
             )),
         }
     }
@@ -205,11 +205,11 @@ impl Value {
                     .map(|_| Self::Boolean)
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorGreaterSecondOperandExpectedInteger(
-                    value.r#type(),
+                    value.r#type().to_string(),
                 )),
             },
             value => Err(Error::OperatorGreaterFirstOperandExpectedInteger(
-                value.r#type(),
+                value.r#type().to_string(),
             )),
         }
     }
@@ -222,11 +222,11 @@ impl Value {
                     .map(|_| Self::Boolean)
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorLesserSecondOperandExpectedInteger(
-                    value.r#type(),
+                    value.r#type().to_string(),
                 )),
             },
             value => Err(Error::OperatorLesserFirstOperandExpectedInteger(
-                value.r#type(),
+                value.r#type().to_string(),
             )),
         }
     }
@@ -239,11 +239,11 @@ impl Value {
                     .map(|_| Self::Integer(integer_1.to_owned()))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorAdditionSecondOperandExpectedInteger(
-                    value.r#type(),
+                    value.r#type().to_string(),
                 )),
             },
             value => Err(Error::OperatorAdditionFirstOperandExpectedInteger(
-                value.r#type(),
+                value.r#type().to_string(),
             )),
         }
     }
@@ -256,11 +256,11 @@ impl Value {
                     .map(|_| Self::Integer(integer_1.to_owned()))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorSubtractionSecondOperandExpectedInteger(
-                    value.r#type(),
+                    value.r#type().to_string(),
                 )),
             },
             value => Err(Error::OperatorSubtractionFirstOperandExpectedInteger(
-                value.r#type(),
+                value.r#type().to_string(),
             )),
         }
     }
@@ -273,11 +273,11 @@ impl Value {
                     .map(|_| Self::Integer(integer_1.to_owned()))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorMultiplicationSecondOperandExpectedInteger(
-                    value.r#type(),
+                    value.r#type().to_string(),
                 )),
             },
             value => Err(Error::OperatorMultiplicationFirstOperandExpectedInteger(
-                value.r#type(),
+                value.r#type().to_string(),
             )),
         }
     }
@@ -290,11 +290,11 @@ impl Value {
                     .map(|_| Self::Integer(integer_1.to_owned()))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorDivisionSecondOperandExpectedInteger(
-                    value.r#type(),
+                    value.r#type().to_string(),
                 )),
             },
             value => Err(Error::OperatorDivisionFirstOperandExpectedInteger(
-                value.r#type(),
+                value.r#type().to_string(),
             )),
         }
     }
@@ -307,24 +307,30 @@ impl Value {
                     .map(|_| Self::Integer(integer_1.to_owned()))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorRemainderSecondOperandExpectedInteger(
-                    value.r#type(),
+                    value.r#type().to_string(),
                 )),
             },
             value => Err(Error::OperatorRemainderFirstOperandExpectedInteger(
-                value.r#type(),
+                value.r#type().to_string(),
             )),
         }
     }
 
-    pub fn cast(&self, to: &Type) -> Result<Option<(bool, usize)>, Error> {
+    pub fn cast(&mut self, to: &Type) -> Result<Option<(bool, usize)>, Error> {
         let from = self.r#type();
-        Caster::cast(&from, &to).map_err(Error::Casting)?;
-        match to {
-            Type::IntegerUnsigned { bitlength } => Ok(Some((false, *bitlength))),
-            Type::IntegerSigned { bitlength } => Ok(Some((true, *bitlength))),
-            Type::Field => Ok(Some((false, crate::BITLENGTH_FIELD))),
-            _ => Ok(None),
+        Caster::validate(&from, &to).map_err(Error::Casting)?;
+
+        let (is_signed, bitlength) = match to {
+            Type::IntegerUnsigned { bitlength } => (false, *bitlength),
+            Type::IntegerSigned { bitlength } => (true, *bitlength),
+            Type::Field => (false, crate::BITLENGTH_FIELD),
+            _ => return Ok(None),
+        };
+
+        if let Self::Integer(integer) = self {
+            integer.cast(is_signed, bitlength).map_err(Error::Integer)?;
         }
+        Ok(Some((is_signed, bitlength)))
     }
 
     pub fn negate(&self) -> Result<Self, Error> {
@@ -333,14 +339,18 @@ impl Value {
                 .negate()
                 .map(|_| Self::Integer(integer.to_owned()))
                 .map_err(Error::Integer),
-            value => Err(Error::OperatorNegationExpectedInteger(value.r#type())),
+            value => Err(Error::OperatorNegationExpectedInteger(
+                value.r#type().to_string(),
+            )),
         }
     }
 
     pub fn not(&self) -> Result<Self, Error> {
         match self {
             Self::Boolean => Ok(Self::Boolean),
-            value => Err(Error::OperatorNotExpectedInteger(value.r#type())),
+            value => Err(Error::OperatorNotExpectedBoolean(
+                value.r#type().to_string(),
+            )),
         }
     }
 

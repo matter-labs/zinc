@@ -8,17 +8,17 @@ use crate::error::Error;
 use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
 use crate::lexical::Location;
-use crate::syntax::CircuitProgram;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::Parser;
+use crate::syntax::SyntaxTree;
 
 #[test]
 fn err_expected() {
     let input = "bool";
 
-    let result: Result<CircuitProgram, Error> = Parser::default().parse(input.to_owned());
+    let result: Result<SyntaxTree, Error> = Parser::default().parse(input.to_owned());
 
-    let expected: Result<CircuitProgram, Error> = Err(Error::Syntax(SyntaxError::Expected(
+    let expected: Result<SyntaxTree, Error> = Err(Error::Syntax(SyntaxError::Expected(
         Location::new(1, 1),
         vec![
             "const", "static", "type", "struct", "enum", "fn", "mod", "use",
@@ -33,9 +33,9 @@ fn err_expected() {
 fn err_expected_not_eof() {
     let input = "fn";
 
-    let result: Result<CircuitProgram, Error> = Parser::default().parse(input.to_owned());
+    let result: Result<SyntaxTree, Error> = Parser::default().parse(input.to_owned());
 
-    let expected: Result<CircuitProgram, Error> = Err(Error::Syntax(SyntaxError::Expected(
+    let expected: Result<SyntaxTree, Error> = Err(Error::Syntax(SyntaxError::Expected(
         Location::new(1, 3),
         vec!["{identifier}"],
         Lexeme::Eof,

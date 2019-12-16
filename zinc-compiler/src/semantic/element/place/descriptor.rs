@@ -4,9 +4,13 @@
 
 use std::fmt;
 
+use crate::semantic::IntegerConstant;
+use crate::semantic::IntegerValue;
+
 #[derive(Clone, PartialEq)]
 pub enum Descriptor {
-    ArrayIndex(usize),
+    ArrayIndexConstant(IntegerConstant),
+    ArrayIndexValue(IntegerValue),
     TupleField(usize),
     StructureField(String),
 }
@@ -14,7 +18,8 @@ pub enum Descriptor {
 impl Descriptor {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::ArrayIndex(index) => write!(f, "[{}]", index),
+            Self::ArrayIndexConstant(constant) => write!(f, "[{}]", constant),
+            Self::ArrayIndexValue(value) => write!(f, "[{}]", value),
             Self::TupleField(field) => write!(f, ".{}", field),
             Self::StructureField(field) => write!(f, ".{}", field),
         }

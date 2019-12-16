@@ -4,35 +4,33 @@
 
 use failure::Fail;
 
-use crate::semantic::Type;
-
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
     #[fail(
         display = "'>=' operator operand types mismatch: '{}' and '{}'",
         _0, _1
     )]
-    OperatorGreaterEqualsOperandTypesMismatch(Type, Type),
+    TypesMismatchGreaterEquals(String, String),
     #[fail(
         display = "'<=' operator operand types mismatch: '{}' and '{}'",
         _0, _1
     )]
-    OperatorLesserEqualsOperandTypesMismatch(Type, Type),
+    TypesMismatchLesserEquals(String, String),
     #[fail(display = "'>' operator operand types mismatch: '{}' and '{}'", _0, _1)]
-    OperatorGreaterOperandTypesMismatch(Type, Type),
+    TypesMismatchGreater(String, String),
     #[fail(display = "'<' operator operand types mismatch: '{}' and '{}'", _0, _1)]
-    OperatorLesserOperandTypesMismatch(Type, Type),
+    TypesMismatchLesser(String, String),
     #[fail(display = "'+' operator operand types mismatch: '{}' and '{}'", _0, _1)]
-    OperatorAdditionOperandTypesMismatch(Type, Type),
+    TypesMismatchAddition(String, String),
     #[fail(display = "'-' operator operand types mismatch: '{}' and '{}'", _0, _1)]
-    OperatorSubtractionOperandTypesMismatch(Type, Type),
+    TypesMismatchSubtraction(String, String),
     #[fail(display = "'*' operator operand types mismatch: '{}' and '{}'", _0, _1)]
-    OperatorMultiplicationOperandTypesMismatch(Type, Type),
+    TypesMismatchMultiplication(String, String),
     #[fail(display = "'/' operator operand types mismatch: '{}' and '{}'", _0, _1)]
-    OperatorDivisionOperandTypesMismatch(Type, Type),
+    TypesMismatchDivision(String, String),
     #[fail(display = "'%' operator operand types mismatch: '{}' and '{}'", _0, _1)]
-    OperatorRemainderOperandTypesMismatch(Type, Type),
+    TypesMismatchRemainder(String, String),
 
-    #[fail(display = "integer bitlength is too big for negation: {}", _0)]
-    Negation(usize),
+    #[fail(display = "field cannot be negated")]
+    FieldNegation,
 }

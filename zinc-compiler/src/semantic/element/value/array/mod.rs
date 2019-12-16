@@ -38,7 +38,10 @@ impl Array {
         if self.size == 0 {
             self.r#type = r#type;
         } else if r#type != self.r#type {
-            return Err(Error::PushingInvalidType(r#type, self.r#type.clone()));
+            return Err(Error::PushingInvalidType(
+                r#type.to_string(),
+                self.r#type.to_string(),
+            ));
         }
         self.size += 1;
 

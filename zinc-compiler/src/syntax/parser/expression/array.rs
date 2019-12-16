@@ -103,11 +103,10 @@ impl Parser {
                     }
                 }
                 State::CommaOrBracketSquareRight => {
-                    match self
-                        .next
-                        .take()
-                        .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
-                    {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
@@ -128,11 +127,10 @@ impl Parser {
                     }
                 }
                 State::CommaOrSemicolonOrBracketSquareRight => {
-                    match self
-                        .next
-                        .take()
-                        .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
-                    {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..

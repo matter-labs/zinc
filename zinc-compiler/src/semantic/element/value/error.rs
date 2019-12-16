@@ -6,7 +6,6 @@ use failure::Fail;
 
 use crate::semantic::CasterError;
 use crate::semantic::IntegerValueError;
-use crate::semantic::Type;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
@@ -14,186 +13,186 @@ pub enum Error {
         display = "'||' operator expected boolean as the first operand, but got '{}'",
         _0
     )]
-    OperatorOrFirstOperandExpectedBoolean(Type),
+    OperatorOrFirstOperandExpectedBoolean(String),
     #[fail(
         display = "'||' operator expected boolean as the second operand, but got '{}'",
         _0
     )]
-    OperatorOrSecondOperandExpectedBoolean(Type),
+    OperatorOrSecondOperandExpectedBoolean(String),
 
     #[fail(
         display = "'^^' operator expected boolean as the first operand, but got '{}'",
         _0
     )]
-    OperatorXorFirstOperandExpectedBoolean(Type),
+    OperatorXorFirstOperandExpectedBoolean(String),
     #[fail(
         display = "'^^' operator expected boolean as the second operand, but got '{}'",
         _0
     )]
-    OperatorXorSecondOperandExpectedBoolean(Type),
+    OperatorXorSecondOperandExpectedBoolean(String),
 
     #[fail(
         display = "'&&' operator expected boolean as the first operand, but got '{}'",
         _0
     )]
-    OperatorAndFirstOperandExpectedBoolean(Type),
+    OperatorAndFirstOperandExpectedBoolean(String),
     #[fail(
         display = "'&&' operator expected boolean as the second operand, but got '{}'",
         _0
     )]
-    OperatorAndSecondOperandExpectedBoolean(Type),
+    OperatorAndSecondOperandExpectedBoolean(String),
 
     #[fail(
         display = "'==' operator expected unit as the second operand, but got '{}'",
         _0
     )]
-    OperatorEqualsSecondOperandExpectedUnit(Type),
+    OperatorEqualsSecondOperandExpectedUnit(String),
     #[fail(
         display = "'==' operator expected boolean as the second operand, but got '{}'",
         _0
     )]
-    OperatorEqualsSecondOperandExpectedBoolean(Type),
+    OperatorEqualsSecondOperandExpectedBoolean(String),
     #[fail(
         display = "'==' operator expected integer as the second operand, but got '{}'",
         _0
     )]
-    OperatorEqualsSecondOperandExpectedInteger(Type),
+    OperatorEqualsSecondOperandExpectedInteger(String),
     #[fail(
-        display = "'==' operator expected two primitive type constants, but got '{}' and '{}'",
-        _0, _1
+        display = "'==' operator expected a primitive type as the first operand, but got '{}'",
+        _0
     )]
-    OperatorEqualsExpectedPrimitiveTypes(Type, Type),
+    OperatorEqualsFirstOperandExpectedPrimitiveType(String),
 
     #[fail(
         display = "'!=' operator expected unit as the second operand, but got '{}'",
         _0
     )]
-    OperatorNotEqualsSecondOperandExpectedUnit(Type),
+    OperatorNotEqualsSecondOperandExpectedUnit(String),
     #[fail(
         display = "'!=' operator expected boolean as the second operand, but got '{}'",
         _0
     )]
-    OperatorNotEqualsSecondOperandExpectedBoolean(Type),
+    OperatorNotEqualsSecondOperandExpectedBoolean(String),
     #[fail(
         display = "'!=' operator expected integer as the second operand, but got '{}'",
         _0
     )]
-    OperatorNotEqualsSecondOperandExpectedInteger(Type),
+    OperatorNotEqualsSecondOperandExpectedInteger(String),
     #[fail(
-        display = "'!=' operator expected two primitive type constants, but got '{}' and '{}'",
-        _0, _1
+        display = "'!=' operator expected a primitive type as the first operand, but got '{}'",
+        _0
     )]
-    OperatorNotEqualsExpectedPrimitiveTypes(Type, Type),
+    OperatorNotEqualsFirstOperandExpectedPrimitiveType(String),
 
     #[fail(
         display = "'>=' operator expected integer as the first operand, but got '{}'",
         _0
     )]
-    OperatorGreaterEqualsFirstOperandExpectedInteger(Type),
+    OperatorGreaterEqualsFirstOperandExpectedInteger(String),
     #[fail(
         display = "'>=' operator expected integer as the second operand, but got '{}'",
         _0
     )]
-    OperatorGreaterEqualsSecondOperandExpectedInteger(Type),
+    OperatorGreaterEqualsSecondOperandExpectedInteger(String),
 
     #[fail(
         display = "'<=' operator expected integer as the first operand, but got '{}'",
         _0
     )]
-    OperatorLesserEqualsFirstOperandExpectedInteger(Type),
+    OperatorLesserEqualsFirstOperandExpectedInteger(String),
     #[fail(
         display = "'<=' operator expected integer as the second operand, but got '{}'",
         _0
     )]
-    OperatorLesserEqualsSecondOperandExpectedInteger(Type),
+    OperatorLesserEqualsSecondOperandExpectedInteger(String),
 
     #[fail(
         display = "'>' operator expected integer as the first operand, but got '{}'",
         _0
     )]
-    OperatorGreaterFirstOperandExpectedInteger(Type),
+    OperatorGreaterFirstOperandExpectedInteger(String),
     #[fail(
         display = "'>' operator expected integer as the second operand, but got '{}'",
         _0
     )]
-    OperatorGreaterSecondOperandExpectedInteger(Type),
+    OperatorGreaterSecondOperandExpectedInteger(String),
 
     #[fail(
         display = "'<' operator expected integer as the first operand, but got '{}'",
         _0
     )]
-    OperatorLesserFirstOperandExpectedInteger(Type),
+    OperatorLesserFirstOperandExpectedInteger(String),
     #[fail(
         display = "'<' operator expected integer as the second operand, but got '{}'",
         _0
     )]
-    OperatorLesserSecondOperandExpectedInteger(Type),
+    OperatorLesserSecondOperandExpectedInteger(String),
 
     #[fail(
         display = "'+' operator expected integer as the first operand, but got '{}'",
         _0
     )]
-    OperatorAdditionFirstOperandExpectedInteger(Type),
+    OperatorAdditionFirstOperandExpectedInteger(String),
     #[fail(
         display = "'+' operator expected integer as the second operand, but got '{}'",
         _0
     )]
-    OperatorAdditionSecondOperandExpectedInteger(Type),
+    OperatorAdditionSecondOperandExpectedInteger(String),
 
     #[fail(
         display = "'-' operator expected integer as the first operand, but got '{}'",
         _0
     )]
-    OperatorSubtractionFirstOperandExpectedInteger(Type),
+    OperatorSubtractionFirstOperandExpectedInteger(String),
     #[fail(
         display = "'-' operator expected integer as the second operand, but got '{}'",
         _0
     )]
-    OperatorSubtractionSecondOperandExpectedInteger(Type),
+    OperatorSubtractionSecondOperandExpectedInteger(String),
 
     #[fail(
         display = "'*' operator expected integer as the first operand, but got '{}'",
         _0
     )]
-    OperatorMultiplicationFirstOperandExpectedInteger(Type),
+    OperatorMultiplicationFirstOperandExpectedInteger(String),
     #[fail(
         display = "'*' operator expected integer as the second operand, but got '{}'",
         _0
     )]
-    OperatorMultiplicationSecondOperandExpectedInteger(Type),
+    OperatorMultiplicationSecondOperandExpectedInteger(String),
 
     #[fail(
         display = "'/' operator expected integer as the first operand, but got '{}'",
         _0
     )]
-    OperatorDivisionFirstOperandExpectedInteger(Type),
+    OperatorDivisionFirstOperandExpectedInteger(String),
     #[fail(
         display = "'/' operator expected integer as the second operand, but got '{}'",
         _0
     )]
-    OperatorDivisionSecondOperandExpectedInteger(Type),
+    OperatorDivisionSecondOperandExpectedInteger(String),
 
     #[fail(
         display = "'%' operator expected integer as the first operand, but got '{}'",
         _0
     )]
-    OperatorRemainderFirstOperandExpectedInteger(Type),
+    OperatorRemainderFirstOperandExpectedInteger(String),
     #[fail(
         display = "'%' operator expected integer as the second operand, but got '{}'",
         _0
     )]
-    OperatorRemainderSecondOperandExpectedInteger(Type),
+    OperatorRemainderSecondOperandExpectedInteger(String),
 
     #[fail(
         display = "unary '-' operator expected an integer as the operand, but got '{}'",
         _0
     )]
-    OperatorNegationExpectedInteger(Type),
+    OperatorNegationExpectedInteger(String),
     #[fail(
         display = "'!' operator expected a boolean as the operand, but got '{}'",
         _0
     )]
-    OperatorNotExpectedInteger(Type),
+    OperatorNotExpectedBoolean(String),
 
     #[fail(display = "integer: {}", _0)]
     Integer(IntegerValueError),

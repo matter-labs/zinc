@@ -1,5 +1,0 @@
-fn main() -> u8 {
-    let array = [1, 2, 3, 4, 5];
-    dbg!("{}", array[4]);
-    array[4]
-}

@@ -67,9 +67,9 @@ impl Integer {
 
     pub fn equals(&self, other: &Self) -> Result<bool, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperatorEqualsOperandTypesMismatch(
-                self.r#type(),
-                other.r#type(),
+            return Err(Error::TypesMismatchEquals(
+                self.r#type().to_string(),
+                other.r#type().to_string(),
             ));
         }
 
@@ -79,9 +79,9 @@ impl Integer {
 
     pub fn not_equals(&self, other: &Self) -> Result<bool, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperatorNotEqualsOperandTypesMismatch(
-                self.r#type(),
-                other.r#type(),
+            return Err(Error::TypesMismatchNotEquals(
+                self.r#type().to_string(),
+                other.r#type().to_string(),
             ));
         }
 
@@ -91,9 +91,9 @@ impl Integer {
 
     pub fn greater_equals(&self, other: &Self) -> Result<bool, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperatorGreaterEqualsOperandTypesMismatch(
-                self.r#type(),
-                other.r#type(),
+            return Err(Error::TypesMismatchGreaterEquals(
+                self.r#type().to_string(),
+                other.r#type().to_string(),
             ));
         }
 
@@ -103,9 +103,9 @@ impl Integer {
 
     pub fn lesser_equals(&self, other: &Self) -> Result<bool, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperatorLesserEqualsOperandTypesMismatch(
-                self.r#type(),
-                other.r#type(),
+            return Err(Error::TypesMismatchLesserEquals(
+                self.r#type().to_string(),
+                other.r#type().to_string(),
             ));
         }
 
@@ -115,9 +115,9 @@ impl Integer {
 
     pub fn greater(&self, other: &Self) -> Result<bool, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperatorGreaterOperandTypesMismatch(
-                self.r#type(),
-                other.r#type(),
+            return Err(Error::TypesMismatchGreater(
+                self.r#type().to_string(),
+                other.r#type().to_string(),
             ));
         }
 
@@ -127,9 +127,9 @@ impl Integer {
 
     pub fn lesser(&self, other: &Self) -> Result<bool, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperatorLesserOperandTypesMismatch(
-                self.r#type(),
-                other.r#type(),
+            return Err(Error::TypesMismatchLesser(
+                self.r#type().to_string(),
+                other.r#type().to_string(),
             ));
         }
 
@@ -139,9 +139,9 @@ impl Integer {
 
     pub fn add(&self, other: &Self) -> Result<Self, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperatorAdditionOperandTypesMismatch(
-                self.r#type(),
-                other.r#type(),
+            return Err(Error::TypesMismatchAddition(
+                self.r#type().to_string(),
+                other.r#type().to_string(),
             ));
         }
 
@@ -155,9 +155,9 @@ impl Integer {
 
     pub fn subtract(&self, other: &Self) -> Result<Self, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperatorSubtractionOperandTypesMismatch(
-                self.r#type(),
-                other.r#type(),
+            return Err(Error::TypesMismatchSubtraction(
+                self.r#type().to_string(),
+                other.r#type().to_string(),
             ));
         }
 
@@ -171,9 +171,9 @@ impl Integer {
 
     pub fn multiply(&self, other: &Self) -> Result<Self, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperatorMultiplicationOperandTypesMismatch(
-                self.r#type(),
-                other.r#type(),
+            return Err(Error::TypesMismatchMultiplication(
+                self.r#type().to_string(),
+                other.r#type().to_string(),
             ));
         }
 
@@ -187,14 +187,14 @@ impl Integer {
 
     pub fn divide(&self, other: &Self) -> Result<Self, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperatorDivisionOperandTypesMismatch(
-                self.r#type(),
-                other.r#type(),
+            return Err(Error::TypesMismatchDivision(
+                self.r#type().to_string(),
+                other.r#type().to_string(),
             ));
         }
 
-        if self.value.is_zero() {
-            return Err(Error::OperatorDivisionZero);
+        if other.value.is_zero() {
+            return Err(Error::DivisionZero);
         }
 
         let result = self.value.to_owned() / other.value.to_owned();
@@ -207,14 +207,14 @@ impl Integer {
 
     pub fn remainder(&self, other: &Self) -> Result<Self, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::OperatorRemainderOperandTypesMismatch(
-                self.r#type(),
-                other.r#type(),
+            return Err(Error::TypesMismatchRemainder(
+                self.r#type().to_string(),
+                other.r#type().to_string(),
             ));
         }
 
-        if self.value.is_zero() {
-            return Err(Error::OperatorRemainderZero);
+        if other.value.is_zero() {
+            return Err(Error::RemainderZero);
         }
 
         let result = self.value.to_owned() % other.value.to_owned();
@@ -225,9 +225,14 @@ impl Integer {
         })
     }
 
+    pub fn cast(&mut self, is_signed: bool, bitlength: usize) {
+        self.is_signed = is_signed;
+        self.bitlength = bitlength;
+    }
+
     pub fn negate(&self) -> Result<Self, Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::OperatorNegationBitlengthTooBig(self.bitlength));
+            return Err(Error::NegationBitlengthTooBig(self.bitlength));
         }
 
         let result = -self.value.to_owned();

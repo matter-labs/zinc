@@ -1,10 +1,10 @@
 //!
-//! The circuit.
+//! The syntax tree.
 //!
 
 use crate::syntax::OuterStatement;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct CircuitProgram {
+pub struct SyntaxTree {
     pub statements: Vec<OuterStatement>,
 }

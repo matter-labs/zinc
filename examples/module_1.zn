@@ -1,0 +1,7 @@
+/*
+    Module 1
+*/
+
+fn sum(a: field, b: field) -> field {
+    a + b
+}

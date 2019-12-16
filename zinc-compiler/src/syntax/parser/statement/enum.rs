@@ -106,11 +106,10 @@ impl Parser {
                     self.state = State::BracketCurlyRight;
                 }
                 State::BracketCurlyRight => {
-                    match self
-                        .next
-                        .take()
-                        .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
-                    {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
@@ -135,7 +134,7 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::lexical::IntegerLiteral;
+    use crate::lexical;
     use crate::lexical::Lexeme;
     use crate::lexical::Location;
     use crate::lexical::Symbol;
@@ -143,13 +142,14 @@ mod tests {
     use crate::lexical::TokenStream;
     use crate::syntax::EnumStatement;
     use crate::syntax::Identifier;
+    use crate::syntax::IntegerLiteral;
     use crate::syntax::Variant;
 
     #[test]
     fn ok_single() {
         let input = r#"
     enum Test {
-        a = 1,
+        A = 1,
     }
 "#;
 
@@ -159,8 +159,11 @@ mod tests {
                 Identifier::new(Location::new(2, 10), "Test".to_owned()),
                 vec![Variant::new(
                     Location::new(3, 9),
-                    Identifier::new(Location::new(3, 9), "a".to_owned()),
-                    IntegerLiteral::new_decimal("1".to_owned()),
+                    Identifier::new(Location::new(3, 9), "A".to_owned()),
+                    IntegerLiteral::new(
+                        Location::new(3, 13),
+                        lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                    ),
                 )],
             ),
             None,
@@ -178,9 +181,9 @@ mod tests {
     fn ok_multiple() {
         let input = r#"
     enum Test {
-        a = 1,
-        b = 2,
-        c = 3,
+        A = 1,
+        B = 2,
+        C = 3,
     }
 "#;
 
@@ -191,18 +194,27 @@ mod tests {
                 vec![
                     Variant::new(
                         Location::new(3, 9),
-                        Identifier::new(Location::new(3, 9), "a".to_owned()),
-                        IntegerLiteral::new_decimal("1".to_owned()),
+                        Identifier::new(Location::new(3, 9), "A".to_owned()),
+                        IntegerLiteral::new(
+                            Location::new(3, 13),
+                            lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                        ),
                     ),
                     Variant::new(
                         Location::new(4, 9),
-                        Identifier::new(Location::new(4, 9), "b".to_owned()),
-                        IntegerLiteral::new_decimal("2".to_owned()),
+                        Identifier::new(Location::new(4, 9), "B".to_owned()),
+                        IntegerLiteral::new(
+                            Location::new(4, 13),
+                            lexical::IntegerLiteral::new_decimal("2".to_owned()),
+                        ),
                     ),
                     Variant::new(
                         Location::new(5, 9),
-                        Identifier::new(Location::new(5, 9), "c".to_owned()),
-                        IntegerLiteral::new_decimal("3".to_owned()),
+                        Identifier::new(Location::new(5, 9), "C".to_owned()),
+                        IntegerLiteral::new(
+                            Location::new(5, 13),
+                            lexical::IntegerLiteral::new_decimal("3".to_owned()),
+                        ),
                     ),
                 ],
             ),

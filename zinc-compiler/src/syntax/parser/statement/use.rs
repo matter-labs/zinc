@@ -46,10 +46,13 @@ impl Parser {
             }
         }
 
-        let (path, next) = PathExpressionParser::default().parse(stream, None)?;
+        let (path, mut next) = PathExpressionParser::default().parse(stream.clone(), None)?;
         self.builder.set_path(path);
 
-        match next.expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS) {
+        match match next.take() {
+            Some(token) => token,
+            None => stream.borrow_mut().next()?,
+        } {
             Token {
                 lexeme: Lexeme::Symbol(Symbol::Semicolon),
                 ..

@@ -21,9 +21,6 @@ use zinc_bytecode::PopStore;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 
-use crate::semantic::BinaryAnalyzer;
-use crate::syntax::Parser;
-
 #[test]
 fn test() {
     let input = r#"
@@ -61,16 +58,11 @@ fn main() {
         Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
         Instruction::LoadPush(LoadPush::new(0)),
         Instruction::Eq(Eq),
-        Instruction::PopStore(PopStore::new(2)),
         Instruction::Assert(Assert),
         Instruction::Return(Return::new(0)),
     ]);
 
-    let result = BinaryAnalyzer::default().compile(
-        Parser::default()
-            .parse(input.to_owned())
-            .expect(super::PANIC_SYNTAX_ERROR),
-    );
+    let result = super::instructions(input);
 
     assert_eq!(expected, result);
 }

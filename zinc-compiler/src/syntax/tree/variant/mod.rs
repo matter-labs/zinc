@@ -6,9 +6,9 @@ mod builder;
 
 pub use self::builder::Builder;
 
-use crate::lexical::IntegerLiteral;
 use crate::lexical::Location;
 use crate::syntax::Identifier;
+use crate::syntax::IntegerLiteral;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Variant {

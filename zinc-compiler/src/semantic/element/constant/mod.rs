@@ -121,9 +121,8 @@ impl Constant {
             (Self::Integer(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedInteger(
                 value_2.to_owned(),
             )),
-            (value_1, value_2) => Err(Error::OperatorEqualsExpectedPrimitiveTypes(
+            (value_1, _) => Err(Error::OperatorEqualsFirstOperandExpectedPrimitiveType(
                 value_1.to_owned(),
-                value_2.to_owned(),
             )),
         }
     }
@@ -148,9 +147,8 @@ impl Constant {
             (Self::Integer(_), value_2) => Err(
                 Error::OperatorNotEqualsSecondOperandExpectedInteger(value_2.to_owned()),
             ),
-            (value_1, value_2) => Err(Error::OperatorNotEqualsExpectedPrimitiveTypes(
+            (value_1, _) => Err(Error::OperatorNotEqualsFirstOperandExpectedPrimitiveType(
                 value_1.to_owned(),
-                value_2.to_owned(),
             )),
         }
     }
@@ -321,19 +319,25 @@ impl Constant {
                 let result = !value;
                 Ok(Self::Boolean(result))
             }
-            value => Err(Error::OperatorNotExpectedInteger(value.to_owned())),
+            value => Err(Error::OperatorNotExpectedBoolean(value.to_owned())),
         }
     }
 
-    pub fn cast(&self, to: &Type) -> Result<Option<(bool, usize)>, Error> {
+    pub fn cast(&mut self, to: &Type) -> Result<Option<(bool, usize)>, Error> {
         let from = self.r#type();
-        Caster::cast(&from, &to).map_err(Error::Casting)?;
-        match to {
-            Type::IntegerUnsigned { bitlength } => Ok(Some((false, *bitlength))),
-            Type::IntegerSigned { bitlength } => Ok(Some((true, *bitlength))),
-            Type::Field => Ok(Some((false, crate::BITLENGTH_FIELD))),
-            _ => Ok(None),
+        Caster::validate(&from, &to).map_err(Error::Casting)?;
+
+        let (is_signed, bitlength) = match to {
+            Type::IntegerUnsigned { bitlength } => (false, *bitlength),
+            Type::IntegerSigned { bitlength } => (true, *bitlength),
+            Type::Field => (false, crate::BITLENGTH_FIELD),
+            _ => return Ok(None),
+        };
+
+        if let Self::Integer(integer) = self {
+            integer.cast(is_signed, bitlength);
         }
+        Ok(Some((is_signed, bitlength)))
     }
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

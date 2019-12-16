@@ -23,6 +23,7 @@ use crate::syntax::ExpressionBuilder;
 use crate::syntax::ExpressionListParser;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
+use crate::syntax::ExpressionParser;
 use crate::syntax::IntegerLiteral;
 use crate::syntax::MatchExpressionParser;
 use crate::syntax::MemberIntegerBuilder;
@@ -258,35 +259,20 @@ impl Parser {
                     }
                 }
                 State::IndexExpression => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
-                        Token {
-                            lexeme: Lexeme::Literal(lexical::Literal::Integer(integer)),
-                            location,
-                        } => {
-                            self.builder.push_operand(
-                                location,
-                                ExpressionOperand::LiteralInteger(IntegerLiteral::new(
-                                    location, integer,
-                                )),
-                            );
-                            if let Some((location, operator)) = self.operator.take() {
-                                self.builder.push_operator(location, operator);
-                            }
-                            self.state = State::BracketSquareRight;
-                        }
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{integer}"],
-                                lexeme,
-                            )))
-                        }
+                    let (expression, next) =
+                        ExpressionParser::default().parse(stream.clone(), self.next.take())?;
+                    self.next = next;
+                    self.builder.extend_with_expression(expression);
+                    if let Some((location, operator)) = self.operator.take() {
+                        self.builder.push_operator(location, operator);
                     }
+                    self.state = State::BracketSquareRight;
                 }
                 State::BracketSquareRight => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareRight),
                             ..
@@ -303,8 +289,10 @@ impl Parser {
                     }
                 }
                 State::FieldDescriptor => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme:
                                 Lexeme::Literal(lexical::Literal::Integer(
@@ -363,11 +351,10 @@ impl Parser {
                     self.state = State::ParenthesisRight;
                 }
                 State::ParenthesisRight => {
-                    match self
-                        .next
-                        .take()
-                        .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
-                    {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                             ..
