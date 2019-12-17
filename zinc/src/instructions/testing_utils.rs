@@ -1,6 +1,6 @@
 use crate::primitive::{
     FrPrimitive, ConstrainingFrOperations, Primitive, PrimitiveOperations,
-    PrimitiveElementOperator,
+    SimplePrimitiveOperations,
 };
 use crate::vm::{RuntimeError, VirtualMachine};
 use bellman::pairing::bn256::Bn256;
@@ -80,7 +80,7 @@ impl VMTestRunner {
         let mut instructions = decode_all_instructions(self.bytecode.as_slice())
             .map_err(TestingError::DecodingError)?;
 
-        let mut vm = VirtualMachine::new(PrimitiveElementOperator::new());
+        let mut vm = VirtualMachine::new(SimplePrimitiveOperations::new());
 
         vm.run(instructions.as_mut_slice(), Some(&[]))
             .map_err(TestingError::RuntimeError)?;

@@ -1,6 +1,7 @@
 mod memory;
 mod state;
 mod internal;
+mod data_stack;
 
 pub use memory::*;
 pub use state::*;

@@ -29,16 +29,16 @@ impl Primitive for SimplePrimitive {
     type MerkleTree = ();
 }
 
-pub struct PrimitiveElementOperator {}
+pub struct SimplePrimitiveOperations {}
 
-impl PrimitiveElementOperator {
+impl SimplePrimitiveOperations {
     #[allow(dead_code)]
     pub fn new() -> Self {
         Self {}
     }
 }
 
-impl PrimitiveOperations<SimplePrimitive> for PrimitiveElementOperator {
+impl PrimitiveOperations<SimplePrimitive> for SimplePrimitiveOperations {
     fn variable_none(&mut self) -> Result<SimplePrimitive, RuntimeError> {
         Ok(SimplePrimitive { value: 0 })
     }
