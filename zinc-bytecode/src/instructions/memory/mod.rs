@@ -1,19 +1,31 @@
-mod push;
+mod push_const;
 mod pop;
-mod copy_global;
-mod load_push;
-mod pop_store;
-mod pop_store_array;
-mod load_push_array;
-mod pop_store_by_index;
-mod load_push_by_index;
+mod load;
+mod store;
+mod load_array;
+mod store_array;
+mod load_by_index;
+mod store_by_index;
+mod load_array_by_index;
+mod store_array_by_index;
 
-pub use copy_global::CopyGlobal;
-pub use push::PushConst;
+mod load_global;
+mod load_array_global;
+mod load_by_index_global;
+mod load_array_by_index_global;
+
+pub use push_const::PushConst;
 pub use pop::Pop;
-pub use load_push::LoadPush;
-pub use pop_store::PopStore;
-pub use pop_store_array::PopStoreArray;
-pub use load_push_array::LoadPushArray;
-pub use pop_store_by_index::PopStoreByIndex;
-pub use load_push_by_index::LoadPushByIndex;
+pub use load::Load;
+pub use store::Store;
+pub use load_array::LoadArray;
+pub use store_array::StoreArray;
+pub use load_by_index::LoadByIndex;
+pub use store_by_index::StoreByIndex;
+pub use load_array_by_index::LoadArrayByIndex;
+pub use store_array_by_index::StoreArrayByIndex;
+
+pub use load_global::LoadGlobal;
+pub use load_array_global::LoadArrayGlobal;
+pub use load_by_index_global::LoadByIndexGlobal;
+pub use load_array_by_index_global::LoadArrayByIndexGlobal;

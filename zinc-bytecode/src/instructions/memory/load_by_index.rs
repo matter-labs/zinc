@@ -1,32 +1,32 @@
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo, utils};
 
-/// Removes value from the top of the stack and stores it in the storage.
+/// Takes `index` from evaluation stack, loads value from data stack from `address + index` onto evaluation stack.
 #[derive(Debug, PartialEq, Clone)]
-pub struct PopStoreByIndex {
+pub struct LoadByIndex {
     pub address: usize,
     pub len: usize,
 }
 
-impl PopStoreByIndex {
+impl LoadByIndex {
     pub fn new(address: usize, len: usize) -> Self {
         Self { address, len }
     }
 }
 
-impl InstructionInfo for PopStoreByIndex {
+impl InstructionInfo for LoadByIndex {
     fn to_assembly(&self) -> String {
-        format!("pop_store_by_index {} {}", self.address, self.len)
+        format!("load_by_index {} {}", self.address, self.len)
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::PopStoreByIndex
+        InstructionCode::LoadByIndex
     }
 
     fn encode(&self) -> Vec<u8> {
         utils::encode_with_usize(Self::code(), &[self.address, self.len])
     }
 
-    fn decode(bytes: &[u8]) -> Result<(PopStoreByIndex, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(LoadByIndex, usize), DecodingError> {
         let (args, len) = utils::decode_with_usize(Self::code(), bytes, 2)?;
 
         Ok((
@@ -36,14 +36,14 @@ impl InstructionInfo for PopStoreByIndex {
     }
 
     fn inputs_count(&self) -> usize {
-        2
+        1
     }
 
     fn outputs_count(&self) -> usize {
-        0
+        1
     }
 
     fn wrap(&self) -> Instruction {
-        Instruction::PopStoreByIndex((*self).clone())
+        Instruction::LoadByIndex((*self).clone())
     }
 }

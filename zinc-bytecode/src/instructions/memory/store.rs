@@ -2,46 +2,46 @@ use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo}
 use num_bigint::ToBigInt;
 use num_traits::ToPrimitive;
 
-/// Removes value from the top of the stack and stores it in the storage.
+/// Stores value from evaluation stack in data stack.
 #[derive(Debug, PartialEq, Clone)]
-pub struct PopStore {
+pub struct Store {
     pub index: usize,
 }
 
-impl PopStore {
+impl Store {
     pub fn new(index: usize) -> Self {
         Self { index }
     }
 }
 
-impl InstructionInfo for PopStore {
+impl InstructionInfo for Store {
     fn to_assembly(&self) -> String {
-        format!("pop_store {}", self.index)
+        format!("store {}", self.index)
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::PopStore
+        InstructionCode::Store
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_bigint(InstructionCode::PopStore, &self.index.to_bigint().unwrap())
+        utils::encode_with_bigint(InstructionCode::Store, &self.index.to_bigint().unwrap())
     }
 
-    fn decode(bytes: &[u8]) -> Result<(PopStore, usize), DecodingError> {
-        let (value, len) = utils::decode_with_bigint(InstructionCode::PopStore, bytes)?;
+    fn decode(bytes: &[u8]) -> Result<(Store, usize), DecodingError> {
+        let (value, len) = utils::decode_with_bigint(InstructionCode::Store, bytes)?;
         let index = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
-        Ok((PopStore { index }, len))
+        Ok((Store { index }, len))
     }
 
     fn inputs_count(&self) -> usize {
-        0
-    }
-
-    fn outputs_count(&self) -> usize {
         1
     }
 
+    fn outputs_count(&self) -> usize {
+        0
+    }
+
     fn wrap(&self) -> Instruction {
-        Instruction::PopStore((*self).clone())
+        Instruction::Store((*self).clone())
     }
 }

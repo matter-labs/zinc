@@ -28,7 +28,7 @@ where
 mod test {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-    use zinc_bytecode::{Add, PushConst, LoadPush, PopStore};
+    use zinc_bytecode::{Add, PushConst, Load, Store};
 
     #[test]
     fn test_loop() -> Result<(), TestingError> {
@@ -36,23 +36,23 @@ mod test {
 
         VMTestRunner::new()
             .add(PushConst { value: 0.into() })
-            .add(PopStore::new(0))
+            .add(Store::new(0))
             .add(PushConst { value: 0.into() })
-            .add(PopStore::new(1))
+            .add(Store::new(1))
 
             .add(LoopBegin::new(10))
-                .add(LoadPush::new(0))
+                .add(Load::new(0))
                 .add(PushConst { value: 1.into() })
                 .add(Add)
-                .add(PopStore::new(0))
-                .add(LoadPush::new(0))
-                .add(LoadPush::new(1))
+                .add(Store::new(0))
+                .add(Load::new(0))
+                .add(Load::new(1))
                 .add(Add)
-                .add(PopStore::new(1))
+                .add(Store::new(1))
             .add(LoopEnd)
 
-            .add(LoadPush::new(0))
-            .add(LoadPush::new(1))
+            .add(Load::new(0))
+            .add(Load::new(1))
             .test(&[55, 10])
     }
 }

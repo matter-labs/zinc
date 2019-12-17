@@ -1,31 +1,31 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
 
-/// Loads value from storage and pushes it onto evaluation stack.
+/// Loads value from data stack and pushes it onto evaluation stack.
 #[derive(Debug, PartialEq, Clone)]
-pub struct LoadPush {
+pub struct Load {
     pub index: usize,
 }
 
-impl LoadPush {
+impl Load {
     pub fn new(index: usize) -> Self {
         Self { index }
     }
 }
 
-impl InstructionInfo for LoadPush {
+impl InstructionInfo for Load {
     fn to_assembly(&self) -> String {
-        format!("load_push {}", self.index)
+        format!("load {}", self.index)
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::LoadPush
+        InstructionCode::Load
     }
 
     fn encode(&self) -> Vec<u8> {
         utils::encode_with_usize(Self::code(), &[self.index])
     }
 
-    fn decode(bytes: &[u8]) -> Result<(LoadPush, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Load, usize), DecodingError> {
         let (args, len) = utils::decode_with_usize(Self::code(), bytes, 1)?;
 
         Ok((Self::new(args[0]), len))
@@ -40,11 +40,11 @@ impl InstructionInfo for LoadPush {
     }
 
     fn wrap(&self) -> Instruction {
-        Instruction::LoadPush((*self).clone())
+        Instruction::Load((*self).clone())
     }
 }
 
-impl From<usize> for LoadPush {
+impl From<usize> for Load {
     fn from(value: usize) -> Self {
         Self::new(value)
     }

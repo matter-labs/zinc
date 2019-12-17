@@ -1,32 +1,32 @@
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo, utils};
 
-/// Removes value from the top of the stack and stores it in the storage.
+/// Takes `index` from evaluation stack, loads value from data stack from `address + index` onto evaluation stack.
 #[derive(Debug, PartialEq, Clone)]
-pub struct LoadPushArray {
+pub struct LoadByIndexGlobal {
     pub address: usize,
     pub len: usize,
 }
 
-impl LoadPushArray {
+impl LoadByIndexGlobal {
     pub fn new(address: usize, len: usize) -> Self {
         Self { address, len }
     }
 }
 
-impl InstructionInfo for LoadPushArray {
+impl InstructionInfo for LoadByIndexGlobal {
     fn to_assembly(&self) -> String {
-        format!("load_push_array {} {}", self.address, self.len)
+        format!("load_by_index_global {} {}", self.address, self.len)
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::LoadPushArray
+        InstructionCode::LoadByIndexGlobal
     }
 
     fn encode(&self) -> Vec<u8> {
         utils::encode_with_usize(Self::code(), &[self.address, self.len])
     }
 
-    fn decode(bytes: &[u8]) -> Result<(LoadPushArray, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(LoadByIndexGlobal, usize), DecodingError> {
         let (args, len) = utils::decode_with_usize(Self::code(), bytes, 2)?;
 
         Ok((
@@ -36,14 +36,14 @@ impl InstructionInfo for LoadPushArray {
     }
 
     fn inputs_count(&self) -> usize {
-        0
+        1
     }
 
     fn outputs_count(&self) -> usize {
-        0
+        1
     }
 
     fn wrap(&self) -> Instruction {
-        Instruction::LoadPushArray((*self).clone())
+        Instruction::LoadByIndexGlobal((*self).clone())
     }
 }

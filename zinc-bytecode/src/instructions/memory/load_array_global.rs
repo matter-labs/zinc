@@ -1,32 +1,32 @@
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo, utils};
 
-/// Removes value from the top of the stack and stores it in the storage.
+/// Loads several values from data stack and pushes them onto evaluation stack.
 #[derive(Debug, PartialEq, Clone)]
-pub struct PopStoreArray {
+pub struct LoadArrayGlobal {
     pub address: usize,
     pub len: usize,
 }
 
-impl PopStoreArray {
+impl LoadArrayGlobal {
     pub fn new(address: usize, len: usize) -> Self {
         Self { address, len }
     }
 }
 
-impl InstructionInfo for PopStoreArray {
+impl InstructionInfo for LoadArrayGlobal {
     fn to_assembly(&self) -> String {
-        format!("pop_store_array {} {}", self.address, self.len)
+        format!("load_array_global {} {}", self.address, self.len)
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::PopStoreArray
+        InstructionCode::LoadArrayGlobal
     }
 
     fn encode(&self) -> Vec<u8> {
         utils::encode_with_usize(Self::code(), &[self.address, self.len])
     }
 
-    fn decode(bytes: &[u8]) -> Result<(PopStoreArray, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(LoadArrayGlobal, usize), DecodingError> {
         let (args, len) = utils::decode_with_usize(Self::code(), bytes, 2)?;
 
         Ok((
@@ -40,10 +40,10 @@ impl InstructionInfo for PopStoreArray {
     }
 
     fn outputs_count(&self) -> usize {
-        0
+        self.len
     }
 
     fn wrap(&self) -> Instruction {
-        Instruction::PopStoreArray((*self).clone())
+        Instruction::LoadArrayGlobal((*self).clone())
     }
 }

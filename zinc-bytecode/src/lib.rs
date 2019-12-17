@@ -28,18 +28,24 @@ pub enum DecodingError {
 pub enum InstructionCode {
     NoOperation,
 
-    // Stack
+    // Evalution Stack
     PushConst,
     Pop,
-    CopyGlobal,
 
-    // Storage
-    LoadPush,
-    PopStore,
-    LoadPushArray,
-    PopStoreArray,
-    LoadPushByIndex,
-    PopStoreByIndex,
+    // Data Stack
+    Load,
+    Store,
+    LoadArray,
+    StoreArray,
+    LoadByIndex,
+    StoreByIndex,
+    LoadArrayByIndex,
+    StoreArrayByIndex,
+
+    LoadGlobal,
+    LoadArrayGlobal,
+    LoadByIndexGlobal,
+    LoadArrayByIndexGlobal,
 
     // Arithmetic
     Add,
@@ -92,15 +98,20 @@ pub enum Instruction {
     // Stack
     PushConst(PushConst),
     Pop(Pop),
-    CopyGlobal(CopyGlobal),
 
     // Storage
-    LoadPush(LoadPush),
-    PopStore(PopStore),
-    LoadPushArray(LoadPushArray),
-    PopStoreArray(PopStoreArray),
-    LoadPushByIndex(LoadPushByIndex),
-    PopStoreByIndex(PopStoreByIndex),
+    Load(Load),
+    Store(Store),
+    LoadArray(LoadArray),
+    StoreArray(StoreArray),
+    LoadByIndex(LoadByIndex),
+    StoreByIndex(StoreByIndex),
+    LoadArrayByIndex(LoadArrayByIndex),
+    StoreArrayByIndex(StoreArrayByIndex),
+    LoadGlobal(LoadGlobal),
+    LoadArrayGlobal(LoadArrayGlobal),
+    LoadByIndexGlobal(LoadByIndexGlobal),
+    LoadArrayByIndexGlobal(LoadArrayByIndexGlobal),
 
     // Arithmetic
     Add(Add),
@@ -164,13 +175,18 @@ macro_rules! dispatch_instruction {
 
             Instruction::PushConst($pattern) => $expression,
             Instruction::Pop($pattern) => $expression,
-            Instruction::CopyGlobal($pattern) => $expression,
-            Instruction::LoadPush($pattern) => $expression,
-            Instruction::PopStore($pattern) => $expression,
-            Instruction::LoadPushArray($pattern) => $expression,
-            Instruction::PopStoreArray($pattern) => $expression,
-            Instruction::LoadPushByIndex($pattern) => $expression,
-            Instruction::PopStoreByIndex($pattern) => $expression,
+            Instruction::Load($pattern) => $expression,
+            Instruction::Store($pattern) => $expression,
+            Instruction::LoadArray($pattern) => $expression,
+            Instruction::StoreArray($pattern) => $expression,
+            Instruction::LoadByIndex($pattern) => $expression,
+            Instruction::StoreByIndex($pattern) => $expression,
+            Instruction::LoadArrayByIndex($pattern) => $expression,
+            Instruction::StoreArrayByIndex($pattern) => $expression,
+            Instruction::LoadGlobal($pattern) => $expression,
+            Instruction::LoadArrayGlobal($pattern) => $expression,
+            Instruction::LoadByIndexGlobal($pattern) => $expression,
+            Instruction::LoadArrayByIndexGlobal($pattern) => $expression,
 
             Instruction::Add($pattern) => $expression,
             Instruction::Sub($pattern) => $expression,
