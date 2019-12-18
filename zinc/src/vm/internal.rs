@@ -1,6 +1,7 @@
 use crate::primitive::{Primitive, PrimitiveOperations};
 use crate::RuntimeError;
 use crate::vm::{VirtualMachine, Branch, Block, Loop, FunctionFrame};
+use crate::vm::data_stack::Cell;
 
 /// This is an internal interface to virtual machine used by instructions.
 pub trait InternalVM<E: Primitive> {
@@ -23,25 +24,41 @@ pub trait InternalVM<E: Primitive> {
     fn exit(&mut self, values_count: usize) -> Result<(), RuntimeError>;
 }
 
-impl<E, O> InternalVM<E> for VirtualMachine<E, O>
+impl<P, O> InternalVM<P> for VirtualMachine<P, O>
     where
-        E: Primitive,
-        O: PrimitiveOperations<E>,
+        P: Primitive,
+        O: PrimitiveOperations<P>,
 {
-    fn push(&mut self, element: E) -> Result<(), RuntimeError> {
+    fn push(&mut self, element: P) -> Result<(), RuntimeError> {
         self.memory()?.push(element)
     }
 
-    fn pop(&mut self) -> Result<E, RuntimeError> {
+    fn pop(&mut self) -> Result<P, RuntimeError> {
         self.memory()?.pop()
     }
 
-    fn load(&mut self, address: usize) -> Result<E, RuntimeError> {
-        self.memory()?.load(address)
+    fn load(&mut self, address: usize) -> Result<P, RuntimeError> {
+        let offset = self.frame()?.stack_frame_begin;
+        match self.state.data_stack.get(offset + address) {
+            Ok(cell) => {
+                match cell {
+                    Cell::Value(v) => Ok(v),
+                    Cell::Address(_) => {
+                        unimplemented!()
+                    },
+                }
+            },
+            Err(err) => Err(err),
+        }
     }
 
-    fn store(&mut self, address: usize, element: E) -> Result<(), RuntimeError> {
-        self.memory()?.store(address, element)
+    fn store(&mut self, address: usize, element: P) -> Result<(), RuntimeError> {
+        {
+            let frame = self.frame()?;
+            frame.stack_frame_end = std::cmp::max(frame.stack_frame_end, address + 1);
+        }
+        let offset = self.frame()?.stack_frame_begin;
+        self.state.data_stack.set(offset + address, Cell::Value(element))
     }
 
     fn loop_begin(&mut self, iterations: usize) -> Result<(), RuntimeError> {
@@ -82,7 +99,9 @@ impl<E, O> InternalVM<E> for VirtualMachine<E, O>
             arguments.push(arg);
         }
 
+        let offset = self.frame()?.stack_frame_end;
         self.state.function_frames.push(FunctionFrame::new(
+            offset,
             self.state.instruction_counter,
             arguments.as_slice(),
         ));
@@ -97,9 +116,7 @@ impl<E, O> InternalVM<E> for VirtualMachine<E, O>
             outputs.push(output);
         }
 
-        let frame = self.state.function_frames
-            .pop()
-            .ok_or(RuntimeError::UnexpectedReturn)?;
+        let frame = self.frame()?;
 
         self.state.instruction_counter = frame.return_address;
 

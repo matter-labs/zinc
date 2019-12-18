@@ -12,6 +12,7 @@ use num_bigint::BigInt;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 use franklin_crypto::bellman::SynthesisError;
 use crate::vm::memory::Memory;
+use crate::vm::data_stack::DataStack;
 
 pub trait VMInstruction<E, O>: InstructionInfo
 where
@@ -52,12 +53,13 @@ pub struct VirtualMachine<E: Primitive, O: PrimitiveOperations<E>> {
     outputs: Vec<E>,
 }
 
-impl<E: Primitive, O: PrimitiveOperations<E>> VirtualMachine<E, O> {
+impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
     pub fn new(operator: O) -> Self {
         Self {
             state: State {
                 instruction_counter: 0,
                 conditions_stack: vec![],
+                data_stack: DataStack::new(),
                 function_frames: vec![],
             },
             operator,
@@ -98,7 +100,7 @@ impl<E: Primitive, O: PrimitiveOperations<E>> VirtualMachine<E, O> {
 
     fn init_root_frame(&mut self, inputs_count: usize, inputs: Option<&[BigInt]>) -> Result<(), RuntimeError> {
         self.state.function_frames.push(
-            FunctionFrame::new(std::usize::MAX, &[])
+            FunctionFrame::new(0, std::usize::MAX, &[])
         );
 
         match inputs {
@@ -138,26 +140,27 @@ impl<E: Primitive, O: PrimitiveOperations<E>> VirtualMachine<E, O> {
         &mut self.operator
     }
 
-    pub fn condition_push(&mut self, element: E) -> Result<(), RuntimeError> {
+    pub fn condition_push(&mut self, element: P) -> Result<(), RuntimeError> {
         self.state.conditions_stack.push(element);
         Ok(())
     }
 
-    pub fn condition_pop(&mut self) -> Result<E, RuntimeError> {
+    pub fn condition_pop(&mut self) -> Result<P, RuntimeError> {
         self.state.conditions_stack.pop().ok_or(RuntimeError::StackUnderflow)
     }
 
-    pub fn condition_top(&mut self) -> Result<E, RuntimeError> {
+    pub fn condition_top(&mut self) -> Result<P, RuntimeError> {
         self.state.conditions_stack
             .last()
             .map(|e| (*e).clone())
             .ok_or(RuntimeError::StackUnderflow)
     }
 
-    pub fn memory(&mut self) -> Result<&mut Memory<E>, RuntimeError> {
-        let frame = self.state.function_frames
-            .last_mut().ok_or(RuntimeError::StackUnderflow)?;
+    pub fn memory(&mut self) -> Result<&mut Memory<P>, RuntimeError> {
+        self.frame()?.memory_snapshots.last_mut().ok_or(RuntimeError::StackUnderflow)
+    }
 
-        frame.memory_snapshots.last_mut().ok_or(RuntimeError::StackUnderflow)
+    fn frame(&mut self) -> Result<&mut FunctionFrame<P>, RuntimeError> {
+        self.state.function_frames.last_mut().ok_or(RuntimeError::StackUnderflow)
     }
 }

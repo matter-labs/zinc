@@ -2,7 +2,7 @@ use crate::primitive::{
     FrPrimitive, ConstrainingFrOperations, Primitive, PrimitiveOperations,
     SimplePrimitiveOperations,
 };
-use crate::vm::{RuntimeError, VirtualMachine};
+use crate::vm::{RuntimeError, VirtualMachine, InternalVM};
 use bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::BigInt;
@@ -26,9 +26,7 @@ where
     BI: Into<BigInt> + Copy,
 {
     for (i, expected) in expected_stack.iter().enumerate() {
-        let value = vm
-            .memory().expect("expected frame is missing")
-            .pop().expect("expected stack value is missing");
+        let value = vm.pop().expect("expected stack value is missing");
 
         assert_eq!(
             value.to_bigint(),

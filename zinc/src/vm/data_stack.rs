@@ -71,7 +71,7 @@ impl<P: Primitive> DataStack<P> {
 
     pub fn set(&mut self, address: usize, value: Cell<P>) -> Result<(), RuntimeError> {
         if self.memory.len() <= address {
-            let mut extra = vec![None; address + 1];
+            let mut extra = vec![None; address + 1 - self.memory.len()];
             self.memory.append(&mut extra);
         }
 
@@ -177,7 +177,7 @@ impl<P: Primitive> DataStack<P> {
 
 #[cfg(test)]
 mod tests {
-    use num_bigint::{BigInt, ToBigInt};
+    use num_bigint::BigInt;
 
     use crate::primitive::{PrimitiveOperations, SimplePrimitive, SimplePrimitiveOperations};
 

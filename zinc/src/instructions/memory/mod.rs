@@ -1,7 +1,3 @@
-use crate::vm::{VMInstruction, VirtualMachine};
-use crate::RuntimeError;
-use crate::primitive::{Primitive, PrimitiveOperations};
-
 pub mod push;
 pub mod pop;
 pub mod load;
