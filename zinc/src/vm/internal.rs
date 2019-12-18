@@ -103,8 +103,11 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
         self.state.function_frames.push(FunctionFrame::new(
             offset,
             self.state.instruction_counter,
-            arguments.as_slice(),
         ));
+
+        for (i, p) in arguments.into_iter().enumerate() {
+            self.store(i, p)?;
+        }
         self.state.instruction_counter = address;
         Ok(())
     }
@@ -116,12 +119,12 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
             outputs.push(output);
         }
 
-        let frame = self.frame()?;
+        let frame = self.state.function_frames.pop().ok_or(RuntimeError::StackUnderflow)?;
 
         self.state.instruction_counter = frame.return_address;
 
-        for v in outputs.into_iter() {
-            self.push(v)?;
+        for p in outputs.into_iter() {
+            self.push(p)?;
         }
 
         Ok(())
@@ -151,6 +154,8 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
         };
 
         frame.blocks.push(Block::Branch(branch));
+
+        self.state.data_stack.fork();
 
         Ok(())
     }
@@ -185,6 +190,8 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
         let next = self.operator.and(prev, not_cond)?;
         self.condition_push(next)?;
 
+        self.state.data_stack.switch_branch()?;
+
         Ok(())
     }
 
@@ -210,18 +217,20 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
 
         match (branch.then_memory, branch.else_memory) {
             (Some(t), Some(f)) => {
-                mem.merge(branch.condition, t, f, &mut self.operator)?;
-                Ok(())
+                mem.merge(branch.condition.clone(), t, f, &mut self.operator)?;
             }
             (Some(t), None) => {
                 let f = mem.fork();
-                mem.merge(branch.condition, t, f, &mut self.operator)?;
-                Ok(())
+                mem.merge(branch.condition.clone(), t, f, &mut self.operator)?;
             }
             _ => {
                 unreachable!()
             }
         }
+
+        self.state.data_stack.merge(branch.condition, &mut self.operator)?;
+
+        Ok(())
     }
 
     fn exit(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {

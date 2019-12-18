@@ -100,7 +100,7 @@ impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
 
     fn init_root_frame(&mut self, inputs_count: usize, inputs: Option<&[BigInt]>) -> Result<(), RuntimeError> {
         self.state.function_frames.push(
-            FunctionFrame::new(0, std::usize::MAX, &[])
+            FunctionFrame::new(0, std::usize::MAX)
         );
 
         match inputs {

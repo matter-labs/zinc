@@ -40,10 +40,10 @@ pub struct State<P: Primitive> {
 
 
 impl<P: Primitive> FunctionFrame<P> {
-    pub fn new(data_stack_address: usize, return_address: usize, arguments: &[P]) -> Self {
+    pub fn new(data_stack_address: usize, return_address: usize) -> Self {
         Self {
             blocks: vec![],
-            memory_snapshots: vec![Memory::new(arguments)],
+            memory_snapshots: vec![Memory::new()],
             return_address,
             stack_frame_begin: data_stack_address,
             stack_frame_end: data_stack_address,
