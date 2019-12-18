@@ -21,7 +21,7 @@ use crate::semantic::Caster;
 use crate::semantic::Type;
 use crate::syntax::BooleanLiteral;
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Constant {
     Unit,
     Boolean(bool),
@@ -339,15 +339,6 @@ impl Constant {
         }
         Ok(Some((is_signed, bitlength)))
     }
-
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Unit => write!(f, "()"),
-            Self::Boolean(boolean) => write!(f, "{}", boolean),
-            Self::Integer(integer) => write!(f, "{}", integer),
-            Self::String(string) => write!(f, "{}", string),
-        }
-    }
 }
 
 impl Into<Instruction> for Constant {
@@ -390,12 +381,11 @@ impl From<(usize, usize)> for Constant {
 
 impl fmt::Display for Constant {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
-    }
-}
-
-impl fmt::Debug for Constant {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
+        match self {
+            Self::Unit => write!(f, "()"),
+            Self::Boolean(boolean) => write!(f, "{}", boolean),
+            Self::Integer(integer) => write!(f, "{}", integer),
+            Self::String(string) => write!(f, "{}", string),
+        }
     }
 }

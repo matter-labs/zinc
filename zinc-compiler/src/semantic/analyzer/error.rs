@@ -22,8 +22,6 @@ pub enum Error {
 
     #[fail(display = "{} constant type inference: {}", _0, _1)]
     InferenceConstant(Location, IntegerConstantError),
-    #[fail(display = "{} loop bounds type inference: {}", _0, _1)]
-    InferenceLoopBounds(Location, IntegerConstantError),
     #[fail(display = "{} match pattern type inference: {}", _0, _1)]
     InferencePatternMatch(Location, IntegerConstantError),
 
@@ -56,6 +54,22 @@ pub enum Error {
     AssignmentTypesMismatch(Location, String, Place, String),
     #[fail(display = "{} assigning to an immutable memory place '{}'", _0, _1)]
     AssignmentToImmutableMemory(Location, Place),
+
+    #[fail(
+        display = "{} loop expected a boolean expression in the while condition, but got '{}'",
+        _0, _1
+    )]
+    LoopWhileExpectedBooleanCondition(Location, String),
+    #[fail(
+        display = "{} loop expected an integer constant as the range start, but got '{}'",
+        _0, _1
+    )]
+    LoopRangeStartExpectedIntegerConstant(Location, String),
+    #[fail(
+        display = "{} loop expected an integer constant as the range end, but got '{}'",
+        _0, _1
+    )]
+    LoopRangeEndExpectedIntegerConstant(Location, String),
 
     #[fail(
         display = "{} conditional expected a boolean condition expression, but got '{}'",
@@ -116,11 +130,6 @@ pub enum Error {
         _0, _1
     )]
     ConstantExpressionHasNonConstantElement(Location, String),
-    #[fail(
-        display = "{} loop expected a boolean expression in the while condition: {}",
-        _0, _1
-    )]
-    LoopWhileExpectedBooleanCondition(Location, String),
     #[fail(
         display = "{} instruction 'dbg' expected a string, but got '{}'",
         _0, _1

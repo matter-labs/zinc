@@ -7,6 +7,12 @@ use std::cmp;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use num_bigint::BigInt;
+use num_traits::One;
+use num_traits::Signed;
+use num_traits::ToPrimitive;
+use num_traits::Zero;
+
 use zinc_bytecode::Instruction;
 
 use crate::semantic::Bytecode;
@@ -15,6 +21,7 @@ use crate::semantic::Element;
 use crate::semantic::Error;
 use crate::semantic::ExpressionAnalyzer;
 use crate::semantic::IntegerConstant;
+use crate::semantic::IntegerConstantError;
 use crate::semantic::ResolutionHint;
 use crate::semantic::Scope;
 use crate::semantic::ScopeStaticItem;
@@ -123,7 +130,7 @@ impl Analyzer {
                     let address = self
                         .bytecode
                         .borrow_mut()
-                        .allocate_stack_space(r#type.size());
+                        .allocate_data_stack_space(r#type.size());
                     self.scope()
                         .borrow_mut()
                         .declare_variable(
@@ -204,10 +211,10 @@ impl Analyzer {
                 };
 
                 let size = r#type.size();
-                let address = self.bytecode.borrow_mut().allocate_stack_space(size);
+                let address = self.bytecode.borrow_mut().allocate_data_stack_space(size);
                 self.bytecode
                     .borrow_mut()
-                    .push_instruction_pop_store(address, size);
+                    .push_instruction_store(address, size, None);
                 self.scope()
                     .borrow_mut()
                     .declare_variable(
@@ -219,31 +226,65 @@ impl Analyzer {
             InnerStatement::Const(statement) => self.const_statement(statement)?,
             InnerStatement::Loop(statement) => {
                 let location = statement.location;
+                let range_start_location = statement.range_start_expression.location;
+                let range_end_location = statement.range_end_expression.location;
 
-                // infer the bitlength of the range start and end
-                let range_bitlength = IntegerConstant::infer_enough_bitlength(&[
-                    &statement.range_start,
-                    &statement.range_end,
-                ])
-                .map_err(|error| Error::InferenceLoopBounds(location, error))?;
+                let range_start = match ExpressionAnalyzer::new_without_bytecode(self.scope())
+                    .expression(
+                        statement.range_start_expression,
+                        ResolutionHint::ValueExpression,
+                    )? {
+                    Element::Constant(Constant::Integer(integer)) => integer.value,
+                    element => {
+                        return Err(Error::LoopRangeStartExpectedIntegerConstant(
+                            range_start_location,
+                            element.to_string(),
+                        ))
+                    }
+                };
+
+                let range_end = match ExpressionAnalyzer::new_without_bytecode(self.scope())
+                    .expression(
+                        statement.range_end_expression,
+                        ResolutionHint::ValueExpression,
+                    )? {
+                    Element::Constant(Constant::Integer(integer)) => integer.value,
+                    element => {
+                        return Err(Error::LoopRangeEndExpectedIntegerConstant(
+                            range_end_location,
+                            element.to_string(),
+                        ))
+                    }
+                };
+
+                let are_bounds_signed = range_start.is_negative() || range_end.is_negative();
+
+                let minimal_bitlength =
+                    IntegerConstant::minimal_bitlength_bigints(&[&range_start, &range_end])
+                        .map_err(|error| Error::InferenceConstant(location, error))?;
 
                 // calculate the iterations number and if the loop is reverse
-                let range_start: usize = statement.range_start.into();
-                let range_end: usize = statement.range_end.into();
-                let iterations_count = cmp::max(range_start, range_end)
-                    - cmp::min(range_start, range_end)
-                    + if statement.is_range_inclusive { 1 } else { 0 };
+                let iterations_count = cmp::max(&range_start, &range_end)
+                    - cmp::min(&range_start, &range_end)
+                    + if statement.is_range_inclusive {
+                        BigInt::one()
+                    } else {
+                        BigInt::zero()
+                    };
                 let is_reverse = range_start > range_end;
 
                 // create the index value and get its address
-                let index = IntegerConstant::new_range_bound(range_start, range_bitlength);
+                let index = IntegerConstant::new(range_start, are_bounds_signed, minimal_bitlength);
                 let index_type = index.r#type();
                 let index_size = index_type.size();
-                let index_address = self.bytecode.borrow_mut().allocate_stack_space(index_size);
+                let index_address = self
+                    .bytecode
+                    .borrow_mut()
+                    .allocate_data_stack_space(index_size);
                 self.bytecode.borrow_mut().push_instruction(index.into());
                 self.bytecode
                     .borrow_mut()
-                    .push_instruction_pop_store(index_address, index_size);
+                    .push_instruction_store(index_address, index_size, None);
 
                 // create the while allowed condition
                 let while_allowed_address = match statement.while_condition {
@@ -252,13 +293,13 @@ impl Analyzer {
                         let while_allowed_address = self
                             .bytecode
                             .borrow_mut()
-                            .allocate_stack_space(while_allowed.r#type().size());
+                            .allocate_data_stack_space(while_allowed.r#type().size());
                         self.bytecode
                             .borrow_mut()
                             .push_instruction(while_allowed.into());
                         self.bytecode
                             .borrow_mut()
-                            .push_instruction(Instruction::PopStore(zinc_bytecode::PopStore::new(
+                            .push_instruction(Instruction::Store(zinc_bytecode::Store::new(
                                 while_allowed_address,
                             )));
                         Some(while_allowed_address)
@@ -266,6 +307,15 @@ impl Analyzer {
                     None => None,
                 };
 
+                let iterations_count = iterations_count.to_usize().ok_or_else(|| {
+                    Error::InferenceConstant(
+                        location,
+                        IntegerConstantError::LiteralTooLargeForIndex(
+                            iterations_count.to_string(),
+                            crate::BITLENGTH_INDEX,
+                        ),
+                    )
+                })?;
                 self.bytecode
                     .borrow_mut()
                     .push_instruction(Instruction::LoopBegin(zinc_bytecode::LoopBegin::new(
@@ -279,7 +329,7 @@ impl Analyzer {
                     .declare_variable(
                         statement.index_identifier.name,
                         ScopeVariableItem::new(
-                            Type::new_integer_unsigned(range_bitlength),
+                            Type::new_integer_unsigned(minimal_bitlength),
                             false,
                             index_address,
                         ),
@@ -313,17 +363,20 @@ impl Analyzer {
                     self.bytecode
                         .borrow_mut()
                         .push_instruction(Constant::Boolean(false).into());
-                    self.bytecode.borrow_mut().push_instruction_pop_store(
+                    self.bytecode.borrow_mut().push_instruction_store(
                         while_allowed_address,
                         Type::new_boolean().size(),
+                        None,
                     );
                     self.bytecode
                         .borrow_mut()
                         .push_instruction(Instruction::EndIf(zinc_bytecode::EndIf));
 
-                    self.bytecode.borrow_mut().push_instruction_load_push(
+                    self.bytecode.borrow_mut().push_instruction_load(
                         while_allowed_address,
                         Type::new_boolean().size(),
+                        None,
+                        false,
                     );
                     self.bytecode
                         .borrow_mut()
@@ -343,12 +396,10 @@ impl Analyzer {
                 // increment the loop counter
                 self.bytecode
                     .borrow_mut()
-                    .push_instruction(IntegerConstant::new_one(range_bitlength).into());
+                    .push_instruction(IntegerConstant::new_one(minimal_bitlength).into());
                 self.bytecode
                     .borrow_mut()
-                    .push_instruction(Instruction::LoadPush(zinc_bytecode::LoadPush::new(
-                        index_address,
-                    )));
+                    .push_instruction(Instruction::Load(zinc_bytecode::Load::new(index_address)));
                 self.bytecode.borrow_mut().push_instruction(if is_reverse {
                     Instruction::Sub(zinc_bytecode::Sub)
                 } else {
@@ -356,9 +407,7 @@ impl Analyzer {
                 });
                 self.bytecode
                     .borrow_mut()
-                    .push_instruction(Instruction::PopStore(zinc_bytecode::PopStore::new(
-                        index_address,
-                    )));
+                    .push_instruction(Instruction::Store(zinc_bytecode::Store::new(index_address)));
                 self.bytecode
                     .borrow_mut()
                     .push_instruction(Instruction::LoopEnd(zinc_bytecode::LoopEnd));
@@ -428,10 +477,10 @@ impl Analyzer {
         };
 
         let size = constant.r#type().size();
-        let address = self.bytecode.borrow_mut().allocate_stack_space(size);
+        let address = self.bytecode.borrow_mut().allocate_data_stack_space(size);
         self.bytecode
             .borrow_mut()
-            .push_instruction_pop_store(address, size);
+            .push_instruction_store(address, size, None);
         self.scope()
             .borrow_mut()
             .declare_static(

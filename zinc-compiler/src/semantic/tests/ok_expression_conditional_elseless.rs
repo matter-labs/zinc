@@ -11,9 +11,9 @@ use zinc_bytecode::EndIf;
 use zinc_bytecode::Exit;
 use zinc_bytecode::If;
 use zinc_bytecode::Instruction;
-use zinc_bytecode::PopStore;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
+use zinc_bytecode::Store;
 
 #[test]
 fn test() {
@@ -30,16 +30,16 @@ fn main() {
         Instruction::Call(Call::new(2, 0)),
         Instruction::Exit(Exit::new(0)),
         Instruction::PushConst(PushConst::new(BigInt::from(5), false, 8)),
-        Instruction::PopStore(PopStore::new(0)),
+        Instruction::Store(Store::new(0)),
         Instruction::PushConst(PushConst::new(BigInt::from(0), false, 8)),
         Instruction::If(If),
         Instruction::PushConst(PushConst::new(BigInt::from(10), false, 8)),
-        Instruction::PopStore(PopStore::new(0)),
+        Instruction::Store(Store::new(0)),
         Instruction::EndIf(EndIf),
         Instruction::Return(Return::new(0)),
     ]);
 
-    let result = super::instructions(input);
+    let result = super::get_instructions(input);
 
     assert_eq!(expected, result);
 }

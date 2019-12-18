@@ -19,7 +19,7 @@ fn another() -> u8 {
 
     let expected = Err(Error::Semantic(SemanticError::FunctionMainMissing));
 
-    let result = super::result(input);
+    let result = super::get_binary_result(input);
 
     assert_eq!(expected, result);
 }

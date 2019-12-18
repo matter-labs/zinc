@@ -7,9 +7,9 @@
 mod err_assignment_to_immutable_memory;
 mod err_assignment_to_invalid_item;
 mod err_assignment_types_mismatch;
-mod err_caster_data_loss_possible;
 mod err_caster_from_invalid_type;
 mod err_caster_to_invalid_type;
+mod err_caster_to_lesser_bitlength;
 mod err_conditional_branch_types_mismatch;
 mod err_conditional_expected_boolean_condition;
 mod err_const_expression_has_non_const_element;
@@ -151,7 +151,7 @@ mod err_function_main_missing;
 mod err_function_not_instruction;
 mod err_function_return_type_mismatch;
 mod err_inference_constant;
-mod err_inference_loop_bounds;
+mod err_inference_constant_loop_bounds;
 mod err_inference_pattern_match;
 mod err_loop_while_expected_boolean_condition;
 mod err_match_branch_expression_invalid_type;
@@ -168,8 +168,10 @@ mod err_scope_tuple_field_does_not_exist;
 mod err_type_alias_does_not_point_to_type;
 mod ok_algorithm_factorial;
 mod ok_algorithm_fibonacci;
+mod ok_algorithm_modules;
 mod ok_expression_block_mutating;
 mod ok_expression_block_pyramid;
+mod ok_expression_complex_mixed_items;
 mod ok_expression_complex_operator;
 mod ok_expression_conditional_elseless;
 mod ok_expression_conditional_nested;
@@ -191,7 +193,6 @@ mod ok_statement_loop_with_while;
 
 //mod ok_expression_array_nested;
 //mod ok_expression_complex_mixed_types;
-//mod ok_expression_complex_mixed_items;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -202,12 +203,14 @@ use zinc_bytecode::Instruction;
 use crate::BinaryAnalyzer;
 use crate::Bytecode;
 use crate::Error;
+use crate::LibraryAnalyzer;
 use crate::Parser;
+use crate::Scope;
 
 static PANIC_SYNTAX_ERROR: &str = "Syntax errors must be eliminated at this point";
 static PANIC_ONLY_REFERENCE: &str = "The last shared reference is always unwrapped successfully";
 
-pub(self) fn result(input: &str) -> Result<(), Error> {
+pub(self) fn get_binary_result(input: &str) -> Result<(), Error> {
     BinaryAnalyzer::default().compile(
         Parser::default()
             .parse(input.to_owned())
@@ -216,13 +219,35 @@ pub(self) fn result(input: &str) -> Result<(), Error> {
     )
 }
 
-pub(self) fn instructions(input: &str) -> Result<Vec<Instruction>, Error> {
-    let bytecode = Rc::new(RefCell::new(Bytecode::new_binary()));
+pub(self) fn get_dependency(
+    input: &str,
+    bytecode: Rc<RefCell<Bytecode>>,
+) -> Result<Rc<RefCell<Scope>>, Error> {
+    LibraryAnalyzer::new(bytecode).compile(
+        Parser::default()
+            .parse(input.to_owned())
+            .expect(PANIC_SYNTAX_ERROR),
+    )
+}
+
+pub(self) fn get_instructions(input: &str) -> Result<Vec<Instruction>, Error> {
+    get_instructions_with_dependencies(
+        input,
+        Rc::new(RefCell::new(Bytecode::new())),
+        HashMap::new(),
+    )
+}
+
+pub(self) fn get_instructions_with_dependencies(
+    input: &str,
+    bytecode: Rc<RefCell<Bytecode>>,
+    dependencies: HashMap<String, Rc<RefCell<Scope>>>,
+) -> Result<Vec<Instruction>, Error> {
     BinaryAnalyzer::new(bytecode.clone()).compile(
         Parser::default()
             .parse(input.to_owned())
             .expect(PANIC_SYNTAX_ERROR),
-        HashMap::new(),
+        dependencies,
     )?;
     Ok(Rc::try_unwrap(bytecode)
         .expect(PANIC_ONLY_REFERENCE)

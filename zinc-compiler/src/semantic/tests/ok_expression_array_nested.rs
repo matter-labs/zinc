@@ -9,8 +9,8 @@ use num_bigint::BigInt;
 use zinc_bytecode::Call;
 use zinc_bytecode::Exit;
 use zinc_bytecode::Instruction;
-use zinc_bytecode::PopStore;
-use zinc_bytecode::PopStoreArray;
+use zinc_bytecode::Store;
+use zinc_bytecode::StoreArray;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 
@@ -53,13 +53,13 @@ fn main () {
         Instruction::PushConst(PushConst::new(BigInt::from(14), false, 8)),
         Instruction::PushConst(PushConst::new(BigInt::from(15), false, 8)),
         Instruction::PushConst(PushConst::new(BigInt::from(16), false, 8)),
-        Instruction::PopStoreArray(PopStoreArray::new(0, 16)),
+        Instruction::StoreArray(StoreArray::new(0, 16)),
         Instruction::PushConst(PushConst::new(BigInt::from(42), false, 8)),
-        Instruction::PopStore(PopStore::new(7)),
+        Instruction::Store(Store::new(7)),
         Instruction::PushConst(PushConst::new(BigInt::from(111), false, 8)),
-        Instruction::PopStore(PopStore::new(10)),
+        Instruction::Store(Store::new(10)),
         Instruction::PushConst(PushConst::new(BigInt::from(255), false, 8)),
-        Instruction::PopStore(PopStore::new(13)),
+        Instruction::Store(Store::new(13)),
         Instruction::Return(Return::new(0)),
     ]);
 

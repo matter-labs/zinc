@@ -7,6 +7,8 @@ use std::convert::TryFrom;
 use std::fmt;
 use std::rc::Rc;
 
+use num_bigint::BigInt;
+
 use crate::semantic::Constant;
 use crate::semantic::Element;
 use crate::semantic::Error;
@@ -16,11 +18,10 @@ use crate::semantic::ResolutionHint;
 use crate::semantic::Scope;
 use crate::semantic::ScopeItem;
 use crate::syntax::Identifier;
-use crate::syntax::IntegerLiteral;
 use crate::syntax::TypeVariant;
 use crate::syntax::Variant;
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     Unit,
     Boolean,
@@ -113,18 +114,21 @@ impl Type {
     pub fn new_enumeration(identifier: Identifier, variants: Vec<Variant>) -> Result<Self, Error> {
         let mut scope = Scope::new(None);
 
-        let literals: Vec<&IntegerLiteral> =
-            variants.iter().map(|variant| &variant.literal).collect();
-        let enough_bitlength = IntegerConstant::infer_enough_bitlength(literals.as_slice())
+        let mut variants_bigint = Vec::with_capacity(variants.len());
+        for variant in variants.into_iter() {
+            let value = IntegerConstant::try_from(&variant.literal)
+                .map_err(|error| Error::InferenceConstant(variant.identifier.location, error))?;
+            variants_bigint.push((variant.identifier, value.value));
+        }
+        let bigints: Vec<&BigInt> = variants_bigint.iter().map(|variant| &variant.1).collect();
+        let minimal_bitlength = IntegerConstant::minimal_bitlength_bigints(bigints.as_slice())
             .map_err(|error| Error::InferenceConstant(identifier.location, error))?;
 
-        for variant in variants.into_iter() {
-            let location = variant.literal.location;
-            let mut constant = IntegerConstant::try_from(&variant.literal)
-                .map_err(|error| Error::InferenceConstant(location, error))?;
-            constant.cast(false, enough_bitlength);
+        for (identifier, value) in variants_bigint.into_iter() {
+            let location = identifier.location;
+            let constant = IntegerConstant::new(value, false, minimal_bitlength);
             scope
-                .declare_constant(variant.identifier.name, Constant::Integer(constant))
+                .declare_constant(identifier.name, Constant::Integer(constant))
                 .map_err(|error| Error::Scope(location, error))?;
         }
         Ok(Self::Enumeration {
@@ -219,7 +223,9 @@ impl Type {
             _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
         })
     }
+}
 
+impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Unit => write!(f, "()"),
@@ -265,17 +271,5 @@ impl Type {
             ),
             Self::String => write!(f, "&str"),
         }
-    }
-}
-
-impl fmt::Display for Type {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
-    }
-}
-
-impl fmt::Debug for Type {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
     }
 }

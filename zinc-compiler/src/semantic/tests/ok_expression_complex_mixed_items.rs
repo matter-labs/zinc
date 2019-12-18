@@ -11,13 +11,11 @@ use zinc_bytecode::Call;
 use zinc_bytecode::Cast;
 use zinc_bytecode::Exit;
 use zinc_bytecode::Instruction;
-use zinc_bytecode::LoadPush;
-use zinc_bytecode::PopStore;
+use zinc_bytecode::Load;
+use zinc_bytecode::LoadGlobal;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
-
-use crate::semantic::BinaryAnalyzer;
-use crate::syntax::Parser;
+use zinc_bytecode::Store;
 
 #[test]
 fn test() {
@@ -41,27 +39,27 @@ fn main() -> field {
             false,
             crate::BITLENGTH_FIELD,
         )),
-        Instruction::PopStore(PopStore::new(0)),
+        Instruction::Store(Store::new(0)), // TODO: store_global
         Instruction::PushConst(PushConst::new(
             BigInt::from(69),
             false,
             crate::BITLENGTH_FIELD,
         )),
         Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
-        Instruction::PopStore(PopStore::new(0)),
+        Instruction::Store(Store::new(0)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(42),
             false,
             crate::BITLENGTH_FIELD,
         )),
-        Instruction::LoadPush(LoadPush::new(0)),
+        Instruction::LoadGlobal(LoadGlobal::new(0)),
         Instruction::Add(Add),
-        Instruction::LoadPush(LoadPush::new(0)),
+        Instruction::Load(Load::new(0)),
         Instruction::Add(Add),
         Instruction::Return(Return::new(1)),
     ]);
 
-    let result = super::instructions(input);
+    let result = super::get_instructions(input);
 
     assert_eq!(expected, result);
 }

@@ -19,7 +19,7 @@ pub struct Analyzer {
 
 impl Default for Analyzer {
     fn default() -> Self {
-        Self::new(Rc::new(RefCell::new(Bytecode::new_binary())))
+        Self::new(Rc::new(RefCell::new(Bytecode::new())))
     }
 }
 
@@ -38,11 +38,13 @@ impl Analyzer {
     }
 
     pub fn compile(self, program: SyntaxTree) -> Result<Rc<RefCell<Scope>>, CompilerError> {
+        self.bytecode.borrow_mut().push_data_stack_address();
         for statement in program.statements.into_iter() {
             StatementAnalyzer::new(self.scope(), self.bytecode.clone(), HashMap::new())
                 .outer_statement(statement)
                 .map_err(CompilerError::Semantic)?;
         }
+        self.bytecode.borrow_mut().pop_data_stack_address();
 
         Ok(self.scope())
     }

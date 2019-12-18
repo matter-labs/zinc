@@ -24,10 +24,10 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 24),
-        ElementError::Value(ValueError::Casting(CasterError::DataLossPossible(128, 64))),
+        ElementError::Value(ValueError::Casting(CasterError::ToLesserBitlength(128, 64))),
     )));
 
-    let result = super::result(input);
+    let result = super::get_binary_result(input);
 
     assert_eq!(expected, result);
 }

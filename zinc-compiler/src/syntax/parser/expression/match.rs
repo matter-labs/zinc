@@ -97,8 +97,10 @@ impl Parser {
                     }
                 }
                 State::BracketCurlyRightOrBranchPattern => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
@@ -112,8 +114,10 @@ impl Parser {
                     }
                 }
                 State::Select => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::EqualsGreater),
                             ..

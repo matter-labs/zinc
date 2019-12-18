@@ -9,9 +9,9 @@ use num_bigint::BigInt;
 use zinc_bytecode::Call;
 use zinc_bytecode::Exit;
 use zinc_bytecode::Instruction;
-use zinc_bytecode::PopStoreArray;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
+use zinc_bytecode::StoreArray;
 
 #[test]
 fn test() {
@@ -28,11 +28,11 @@ fn main() {
         Instruction::Exit(Exit::new(0)),
         Instruction::PushConst(PushConst::new(BigInt::from(11), false, 8)),
         Instruction::PushConst(PushConst::new(BigInt::from(42), false, 8)),
-        Instruction::PopStoreArray(PopStoreArray::new(0, 2)),
+        Instruction::StoreArray(StoreArray::new(0, 2)),
         Instruction::Return(Return::new(0)),
     ]);
 
-    let result = super::instructions(input);
+    let result = super::get_instructions(input);
 
     assert_eq!(expected, result);
 }

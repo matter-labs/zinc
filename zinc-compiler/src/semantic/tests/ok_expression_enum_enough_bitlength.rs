@@ -10,9 +10,9 @@ use zinc_bytecode::Add;
 use zinc_bytecode::Call;
 use zinc_bytecode::Exit;
 use zinc_bytecode::Instruction;
-use zinc_bytecode::PopStore;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
+use zinc_bytecode::Store;
 
 #[test]
 fn test() {
@@ -38,11 +38,11 @@ fn main() {
         Instruction::PushConst(PushConst::new(BigInt::from(25), false, 16)),
         Instruction::PushConst(PushConst::new(BigInt::from(512), false, 16)),
         Instruction::Add(Add),
-        Instruction::PopStore(PopStore::new(0)),
+        Instruction::Store(Store::new(0)),
         Instruction::Return(Return::new(0)),
     ]);
 
-    let result = super::instructions(input);
+    let result = super::get_instructions(input);
 
     assert_eq!(expected, result);
 }

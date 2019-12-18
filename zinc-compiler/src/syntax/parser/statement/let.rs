@@ -73,8 +73,10 @@ impl Parser {
                     }
                 }
                 State::MutOrIdentifier => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Mut),
                             ..
@@ -100,8 +102,10 @@ impl Parser {
                     }
                 }
                 State::Identifier => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
@@ -120,8 +124,10 @@ impl Parser {
                     }
                 }
                 State::ColonOrEquals => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Colon),
                             ..

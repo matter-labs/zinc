@@ -19,6 +19,7 @@ use crate::syntax::TypeParser;
 #[derive(Default)]
 pub struct Parser {
     builder: FieldBuilder,
+    next: Option<Token>,
 }
 
 impl Parser {
@@ -48,8 +49,10 @@ impl Parser {
             }
         }
 
-        let next = stream.borrow_mut().next()?;
-        match next {
+        match match self.next.take() {
+            Some(token) => token,
+            None => stream.borrow_mut().next()?,
+        } {
             Token {
                 lexeme: Lexeme::Symbol(Symbol::Colon),
                 ..

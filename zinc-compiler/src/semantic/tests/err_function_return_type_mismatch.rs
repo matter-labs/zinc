@@ -30,7 +30,7 @@ fn main() {
         Type::new_integer_unsigned(8).to_string(),
     )));
 
-    let result = super::result(input);
+    let result = super::get_binary_result(input);
 
     assert_eq!(expected, result);
 }

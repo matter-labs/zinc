@@ -6,15 +6,14 @@ use crate::lexical::Location;
 use crate::syntax::BlockExpression;
 use crate::syntax::Expression;
 use crate::syntax::Identifier;
-use crate::syntax::IntegerLiteral;
 use crate::syntax::LoopStatement;
 
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
     index_identifier: Option<Identifier>,
-    range_start: Option<IntegerLiteral>,
-    range_end: Option<IntegerLiteral>,
+    range_start_expression: Option<Expression>,
+    range_end_expression: Option<Expression>,
     is_range_inclusive: bool,
     while_condition: Option<Expression>,
     block: Option<BlockExpression>,
@@ -29,12 +28,12 @@ impl Builder {
         self.index_identifier = Some(value);
     }
 
-    pub fn set_range_start(&mut self, value: IntegerLiteral) {
-        self.range_start = Some(value);
+    pub fn set_range_start_expression(&mut self, value: Expression) {
+        self.range_start_expression = Some(value);
     }
 
-    pub fn set_range_end(&mut self, value: IntegerLiteral) {
-        self.range_end = Some(value);
+    pub fn set_range_end_expression(&mut self, value: Expression) {
+        self.range_end_expression = Some(value);
     }
 
     pub fn set_range_inclusive(&mut self) {
@@ -65,18 +64,18 @@ impl Builder {
                     "index identifier"
                 )
             }),
-            self.range_start.take().unwrap_or_else(|| {
+            self.range_start_expression.take().unwrap_or_else(|| {
                 panic!(
                     "{}{}",
                     crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "range start"
+                    "range start expression"
                 )
             }),
-            self.range_end.take().unwrap_or_else(|| {
+            self.range_end_expression.take().unwrap_or_else(|| {
                 panic!(
                     "{}{}",
                     crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "range end"
+                    "range end expression"
                 )
             }),
             self.is_range_inclusive,

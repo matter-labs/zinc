@@ -10,7 +10,7 @@ use std::fmt;
 
 use crate::semantic::Type;
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Integer {
     pub is_signed: bool,
     pub bitlength: usize,
@@ -147,20 +147,10 @@ impl Integer {
 
         Ok(())
     }
-
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", Type::new_integer(self.is_signed, self.bitlength))
-    }
 }
 
 impl fmt::Display for Integer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
-    }
-}
-
-impl fmt::Debug for Integer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
+        write!(f, "{}", self.r#type())
     }
 }

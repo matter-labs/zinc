@@ -35,6 +35,7 @@ pub struct Parser {
     state: State,
     builder: ExpressionBuilder,
     operator: Option<(Location, ExpressionOperator)>,
+    next: Option<Token>,
 }
 
 impl Parser {
@@ -78,8 +79,10 @@ impl Parser {
                     }
                 }
                 State::DoubleColonOrEnd => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::DoubleColon),
                             location,

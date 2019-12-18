@@ -10,14 +10,11 @@ use zinc_bytecode::Add;
 use zinc_bytecode::Call;
 use zinc_bytecode::Exit;
 use zinc_bytecode::Instruction;
-use zinc_bytecode::LoadPush;
-use zinc_bytecode::PopStore;
-use zinc_bytecode::PopStoreArray;
+use zinc_bytecode::Load;
+use zinc_bytecode::Store;
+use zinc_bytecode::StoreArray;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
-
-use crate::semantic::BinaryAnalyzer;
-use crate::syntax::Parser;
 
 #[test]
 fn test() {
@@ -40,20 +37,20 @@ fn main() {
         Instruction::PushConst(PushConst::new(BigInt::from(2), false, 8)),
         Instruction::PushConst(PushConst::new(BigInt::from(3), false, 8)),
         Instruction::PushConst(PushConst::new(BigInt::from(4), false, 8)),
-        Instruction::PopStoreArray(PopStoreArray::new(0, 4)),
+        Instruction::StoreArray(StoreArray::new(0, 4)),
         Instruction::PushConst(PushConst::new(BigInt::from(1), false, 8)),
         Instruction::PushConst(PushConst::new(BigInt::from(2), false, 8)),
         Instruction::PushConst(PushConst::new(BigInt::from(3), false, 8)),
         Instruction::PushConst(PushConst::new(BigInt::from(4), false, 8)),
-        Instruction::PopStoreArray(PopStoreArray::new(4, 4)),
+        Instruction::StoreArray(StoreArray::new(4, 4)),
         Instruction::PushConst(PushConst::new(BigInt::from(34), false, 8)),
-        Instruction::PopStore(PopStore::new(8)),
-        Instruction::LoadPush(LoadPush::new(7)),
-        Instruction::LoadPush(LoadPush::new(3)),
+        Instruction::Store(Store::new(8)),
+        Instruction::Load(Load::new(7)),
+        Instruction::Load(Load::new(3)),
         Instruction::Add(Add),
-        Instruction::LoadPush(LoadPush::new(8)),
+        Instruction::Load(Load::new(8)),
         Instruction::Add(Add),
-        Instruction::PopStore(PopStore::new(9)),
+        Instruction::Store(Store::new(9)),
         Instruction::Return(Return::new(0)),
     ]);
 

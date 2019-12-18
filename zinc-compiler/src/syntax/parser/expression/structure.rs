@@ -73,8 +73,10 @@ impl Parser {
                     }
                 }
                 State::Path => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         token @ Token {
                             lexeme: Lexeme::Identifier(_),
                             ..
@@ -107,8 +109,10 @@ impl Parser {
                     }
                 }
                 State::IdentifierOrBracketCurlyRight => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
@@ -131,8 +135,10 @@ impl Parser {
                     }
                 }
                 State::Colon => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Colon),
                             ..

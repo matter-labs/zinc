@@ -95,8 +95,10 @@ impl Parser {
                     }
                 }
                 State::Size => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Literal(Literal::Integer(integer)),
                             location,
@@ -115,8 +117,10 @@ impl Parser {
                     }
                 }
                 State::BracketSquareRight => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareRight),
                             ..

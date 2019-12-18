@@ -22,7 +22,7 @@ pub struct Analyzer {
 
 impl Default for Analyzer {
     fn default() -> Self {
-        Self::new(Rc::new(RefCell::new(Bytecode::new_binary())))
+        Self::new(Rc::new(RefCell::new(Bytecode::new())))
     }
 }
 

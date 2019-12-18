@@ -19,15 +19,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::InferenceLoopBounds(
-        Location::new(3, 5),
-        IntegerConstantError::LiteralTooLargeForField(
-            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".to_owned(),
+    let expected = Err(Error::Semantic(SemanticError::InferenceConstant(
+        Location::new(3, 17),
+        IntegerConstantError::IntegerTooLargeForField(
+            "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+                .to_owned(),
             crate::BITLENGTH_FIELD,
         ),
     )));
 
-    let result = super::result(input);
+    let result = super::get_binary_result(input);
 
     assert_eq!(expected, result);
 }

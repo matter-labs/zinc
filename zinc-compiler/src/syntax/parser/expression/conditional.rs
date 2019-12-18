@@ -88,8 +88,10 @@ impl Parser {
                     self.state = State::ElseKeywordOrEnd;
                 }
                 State::ElseKeywordOrEnd => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Else),
                             ..
@@ -98,8 +100,10 @@ impl Parser {
                     }
                 }
                 State::KeywordIfOrElseBlock => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         token @ Token {
                             lexeme: Lexeme::Keyword(Keyword::If),
                             ..

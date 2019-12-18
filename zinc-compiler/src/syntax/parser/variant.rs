@@ -20,6 +20,7 @@ use crate::syntax::VariantBuilder;
 #[derive(Default)]
 pub struct Parser {
     builder: VariantBuilder,
+    next: Option<Token>,
 }
 
 impl Parser {
@@ -49,8 +50,10 @@ impl Parser {
             }
         }
 
-        let next = stream.borrow_mut().next()?;
-        match next {
+        match match self.next.take() {
+            Some(token) => token,
+            None => stream.borrow_mut().next()?,
+        } {
             Token {
                 lexeme: Lexeme::Symbol(Symbol::Equals),
                 ..
@@ -64,8 +67,10 @@ impl Parser {
             }
         }
 
-        let next = stream.borrow_mut().next()?;
-        match next {
+        match match self.next.take() {
+            Some(token) => token,
+            None => stream.borrow_mut().next()?,
+        } {
             Token {
                 lexeme: Lexeme::Literal(lexical::Literal::Integer(literal)),
                 location,

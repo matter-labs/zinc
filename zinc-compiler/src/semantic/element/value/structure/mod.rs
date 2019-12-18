@@ -10,7 +10,7 @@ use std::fmt;
 
 use crate::semantic::Type;
 
-#[derive(Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Structure {
     identifier: String,
     fields: Vec<(String, Type)>,
@@ -37,29 +37,10 @@ impl Structure {
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
         self.identifier == other.identifier
     }
-
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "struct {} {{ {} }}",
-            self.identifier,
-            self.fields
-                .iter()
-                .map(|(identifier, r#type)| format!("{}: {}", identifier, r#type))
-                .collect::<Vec<String>>()
-                .join(", ")
-        )
-    }
 }
 
 impl fmt::Display for Structure {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
-    }
-}
-
-impl fmt::Debug for Structure {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
+        write!(f, "{}", self.r#type())
     }
 }

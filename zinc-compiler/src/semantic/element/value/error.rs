@@ -194,8 +194,8 @@ pub enum Error {
     )]
     OperatorNotExpectedBoolean(String),
 
-    #[fail(display = "integer: {}", _0)]
+    #[fail(display = "{}", _0)]
     Integer(IntegerValueError),
-    #[fail(display = "casting: {}", _0)]
+    #[fail(display = "{}", _0)]
     Casting(CasterError),
 }

@@ -83,7 +83,7 @@ impl Analyzer {
     pub fn expression(
         &mut self,
         expression: Expression,
-        resolution_mode: ResolutionHint,
+        resolution_hint: ResolutionHint,
     ) -> Result<Element, Error> {
         let location = expression.location;
         for element in expression.into_iter() {
@@ -123,7 +123,7 @@ impl Analyzer {
 
                     self.bytecode
                         .borrow_mut()
-                        .push_instruction_pop_store(variable.address, size);
+                        .push_instruction_store(variable.address, size, None);
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Range) => {
@@ -401,7 +401,7 @@ impl Analyzer {
                     self.is_next_call_instruction = false;
 
                     if !is_instruction {
-                        self.bytecode.borrow_mut().push_call_stack_pointer();
+                        self.bytecode.borrow_mut().push_data_stack_address();
                     }
 
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
@@ -480,10 +480,12 @@ impl Analyzer {
                             let argument_address = self
                                 .bytecode
                                 .borrow_mut()
-                                .allocate_stack_space(argument_size);
-                            self.bytecode
-                                .borrow_mut()
-                                .push_instruction_pop_store(argument_address, argument_size);
+                                .allocate_data_stack_space(argument_size);
+                            self.bytecode.borrow_mut().push_instruction_store(
+                                argument_address,
+                                argument_size,
+                                None,
+                            );
                         }
 
                         let function_address = self
@@ -498,7 +500,7 @@ impl Analyzer {
                                 function_address,
                                 argument_values_count,
                             )));
-                        self.bytecode.borrow_mut().pop_call_stack_pointer();
+                        self.bytecode.borrow_mut().pop_data_stack_address();
                     } else {
                         let instruction = match identifier.as_str() {
                             "dbg" => {
@@ -547,7 +549,7 @@ impl Analyzer {
             }
         }
 
-        self.evaluate_operand(resolution_mode)
+        self.evaluate_operand(resolution_hint)
     }
 
     pub fn block_expression(&mut self, block: BlockExpression) -> Result<Element, Error> {
@@ -596,11 +598,11 @@ impl Analyzer {
     fn identifier(
         &mut self,
         identifier: Identifier,
-        resolution_mode: ResolutionHint,
+        resolution_hint: ResolutionHint,
     ) -> Result<Element, Error> {
         let location = identifier.location;
 
-        match resolution_mode {
+        match resolution_hint {
             ResolutionHint::ValueExpression => {
                 match Scope::resolve_item(self.scope(), &identifier.name)
                     .map_err(|error| Error::Scope(location, error))?
@@ -608,9 +610,12 @@ impl Analyzer {
                     ScopeItem::Variable(variable) => {
                         let size = variable.r#type.size();
                         let value = Value::new(variable.r#type);
-                        self.bytecode
-                            .borrow_mut()
-                            .push_instruction_load_push(variable.address, size);
+                        self.bytecode.borrow_mut().push_instruction_load(
+                            variable.address,
+                            size,
+                            None,
+                            false,
+                        );
                         Ok(Element::Value(value))
                     }
                     ScopeItem::Constant(constant) => {
@@ -622,9 +627,12 @@ impl Analyzer {
                     ScopeItem::Static(r#static) => {
                         let r#type = r#static.data.r#type();
                         let size = r#type.size();
-                        self.bytecode
-                            .borrow_mut()
-                            .push_instruction_load_push(r#static.address, size);
+                        self.bytecode.borrow_mut().push_instruction_load(
+                            r#static.address,
+                            size,
+                            None,
+                            true,
+                        );
                         Ok(Element::Constant(r#static.data))
                     }
                     ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
@@ -726,10 +734,10 @@ impl Analyzer {
         let scrutinee_address = self
             .bytecode
             .borrow_mut()
-            .allocate_stack_space(scrutinee_size);
+            .allocate_data_stack_space(scrutinee_size);
         self.bytecode
             .borrow_mut()
-            .push_instruction_pop_store(scrutinee_address, scrutinee_size);
+            .push_instruction_store(scrutinee_address, scrutinee_size, None);
 
         let mut is_exhausted = false;
         let mut branch_results = Vec::with_capacity(r#match.branches.len());
@@ -760,9 +768,12 @@ impl Analyzer {
                         endifs += 1;
                     }
 
-                    self.bytecode
-                        .borrow_mut()
-                        .push_instruction_load_push(scrutinee_address, scrutinee_size);
+                    self.bytecode.borrow_mut().push_instruction_load(
+                        scrutinee_address,
+                        scrutinee_size,
+                        None,
+                        false,
+                    );
                     self.bytecode.borrow_mut().push_instruction(constant.into());
                     self.bytecode
                         .borrow_mut()
@@ -792,9 +803,12 @@ impl Analyzer {
                         endifs += 1;
                     }
 
-                    self.bytecode
-                        .borrow_mut()
-                        .push_instruction_load_push(scrutinee_address, scrutinee_size);
+                    self.bytecode.borrow_mut().push_instruction_load(
+                        scrutinee_address,
+                        scrutinee_size,
+                        None,
+                        false,
+                    );
                     self.bytecode.borrow_mut().push_instruction(constant.into());
                     self.bytecode
                         .borrow_mut()
@@ -946,7 +960,7 @@ impl Analyzer {
         Ok(Element::ArgumentList(elements))
     }
 
-    fn evaluate_operand(&mut self, resolution_mode: ResolutionHint) -> Result<Element, Error> {
+    fn evaluate_operand(&mut self, resolution_hint: ResolutionHint) -> Result<Element, Error> {
         match self.pop_operand() {
             StackElement::NotEvaluated(operand) => match operand {
                 ExpressionOperand::Unit => Ok(Element::Constant(Constant::Unit)),
@@ -956,7 +970,7 @@ impl Analyzer {
                 ExpressionOperand::MemberInteger(integer) => self.member_integer(integer),
                 ExpressionOperand::MemberString(identifier) => self.member_string(identifier),
                 ExpressionOperand::Identifier(identifier) => {
-                    self.identifier(identifier, resolution_mode)
+                    self.identifier(identifier, resolution_hint)
                 }
                 ExpressionOperand::ExpressionList(expressions) => self.list_expression(expressions),
                 ExpressionOperand::Type(r#type) => self.r#type(r#type),
@@ -974,14 +988,17 @@ impl Analyzer {
                 ExpressionOperand::Tuple(expression) => self.tuple_expression(expression),
                 ExpressionOperand::Structure(expression) => self.structure_expression(expression),
             },
-            StackElement::Evaluated(element) => match (resolution_mode, element) {
+            StackElement::Evaluated(element) => match (resolution_hint, element) {
                 (ResolutionHint::ValueExpression, Element::Place(place)) => {
                     match Scope::resolve_place(self.scope(), &place)? {
                         ScopeItem::Variable(variable) => {
                             let size = variable.r#type.size();
-                            self.bytecode
-                                .borrow_mut()
-                                .push_instruction_load_push(variable.address, size);
+                            self.bytecode.borrow_mut().push_instruction_load(
+                                variable.address,
+                                size,
+                                None,
+                                false,
+                            );
                             let value = Value::new(variable.r#type);
                             Ok(Element::Value(value))
                         }
@@ -993,17 +1010,47 @@ impl Analyzer {
                         }
                         ScopeItem::Static(r#static) => {
                             let size = r#static.data.r#type().size();
-                            self.bytecode
-                                .borrow_mut()
-                                .push_instruction_load_push(r#static.address, size);
+                            self.bytecode.borrow_mut().push_instruction_load(
+                                r#static.address,
+                                size,
+                                None,
+                                true,
+                            );
                             Ok(Element::Constant(r#static.data))
                         }
                         _ => Ok(Element::Place(place)),
                     }
                 }
-                (_resolution_mode, element) => Ok(element),
+                (_resolution_hint, element) => Ok(element),
             },
         }
+    }
+
+    fn evaluate_unary_operand(
+        &mut self,
+        resolution_hint: ResolutionHint,
+    ) -> Result<Element, Error> {
+        self.evaluate_operand(resolution_hint)
+    }
+
+    fn evaluate_binary_operands(
+        &mut self,
+        resolution_hint_1: ResolutionHint,
+        resolution_hint_2: ResolutionHint,
+    ) -> Result<(Element, Element), Error> {
+        let operand_2 = self.evaluate_operand(resolution_hint_2)?;
+        let operand_1 = self.evaluate_operand(resolution_hint_1)?;
+        Ok((operand_1, operand_2))
+    }
+
+    fn push_operand(&mut self, operand: StackElement) {
+        self.operands.push(operand);
+    }
+
+    fn pop_operand(&mut self) -> StackElement {
+        self.operands
+            .pop()
+            .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_AN_OPERAND)
     }
 
     fn scope(&self) -> Rc<RefCell<Scope>> {
@@ -1022,32 +1069,5 @@ impl Analyzer {
         self.scope_stack
             .pop()
             .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_SCOPE);
-    }
-
-    fn evaluate_unary_operand(
-        &mut self,
-        resolution_mode: ResolutionHint,
-    ) -> Result<Element, Error> {
-        self.evaluate_operand(resolution_mode)
-    }
-
-    fn evaluate_binary_operands(
-        &mut self,
-        resolution_mode_1: ResolutionHint,
-        resolution_mode_2: ResolutionHint,
-    ) -> Result<(Element, Element), Error> {
-        let operand_2 = self.evaluate_operand(resolution_mode_2)?;
-        let operand_1 = self.evaluate_operand(resolution_mode_1)?;
-        Ok((operand_1, operand_2))
-    }
-
-    fn push_operand(&mut self, operand: StackElement) {
-        self.operands.push(operand);
-    }
-
-    fn pop_operand(&mut self) -> StackElement {
-        self.operands
-            .pop()
-            .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_AN_OPERAND)
     }
 }

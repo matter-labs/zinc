@@ -8,7 +8,6 @@ use std::rc::Rc;
 use crate::error::Error;
 use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
-use crate::lexical::Literal;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
@@ -16,7 +15,6 @@ use crate::syntax::BlockExpressionParser;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::ExpressionParser;
 use crate::syntax::Identifier;
-use crate::syntax::IntegerLiteral;
 use crate::syntax::LoopStatement;
 use crate::syntax::LoopStatementBuilder;
 
@@ -25,11 +23,11 @@ pub enum State {
     KeywordFor,
     IndexIdentifier,
     KeywordIn,
-    RangeStart,
+    RangeStartExpression,
     RangeOperator,
-    RangeEnd,
+    RangeEndExpression,
     BlockExpressionOrKeywordWhile,
-    WhileCondition,
+    WhileConditionExpression,
     BlockExpression,
 }
 
@@ -76,8 +74,10 @@ impl Parser {
                     }
                 }
                 State::IndexIdentifier => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
@@ -96,13 +96,15 @@ impl Parser {
                     }
                 }
                 State::KeywordIn => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::In),
                             ..
                         } => {
-                            self.state = State::RangeStart;
+                            self.state = State::RangeStartExpression;
                         }
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
@@ -113,41 +115,30 @@ impl Parser {
                         }
                     }
                 }
-                State::RangeStart => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
-                        Token {
-                            lexeme: Lexeme::Literal(Literal::Integer(integer)),
-                            location,
-                        } => {
-                            let integer = IntegerLiteral::new(location, integer);
-                            self.builder.set_range_start(integer);
-                            self.state = State::RangeOperator;
-                        }
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{integer}"],
-                                lexeme,
-                            )));
-                        }
-                    }
+                State::RangeStartExpression => {
+                    let (expression, next) =
+                        ExpressionParser::default().parse(stream.clone(), self.next.take())?;
+                    self.next = next;
+                    self.builder.set_range_start_expression(expression);
+                    self.state = State::RangeOperator;
                 }
                 State::RangeOperator => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::DoubleDot),
                             ..
                         } => {
-                            self.state = State::RangeEnd;
+                            self.state = State::RangeEndExpression;
                         }
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::DoubleDotEquals),
                             ..
                         } => {
                             self.builder.set_range_inclusive();
-                            self.state = State::RangeEnd;
+                            self.state = State::RangeEndExpression;
                         }
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
@@ -158,29 +149,18 @@ impl Parser {
                         }
                     }
                 }
-                State::RangeEnd => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
-                        Token {
-                            lexeme: Lexeme::Literal(Literal::Integer(integer)),
-                            location,
-                        } => {
-                            let integer = IntegerLiteral::new(location, integer);
-                            self.builder.set_range_end(integer);
-                            self.state = State::BlockExpressionOrKeywordWhile;
-                        }
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{integer}"],
-                                lexeme,
-                            )));
-                        }
-                    }
+                State::RangeEndExpression => {
+                    let (expression, next) =
+                        ExpressionParser::default().parse(stream.clone(), self.next.take())?;
+                    self.next = next;
+                    self.builder.set_range_end_expression(expression);
+                    self.state = State::BlockExpressionOrKeywordWhile;
                 }
                 State::BlockExpressionOrKeywordWhile => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         token @ Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
@@ -193,7 +173,7 @@ impl Parser {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::While),
                             ..
-                        } => self.state = State::WhileCondition,
+                        } => self.state = State::WhileConditionExpression,
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
@@ -203,7 +183,7 @@ impl Parser {
                         }
                     }
                 }
-                State::WhileCondition => {
+                State::WhileConditionExpression => {
                     let (expression, next) =
                         ExpressionParser::default().parse(stream.clone(), None)?;
                     self.next = next;
@@ -227,13 +207,10 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::error::Error;
     use crate::lexical;
-    use crate::lexical::Lexeme;
     use crate::lexical::Location;
     use crate::lexical::TokenStream;
     use crate::syntax::BlockExpression;
-    use crate::syntax::Error as SyntaxError;
     use crate::syntax::Expression;
     use crate::syntax::ExpressionElement;
     use crate::syntax::ExpressionObject;
@@ -250,13 +227,29 @@ mod tests {
         let expected = Ok(LoopStatement::new(
             Location::new(1, 1),
             Identifier::new(Location::new(1, 5), "i".to_owned()),
-            IntegerLiteral::new(
+            Expression::new(
                 Location::new(1, 10),
-                lexical::IntegerLiteral::new_decimal("0".to_owned()),
+                vec![ExpressionElement::new(
+                    Location::new(1, 10),
+                    ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 10),
+                            lexical::IntegerLiteral::new_decimal("0".to_owned()),
+                        ),
+                    )),
+                )],
             ),
-            IntegerLiteral::new(
+            Expression::new(
                 Location::new(1, 14),
-                lexical::IntegerLiteral::new_decimal("4".to_owned()),
+                vec![ExpressionElement::new(
+                    Location::new(1, 14),
+                    ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 14),
+                            lexical::IntegerLiteral::new_decimal("4".to_owned()),
+                        ),
+                    )),
+                )],
             ),
             true,
             None,
@@ -308,36 +301,34 @@ mod tests {
         let expected = Ok(LoopStatement::new(
             Location::new(1, 1),
             Identifier::new(Location::new(1, 5), "i".to_owned()),
-            IntegerLiteral::new(
+            Expression::new(
                 Location::new(1, 10),
-                lexical::IntegerLiteral::new_decimal("0".to_owned()),
+                vec![ExpressionElement::new(
+                    Location::new(1, 10),
+                    ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 10),
+                            lexical::IntegerLiteral::new_decimal("0".to_owned()),
+                        ),
+                    )),
+                )],
             ),
-            IntegerLiteral::new(
+            Expression::new(
                 Location::new(1, 13),
-                lexical::IntegerLiteral::new_decimal("4".to_owned()),
+                vec![ExpressionElement::new(
+                    Location::new(1, 13),
+                    ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 13),
+                            lexical::IntegerLiteral::new_decimal("4".to_owned()),
+                        ),
+                    )),
+                )],
             ),
             false,
             None,
             BlockExpression::new(Location::new(1, 15), vec![], None),
         ));
-
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
-
-        assert_eq!(expected, result);
-    }
-
-    #[test]
-    fn err_expected_integer_literal() {
-        let input = r#"for i in 0..n {}"#;
-
-        let expected = Err(Error::Syntax(SyntaxError::Expected(
-            Location::new(1, 13),
-            vec!["{integer}"],
-            Lexeme::Identifier(lexical::Identifier::new("n".to_owned())),
-        )));
 
         let result = Parser::default().parse(
             Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),

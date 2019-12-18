@@ -6,7 +6,7 @@ use std::fmt;
 
 use crate::semantic::Type;
 
-#[derive(Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Tuple {
     element_types: Vec<Type>,
 }
@@ -41,28 +41,10 @@ impl Tuple {
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
         self.element_types == other.element_types
     }
-
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "({})",
-            self.element_types
-                .iter()
-                .map(|element| element.to_string())
-                .collect::<Vec<String>>()
-                .join(", ")
-        )
-    }
 }
 
 impl fmt::Display for Tuple {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
-    }
-}
-
-impl fmt::Debug for Tuple {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
+        write!(f, "{}", self.r#type())
     }
 }

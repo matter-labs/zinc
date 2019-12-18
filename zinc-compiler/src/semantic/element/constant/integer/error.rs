@@ -52,5 +52,5 @@ pub enum Error {
     #[fail(display = "literal '{}' is larger than {} bits", _0, _1)]
     LiteralTooLargeForIndex(String, usize),
     #[fail(display = "literal '{}' is larger than {} bits", _0, _1)]
-    LiteralTooLargeForField(String, usize),
+    IntegerTooLargeForField(String, usize),
 }

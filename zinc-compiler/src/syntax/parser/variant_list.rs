@@ -16,6 +16,7 @@ use crate::syntax::VariantParser;
 #[derive(Default)]
 pub struct Parser {
     variants: Vec<Variant>,
+    next: Option<Token>,
 }
 
 impl Parser {
@@ -39,8 +40,10 @@ impl Parser {
                 token => return Ok((self.variants, Some(token))),
             }
 
-            let next = stream.borrow_mut().next()?;
-            match next {
+            match match self.next.take() {
+                Some(token) => token,
+                None => stream.borrow_mut().next()?,
+            } {
                 Token {
                     lexeme: Lexeme::Symbol(Symbol::Comma),
                     ..

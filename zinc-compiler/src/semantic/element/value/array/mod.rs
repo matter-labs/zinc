@@ -10,7 +10,7 @@ use std::fmt;
 
 use crate::semantic::Type;
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Array {
     r#type: Type,
     size: usize,
@@ -59,20 +59,10 @@ impl Array {
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
         self.len() == other.len() && self.r#type == other.r#type
     }
-
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "[{}; {}]", self.r#type, self.size,)
-    }
 }
 
 impl fmt::Display for Array {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
-    }
-}
-
-impl fmt::Debug for Array {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
+        write!(f, "{}", self.r#type())
     }
 }

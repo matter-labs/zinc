@@ -21,7 +21,7 @@ use crate::lexical;
 use crate::semantic::Type;
 use crate::syntax::IntegerLiteral;
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Integer {
     pub value: BigInt,
     pub is_signed: bool,
@@ -40,14 +40,6 @@ impl Integer {
     pub fn new_one(bitlength: usize) -> Self {
         Self {
             value: BigInt::one(),
-            is_signed: false,
-            bitlength,
-        }
-    }
-
-    pub fn new_range_bound(value: usize, bitlength: usize) -> Self {
-        Self {
-            value: BigInt::from(value),
             is_signed: false,
             bitlength,
         }
@@ -249,10 +241,7 @@ impl Integer {
         })
     }
 
-    ///
-    /// Deduces the enough bitlength to represent the biggest number in `literals`.
-    ///
-    pub fn infer_enough_bitlength(literals: &[&IntegerLiteral]) -> Result<usize, Error> {
+    pub fn minimal_bitlength_literals(literals: &[&IntegerLiteral]) -> Result<usize, Error> {
         let mut max = 0;
         for literal in literals.iter() {
             let bitlength = Self::try_from(*literal)?.bitlength;
@@ -263,8 +252,35 @@ impl Integer {
         Ok(max)
     }
 
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}: {}", self.value, self.r#type())
+    pub fn minimal_bitlength_bigints(values: &[&BigInt]) -> Result<usize, Error> {
+        let mut max = 0;
+        for value in values.iter() {
+            let bitlength = Self::minimal_bitlength(value)?;
+            if bitlength > max {
+                max = bitlength;
+            }
+        }
+        Ok(max)
+    }
+
+    fn minimal_bitlength(value: &BigInt) -> Result<usize, Error> {
+        let mut bitlength = crate::BITLENGTH_BYTE;
+        let mut exponent = BigInt::from(1 << crate::BITLENGTH_BYTE);
+        while value.ge(&exponent) {
+            if bitlength == crate::BITLENGTH_MAX_INT {
+                exponent <<= crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
+                bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
+            } else if bitlength == crate::BITLENGTH_FIELD {
+                return Err(Error::IntegerTooLargeForField(
+                    value.to_string(),
+                    crate::BITLENGTH_FIELD,
+                ));
+            } else {
+                exponent <<= crate::BITLENGTH_BYTE;
+                bitlength += crate::BITLENGTH_BYTE;
+            }
+        }
+        Ok(bitlength)
     }
 }
 
@@ -305,22 +321,7 @@ impl TryFrom<&IntegerLiteral> for Integer {
 
         let value = BigInt::from_str_radix(&string, base)
             .expect(crate::semantic::PANIC_VALIDATED_DURING_LEXICAL_ANALYSIS);
-        let mut bitlength = crate::BITLENGTH_BYTE;
-        let mut exponent = BigInt::from(1 << crate::BITLENGTH_BYTE);
-        while value >= exponent {
-            if bitlength == crate::BITLENGTH_MAX_INT {
-                exponent <<= crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
-                bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
-            } else if bitlength == crate::BITLENGTH_FIELD {
-                return Err(Error::LiteralTooLargeForField(
-                    string.to_owned(),
-                    crate::BITLENGTH_FIELD,
-                ));
-            } else {
-                exponent <<= crate::BITLENGTH_BYTE;
-                bitlength += crate::BITLENGTH_BYTE;
-            }
-        }
+        let bitlength = Self::minimal_bitlength(&value)?;
 
         Ok(Self::new(value, false, bitlength))
     }
@@ -328,12 +329,6 @@ impl TryFrom<&IntegerLiteral> for Integer {
 
 impl fmt::Display for Integer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
-    }
-}
-
-impl fmt::Debug for Integer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
+        write!(f, "{}: {}", self.value, self.r#type())
     }
 }

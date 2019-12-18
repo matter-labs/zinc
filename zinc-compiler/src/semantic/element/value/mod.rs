@@ -23,7 +23,7 @@ use crate::semantic::Caster;
 use crate::semantic::Constant;
 use crate::semantic::Type;
 
-#[derive(Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Unit,
     Boolean,
@@ -353,17 +353,6 @@ impl Value {
             )),
         }
     }
-
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Unit => write!(f, "()"),
-            Self::Boolean => write!(f, "bool"),
-            Self::Integer(integer) => write!(f, "{}", integer),
-            Self::Array(array) => write!(f, "{}", array),
-            Self::Tuple(tuple) => write!(f, "{}", tuple),
-            Self::Structure(structure) => write!(f, "{}", structure),
-        }
-    }
 }
 
 impl From<Constant> for Value {
@@ -380,12 +369,6 @@ impl From<&Constant> for Value {
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
-    }
-}
-
-impl fmt::Debug for Value {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt(f)
+        write!(f, "{}", self.r#type())
     }
 }

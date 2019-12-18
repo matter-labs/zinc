@@ -31,7 +31,7 @@ fn main() {
         ),
     ));
 
-    let result = super::result(input);
+    let result = super::get_binary_result(input);
 
     assert_eq!(expected, result);
 }

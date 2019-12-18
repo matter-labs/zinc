@@ -97,7 +97,7 @@ fn main() -> Result<(), Error> {
 
     let args: Arguments = Arguments::from_args();
 
-    let bytecode = Rc::new(RefCell::new(Bytecode::new_binary()));
+    let bytecode = Rc::new(RefCell::new(Bytecode::new()));
     let directory = fs::read_dir(args.input_path)
         .map_err(InputError::Directory)
         .map_err(Error::Input)?;

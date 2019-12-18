@@ -13,12 +13,12 @@ use zinc_bytecode::Cast;
 use zinc_bytecode::Eq;
 use zinc_bytecode::Exit;
 use zinc_bytecode::Instruction;
-use zinc_bytecode::LoadPush;
+use zinc_bytecode::Load;
 use zinc_bytecode::LoopBegin;
 use zinc_bytecode::LoopEnd;
-use zinc_bytecode::PopStore;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
+use zinc_bytecode::Store;
 
 #[test]
 fn test() {
@@ -43,37 +43,37 @@ fn main() {
         Instruction::Exit(Exit::new(0)),
         Instruction::PushConst(PushConst::new(BigInt::from(0), false, 8)),
         Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
-        Instruction::PopStore(PopStore::new(0)),
+        Instruction::Store(Store::new(0)),
         Instruction::PushConst(PushConst::new(BigInt::from(1), false, 8)),
         Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
-        Instruction::PopStore(PopStore::new(1)),
-        Instruction::LoadPush(LoadPush::new(0)),
-        Instruction::PopStore(PopStore::new(2)),
+        Instruction::Store(Store::new(1)),
+        Instruction::Load(Load::new(0)),
+        Instruction::Store(Store::new(2)),
         Instruction::PushConst(PushConst::new(BigInt::from(1), false, 8)),
-        Instruction::PopStore(PopStore::new(3)),
+        Instruction::Store(Store::new(3)),
         Instruction::LoopBegin(LoopBegin::new(10)),
-        Instruction::LoadPush(LoadPush::new(1)),
-        Instruction::LoadPush(LoadPush::new(0)),
+        Instruction::Load(Load::new(1)),
+        Instruction::Load(Load::new(0)),
         Instruction::Add(Add),
-        Instruction::PopStore(PopStore::new(2)),
-        Instruction::LoadPush(LoadPush::new(1)),
-        Instruction::PopStore(PopStore::new(0)),
-        Instruction::LoadPush(LoadPush::new(2)),
-        Instruction::PopStore(PopStore::new(1)),
+        Instruction::Store(Store::new(2)),
+        Instruction::Load(Load::new(1)),
+        Instruction::Store(Store::new(0)),
+        Instruction::Load(Load::new(2)),
+        Instruction::Store(Store::new(1)),
         Instruction::PushConst(PushConst::new(BigInt::from(1), false, 8)),
-        Instruction::LoadPush(LoadPush::new(3)),
+        Instruction::Load(Load::new(3)),
         Instruction::Add(Add),
-        Instruction::PopStore(PopStore::new(3)),
+        Instruction::Store(Store::new(3)),
         Instruction::LoopEnd(LoopEnd),
         Instruction::PushConst(PushConst::new(BigInt::from(89), false, 8)),
         Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
-        Instruction::LoadPush(LoadPush::new(2)),
+        Instruction::Load(Load::new(2)),
         Instruction::Eq(Eq),
         Instruction::Assert(Assert),
         Instruction::Return(Return::new(0)),
     ]);
 
-    let result = super::instructions(input);
+    let result = super::get_instructions(input);
 
     assert_eq!(expected, result);
 }

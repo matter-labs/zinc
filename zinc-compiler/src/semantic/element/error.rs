@@ -10,11 +10,11 @@ use crate::semantic::ValueError;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
-    #[fail(display = "place: {}", _0)]
+    #[fail(display = "{}", _0)]
     Place(PlaceError),
-    #[fail(display = "value: {}", _0)]
+    #[fail(display = "{}", _0)]
     Value(ValueError),
-    #[fail(display = "constant: {}", _0)]
+    #[fail(display = "{}", _0)]
     Constant(ConstantError),
 
     #[fail(

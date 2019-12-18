@@ -71,8 +71,10 @@ impl Parser {
                     }
                 }
                 State::FirstExpressionOrBracketSquareRight => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareRight),
                             ..
@@ -87,8 +89,10 @@ impl Parser {
                     }
                 }
                 State::ExpressionOrBracketSquareRight => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareRight),
                             ..
@@ -157,8 +161,10 @@ impl Parser {
                     }
                 }
                 State::SizeLiteral => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Literal(Literal::Integer(integer)),
                             ..
@@ -176,8 +182,10 @@ impl Parser {
                     }
                 }
                 State::BracketSquareRight => {
-                    let next = stream.borrow_mut().next()?;
-                    match next {
+                    match match self.next.take() {
+                        Some(token) => token,
+                        None => stream.borrow_mut().next()?,
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareRight),
                             ..
