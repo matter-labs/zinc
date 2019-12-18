@@ -1,6 +1,10 @@
+mod data_stack;
+mod evaluation_stack;
+
+pub use data_stack::*;
+pub use evaluation_stack::*;
+
 use crate::primitive::Primitive;
-use crate::vm::memory::Memory;
-use crate::vm::data_stack::DataStack;
 
 #[derive(Debug)]
 pub struct Loop {
@@ -11,8 +15,8 @@ pub struct Loop {
 #[derive(Debug)]
 pub struct Branch<P: Primitive> {
     pub condition: P,
-    pub then_memory: Option<Memory<P>>,
-    pub else_memory: Option<Memory<P>>,
+    pub then_memory: Option<EvaluationStack<P>>,
+    pub else_memory: Option<EvaluationStack<P>>,
 }
 
 #[derive(Debug)]
@@ -24,7 +28,7 @@ pub enum Block<P: Primitive> {
 #[derive(Debug)]
 pub struct FunctionFrame<P: Primitive> {
     pub blocks: Vec<Block<P>>,
-    pub memory_snapshots: Vec<Memory<P>>,
+    pub memory_snapshots: Vec<EvaluationStack<P>>,
     pub return_address: usize,
     pub stack_frame_begin: usize,
     pub stack_frame_end: usize,
@@ -43,7 +47,7 @@ impl<P: Primitive> FunctionFrame<P> {
     pub fn new(data_stack_address: usize, return_address: usize) -> Self {
         Self {
             blocks: vec![],
-            memory_snapshots: vec![Memory::new()],
+            memory_snapshots: vec![EvaluationStack::new()],
             return_address,
             stack_frame_begin: data_stack_address,
             stack_frame_end: data_stack_address,

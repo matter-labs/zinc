@@ -1,9 +1,6 @@
-mod memory;
 mod state;
 mod internal;
-mod data_stack;
 
-pub use memory::*;
 pub use state::*;
 pub use internal::*;
 
@@ -11,8 +8,6 @@ use crate::primitive::{Primitive, PrimitiveOperations};
 use num_bigint::BigInt;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 use franklin_crypto::bellman::SynthesisError;
-use crate::vm::memory::Memory;
-use crate::vm::data_stack::DataStack;
 
 pub trait VMInstruction<E, O>: InstructionInfo
 where
@@ -156,7 +151,7 @@ impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
             .ok_or(RuntimeError::StackUnderflow)
     }
 
-    pub fn memory(&mut self) -> Result<&mut Memory<P>, RuntimeError> {
+    pub fn memory(&mut self) -> Result<&mut EvaluationStack<P>, RuntimeError> {
         self.frame()?.memory_snapshots.last_mut().ok_or(RuntimeError::StackUnderflow)
     }
 

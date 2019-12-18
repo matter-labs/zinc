@@ -10,35 +10,25 @@ pub enum StorageCell<P: Primitive> {
     ChangedMerkleTree(P::MerkleTree),
 }
 
-/// StackFrame is a data structure that represents the state of function execution.
+/// EvaluationStack is a data structure that represents the state of function execution.
 #[derive(Debug)]
-pub struct Memory<P: Primitive> {
+pub struct EvaluationStack<P: Primitive> {
     stack: Vec<P>,
 }
 
 
-impl<P: Primitive> Memory<P> {
-    /// Initialize new stack frame with given arguments.
+impl<P: Primitive> EvaluationStack<P> {
     pub fn new() -> Self {
         Self {
             stack: vec![],
         }
     }
 
-//    /// Get argument by it's index.
-//    pub fn argument(&mut self, index: usize) -> Result<E, RuntimeError>  {
-//        self.arguments.get(index)
-//            .ok_or(RuntimeError::MissingArgument)
-//            .map(|value| (*value).clone())
-//    }
-
-    /// Push value onto evaluation stack.
     pub fn push(&mut self, value: P) -> Result<(), RuntimeError> {
         self.stack.push(value);
         Ok(())
     }
 
-    /// Pop value from evaluation stack.
     pub fn pop(&mut self) -> Result<P, RuntimeError> {
         self.stack.pop().ok_or(RuntimeError::StackUnderflow)
     }

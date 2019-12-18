@@ -1,7 +1,6 @@
 use crate::primitive::{Primitive, PrimitiveOperations};
 use crate::RuntimeError;
-use crate::vm::{VirtualMachine, Branch, Block, Loop, FunctionFrame};
-use crate::vm::data_stack::Cell;
+use crate::vm::{VirtualMachine, Branch, Block, Loop, FunctionFrame, Cell};
 
 /// This is an internal interface to virtual machine used by instructions.
 pub trait InternalVM<E: Primitive> {
