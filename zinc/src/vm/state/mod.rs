@@ -1,6 +1,8 @@
+mod cell;
 mod data_stack;
 mod evaluation_stack;
 
+pub use cell::*;
 pub use data_stack::*;
 pub use evaluation_stack::*;
 
@@ -15,8 +17,8 @@ pub struct Loop {
 #[derive(Debug)]
 pub struct Branch<P: Primitive> {
     pub condition: P,
-    pub then_memory: Option<EvaluationStack<P>>,
-    pub else_memory: Option<EvaluationStack<P>>,
+    /// False if there is only one case (If-Endif), true if two cases (If-Else-Endif).
+    pub is_full: bool,
 }
 
 #[derive(Debug)]
@@ -28,7 +30,6 @@ pub enum Block<P: Primitive> {
 #[derive(Debug)]
 pub struct FunctionFrame<P: Primitive> {
     pub blocks: Vec<Block<P>>,
-    pub memory_snapshots: Vec<EvaluationStack<P>>,
     pub return_address: usize,
     pub stack_frame_begin: usize,
     pub stack_frame_end: usize,
@@ -37,9 +38,10 @@ pub struct FunctionFrame<P: Primitive> {
 #[derive(Debug)]
 pub struct State<P: Primitive> {
     pub instruction_counter: usize,
-    pub conditions_stack: Vec<P>,
+    pub evaluation_stack: EvaluationStack<P>,
     pub data_stack: DataStack<P>,
-    pub function_frames: Vec<FunctionFrame<P>>,
+    pub conditions_stack: Vec<P>,
+    pub frames_stack: Vec<FunctionFrame<P>>,
 }
 
 
@@ -47,7 +49,6 @@ impl<P: Primitive> FunctionFrame<P> {
     pub fn new(data_stack_address: usize, return_address: usize) -> Self {
         Self {
             blocks: vec![],
-            memory_snapshots: vec![EvaluationStack::new()],
             return_address,
             stack_frame_begin: data_stack_address,
             stack_frame_end: data_stack_address,

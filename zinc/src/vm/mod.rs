@@ -39,12 +39,12 @@ pub enum RuntimeError {
     MissingArgument,
     BranchStacksDoNotMatch,
     IndexOutOfBounds,
-    UsingMerkleTreeAsValue,
+    MergingNonValueTypes,
 }
 
 pub struct VirtualMachine<E: Primitive, O: PrimitiveOperations<E>> {
     state: State<E>,
-    operator: O,
+    ops: O,
     outputs: Vec<E>,
 }
 
@@ -53,11 +53,12 @@ impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
         Self {
             state: State {
                 instruction_counter: 0,
-                conditions_stack: vec![],
+                evaluation_stack: EvaluationStack::new(),
                 data_stack: DataStack::new(),
-                function_frames: vec![],
+                conditions_stack: vec![],
+                frames_stack: vec![],
             },
-            operator,
+            ops: operator,
             outputs: vec![],
         }
     }
@@ -67,7 +68,7 @@ impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
         instructions: &[Instruction],
         inputs: Option<&[BigInt]>,
     ) -> Result<Vec<Option<BigInt>>, RuntimeError> {
-        let one = self.operator.constant_bigint(&1.into())?;
+        let one = self.ops.constant_bigint(&1.into())?;
         self.condition_push(one)?;
 
         match instructions.first() {
@@ -87,27 +88,27 @@ impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
                 dispatch_instruction!(instruction => instruction.to_assembly())
             );
             dispatch_instruction!(instruction => instruction.execute(self))?;
-            log::info!("{}", self.stack_to_string());
+            log::info!("{}", self.state_to_string());
         }
 
         self.get_outputs()
     }
 
     fn init_root_frame(&mut self, inputs_count: usize, inputs: Option<&[BigInt]>) -> Result<(), RuntimeError> {
-        self.state.function_frames.push(
+        self.state.frames_stack.push(
             FunctionFrame::new(0, std::usize::MAX)
         );
 
         match inputs {
             None => {
                 for _ in 0..inputs_count {
-                    let variable = self.operator.variable_none()?;
+                    let variable = self.ops.variable_none()?;
                     self.push(variable)?;
                 }
             },
             Some(values) => {
                 for value in values.iter() {
-                    let variable = self.operator.variable_bigint(value)?;
+                    let variable = self.ops.variable_bigint(value)?;
                     self.push(variable)?;
                 }
             },
@@ -120,19 +121,19 @@ impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
         let mut outputs = Vec::new();
 
         for o in self.outputs.iter() {
-            let e = self.operator.output(o.clone())?;
+            let e = self.ops.output(o.clone())?;
             outputs.push(e.to_bigint());
         }
 
         Ok(outputs)
     }
 
-    fn stack_to_string(&self) -> String {
+    fn state_to_string(&self) -> String {
         format!("{:?}", self.state)
     }
 
     pub fn get_operator(&mut self) -> &mut O {
-        &mut self.operator
+        &mut self.ops
     }
 
     pub fn condition_push(&mut self, element: P) -> Result<(), RuntimeError> {
@@ -151,11 +152,7 @@ impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
             .ok_or(RuntimeError::StackUnderflow)
     }
 
-    pub fn memory(&mut self) -> Result<&mut EvaluationStack<P>, RuntimeError> {
-        self.frame()?.memory_snapshots.last_mut().ok_or(RuntimeError::StackUnderflow)
-    }
-
-    fn frame(&mut self) -> Result<&mut FunctionFrame<P>, RuntimeError> {
-        self.state.function_frames.last_mut().ok_or(RuntimeError::StackUnderflow)
+    fn top_frame(&mut self) -> Result<&mut FunctionFrame<P>, RuntimeError> {
+        self.state.frames_stack.last_mut().ok_or(RuntimeError::StackUnderflow)
     }
 }

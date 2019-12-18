@@ -2,12 +2,7 @@ use std::collections::HashMap;
 
 use crate::primitive::{Primitive, PrimitiveOperations};
 use crate::RuntimeError;
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum Cell<P: Primitive> {
-    Value(P),
-    Address(usize),
-}
+use crate::vm::Cell;
 
 #[derive(Debug)]
 struct CellDelta<P: Primitive> {

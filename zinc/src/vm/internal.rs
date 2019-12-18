@@ -29,39 +29,30 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
         O: PrimitiveOperations<P>,
 {
     fn push(&mut self, element: P) -> Result<(), RuntimeError> {
-        self.memory()?.push(element)
+        self.state.evaluation_stack.push(Cell::Value(element))
     }
 
     fn pop(&mut self) -> Result<P, RuntimeError> {
-        self.memory()?.pop()
+        let cell = self.state.evaluation_stack.pop()?;
+        cell.value()
     }
 
     fn load(&mut self, address: usize) -> Result<P, RuntimeError> {
-        let offset = self.frame()?.stack_frame_begin;
-        match self.state.data_stack.get(offset + address) {
-            Ok(cell) => {
-                match cell {
-                    Cell::Value(v) => Ok(v),
-                    Cell::Address(_) => {
-                        unimplemented!()
-                    },
-                }
-            },
-            Err(err) => Err(err),
-        }
+        let offset = self.top_frame()?.stack_frame_begin;
+        self.state.data_stack.get(offset + address)?.value()
     }
 
     fn store(&mut self, address: usize, element: P) -> Result<(), RuntimeError> {
         {
-            let frame = self.frame()?;
+            let frame = self.top_frame()?;
             frame.stack_frame_end = std::cmp::max(frame.stack_frame_end, address + 1);
         }
-        let offset = self.frame()?.stack_frame_begin;
+        let offset = self.top_frame()?.stack_frame_begin;
         self.state.data_stack.set(offset + address, Cell::Value(element))
     }
 
     fn loop_begin(&mut self, iterations: usize) -> Result<(), RuntimeError> {
-        let frame = self.state.function_frames
+        let frame = self.state.frames_stack
             .last_mut()
             .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
 
@@ -74,7 +65,7 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
     }
 
     fn loop_end(&mut self) -> Result<(), RuntimeError> {
-        let frame = self.state.function_frames.last_mut().unwrap();
+        let frame = self.state.frames_stack.last_mut().unwrap();
 
         match frame.blocks.pop() {
             Some(Block::Loop(mut loop_block)) => {
@@ -98,8 +89,8 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
             arguments.push(arg);
         }
 
-        let offset = self.frame()?.stack_frame_end;
-        self.state.function_frames.push(FunctionFrame::new(
+        let offset = self.top_frame()?.stack_frame_end;
+        self.state.frames_stack.push(FunctionFrame::new(
             offset,
             self.state.instruction_counter,
         ));
@@ -118,7 +109,7 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
             outputs.push(output);
         }
 
-        let frame = self.state.function_frames.pop().ok_or(RuntimeError::StackUnderflow)?;
+        let frame = self.state.frames_stack.pop().ok_or(RuntimeError::StackUnderflow)?;
 
         self.state.instruction_counter = frame.return_address;
 
@@ -134,33 +125,21 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
 
         let prev = self.condition_top()?;
 
-        let next = self.operator.and(condition.clone(), prev)?;
+        let next = self.ops.and(condition.clone(), prev)?;
         self.state.conditions_stack.push(next);
 
-        let frame = self.state.function_frames.last_mut()
-            .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
+        let branch = Branch { condition, is_full: false };
 
-        let fork = frame.memory_snapshots.last()
-            .ok_or_else(|| RuntimeError::InternalError("Root block is missing".into()))?
-            .fork();
+        self.top_frame()?.blocks.push(Block::Branch(branch));
 
-        frame.memory_snapshots.push(fork);
-
-        let branch = Branch {
-            condition,
-            then_memory: None,
-            else_memory: None
-        };
-
-        frame.blocks.push(Block::Branch(branch));
-
+        self.state.evaluation_stack.fork();
         self.state.data_stack.fork();
 
         Ok(())
     }
 
     fn branch_else(&mut self) -> Result<(), RuntimeError> {
-        let frame = self.state.function_frames.last_mut()
+        let frame = self.state.frames_stack.last_mut()
             .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
 
         let mut branch = match frame.blocks.pop() {
@@ -168,28 +147,24 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
             Some(_) | None => Err(RuntimeError::UnexpectedElse),
         }?;
 
-        if branch.then_memory.is_some() {
-            return Err(RuntimeError::UnexpectedElse)
+        if branch.is_full {
+            return Err(RuntimeError::UnexpectedElse);
+        } else {
+            branch.is_full = true;
         }
-
-        branch.then_memory = frame.memory_snapshots.pop();
-
-        let fork = frame.memory_snapshots.last()
-            .ok_or_else(|| RuntimeError::InternalError("Root block is missing".into()))?
-            .fork();
 
         let condition = branch.condition.clone();
 
-        frame.memory_snapshots.push(fork);
         frame.blocks.push(Block::Branch(branch));
 
         self.condition_pop()?;
         let prev = self.condition_top()?;
-        let not_cond = self.operator.not(condition)?;
-        let next = self.operator.and(prev, not_cond)?;
+        let not_cond = self.ops.not(condition)?;
+        let next = self.ops.and(prev, not_cond)?;
         self.condition_push(next)?;
 
         self.state.data_stack.switch_branch()?;
+        self.state.evaluation_stack.fork();
 
         Ok(())
     }
@@ -197,7 +172,7 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
     fn branch_end(&mut self) -> Result<(), RuntimeError> {
         self.condition_pop()?;
 
-        let frame = self.state.function_frames.last_mut()
+        let frame = self.state.frames_stack.last_mut()
             .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
 
         let mut branch = match frame.blocks.pop() {
@@ -205,29 +180,13 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
             Some(_) | None => Err(RuntimeError::UnexpectedEndIf),
         }?;
 
-        if branch.then_memory.is_none() {
-            branch.then_memory = frame.memory_snapshots.pop();
+        if branch.is_full {
+            self.state.evaluation_stack.merge(branch.condition.clone(), &mut self.ops)?;
         } else {
-            branch.else_memory = frame.memory_snapshots.pop();
+            self.state.evaluation_stack.revert();
         }
 
-        let mem = frame.memory_snapshots.last_mut()
-            .ok_or_else(|| RuntimeError::InternalError("Root block is missing".into()))?;
-
-        match (branch.then_memory, branch.else_memory) {
-            (Some(t), Some(f)) => {
-                mem.merge(branch.condition.clone(), t, f, &mut self.operator)?;
-            }
-            (Some(t), None) => {
-                let f = mem.fork();
-                mem.merge(branch.condition.clone(), t, f, &mut self.operator)?;
-            }
-            _ => {
-                unreachable!()
-            }
-        }
-
-        self.state.data_stack.merge(branch.condition, &mut self.operator)?;
+        self.state.data_stack.merge(branch.condition, &mut self.ops)?;
 
         Ok(())
     }
