@@ -2,11 +2,14 @@ use crate::instructions::utils::decode_simple_instruction;
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
 
 #[derive(Debug, PartialEq, Default, Clone)]
-pub struct Dbg;
+pub struct Dbg {
+    pub string: String,
+    pub nargs: usize,
+}
 
 impl Dbg {
-    pub fn new(_string: String, _nargs: usize) -> Self {
-        Self
+    pub fn new(string: String, nargs: usize) -> Self {
+        Self { string, nargs }
     }
 }
 
@@ -28,7 +31,7 @@ impl InstructionInfo for Dbg {
     }
 
     fn inputs_count(&self) -> usize {
-        1
+        self.nargs
     }
 
     fn outputs_count(&self) -> usize {

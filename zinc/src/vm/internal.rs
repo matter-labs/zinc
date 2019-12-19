@@ -82,21 +82,17 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
     }
 
     fn call(&mut self, address: usize, inputs_count: usize) -> Result<(), RuntimeError> {
-        let mut arguments = Vec::new();
-        for _ in 0..inputs_count {
-            let arg = self.pop()?;
-            arguments.push(arg);
-        }
-
         let offset = self.top_frame()?.stack_frame_end;
         self.state.frames_stack.push(FunctionFrame::new(
             offset,
             self.state.instruction_counter,
         ));
 
-        for (i, p) in arguments.into_iter().enumerate() {
-            self.store(i, p)?;
+        for i in 0..inputs_count {
+            let arg = self.pop()?;
+            self.store(i, arg)?;
         }
+
         self.state.instruction_counter = address;
         Ok(())
     }
