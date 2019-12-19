@@ -47,6 +47,9 @@ pub enum InstructionCode {
     LoadByIndexGlobal,
     LoadArrayByIndexGlobal,
 
+    StoreGlobal,
+    StoreSequenceGlobal,
+
     // Arithmetic
     Add,
     Sub,
@@ -112,6 +115,8 @@ pub enum Instruction {
     LoadArrayGlobal(LoadArrayGlobal),
     LoadByIndexGlobal(LoadByIndexGlobal),
     LoadArrayByIndexGlobal(LoadArrayByIndexGlobal),
+    StoreGlobal(StoreGlobal),
+    StoreSequenceGlobal(StoreSequenceGlobal),
 
     // Arithmetic
     Add(Add),
@@ -187,6 +192,8 @@ macro_rules! dispatch_instruction {
             Instruction::LoadArrayGlobal($pattern) => $expression,
             Instruction::LoadByIndexGlobal($pattern) => $expression,
             Instruction::LoadArrayByIndexGlobal($pattern) => $expression,
+            Instruction::StoreGlobal($pattern) => $expression,
+            Instruction::StoreSequenceGlobal($pattern) => $expression,
 
             Instruction::Add($pattern) => $expression,
             Instruction::Sub($pattern) => $expression,

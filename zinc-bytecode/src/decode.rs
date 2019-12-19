@@ -49,6 +49,8 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Instruction, usize), Decoding
         x if x == InstructionCode::LoadArrayGlobal as u8 => decode_and_wrap::<LoadArrayGlobal>(bytes),
         x if x == InstructionCode::LoadByIndexGlobal as u8 => decode_and_wrap::<LoadByIndexGlobal>(bytes),
         x if x == InstructionCode::LoadArrayByIndexGlobal as u8 => decode_and_wrap::<LoadArrayByIndexGlobal>(bytes),
+        x if x == InstructionCode::StoreGlobal as u8 => decode_and_wrap::<StoreGlobal>(bytes),
+        x if x == InstructionCode::StoreSequenceGlobal as u8 => decode_and_wrap::<StoreSequenceGlobal>(bytes),
         x if x == InstructionCode::Add as u8 => decode_and_wrap::<Add>(bytes),
         x if x == InstructionCode::Sub as u8 => decode_and_wrap::<Sub>(bytes),
         x if x == InstructionCode::Mul as u8 => decode_and_wrap::<Mul>(bytes),

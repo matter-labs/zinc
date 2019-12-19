@@ -14,6 +14,9 @@ mod load_array_global;
 mod load_by_index_global;
 mod load_array_by_index_global;
 
+mod store_global;
+mod store_sequence_global;
+
 pub use push_const::PushConst;
 pub use pop::Pop;
 pub use load::Load;
@@ -29,3 +32,6 @@ pub use load_global::LoadGlobal;
 pub use load_array_global::LoadArrayGlobal;
 pub use load_by_index_global::LoadByIndexGlobal;
 pub use load_array_by_index_global::LoadArrayByIndexGlobal;
+
+pub use store_global::StoreGlobal;
+pub use store_sequence_global::StoreSequenceGlobal;
