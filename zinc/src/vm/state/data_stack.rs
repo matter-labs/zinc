@@ -130,7 +130,7 @@ impl<P: Primitive> DataStack<P> {
                 (None, _) => {}
                 (Some(Cell::Value(old)), Cell::Value(new)) => {
                     let value = ops.conditional_select(condition.clone(), new.clone(), old.clone())?;
-                    self.set(addr, Cell::Value(value));
+                    self.set(addr, Cell::Value(value))?;
                 }
                 (Some(old), new) => {
                     log::warn!("Merging {:?} into {:?}, ignoring...", new, old);
@@ -158,7 +158,7 @@ impl<P: Primitive> DataStack<P> {
                 (None, _) => {}
                 (Some(Cell::Value(old)), Cell::Value(new)) => {
                     let value = ops.conditional_select(condition.clone(), new.clone(), old.clone())?;
-                    self.set(*addr, Cell::Value(value));
+                    self.set(*addr, Cell::Value(value))?;
                 }
                 (Some(old), new) => {
                     log::warn!("Merging {:?} into {:?}, ignoring...", new, old);

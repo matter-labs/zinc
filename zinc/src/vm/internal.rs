@@ -175,7 +175,7 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
         let frame = self.state.frames_stack.last_mut()
             .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
 
-        let mut branch = match frame.blocks.pop() {
+        let branch = match frame.blocks.pop() {
             Some(Block::Branch(branch)) => Ok(branch),
             Some(_) | None => Err(RuntimeError::UnexpectedEndIf),
         }?;
@@ -183,7 +183,7 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
         if branch.is_full {
             self.state.evaluation_stack.merge(branch.condition.clone(), &mut self.ops)?;
         } else {
-            self.state.evaluation_stack.revert();
+            self.state.evaluation_stack.revert()?;
         }
 
         self.state.data_stack.merge(branch.condition, &mut self.ops)?;

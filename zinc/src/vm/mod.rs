@@ -129,7 +129,7 @@ impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
     }
 
     fn state_to_string(&self) -> String {
-        format!("{:?}", self.state)
+        format!("{:#?}", self.state)
     }
 
     pub fn get_operator(&mut self) -> &mut O {
