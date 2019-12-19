@@ -1,9 +1,9 @@
-mod constrained_primitive;
-mod simple_primitive;
+mod constrained;
+mod simple;
 pub mod utils;
 
-pub use constrained_primitive::*;
-pub use simple_primitive::*;
+pub use constrained::*;
+pub use simple::*;
 
 use crate::vm::RuntimeError;
 use num_bigint::{BigInt, ToBigInt};
