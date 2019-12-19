@@ -6,6 +6,7 @@ pub use decode::*;
 pub use instructions::*;
 
 use std::fmt;
+use std::string::FromUtf8Error;
 
 pub trait InstructionInfo: PartialEq + fmt::Debug + Sized {
     fn to_assembly(&self) -> String;
@@ -22,6 +23,7 @@ pub enum DecodingError {
     UnexpectedEOF,
     UnknownInstructionCode(u8),
     ConstantTooLong,
+    UTF8Error,
 }
 
 #[derive(Debug)]

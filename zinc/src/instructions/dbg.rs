@@ -11,7 +11,6 @@ impl<E, O> VMInstruction<E, O> for Dbg
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         print!("{}", self.string);
-        dbg!("Hello");
         for _ in 0..self.nargs {
             let v = vm.pop()?.value()?;
             print!(" {}", v)
@@ -32,7 +31,6 @@ mod tests {
 
     #[test]
     fn test() {
-        println!("hello");
         VMTestRunner::new()
             .add(PushConst { value: 42.into() })
             .add(Dbg::new("Value: ".into(), 1))
