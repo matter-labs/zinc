@@ -3,12 +3,12 @@ use crate::RuntimeError;
 use crate::vm::{VirtualMachine, Branch, Block, Loop, FunctionFrame, Cell};
 
 /// This is an internal interface to virtual machine used by instructions.
-pub trait InternalVM<E: Primitive> {
-    fn push(&mut self, element: E) -> Result<(), RuntimeError>;
-    fn pop(&mut self) -> Result<E, RuntimeError>;
+pub trait InternalVM<P: Primitive> {
+    fn push(&mut self, cell: Cell<P>) -> Result<(), RuntimeError>;
+    fn pop(&mut self) -> Result<Cell<P>, RuntimeError>;
 
-    fn load(&mut self, address: usize) -> Result<E, RuntimeError>;
-    fn store(&mut self, address: usize, element: E) -> Result<(), RuntimeError>;
+    fn load(&mut self, address: usize) -> Result<Cell<P>, RuntimeError>;
+    fn store(&mut self, address: usize, cell: Cell<P>) -> Result<(), RuntimeError>;
 
     fn loop_begin(&mut self, iter_count: usize) -> Result<(), RuntimeError>;
     fn loop_end(&mut self) -> Result<(), RuntimeError>;
@@ -28,27 +28,26 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
         P: Primitive,
         O: PrimitiveOperations<P>,
 {
-    fn push(&mut self, element: P) -> Result<(), RuntimeError> {
-        self.state.evaluation_stack.push(Cell::Value(element))
+    fn push(&mut self, cell: Cell<P>) -> Result<(), RuntimeError> {
+        self.state.evaluation_stack.push(cell)
     }
 
-    fn pop(&mut self) -> Result<P, RuntimeError> {
-        let cell = self.state.evaluation_stack.pop()?;
-        cell.value()
+    fn pop(&mut self) -> Result<Cell<P>, RuntimeError> {
+        self.state.evaluation_stack.pop()
     }
 
-    fn load(&mut self, address: usize) -> Result<P, RuntimeError> {
+    fn load(&mut self, address: usize) -> Result<Cell<P>, RuntimeError> {
         let offset = self.top_frame()?.stack_frame_begin;
-        self.state.data_stack.get(offset + address)?.value()
+        self.state.data_stack.get(offset + address)
     }
 
-    fn store(&mut self, address: usize, element: P) -> Result<(), RuntimeError> {
+    fn store(&mut self, address: usize, cell: Cell<P>) -> Result<(), RuntimeError> {
         {
             let frame = self.top_frame()?;
             frame.stack_frame_end = std::cmp::max(frame.stack_frame_end, address + 1);
         }
         let offset = self.top_frame()?.stack_frame_begin;
-        self.state.data_stack.set(offset + address, Cell::Value(element))
+        self.state.data_stack.set(offset + address, cell)
     }
 
     fn loop_begin(&mut self, iterations: usize) -> Result<(), RuntimeError> {
@@ -121,7 +120,7 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
     }
 
     fn branch_then(&mut self) -> Result<(), RuntimeError> {
-        let condition = self.pop()?;
+        let condition = self.pop()?.value()?;
 
         let prev = self.condition_top()?;
 
@@ -193,7 +192,7 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
 
     fn exit(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
         for _ in 0..outputs_count {
-            let value = self.pop()?;
+            let value = self.pop()?.value()?;
             self.outputs.push(value);
         }
 

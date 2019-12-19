@@ -26,7 +26,9 @@ where
     BI: Into<BigInt> + Copy,
 {
     for (i, expected) in expected_stack.iter().enumerate() {
-        let value = vm.pop().expect("expected stack value is missing");
+        let value = vm
+            .pop().expect("expected stack value is missing")
+            .value().expect("expected Cell::Value");
 
         assert_eq!(
             value.to_bigint(),

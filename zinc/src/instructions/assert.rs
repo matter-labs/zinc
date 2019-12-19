@@ -11,7 +11,7 @@ where
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let value = vm.pop()?;
+        let value = vm.pop()?.value()?;
         let c = vm.condition_top()?;
         let not_c = vm.get_operator().not(c)?;
         let cond_value = vm.get_operator().or(value, not_c)?;

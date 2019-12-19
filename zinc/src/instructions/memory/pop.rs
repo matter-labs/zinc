@@ -12,7 +12,7 @@ where
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         for _ in 0..self.count {
-            vm.pop()?;
+            vm.pop()?.value()?;
         }
         Ok(())
     }

@@ -1,7 +1,7 @@
 extern crate franklin_crypto;
 
 use crate::primitive::{Primitive, PrimitiveOperations};
-use crate::vm::{VMInstruction, InternalVM};
+use crate::vm::{VMInstruction, InternalVM, Cell};
 use crate::vm::{RuntimeError, VirtualMachine};
 use zinc_bytecode::instructions::Not;
 
@@ -11,11 +11,11 @@ where
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let value = vm.pop()?;
+        let value = vm.pop()?.value()?;
 
         let not = vm.get_operator().not(value)?;
 
-        vm.push(not)
+        vm.push(Cell::Value(not))
     }
 }
 

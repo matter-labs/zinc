@@ -1,7 +1,7 @@
 extern crate franklin_crypto;
 
 use crate::primitive::{Primitive, PrimitiveOperations};
-use crate::vm::{VMInstruction, InternalVM};
+use crate::vm::{VMInstruction, InternalVM, Cell};
 use crate::vm::{RuntimeError, VirtualMachine};
 use zinc_bytecode::instructions::ConditionalSelect;
 
@@ -11,15 +11,15 @@ where
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let condition = vm.pop()?;
-        let if_true = vm.pop()?;
-        let if_false = vm.pop()?;
+        let condition = vm.pop()?.value()?;
+        let if_true = vm.pop()?.value()?;
+        let if_false = vm.pop()?.value()?;
 
         let selected = vm
             .get_operator()
             .conditional_select(condition, if_true, if_false)?;
 
-        vm.push(selected)
+        vm.push(Cell::Value(selected))
     }
 }
 

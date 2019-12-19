@@ -103,13 +103,13 @@ impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
             None => {
                 for _ in 0..inputs_count {
                     let variable = self.ops.variable_none()?;
-                    self.push(variable)?;
+                    self.push(Cell::Value(variable))?;
                 }
             },
             Some(values) => {
                 for value in values.iter() {
                     let variable = self.ops.variable_bigint(value)?;
-                    self.push(variable)?;
+                    self.push(Cell::Value(variable))?;
                 }
             },
         }

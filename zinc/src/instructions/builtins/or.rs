@@ -1,7 +1,7 @@
 extern crate franklin_crypto;
 
 use crate::primitive::{Primitive, PrimitiveOperations};
-use crate::vm::{VMInstruction, InternalVM};
+use crate::vm::{VMInstruction, InternalVM, Cell};
 use crate::vm::{RuntimeError, VirtualMachine};
 use zinc_bytecode::instructions::Or;
 
@@ -11,12 +11,12 @@ where
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let left = vm.pop()?;
-        let right = vm.pop()?;
+        let left = vm.pop()?.value()?;
+        let right = vm.pop()?.value()?;
 
         let or = vm.get_operator().or(left, right)?;
 
-        vm.push(or)
+        vm.push(Cell::Value(or))
     }
 }
 

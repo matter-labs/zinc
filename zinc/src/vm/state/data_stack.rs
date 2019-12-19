@@ -191,7 +191,7 @@ mod tests {
         let mut ds = DataStack::<SimplePrimitive>::new();
         let mut op = SimplePrimitiveOperations::new();
         let value = op.constant_bigint(&42.into()).unwrap();
-        ds.set(4, Cell::Value(value));
+        ds.set(4, Cell::Value(value)).unwrap();
 
         assert_cell_eq(ds.get(4).unwrap(), 42.into());
     }
@@ -201,14 +201,14 @@ mod tests {
         let mut ds = DataStack::<SimplePrimitive>::new();
         let mut ops = SimplePrimitiveOperations::new();
         let value = ops.constant_bigint(&42.into()).unwrap();
-        ds.set(4, Cell::Value(value));
+        ds.set(4, Cell::Value(value)).unwrap();
 
         ds.fork();
 
         assert_cell_eq(ds.get(4).unwrap(), 42.into());
 
         let value2 = ops.constant_bigint(&13.into()).unwrap();
-        ds.set(4, Cell::Value(value2));
+        ds.set(4, Cell::Value(value2)).unwrap();
         assert_cell_eq(ds.get(4).unwrap(), 13.into());
 
         let condition = ops.constant_bigint(&1.into()).unwrap();
@@ -221,14 +221,14 @@ mod tests {
         let mut ds = DataStack::<SimplePrimitive>::new();
         let mut ops = SimplePrimitiveOperations::new();
         let value = ops.constant_bigint(&42.into()).unwrap();
-        ds.set(4, Cell::Value(value));
+        ds.set(4, Cell::Value(value)).unwrap();
 
         ds.fork();
 
         assert_cell_eq(ds.get(4).unwrap(), 42.into());
 
         let value2 = ops.constant_bigint(&13.into()).unwrap();
-        ds.set(4, Cell::Value(value2));
+        ds.set(4, Cell::Value(value2)).unwrap();
         assert_cell_eq(ds.get(4).unwrap(), 13.into());
 
         let condition = ops.constant_bigint(&0.into()).unwrap();

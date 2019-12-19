@@ -1,7 +1,7 @@
 extern crate franklin_crypto;
 
 use crate::primitive::{Primitive, PrimitiveOperations};
-use crate::vm::{VMInstruction, InternalVM};
+use crate::vm::{VMInstruction, InternalVM, Cell};
 use crate::vm::{RuntimeError, VirtualMachine};
 use zinc_bytecode::instructions::PushConst;
 
@@ -13,7 +13,7 @@ where
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let op = vm.get_operator();
         let value = op.constant_bigint(&self.value)?;
-        vm.push(value)
+        vm.push(Cell::Value(value))
     }
 }
 
