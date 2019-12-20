@@ -11,12 +11,16 @@ impl<E, O> VMInstruction<E, O> for Dbg
         O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+        let mut args = Vec::new();
+        for _ in 0..self.nargs {
+            args.push(vm.pop()?.value()?);
+        }
+
         if let Some(condition) = vm.condition_top()?.to_bigint() {
             if condition.is_positive() {
                 print!("{}", self.string);
-                for _ in 0..self.nargs {
-                    let v = vm.pop()?.value()?;
-                    print!(" {}", v)
+                for value in args.iter() {
+                    print!(" {}", value)
                 }
                 println!();
             }
