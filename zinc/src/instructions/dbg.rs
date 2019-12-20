@@ -3,6 +3,7 @@ extern crate franklin_crypto;
 use crate::primitive::{Primitive, PrimitiveOperations};
 use crate::vm::{RuntimeError, VMInstruction, VirtualMachine, InternalVM};
 use zinc_bytecode::instructions::Dbg;
+use num_traits::Signed;
 
 impl<E, O> VMInstruction<E, O> for Dbg
     where
@@ -10,13 +11,16 @@ impl<E, O> VMInstruction<E, O> for Dbg
         O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        print!("{}", self.string);
-        for _ in 0..self.nargs {
-            let v = vm.pop()?.value()?;
-            print!(" {}", v)
+        if let Some(condition) = vm.condition_top()?.to_bigint() {
+            if condition.is_positive() {
+                print!("{}", self.string);
+                for _ in 0..self.nargs {
+                    let v = vm.pop()?.value()?;
+                    print!(" {}", v)
+                }
+                println!();
+            }
         }
-
-        println!("");
 
         Ok(())
     }

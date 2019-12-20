@@ -16,7 +16,7 @@ impl RefStore {
 
 impl InstructionInfo for RefStore {
     fn to_assembly(&self) -> String {
-        format!("ref_store")
+        format!("ref_store {}", self.index)
     }
 
     fn code() -> InstructionCode {

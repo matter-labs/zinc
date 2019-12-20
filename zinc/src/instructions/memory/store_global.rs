@@ -8,7 +8,7 @@ impl<E, O> VMInstruction<E, O> for StoreGlobal
         E: Primitive,
         O: PrimitiveOperations<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         unimplemented!()
     }
 }

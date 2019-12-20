@@ -16,7 +16,7 @@ impl RefStoreSequence {
 
 impl InstructionInfo for RefStoreSequence {
     fn to_assembly(&self) -> String {
-        format!("ref_store_sequence")
+        format!("ref_store_sequence {}", self.index)
     }
 
     fn code() -> InstructionCode {

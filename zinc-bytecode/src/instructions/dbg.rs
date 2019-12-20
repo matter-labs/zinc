@@ -23,7 +23,7 @@ impl InstructionInfo for Dbg {
 
     fn encode(&self) -> Vec<u8> {
         let mut bytes = vec![InstructionCode::Log as u8];
-        let mut utf8: Vec<u8> = self.string.bytes().clone().into_iter().collect();
+        let mut utf8: Vec<u8> = self.string.bytes().clone().collect();
         bytes.push(self.nargs as u8);
         bytes.push(utf8.len() as u8);
         bytes.append(utf8.as_mut());
