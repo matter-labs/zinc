@@ -6,7 +6,6 @@ pub use decode::*;
 pub use instructions::*;
 
 use std::fmt;
-use std::string::FromUtf8Error;
 
 pub trait InstructionInfo: PartialEq + fmt::Debug + Sized {
     fn to_assembly(&self) -> String;
@@ -37,20 +36,24 @@ pub enum InstructionCode {
     // Data Stack
     Load,
     Store,
-    LoadArray,
-    StoreArray,
+    LoadSequence,
+    StoreSequence,
     LoadByIndex,
     StoreByIndex,
-    LoadArrayByIndex,
-    StoreArrayByIndex,
+    LoadSequenceByIndex,
+    StoreSequenceByIndex,
 
     LoadGlobal,
-    LoadArrayGlobal,
+    LoadSequenceGlobal,
     LoadByIndexGlobal,
-    LoadArrayByIndexGlobal,
+    LoadSequenceByIndexGlobal,
 
     StoreGlobal,
     StoreSequenceGlobal,
+
+    Ref,
+    RefStore,
+    RefStoreSequence,
 
     // Arithmetic
     Add,
@@ -107,18 +110,22 @@ pub enum Instruction {
     // Storage
     Load(Load),
     Store(Store),
-    LoadArray(LoadArray),
-    StoreArray(StoreArray),
+    LoadSequence(LoadSequence),
+    StoreSequence(StoreSequence),
     LoadByIndex(LoadByIndex),
     StoreByIndex(StoreByIndex),
-    LoadArrayByIndex(LoadArrayByIndex),
-    StoreArrayByIndex(StoreArrayByIndex),
+    LoadSequenceByIndex(LoadSequenceByIndex),
+    StoreSequenceByIndex(StoreSequenceByIndex),
     LoadGlobal(LoadGlobal),
-    LoadArrayGlobal(LoadArrayGlobal),
+    LoadSequenceGlobal(LoadSequenceGlobal),
     LoadByIndexGlobal(LoadByIndexGlobal),
-    LoadArrayByIndexGlobal(LoadArrayByIndexGlobal),
+    LoadSequenceByIndexGlobal(LoadSequenceByIndexGlobal),
     StoreGlobal(StoreGlobal),
     StoreSequenceGlobal(StoreSequenceGlobal),
+
+    Ref(Ref),
+    RefStore(RefStore),
+    RefStoreSequence(RefStoreSequence),
 
     // Arithmetic
     Add(Add),
@@ -184,18 +191,22 @@ macro_rules! dispatch_instruction {
             Instruction::Pop($pattern) => $expression,
             Instruction::Load($pattern) => $expression,
             Instruction::Store($pattern) => $expression,
-            Instruction::LoadArray($pattern) => $expression,
-            Instruction::StoreArray($pattern) => $expression,
+            Instruction::LoadSequence($pattern) => $expression,
+            Instruction::StoreSequence($pattern) => $expression,
             Instruction::LoadByIndex($pattern) => $expression,
             Instruction::StoreByIndex($pattern) => $expression,
-            Instruction::LoadArrayByIndex($pattern) => $expression,
-            Instruction::StoreArrayByIndex($pattern) => $expression,
+            Instruction::LoadSequenceByIndex($pattern) => $expression,
+            Instruction::StoreSequenceByIndex($pattern) => $expression,
             Instruction::LoadGlobal($pattern) => $expression,
-            Instruction::LoadArrayGlobal($pattern) => $expression,
+            Instruction::LoadSequenceGlobal($pattern) => $expression,
             Instruction::LoadByIndexGlobal($pattern) => $expression,
-            Instruction::LoadArrayByIndexGlobal($pattern) => $expression,
+            Instruction::LoadSequenceByIndexGlobal($pattern) => $expression,
             Instruction::StoreGlobal($pattern) => $expression,
             Instruction::StoreSequenceGlobal($pattern) => $expression,
+            Instruction::Ref($pattern) => $expression,
+            Instruction::RefStore($pattern) => $expression,
+            Instruction::RefStoreSequence($pattern) => $expression,
+
 
             Instruction::Add($pattern) => $expression,
             Instruction::Sub($pattern) => $expression,

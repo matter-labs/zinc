@@ -2,32 +2,32 @@ use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo, utils}
 
 /// Takes `index` from evaluation stack, loads several values from data stack from `address + index` onto evaluation stack.
 #[derive(Debug, PartialEq, Clone)]
-pub struct LoadArrayByIndexGlobal {
+pub struct LoadSequenceByIndex {
     pub address: usize,
     pub array_len: usize,
     pub value_len: usize,
 }
 
-impl LoadArrayByIndexGlobal {
+impl LoadSequenceByIndex {
     pub fn new(address: usize, array_len: usize, value_len: usize) -> Self {
         Self { address, array_len, value_len }
     }
 }
 
-impl InstructionInfo for LoadArrayByIndexGlobal {
+impl InstructionInfo for LoadSequenceByIndex {
     fn to_assembly(&self) -> String {
-        format!("load_array_by_index_global {} {} {}", self.address, self.array_len, self.value_len)
+        format!("load_array_by_index {} {} {}", self.address, self.array_len, self.value_len)
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::LoadArrayByIndexGlobal
+        InstructionCode::LoadSequenceByIndex
     }
 
     fn encode(&self) -> Vec<u8> {
         utils::encode_with_usize(Self::code(), &[self.address, self.array_len, self.value_len])
     }
 
-    fn decode(bytes: &[u8]) -> Result<(LoadArrayByIndexGlobal, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(LoadSequenceByIndex, usize), DecodingError> {
         let (args, len) = utils::decode_with_usize(Self::code(), bytes, 3)?;
 
         Ok((
@@ -45,6 +45,6 @@ impl InstructionInfo for LoadArrayByIndexGlobal {
     }
 
     fn wrap(&self) -> Instruction {
-        Instruction::LoadArrayByIndexGlobal((*self).clone())
+        Instruction::LoadSequenceByIndex((*self).clone())
     }
 }

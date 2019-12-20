@@ -11,7 +11,7 @@ impl<P: Primitive> Cell<P> {
     pub fn value(self) -> Result<P, RuntimeError> {
         match self {
             Cell::Value(value) => Ok(value),
-            Cell::Address(_) => Err(RuntimeError::InternalError("...".into())),
+            Cell::Address(_) => Err(RuntimeError::UnexpectedNonValueType),
         }
     }
 }

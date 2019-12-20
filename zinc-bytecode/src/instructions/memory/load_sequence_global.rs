@@ -1,32 +1,32 @@
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo, utils};
 
-/// Stores several values from evaluation stack in data stack.
+/// Loads several values from data stack and pushes them onto evaluation stack.
 #[derive(Debug, PartialEq, Clone)]
-pub struct StoreArray {
+pub struct LoadSequenceGlobal {
     pub address: usize,
     pub len: usize,
 }
 
-impl StoreArray {
+impl LoadSequenceGlobal {
     pub fn new(address: usize, len: usize) -> Self {
         Self { address, len }
     }
 }
 
-impl InstructionInfo for StoreArray {
+impl InstructionInfo for LoadSequenceGlobal {
     fn to_assembly(&self) -> String {
-        format!("store_array {} {}", self.address, self.len)
+        format!("load_array_global {} {}", self.address, self.len)
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::StoreArray
+        InstructionCode::LoadSequenceGlobal
     }
 
     fn encode(&self) -> Vec<u8> {
         utils::encode_with_usize(Self::code(), &[self.address, self.len])
     }
 
-    fn decode(bytes: &[u8]) -> Result<(StoreArray, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(LoadSequenceGlobal, usize), DecodingError> {
         let (args, len) = utils::decode_with_usize(Self::code(), bytes, 2)?;
 
         Ok((
@@ -36,14 +36,14 @@ impl InstructionInfo for StoreArray {
     }
 
     fn inputs_count(&self) -> usize {
-        self.len
-    }
-
-    fn outputs_count(&self) -> usize {
         0
     }
 
+    fn outputs_count(&self) -> usize {
+        self.len
+    }
+
     fn wrap(&self) -> Instruction {
-        Instruction::StoreArray((*self).clone())
+        Instruction::LoadSequenceGlobal((*self).clone())
     }
 }

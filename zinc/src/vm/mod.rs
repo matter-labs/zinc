@@ -40,6 +40,7 @@ pub enum RuntimeError {
     BranchStacksDoNotMatch,
     IndexOutOfBounds,
     MergingNonValueTypes,
+    UnexpectedNonValueType,
 }
 
 pub struct VirtualMachine<E: Primitive, O: PrimitiveOperations<E>> {

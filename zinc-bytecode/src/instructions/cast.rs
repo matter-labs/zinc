@@ -2,17 +2,23 @@ use crate::instructions::utils::decode_simple_instruction;
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
 
 #[derive(Debug, PartialEq, Default, Clone)]
-pub struct Cast;
+pub struct Cast {
+    signed: bool,
+    length: usize,
+}
 
 impl Cast {
-    pub fn new(_signed: bool, _length: u8) -> Self {
-        Cast
+    pub fn new(signed: bool, length: u8) -> Self {
+        Self {
+            signed,
+            length: length as usize,
+        }
     }
 }
 
 impl InstructionInfo for Cast {
     fn to_assembly(&self) -> String {
-        "cast".into()
+        format!("cast {} {}", self.signed, self.length)
     }
 
     fn code() -> InstructionCode {

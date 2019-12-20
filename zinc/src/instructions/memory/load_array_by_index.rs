@@ -1,11 +1,9 @@
-extern crate franklin_crypto;
-
 use crate::primitive::{Primitive, PrimitiveOperations};
 use crate::vm::VMInstruction;
 use crate::vm::{RuntimeError, VirtualMachine};
-use zinc_bytecode::instructions::LoadArrayByIndex;
+use zinc_bytecode::instructions::LoadSequenceByIndex;
 
-impl<E, O> VMInstruction<E, O> for LoadArrayByIndex
+impl<E, O> VMInstruction<E, O> for LoadSequenceByIndex
     where
         E: Primitive,
         O: PrimitiveOperations<E>,

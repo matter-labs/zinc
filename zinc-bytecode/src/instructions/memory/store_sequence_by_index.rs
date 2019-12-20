@@ -2,32 +2,32 @@ use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo, utils}
 
 /// Takes `index` and several values from evaluation stack, stores values in data stack at `address + index`.
 #[derive(Debug, PartialEq, Clone)]
-pub struct StoreArrayByIndex {
+pub struct StoreSequenceByIndex {
     pub address: usize,
     pub array_len: usize,
     pub value_len: usize,
 }
 
-impl StoreArrayByIndex {
+impl StoreSequenceByIndex {
     pub fn new(address: usize, array_len: usize, value_len: usize) -> Self {
         Self { address, array_len, value_len }
     }
 }
 
-impl InstructionInfo for StoreArrayByIndex {
+impl InstructionInfo for StoreSequenceByIndex {
     fn to_assembly(&self) -> String {
         format!("store_array_by_index {} {} {}", self.address, self.array_len, self.value_len)
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::StoreArrayByIndex
+        InstructionCode::StoreSequenceByIndex
     }
 
     fn encode(&self) -> Vec<u8> {
         utils::encode_with_usize(Self::code(), &[self.address, self.array_len, self.value_len])
     }
 
-    fn decode(bytes: &[u8]) -> Result<(StoreArrayByIndex, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(StoreSequenceByIndex, usize), DecodingError> {
         let (args, len) = utils::decode_with_usize(Self::code(), bytes, 3)?;
 
         Ok((
@@ -45,6 +45,6 @@ impl InstructionInfo for StoreArrayByIndex {
     }
 
     fn wrap(&self) -> Instruction {
-        Instruction::StoreArrayByIndex((*self).clone())
+        Instruction::StoreSequenceByIndex((*self).clone())
     }
 }
