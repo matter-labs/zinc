@@ -13,6 +13,16 @@ impl<E, O> VMInstruction<E, O> for Ref
     }
 }
 
+impl<E, O> VMInstruction<E, O> for RefGlobal
+    where
+        E: Primitive,
+        O: PrimitiveOperations<E>,
+{
+    fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+        unimplemented!()
+    }
+}
+
 impl<E, O> VMInstruction<E, O> for StoreByRef
     where
         E: Primitive,

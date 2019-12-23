@@ -29,7 +29,8 @@ mod store_sequence_by_ref;
 mod store_by_index_by_ref;
 mod store_sequence_by_index_by_ref;
 
-mod r#ref;
+mod ref_local;
+mod ref_global;
 
 pub use push_const::PushConst;
 pub use pop::Pop;
@@ -62,4 +63,5 @@ pub use store_sequence_by_ref::StoreSequenceByRef;
 pub use store_by_index_by_ref::StoreByIndexByRef;
 pub use store_sequence_by_index_by_ref::StoreSequenceByIndexByRef;
 
-pub use r#ref::Ref;
+pub use ref_local::Ref;
+pub use ref_global::RefGlobal;

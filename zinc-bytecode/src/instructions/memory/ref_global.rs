@@ -1,46 +1,44 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
-use num_bigint::ToBigInt;
-use num_traits::ToPrimitive;
 
 #[derive(Debug, PartialEq, Default, Clone)]
-pub struct Ref {
+pub struct RefGlobal {
     pub address: usize,
 }
 
-impl Ref {
+impl RefGlobal {
     pub fn new(address: usize) -> Self {
         Self { address }
     }
 }
 
-impl InstructionInfo for Ref {
+impl InstructionInfo for RefGlobal {
     fn to_assembly(&self) -> String {
-        format!("ref {}", self.address)
+        format!("ref_global {}", self.address)
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::Ref
+        InstructionCode::RefGlobal
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_bigint(InstructionCode::Ref, &self.address.to_bigint().unwrap())
+        utils::encode_with_usize(Self::code(), &[self.address])
     }
 
     fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
-        let (value, len) = utils::decode_with_bigint(InstructionCode::Ref, bytes)?;
-        let count = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
-        Ok((Ref { address: count }, len))
+        let (args, len) = utils::decode_with_usize(Self::code(), bytes, 1)?;
+
+        Ok((Self::new(args[0]), len))
     }
 
     fn inputs_count(&self) -> usize {
-        1
-    }
-
-    fn outputs_count(&self) -> usize {
         0
     }
 
+    fn outputs_count(&self) -> usize {
+        1
+    }
+
     fn wrap(&self) -> Instruction {
-        Instruction::Ref((*self).clone())
+        Instruction::RefGlobal((*self).clone())
     }
 }

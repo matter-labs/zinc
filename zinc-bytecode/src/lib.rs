@@ -53,6 +53,7 @@ pub enum InstructionCode {
     StoreSequenceGlobal,
 
     Ref,
+    RefGlobal,
 
     LoadByRef,
     LoadSequenceByRef,
@@ -136,6 +137,7 @@ pub enum Instruction {
     StoreSequenceGlobal(StoreSequenceGlobal),
 
     Ref(Ref),
+    RefGlobal(RefGlobal),
 
     LoadByRef(LoadByRef),
     LoadSequenceByRef(LoadSequenceByRef),
@@ -229,6 +231,7 @@ macro_rules! dispatch_instruction {
             Instruction::StoreSequenceGlobal($pattern) => $expression,
 
             Instruction::Ref($pattern) => $expression,
+            Instruction::RefGlobal($pattern) => $expression,
 
             Instruction::LoadByRef($pattern) => $expression,
             Instruction::LoadSequenceByRef($pattern) => $expression,
