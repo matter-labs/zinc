@@ -1,29 +1,28 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
 
-/// Loads value from storage and pushes it onto evaluation stack.
 #[derive(Debug, PartialEq, Clone)]
-pub struct MerkleSet {
-    pub address: usize,
-    pub size: usize,
+pub struct LoadSequenceByIndexByRef {
+    pub value_len: usize,
+    pub array_len: usize,
 }
 
-impl MerkleSet {
-    pub fn new(address: usize, size: usize) -> Self {
-        Self { address, size }
+impl LoadSequenceByIndexByRef {
+    pub fn new(value_len: usize, array_len: usize) -> Self {
+        Self { value_len, array_len }
     }
 }
 
-impl InstructionInfo for MerkleSet {
+impl InstructionInfo for LoadSequenceByIndexByRef {
     fn to_assembly(&self) -> String {
-        format!("merkle_set {} {}", self.address, self.size)
+        format!("load_sequence_by_index_by_ref {} {}", self.value_len, self.array_len)
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::MerkleSet
+        InstructionCode::LoadSequenceByIndexByRef
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_usize(Self::code(), &[self.address, self.size])
+        utils::encode_with_usize(Self::code(), &[self.value_len, self.array_len])
     }
 
     fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
@@ -33,14 +32,14 @@ impl InstructionInfo for MerkleSet {
     }
 
     fn inputs_count(&self) -> usize {
-        1 + self.size
+        1
     }
 
     fn outputs_count(&self) -> usize {
-        0
+        1
     }
 
     fn wrap(&self) -> Instruction {
-        Instruction::MerkleSet((*self).clone())
+        Instruction::LoadSequenceByIndexByRef((*self).clone())
     }
 }

@@ -27,7 +27,7 @@ impl InstructionInfo for LoadSequenceByIndex {
         utils::encode_with_usize(Self::code(), &[self.address, self.array_len, self.value_len])
     }
 
-    fn decode(bytes: &[u8]) -> Result<(LoadSequenceByIndex, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         let (args, len) = utils::decode_with_usize(Self::code(), bytes, 3)?;
 
         Ok((

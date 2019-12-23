@@ -17,7 +17,7 @@ impl InstructionInfo for Eq {
         vec![InstructionCode::Eq as u8]
     }
 
-    fn decode(bytes: &[u8]) -> Result<(Eq, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         decode_simple_instruction(bytes)
     }
 

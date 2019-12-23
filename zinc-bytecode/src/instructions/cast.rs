@@ -29,7 +29,7 @@ impl InstructionInfo for Cast {
         vec![InstructionCode::Cast as u8]
     }
 
-    fn decode(bytes: &[u8]) -> Result<(Cast, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         decode_simple_instruction(bytes)
     }
 

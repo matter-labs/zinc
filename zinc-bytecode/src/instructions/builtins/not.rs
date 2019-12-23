@@ -17,7 +17,7 @@ impl InstructionInfo for Not {
         vec![InstructionCode::Not as u8]
     }
 
-    fn decode(bytes: &[u8]) -> Result<(Not, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         decode_simple_instruction(bytes)
     }
 

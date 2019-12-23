@@ -17,7 +17,7 @@ impl InstructionInfo for Mul {
         vec![InstructionCode::Mul as u8]
     }
 
-    fn decode(bytes: &[u8]) -> Result<(Mul, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         decode_simple_instruction(bytes)
     }
 

@@ -17,7 +17,7 @@ impl InstructionInfo for Lt {
         vec![InstructionCode::Lt as u8]
     }
 
-    fn decode(bytes: &[u8]) -> Result<(Lt, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         decode_simple_instruction(bytes)
     }
 

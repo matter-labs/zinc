@@ -25,7 +25,7 @@ impl InstructionInfo for PushConst {
         utils::encode_with_bigint(InstructionCode::PushConst, &self.value)
     }
 
-    fn decode(bytes: &[u8]) -> Result<(PushConst, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         let (value, len) = utils::decode_with_bigint(InstructionCode::PushConst, bytes)?;
 
         Ok((PushConst { value }, len))

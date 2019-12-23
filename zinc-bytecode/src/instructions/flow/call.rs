@@ -33,7 +33,7 @@ impl InstructionInfo for Call {
         bytes
     }
 
-    fn decode(bytes: &[u8]) -> Result<(Call, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         if bytes.len() < 3 {
             Err(DecodingError::UnexpectedEOF)
         } else if bytes[0] != InstructionCode::Call as u8 {

@@ -1,28 +1,27 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
 
-/// Loads value from data stack and pushes it onto evaluation stack.
 #[derive(Debug, PartialEq, Clone)]
-pub struct LoadGlobal {
-    pub address: usize,
+pub struct LoadByIndexByRef {
+    len: usize
 }
 
-impl LoadGlobal {
-    pub fn new(address: usize) -> Self {
-        Self { address }
+impl LoadByIndexByRef {
+    pub fn new(len: usize) -> Self {
+        Self { len }
     }
 }
 
-impl InstructionInfo for LoadGlobal {
+impl InstructionInfo for LoadByIndexByRef {
     fn to_assembly(&self) -> String {
-        format!("load_global {}", self.address)
+        format!("load_by_index_by_ref {}", self.len)
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::LoadGlobal
+        InstructionCode::LoadByIndexByRef
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_usize(Self::code(), &[self.address])
+        utils::encode_with_usize(Self::code(), &[self.len])
     }
 
     fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
@@ -32,7 +31,7 @@ impl InstructionInfo for LoadGlobal {
     }
 
     fn inputs_count(&self) -> usize {
-        0
+        2
     }
 
     fn outputs_count(&self) -> usize {
@@ -40,12 +39,6 @@ impl InstructionInfo for LoadGlobal {
     }
 
     fn wrap(&self) -> Instruction {
-        Instruction::LoadGlobal((*self).clone())
-    }
-}
-
-impl From<usize> for LoadGlobal {
-    fn from(value: usize) -> Self {
-        Self::new(value)
+        Instruction::LoadByIndexByRef((*self).clone())
     }
 }

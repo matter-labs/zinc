@@ -17,7 +17,7 @@ impl InstructionInfo for NoOperation {
         vec![InstructionCode::NoOperation as u8]
     }
 
-    fn decode(bytes: &[u8]) -> Result<(NoOperation, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         decode_simple_instruction(bytes)
     }
 

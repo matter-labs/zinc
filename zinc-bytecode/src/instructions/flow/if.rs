@@ -17,7 +17,7 @@ impl InstructionInfo for If {
         vec![InstructionCode::If as u8]
     }
 
-    fn decode(bytes: &[u8]) -> Result<(If, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         decode_simple_instruction(bytes)
     }
 

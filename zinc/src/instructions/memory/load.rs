@@ -9,7 +9,7 @@ impl<E, O> VMInstruction<E, O> for Load
         O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let value = vm.load(self.index)?;
+        let value = vm.load(self.address)?;
         vm.push(value)
     }
 }

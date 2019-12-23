@@ -17,7 +17,7 @@ impl InstructionInfo for Ge {
         vec![InstructionCode::Ge as u8]
     }
 
-    fn decode(bytes: &[u8]) -> Result<(Ge, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         decode_simple_instruction(bytes)
     }
 

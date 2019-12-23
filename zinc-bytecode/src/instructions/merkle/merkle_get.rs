@@ -26,7 +26,7 @@ impl InstructionInfo for MerkleGet {
         utils::encode_with_usize(Self::code(), &[self.address, self.size])
     }
 
-    fn decode(bytes: &[u8]) -> Result<(Self  , usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         let (args, len) = utils::decode_with_usize(Self::code(), bytes, 2)?;
 
         Ok((Self::new(args[0], args[1]), len))

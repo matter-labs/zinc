@@ -17,7 +17,7 @@ impl InstructionInfo for LoopEnd {
         vec![InstructionCode::LoopEnd as u8]
     }
 
-    fn decode(bytes: &[u8]) -> Result<(LoopEnd, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         decode_simple_instruction(bytes)
     }
 

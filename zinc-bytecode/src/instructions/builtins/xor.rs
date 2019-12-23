@@ -17,7 +17,7 @@ impl InstructionInfo for Xor {
         vec![InstructionCode::Xor as u8]
     }
 
-    fn decode(bytes: &[u8]) -> Result<(Xor, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         decode_simple_instruction(bytes)
     }
 

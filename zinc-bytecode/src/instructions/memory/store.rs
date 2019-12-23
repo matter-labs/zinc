@@ -27,7 +27,7 @@ impl InstructionInfo for Store {
         utils::encode_with_bigint(InstructionCode::Store, &self.index.to_bigint().unwrap())
     }
 
-    fn decode(bytes: &[u8]) -> Result<(Store, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         let (value, len) = utils::decode_with_bigint(InstructionCode::Store, bytes)?;
         let index = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
         Ok((Store { index }, len))

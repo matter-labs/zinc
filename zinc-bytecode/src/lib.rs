@@ -35,12 +35,13 @@ pub enum InstructionCode {
 
     // Data Stack
     Load,
-    Store,
     LoadSequence,
-    StoreSequence,
     LoadByIndex,
-    StoreByIndex,
     LoadSequenceByIndex,
+
+    Store,
+    StoreSequence,
+    StoreByIndex,
     StoreSequenceByIndex,
 
     LoadGlobal,
@@ -52,8 +53,16 @@ pub enum InstructionCode {
     StoreSequenceGlobal,
 
     Ref,
-    RefStore,
-    RefStoreSequence,
+
+    LoadByRef,
+    LoadSequenceByRef,
+    LoadByIndexByRef,
+    LoadSequenceByIndexByRef,
+
+    StoreByRef,
+    StoreSequenceByRef,
+    StoreByIndexByRef,
+    StoreSequenceByIndexByRef,
 
     // Arithmetic
     Add,
@@ -109,23 +118,34 @@ pub enum Instruction {
 
     // Storage
     Load(Load),
-    Store(Store),
     LoadSequence(LoadSequence),
-    StoreSequence(StoreSequence),
     LoadByIndex(LoadByIndex),
-    StoreByIndex(StoreByIndex),
     LoadSequenceByIndex(LoadSequenceByIndex),
+
+    Store(Store),
+    StoreSequence(StoreSequence),
+    StoreByIndex(StoreByIndex),
     StoreSequenceByIndex(StoreSequenceByIndex),
+
     LoadGlobal(LoadGlobal),
     LoadSequenceGlobal(LoadSequenceGlobal),
     LoadByIndexGlobal(LoadByIndexGlobal),
     LoadSequenceByIndexGlobal(LoadSequenceByIndexGlobal),
+
     StoreGlobal(StoreGlobal),
     StoreSequenceGlobal(StoreSequenceGlobal),
 
     Ref(Ref),
-    RefStore(RefStore),
-    RefStoreSequence(RefStoreSequence),
+
+    LoadByRef(LoadByRef),
+    LoadSequenceByRef(LoadSequenceByRef),
+    LoadByIndexByRef(LoadByIndexByRef),
+    LoadSequenceByIndexByRef(LoadSequenceByIndexByRef),
+
+    StoreByRef(StoreByRef),
+    StoreSequenceByRef(StoreSequenceByRef),
+    StoreByIndexByRef(StoreByIndexByRef),
+    StoreSequenceByIndexByRef(StoreSequenceByIndexByRef),
 
     // Arithmetic
     Add(Add),
@@ -189,24 +209,36 @@ macro_rules! dispatch_instruction {
 
             Instruction::PushConst($pattern) => $expression,
             Instruction::Pop($pattern) => $expression,
+
             Instruction::Load($pattern) => $expression,
-            Instruction::Store($pattern) => $expression,
             Instruction::LoadSequence($pattern) => $expression,
-            Instruction::StoreSequence($pattern) => $expression,
             Instruction::LoadByIndex($pattern) => $expression,
-            Instruction::StoreByIndex($pattern) => $expression,
             Instruction::LoadSequenceByIndex($pattern) => $expression,
+
+            Instruction::Store($pattern) => $expression,
+            Instruction::StoreSequence($pattern) => $expression,
+            Instruction::StoreByIndex($pattern) => $expression,
             Instruction::StoreSequenceByIndex($pattern) => $expression,
+
             Instruction::LoadGlobal($pattern) => $expression,
             Instruction::LoadSequenceGlobal($pattern) => $expression,
             Instruction::LoadByIndexGlobal($pattern) => $expression,
             Instruction::LoadSequenceByIndexGlobal($pattern) => $expression,
+
             Instruction::StoreGlobal($pattern) => $expression,
             Instruction::StoreSequenceGlobal($pattern) => $expression,
-            Instruction::Ref($pattern) => $expression,
-            Instruction::RefStore($pattern) => $expression,
-            Instruction::RefStoreSequence($pattern) => $expression,
 
+            Instruction::Ref($pattern) => $expression,
+
+            Instruction::LoadByRef($pattern) => $expression,
+            Instruction::LoadSequenceByRef($pattern) => $expression,
+            Instruction::LoadByIndexByRef($pattern) => $expression,
+            Instruction::LoadSequenceByIndexByRef($pattern) => $expression,
+
+            Instruction::StoreByRef($pattern) => $expression,
+            Instruction::StoreSequenceByRef($pattern) => $expression,
+            Instruction::StoreByIndexByRef($pattern) => $expression,
+            Instruction::StoreSequenceByIndexByRef($pattern) => $expression,
 
             Instruction::Add($pattern) => $expression,
             Instruction::Sub($pattern) => $expression,

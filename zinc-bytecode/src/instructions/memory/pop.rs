@@ -26,7 +26,7 @@ impl InstructionInfo for Pop {
         utils::encode_with_bigint(InstructionCode::Pop, &self.count.to_bigint().unwrap())
     }
 
-    fn decode(bytes: &[u8]) -> Result<(Pop, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         let (value, len) = utils::decode_with_bigint(InstructionCode::Pop, bytes)?;
         let count = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
         Ok((Pop { count }, len))

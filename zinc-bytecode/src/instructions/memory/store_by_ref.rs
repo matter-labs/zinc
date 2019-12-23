@@ -4,33 +4,33 @@ use num_traits::ToPrimitive;
 
 /// Stores value from evaluation stack in data stack.
 #[derive(Debug, PartialEq, Clone)]
-pub struct RefStoreSequence {
+pub struct StoreByRef {
     pub index: usize,
 }
 
-impl RefStoreSequence {
-    pub fn new(index: usize, _len: usize) -> Self {
+impl StoreByRef {
+    pub fn new(index: usize) -> Self {
         Self { index }
     }
 }
 
-impl InstructionInfo for RefStoreSequence {
+impl InstructionInfo for StoreByRef {
     fn to_assembly(&self) -> String {
-        format!("ref_store_sequence {}", self.index)
+        format!("ref_store {}", self.index)
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::RefStoreSequence
+        InstructionCode::StoreByRef
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_bigint(InstructionCode::RefStoreSequence, &self.index.to_bigint().unwrap())
+        utils::encode_with_bigint(Self::code(), &self.index.to_bigint().unwrap())
     }
 
-    fn decode(bytes: &[u8]) -> Result<(RefStoreSequence, usize), DecodingError> {
-        let (value, len) = utils::decode_with_bigint(InstructionCode::RefStoreSequence, bytes)?;
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
+        let (value, len) = utils::decode_with_bigint(InstructionCode::StoreByRef, bytes)?;
         let index = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
-        Ok((RefStoreSequence { index }, len))
+        Ok((StoreByRef { index }, len))
     }
 
     fn inputs_count(&self) -> usize {
@@ -42,6 +42,6 @@ impl InstructionInfo for RefStoreSequence {
     }
 
     fn wrap(&self) -> Instruction {
-        Instruction::RefStoreSequence((*self).clone())
+        Instruction::StoreByRef((*self).clone())
     }
 }

@@ -1,29 +1,29 @@
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo, utils};
 
-/// Takes `index` and value from evaluation stack, stores value in data stack at `address + index`.
+/// Loads several values from data stack and pushes them onto evaluation stack.
 #[derive(Debug, PartialEq, Clone)]
-pub struct StoreByIndex {
-    pub address: usize,
-    pub len: usize,
+pub struct LoadSequenceByRef {
+    pub value_len: usize,
+    pub array_len: usize,
 }
 
-impl StoreByIndex {
-    pub fn new(address: usize, len: usize) -> Self {
-        Self { address, len }
+impl LoadSequenceByRef {
+    pub fn new(value_len: usize, array_len: usize) -> Self {
+        Self { value_len, array_len }
     }
 }
 
-impl InstructionInfo for StoreByIndex {
+impl InstructionInfo for LoadSequenceByRef {
     fn to_assembly(&self) -> String {
-        format!("store_by_index {} {}", self.address, self.len)
+        format!("load_sequence_by_ref {} {}", self.value_len, self.array_len)
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::StoreByIndex
+        InstructionCode::LoadSequenceByRef
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_usize(Self::code(), &[self.address, self.len])
+        utils::encode_with_usize(Self::code(), &[self.value_len, self.array_len])
     }
 
     fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
@@ -36,14 +36,14 @@ impl InstructionInfo for StoreByIndex {
     }
 
     fn inputs_count(&self) -> usize {
-        2
+        1
     }
 
     fn outputs_count(&self) -> usize {
-        0
+        self.value_len
     }
 
     fn wrap(&self) -> Instruction {
-        Instruction::StoreByIndex((*self).clone())
+        Instruction::LoadSequenceByRef((*self).clone())
     }
 }

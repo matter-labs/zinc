@@ -17,7 +17,7 @@ impl InstructionInfo for EndIf {
         vec![InstructionCode::EndIf as u8]
     }
 
-    fn decode(bytes: &[u8]) -> Result<(EndIf, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         decode_simple_instruction(bytes)
     }
 

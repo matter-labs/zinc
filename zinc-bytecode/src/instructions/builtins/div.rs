@@ -17,7 +17,7 @@ impl InstructionInfo for Div {
         vec![InstructionCode::Div as u8]
     }
 
-    fn decode(bytes: &[u8]) -> Result<(Div, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         decode_simple_instruction(bytes)
     }
 

@@ -26,7 +26,7 @@ impl InstructionInfo for Ref {
         utils::encode_with_bigint(InstructionCode::Ref, &self.address.to_bigint().unwrap())
     }
 
-    fn decode(bytes: &[u8]) -> Result<(Ref, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         let (value, len) = utils::decode_with_bigint(InstructionCode::Ref, bytes)?;
         let count = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
         Ok((Ref { address: count }, len))

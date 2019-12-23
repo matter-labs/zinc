@@ -17,7 +17,7 @@ impl InstructionInfo for Sub {
         vec![InstructionCode::Sub as u8]
     }
 
-    fn decode(bytes: &[u8]) -> Result<(Sub, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         decode_simple_instruction(bytes)
     }
 

@@ -18,7 +18,7 @@ impl InstructionInfo for ConditionalSelect {
         vec![InstructionCode::ConditionalSelect as u8]
     }
 
-    fn decode(bytes: &[u8]) -> Result<(ConditionalSelect, usize), DecodingError> {
+    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         decode_simple_instruction(bytes)
     }
 
