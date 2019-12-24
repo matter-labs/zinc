@@ -105,8 +105,9 @@ impl Parser {
                             ..
                         } => return Ok(self.builder.finish()),
                         token => {
-                            let pattern =
+                            let (pattern, next) =
                                 MatchPatternParser::default().parse(stream.clone(), Some(token))?;
+                            self.next = next;
                             self.builder.push_branch_pattern(pattern);
                             self.state = State::Select;
                         }
@@ -300,7 +301,7 @@ mod tests {
                     ),
                 ),
                 (
-                    MatchPattern::new(Location::new(5, 9), MatchPatternVariant::new_ignoring()),
+                    MatchPattern::new(Location::new(5, 9), MatchPatternVariant::new_wildcard()),
                     Expression::new(
                         Location::new(5, 14),
                         vec![ExpressionElement::new(

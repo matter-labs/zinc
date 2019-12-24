@@ -845,7 +845,68 @@ impl Analyzer {
 
                     result
                 }
-                MatchPatternVariant::Ignoring => {
+                MatchPatternVariant::Path(path) => {
+                    if index > 0 {
+                        self.bytecode
+                            .borrow_mut()
+                            .push_instruction(Instruction::Else(zinc_bytecode::Else));
+                        endifs += 1;
+                    }
+
+                    let expression_location = path.location;
+                    let place = match self.expression(path, ResolutionHint::PlaceExpression)? {
+                        Element::Place(place) => place,
+                        element => {
+                            return Err(Error::MatchBranchPatternPathExpectedEvaluable(
+                                expression_location,
+                                element.to_string(),
+                            ))
+                        }
+                    };
+
+                    self.bytecode.borrow_mut().push_instruction_load(
+                        scrutinee_address,
+                        scrutinee_size,
+                        None,
+                        false,
+                    );
+                    match Scope::resolve_place(self.scope(), &place)? {
+                        ScopeItem::Variable(variable) => {
+                            self.bytecode.borrow_mut().push_instruction_load(
+                                variable.address,
+                                variable.r#type.size(),
+                                None,
+                                false,
+                            )
+                        }
+                        ScopeItem::Static(r#static) => {
+                            self.bytecode.borrow_mut().push_instruction_load(
+                                r#static.address,
+                                r#static.data.r#type().size(),
+                                None,
+                                true,
+                            )
+                        }
+                        ScopeItem::Constant(constant) => {
+                            self.bytecode.borrow_mut().push_instruction(constant.into())
+                        }
+                        item => {
+                            return Err(Error::MatchBranchPatternPathExpectedEvaluable(
+                                place.location,
+                                item.to_string(),
+                            ))
+                        }
+                    }
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Eq(zinc_bytecode::Eq));
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::If(zinc_bytecode::If));
+
+                    self.expression(expression, ResolutionHint::ValueExpression)?
+                }
+                MatchPatternVariant::Wildcard => {
                     is_exhausted = true;
 
                     if index > 0 {

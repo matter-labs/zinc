@@ -4,6 +4,11 @@
 
 use crate::lexical::Location;
 use crate::syntax::BooleanLiteral;
+use crate::syntax::Expression;
+use crate::syntax::ExpressionElement;
+use crate::syntax::ExpressionObject;
+use crate::syntax::ExpressionOperand;
+use crate::syntax::ExpressionOperator;
 use crate::syntax::Identifier;
 use crate::syntax::IntegerLiteral;
 use crate::syntax::MatchPattern;
@@ -15,7 +20,8 @@ pub struct Builder {
     boolean_literal: Option<BooleanLiteral>,
     integer_literal: Option<IntegerLiteral>,
     binding: Option<Identifier>,
-    ignoring: bool,
+    path: Expression,
+    is_wildcard: bool,
 }
 
 impl Builder {
@@ -35,8 +41,21 @@ impl Builder {
         self.binding = Some(value);
     }
 
-    pub fn set_ignoring(&mut self) {
-        self.ignoring = true;
+    pub fn extend_with_expression(&mut self, expression: Expression) {
+        self.move_binding_to_path();
+        self.path.elements.extend(expression);
+    }
+
+    pub fn push_path_operator(&mut self, location: Location, operator: ExpressionOperator) {
+        self.move_binding_to_path();
+        self.path.elements.push(ExpressionElement::new(
+            location,
+            ExpressionObject::Operator(operator),
+        ));
+    }
+
+    pub fn set_wildcard(&mut self) {
+        self.is_wildcard = true;
     }
 
     pub fn finish(mut self) -> MatchPattern {
@@ -48,22 +67,34 @@ impl Builder {
             )
         });
 
-        let variant = if self.ignoring {
-            MatchPatternVariant::Ignoring
+        let variant = if self.is_wildcard {
+            MatchPatternVariant::Wildcard
         } else if let Some(boolean_literal) = self.boolean_literal.take() {
             MatchPatternVariant::BooleanLiteral(boolean_literal)
         } else if let Some(integer_literal) = self.integer_literal.take() {
             MatchPatternVariant::IntegerLiteral(integer_literal)
         } else if let Some(identifier) = self.binding.take() {
             MatchPatternVariant::Binding(identifier)
+        } else if !self.path.elements.is_empty() {
+            MatchPatternVariant::Path(self.path)
         } else {
             panic!(
                 "{}{}",
                 crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                "boolean | integer | binding | ignoring"
+                "boolean | integer | binding | path | wildcard"
             );
         };
 
         MatchPattern::new(location, variant)
+    }
+
+    fn move_binding_to_path(&mut self) {
+        if let Some(binding) = self.binding.take() {
+            self.path.location = binding.location;
+            self.path.elements.push(ExpressionElement::new(
+                binding.location,
+                ExpressionObject::Operand(ExpressionOperand::Identifier(binding)),
+            ));
+        }
     }
 }

@@ -101,7 +101,13 @@ type =
   | identifier
 ;
 
-pattern_match = boolean | integer | identifier | '_' ;
+pattern_match =
+    boolean
+  | integer
+  | identifier
+  | operand_path
+  | '_'
+;
 
 field = identifier, ':', type ;
 field_list = [ field, { ',', field } ] ;

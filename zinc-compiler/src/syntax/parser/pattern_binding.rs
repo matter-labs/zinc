@@ -19,15 +19,15 @@ use crate::syntax::TypeParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    KeywordMutOrIdentifierOrIgnoring,
-    IdentifierOrIgnoring,
+    KeywordMutOrIdentifierOrWildcard,
+    IdentifierOrWildcard,
     Colon,
     Type,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::KeywordMutOrIdentifierOrIgnoring
+        State::KeywordMutOrIdentifierOrWildcard
     }
 }
 
@@ -46,7 +46,7 @@ impl Parser {
     ) -> Result<(BindingPattern, Option<Token>), Error> {
         loop {
             match self.state {
-                State::KeywordMutOrIdentifierOrIgnoring => match match initial.take() {
+                State::KeywordMutOrIdentifierOrWildcard => match match initial.take() {
                     Some(token) => token,
                     None => stream.borrow_mut().next()?,
                 } {
@@ -56,15 +56,15 @@ impl Parser {
                     } => {
                         self.builder.set_location(location);
                         self.builder.set_mutable();
-                        self.state = State::IdentifierOrIgnoring;
+                        self.state = State::IdentifierOrWildcard;
                     }
                     token => {
                         self.builder.set_location(token.location);
                         self.next = Some(token);
-                        self.state = State::IdentifierOrIgnoring;
+                        self.state = State::IdentifierOrWildcard;
                     }
                 },
-                State::IdentifierOrIgnoring => match match self.next.take() {
+                State::IdentifierOrWildcard => match match self.next.take() {
                     Some(token) => token,
                     None => stream.borrow_mut().next()?,
                 } {
@@ -80,7 +80,7 @@ impl Parser {
                         lexeme: Lexeme::Symbol(Symbol::Underscore),
                         ..
                     } => {
-                        self.builder.set_ignoring();
+                        self.builder.set_wildcard();
                         self.state = State::Colon;
                     }
                     Token { lexeme, location } => {
@@ -180,13 +180,13 @@ mod tests {
     }
 
     #[test]
-    fn ok_ignoring() {
+    fn ok_wildcard() {
         let input = "_: u8";
 
         let expected = Ok((
             BindingPattern::new(
                 Location::new(1, 1),
-                BindingPatternVariant::Ignoring,
+                BindingPatternVariant::Wildcard,
                 Type::new(Location::new(1, 4), TypeVariant::new_integer_unsigned(8)),
             ),
             None,

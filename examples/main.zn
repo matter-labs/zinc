@@ -62,16 +62,16 @@ fn main(
 ) -> (Input, State)
 {
     match input.state.game_state {
-        1 => {
+        GameState::Player1Init => {
 //            std::eth::verify(state.player1, signature);
         },
-        3 => {
+        GameState::Player1Turn => {
 //            std::eth::verify(state.player1, signature);
         },
-        2 => {
+        GameState::Player2Init => {
 //            std::eth::verify(state.player2, signature);
         },
-        4 => {
+        GameState::Player2Turn => {
 //            std::eth::verify(state.player2, signature);
         },
         _ => {
