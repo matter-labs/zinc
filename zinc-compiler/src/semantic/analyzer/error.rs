@@ -35,6 +35,16 @@ pub enum Error {
     #[fail(display = "{} match branch is unreachable", _0)]
     MatchBranchUnreachable(Location),
     #[fail(
+        display = "{} match path pattern must point to a memory place, but got '{}'",
+        _0, _1
+    )]
+    MatchBranchPatternPathExpectedPlace(Location, String),
+    #[fail(
+        display = "{} match path pattern place must be resolved to an evaluable, but got '{}'",
+        _0, _1
+    )]
+    MatchBranchPatternPathExpectedEvaluable(Location, String),
+    #[fail(
         display = "{} match pattern type '{}' does not match the scrutinee type '{}'",
         _0, _1, _2
     )]

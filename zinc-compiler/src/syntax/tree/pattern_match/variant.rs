@@ -3,6 +3,7 @@
 //!
 
 use crate::syntax::BooleanLiteral;
+use crate::syntax::Expression;
 use crate::syntax::Identifier;
 use crate::syntax::IntegerLiteral;
 
@@ -11,7 +12,8 @@ pub enum Variant {
     BooleanLiteral(BooleanLiteral),
     IntegerLiteral(IntegerLiteral),
     Binding(Identifier),
-    Ignoring,
+    Path(Expression),
+    Wildcard,
 }
 
 impl Variant {
@@ -27,7 +29,11 @@ impl Variant {
         Self::Binding(identifier)
     }
 
-    pub fn new_ignoring() -> Self {
-        Self::Ignoring
+    pub fn new_path(expression: Expression) -> Self {
+        Self::Path(expression)
+    }
+
+    pub fn new_wildcard() -> Self {
+        Self::Wildcard
     }
 }

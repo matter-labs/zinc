@@ -247,7 +247,7 @@ impl Analyzer {
             let identifier = match argument_binding.variant {
                 BindingPatternVariant::Binding(ref identifier) => identifier,
                 BindingPatternVariant::MutableBinding(ref identifier) => identifier,
-                BindingPatternVariant::Ignoring => continue,
+                BindingPatternVariant::Wildcard => continue,
             };
             argument_bindings.push((
                 identifier.name.clone(),
@@ -272,7 +272,7 @@ impl Analyzer {
             let (identifier, is_mutable) = match argument_binding.variant {
                 BindingPatternVariant::Binding(identifier) => (identifier, false),
                 BindingPatternVariant::MutableBinding(identifier) => (identifier, true),
-                BindingPatternVariant::Ignoring => continue,
+                BindingPatternVariant::Wildcard => continue,
             };
             let r#type = Type::from_type_variant(argument_binding.r#type.variant, self.scope())?;
             let address = self

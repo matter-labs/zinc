@@ -8,7 +8,7 @@ use crate::syntax::Identifier;
 pub enum Variant {
     Binding(Identifier),
     MutableBinding(Identifier),
-    Ignoring,
+    Wildcard,
 }
 
 impl Variant {
@@ -20,7 +20,7 @@ impl Variant {
         Self::MutableBinding(identifier)
     }
 
-    pub fn new_ignoring() -> Self {
-        Self::Ignoring
+    pub fn new_wildcard() -> Self {
+        Self::Wildcard
     }
 }
