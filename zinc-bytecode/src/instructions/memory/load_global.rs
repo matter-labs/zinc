@@ -43,9 +43,3 @@ impl InstructionInfo for LoadGlobal {
         Instruction::LoadGlobal((*self).clone())
     }
 }
-
-impl From<usize> for LoadGlobal {
-    fn from(value: usize) -> Self {
-        Self::new(value)
-    }
-}

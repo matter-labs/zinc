@@ -43,9 +43,3 @@ impl InstructionInfo for Load {
         Instruction::Load((*self).clone())
     }
 }
-
-impl From<usize> for Load {
-    fn from(value: usize) -> Self {
-        Self::new(value)
-    }
-}
