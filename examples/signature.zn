@@ -1,0 +1,9 @@
+/*
+    Signature
+*/
+
+struct Signature {
+    v: u8,
+    r: u32,
+    s: u32,
+}

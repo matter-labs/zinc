@@ -1,0 +1,25 @@
+{
+    "name": "zinc-syntax-highlighting",
+    "displayName": "Zinc Syntax Highlighting",
+    "description": "Zinc Syntax Highlighting",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.38.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "zn",
+            "aliases": ["Zinc", "zn"],
+            "extensions": [".zn"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "zn",
+            "scopeName": "source.zinc",
+            "path": "./syntaxes/zn.tmLanguage.json"
+        }]
+    }
+}

@@ -1,0 +1,12 @@
+# IDE
+/.idea/
+/.vscode/
+
+# Rust build
+/target/
+
+# Book build
+/zinc-book/build/*
+
+# Zinc build
+/examples/build/*
