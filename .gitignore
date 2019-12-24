@@ -1,6 +1,7 @@
 # IDE
 /.idea/
 /.vscode/
+/.cargo
 
 # Rust build
 /target/

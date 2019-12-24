@@ -1,5 +1,3 @@
-# about codeowners:
-# https://help.github.com/articles/about-codeowners/
+@hedgar @gluk64 @alexander-movchan
 
-# notify about all changes
-@hedgar @gluk64
+/zinc/src/primitive/constrained/ @alexander-movchan @shamatar

@@ -17,4 +17,4 @@ failure = "0.1"
 num-traits = "0.2"
 num-bigint = "0.2"
 
-zinc-bytecode = { git = "https://github.com/matter-labs/zinc-vm", branch = "development" }
+zinc-bytecode = { path = "../zinc-bytecode" }
