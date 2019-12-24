@@ -37,6 +37,7 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Instruction, usize), Decoding
         x if x == InstructionCode::NoOperation as u8 => decode_and_wrap::<NoOperation>(bytes),
         x if x == InstructionCode::PushConst as u8 => decode_and_wrap::<PushConst>(bytes),
         x if x == InstructionCode::Pop as u8 => decode_and_wrap::<Pop>(bytes),
+        x if x == InstructionCode::Slice as u8 => decode_and_wrap::<Slice>(bytes),
         x if x == InstructionCode::Load as u8 => decode_and_wrap::<Load>(bytes),
         x if x == InstructionCode::LoadSequence as u8 => decode_and_wrap::<LoadSequence>(bytes),
         x if x == InstructionCode::LoadByIndex as u8 => decode_and_wrap::<LoadByIndex>(bytes),

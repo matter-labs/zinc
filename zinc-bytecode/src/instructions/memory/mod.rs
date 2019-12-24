@@ -1,5 +1,6 @@
 mod push_const;
 mod pop;
+mod slice;
 
 mod load;
 mod load_sequence;
@@ -34,6 +35,7 @@ mod ref_global;
 
 pub use push_const::PushConst;
 pub use pop::Pop;
+pub use slice::Slice;
 
 pub use load::Load;
 pub use load_sequence::LoadSequence;
