@@ -104,19 +104,20 @@ pub enum Error {
     #[fail(display = "function 'main' is missing")]
     FunctionMainMissing,
 
-    #[fail(
-        display = "{} operator '::' expected a namespace identifier, but got '{}'",
-        _0, _1
-    )]
-    PathOperatorFirstOperandExpectedNamespace(Location, String),
-    #[fail(
-        display = "{} operator '::' expected a namespace identifier, but got '{}'",
-        _0, _1
-    )]
-    PathOperatorSecondOperandExpectedStringConstant(Location, String),
-
     #[fail(display = "{} module '{}' not found in the project", _0, _1)]
     ModuleNotFound(Location, String),
+
+    #[fail(
+        display = "{} use statement expected a place expression, but got '{}'",
+        _0, _1
+    )]
+    UseStatementExpectedPlace(Location, String),
+
+    #[fail(
+        display = "{} impl statement expected a structure or enumeration, but got '{}'",
+        _0, _1
+    )]
+    ImplStatementExpectedStructOrEnum(Location, String),
 
     #[fail(display = "{} the type alias does not point to type, but '{}'", _0, _1)]
     TypeAliasDoesNotPointToType(Location, String),

@@ -53,11 +53,10 @@ impl Parser {
         loop {
             match self.state {
                 State::KeywordIf => {
-                    let next = match initial.take() {
+                    match match initial.take() {
                         Some(token) => token,
                         None => stream.borrow_mut().next()?,
-                    };
-                    match next {
+                    } {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::If),
                             location,
@@ -108,8 +107,7 @@ impl Parser {
                             lexeme: Lexeme::Keyword(Keyword::If),
                             ..
                         } => {
-                            let (expression, next) =
-                                Self::default().parse(stream.clone(), Some(token))?;
+                            let (expression, next) = Self::default().parse(stream, Some(token))?;
                             let block = BlockExpression::new(
                                 expression.location,
                                 Vec::new(),
@@ -130,8 +128,8 @@ impl Parser {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
                         } => {
-                            let block = BlockExpressionParser::default()
-                                .parse(stream.clone(), Some(token))?;
+                            let block =
+                                BlockExpressionParser::default().parse(stream, Some(token))?;
                             self.builder.set_else_block(block);
                             return Ok((self.builder.finish(), None));
                         }

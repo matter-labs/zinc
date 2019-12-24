@@ -10,7 +10,7 @@ use zinc_bytecode::Call;
 use zinc_bytecode::Exit;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::Store;
-use zinc_bytecode::StoreArray;
+use zinc_bytecode::StoreSequence;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 
@@ -53,7 +53,7 @@ fn main () {
         Instruction::PushConst(PushConst::new(BigInt::from(14), false, 8)),
         Instruction::PushConst(PushConst::new(BigInt::from(15), false, 8)),
         Instruction::PushConst(PushConst::new(BigInt::from(16), false, 8)),
-        Instruction::StoreArray(StoreArray::new(0, 16)),
+        Instruction::StoreSequence(StoreSequence::new(0, 16)),
         Instruction::PushConst(PushConst::new(BigInt::from(42), false, 8)),
         Instruction::Store(Store::new(7)),
         Instruction::PushConst(PushConst::new(BigInt::from(111), false, 8)),

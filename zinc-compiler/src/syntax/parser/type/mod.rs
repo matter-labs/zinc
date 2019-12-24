@@ -17,7 +17,7 @@ use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
-use crate::syntax::PathExpressionParser;
+use crate::syntax::PathOperandParser;
 use crate::syntax::Type;
 use crate::syntax::TypeBuilder;
 
@@ -59,8 +59,7 @@ impl Parser {
                 ..
             } => {
                 let location = token.location;
-                let (expression, next) =
-                    PathExpressionParser::default().parse(stream.clone(), Some(token))?;
+                let (expression, next) = PathOperandParser::default().parse(stream, Some(token))?;
                 self.builder.set_location(location);
                 self.builder.set_path_expression(expression);
                 Ok((self.builder.finish(), next))
@@ -68,17 +67,11 @@ impl Parser {
             token @ Token {
                 lexeme: Lexeme::Symbol(Symbol::BracketSquareLeft),
                 ..
-            } => Ok((
-                ArrayTypeParser::default().parse(stream.clone(), Some(token))?,
-                None,
-            )),
+            } => Ok((ArrayTypeParser::default().parse(stream, Some(token))?, None)),
             token @ Token {
                 lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                 ..
-            } => Ok((
-                TupleTypeParser::default().parse(stream.clone(), Some(token))?,
-                None,
-            )),
+            } => Ok((TupleTypeParser::default().parse(stream, Some(token))?, None)),
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
                 location,
                 vec!["{type}", "{identifier}", "(", "["],

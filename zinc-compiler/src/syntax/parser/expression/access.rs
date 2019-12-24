@@ -7,16 +7,11 @@ use std::rc::Rc;
 
 use crate::error::Error;
 use crate::lexical;
-use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
 use crate::lexical::Location;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::ArrayExpressionParser;
-use crate::syntax::BlockExpressionParser;
-use crate::syntax::BooleanLiteral;
-use crate::syntax::ConditionalExpressionParser;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionBuilder;
@@ -25,18 +20,13 @@ use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
 use crate::syntax::ExpressionParser;
 use crate::syntax::IntegerLiteral;
-use crate::syntax::MatchExpressionParser;
 use crate::syntax::MemberIntegerBuilder;
 use crate::syntax::MemberStringBuilder;
-use crate::syntax::PathExpressionParser;
-use crate::syntax::StringLiteral;
-use crate::syntax::StructureExpressionParser;
-use crate::syntax::TupleExpressionParser;
+use crate::syntax::PathOperandParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    Operand,
-    InstructionCallOrNext,
+    PathOperand,
     AccessOrCallOrEnd,
     IndexExpression,
     BracketSquareRight,
@@ -47,7 +37,7 @@ pub enum State {
 
 impl Default for State {
     fn default() -> Self {
-        State::Operand
+        State::PathOperand
     }
 }
 
@@ -67,166 +57,12 @@ impl Parser {
     ) -> Result<(Expression, Option<Token>), Error> {
         loop {
             match self.state {
-                State::Operand => {
-                    let next = match initial.take() {
-                        Some(next) => next,
-                        None => stream.borrow_mut().next()?,
-                    };
-                    match next {
-                        token @ Token {
-                            lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
-                            ..
-                        } => {
-                            self.builder.set_location(token.location);
-                            let expression = TupleExpressionParser::default()
-                                .parse(stream.clone(), Some(token))?;
-                            self.builder.extend_with_expression(expression);
-                            self.state = State::AccessOrCallOrEnd;
-                        }
-                        token @ Token {
-                            lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
-                            ..
-                        } => {
-                            self.builder.set_location(token.location);
-                            let block = BlockExpressionParser::default()
-                                .parse(stream.clone(), Some(token))?;
-                            self.builder
-                                .push_operand(block.location, ExpressionOperand::Block(block));
-                            self.state = State::AccessOrCallOrEnd;
-                        }
-                        token @ Token {
-                            lexeme: Lexeme::Symbol(Symbol::BracketSquareLeft),
-                            ..
-                        } => {
-                            self.builder.set_location(token.location);
-                            let array = ArrayExpressionParser::default()
-                                .parse(stream.clone(), Some(token))?;
-                            self.builder
-                                .push_operand(array.location, ExpressionOperand::Array(array));
-                            self.state = State::AccessOrCallOrEnd;
-                        }
-                        token @ Token {
-                            lexeme: Lexeme::Keyword(Keyword::If),
-                            ..
-                        } => {
-                            self.builder.set_location(token.location);
-                            let (expression, next) = ConditionalExpressionParser::default()
-                                .parse(stream.clone(), Some(token))?;
-                            self.next = next;
-                            self.builder.push_operand(
-                                expression.location,
-                                ExpressionOperand::Conditional(expression),
-                            );
-                            self.state = State::AccessOrCallOrEnd;
-                        }
-                        token @ Token {
-                            lexeme: Lexeme::Keyword(Keyword::Match),
-                            ..
-                        } => {
-                            self.builder.set_location(token.location);
-                            let expression = MatchExpressionParser::default()
-                                .parse(stream.clone(), Some(token))?;
-                            self.builder.push_operand(
-                                expression.location,
-                                ExpressionOperand::Match(expression),
-                            );
-                            self.state = State::AccessOrCallOrEnd;
-                        }
-                        token @ Token {
-                            lexeme: Lexeme::Keyword(Keyword::Struct),
-                            ..
-                        } => {
-                            self.builder.set_location(token.location);
-                            let (expression, next) = StructureExpressionParser::default()
-                                .parse(stream.clone(), Some(token))?;
-                            self.next = next;
-                            self.builder.push_operand(
-                                expression.location,
-                                ExpressionOperand::Structure(expression),
-                            );
-                            self.state = State::AccessOrCallOrEnd;
-                        }
-                        Token {
-                            lexeme: Lexeme::Literal(lexical::Literal::Boolean(boolean)),
-                            location,
-                        } => {
-                            self.builder.set_location(location);
-                            self.builder.push_operand(
-                                location,
-                                ExpressionOperand::LiteralBoolean(BooleanLiteral::new(
-                                    location, boolean,
-                                )),
-                            );
-                            self.state = State::AccessOrCallOrEnd;
-                        }
-                        Token {
-                            lexeme: Lexeme::Literal(lexical::Literal::Integer(integer)),
-                            location,
-                        } => {
-                            self.builder.set_location(location);
-                            self.builder.push_operand(
-                                location,
-                                ExpressionOperand::LiteralInteger(IntegerLiteral::new(
-                                    location, integer,
-                                )),
-                            );
-                            self.state = State::AccessOrCallOrEnd;
-                        }
-                        Token {
-                            lexeme: Lexeme::Literal(lexical::Literal::String(string)),
-                            location,
-                        } => {
-                            self.builder.set_location(location);
-                            self.builder.push_operand(
-                                location,
-                                ExpressionOperand::LiteralString(StringLiteral::new(
-                                    location, string,
-                                )),
-                            );
-                            self.state = State::AccessOrCallOrEnd;
-                        }
-                        token @ Token {
-                            lexeme: Lexeme::Identifier(_),
-                            ..
-                        } => {
-                            self.builder.set_location(token.location);
-                            let (expression, next) = PathExpressionParser::default()
-                                .parse(stream.clone(), Some(token))?;
-                            self.next = next;
-                            self.builder.extend_with_expression(expression);
-                            self.state = State::InstructionCallOrNext;
-                        }
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec![
-                                    "(",
-                                    "{",
-                                    "[",
-                                    "if",
-                                    "match",
-                                    "struct",
-                                    "{literal}",
-                                    "{identifier}",
-                                ],
-                                lexeme,
-                            )))
-                        }
-                    }
-                }
-                State::InstructionCallOrNext => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
-                        Token {
-                            lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
-                            location,
-                        } => self
-                            .builder
-                            .push_operator(location, ExpressionOperator::InstructionCall),
-                        token => self.next = Some(token),
-                    }
+                State::PathOperand => {
+                    let (expression, next) =
+                        PathOperandParser::default().parse(stream.clone(), initial.take())?;
+                    self.next = next;
+                    self.builder.set_location(expression.location);
+                    self.builder.extend_with_expression(expression);
                     self.state = State::AccessOrCallOrEnd;
                 }
                 State::AccessOrCallOrEnd => {
@@ -238,7 +74,7 @@ impl Parser {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareLeft),
                             location,
                         } => {
-                            self.operator = Some((location, ExpressionOperator::Indexing));
+                            self.operator = Some((location, ExpressionOperator::Index));
                             self.state = State::IndexExpression;
                         }
                         Token {
@@ -302,7 +138,7 @@ impl Parser {
                         } => {
                             let mut builder = MemberIntegerBuilder::default();
                             builder.set_location(location);
-                            builder.set_literal(literal);
+                            builder.set_literal(IntegerLiteral::new(location, literal));
                             self.builder.push_operand(
                                 location,
                                 ExpressionOperand::MemberInteger(builder.finish()),
@@ -390,26 +226,69 @@ mod tests {
     use crate::syntax::ExpressionElement;
     use crate::syntax::ExpressionObject;
     use crate::syntax::ExpressionOperand;
+    use crate::syntax::ExpressionOperator;
+    use crate::syntax::Identifier;
     use crate::syntax::IntegerLiteral;
+    use crate::syntax::MemberInteger;
+    use crate::syntax::MemberString;
 
     #[test]
     fn ok() {
-        let input = r#"42"#;
+        let input = r#"array[42].25.value"#;
 
         let expected = Ok((
             Expression::new(
                 Location::new(1, 1),
-                vec![ExpressionElement::new(
-                    Location::new(1, 1),
-                    ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-                        IntegerLiteral::new(
+                vec![
+                    ExpressionElement::new(
+                        Location::new(1, 1),
+                        ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
                             Location::new(1, 1),
-                            lexical::IntegerLiteral::new_decimal("42".to_owned()),
-                        ),
-                    )),
-                )],
+                            "array".to_owned(),
+                        ))),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 7),
+                        ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 7),
+                                lexical::IntegerLiteral::new_decimal("42".to_owned()),
+                            ),
+                        )),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 6),
+                        ExpressionObject::Operator(ExpressionOperator::Index),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 11),
+                        ExpressionObject::Operand(ExpressionOperand::MemberInteger(
+                            MemberInteger::new(
+                                Location::new(1, 11),
+                                IntegerLiteral::new(
+                                    Location::new(1, 11),
+                                    lexical::IntegerLiteral::new_decimal("25".to_owned()),
+                                ),
+                            ),
+                        )),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 10),
+                        ExpressionObject::Operator(ExpressionOperator::Field),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 14),
+                        ExpressionObject::Operand(ExpressionOperand::MemberString(
+                            MemberString::new(Location::new(1, 14), "value".to_owned()),
+                        )),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 13),
+                        ExpressionObject::Operator(ExpressionOperator::Field),
+                    ),
+                ],
             ),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 3))),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 19))),
         ));
 
         let result = Parser::default().parse(

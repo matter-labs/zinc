@@ -1,13 +1,13 @@
 //!
-//! The pattern builder.
+//! The match pattern builder.
 //!
 
 use crate::lexical::Location;
 use crate::syntax::BooleanLiteral;
 use crate::syntax::Identifier;
 use crate::syntax::IntegerLiteral;
-use crate::syntax::Pattern;
-use crate::syntax::PatternVariant;
+use crate::syntax::MatchPattern;
+use crate::syntax::MatchPatternVariant;
 
 #[derive(Default)]
 pub struct Builder {
@@ -39,7 +39,7 @@ impl Builder {
         self.ignoring = true;
     }
 
-    pub fn finish(mut self) -> Pattern {
+    pub fn finish(mut self) -> MatchPattern {
         let location = self.location.take().unwrap_or_else(|| {
             panic!(
                 "{}{}",
@@ -49,13 +49,13 @@ impl Builder {
         });
 
         let variant = if self.ignoring {
-            PatternVariant::Ignoring
+            MatchPatternVariant::Ignoring
         } else if let Some(boolean_literal) = self.boolean_literal.take() {
-            PatternVariant::BooleanLiteral(boolean_literal)
+            MatchPatternVariant::BooleanLiteral(boolean_literal)
         } else if let Some(integer_literal) = self.integer_literal.take() {
-            PatternVariant::IntegerLiteral(integer_literal)
+            MatchPatternVariant::IntegerLiteral(integer_literal)
         } else if let Some(identifier) = self.binding.take() {
-            PatternVariant::Binding(identifier)
+            MatchPatternVariant::Binding(identifier)
         } else {
             panic!(
                 "{}{}",
@@ -64,6 +64,6 @@ impl Builder {
             );
         };
 
-        Pattern::new(location, variant)
+        MatchPattern::new(location, variant)
     }
 }

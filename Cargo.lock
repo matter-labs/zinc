@@ -367,7 +367,7 @@ dependencies = [
 [[package]]
 name = "zinc-bytecode"
 version = "0.1.0"
-source = "git+https://github.com/matter-labs/zinc-vm?branch=development#844ab6a379693976c94ce40a649ae171d3671699"
+source = "git+https://github.com/matter-labs/zinc-vm?branch=development#ab46336dad29cbf02a0bce8426f21288db8dfaa4"
 dependencies = [
  "env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",

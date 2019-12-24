@@ -33,7 +33,7 @@ impl Analyzer {
         Self {
             scope_stack: {
                 let mut scopes = Vec::with_capacity(Self::STACK_SCOPE_INITIAL_CAPACITY);
-                scopes.push(Rc::new(RefCell::new(Scope::default())));
+                scopes.push(Rc::new(RefCell::new(Scope::new_global())));
                 scopes
             },
             bytecode,
@@ -45,39 +45,12 @@ impl Analyzer {
         program: SyntaxTree,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
     ) -> Result<(), CompilerError> {
-        self.scope()
-            .borrow_mut()
-            .declare_type(
-                "dbg".to_owned(),
-                Type::new_function(
-                    "dbg".to_owned(),
-                    vec![("format".to_owned(), Type::String)],
-                    Type::Unit,
-                ),
-            )
-            .expect(crate::semantic::PANIC_FUNCTION_INSTRUCTION_DECLARATION);
-
-        self.scope()
-            .borrow_mut()
-            .declare_type(
-                "assert".to_owned(),
-                Type::new_function(
-                    "assert".to_owned(),
-                    vec![
-                        ("condition".to_owned(), Type::Boolean),
-                        ("message".to_owned(), Type::String),
-                    ],
-                    Type::Unit,
-                ),
-            )
-            .expect(crate::semantic::PANIC_FUNCTION_INSTRUCTION_DECLARATION);
-
         // compile all the outer statements which generally only declare new items
         let mut analyzer =
             StatementAnalyzer::new(self.scope(), self.bytecode.clone(), dependencies);
         for statement in program.statements.into_iter() {
             analyzer
-                .outer_statement(statement)
+                .module_local_statement(statement)
                 .map_err(CompilerError::Semantic)?;
         }
 

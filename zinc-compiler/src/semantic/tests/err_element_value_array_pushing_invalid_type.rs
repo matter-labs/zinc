@@ -22,7 +22,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::LiteralArray(
         Location::new(3, 21),
-        ArrayError::PushingInvalidType(
+        ArrayError::InvalidType(
             Type::new_boolean().to_string(),
             Type::new_integer_unsigned(8).to_string(),
         ),

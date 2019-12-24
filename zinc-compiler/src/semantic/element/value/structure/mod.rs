@@ -22,7 +22,7 @@ impl Structure {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::new_structure(self.identifier.to_owned(), self.fields.to_owned())
+        Type::new_structure(self.identifier.to_owned(), self.fields.clone(), None)
     }
 
     pub fn push(&mut self, key: String, r#type: Type) -> Result<(), Error> {

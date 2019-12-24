@@ -26,17 +26,16 @@ impl Parser {
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
     ) -> Result<(Expression, Option<Token>), Error> {
-        let next = match initial.take() {
-            Some(next) => next,
+        match match initial.take() {
+            Some(token) => token,
             None => stream.borrow_mut().next()?,
-        };
-        match next {
+        } {
             Token {
                 lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
                 location,
             } => {
                 self.builder.set_location(location);
-                let (expression, next) = Self::default().parse(stream.clone(), None)?;
+                let (expression, next) = Self::default().parse(stream, None)?;
                 self.builder.extend_with_expression(expression);
                 self.builder
                     .push_operator(location, ExpressionOperator::Not);
@@ -47,16 +46,38 @@ impl Parser {
                 location,
             } => {
                 self.builder.set_location(location);
-                let (expression, next) = Self::default().parse(stream.clone(), None)?;
+                let (expression, next) = Self::default().parse(stream, None)?;
                 self.builder.extend_with_expression(expression);
                 self.builder
                     .push_operator(location, ExpressionOperator::Negation);
                 Ok((self.builder.finish(), next))
             }
+            Token {
+                lexeme: Lexeme::Symbol(Symbol::Ampersand),
+                location,
+            } => {
+                self.builder.set_location(location);
+                let (expression, next) = Self::default().parse(stream, None)?;
+                self.builder.extend_with_expression(expression);
+                self.builder
+                    .push_operator(location, ExpressionOperator::Borrow);
+                Ok((self.builder.finish(), next))
+            }
+            Token {
+                lexeme: Lexeme::Symbol(Symbol::Asterisk),
+                location,
+            } => {
+                self.builder.set_location(location);
+                let (expression, next) = Self::default().parse(stream, None)?;
+                self.builder.extend_with_expression(expression);
+                self.builder
+                    .push_operator(location, ExpressionOperator::Dereference);
+                Ok((self.builder.finish(), next))
+            }
             token => {
                 self.builder.set_location(token.location);
                 let (expression, next) =
-                    AccessOperandParser::default().parse(stream.clone(), Some(token))?;
+                    AccessOperandParser::default().parse(stream, Some(token))?;
                 self.builder.extend_with_expression(expression);
                 Ok((self.builder.finish(), next))
             }
@@ -109,7 +130,7 @@ mod tests {
                     ),
                     ExpressionElement::new(
                         Location::new(1, 6),
-                        ExpressionObject::Operator(ExpressionOperator::Indexing),
+                        ExpressionObject::Operator(ExpressionOperator::Index),
                     ),
                 ],
             ),

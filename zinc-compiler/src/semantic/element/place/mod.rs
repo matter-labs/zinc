@@ -4,9 +4,11 @@
 
 mod descriptor;
 mod error;
+mod resolution_time;
 
 pub use self::descriptor::Descriptor;
 pub use self::error::Error;
+pub use self::resolution_time::ResolutionTime;
 
 use std::fmt;
 
@@ -20,7 +22,7 @@ pub struct Place {
     pub location: Location,
     pub path: Vec<MemberString>,
     pub descriptors: Vec<Descriptor>,
-    pub is_static: bool,
+    pub resolution_time: ResolutionTime,
 }
 
 impl Place {
@@ -29,7 +31,7 @@ impl Place {
             location,
             path: vec![first],
             descriptors: Vec::new(),
-            is_static: true,
+            resolution_time: ResolutionTime::Static,
         }
     }
 
@@ -49,7 +51,7 @@ impl Place {
     pub fn index_value(&mut self, value: &IntegerValue) {
         self.descriptors
             .push(Descriptor::ArrayIndexValue(value.to_owned()));
-        self.is_static = false;
+        self.resolution_time = ResolutionTime::Dynamic;
     }
 
     pub fn access_tuple(&mut self, field: usize) {

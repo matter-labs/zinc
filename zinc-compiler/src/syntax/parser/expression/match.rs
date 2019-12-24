@@ -15,7 +15,7 @@ use crate::syntax::Error as SyntaxError;
 use crate::syntax::ExpressionParser;
 use crate::syntax::MatchExpression;
 use crate::syntax::MatchExpressionBuilder;
-use crate::syntax::PatternParser;
+use crate::syntax::MatchPatternParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -50,11 +50,10 @@ impl Parser {
         loop {
             match self.state {
                 State::MatchKeyword => {
-                    let next = match initial.take() {
+                    match match initial.take() {
                         Some(token) => token,
                         None => stream.borrow_mut().next()?,
-                    };
-                    match next {
+                    } {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Match),
                             location,
@@ -107,7 +106,7 @@ impl Parser {
                         } => return Ok(self.builder.finish()),
                         token => {
                             let pattern =
-                                PatternParser::default().parse(stream.clone(), Some(token))?;
+                                MatchPatternParser::default().parse(stream.clone(), Some(token))?;
                             self.builder.push_branch_pattern(pattern);
                             self.state = State::Select;
                         }
@@ -182,8 +181,8 @@ mod tests {
     use crate::syntax::Identifier;
     use crate::syntax::IntegerLiteral;
     use crate::syntax::MatchExpression;
-    use crate::syntax::Pattern;
-    use crate::syntax::PatternVariant;
+    use crate::syntax::MatchPattern;
+    use crate::syntax::MatchPatternVariant;
 
     #[test]
     fn ok_single() {
@@ -206,9 +205,9 @@ mod tests {
                 )],
             ),
             vec![(
-                Pattern::new(
+                MatchPattern::new(
                     Location::new(3, 9),
-                    PatternVariant::new_boolean_literal(BooleanLiteral::new(
+                    MatchPatternVariant::new_boolean_literal(BooleanLiteral::new(
                         Location::new(3, 9),
                         lexical::BooleanLiteral::False,
                     )),
@@ -259,9 +258,9 @@ mod tests {
             ),
             vec![
                 (
-                    Pattern::new(
+                    MatchPattern::new(
                         Location::new(3, 9),
-                        PatternVariant::new_integer_literal(IntegerLiteral::new(
+                        MatchPatternVariant::new_integer_literal(IntegerLiteral::new(
                             Location::new(3, 9),
                             lexical::IntegerLiteral::new_decimal("1".to_owned()),
                         )),
@@ -280,9 +279,9 @@ mod tests {
                     ),
                 ),
                 (
-                    Pattern::new(
+                    MatchPattern::new(
                         Location::new(4, 9),
-                        PatternVariant::new_integer_literal(IntegerLiteral::new(
+                        MatchPatternVariant::new_integer_literal(IntegerLiteral::new(
                             Location::new(4, 9),
                             lexical::IntegerLiteral::new_decimal("2".to_owned()),
                         )),
@@ -301,7 +300,7 @@ mod tests {
                     ),
                 ),
                 (
-                    Pattern::new(Location::new(5, 9), PatternVariant::new_ignoring()),
+                    MatchPattern::new(Location::new(5, 9), MatchPatternVariant::new_ignoring()),
                     Expression::new(
                         Location::new(5, 14),
                         vec![ExpressionElement::new(

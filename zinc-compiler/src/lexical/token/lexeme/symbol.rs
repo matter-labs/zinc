@@ -28,6 +28,7 @@ pub enum Symbol {
     ExclamationMark,
     LesserThan,
     GreaterThan,
+    Ampersand,
 
     // complex
     DoubleColon,
@@ -42,49 +43,6 @@ pub enum Symbol {
     DoubleDotEquals,
     EqualsGreater,
     MinusGreater,
-}
-
-impl From<&str> for Symbol {
-    fn from(input: &str) -> Self {
-        match input {
-            "(" => Self::ParenthesisLeft,
-            ")" => Self::ParenthesisRight,
-            "[" => Self::BracketSquareLeft,
-            "]" => Self::BracketSquareRight,
-            "{" => Self::BracketCurlyLeft,
-            "}" => Self::BracketCurlyRight,
-            "_" => Self::Underscore,
-            "." => Self::Dot,
-            ":" => Self::Colon,
-            ";" => Self::Semicolon,
-            "," => Self::Comma,
-            "=" => Self::Equals,
-            "+" => Self::Plus,
-            "-" => Self::Minus,
-            "*" => Self::Asterisk,
-            "/" => Self::Slash,
-            "%" => Self::Percent,
-            "\\" => Self::Backslash,
-            "!" => Self::ExclamationMark,
-            "<" => Self::LesserThan,
-            ">" => Self::GreaterThan,
-
-            "::" => Self::DoubleColon,
-            "==" => Self::DoubleEquals,
-            "!=" => Self::ExclamationMarkEquals,
-            "<=" => Self::LesserThanEquals,
-            ">=" => Self::GreaterThanEquals,
-            "&&" => Self::DoubleAmpersand,
-            "||" => Self::DoubleVerticalBar,
-            "^^" => Self::DoubleCircumflex,
-            ".." => Self::DoubleDot,
-            "..=" => Self::DoubleDotEquals,
-            "=>" => Self::EqualsGreater,
-            "->" => Self::MinusGreater,
-
-            symbol => panic!("{}{}", crate::lexical::PANIC_UNCHECKED_SYMBOL, symbol),
-        }
-    }
 }
 
 impl fmt::Display for Symbol {
@@ -111,6 +69,7 @@ impl fmt::Display for Symbol {
             Self::ExclamationMark => write!(f, "!"),
             Self::LesserThan => write!(f, "<"),
             Self::GreaterThan => write!(f, ">"),
+            Self::Ampersand => write!(f, "&"),
 
             Self::DoubleColon => write!(f, "::"),
             Self::DoubleEquals => write!(f, "=="),

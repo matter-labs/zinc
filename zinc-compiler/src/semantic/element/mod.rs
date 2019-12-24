@@ -16,6 +16,7 @@ pub use self::error::Error;
 pub use self::place::Descriptor as PlaceDescriptor;
 pub use self::place::Error as PlaceError;
 pub use self::place::Place;
+pub use self::place::ResolutionTime as PlaceResolutionTime;
 pub use self::r#type::Type;
 pub use self::value::Array;
 pub use self::value::ArrayError;

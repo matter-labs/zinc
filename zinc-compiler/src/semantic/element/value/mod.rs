@@ -43,9 +43,10 @@ impl Value {
             Type::Field => Self::Integer(Integer::new(false, crate::BITLENGTH_FIELD)),
             Type::Array { r#type, size } => Self::Array(Array::new(*r#type, size)),
             Type::Tuple { types } => Self::Tuple(Tuple::new(types)),
-            Type::Structure { identifier, fields } => {
-                Self::Structure(Structure::new(identifier, fields))
-            }
+            Type::Structure {
+                identifier, fields, ..
+            } => Self::Structure(Structure::new(identifier, fields)),
+            Type::Enumeration { bitlength, .. } => Self::Integer(Integer::new(false, bitlength)),
             r#type => panic!(
                 "{}{}",
                 crate::semantic::PANIC_VALUE_CANNOT_BE_CREATED_FROM,

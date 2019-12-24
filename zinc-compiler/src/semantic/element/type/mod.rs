@@ -21,7 +21,7 @@ use crate::syntax::Identifier;
 use crate::syntax::TypeVariant;
 use crate::syntax::Variant;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum Type {
     Unit,
     Boolean,
@@ -42,10 +42,12 @@ pub enum Type {
     Structure {
         identifier: String,
         fields: Vec<(String, Self)>,
+        scope: Rc<RefCell<Scope>>,
     },
     Enumeration {
         identifier: String,
-        scope: Scope,
+        bitlength: usize,
+        scope: Rc<RefCell<Scope>>,
     },
     Function {
         identifier: String,
@@ -107,12 +109,32 @@ impl Type {
         Self::Tuple { types }
     }
 
-    pub fn new_structure(identifier: String, fields: Vec<(String, Self)>) -> Self {
-        Self::Structure { identifier, fields }
+    pub fn new_structure(
+        identifier: String,
+        fields: Vec<(String, Self)>,
+        scope_parent: Option<Rc<RefCell<Scope>>>,
+    ) -> Self {
+        let scope = Rc::new(RefCell::new(Scope::new(scope_parent)));
+
+        let structure = Self::Structure {
+            identifier,
+            fields,
+            scope: scope.clone(),
+        };
+        scope
+            .borrow_mut()
+            .declare_type("Self".to_owned(), structure.clone())
+            .expect(crate::semantic::PANIC_SELF_ALIAS_DECLARATION);
+
+        structure
     }
 
-    pub fn new_enumeration(identifier: Identifier, variants: Vec<Variant>) -> Result<Self, Error> {
-        let mut scope = Scope::new(None);
+    pub fn new_enumeration(
+        identifier: Identifier,
+        variants: Vec<Variant>,
+        scope_parent: Option<Rc<RefCell<Scope>>>,
+    ) -> Result<Self, Error> {
+        let scope = Rc::new(RefCell::new(Scope::new(scope_parent)));
 
         let mut variants_bigint = Vec::with_capacity(variants.len());
         for variant in variants.into_iter() {
@@ -128,13 +150,22 @@ impl Type {
             let location = identifier.location;
             let constant = IntegerConstant::new(value, false, minimal_bitlength);
             scope
+                .borrow_mut()
                 .declare_constant(identifier.name, Constant::Integer(constant))
                 .map_err(|error| Error::Scope(location, error))?;
         }
-        Ok(Self::Enumeration {
+
+        let enumeration = Self::Enumeration {
             identifier: identifier.name,
-            scope,
-        })
+            bitlength: minimal_bitlength,
+            scope: scope.clone(),
+        };
+        scope
+            .borrow_mut()
+            .declare_type("Self".to_owned(), enumeration.clone())
+            .expect(crate::semantic::PANIC_SELF_ALIAS_DECLARATION);
+
+        Ok(enumeration)
     }
 
     pub fn new_function(
@@ -183,7 +214,13 @@ impl Type {
             TypeVariant::Field => Type::Field,
             TypeVariant::Array { type_variant, size } => Type::Array {
                 r#type: Self::from_type_variant(*type_variant, scope).map(Box::new)?,
-                size: size.into(),
+                size: {
+                    let location = size.location;
+                    IntegerConstant::try_from(&size)
+                        .map_err(|error| Error::InferenceConstant(location, error))?
+                        .to_usize()
+                        .map_err(|error| Error::InferenceConstant(location, error))?
+                },
             },
             TypeVariant::Tuple { type_variants } => {
                 let mut types = Vec::with_capacity(type_variants.len());
@@ -225,6 +262,65 @@ impl Type {
     }
 }
 
+impl PartialEq<Type> for Type {
+    fn eq(&self, other: &Type) -> bool {
+        match (self, other) {
+            (Self::Unit, Self::Unit) => true,
+            (Self::Boolean, Self::Boolean) => true,
+            (Self::IntegerUnsigned { bitlength: b1 }, Self::IntegerUnsigned { bitlength: b2 }) => {
+                b1 == b2
+            }
+            (Self::IntegerSigned { bitlength: b1 }, Self::IntegerSigned { bitlength: b2 }) => {
+                b1 == b2
+            }
+            (Self::Field, Self::Field) => true,
+            (
+                Self::Array {
+                    r#type: type_1,
+                    size: size_1,
+                },
+                Self::Array {
+                    r#type: type_2,
+                    size: size_2,
+                },
+            ) => type_1 == type_2 && size_1 == size_2,
+            (Self::Tuple { types: types_1 }, Self::Tuple { types: types_2 }) => types_1 == types_2,
+            (
+                Self::Structure {
+                    identifier: identifier_1,
+                    ..
+                },
+                Self::Structure {
+                    identifier: identifier_2,
+                    ..
+                },
+            ) => identifier_1 == identifier_2,
+            (
+                Self::Enumeration {
+                    identifier: identifier_1,
+                    ..
+                },
+                Self::Enumeration {
+                    identifier: identifier_2,
+                    ..
+                },
+            ) => identifier_1 == identifier_2,
+            (
+                Self::Function {
+                    identifier: identifier_1,
+                    ..
+                },
+                Self::Function {
+                    identifier: identifier_2,
+                    ..
+                },
+            ) => identifier_1 == identifier_2,
+            (Self::String, Self::String) => true,
+            _ => false,
+        }
+    }
+}
+
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -243,7 +339,9 @@ impl fmt::Display for Type {
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
-            Self::Structure { identifier, fields } => write!(
+            Self::Structure {
+                identifier, fields, ..
+            } => write!(
                 f,
                 "struct {} {{ {} }}",
                 identifier,
@@ -251,9 +349,9 @@ impl fmt::Display for Type {
                     .iter()
                     .map(|(name, r#type)| format!("{}: {}", name, r#type))
                     .collect::<Vec<String>>()
-                    .join(", ")
+                    .join(", "),
             ),
-            Self::Enumeration { identifier, scope } => write!(f, "enum {} {:?}", identifier, scope),
+            Self::Enumeration { identifier, .. } => write!(f, "enum {}", identifier),
             Self::Function {
                 identifier,
                 arguments,

@@ -31,7 +31,7 @@ pub enum Operator {
     Division,
     Remainder,
 
-    // type semantic.casting
+    // type casting
     Casting,
 
     // unary logical
@@ -40,10 +40,16 @@ pub enum Operator {
     // unary arithmetic
     Negation,
 
+    // unary reference
+    Borrow,
+    Dereference,
+
     // access
-    Indexing,
+    Index,
     Field,
-    Call,
-    InstructionCall,
     Path,
+
+    // call
+    Call,
+    Instruction,
 }

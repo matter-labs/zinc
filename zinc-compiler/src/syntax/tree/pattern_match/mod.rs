@@ -1,5 +1,5 @@
 //!
-//! The pattern.
+//! The match pattern.
 //!
 
 mod builder;

@@ -19,7 +19,6 @@ pub use self::symbol::Error as SymbolParserError;
 pub use self::word::parse as parse_word;
 pub use self::word::Error as WordParserError;
 
-use crate::lexical::Alphabet;
 use crate::lexical::Error;
 use crate::lexical::Identifier;
 use crate::lexical::Lexeme;
@@ -63,11 +62,6 @@ impl TokenStream {
     ///
     fn advance(&mut self) -> Result<Token, Error> {
         while let Some(character) = self.input.chars().nth(self.offset) {
-            if !Alphabet::contains(character) {
-                let location = Location::new(self.location.line, self.location.column);
-                return Err(Error::InvalidCharacter(location, character));
-            }
-
             if character.is_ascii_whitespace() {
                 if character == '\n' {
                     self.location.line += 1;
@@ -114,24 +108,6 @@ impl TokenStream {
                 }
             }
 
-            match parse_symbol(&self.input[self.offset..]) {
-                Ok((size, symbol)) => {
-                    let location = Location::new(self.location.line, self.location.column);
-                    self.location.column += size;
-                    self.offset += size;
-                    return Ok(Token::new(Lexeme::Symbol(symbol), location));
-                }
-                Err(SymbolParserError::UnexpectedEnd) => {
-                    let location = Location::new(self.location.line, self.location.column);
-                    return Err(Error::UnexpectedEnd(location));
-                }
-                Err(SymbolParserError::NotASymbol) => {}
-                Err(error) => {
-                    let location = Location::new(self.location.line, self.location.column);
-                    return Err(Error::InvalidSymbol(location, error));
-                }
-            }
-
             if character.is_ascii_digit() {
                 match parse_integer(&self.input[self.offset..]) {
                     Ok((size, integer)) => {
@@ -170,11 +146,23 @@ impl TokenStream {
                 }
             }
 
-            panic!(
-                "{}'{}'",
-                crate::lexical::PANIC_UNROUTED_CHARACTER,
-                character
-            );
+            match parse_symbol(&self.input[self.offset..]) {
+                Ok((size, symbol)) => {
+                    let location = Location::new(self.location.line, self.location.column);
+                    self.location.column += size;
+                    self.offset += size;
+                    return Ok(Token::new(Lexeme::Symbol(symbol), location));
+                }
+                Err(SymbolParserError::UnexpectedEnd) => {
+                    let location = Location::new(self.location.line, self.location.column);
+                    return Err(Error::UnexpectedEnd(location));
+                }
+                Err(SymbolParserError::NotASymbol) => {}
+                Err(error) => {
+                    let location = Location::new(self.location.line, self.location.column);
+                    return Err(Error::InvalidSymbol(location, error));
+                }
+            }
         }
 
         Ok(Token::new(Lexeme::Eof, self.location))

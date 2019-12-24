@@ -137,7 +137,7 @@ fn main() -> Result<(), Error> {
 
         let module_name = file_stem.to_string_lossy().to_string();
         let module = LibraryAnalyzer::new(bytecode.clone())
-            .compile(syntax_tree(file_path)?)
+            .compile(path_to_syntax_tree(file_path)?)
             .map_err(|error| {
                 log::error!("{}", error);
                 Error::Compiler(error)
@@ -148,7 +148,7 @@ fn main() -> Result<(), Error> {
 
     match binary_path.take() {
         Some(binary_path) => BinaryAnalyzer::new(bytecode.clone())
-            .compile(syntax_tree(binary_path)?, modules)
+            .compile(path_to_syntax_tree(binary_path)?, modules)
             .map_err(|error| {
                 log::error!("{}", error);
                 Error::Compiler(error)
@@ -173,7 +173,7 @@ fn main() -> Result<(), Error> {
     Ok(())
 }
 
-fn syntax_tree(path: PathBuf) -> Result<SyntaxTree, Error> {
+fn path_to_syntax_tree(path: PathBuf) -> Result<SyntaxTree, Error> {
     log::info!("Input: {:?}", path);
     let mut file = File::open(path)
         .map_err(InputError::Opening)

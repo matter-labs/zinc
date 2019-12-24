@@ -5,12 +5,12 @@
 use crate::lexical::Location;
 use crate::syntax::BlockExpression;
 use crate::syntax::Expression;
-use crate::syntax::InnerStatement;
+use crate::syntax::FunctionLocalStatement;
 
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
-    statements: Vec<InnerStatement>,
+    statements: Vec<FunctionLocalStatement>,
     expression: Option<Expression>,
 }
 
@@ -19,7 +19,7 @@ impl Builder {
         self.location = Some(value);
     }
 
-    pub fn push_statement(&mut self, value: InnerStatement) {
+    pub fn push_statement(&mut self, value: FunctionLocalStatement) {
         self.statements.push(value);
     }
 

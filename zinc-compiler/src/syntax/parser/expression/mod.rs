@@ -17,6 +17,7 @@ mod mul_div_rem;
 mod or;
 mod path;
 mod structure;
+mod terminal;
 mod tuple;
 mod xor;
 
@@ -32,9 +33,10 @@ pub use self::conditional::Parser as ConditionalExpressionParser;
 pub use self::list::Parser as ListParser;
 pub use self::mul_div_rem::Parser as MulDivRemOperandParser;
 pub use self::or::Parser as OrOperandParser;
-pub use self::path::Parser as PathExpressionParser;
+pub use self::path::Parser as PathOperandParser;
 pub use self::r#match::Parser as MatchExpressionParser;
 pub use self::structure::Parser as StructureExpressionParser;
+pub use self::terminal::Parser as TerminalOperandParser;
 pub use self::tuple::Parser as TupleExpressionParser;
 pub use self::xor::Parser as XorOperandParser;
 
@@ -105,7 +107,7 @@ impl Parser {
                 }
                 State::AssignmentSecondOperand => {
                     let (expression, token) =
-                        AssignmentOperandParser::default().parse(stream.clone(), None)?;
+                        AssignmentOperandParser::default().parse(stream, None)?;
                     self.builder.extend_with_expression(expression);
                     if let Some((location, operator)) = self.operator.take() {
                         self.builder.push_operator(location, operator);

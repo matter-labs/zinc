@@ -66,7 +66,7 @@ impl Parser {
             }
         }
 
-        let (r#type, next) = TypeParser::default().parse(stream.clone(), None)?;
+        let (r#type, next) = TypeParser::default().parse(stream, None)?;
         self.builder.set_type(r#type);
         Ok((self.builder.finish(), next))
     }

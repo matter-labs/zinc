@@ -16,9 +16,6 @@ use crate::semantic::Constant;
 use crate::semantic::Scope;
 use crate::semantic::Type;
 
-unsafe impl Send for Item {}
-unsafe impl Sync for Item {}
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Item {
     Variable(Variable),

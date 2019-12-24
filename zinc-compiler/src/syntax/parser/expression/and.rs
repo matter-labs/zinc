@@ -105,7 +105,7 @@ impl Parser {
                 }
                 State::ComparisonSecondOperand => {
                     let (expression, next) =
-                        ComparisonOperandParser::default().parse(stream.clone(), None)?;
+                        ComparisonOperandParser::default().parse(stream, None)?;
                     self.builder.extend_with_expression(expression);
                     if let Some((location, operator)) = self.operator.take() {
                         self.builder.push_operator(location, operator);

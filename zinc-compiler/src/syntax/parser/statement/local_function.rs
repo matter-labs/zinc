@@ -1,5 +1,5 @@
 //!
-//! The inner statement parser.
+//! The function-local statement parser.
 //!
 
 use std::cell::RefCell;
@@ -13,7 +13,7 @@ use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::ConstStatementParser;
 use crate::syntax::ExpressionParser;
-use crate::syntax::InnerStatement;
+use crate::syntax::FunctionLocalStatement;
 use crate::syntax::LetStatementParser;
 use crate::syntax::LoopStatementParser;
 
@@ -27,7 +27,7 @@ impl Parser {
         mut self,
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
-    ) -> Result<(InnerStatement, Option<Token>, bool), Error> {
+    ) -> Result<(FunctionLocalStatement, Option<Token>, bool), Error> {
         let statement = match match initial.take() {
             Some(token) => token,
             None => stream.borrow_mut().next()?,
@@ -39,7 +39,7 @@ impl Parser {
                 let (statement, next) =
                     LetStatementParser::default().parse(stream.clone(), Some(token))?;
                 self.next = next;
-                InnerStatement::Let(statement)
+                FunctionLocalStatement::Let(statement)
             }
             token @ Token {
                 lexeme: Lexeme::Keyword(Keyword::Const),
@@ -48,7 +48,7 @@ impl Parser {
                 let (statement, next) =
                     ConstStatementParser::default().parse(stream.clone(), Some(token))?;
                 self.next = next;
-                InnerStatement::Const(statement)
+                FunctionLocalStatement::Const(statement)
             }
             token @ Token {
                 lexeme: Lexeme::Keyword(Keyword::For),
@@ -56,17 +56,17 @@ impl Parser {
             } => {
                 let statement =
                     LoopStatementParser::default().parse(stream.clone(), Some(token))?;
-                InnerStatement::Loop(statement)
+                FunctionLocalStatement::Loop(statement)
             }
             token => {
                 let (expression, next) =
                     ExpressionParser::default().parse(stream.clone(), Some(token))?;
                 self.next = next;
-                InnerStatement::Expression(expression)
+                FunctionLocalStatement::Expression(expression)
             }
         };
         match statement {
-            statement @ InnerStatement::Expression { .. } => match match self.next.take() {
+            statement @ FunctionLocalStatement::Expression { .. } => match match self.next.take() {
                 Some(token) => token,
                 None => stream.borrow_mut().next()?,
             } {
@@ -97,8 +97,8 @@ mod tests {
     use crate::syntax::ExpressionElement;
     use crate::syntax::ExpressionObject;
     use crate::syntax::ExpressionOperand;
+    use crate::syntax::FunctionLocalStatement;
     use crate::syntax::Identifier;
-    use crate::syntax::InnerStatement;
     use crate::syntax::IntegerLiteral;
     use crate::syntax::LetStatement;
     use crate::syntax::Type;
@@ -109,7 +109,7 @@ mod tests {
         let input = r#"let mut a: u232 = 42;"#;
 
         let expected = Ok((
-            InnerStatement::Let(LetStatement::new(
+            FunctionLocalStatement::Let(LetStatement::new(
                 Location::new(1, 1),
                 Identifier::new(Location::new(1, 9), "a".to_owned()),
                 true,
@@ -147,7 +147,7 @@ mod tests {
         let input = r#"{ 42 }"#;
 
         let expected = Ok((
-            InnerStatement::Expression(Expression::new(
+            FunctionLocalStatement::Expression(Expression::new(
                 Location::new(1, 1),
                 vec![ExpressionElement::new(
                     Location::new(1, 1),

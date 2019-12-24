@@ -1,14 +1,19 @@
 //!
 //! The lexical parser.
 //!
+//! \t \n \r
+//! <Space> "
+//! % &
+//! ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = >
+//! A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \ ] ^ _
+//! a b c d e f g h i j k l m n o p q r s t u v w x y z { | }
+//!
 
-mod alphabet;
 mod error;
 mod stream;
 mod tests;
 mod token;
 
-pub use self::alphabet::Alphabet;
 pub use self::error::Error;
 pub use self::stream::CommentParserError;
 pub use self::stream::IntegerParserError;
@@ -28,9 +33,3 @@ pub use self::token::Location;
 pub use self::token::StringLiteral;
 pub use self::token::Symbol;
 pub use self::token::Token;
-
-static PANIC_UNCHECKED_SYMBOL: &str =
-    "All symbols must be checked or ruled out at this point, but this one ended up here: ";
-static PANIC_UNROUTED_CHARACTER: &str =
-    "All characters must be checked for being in the alphabet and routed at this point, but this one ended up here: ";
-static PANIC_INTEGER_VALIDATED_DURING_SCANNING: &str = "Validity must be checked during scanning";

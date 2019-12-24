@@ -2,15 +2,16 @@
 //! The array expression builder.
 //!
 
-use crate::lexical::IntegerLiteral;
 use crate::lexical::Location;
 use crate::syntax::ArrayExpression;
 use crate::syntax::Expression;
+use crate::syntax::IntegerLiteral;
 
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
     elements: Vec<Expression>,
+    repeats_count: Option<IntegerLiteral>,
 }
 
 impl Builder {
@@ -22,16 +23,8 @@ impl Builder {
         self.elements.push(expression);
     }
 
-    pub fn fill(&mut self, size: IntegerLiteral) {
-        let expression = self.elements.pop().unwrap_or_else(|| {
-            panic!(
-                "{}{}",
-                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                "expression"
-            )
-        });
-        let size: usize = size.into();
-        self.elements = vec![expression; size];
+    pub fn set_repeats_count(&mut self, repeats_count: IntegerLiteral) {
+        self.repeats_count = Some(repeats_count);
     }
 
     pub fn finish(mut self) -> ArrayExpression {
@@ -44,6 +37,7 @@ impl Builder {
                 )
             }),
             self.elements,
+            self.repeats_count.take(),
         )
     }
 }

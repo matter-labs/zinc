@@ -5,7 +5,9 @@
 mod expression;
 mod field;
 mod field_list;
-mod pattern;
+mod pattern_binding;
+mod pattern_binding_list;
+mod pattern_match;
 mod statement;
 mod r#type;
 mod variant;
@@ -24,22 +26,27 @@ pub use self::expression::MatchExpressionParser;
 pub use self::expression::MulDivRemOperandParser;
 pub use self::expression::OrOperandParser;
 pub use self::expression::Parser as ExpressionParser;
-pub use self::expression::PathExpressionParser;
+pub use self::expression::PathOperandParser;
 pub use self::expression::StructureExpressionParser;
+pub use self::expression::TerminalOperandParser;
 pub use self::expression::TupleExpressionParser;
 pub use self::expression::XorOperandParser;
 pub use self::field::Parser as FieldParser;
 pub use self::field_list::Parser as FieldListParser;
-pub use self::pattern::Parser as PatternParser;
+pub use self::pattern_binding::Parser as BindingPatternParser;
+pub use self::pattern_binding_list::Parser as BindingPatternListParser;
+pub use self::pattern_match::Parser as MatchPatternParser;
 pub use self::r#type::Parser as TypeParser;
 pub use self::statement::ConstParser as ConstStatementParser;
 pub use self::statement::EnumParser as EnumStatementParser;
 pub use self::statement::FnParser as FnStatementParser;
-pub use self::statement::InnerStatementParser;
+pub use self::statement::FunctionLocalStatementParser;
+pub use self::statement::ImplParser as ImplStatementParser;
+pub use self::statement::ImplementationLocalStatementParser;
 pub use self::statement::LetParser as LetStatementParser;
 pub use self::statement::LoopParser as LoopStatementParser;
 pub use self::statement::ModParser as ModStatementParser;
-pub use self::statement::OuterStatementParser;
+pub use self::statement::ModuleLocalStatementParser;
 pub use self::statement::StaticParser as StaticStatementParser;
 pub use self::statement::StructParser as StructStatementParser;
 pub use self::statement::TypeParser as TypeStatementParser;
@@ -78,7 +85,7 @@ impl Parser {
                 } => break,
                 token => {
                     let (statement, next) =
-                        OuterStatementParser::default().parse(stream.clone(), Some(token))?;
+                        ModuleLocalStatementParser::default().parse(stream.clone(), Some(token))?;
                     self.next = next;
                     log::trace!("Statement: {:?}", statement);
                     statements.push(statement);

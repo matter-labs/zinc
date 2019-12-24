@@ -34,6 +34,7 @@ fn main() {
             Type::new_structure(
                 "Data".to_owned(),
                 vec![("a".to_owned(), Type::new_integer_unsigned(8))],
+                None,
             )
             .to_string(),
         ),

@@ -8,19 +8,19 @@ pub use self::builder::Builder;
 
 use crate::lexical::Location;
 use crate::syntax;
-use crate::syntax::InnerStatement;
+use crate::syntax::FunctionLocalStatement;
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Expression {
     pub location: Location,
-    pub statements: Vec<InnerStatement>,
+    pub statements: Vec<FunctionLocalStatement>,
     pub expression: Option<Box<syntax::Expression>>,
 }
 
 impl Expression {
     pub fn new(
         location: Location,
-        statements: Vec<InnerStatement>,
+        statements: Vec<FunctionLocalStatement>,
         expression: Option<syntax::Expression>,
     ) -> Self {
         Self {

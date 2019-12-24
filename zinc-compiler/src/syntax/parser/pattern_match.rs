@@ -1,5 +1,5 @@
 //!
-//! The pattern parser.
+//! The match pattern parser.
 //!
 
 use std::cell::RefCell;
@@ -15,12 +15,12 @@ use crate::syntax::BooleanLiteral;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::Identifier;
 use crate::syntax::IntegerLiteral;
-use crate::syntax::Pattern;
-use crate::syntax::PatternBuilder;
+use crate::syntax::MatchPattern;
+use crate::syntax::MatchPatternBuilder;
 
 #[derive(Default)]
 pub struct Parser {
-    builder: PatternBuilder,
+    builder: MatchPatternBuilder,
 }
 
 impl Parser {
@@ -28,7 +28,7 @@ impl Parser {
         mut self,
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
-    ) -> Result<Pattern, Error> {
+    ) -> Result<MatchPattern, Error> {
         match match initial.take() {
             Some(token) => token,
             None => stream.borrow_mut().next()?,
@@ -89,16 +89,16 @@ mod tests {
     use crate::syntax::BooleanLiteral;
     use crate::syntax::Identifier;
     use crate::syntax::IntegerLiteral;
-    use crate::syntax::Pattern;
-    use crate::syntax::PatternVariant;
+    use crate::syntax::MatchPattern;
+    use crate::syntax::MatchPatternVariant;
 
     #[test]
     fn ok_literal_boolean() {
         let input = "true";
 
-        let expected = Ok(Pattern::new(
+        let expected = Ok(MatchPattern::new(
             Location::new(1, 1),
-            PatternVariant::BooleanLiteral(BooleanLiteral::new(
+            MatchPatternVariant::BooleanLiteral(BooleanLiteral::new(
                 Location::new(1, 1),
                 lexical::BooleanLiteral::True,
             )),
@@ -116,9 +116,9 @@ mod tests {
     fn ok_literal_integer() {
         let input = "42";
 
-        let expected = Ok(Pattern::new(
+        let expected = Ok(MatchPattern::new(
             Location::new(1, 1),
-            PatternVariant::IntegerLiteral(IntegerLiteral::new(
+            MatchPatternVariant::IntegerLiteral(IntegerLiteral::new(
                 Location::new(1, 1),
                 lexical::IntegerLiteral::new_decimal("42".to_owned()),
             )),
@@ -136,9 +136,9 @@ mod tests {
     fn ok_binding() {
         let input = "value";
 
-        let expected = Ok(Pattern::new(
+        let expected = Ok(MatchPattern::new(
             Location::new(1, 1),
-            PatternVariant::Binding(Identifier::new(Location::new(1, 1), "value".to_owned())),
+            MatchPatternVariant::Binding(Identifier::new(Location::new(1, 1), "value".to_owned())),
         ));
 
         let result = Parser::default().parse(
@@ -153,7 +153,10 @@ mod tests {
     fn ok_ignoring() {
         let input = "_";
 
-        let expected = Ok(Pattern::new(Location::new(1, 1), PatternVariant::Ignoring));
+        let expected = Ok(MatchPattern::new(
+            Location::new(1, 1),
+            MatchPatternVariant::Ignoring,
+        ));
 
         let result = Parser::default().parse(
             Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),

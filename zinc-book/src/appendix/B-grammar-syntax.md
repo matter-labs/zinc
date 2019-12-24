@@ -3,11 +3,10 @@
 These are the Zinc syntax grammar rules in the EWBF notation.
 
 ```
-(* Domain *)
-file = { outer_statement } ;
+file = { module_local_statement } ;
 
 (* Statements *)
-outer_statement =
+module_local_statement =
     const_statement
   | static_statement
   | type_statement
@@ -16,12 +15,17 @@ outer_statement =
   | fn_statement
   | mod_statement
   | use_statement
+  | impl_statement
 
-inner_statement =
+function_local_statement =
     let_statement
   | const_statement
   | loop_statement
   | expression
+
+implementation_local_statement =
+    const_statement
+  | fn_statement
 ';' ;
 
 let_statement = 'let', [ 'mut' ], identifier, [ ':', type ], '=', expression ;
@@ -32,6 +36,7 @@ enum_statement = 'enum', variant_list ;
 fn_statement = 'fn', identifier, '(', field_list, ')', [ '->', type ], block_expression ;
 mod_statement = 'mod', identifier ;
 use_statement = 'use', path_expression ;
+impl_statement = 'impl', identifier, '{', { implementation_local_statement }, '}' ;
 
 (* Expressions *)
 expression = operand_or, { '||', operand_or } ;
@@ -41,10 +46,14 @@ operand_and = operand_comparison, [ '==' | '!=' | '>=' | '<=' | '>' | '<', opera
 operand_comparison = operand_add_sub, { '+' | '-', operand_add_sub } ;
 operand_add_sub = operand_mul_div_rem, { '*' | '/' | '%', operand_mul_div_rem } ;
 operand_mul_div_rem = operand_as, { 'as', type } ;
-operand_as =
-    '-' | '!', operand_as
-  | operand_access, { '[', expression, ']' | '.', integer | '.', member_name | [ '!' ], '(', expression_list, ')' }
-operand_access =
+operand_as = { '-' | '!', '&', '*' }, operand_access ;
+operand_access = operand_path, {
+    '[', expression, ']'
+  | '.', integer | member_name
+  | '(', expression_list, ')'
+} ;
+operand_path = operand_terminal, { '::', operand_terminal }, [ '!' ] ;
+operand_terminal =
     tuple_expression
   | block_expression
   | array_expression
@@ -52,16 +61,16 @@ operand_access =
   | match_expression
   | struct_expression
   | literal
-  | path_expression
+  | identifier
 ;
 
 expression_list = [ expression, { ',', expression } ] ;
 
-block_expression = '{', { inner_statement }, [ expression ], '}' ;
+block_expression = '{', { function_local_statement }, [ expression ], '}' ;
 
 conditional_expression = 'if', expression, block_expression, [ 'else', conditional_expression | block_expression ] ;
 
-match_expression = 'match', expression, '{', { pattern, '=>', expression, ',' }, '}' ;
+match_expression = 'match', expression, '{', { pattern_match, '=>', expression, ',' }, '}' ;
 
 array_expression =
     '[', [ expression, { ',', expression } ] ']'
@@ -75,8 +84,6 @@ tuple_expression =
 ;
 
 struct_expression = 'struct', path_expression, [ '{', field_list, '}' ] ;
-
-path_expression = identifier, { '::', identifier } ;
 
 (* Parts *)
 type =
@@ -94,7 +101,7 @@ type =
   | identifier
 ;
 
-pattern = boolean | integer | identifier | '_' ;
+pattern_match = boolean | integer | identifier | '_' ;
 
 field = identifier, ':', type ;
 field_list = [ field, { ',', field } ] ;

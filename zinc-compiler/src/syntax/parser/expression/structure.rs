@@ -14,7 +14,7 @@ use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::ExpressionParser;
 use crate::syntax::Identifier;
-use crate::syntax::PathExpressionParser;
+use crate::syntax::PathOperandParser;
 use crate::syntax::StructureExpression;
 use crate::syntax::StructureExpressionBuilder;
 
@@ -51,11 +51,10 @@ impl Parser {
         loop {
             match self.state {
                 State::KeywordStruct => {
-                    let next = match initial.take() {
+                    match match initial.take() {
                         Some(token) => token,
                         None => stream.borrow_mut().next()?,
-                    };
-                    match next {
+                    } {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Struct),
                             location,
@@ -81,8 +80,8 @@ impl Parser {
                             lexeme: Lexeme::Identifier(_),
                             ..
                         } => {
-                            let (expression, next) = PathExpressionParser::default()
-                                .parse(stream.clone(), Some(token))?;
+                            let (expression, next) =
+                                PathOperandParser::default().parse(stream.clone(), Some(token))?;
                             self.next = next;
                             self.builder.set_path_expression(expression);
                             self.state = State::BracketCurlyLeftOrEnd;

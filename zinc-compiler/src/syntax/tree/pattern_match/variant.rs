@@ -1,5 +1,5 @@
 //!
-//! The pattern variant.
+//! The match pattern variant.
 //!
 
 use crate::syntax::BooleanLiteral;

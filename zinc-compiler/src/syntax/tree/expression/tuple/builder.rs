@@ -77,7 +77,7 @@ impl Builder {
                     )],
                 )
             }
-            _ => panic!(crate::syntax::PANIC_ALL_TUPLE_CASES_ARE_COVERED_ABOVE),
+            _ => panic!(crate::syntax::PANIC_BUILDER_COMPLEX_TYPE),
         }
     }
 }

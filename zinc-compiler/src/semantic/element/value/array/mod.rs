@@ -34,16 +34,16 @@ impl Array {
         Type::new_array(self.r#type.clone(), self.size)
     }
 
-    pub fn push(&mut self, r#type: Type) -> Result<(), Error> {
+    pub fn extend(&mut self, r#type: Type, count: usize) -> Result<(), Error> {
         if self.size == 0 {
             self.r#type = r#type;
         } else if r#type != self.r#type {
-            return Err(Error::PushingInvalidType(
+            return Err(Error::InvalidType(
                 r#type.to_string(),
                 self.r#type.to_string(),
             ));
         }
-        self.size += 1;
+        self.size += count;
 
         Ok(())
     }

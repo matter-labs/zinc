@@ -21,6 +21,7 @@ use zinc_bytecode::Mul;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 use zinc_bytecode::Store;
+use zinc_bytecode::StoreGlobal;
 use zinc_bytecode::Sub;
 
 use crate::Bytecode;
@@ -67,36 +68,30 @@ fn main() -> field {
     let expected = Ok(vec![
         Instruction::Call(Call::new(16, 0)),
         Instruction::Exit(Exit::new(1)),
-        Instruction::Load(Load::new(1)),
         Instruction::Load(Load::new(0)),
+        Instruction::Load(Load::new(1)),
         Instruction::Add(Add),
         Instruction::Return(Return::new(1)),
-        Instruction::Load(Load::new(1)),
         Instruction::Load(Load::new(0)),
+        Instruction::Load(Load::new(1)),
         Instruction::Sub(Sub),
         Instruction::Return(Return::new(1)),
-        Instruction::Load(Load::new(1)),
         Instruction::Load(Load::new(0)),
+        Instruction::Load(Load::new(1)),
         Instruction::Mul(Mul),
         Instruction::Return(Return::new(1)),
         Instruction::PushConst(PushConst::new(BigInt::from(5), false, 8)),
-        Instruction::Store(Store::new(0)), // TODO: store_global
+        Instruction::StoreGlobal(StoreGlobal::new(0)),
         Instruction::PushConst(PushConst::new(BigInt::from(69), false, 8)),
-        Instruction::Cast(Cast),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
         Instruction::Store(Store::new(0)),
-        Instruction::PushConst(PushConst::new(BigInt::from(5), false, 8)),
-        Instruction::Cast(Cast),
-        Instruction::Load(Load::new(0)),
-        Instruction::PushConst(PushConst::new(BigInt::from(42), false, 42)),
         Instruction::LoadGlobal(LoadGlobal::new(0)),
-        Instruction::Store(Store::new(1)),
-        Instruction::Store(Store::new(2)),
+        Instruction::PushConst(PushConst::new(BigInt::from(42), false, 42)),
         Instruction::Call(Call::new(2, 2)),
-        Instruction::Store(Store::new(1)),
-        Instruction::Store(Store::new(2)),
+        Instruction::Load(Load::new(0)),
         Instruction::Call(Call::new(6, 2)),
-        Instruction::Store(Store::new(1)),
-        Instruction::Store(Store::new(2)),
+        Instruction::PushConst(PushConst::new(BigInt::from(5), false, 8)),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
         Instruction::Call(Call::new(10, 2)),
         Instruction::Return(Return::new(1)),
     ]);

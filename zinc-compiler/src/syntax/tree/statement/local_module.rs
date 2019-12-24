@@ -1,10 +1,11 @@
 //!
-//! The outer statement.
+//! The module-local statement.
 //!
 
 use crate::syntax::ConstStatement;
 use crate::syntax::EnumStatement;
 use crate::syntax::FnStatement;
+use crate::syntax::ImplStatement;
 use crate::syntax::ModStatement;
 use crate::syntax::StaticStatement;
 use crate::syntax::StructStatement;
@@ -21,4 +22,5 @@ pub enum Statement {
     Fn(FnStatement),
     Mod(ModStatement),
     Use(UseStatement),
+    Impl(ImplStatement),
 }

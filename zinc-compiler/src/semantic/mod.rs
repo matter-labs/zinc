@@ -31,6 +31,7 @@ pub use self::element::IntegerValueError;
 pub use self::element::Place;
 pub use self::element::PlaceDescriptor;
 pub use self::element::PlaceError;
+pub use self::element::PlaceResolutionTime;
 pub use self::element::Structure;
 pub use self::element::StructureError;
 pub use self::element::Tuple;
@@ -46,8 +47,6 @@ pub use self::scope::VariableItem as ScopeVariableItem;
 static PANIC_VALIDATED_DURING_LEXICAL_ANALYSIS: &str = "Validated during the lexical analysis";
 static PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS: &str = "Validated during the syntax analysis";
 
-static PANIC_FUNCTION_INSTRUCTION_DECLARATION: &str =
-    "Instruction functions are declared without errors";
 static PANIC_FUNCTION_RESOLUTION_MAIN: &str = "'main' function is checked above";
 static PANIC_FUNCTION_ADDRESS_ALWAYS_EXISTS: &str =
     "Function address exists because the function type has been resolved above";
@@ -58,6 +57,8 @@ static PANIC_THERE_MUST_ALWAYS_BE_AN_OPERAND: &str =
     "Operand stack balance is kept by the evaluation logic";
 static PANIC_THERE_MUST_ALWAYS_BE_A_CALL_STACK_POINTER: &str =
     "Call stack balance is kept by the evaluation logic";
+static PANIC_THERE_MUST_ALWAYS_BE_A_PATH_MEMBER_STRING: &str =
+    "Member string existence is ensured by the evaluation logic";
 
-static PANIC_RANGE_OPERATORS_ARE_UNAVAILABLE: &str = "Range operators are unavailable yet";
 static PANIC_VALUE_CANNOT_BE_CREATED_FROM: &str = "Impossible to create a value from type: ";
+static PANIC_SELF_ALIAS_DECLARATION: &str = "'Self' alias declaration is always valid";

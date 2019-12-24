@@ -12,7 +12,7 @@ use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
-use crate::syntax::PathExpressionParser;
+use crate::syntax::PathOperandParser;
 use crate::syntax::UseStatement;
 use crate::syntax::UseStatementBuilder;
 
@@ -46,7 +46,7 @@ impl Parser {
             }
         }
 
-        let (path, mut next) = PathExpressionParser::default().parse(stream.clone(), None)?;
+        let (path, mut next) = PathOperandParser::default().parse(stream.clone(), None)?;
         self.builder.set_path(path);
 
         match match next.take() {

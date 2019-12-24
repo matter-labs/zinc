@@ -11,7 +11,8 @@ use zinc_bytecode::InstructionInfo;
 #[derive(Debug, Default, PartialEq)]
 pub struct Bytecode {
     instructions: Vec<Instruction>,
-    data_stack_pointer: usize,
+    data_stack_absolute_pointer: usize,
+    data_stack_relative_pointer: usize,
     function_addresses: HashMap<String, usize>,
     address_stack: Vec<usize>,
 }
@@ -31,7 +32,8 @@ impl Bytecode {
 
         Self {
             instructions,
-            data_stack_pointer: 0,
+            data_stack_absolute_pointer: 0,
+            data_stack_relative_pointer: 0,
             function_addresses,
             address_stack,
         }
@@ -59,6 +61,7 @@ impl Bytecode {
         address: usize,
         data_size: usize,
         array_size: Option<usize>,
+        is_global: bool,
     ) {
         self.instructions.push(match data_size {
             0 => return,
@@ -66,13 +69,21 @@ impl Bytecode {
                 Some(array_size) => {
                     Instruction::StoreByIndex(zinc_bytecode::StoreByIndex::new(address, array_size))
                 }
+                None if is_global => {
+                    Instruction::StoreGlobal(zinc_bytecode::StoreGlobal::new(address))
+                }
                 None => Instruction::Store(zinc_bytecode::Store::new(address)),
             },
             data_size => match array_size {
-                Some(array_size) => Instruction::StoreArrayByIndex(
-                    zinc_bytecode::StoreArrayByIndex::new(address, array_size, data_size),
+                Some(array_size) => Instruction::StoreSequenceByIndex(
+                    zinc_bytecode::StoreSequenceByIndex::new(address, array_size, data_size),
                 ),
-                None => Instruction::StoreArray(zinc_bytecode::StoreArray::new(address, data_size)),
+                None if is_global => Instruction::StoreSequenceGlobal(
+                    zinc_bytecode::StoreSequenceGlobal::new(address, data_size),
+                ),
+                None => Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
+                    address, data_size,
+                )),
             },
         });
     }
@@ -99,16 +110,18 @@ impl Bytecode {
                 None => Instruction::Load(zinc_bytecode::Load::new(address)),
             },
             data_size => match array_size {
-                Some(array_size) if is_global => Instruction::LoadArrayByIndexGlobal(
-                    zinc_bytecode::LoadArrayByIndexGlobal::new(address, array_size, data_size),
+                Some(array_size) if is_global => Instruction::LoadSequenceByIndexGlobal(
+                    zinc_bytecode::LoadSequenceByIndexGlobal::new(address, array_size, data_size),
                 ),
-                Some(array_size) => Instruction::LoadArrayByIndex(
-                    zinc_bytecode::LoadArrayByIndex::new(address, array_size, data_size),
+                Some(array_size) => Instruction::LoadSequenceByIndex(
+                    zinc_bytecode::LoadSequenceByIndex::new(address, array_size, data_size),
                 ),
-                None if is_global => Instruction::LoadArrayGlobal(
-                    zinc_bytecode::LoadArrayGlobal::new(address, data_size),
+                None if is_global => Instruction::LoadSequenceGlobal(
+                    zinc_bytecode::LoadSequenceGlobal::new(address, data_size),
                 ),
-                None => Instruction::LoadArray(zinc_bytecode::LoadArray::new(address, data_size)),
+                None => {
+                    Instruction::LoadSequence(zinc_bytecode::LoadSequence::new(address, data_size))
+                }
             },
         });
     }
@@ -116,7 +129,7 @@ impl Bytecode {
     pub fn start_new_function(&mut self, identifier: &str) {
         self.function_addresses
             .insert(identifier.to_owned(), self.instructions.len());
-        self.data_stack_pointer = 0;
+        self.data_stack_relative_pointer = 0;
     }
 
     pub fn function_address(&self, identifier: &str) -> Option<usize> {
@@ -124,17 +137,18 @@ impl Bytecode {
     }
 
     pub fn allocate_data_stack_space(&mut self, size: usize) -> usize {
-        let start_address = self.data_stack_pointer;
-        self.data_stack_pointer += size;
+        let start_address = self.data_stack_relative_pointer;
+        self.data_stack_absolute_pointer += size;
+        self.data_stack_relative_pointer += size;
         start_address
     }
 
     pub fn push_data_stack_address(&mut self) {
-        self.address_stack.push(self.data_stack_pointer);
+        self.address_stack.push(self.data_stack_relative_pointer);
     }
 
     pub fn pop_data_stack_address(&mut self) {
-        self.data_stack_pointer = self
+        self.data_stack_relative_pointer = self
             .address_stack
             .pop()
             .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_CALL_STACK_POINTER);

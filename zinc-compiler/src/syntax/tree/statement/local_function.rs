@@ -1,5 +1,5 @@
 //!
-//! The inner statement.
+//! The function-local statement.
 //!
 
 use crate::syntax::ConstStatement;

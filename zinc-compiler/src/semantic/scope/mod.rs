@@ -19,21 +19,43 @@ use crate::semantic::Constant;
 use crate::semantic::Error as SemanticError;
 use crate::semantic::Place;
 use crate::semantic::PlaceDescriptor;
+use crate::semantic::PlaceResolutionTime;
 use crate::semantic::Type;
 use crate::semantic::Type as TypeItem;
 
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Scope {
     parent: Option<Rc<RefCell<Self>>>,
     items: HashMap<String, Item>,
+}
+
+impl Default for Scope {
+    fn default() -> Self {
+        Self::new(None)
+    }
 }
 
 impl Scope {
     pub fn new(parent: Option<Rc<RefCell<Self>>>) -> Self {
         Self {
             parent,
-            ..Default::default()
+            items: HashMap::new(),
         }
+    }
+
+    pub fn new_global() -> Self {
+        Self {
+            parent: None,
+            items: Self::default_items(),
+        }
+    }
+
+    pub fn declare_item(&mut self, identifier: String, item: Item) -> Result<(), Error> {
+        if self.is_item_declared(&identifier) {
+            return Err(Error::ItemRedeclared(identifier));
+        }
+        self.items.insert(identifier, item);
+        Ok(())
     }
 
     pub fn declare_variable(
@@ -111,104 +133,34 @@ impl Scope {
                     }
                     Item::Type(Type::Enumeration {
                         identifier,
+                        bitlength,
                         scope: enum_scope,
                     }) => {
-                        scope = Rc::new(RefCell::new(enum_scope.clone()));
+                        scope = enum_scope.clone();
                         Item::Type(Type::Enumeration {
                             identifier,
+                            bitlength,
                             scope: enum_scope,
                         })
                     }
-                    Item::Variable(mut variable) => {
-                        if place.is_static {
-                            for descriptor in place.descriptors.iter() {
-                                match (descriptor, &variable.r#type) {
-                                    (
-                                        PlaceDescriptor::ArrayIndexConstant(constant),
-                                        Type::Array {
-                                            r#type: array_element_type,
-                                            size: array_size,
-                                        },
-                                    ) => {
-                                        let array_size = *array_size;
-                                        let array_index = constant.to_usize().map_err(|error| {
-                                            SemanticError::InferenceConstant(place.location, error)
-                                        })?;
-                                        if array_index >= array_size {
-                                            return Err(SemanticError::Scope(
-                                                place.location,
-                                                Error::ArrayIndexOutOfRange(
-                                                    array_index,
-                                                    variable.r#type.to_string(),
-                                                ),
-                                            ));
-                                        }
-                                        variable.address += array_index * array_element_type.size();
-                                        variable.r#type = *array_element_type.to_owned();
-                                    }
-                                    (
-                                        PlaceDescriptor::TupleField(tuple_field),
-                                        Type::Tuple { types: tuple_types },
-                                    ) => {
-                                        let tuple_field = *tuple_field;
-                                        if tuple_field >= tuple_types.len() {
-                                            return Err(SemanticError::Scope(
-                                                place.location,
-                                                Error::TupleFieldDoesNotExist(
-                                                    tuple_field,
-                                                    variable.r#type.to_string(),
-                                                ),
-                                            ));
-                                        }
-                                        for _tuple_field_index in 0..tuple_field {
-                                            variable.address += tuple_types[tuple_field].size();
-                                        }
-                                        variable.r#type = tuple_types[tuple_field].to_owned();
-                                    }
-                                    (
-                                        PlaceDescriptor::StructureField(structure_field),
-                                        Type::Structure { fields, .. },
-                                    ) => {
-                                        let mut found_type = None;
-                                        for (field_name, field_type) in fields.iter() {
-                                            if field_name == structure_field {
-                                                found_type = Some(field_type);
-                                                break;
-                                            }
-                                            variable.address += field_type.size();
-                                        }
-                                        match found_type.take() {
-                                            Some(found_type) => {
-                                                variable.r#type = found_type.to_owned()
-                                            }
-                                            None => {
-                                                return Err(SemanticError::Scope(
-                                                    place.location,
-                                                    Error::StructureFieldDoesNotExist(
-                                                        structure_field.to_owned(),
-                                                        variable.r#type.to_string(),
-                                                    ),
-                                                ))
-                                            }
-                                        }
-                                    }
-                                    (descriptor, inner_type) => {
-                                        return Err(SemanticError::Scope(
-                                            place.location,
-                                            Error::InvalidDescriptor(
-                                                inner_type.to_string(),
-                                                descriptor.to_owned(),
-                                            ),
-                                        ))
-                                    }
-                                }
-                            }
-
-                            Item::Variable(variable)
-                        } else {
-                            unimplemented!();
-                        }
+                    Item::Type(Type::Structure {
+                        identifier,
+                        fields,
+                        scope: struct_scope,
+                    }) => {
+                        scope = struct_scope.clone();
+                        Item::Type(Type::Structure {
+                            identifier,
+                            fields,
+                            scope: struct_scope,
+                        })
                     }
+                    Item::Variable(variable) => match place.resolution_time {
+                        PlaceResolutionTime::Static => {
+                            Self::static_address(variable, place).map(Item::Variable)?
+                        }
+                        PlaceResolutionTime::Dynamic => unimplemented!(),
+                    },
                     item => item,
                 },
             );
@@ -235,5 +187,112 @@ impl Scope {
                 None => false,
             }
         }
+    }
+
+    pub fn new_child(parent: Rc<RefCell<Scope>>) -> Rc<RefCell<Scope>> {
+        Rc::new(RefCell::new(Scope::new(Some(parent))))
+    }
+
+    fn static_address(
+        mut variable: VariableItem,
+        place: &Place,
+    ) -> Result<VariableItem, SemanticError> {
+        for descriptor in place.descriptors.iter() {
+            match (descriptor, &variable.r#type) {
+                (
+                    PlaceDescriptor::ArrayIndexConstant(constant),
+                    Type::Array {
+                        r#type: array_element_type,
+                        size: array_size,
+                    },
+                ) => {
+                    let array_size = *array_size;
+                    let array_index = constant
+                        .to_usize()
+                        .map_err(|error| SemanticError::InferenceConstant(place.location, error))?;
+                    if array_index >= array_size {
+                        return Err(SemanticError::Scope(
+                            place.location,
+                            Error::ArrayIndexOutOfRange(array_index, variable.r#type.to_string()),
+                        ));
+                    }
+                    variable.address += array_index * array_element_type.size();
+                    variable.r#type = *array_element_type.to_owned();
+                }
+                (PlaceDescriptor::TupleField(tuple_field), Type::Tuple { types: tuple_types }) => {
+                    let tuple_field = *tuple_field;
+                    if tuple_field >= tuple_types.len() {
+                        return Err(SemanticError::Scope(
+                            place.location,
+                            Error::TupleFieldDoesNotExist(tuple_field, variable.r#type.to_string()),
+                        ));
+                    }
+                    for _tuple_field_index in 0..tuple_field {
+                        variable.address += tuple_types[tuple_field].size();
+                    }
+                    variable.r#type = tuple_types[tuple_field].to_owned();
+                }
+                (
+                    PlaceDescriptor::StructureField(structure_field),
+                    Type::Structure { fields, .. },
+                ) => {
+                    let mut found_type = None;
+                    for (field_name, field_type) in fields.iter() {
+                        if field_name == structure_field {
+                            found_type = Some(field_type);
+                            break;
+                        }
+                        variable.address += field_type.size();
+                    }
+                    match found_type.take() {
+                        Some(found_type) => variable.r#type = found_type.to_owned(),
+                        None => {
+                            return Err(SemanticError::Scope(
+                                place.location,
+                                Error::StructureFieldDoesNotExist(
+                                    structure_field.to_owned(),
+                                    variable.r#type.to_string(),
+                                ),
+                            ))
+                        }
+                    }
+                }
+                (descriptor, inner_type) => {
+                    return Err(SemanticError::Scope(
+                        place.location,
+                        Error::InvalidDescriptor(inner_type.to_string(), descriptor.to_owned()),
+                    ))
+                }
+            }
+        }
+
+        Ok(variable)
+    }
+
+    fn default_items() -> HashMap<String, Item> {
+        let mut functions = HashMap::with_capacity(2);
+
+        functions.insert(
+            "dbg".to_owned(),
+            Item::Type(Type::new_function(
+                "dbg".to_owned(),
+                vec![("format".to_owned(), Type::String)],
+                Type::Unit,
+            )),
+        );
+
+        functions.insert(
+            "assert".to_owned(),
+            Item::Type(Type::new_function(
+                "assert".to_owned(),
+                vec![
+                    ("condition".to_owned(), Type::Boolean),
+                    ("message".to_owned(), Type::String),
+                ],
+                Type::Unit,
+            )),
+        );
+
+        functions
     }
 }

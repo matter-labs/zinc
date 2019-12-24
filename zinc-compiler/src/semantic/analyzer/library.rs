@@ -30,7 +30,7 @@ impl Analyzer {
         Self {
             scope_stack: {
                 let mut scopes = Vec::with_capacity(Self::STACK_SCOPE_INITIAL_CAPACITY);
-                scopes.push(Rc::new(RefCell::new(Scope::default())));
+                scopes.push(Rc::new(RefCell::new(Scope::new_global())));
                 scopes
             },
             bytecode,
@@ -41,7 +41,7 @@ impl Analyzer {
         self.bytecode.borrow_mut().push_data_stack_address();
         for statement in program.statements.into_iter() {
             StatementAnalyzer::new(self.scope(), self.bytecode.clone(), HashMap::new())
-                .outer_statement(statement)
+                .module_local_statement(statement)
                 .map_err(CompilerError::Semantic)?;
         }
         self.bytecode.borrow_mut().pop_data_stack_address();

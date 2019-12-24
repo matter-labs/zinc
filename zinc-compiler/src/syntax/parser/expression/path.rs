@@ -11,22 +11,20 @@ use crate::lexical::Location;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionBuilder;
-use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
-use crate::syntax::IdentifierBuilder;
+use crate::syntax::TerminalOperandParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    Identifier,
-    DoubleColonOrEnd,
+    Terminal,
+    DoubleColonOrExclamationMarkOrEnd,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::Identifier
+        State::Terminal
     }
 }
 
@@ -46,39 +44,25 @@ impl Parser {
     ) -> Result<(Expression, Option<Token>), Error> {
         loop {
             match self.state {
-                State::Identifier => {
-                    let next = match initial.take() {
+                State::Terminal => {
+                    match match initial.take() {
                         Some(token) => token,
                         None => stream.borrow_mut().next()?,
-                    };
-                    match next {
-                        Token {
-                            lexeme: Lexeme::Identifier(identifier),
-                            location,
-                        } => {
-                            self.builder.set_location_if_unset(location);
-                            let mut identifier_builder = IdentifierBuilder::default();
-                            identifier_builder.set_location(location);
-                            identifier_builder.set_name(identifier.name);
-                            self.builder.push_operand(
-                                location,
-                                ExpressionOperand::Identifier(identifier_builder.finish()),
-                            );
+                    } {
+                        token => {
+                            let (expression, next) = TerminalOperandParser::default()
+                                .parse(stream.clone(), Some(token))?;
+                            self.next = next;
+                            self.builder.set_location_if_unset(expression.location);
+                            self.builder.extend_with_expression(expression);
                             if let Some((location, operator)) = self.operator.take() {
                                 self.builder.push_operator(location, operator);
                             }
-                            self.state = State::DoubleColonOrEnd;
-                        }
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{identifier}"],
-                                lexeme,
-                            )));
+                            self.state = State::DoubleColonOrExclamationMarkOrEnd;
                         }
                     }
                 }
-                State::DoubleColonOrEnd => {
+                State::DoubleColonOrExclamationMarkOrEnd => {
                     match match self.next.take() {
                         Some(token) => token,
                         None => stream.borrow_mut().next()?,
@@ -88,7 +72,15 @@ impl Parser {
                             location,
                         } => {
                             self.operator = Some((location, ExpressionOperator::Path));
-                            self.state = State::Identifier;
+                            self.state = State::Terminal;
+                        }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
+                            location,
+                        } => {
+                            self.builder
+                                .push_operator(location, ExpressionOperator::Instruction);
+                            return Ok((self.builder.finish(), None));
                         }
                         token => return Ok((self.builder.finish(), Some(token))),
                     }

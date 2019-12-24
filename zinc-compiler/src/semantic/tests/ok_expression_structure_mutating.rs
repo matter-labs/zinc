@@ -12,7 +12,7 @@ use zinc_bytecode::Instruction;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 use zinc_bytecode::Store;
-use zinc_bytecode::StoreArray;
+use zinc_bytecode::StoreSequence;
 
 #[test]
 fn test() {
@@ -42,7 +42,7 @@ fn main() {
         Instruction::PushConst(PushConst::new(BigInt::from(1), false, 8)),
         Instruction::PushConst(PushConst::new(BigInt::from(2), false, 8)),
         Instruction::PushConst(PushConst::new(BigInt::from(3), false, 8)),
-        Instruction::StoreArray(StoreArray::new(0, 3)),
+        Instruction::StoreSequence(StoreSequence::new(0, 3)),
         Instruction::PushConst(PushConst::new(BigInt::from(5), false, 8)),
         Instruction::Store(Store::new(0)),
         Instruction::PushConst(PushConst::new(BigInt::from(7), false, 8)),

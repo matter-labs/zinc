@@ -10,7 +10,7 @@ use crate::lexical::Symbol;
 
 pub enum State {
     Start,
-    Equal,
+    Equals,
     Exclamation,
     Lesser,
     Greater,
@@ -18,9 +18,9 @@ pub enum State {
     Dot,
     Colon,
     DoubleDot,
-    And,
-    Or,
-    Xor,
+    Ampersand,
+    VerticalBar,
+    Circumflex,
 }
 
 #[derive(Debug, Fail, Clone, PartialEq)]
@@ -70,7 +70,7 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                 }
                 '=' => {
                     size += 1;
-                    state = State::Equal;
+                    state = State::Equals;
                 }
                 '!' => {
                     size += 1;
@@ -86,20 +86,26 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                 }
                 '&' => {
                     size += 1;
-                    state = State::And;
+                    state = State::Ampersand;
                 }
                 '|' => {
                     size += 1;
-                    state = State::Or;
+                    state = State::VerticalBar;
                 }
                 '^' => {
                     size += 1;
-                    state = State::Xor;
+                    state = State::Circumflex;
                 }
 
-                _ => return Err(Error::NotASymbol),
+                character => {
+                    return Err(Error::InvalidCharacter(
+                        character,
+                        size + 1,
+                        character.to_string(),
+                    ))
+                }
             },
-            State::Equal => match character {
+            State::Equals => match character {
                 '=' => return Ok((size + 1, Symbol::DoubleEquals)),
                 '>' => return Ok((size + 1, Symbol::EqualsGreater)),
                 _ => return Ok((size, Symbol::Equals)),
@@ -135,17 +141,11 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                 '=' => return Ok((size + 1, Symbol::DoubleDotEquals)),
                 _ => return Ok((size, Symbol::DoubleDot)),
             },
-            State::And => match character {
+            State::Ampersand => match character {
                 '&' => return Ok((size + 1, Symbol::DoubleAmpersand)),
-                _ => {
-                    return Err(Error::InvalidCharacter(
-                        character,
-                        size + 1,
-                        input[..=size].to_owned(),
-                    ))
-                }
+                _ => return Ok((size, Symbol::Ampersand)),
             },
-            State::Or => match character {
+            State::VerticalBar => match character {
                 '|' => return Ok((size + 1, Symbol::DoubleVerticalBar)),
                 _ => {
                     return Err(Error::InvalidCharacter(
@@ -155,7 +155,7 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                     ))
                 }
             },
-            State::Xor => match character {
+            State::Circumflex => match character {
                 '^' => return Ok((size + 1, Symbol::DoubleCircumflex)),
                 _ => {
                     return Err(Error::InvalidCharacter(
@@ -189,14 +189,6 @@ mod tests {
     fn err_unexpected_end() {
         let input = "|";
         let expected = Err(Error::UnexpectedEnd);
-        let result = parse(input);
-        assert_eq!(expected, result);
-    }
-
-    #[test]
-    fn err_not_a_symbol() {
-        let input = "5";
-        let expected = Err(Error::NotASymbol);
         let result = parse(input);
         assert_eq!(expected, result);
     }

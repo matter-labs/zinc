@@ -3,8 +3,8 @@
 //!
 
 use crate::lexical::Location;
+use crate::syntax::BindingPattern;
 use crate::syntax::BlockExpression;
-use crate::syntax::Field;
 use crate::syntax::FnStatement;
 use crate::syntax::Identifier;
 use crate::syntax::Type;
@@ -14,7 +14,7 @@ use crate::syntax::TypeVariant;
 pub struct Builder {
     location: Option<Location>,
     identifier: Option<Identifier>,
-    arguments: Vec<Field>,
+    argument_bindings: Vec<BindingPattern>,
     return_type: Option<Type>,
     body: Option<BlockExpression>,
 }
@@ -28,8 +28,8 @@ impl Builder {
         self.identifier = Some(value);
     }
 
-    pub fn set_arguments(&mut self, value: Vec<Field>) {
-        self.arguments = value;
+    pub fn set_argument_bindings(&mut self, value: Vec<BindingPattern>) {
+        self.argument_bindings = value;
     }
 
     pub fn set_return_type(&mut self, value: Type) {
@@ -57,7 +57,7 @@ impl Builder {
                     "identifier"
                 )
             }),
-            self.arguments,
+            self.argument_bindings,
             self.return_type
                 .unwrap_or_else(|| Type::new(location, TypeVariant::new_unit())),
             self.body.take().unwrap_or_else(|| {

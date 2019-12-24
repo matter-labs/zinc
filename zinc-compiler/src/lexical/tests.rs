@@ -107,7 +107,10 @@ fn err_unexpected_end() {
 fn err_unknown_character() {
     let input = "#";
 
-    let expected: Result<Token, Error> = Err(Error::InvalidCharacter(Location::new(1, 1), '#'));
+    let expected: Result<Token, Error> = Err(Error::InvalidSymbol(
+        Location::new(1, 1),
+        SymbolParserError::InvalidCharacter('#', 1, "#".to_owned()),
+    ));
 
     let result = TokenStream::new(input.to_owned()).next();
 

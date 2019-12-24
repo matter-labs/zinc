@@ -165,8 +165,8 @@ impl Parser {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
                         } => {
-                            let block = BlockExpressionParser::default()
-                                .parse(stream.clone(), Some(token))?;
+                            let block =
+                                BlockExpressionParser::default().parse(stream, Some(token))?;
                             self.builder.set_block(block);
                             return Ok(self.builder.finish());
                         }
@@ -192,7 +192,7 @@ impl Parser {
                 }
                 State::BlockExpression => {
                     let expression =
-                        BlockExpressionParser::default().parse(stream.clone(), self.next.take())?;
+                        BlockExpressionParser::default().parse(stream, self.next.take())?;
                     self.builder.set_block(expression);
                     return Ok(self.builder.finish());
                 }

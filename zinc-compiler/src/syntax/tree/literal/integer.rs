@@ -16,9 +16,3 @@ impl Literal {
         Self { location, data }
     }
 }
-
-impl Into<usize> for Literal {
-    fn into(self) -> usize {
-        self.data.into()
-    }
-}

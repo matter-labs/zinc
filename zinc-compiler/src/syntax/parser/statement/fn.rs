@@ -11,9 +11,9 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
+use crate::syntax::BindingPatternListParser;
 use crate::syntax::BlockExpressionParser;
 use crate::syntax::Error as SyntaxError;
-use crate::syntax::FieldListParser;
 use crate::syntax::FnStatement;
 use crate::syntax::FnStatementBuilder;
 use crate::syntax::Identifier;
@@ -24,7 +24,7 @@ pub enum State {
     KeywordFn,
     Identifier,
     ParenthesisLeft,
-    ArgumentList,
+    ArgumentBindingList,
     ParenthesisRight,
     ArrowOrBody,
     ReturnType,
@@ -103,7 +103,7 @@ impl Parser {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                             ..
-                        } => self.state = State::ArgumentList,
+                        } => self.state = State::ArgumentBindingList,
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
                                 location,
@@ -113,10 +113,10 @@ impl Parser {
                         }
                     }
                 }
-                State::ArgumentList => {
-                    let (arguments, next) =
-                        FieldListParser::default().parse(stream.clone(), None)?;
-                    self.builder.set_arguments(arguments);
+                State::ArgumentBindingList => {
+                    let (argument_bindings, next) =
+                        BindingPatternListParser::default().parse(stream.clone(), None)?;
+                    self.builder.set_argument_bindings(argument_bindings);
                     self.next = next;
                     self.state = State::ParenthesisRight;
                 }
@@ -160,8 +160,7 @@ impl Parser {
                     self.state = State::Body;
                 }
                 State::Body => {
-                    let body =
-                        BlockExpressionParser::default().parse(stream.clone(), self.next.take())?;
+                    let body = BlockExpressionParser::default().parse(stream, self.next.take())?;
                     self.builder.set_body(body);
                     return Ok((self.builder.finish(), None));
                 }
@@ -178,8 +177,9 @@ mod tests {
     use super::Parser;
     use crate::lexical::Location;
     use crate::lexical::TokenStream;
+    use crate::syntax::BindingPattern;
+    use crate::syntax::BindingPatternVariant;
     use crate::syntax::BlockExpression;
-    use crate::syntax::Field;
     use crate::syntax::FnStatement;
     use crate::syntax::Identifier;
     use crate::syntax::Type;
@@ -193,9 +193,12 @@ mod tests {
             FnStatement::new(
                 Location::new(1, 1),
                 Identifier::new(Location::new(1, 4), "f".to_owned()),
-                vec![Field::new(
+                vec![BindingPattern::new(
                     Location::new(1, 6),
-                    Identifier::new(Location::new(1, 6), "a".to_owned()),
+                    BindingPatternVariant::Binding(Identifier::new(
+                        Location::new(1, 6),
+                        "a".to_owned(),
+                    )),
                     Type::new(Location::new(1, 9), TypeVariant::new_field()),
                 )],
                 Type::new(Location::new(1, 1), TypeVariant::new_unit()),
@@ -220,9 +223,12 @@ mod tests {
             FnStatement::new(
                 Location::new(1, 1),
                 Identifier::new(Location::new(1, 4), "f".to_owned()),
-                vec![Field::new(
+                vec![BindingPattern::new(
                     Location::new(1, 6),
-                    Identifier::new(Location::new(1, 6), "a".to_owned()),
+                    BindingPatternVariant::Binding(Identifier::new(
+                        Location::new(1, 6),
+                        "a".to_owned(),
+                    )),
                     Type::new(Location::new(1, 9), TypeVariant::new_field()),
                 )],
                 Type::new(Location::new(1, 19), TypeVariant::new_field()),

@@ -75,7 +75,7 @@ impl Builder {
                 }
                 Keyword::IntegerSigned { bitlength } => TypeVariant::new_integer_signed(bitlength),
                 Keyword::Field => TypeVariant::new_field(),
-                _ => panic!(crate::syntax::PANIC_ALL_TYPE_KEYWORDS_ARE_CHECKED_ABOVE),
+                _ => panic!(crate::syntax::PANIC_BUILDER_COMPLEX_TYPE),
             }
         } else if let Some(array_type) = self.array_type_variant.take() {
             TypeVariant::new_array(
@@ -92,14 +92,14 @@ impl Builder {
             if !self.tuple_has_comma {
                 self.tuple_element_types
                     .pop()
-                    .expect(crate::syntax::PANIC_VALUE_ALWAYS_EXISTS)
+                    .expect(crate::syntax::PANIC_BUILDER_COMPLEX_TYPE)
             } else {
                 TypeVariant::new_tuple(self.tuple_element_types)
             }
         } else if self.is_unit {
             TypeVariant::new_unit()
         } else {
-            panic!(crate::syntax::PANIC_ALL_TYPE_CASES_ARE_CHECKED_ABOVE);
+            panic!(crate::syntax::PANIC_BUILDER_COMPLEX_TYPE);
         };
 
         Type::new(location, variant)

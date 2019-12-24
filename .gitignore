@@ -6,7 +6,7 @@
 /target/
 
 # Book build
-/zinc-book/build/
+/zinc-book/build/*
 
 # Zinc build
-/examples/build/
+/examples/build/*

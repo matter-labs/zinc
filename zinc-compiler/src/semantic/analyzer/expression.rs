@@ -37,9 +37,9 @@ use crate::syntax::ExpressionOperator;
 use crate::syntax::Identifier;
 use crate::syntax::IntegerLiteral;
 use crate::syntax::MatchExpression;
+use crate::syntax::MatchPatternVariant;
 use crate::syntax::MemberInteger;
 use crate::syntax::MemberString;
-use crate::syntax::PatternVariant;
 use crate::syntax::StringLiteral;
 use crate::syntax::StructureExpression;
 use crate::syntax::TupleExpression;
@@ -121,17 +121,16 @@ impl Analyzer {
                         ));
                     }
 
-                    self.bytecode
-                        .borrow_mut()
-                        .push_instruction_store(variable.address, size, None);
+                    self.bytecode.borrow_mut().push_instruction_store(
+                        variable.address,
+                        size,
+                        None,
+                        false,
+                    );
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Range) => {
-                    panic!(crate::semantic::PANIC_RANGE_OPERATORS_ARE_UNAVAILABLE);
-                }
-                ExpressionObject::Operator(ExpressionOperator::RangeInclusive) => {
-                    panic!(crate::semantic::PANIC_RANGE_OPERATORS_ARE_UNAVAILABLE);
-                }
+                ExpressionObject::Operator(ExpressionOperator::Range) => unimplemented!(),
+                ExpressionObject::Operator(ExpressionOperator::RangeInclusive) => unimplemented!(),
                 ExpressionObject::Operator(ExpressionOperator::Or) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         ResolutionHint::ValueExpression,
@@ -370,7 +369,9 @@ impl Analyzer {
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.push_operand(StackElement::Evaluated(result));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Indexing) => {
+                ExpressionObject::Operator(ExpressionOperator::Borrow) => unimplemented!(),
+                ExpressionObject::Operator(ExpressionOperator::Dereference) => unimplemented!(),
+                ExpressionObject::Operator(ExpressionOperator::Index) => {
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
                         ResolutionHint::PlaceExpression,
                         ResolutionHint::ValueExpression,
@@ -392,7 +393,7 @@ impl Analyzer {
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.push_operand(StackElement::Evaluated(operand_1));
                 }
-                ExpressionObject::Operator(ExpressionOperator::InstructionCall) => {
+                ExpressionObject::Operator(ExpressionOperator::Instruction) => {
                     self.is_next_call_instruction = true;
                 }
                 ExpressionObject::Operator(ExpressionOperator::Call) => {
@@ -474,20 +475,6 @@ impl Analyzer {
                             }
                         }
 
-                        for argument in argument_values.into_iter() {
-                            let argument_type = Type::from_element(&argument, self.scope())?;
-                            let argument_size = argument_type.size();
-                            let argument_address = self
-                                .bytecode
-                                .borrow_mut()
-                                .allocate_data_stack_space(argument_size);
-                            self.bytecode.borrow_mut().push_instruction_store(
-                                argument_address,
-                                argument_size,
-                                None,
-                            );
-                        }
-
                         let function_address = self
                             .bytecode
                             .borrow_mut()
@@ -517,7 +504,7 @@ impl Analyzer {
                                 };
                                 Instruction::Log(zinc_bytecode::Dbg::new(
                                     string,
-                                    argument_values_count,
+                                    argument_values_count - 1,
                                 ))
                             }
                             "assert" => Instruction::Assert(zinc_bytecode::Assert),
@@ -555,7 +542,7 @@ impl Analyzer {
     pub fn block_expression(&mut self, block: BlockExpression) -> Result<Element, Error> {
         for statement in block.statements.into_iter() {
             StatementAnalyzer::new(self.scope(), self.bytecode.clone(), HashMap::new())
-                .inner_statement(statement)?;
+                .function_local_statement(statement)?;
         }
         match block.expression {
             Some(expression) => self.expression(*expression, ResolutionHint::ValueExpression),
@@ -587,7 +574,11 @@ impl Analyzer {
     }
 
     fn member_integer(&mut self, integer: MemberInteger) -> Result<Element, Error> {
-        let integer = integer.literal.into();
+        let location = integer.location;
+        let integer = IntegerConstant::try_from(&integer.literal)
+            .map_err(|error| Error::InferenceConstant(location, error))?
+            .to_usize()
+            .map_err(|error| Error::InferenceConstant(location, error))?;
         Ok(Element::MemberInteger(integer))
     }
 
@@ -735,9 +726,12 @@ impl Analyzer {
             .bytecode
             .borrow_mut()
             .allocate_data_stack_space(scrutinee_size);
-        self.bytecode
-            .borrow_mut()
-            .push_instruction_store(scrutinee_address, scrutinee_size, None);
+        self.bytecode.borrow_mut().push_instruction_store(
+            scrutinee_address,
+            scrutinee_size,
+            None,
+            false,
+        );
 
         let mut is_exhausted = false;
         let mut branch_results = Vec::with_capacity(r#match.branches.len());
@@ -750,7 +744,7 @@ impl Analyzer {
                 return Err(Error::MatchBranchUnreachable(pattern.location));
             }
             let result = match pattern.variant {
-                PatternVariant::BooleanLiteral(boolean) => {
+                MatchPatternVariant::BooleanLiteral(boolean) => {
                     let constant = Constant::from(boolean);
                     let pattern_type = constant.r#type();
                     if pattern_type != scrutinee_type {
@@ -784,7 +778,7 @@ impl Analyzer {
 
                     self.expression(expression, ResolutionHint::ValueExpression)?
                 }
-                PatternVariant::IntegerLiteral(integer) => {
+                MatchPatternVariant::IntegerLiteral(integer) => {
                     let constant = IntegerConstant::try_from(&integer)
                         .map_err(|error| Error::InferencePatternMatch(integer.location, error))?;
                     let pattern_type = constant.r#type();
@@ -819,7 +813,7 @@ impl Analyzer {
 
                     self.expression(expression, ResolutionHint::ValueExpression)?
                 }
-                PatternVariant::Binding(identifier) => {
+                MatchPatternVariant::Binding(identifier) => {
                     let location = identifier.location;
                     is_exhausted = true;
 
@@ -851,7 +845,7 @@ impl Analyzer {
 
                     result
                 }
-                PatternVariant::Ignoring => {
+                MatchPatternVariant::Ignoring => {
                     is_exhausted = true;
 
                     if index > 0 {
@@ -903,13 +897,26 @@ impl Analyzer {
 
     fn array_expression(&mut self, array: ArrayExpression) -> Result<Element, Error> {
         let mut result = Array::default();
+
         for expression in array.elements.into_iter() {
             let location = expression.location;
             let element = self.expression(expression, ResolutionHint::ValueExpression)?;
             let element_type = Type::from_element(&element, self.scope())?;
-            result
-                .push(element_type)
-                .map_err(|error| Error::LiteralArray(location, error))?;
+            match array.repeats_count {
+                Some(ref repeats_count) => {
+                    let repeats_count = IntegerConstant::try_from(repeats_count)
+                        .map_err(|error| Error::InferenceConstant(location, error))?
+                        .to_usize()
+                        .map_err(|error| Error::InferenceConstant(location, error))?;
+                    result
+                        .extend(element_type, repeats_count)
+                        .map_err(|error| Error::LiteralArray(location, error))?;
+                    break;
+                }
+                None => result
+                    .extend(element_type, 1)
+                    .map_err(|error| Error::LiteralArray(location, error))?,
+            }
         }
 
         Ok(Element::Value(Value::Array(result)))
@@ -953,7 +960,7 @@ impl Analyzer {
 
     fn list_expression(&mut self, list: Vec<Expression>) -> Result<Element, Error> {
         let mut elements = Vec::with_capacity(list.len());
-        for expression in list.into_iter().rev() {
+        for expression in list.into_iter() {
             let element = self.expression(expression, ResolutionHint::ValueExpression)?;
             elements.push(element);
         }
@@ -1061,8 +1068,7 @@ impl Analyzer {
     }
 
     fn push_scope(&mut self) {
-        self.scope_stack
-            .push(Rc::new(RefCell::new(Scope::new(Some(self.scope())))));
+        self.scope_stack.push(Scope::new_child(self.scope()));
     }
 
     fn pop_scope(&mut self) {

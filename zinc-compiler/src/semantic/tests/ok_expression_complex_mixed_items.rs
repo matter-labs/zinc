@@ -16,6 +16,7 @@ use zinc_bytecode::LoadGlobal;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 use zinc_bytecode::Store;
+use zinc_bytecode::StoreGlobal;
 
 #[test]
 fn test() {
@@ -39,7 +40,7 @@ fn main() -> field {
             false,
             crate::BITLENGTH_FIELD,
         )),
-        Instruction::Store(Store::new(0)), // TODO: store_global
+        Instruction::StoreGlobal(StoreGlobal::new(0)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(69),
             false,

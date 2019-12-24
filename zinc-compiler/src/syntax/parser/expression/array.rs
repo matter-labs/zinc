@@ -15,6 +15,7 @@ use crate::syntax::ArrayExpression;
 use crate::syntax::ArrayExpressionBuilder;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::ExpressionParser;
+use crate::syntax::IntegerLiteral;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -49,11 +50,10 @@ impl Parser {
         loop {
             match self.state {
                 State::BracketSquareLeft => {
-                    let next = match initial.take() {
+                    match match initial.take() {
                         Some(token) => token,
                         None => stream.borrow_mut().next()?,
-                    };
-                    match next {
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareLeft),
                             location,
@@ -167,9 +167,10 @@ impl Parser {
                     } {
                         Token {
                             lexeme: Lexeme::Literal(Literal::Integer(integer)),
-                            ..
+                            location,
                         } => {
-                            self.builder.fill(integer);
+                            self.builder
+                                .set_repeats_count(IntegerLiteral::new(location, integer));
                             self.state = State::BracketSquareRight;
                         }
                         Token { lexeme, location } => {
@@ -264,6 +265,39 @@ mod tests {
                     )],
                 ),
             ],
+            None,
+        ));
+
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_repeats() {
+        let input = r#"[1; 10]"#;
+
+        let expected = Ok(ArrayExpression::new(
+            Location::new(1, 1),
+            vec![Expression::new(
+                Location::new(1, 2),
+                vec![ExpressionElement::new(
+                    Location::new(1, 2),
+                    ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 2),
+                            lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                        ),
+                    )),
+                )],
+            )],
+            Some(IntegerLiteral::new(
+                Location::new(1, 5),
+                lexical::IntegerLiteral::new_decimal("10".to_owned()),
+            )),
         ));
 
         let result = Parser::default().parse(
@@ -278,7 +312,7 @@ mod tests {
     fn ok_empty() {
         let input = r#"[]"#;
 
-        let expected = Ok(ArrayExpression::new(Location::new(1, 1), vec![]));
+        let expected = Ok(ArrayExpression::new(Location::new(1, 1), vec![], None));
 
         let result = Parser::default().parse(
             Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),

@@ -11,7 +11,7 @@ use zinc_bytecode::Exit;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
-use zinc_bytecode::StoreArray;
+use zinc_bytecode::StoreSequence;
 
 #[test]
 fn test() {
@@ -28,7 +28,7 @@ fn main() {
         Instruction::Exit(Exit::new(0)),
         Instruction::PushConst(PushConst::new(BigInt::from(11), false, 8)),
         Instruction::PushConst(PushConst::new(BigInt::from(42), false, 8)),
-        Instruction::StoreArray(StoreArray::new(0, 2)),
+        Instruction::StoreSequence(StoreSequence::new(0, 2)),
         Instruction::Return(Return::new(0)),
     ]);
 

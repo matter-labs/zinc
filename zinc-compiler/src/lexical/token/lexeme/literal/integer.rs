@@ -29,15 +29,6 @@ impl Into<String> for Integer {
     }
 }
 
-impl Into<usize> for Integer {
-    fn into(self) -> usize {
-        let string: String = self.into();
-        string
-            .parse::<usize>()
-            .expect(crate::lexical::PANIC_INTEGER_VALIDATED_DURING_SCANNING)
-    }
-}
-
 impl fmt::Display for Integer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {

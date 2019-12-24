@@ -13,8 +13,8 @@ use crate::lexical::TokenStream;
 use crate::syntax::BlockExpression;
 use crate::syntax::BlockExpressionBuilder;
 use crate::syntax::Error as SyntaxError;
-use crate::syntax::InnerStatement;
-use crate::syntax::InnerStatementParser;
+use crate::syntax::FunctionLocalStatement;
+use crate::syntax::FunctionLocalStatementParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -76,17 +76,18 @@ impl Parser {
                         } => return Ok(self.builder.finish()),
                         token => {
                             let (statement, next, is_unterminated) =
-                                InnerStatementParser::default()
+                                FunctionLocalStatementParser::default()
                                     .parse(stream.clone(), Some(token))?;
                             self.next = next;
                             match statement {
-                                InnerStatement::Expression(expression) => {
+                                FunctionLocalStatement::Expression(expression) => {
                                     if is_unterminated {
                                         self.builder.set_expression(expression);
                                         self.state = State::BracketCurlyRight;
                                     } else {
-                                        self.builder
-                                            .push_statement(InnerStatement::Expression(expression));
+                                        self.builder.push_statement(
+                                            FunctionLocalStatement::Expression(expression),
+                                        );
                                     }
                                 }
                                 statement => self.builder.push_statement(statement),

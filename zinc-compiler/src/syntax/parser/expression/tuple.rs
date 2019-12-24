@@ -50,11 +50,10 @@ impl Parser {
         loop {
             match self.state {
                 State::ParenthesisLeft => {
-                    let next = match initial.take() {
+                    match match initial.take() {
                         Some(token) => token,
                         None => stream.borrow_mut().next()?,
-                    };
-                    match next {
+                    } {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                             location,

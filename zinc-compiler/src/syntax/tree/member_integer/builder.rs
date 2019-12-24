@@ -2,8 +2,8 @@
 //! The member integer builder.
 //!
 
-use crate::lexical::IntegerLiteral;
 use crate::lexical::Location;
+use crate::syntax::IntegerLiteral;
 use crate::syntax::MemberInteger;
 
 #[derive(Default)]

@@ -5,13 +5,13 @@
 use crate::lexical::Location;
 use crate::syntax::Expression;
 use crate::syntax::MatchExpression;
-use crate::syntax::Pattern;
+use crate::syntax::MatchPattern;
 
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
     scrutinee: Option<Expression>,
-    branches: Vec<(Pattern, Option<Expression>)>,
+    branches: Vec<(MatchPattern, Option<Expression>)>,
 }
 
 impl Builder {
@@ -23,7 +23,7 @@ impl Builder {
         self.scrutinee = Some(value);
     }
 
-    pub fn push_branch_pattern(&mut self, value: Pattern) {
+    pub fn push_branch_pattern(&mut self, value: MatchPattern) {
         self.branches.push((value, None));
     }
 
@@ -70,7 +70,7 @@ impl Builder {
                         }),
                     )
                 })
-                .collect::<Vec<(Pattern, Expression)>>(),
+                .collect::<Vec<(MatchPattern, Expression)>>(),
         )
     }
 }

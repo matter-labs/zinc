@@ -8,20 +8,20 @@ pub use self::builder::Builder;
 
 use crate::lexical::Location;
 use crate::syntax;
-use crate::syntax::Pattern;
+use crate::syntax::MatchPattern;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
     pub location: Location,
     pub scrutinee: syntax::Expression,
-    pub branches: Vec<(Pattern, syntax::Expression)>,
+    pub branches: Vec<(MatchPattern, syntax::Expression)>,
 }
 
 impl Expression {
     pub fn new(
         location: Location,
         scrutinee: syntax::Expression,
-        branches: Vec<(Pattern, syntax::Expression)>,
+        branches: Vec<(MatchPattern, syntax::Expression)>,
     ) -> Self {
         Self {
             location,
