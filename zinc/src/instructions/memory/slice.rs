@@ -34,3 +34,23 @@ impl<E, O> VMInstruction<E, O> for Slice
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::instructions::testing_utils::{VMTestRunner, TestingError};
+    use zinc_bytecode::PushConst;
+
+    #[test]
+    fn test_slice() -> Result<(), TestingError> {
+        VMTestRunner::new()
+            .add(PushConst { value: 1.into() })
+            .add(PushConst { value: 2.into() })
+            .add(PushConst { value: 3.into() })
+            .add(PushConst { value: 4.into() })
+            .add(PushConst { value: 5.into() })
+            .add(PushConst { value: 6.into() })
+            .add(Slice::new(5, 2, 1))
+            .test(&[4, 3, 1])
+    }
+}

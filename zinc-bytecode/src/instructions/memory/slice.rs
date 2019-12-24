@@ -32,7 +32,6 @@ impl InstructionInfo for Slice {
 
     fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         let (args, len) = utils::decode_with_usize(Self::code(), bytes, 3)?;
-
         Ok((Self::new(args[0], args[1], args[2]), len))
     }
 
