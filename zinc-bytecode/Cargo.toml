@@ -1,0 +1,17 @@
+[package]
+name = "zinc-bytecode"
+version = "0.1.0"
+authors = [
+    "Alexander Movchan <am@matterlabs.dev>",
+    "hedgar2017 <hedgar2017@gmail.com>",
+]
+edition = "2018"
+
+[dependencies]
+log = "0.4"
+env_logger = "0.7"
+structopt = "0.3"
+failure = "0.1"
+num-traits = "^0.1"
+num-bigint = "0.2.3"
+num-integer = "0.1.41"

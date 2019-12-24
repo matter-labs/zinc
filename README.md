@@ -1,10 +1,11 @@
-# zrust-vm
+# Zinc Virtual Machine
 
 ## Overview
 
-**zrust-vm** is a virtual machine that serves three purposes:
-execute arbitrary computations,
-generate zero-knowledge proof of performed computations,
-or verify provided proof without knowing all the inputs for the computations.
+**Zinc VM** is a virtual machine that serves three purposes:
 
-Documentation is available in [wiki](https://github.com/matter-labs/zrust-vm/wiki).
+- Execute arbitrary computations in a sandboxed environment
+- Generate zero-knowledge proof of performed computations
+- Verify provided proof without knowledge of program's inputs
+
+Documentation is available in [wiki](https://github.com/matter-labs/zinc-vm/wiki).
