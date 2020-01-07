@@ -9,7 +9,7 @@ where
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let op = vm.get_operator();
+        let op = vm.operations();
         let value = op.constant_bigint(&self.value)?;
         vm.push(Cell::Value(value))
     }

@@ -14,7 +14,7 @@ where
         let left = vm.pop()?.value()?;
         let right = vm.pop()?.value()?;
 
-        let gt = vm.get_operator().gt(left, right)?;
+        let gt = vm.operations().gt(left, right)?;
 
         vm.push(Cell::Value(gt))
     }

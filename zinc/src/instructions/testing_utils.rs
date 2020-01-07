@@ -102,7 +102,7 @@ impl VMTestRunner {
         vm.run(instructions.as_mut_slice(), Some(&[]))
             .map_err(TestingError::RuntimeError)?;
 
-        let cs = vm.get_operator().constraint_system();
+        let cs = vm.operations().constraint_system();
 
         let unconstrained = cs.find_unconstrained();
         let satisfied = cs.is_satisfied();

@@ -16,7 +16,7 @@ impl<E, O> VMInstruction<E, O> for LoadByIndex
             array.push(vm.load(self.address + i)?.value()?);
         }
 
-        let value = vm.get_operator().array_get(array.as_slice(), index)?;
+        let value = vm.operations().array_get(array.as_slice(), index)?;
         vm.push(Cell::Value(value))
     }
 }

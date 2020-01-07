@@ -13,7 +13,7 @@ where
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let value = vm.pop()?.value()?;
 
-        let not = vm.get_operator().not(value)?;
+        let not = vm.operations().not(value)?;
 
         vm.push(Cell::Value(not))
     }

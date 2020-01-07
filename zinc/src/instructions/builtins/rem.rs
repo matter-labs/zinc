@@ -13,7 +13,7 @@ where
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let left = vm.pop()?.value()?;
         let right = vm.pop()?.value()?;
-        let (_div, rem) = vm.get_operator().div_rem(left, right)?;
+        let (_div, rem) = vm.operations().div_rem(left, right)?;
 
         vm.push(Cell::Value(rem))
     }

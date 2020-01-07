@@ -133,7 +133,7 @@ impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
         format!("{:#?}", self.state)
     }
 
-    pub fn get_operator(&mut self) -> &mut O {
+    pub fn operations(&mut self) -> &mut O {
         &mut self.ops
     }
 

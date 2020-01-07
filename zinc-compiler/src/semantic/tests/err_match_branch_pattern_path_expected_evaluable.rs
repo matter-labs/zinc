@@ -8,22 +8,6 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use num_bigint::BigInt;
-
-use zinc_bytecode::Add;
-use zinc_bytecode::Call;
-use zinc_bytecode::Cast;
-use zinc_bytecode::Exit;
-use zinc_bytecode::Instruction;
-use zinc_bytecode::Load;
-use zinc_bytecode::LoadGlobal;
-use zinc_bytecode::Mul;
-use zinc_bytecode::PushConst;
-use zinc_bytecode::Return;
-use zinc_bytecode::Store;
-use zinc_bytecode::StoreGlobal;
-use zinc_bytecode::Sub;
-
 use crate::lexical::Location;
 use crate::semantic::Error as SemanticError;
 use crate::Bytecode;

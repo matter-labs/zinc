@@ -17,7 +17,7 @@ impl<E, O> VMInstruction<E, O> for StoreByIndex
             array.push(vm.load(self.address + i)?.value()?);
         }
 
-        let new_array = vm.get_operator().array_set(array.as_slice(), index, value)?;
+        let new_array = vm.operations().array_set(array.as_slice(), index, value)?;
 
         for (i, value) in new_array.into_iter().enumerate() {
             vm.store(self.address + i, Cell::Value(value))?;
