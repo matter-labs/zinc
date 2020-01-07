@@ -2,11 +2,13 @@
     Battleships
 */
 
-mod signature;
-
 type Address = [u8; 32];
 
-use signature::Signature;
+struct Signature {
+    v: u8,
+    r: u32,
+    s: u32,
+}
 
 enum GameState {
     Player1Init = 1,
@@ -43,14 +45,6 @@ struct Input {
     state: State,
 }
 
-impl Input {
-    const VALUE: u8 = 42;
-
-    fn print() {
-        dbg!("{}", Self::VALUE);
-    }
-}
-
 fn game_logic(state: State, command: Command) -> State {
     state
 }
@@ -78,8 +72,6 @@ fn main(
             assert!(false);
         },
     };
-
-    dbg!("{}", Input::print());
 
     let new_state = game_logic(input.state, command);
     (input, new_state)

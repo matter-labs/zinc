@@ -2,7 +2,7 @@ use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo}
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct LoadByIndexByRef {
-    len: usize
+    len: usize,
 }
 
 impl LoadByIndexByRef {

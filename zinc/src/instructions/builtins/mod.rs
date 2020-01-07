@@ -1,20 +1,20 @@
 pub mod add;
-pub mod sub;
-pub mod mul;
 pub mod div;
-pub mod rem;
+pub mod mul;
 pub mod neg;
+pub mod rem;
+pub mod sub;
 
-pub mod not;
 pub mod and;
+pub mod not;
 pub mod or;
 pub mod xor;
 
-pub mod lt;
-pub mod le;
 pub mod eq;
-pub mod ne;
 pub mod ge;
 pub mod gt;
+pub mod le;
+pub mod lt;
+pub mod ne;
 
 pub mod cs;

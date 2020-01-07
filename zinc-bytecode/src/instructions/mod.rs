@@ -1,21 +1,21 @@
 pub mod utils;
 
-mod memory;
-mod flow;
 mod builtins;
+mod flow;
+mod memory;
 mod merkle;
 
-pub use memory::*;
-pub use flow::*;
 pub use builtins::*;
+pub use flow::*;
+pub use memory::*;
 pub use merkle::*;
 
-mod noop;
-mod cast;
 mod assert;
+mod cast;
 mod dbg;
+mod noop;
 
-pub use noop::NoOperation;
-pub use cast::Cast;
 pub use assert::Assert;
+pub use cast::Cast;
 pub use dbg::Dbg;
+pub use noop::NoOperation;

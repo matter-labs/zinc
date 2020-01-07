@@ -2,14 +2,14 @@ use std::fmt::{Debug, Display, Error, Formatter};
 use std::marker::PhantomData;
 use std::ops::BitAnd;
 
-use bellman::{ConstraintSystem, Variable};
 use bellman::pairing::Engine;
+use bellman::{ConstraintSystem, Variable};
 use ff::{Field, PrimeField};
 use franklin_crypto::bellman::{Namespace, SynthesisError};
 use franklin_crypto::circuit::num::AllocatedNum;
 use num_bigint::{BigInt, ToBigInt};
 
-use crate::primitive::{Primitive, PrimitiveOperations, utils};
+use crate::primitive::{utils, Primitive, PrimitiveOperations};
 use crate::vm::RuntimeError;
 
 /// ConstrainedElement is an implementation of Element
@@ -44,9 +44,9 @@ impl<EN: Debug + Engine> Primitive for FrPrimitive<EN> {
 }
 
 pub struct ConstrainingFrOperations<E, CS>
-    where
-        E: Engine,
-        CS: ConstraintSystem<E>,
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
     cs: CS,
     counter: usize,
@@ -54,9 +54,9 @@ pub struct ConstrainingFrOperations<E, CS>
 }
 
 impl<E, CS> ConstrainingFrOperations<E, CS>
-    where
-        E: Engine + Debug,
-        CS: ConstraintSystem<E>,
+where
+    E: Engine + Debug,
+    CS: ConstraintSystem<E>,
 {
     pub fn new(cs: CS) -> Self {
         Self {
@@ -111,7 +111,11 @@ impl<E, CS> ConstrainingFrOperations<E, CS>
         self.conditional_select(lt0, neg, value)
     }
 
-    fn bits(&mut self, bit_length: usize, primitive: FrPrimitive<E>) -> Result<Vec<FrPrimitive<E>>, RuntimeError> {
+    fn bits(
+        &mut self,
+        bit_length: usize,
+        primitive: FrPrimitive<E>,
+    ) -> Result<Vec<FrPrimitive<E>>, RuntimeError> {
         let bit_values = match primitive.to_bigint() {
             None => vec![None; bit_length],
             Some(bi) => {
@@ -131,9 +135,11 @@ impl<E, CS> ConstrainingFrOperations<E, CS>
 
         let mut bit_variables = Vec::new();
         for (i, value) in bit_values.iter().enumerate() {
-            let var = cs.alloc(
-                || format!("Bit variable #{}", i),
-                || value.ok_or(SynthesisError::AssignmentMissing), )
+            let var = cs
+                .alloc(
+                    || format!("Bit variable #{}", i),
+                    || value.ok_or(SynthesisError::AssignmentMissing),
+                )
                 .map_err(RuntimeError::SynthesisError)?;
 
             cs.enforce(
@@ -161,9 +167,11 @@ impl<E, CS> ConstrainingFrOperations<E, CS>
         Ok(vec![])
     }
 
-    fn recursive_select(&mut self, array: &[FrPrimitive<E>], index_bits: &[FrPrimitive<E>])
-                        -> Result<FrPrimitive<E>, RuntimeError>
-    {
+    fn recursive_select(
+        &mut self,
+        array: &[FrPrimitive<E>],
+        index_bits: &[FrPrimitive<E>],
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         if array.len() == 1 {
             return Ok(array[0].clone());
         }
@@ -189,9 +197,9 @@ impl<E, CS> ConstrainingFrOperations<E, CS>
 }
 
 impl<E, CS> PrimitiveOperations<FrPrimitive<E>> for ConstrainingFrOperations<E, CS>
-    where
-        E: Debug + Engine,
-        CS: ConstraintSystem<E>,
+where
+    E: Debug + Engine,
+    CS: ConstraintSystem<E>,
 {
     fn variable_none(&mut self) -> Result<FrPrimitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
@@ -248,10 +256,7 @@ impl<E, CS> PrimitiveOperations<FrPrimitive<E>> for ConstrainingFrOperations<E, 
         })
     }
 
-    fn output(
-        &mut self,
-        element: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+    fn output(&mut self, element: FrPrimitive<E>) -> Result<FrPrimitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let variable = cs
@@ -454,10 +459,7 @@ impl<E, CS> PrimitiveOperations<FrPrimitive<E>> for ConstrainingFrOperations<E, 
         Ok((quotient, remainder))
     }
 
-    fn neg(
-        &mut self,
-        element: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+    fn neg(&mut self, element: FrPrimitive<E>) -> Result<FrPrimitive<E>, RuntimeError> {
         let neg_value = match element.value {
             Some(value) => {
                 let mut neg = E::Fr::zero();
@@ -489,10 +491,7 @@ impl<E, CS> PrimitiveOperations<FrPrimitive<E>> for ConstrainingFrOperations<E, 
         })
     }
 
-    fn not(
-        &mut self,
-        element: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+    fn not(&mut self, element: FrPrimitive<E>) -> Result<FrPrimitive<E>, RuntimeError> {
         let one = Self::one();
         self.sub(one, element)
     }
@@ -617,7 +616,7 @@ impl<E, CS> PrimitiveOperations<FrPrimitive<E>> for ConstrainingFrOperations<E, 
         let diff_num = AllocatedNum::alloc(cs.namespace(|| "diff_num variable"), || {
             diff.value.ok_or(SynthesisError::AssignmentMissing)
         })
-            .map_err(RuntimeError::SynthesisError)?;
+        .map_err(RuntimeError::SynthesisError)?;
 
         cs.enforce(
             || "allocated_num equality",
@@ -634,7 +633,7 @@ impl<E, CS> PrimitiveOperations<FrPrimitive<E>> for ConstrainingFrOperations<E, 
             cs.namespace(|| "diff_num_repacked"),
             &bits[0..(E::Fr::CAPACITY as usize - 1)],
         )
-            .map_err(RuntimeError::SynthesisError)?;
+        .map_err(RuntimeError::SynthesisError)?;
 
         let lt = AllocatedNum::equals(cs.namespace(|| "equals"), &diff_num, &diff_num_repacked)
             .map_err(RuntimeError::SynthesisError)?;
@@ -655,15 +654,14 @@ impl<E, CS> PrimitiveOperations<FrPrimitive<E>> for ConstrainingFrOperations<E, 
         let l_num = AllocatedNum::alloc(cs.namespace(|| "l_num"), || {
             left.value.ok_or(SynthesisError::AssignmentMissing)
         })
-            .map_err(RuntimeError::SynthesisError)?;
+        .map_err(RuntimeError::SynthesisError)?;
 
         let r_num = AllocatedNum::alloc(cs.namespace(|| "r_num"), || {
             right.value.ok_or(SynthesisError::AssignmentMissing)
         })
-            .map_err(RuntimeError::SynthesisError)?;
+        .map_err(RuntimeError::SynthesisError)?;
 
-        let eq =
-            AllocatedNum::equals(cs, &l_num, &r_num).map_err(RuntimeError::SynthesisError)?;
+        let eq = AllocatedNum::equals(cs, &l_num, &r_num).map_err(RuntimeError::SynthesisError)?;
 
         Ok(FrPrimitive {
             value: eq.get_value_field::<E>(),
@@ -758,7 +756,11 @@ impl<E, CS> PrimitiveOperations<FrPrimitive<E>> for ConstrainingFrOperations<E, 
         Ok(())
     }
 
-    fn array_get(&mut self, array: &[FrPrimitive<E>], index: FrPrimitive<E>) -> Result<FrPrimitive<E>, RuntimeError> {
+    fn array_get(
+        &mut self,
+        array: &[FrPrimitive<E>],
+        index: FrPrimitive<E>,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let bits_len = utils::tree_height(array.len());
 
         let bits = self.bits(bits_len, index)?;
@@ -766,7 +768,12 @@ impl<E, CS> PrimitiveOperations<FrPrimitive<E>> for ConstrainingFrOperations<E, 
         self.recursive_select(array, bits.as_slice())
     }
 
-    fn array_set(&mut self, array: &[FrPrimitive<E>], index: FrPrimitive<E>, value: FrPrimitive<E>) -> Result<Vec<FrPrimitive<E>>, RuntimeError> {
+    fn array_set(
+        &mut self,
+        array: &[FrPrimitive<E>],
+        index: FrPrimitive<E>,
+        value: FrPrimitive<E>,
+    ) -> Result<Vec<FrPrimitive<E>>, RuntimeError> {
         let mut new_array = Vec::new();
 
         for (i, p) in array.iter().enumerate() {

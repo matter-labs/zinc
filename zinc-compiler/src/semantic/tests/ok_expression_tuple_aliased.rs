@@ -26,8 +26,16 @@ fn main() {
     let expected = Ok(vec![
         Instruction::Call(Call::new(2, 0)),
         Instruction::Exit(Exit::new(0)),
-        Instruction::PushConst(PushConst::new(BigInt::from(11), false, 8)),
-        Instruction::PushConst(PushConst::new(BigInt::from(42), false, 8)),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(11),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(42),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
         Instruction::StoreSequence(StoreSequence::new(0, 2)),
         Instruction::Return(Return::new(0)),
     ]);

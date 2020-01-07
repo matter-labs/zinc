@@ -203,20 +203,30 @@ pub enum Error {
         _0
     )]
     OperatorNotExpectedEvaluable(String),
+    #[fail(
+        display = "unary '&' operator expected a value expression as the operand, but got '{}'",
+        _0
+    )]
+    OperatorReferenceExpectedValue(String), // TODO
+    #[fail(
+        display = "unary '*' operator expected a value expression as the operand, but got '{}'",
+        _0
+    )]
+    OperatorDereferenceExpectedValue(String), // TODO
 
     #[fail(
-        display = "'[]' operator expected a place expression as the first operand, but got '{}'",
+        display = "'[]' operator expected a path expression as the first operand, but got '{}'",
         _0
     )]
     OperatorIndexFirstOperandExpectedPlace(String),
     #[fail(
-        display = "'[]' operator expected a constant expression as the second operand, but got '{}'",
+        display = "'[]' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorIndexSecondOperandExpectedInteger(String),
+    OperatorIndexSecondOperandExpectedEvaluable(String),
 
     #[fail(
-        display = "'.' operator expected a place expression as the first operand, but got '{}'",
+        display = "'.' operator expected a path expression as the first operand, but got '{}'",
         _0
     )]
     OperatorFieldFirstOperandExpectedPlace(String),
@@ -227,10 +237,10 @@ pub enum Error {
     OperatorFieldSecondOperandExpectedMember(String),
 
     #[fail(
-        display = "'::' operator expected a place expression as the first operand, but got '{}'",
+        display = "'::' operator expected a path expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorPathFirstOperandExpectedPlace(String),
+    OperatorPathFirstOperandExpectedPath(String),
     #[fail(
         display = "'::' operator expected a member string as the second operand, but got '{}'",
         _0

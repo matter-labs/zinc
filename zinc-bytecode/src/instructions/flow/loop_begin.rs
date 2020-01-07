@@ -1,4 +1,4 @@
-use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo, utils};
+use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
 use num_traits::ToPrimitive;
 
 #[derive(Debug, PartialEq, Clone)]

@@ -1,10 +1,10 @@
 use crate::primitive::{Primitive, PrimitiveOperations};
-use crate::RuntimeError;
 use crate::vm::Cell;
+use crate::RuntimeError;
 
 #[derive(Debug)]
 pub struct EvaluationStack<P: Primitive> {
-    stack: Vec<Vec<Cell<P>>>
+    stack: Vec<Vec<Cell<P>>>,
 }
 
 impl<P: Primitive> EvaluationStack<P> {
@@ -17,7 +17,9 @@ impl<P: Primitive> EvaluationStack<P> {
     pub fn push(&mut self, value: Cell<P>) -> Result<(), RuntimeError> {
         self.stack
             .last_mut()
-            .ok_or_else(|| RuntimeError::InternalError("Evaluation stack root frame missing".into()))?
+            .ok_or_else(|| {
+                RuntimeError::InternalError("Evaluation stack root frame missing".into())
+            })?
             .push(value);
         Ok(())
     }
@@ -25,7 +27,9 @@ impl<P: Primitive> EvaluationStack<P> {
     pub fn pop(&mut self) -> Result<Cell<P>, RuntimeError> {
         self.stack
             .last_mut()
-            .ok_or_else(|| RuntimeError::InternalError("Evaluation stack root frame missing".into()))?
+            .ok_or_else(|| {
+                RuntimeError::InternalError("Evaluation stack root frame missing".into())
+            })?
             .pop()
             .ok_or(RuntimeError::StackUnderflow)
     }
@@ -35,11 +39,15 @@ impl<P: Primitive> EvaluationStack<P> {
     }
 
     pub fn merge<O>(&mut self, condition: P, ops: &mut O) -> Result<(), RuntimeError>
-        where
-            O: PrimitiveOperations<P>
+    where
+        O: PrimitiveOperations<P>,
     {
-        let else_case = self.stack.pop().ok_or_else(|| RuntimeError::InternalError("Evaluation stack root frame missing".into()))?;
-        let then_case = self.stack.pop().ok_or_else(|| RuntimeError::InternalError("Evaluation stack root frame missing".into()))?;
+        let else_case = self.stack.pop().ok_or_else(|| {
+            RuntimeError::InternalError("Evaluation stack root frame missing".into())
+        })?;
+        let then_case = self.stack.pop().ok_or_else(|| {
+            RuntimeError::InternalError("Evaluation stack root frame missing".into())
+        })?;
 
         if then_case.len() != else_case.len() {
             return Err(RuntimeError::BranchStacksDoNotMatch);
@@ -51,9 +59,7 @@ impl<P: Primitive> EvaluationStack<P> {
                     let merged = ops.conditional_select(condition.clone(), tv, ev)?;
                     self.push(Cell::Value(merged))?;
                 }
-                _ => {
-                    return Err(RuntimeError::MergingNonValueTypes)
-                }
+                _ => return Err(RuntimeError::MergingNonValueTypes),
             }
         }
 

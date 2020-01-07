@@ -35,6 +35,28 @@ impl Integer {
         self.is_signed == other.is_signed && self.bitlength == other.bitlength
     }
 
+    pub fn equals(&self, other: &Self) -> Result<(), Error> {
+        if !self.has_the_same_type_as(&other) {
+            return Err(Error::TypesMismatchEquals(
+                self.r#type().to_string(),
+                other.r#type().to_string(),
+            ));
+        }
+
+        Ok(())
+    }
+
+    pub fn not_equals(&self, other: &Self) -> Result<(), Error> {
+        if !self.has_the_same_type_as(&other) {
+            return Err(Error::TypesMismatchNotEquals(
+                self.r#type().to_string(),
+                other.r#type().to_string(),
+            ));
+        }
+
+        Ok(())
+    }
+
     pub fn greater_equals(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchGreaterEquals(

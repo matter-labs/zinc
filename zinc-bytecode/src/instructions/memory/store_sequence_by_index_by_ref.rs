@@ -8,7 +8,10 @@ pub struct StoreSequenceByIndexByRef {
 
 impl StoreSequenceByIndexByRef {
     pub fn new(value_len: usize, array_len: usize) -> Self {
-        Self { value_len, array_len }
+        Self {
+            value_len,
+            array_len,
+        }
     }
 }
 
