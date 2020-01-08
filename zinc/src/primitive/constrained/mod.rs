@@ -164,7 +164,12 @@ where
             },
         );
 
-        Ok(vec![])
+        Ok(
+            bit_values
+                .into_iter().zip(bit_variables.into_iter())
+                .map(|(value, variable)| FrPrimitive { value, variable })
+                .collect()
+            )
     }
 
     fn recursive_select(
