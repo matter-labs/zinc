@@ -34,7 +34,21 @@ pub fn exec<E: Engine>(
 ) -> Result<Vec<Option<BigInt>>, RuntimeError> {
     let cs = TestConstraintSystem::<Bn256>::new();
     let mut vm = VirtualMachine::new(ConstrainingFrOperations::new(cs));
-    vm.run(code, Some(inputs))
+    let result = vm.run(code, Some(inputs))?;
+
+    let cs = vm.operations().constraint_system();
+    if !cs.is_satisfied() {
+        log::error!("Unsatisfied: {:?}", cs.which_is_unsatisfied());
+        return Err(RuntimeError::InternalError("Generated unsatisfied constraint system".into()));
+    }
+
+    let unconstrained = cs.find_unconstrained();
+    if !unconstrained.is_empty() {
+        log::error!("Unconstrained: {}", unconstrained);
+        return Err(RuntimeError::InternalError("Generated unconstrained variables".into()));
+    }
+
+    Ok(result)
 }
 
 pub fn setup<E: Engine + Debug>(code: &[Instruction]) -> Result<Parameters<E>, RuntimeError> {

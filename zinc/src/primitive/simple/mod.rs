@@ -25,9 +25,7 @@ impl ToBigInt for SimplePrimitive {
     }
 }
 
-impl Primitive for SimplePrimitive {
-    type MerkleTree = ();
-}
+impl Primitive for SimplePrimitive {}
 
 pub struct SimplePrimitiveOperations {}
 
