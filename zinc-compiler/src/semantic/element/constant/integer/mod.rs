@@ -46,7 +46,7 @@ impl Integer {
     }
 
     pub fn to_bigint(&self) -> BigInt {
-        self.value.clone()
+        self.value.to_owned()
     }
 
     pub fn r#type(&self) -> Type {
@@ -282,12 +282,10 @@ impl Integer {
         }
         Ok(bitlength)
     }
-}
 
-impl Into<Instruction> for Integer {
-    fn into(self) -> Instruction {
+    pub fn to_instruction(&self) -> Instruction {
         Instruction::PushConst(zinc_bytecode::PushConst::new(
-            self.value,
+            self.value.to_owned(),
             self.is_signed,
             self.bitlength,
         ))

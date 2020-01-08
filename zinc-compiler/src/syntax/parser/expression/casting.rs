@@ -60,7 +60,7 @@ impl Parser {
                 let (expression, next) = Self::default().parse(stream, None)?;
                 self.builder.extend_with_expression(expression);
                 self.builder
-                    .push_operator(location, ExpressionOperator::Borrow);
+                    .push_operator(location, ExpressionOperator::Reference);
                 Ok((self.builder.finish(), next))
             }
             Token {

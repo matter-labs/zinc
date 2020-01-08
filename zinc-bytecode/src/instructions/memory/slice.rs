@@ -12,14 +12,17 @@ impl Slice {
         Self {
             len,
             slice_len,
-            slice_offset
+            slice_offset,
         }
     }
 }
 
 impl InstructionInfo for Slice {
     fn to_assembly(&self) -> String {
-        format!("slice {} {} {}", self.len, self.slice_len, self.slice_offset)
+        format!(
+            "slice {} {} {}",
+            self.len, self.slice_len, self.slice_offset
+        )
     }
 
     fn code() -> InstructionCode {

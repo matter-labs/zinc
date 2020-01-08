@@ -252,7 +252,11 @@ impl PrimitiveOperations<SimplePrimitive> for SimplePrimitiveOperations {
         }
     }
 
-    fn array_get(&mut self, array: &[SimplePrimitive], index: SimplePrimitive) -> Result<SimplePrimitive, RuntimeError> {
+    fn array_get(
+        &mut self,
+        array: &[SimplePrimitive],
+        index: SimplePrimitive,
+    ) -> Result<SimplePrimitive, RuntimeError> {
         let i = index.value;
         array
             .get(i as usize)
@@ -260,7 +264,12 @@ impl PrimitiveOperations<SimplePrimitive> for SimplePrimitiveOperations {
             .ok_or(RuntimeError::IndexOutOfBounds)
     }
 
-    fn array_set(&mut self, array: &[SimplePrimitive], index: SimplePrimitive, value: SimplePrimitive) -> Result<Vec<SimplePrimitive>, RuntimeError> {
+    fn array_set(
+        &mut self,
+        array: &[SimplePrimitive],
+        index: SimplePrimitive,
+        value: SimplePrimitive,
+    ) -> Result<Vec<SimplePrimitive>, RuntimeError> {
         let mut array = Vec::from(array);
         let i = index.value as usize;
         if i >= array.len() {

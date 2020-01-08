@@ -22,11 +22,11 @@ use crate::semantic::Error;
 use crate::semantic::ExpressionAnalyzer;
 use crate::semantic::IntegerConstant;
 use crate::semantic::IntegerConstantError;
-use crate::semantic::ResolutionHint;
 use crate::semantic::Scope;
 use crate::semantic::ScopeItem;
 use crate::semantic::ScopeStaticItem;
 use crate::semantic::ScopeVariableItem;
+use crate::semantic::TranslationHint;
 use crate::semantic::Type;
 use crate::syntax::BindingPatternVariant;
 use crate::syntax::ConstStatement;
@@ -95,7 +95,7 @@ impl Analyzer {
             FunctionLocalStatement::Loop(statement) => self.loop_statement(statement)?,
             FunctionLocalStatement::Expression(expression) => {
                 ExpressionAnalyzer::new(self.scope(), self.bytecode.clone())
-                    .expression(expression, ResolutionHint::ValueExpression)?;
+                    .expression(expression, TranslationHint::ValueExpression)?;
             }
         }
 
@@ -121,9 +121,9 @@ impl Analyzer {
 
         // compile the expression being assigned
         let mut rvalue = ExpressionAnalyzer::new_without_bytecode(self.scope())
-            .expression(statement.expression, ResolutionHint::ValueExpression)?;
+            .expression(statement.expression, TranslationHint::ValueExpression)?;
 
-        let const_type = Type::from_type_variant(statement.r#type.variant, self.scope())?;
+        let const_type = Type::from_type_variant(&statement.r#type.variant, self.scope())?;
         rvalue
             .cast(&Element::Type(const_type))
             .map_err(|error| Error::Element(type_location, error))?;
@@ -151,9 +151,9 @@ impl Analyzer {
 
         // compile the expression being assigned
         let mut rvalue = ExpressionAnalyzer::new(self.scope(), self.bytecode.clone())
-            .expression(statement.expression, ResolutionHint::ValueExpression)?;
+            .expression(statement.expression, TranslationHint::ValueExpression)?;
 
-        let const_type = Type::from_type_variant(statement.r#type.variant, self.scope())?;
+        let const_type = Type::from_type_variant(&statement.r#type.variant, self.scope())?;
         rvalue
             .cast(&Element::Type(const_type))
             .map_err(|error| Error::Element(type_location, error))?;
@@ -186,7 +186,7 @@ impl Analyzer {
     fn type_statement(&mut self, statement: TypeStatement) -> Result<(), Error> {
         let location = statement.location;
 
-        let r#type = Type::from_type_variant(statement.r#type.variant, self.scope())?;
+        let r#type = Type::from_type_variant(&statement.r#type.variant, self.scope())?;
 
         self.scope()
             .borrow_mut()
@@ -203,7 +203,7 @@ impl Analyzer {
         for field in statement.fields.into_iter() {
             fields.push((
                 field.identifier.name,
-                Type::from_type_variant(field.r#type.variant, self.scope())?,
+                Type::from_type_variant(&field.r#type.variant, self.scope())?,
             ));
         }
         let r#type = Type::new_structure(
@@ -251,11 +251,10 @@ impl Analyzer {
             };
             argument_bindings.push((
                 identifier.name.clone(),
-                Type::from_type_variant(argument_binding.r#type.variant.clone(), self.scope())?,
+                Type::from_type_variant(&argument_binding.r#type.variant, self.scope())?,
             ));
         }
-        let return_type =
-            Type::from_type_variant(statement.return_type.variant.clone(), self.scope())?;
+        let return_type = Type::from_type_variant(&statement.return_type.variant, self.scope())?;
         let r#type = Type::new_function(identifier.clone(), argument_bindings, return_type);
 
         self.scope()
@@ -274,7 +273,7 @@ impl Analyzer {
                 BindingPatternVariant::MutableBinding(identifier) => (identifier, true),
                 BindingPatternVariant::Wildcard => continue,
             };
-            let r#type = Type::from_type_variant(argument_binding.r#type.variant, self.scope())?;
+            let r#type = Type::from_type_variant(&argument_binding.r#type.variant, self.scope())?;
             let address = self
                 .bytecode
                 .borrow_mut()
@@ -295,7 +294,7 @@ impl Analyzer {
 
         // check the function return type to match the block result
         let result_type = Type::from_element(&result, self.scope())?;
-        let expected_type = Type::from_type_variant(statement.return_type.variant, self.scope())?;
+        let expected_type = Type::from_type_variant(&statement.return_type.variant, self.scope())?;
         if expected_type != result_type {
             return Err(Error::FunctionReturnTypeMismatch(
                 statement.return_type.location,
@@ -336,22 +335,17 @@ impl Analyzer {
     fn use_statement(&mut self, statement: UseStatement) -> Result<(), Error> {
         let path_location = statement.path.location;
 
-        let place = match ExpressionAnalyzer::new_without_bytecode(self.scope())
-            .expression(statement.path, ResolutionHint::PlaceExpression)?
+        let path = match ExpressionAnalyzer::new_without_bytecode(self.scope())
+            .expression(statement.path, TranslationHint::PathExpression)?
         {
-            Element::Place(place) => place,
-            element => {
-                return Err(Error::UseStatementExpectedPlace(
-                    path_location,
-                    element.to_string(),
-                ))
-            }
+            Element::Path(path) => path,
+            element => return Err(Error::UseExpectedPath(path_location, element.to_string())),
         };
-        let item = Scope::resolve_place(self.scope(), &place)?;
-        let last_member_string = place
-            .path
+        let item = Scope::resolve_path(self.scope(), &path)?;
+        let last_member_string = path
+            .elements
             .last()
-            .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_PATH_MEMBER_STRING);
+            .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_THE_LAST_PATH_ELEMENT);
         self.scope()
             .borrow_mut()
             .declare_item(last_member_string.name.to_owned(), item)
@@ -370,7 +364,7 @@ impl Analyzer {
                 ScopeItem::Type(Type::Structure { scope, .. }) => scope,
                 ScopeItem::Type(Type::Enumeration { scope, .. }) => scope,
                 item => {
-                    return Err(Error::ImplStatementExpectedStructOrEnum(
+                    return Err(Error::ImplStatementExpectedStructureOrEnumeration(
                         identifier_location,
                         item.to_string(),
                     ))
@@ -391,11 +385,11 @@ impl Analyzer {
 
         // compile the expression being assigned
         let mut rvalue = ExpressionAnalyzer::new(self.scope(), self.bytecode.clone())
-            .expression(statement.expression, ResolutionHint::ValueExpression)?;
+            .expression(statement.expression, TranslationHint::ValueExpression)?;
 
         let r#type = if let Some(r#type) = statement.r#type {
             let type_location = r#type.location;
-            let let_type = Type::from_type_variant(r#type.variant, self.scope())?;
+            let let_type = Type::from_type_variant(&r#type.variant, self.scope())?;
 
             if let Some((is_signed, bitlength)) = rvalue
                 .cast(&Element::Type(let_type.clone()))
@@ -436,11 +430,11 @@ impl Analyzer {
 
         let range_start = match ExpressionAnalyzer::new_without_bytecode(self.scope()).expression(
             statement.range_start_expression,
-            ResolutionHint::ValueExpression,
+            TranslationHint::ValueExpression,
         )? {
             Element::Constant(Constant::Integer(integer)) => integer.value,
             element => {
-                return Err(Error::LoopRangeStartExpectedIntegerConstant(
+                return Err(Error::LoopRangeStartExpectedConstantIntegerExpression(
                     range_start_location,
                     element.to_string(),
                 ))
@@ -449,11 +443,11 @@ impl Analyzer {
 
         let range_end = match ExpressionAnalyzer::new_without_bytecode(self.scope()).expression(
             statement.range_end_expression,
-            ResolutionHint::ValueExpression,
+            TranslationHint::ValueExpression,
         )? {
             Element::Constant(Constant::Integer(integer)) => integer.value,
             element => {
-                return Err(Error::LoopRangeEndExpectedIntegerConstant(
+                return Err(Error::LoopRangeEndExpectedConstantIntegerExpression(
                     range_end_location,
                     element.to_string(),
                 ))
@@ -484,7 +478,9 @@ impl Analyzer {
             .bytecode
             .borrow_mut()
             .allocate_data_stack_space(index_size);
-        self.bytecode.borrow_mut().push_instruction(index.into());
+        self.bytecode
+            .borrow_mut()
+            .push_instruction(index.to_instruction());
         self.bytecode
             .borrow_mut()
             .push_instruction_store(index_address, index_size, None, false);
@@ -499,7 +495,7 @@ impl Analyzer {
                     .allocate_data_stack_space(while_allowed.r#type().size());
                 self.bytecode
                     .borrow_mut()
-                    .push_instruction(while_allowed.into());
+                    .push_instruction(while_allowed.to_instruction());
                 self.bytecode
                     .borrow_mut()
                     .push_instruction(Instruction::Store(zinc_bytecode::Store::new(
@@ -545,7 +541,7 @@ impl Analyzer {
         {
             let location = expression.location;
             let while_result = ExpressionAnalyzer::new(self.scope(), self.bytecode.clone())
-                .expression(expression, ResolutionHint::ValueExpression)?;
+                .expression(expression, TranslationHint::ValueExpression)?;
 
             match Type::from_element(&while_result, self.scope())? {
                 Type::Boolean => {}
@@ -565,7 +561,7 @@ impl Analyzer {
                 .push_instruction(Instruction::If(zinc_bytecode::If));
             self.bytecode
                 .borrow_mut()
-                .push_instruction(Constant::Boolean(false).into());
+                .push_instruction(Constant::Boolean(false).to_instruction());
             self.bytecode.borrow_mut().push_instruction_store(
                 while_allowed_address,
                 Type::new_boolean().size(),
@@ -600,7 +596,7 @@ impl Analyzer {
         // increment the loop counter
         self.bytecode
             .borrow_mut()
-            .push_instruction(IntegerConstant::new_one(minimal_bitlength).into());
+            .push_instruction(IntegerConstant::new_one(minimal_bitlength).to_instruction());
         self.bytecode
             .borrow_mut()
             .push_instruction(Instruction::Load(zinc_bytecode::Load::new(index_address)));

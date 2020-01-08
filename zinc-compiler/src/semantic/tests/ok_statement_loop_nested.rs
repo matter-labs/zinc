@@ -16,6 +16,7 @@ use zinc_bytecode::LoopEnd;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 use zinc_bytecode::Store;
+use zinc_bytecode::StoreByIndex;
 
 #[test]
 fn test() {
@@ -34,28 +35,58 @@ fn main() {
     let expected = Ok(vec![
         Instruction::Call(Call::new(2, 0)),
         Instruction::Exit(Exit::new(0)),
-        Instruction::PushConst(PushConst::new(BigInt::from(0), false, 8)),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(0),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
         Instruction::Store(Store::new(0)),
-        Instruction::PushConst(PushConst::new(BigInt::from(0), false, 8)),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(0),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
         Instruction::Store(Store::new(1)),
         Instruction::LoopBegin(LoopBegin::new(6)),
         Instruction::Load(Load::new(1)),
         Instruction::Load(Load::new(0)),
         Instruction::Add(Add),
-        Instruction::Store(Store::new(0)),
-        Instruction::PushConst(PushConst::new(BigInt::from(0), false, 8)),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(0),
+            false,
+            crate::BITLENGTH_INDEX,
+        )),
+        Instruction::StoreByIndex(StoreByIndex::new(0, 1)),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(0),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
         Instruction::Store(Store::new(2)),
         Instruction::LoopBegin(LoopBegin::new(6)),
         Instruction::Load(Load::new(2)),
         Instruction::Load(Load::new(0)),
         Instruction::Add(Add),
-        Instruction::Store(Store::new(0)),
-        Instruction::PushConst(PushConst::new(BigInt::from(1), false, 8)),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(0),
+            false,
+            crate::BITLENGTH_INDEX,
+        )),
+        Instruction::StoreByIndex(StoreByIndex::new(0, 1)),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(1),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
         Instruction::Load(Load::new(2)),
         Instruction::Add(Add),
         Instruction::Store(Store::new(2)),
         Instruction::LoopEnd(LoopEnd),
-        Instruction::PushConst(PushConst::new(BigInt::from(1), false, 8)),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(1),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
         Instruction::Load(Load::new(1)),
         Instruction::Add(Add),
         Instruction::Store(Store::new(1)),

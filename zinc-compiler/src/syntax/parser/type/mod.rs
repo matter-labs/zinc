@@ -72,6 +72,15 @@ impl Parser {
                 lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                 ..
             } => Ok((TupleTypeParser::default().parse(stream, Some(token))?, None)),
+            Token {
+                lexeme: Lexeme::Symbol(Symbol::Ampersand),
+                location,
+            } => {
+                let (inner, next) = Self::default().parse(stream, None)?;
+                self.builder.set_location(location);
+                self.builder.set_reference_inner(inner);
+                Ok((self.builder.finish(), next))
+            }
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
                 location,
                 vec!["{type}", "{identifier}", "(", "["],
@@ -274,6 +283,46 @@ mod tests {
                     TypeVariant::Field,
                     TypeVariant::Field,
                 ])]),
+            ),
+            None,
+        ));
+
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_reference() {
+        let input = "&field";
+
+        let expected = Ok((
+            Type::new(
+                Location::new(1, 1),
+                TypeVariant::new_reference(TypeVariant::new_field()),
+            ),
+            None,
+        ));
+
+        let result = Parser::default().parse(
+            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
+            None,
+        );
+
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn ok_double_reference() {
+        let input = "&(&field)";
+
+        let expected = Ok((
+            Type::new(
+                Location::new(1, 1),
+                TypeVariant::new_reference(TypeVariant::new_reference(TypeVariant::new_field())),
             ),
             None,
         ));

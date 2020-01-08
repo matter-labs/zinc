@@ -12,6 +12,7 @@ use zinc_bytecode::Instruction;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 use zinc_bytecode::Store;
+use zinc_bytecode::StoreByIndex;
 
 #[test]
 fn test() {
@@ -27,10 +28,23 @@ fn main() {
     let expected = Ok(vec![
         Instruction::Call(Call::new(2, 0)),
         Instruction::Exit(Exit::new(0)),
-        Instruction::PushConst(PushConst::new(BigInt::from(25), false, 8)),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(25),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
         Instruction::Store(Store::new(0)),
-        Instruction::PushConst(PushConst::new(BigInt::from(50), false, 8)),
-        Instruction::Store(Store::new(0)),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(50),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(0),
+            false,
+            crate::BITLENGTH_INDEX,
+        )),
+        Instruction::StoreByIndex(StoreByIndex::new(0, 1)),
         Instruction::Return(Return::new(0)),
     ]);
 

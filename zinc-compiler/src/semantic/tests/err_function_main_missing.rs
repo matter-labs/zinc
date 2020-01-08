@@ -4,9 +4,7 @@
 
 #![cfg(test)]
 
-
 use crate::semantic::Error as SemanticError;
-
 use crate::Error;
 
 #[test]

@@ -31,6 +31,7 @@ pub enum Value {
     Array(Array),
     Tuple(Tuple),
     Structure(Structure),
+    Reference(Box<Self>),
 }
 
 impl Value {
@@ -47,6 +48,7 @@ impl Value {
                 identifier, fields, ..
             } => Self::Structure(Structure::new(identifier, fields)),
             Type::Enumeration { bitlength, .. } => Self::Integer(Integer::new(false, bitlength)),
+            Type::Reference { inner } => Self::Reference(Box::new(Value::new(*inner))),
             r#type => panic!(
                 "{}{}",
                 crate::semantic::PANIC_VALUE_CANNOT_BE_CREATED_FROM,
@@ -63,6 +65,7 @@ impl Value {
             Self::Array(array) => array.r#type(),
             Self::Tuple(tuple) => tuple.r#type(),
             Self::Structure(structure) => structure.r#type(),
+            Self::Reference(inner) => Type::new_reference(inner.r#type()),
         }
     }
 
@@ -76,6 +79,9 @@ impl Value {
             (Self::Array(value_1), Self::Array(value_2)) => value_1.has_the_same_type_as(value_2),
             (Self::Tuple(value_1), Self::Tuple(value_2)) => value_1.has_the_same_type_as(value_2),
             (Self::Structure(value_1), Self::Structure(value_2)) => {
+                value_1.has_the_same_type_as(value_2)
+            }
+            (Self::Reference(value_1), Self::Reference(value_2)) => {
                 value_1.has_the_same_type_as(value_2)
             }
             _ => false,
@@ -134,7 +140,10 @@ impl Value {
             (Self::Boolean, value_2) => Err(Error::OperatorEqualsSecondOperandExpectedBoolean(
                 value_2.r#type().to_string(),
             )),
-            (Self::Integer(_), Self::Integer(_)) => Ok(Self::Boolean),
+            (Self::Integer(integer_1), Self::Integer(integer_2)) => integer_1
+                .equals(integer_2)
+                .map(|_| Self::Boolean)
+                .map_err(Error::Integer),
             (Self::Integer(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedInteger(
                 value_2.r#type().to_string(),
             )),
@@ -154,7 +163,10 @@ impl Value {
             (Self::Boolean, value_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedBoolean(
                 value_2.r#type().to_string(),
             )),
-            (Self::Integer(_), Self::Integer(_)) => Ok(Self::Boolean),
+            (Self::Integer(integer_1), Self::Integer(integer_2)) => integer_1
+                .not_equals(integer_2)
+                .map(|_| Self::Boolean)
+                .map_err(Error::Integer),
             (Self::Integer(_), value_2) => Err(
                 Error::OperatorNotEqualsSecondOperandExpectedInteger(value_2.r#type().to_string()),
             ),
@@ -350,6 +362,19 @@ impl Value {
         match self {
             Self::Boolean => Ok(Self::Boolean),
             value => Err(Error::OperatorNotExpectedBoolean(
+                value.r#type().to_string(),
+            )),
+        }
+    }
+
+    pub fn reference(&self) -> Result<Self, Error> {
+        Ok(Self::Reference(Box::new(self.to_owned())))
+    }
+
+    pub fn dereference(&self) -> Result<Self, Error> {
+        match self {
+            Self::Reference(inner) => Ok(*inner.to_owned()),
+            value => Err(Error::OperatorDereferenceExpectedReference(
                 value.r#type().to_string(),
             )),
         }

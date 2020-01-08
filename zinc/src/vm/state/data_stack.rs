@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::primitive::{Primitive, PrimitiveOperations};
-use crate::RuntimeError;
 use crate::vm::Cell;
+use crate::RuntimeError;
 
 #[derive(Debug)]
 struct CellDelta<P: Primitive> {
@@ -32,9 +32,7 @@ impl<P: Primitive> DataStackBranch<P> {
 
     fn switch(self) -> Option<Self> {
         match self {
-            DataStackBranch::IfThen(t) => {
-                Some(DataStackBranch::IfThenElse(t, HashMap::new()))
-            }
+            DataStackBranch::IfThen(t) => Some(DataStackBranch::IfThenElse(t, HashMap::new())),
             DataStackBranch::IfThenElse(_, _) => None,
         }
     }
@@ -56,9 +54,7 @@ impl<P: Primitive> DataStack<P> {
 
     pub fn get(&mut self, address: usize) -> Result<Cell<P>, RuntimeError> {
         if let Some(cell) = self.memory.get(address) {
-            cell
-                .clone()
-                .ok_or(RuntimeError::UninitializedStorageAccess)
+            cell.clone().ok_or(RuntimeError::UninitializedStorageAccess)
         } else {
             Err(RuntimeError::UninitializedStorageAccess)
         }
@@ -74,11 +70,15 @@ impl<P: Primitive> DataStack<P> {
             let delta = branch.active_delta();
             let old = match delta.get(&address) {
                 Some(old_cd) => old_cd.old.clone(),
-                None => {
-                    self.memory[address].clone()
-                }
+                None => self.memory[address].clone(),
             };
-            delta.insert(address, CellDelta { old, new: value.clone() });
+            delta.insert(
+                address,
+                CellDelta {
+                    old,
+                    new: value.clone(),
+                },
+            );
         }
 
         self.memory[address] = Some(value);
@@ -101,17 +101,17 @@ impl<P: Primitive> DataStack<P> {
     }
 
     /// Merge top-level branch or branches into parent branch.
-    pub fn merge<O: PrimitiveOperations<P>>(&mut self, condition: P, ops: &mut O) -> Result<(), RuntimeError> {
+    pub fn merge<O: PrimitiveOperations<P>>(
+        &mut self,
+        condition: P,
+        ops: &mut O,
+    ) -> Result<(), RuntimeError> {
         let mut branch = self.branches.pop().ok_or(RuntimeError::UnexpectedEndIf)?;
         self.revert(branch.active_delta());
 
         match branch {
-            DataStackBranch::IfThen(delta) => {
-                self.merge_single(condition, &delta, ops)?
-            },
-            DataStackBranch::IfThenElse(t, f) => {
-                self.merge_pair(condition, &t, &f, ops)?
-            }
+            DataStackBranch::IfThen(delta) => self.merge_single(condition, &delta, ops)?,
+            DataStackBranch::IfThenElse(t, f) => self.merge_pair(condition, &t, &f, ops)?,
         }
 
         Ok(())
@@ -124,12 +124,18 @@ impl<P: Primitive> DataStack<P> {
     }
 
     /// Conditionally apply delta
-    fn merge_single<O: PrimitiveOperations<P>>(&mut self, condition: P, delta: &DataStackDelta<P>, ops: &mut O) -> Result<(), RuntimeError> {
+    fn merge_single<O: PrimitiveOperations<P>>(
+        &mut self,
+        condition: P,
+        delta: &DataStackDelta<P>,
+        ops: &mut O,
+    ) -> Result<(), RuntimeError> {
         for (&addr, diff) in delta.iter() {
             match (&self.memory[addr], &diff.new) {
                 (None, _) => {}
                 (Some(Cell::Value(old)), Cell::Value(new)) => {
-                    let value = ops.conditional_select(condition.clone(), new.clone(), old.clone())?;
+                    let value =
+                        ops.conditional_select(condition.clone(), new.clone(), old.clone())?;
                     self.set(addr, Cell::Value(value))?;
                 }
                 (Some(old), new) => {
@@ -142,10 +148,15 @@ impl<P: Primitive> DataStack<P> {
     }
 
     /// Conditionally apply one of two deltas.
-    fn merge_pair<O>(&mut self, condition: P, delta_then: &DataStackDelta<P>, delta_else: &DataStackDelta<P>, ops: &mut O)
-        -> Result<(), RuntimeError>
+    fn merge_pair<O>(
+        &mut self,
+        condition: P,
+        delta_then: &DataStackDelta<P>,
+        delta_else: &DataStackDelta<P>,
+        ops: &mut O,
+    ) -> Result<(), RuntimeError>
     where
-        O: PrimitiveOperations<P>
+        O: PrimitiveOperations<P>,
     {
         for (addr, diff) in delta_then.iter() {
             let alt = if let Some(diff) = delta_else.get(addr) {
@@ -157,7 +168,8 @@ impl<P: Primitive> DataStack<P> {
             match (&alt, &diff.new) {
                 (None, _) => {}
                 (Some(Cell::Value(old)), Cell::Value(new)) => {
-                    let value = ops.conditional_select(condition.clone(), new.clone(), old.clone())?;
+                    let value =
+                        ops.conditional_select(condition.clone(), new.clone(), old.clone())?;
                     self.set(*addr, Cell::Value(value))?;
                 }
                 (Some(old), new) => {

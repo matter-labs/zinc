@@ -1,14 +1,14 @@
 extern crate franklin_crypto;
 
 use crate::primitive::{Primitive, PrimitiveOperations};
-use crate::vm::{RuntimeError, VMInstruction, VirtualMachine, InternalVM};
-use zinc_bytecode::instructions::Dbg;
+use crate::vm::{InternalVM, RuntimeError, VMInstruction, VirtualMachine};
 use num_traits::Signed;
+use zinc_bytecode::instructions::Dbg;
 
 impl<E, O> VMInstruction<E, O> for Dbg
-    where
-        E: Primitive,
-        O: PrimitiveOperations<E>,
+where
+    E: Primitive,
+    O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let mut args = Vec::new();
@@ -29,7 +29,6 @@ impl<E, O> VMInstruction<E, O> for Dbg
         Ok(())
     }
 }
-
 
 #[cfg(test)]
 mod tests {

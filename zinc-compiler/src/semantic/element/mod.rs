@@ -4,6 +4,7 @@
 
 mod constant;
 mod error;
+mod path;
 mod place;
 mod r#type;
 mod value;
@@ -13,10 +14,9 @@ pub use self::constant::Error as ConstantError;
 pub use self::constant::Integer as IntegerConstant;
 pub use self::constant::IntegerError as IntegerConstantError;
 pub use self::error::Error;
-pub use self::place::Descriptor as PlaceDescriptor;
+pub use self::path::Path;
 pub use self::place::Error as PlaceError;
 pub use self::place::Place;
-pub use self::place::ResolutionTime as PlaceResolutionTime;
 pub use self::r#type::Type;
 pub use self::value::Array;
 pub use self::value::ArrayError;
@@ -34,17 +34,19 @@ use crate::syntax::MemberString;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Element {
-    /// Memory descriptor (a.k.a. `lvalue`)
-    Place(Place),
     /// Runtime value, which is unknown at compile time (a.k.a. `lvalue`)
     Value(Value),
     /// Constant value, which is known at compile time (a.k.a. `lvalue`)
     Constant(Constant),
     /// The second operand of the casting operator
     Type(Type),
-
     /// The second operand of the function call operator
     ArgumentList(Vec<Self>),
+
+    /// Path to be resolved in the scope
+    Path(Path),
+    /// Memory descriptor (a.k.a. `lvalue`)
+    Place(Place),
     /// Tuple field index
     MemberInteger(usize),
     /// Structure field name
@@ -55,15 +57,6 @@ pub enum Element {
 
 impl Element {
     pub fn assign(self, other: &Self) -> Result<Place, Error> {
-        let place = match self {
-            Self::Place(place) => place,
-            element => {
-                return Err(Error::OperatorAssignmentFirstOperandExpectedPlace(
-                    element.to_string(),
-                ))
-            }
-        };
-
         match other {
             Self::Value(_) => {}
             Self::Constant(_) => {}
@@ -74,7 +67,12 @@ impl Element {
             }
         }
 
-        Ok(place)
+        match self {
+            Self::Place(place) => Ok(place),
+            element => Err(Error::OperatorAssignmentFirstOperandExpectedPlace(
+                element.to_string(),
+            )),
+        }
     }
 
     pub fn or(&self, other: &Self) -> Result<Self, Error> {
@@ -535,61 +533,43 @@ impl Element {
         }
     }
 
-    pub fn index(&mut self, other: &Self) -> Result<(), Error> {
-        let place = match self {
-            Self::Place(place) => place,
-            element => {
-                return Err(Error::OperatorIndexFirstOperandExpectedPlace(
+    pub fn index(&mut self, other: &Self) -> Result<usize, Error> {
+        match self {
+            Self::Place(place) => match other {
+                element @ Self::Value(_) => place.index_array(element).map_err(Error::Place),
+                element @ Self::Constant(_) => place.index_array(element).map_err(Error::Place),
+                element => Err(Error::OperatorIndexSecondOperandExpectedEvaluable(
                     element.to_string(),
-                ))
-            }
-        };
-
-        match other {
-            Self::Value(Value::Integer(value)) => {
-                place.index_value(value);
-                Ok(())
-            }
-            Self::Constant(Constant::Integer(constant)) => {
-                place.index_constant(constant);
-                Ok(())
-            }
-            element => Err(Error::OperatorIndexSecondOperandExpectedInteger(
+                )),
+            },
+            element => Err(Error::OperatorIndexFirstOperandExpectedPlace(
                 element.to_string(),
             )),
         }
     }
 
-    pub fn field(&mut self, other: &Self) -> Result<(), Error> {
-        let place = match self {
-            Self::Place(place) => place,
-            element => {
-                return Err(Error::OperatorFieldFirstOperandExpectedPlace(
+    pub fn field(&mut self, other: &Self) -> Result<usize, Error> {
+        match self {
+            Self::Place(place) => match other {
+                Self::MemberInteger(member) => place.field_tuple(*member).map_err(Error::Place),
+                Self::MemberString(member) => {
+                    place.field_structure(&member.name).map_err(Error::Place)
+                }
+                element => Err(Error::OperatorFieldSecondOperandExpectedMember(
                     element.to_string(),
-                ))
-            }
-        };
-
-        match other {
-            Self::MemberInteger(integer) => {
-                place.access_tuple(*integer);
-                Ok(())
-            }
-            Self::MemberString(string) => {
-                place.access_structure(string);
-                Ok(())
-            }
-            element => Err(Error::OperatorFieldSecondOperandExpectedMember(
+                )),
+            },
+            element => Err(Error::OperatorFieldFirstOperandExpectedPlace(
                 element.to_string(),
             )),
         }
     }
 
     pub fn path(&mut self, other: &Self) -> Result<(), Error> {
-        let place = match self {
-            Self::Place(place) => place,
+        let path = match self {
+            Self::Path(path) => path,
             element => {
-                return Err(Error::OperatorPathFirstOperandExpectedPlace(
+                return Err(Error::OperatorPathFirstOperandExpectedPath(
                     element.to_string(),
                 ))
             }
@@ -604,7 +584,7 @@ impl Element {
             }
         };
 
-        place.path(member).map_err(Error::Place)?;
+        path.push_element(member.to_owned());
         Ok(())
     }
 }
@@ -612,7 +592,6 @@ impl Element {
 impl fmt::Display for Element {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Place(place) => write!(f, "{}", place),
             Self::Value(value) => write!(f, "{}", value),
             Self::Constant(constant) => write!(f, "{}", constant),
             Self::Type(r#type) => write!(f, "{}", r#type),
@@ -625,6 +604,8 @@ impl fmt::Display for Element {
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
+            Self::Path(path) => write!(f, "{}", path),
+            Self::Place(place) => write!(f, "{}", place),
             Self::MemberInteger(integer) => write!(f, "{}", integer),
             Self::MemberString(member) => write!(f, "{}", member.name),
             Self::Module(name) => write!(f, "{}", name),

@@ -46,7 +46,7 @@ impl InstructionInfo for Dbg {
             return Err(DecodingError::UnexpectedEOF);
         }
 
-        let string = String::from_utf8(Vec::from(&bytes[3..3+ string_len]))
+        let string = String::from_utf8(Vec::from(&bytes[3..3 + string_len]))
             .map_err(|_| DecodingError::UTF8Error)?;
 
         Ok((Self::new(string, nargs), 3 + string_len))

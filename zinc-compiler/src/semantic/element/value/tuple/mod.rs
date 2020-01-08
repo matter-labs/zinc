@@ -23,7 +23,7 @@ impl Tuple {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::new_tuple(self.element_types.clone())
+        Type::new_tuple(self.element_types.to_owned())
     }
 
     pub fn push(&mut self, r#type: Type) {

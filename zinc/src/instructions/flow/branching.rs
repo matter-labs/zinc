@@ -1,14 +1,14 @@
 extern crate franklin_crypto;
 
 use crate::primitive::{Primitive, PrimitiveOperations};
-use crate::vm::{VMInstruction, InternalVM};
+use crate::vm::{InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
-use zinc_bytecode::{If, Else, EndIf};
+use zinc_bytecode::{Else, EndIf, If};
 
 impl<E, O> VMInstruction<E, O> for If
-    where
-        E: Primitive,
-        O: PrimitiveOperations<E>,
+where
+    E: Primitive,
+    O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.branch_then()
@@ -16,9 +16,9 @@ impl<E, O> VMInstruction<E, O> for If
 }
 
 impl<E, O> VMInstruction<E, O> for Else
-    where
-        E: Primitive,
-        O: PrimitiveOperations<E>,
+where
+    E: Primitive,
+    O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.branch_else()
@@ -26,9 +26,9 @@ impl<E, O> VMInstruction<E, O> for Else
 }
 
 impl<E, O> VMInstruction<E, O> for EndIf
-    where
-        E: Primitive,
-        O: PrimitiveOperations<E>,
+where
+    E: Primitive,
+    O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         vm.branch_end()
@@ -37,9 +37,9 @@ impl<E, O> VMInstruction<E, O> for EndIf
 
 #[cfg(test)]
 mod tests {
-    use crate::instructions::testing_utils::{VMTestRunner, TestingError};
-    use zinc_bytecode::*;
+    use crate::instructions::testing_utils::{TestingError, VMTestRunner};
     use std::cmp;
+    use zinc_bytecode::*;
 
     #[test]
     fn test_stack() -> Result<(), TestingError> {
@@ -51,11 +51,7 @@ mod tests {
         // } else {
         //     (b, a)
         // }
-        let data = [
-            (5, 7),
-            (7, 5),
-            (6, 6),
-        ];
+        let data = [(5, 7), (7, 5), (6, 6)];
 
         for (a, b) in data.iter() {
             VMTestRunner::new()
@@ -89,10 +85,7 @@ mod tests {
         // } else {
         //     a -= 1;
         // }
-        let data = [
-            (1, 1),
-            (0, -1),
-        ];
+        let data = [(1, 1), (0, -1)];
 
         for (c, r) in data.iter() {
             VMTestRunner::new()

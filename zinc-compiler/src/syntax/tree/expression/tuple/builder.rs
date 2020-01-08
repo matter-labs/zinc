@@ -77,7 +77,7 @@ impl Builder {
                     )],
                 )
             }
-            _ => panic!(crate::syntax::PANIC_BUILDER_COMPLEX_TYPE),
+            _ => panic!(crate::syntax::PANIC_BUILDER_TYPE),
         }
     }
 }

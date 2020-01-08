@@ -5,10 +5,8 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
-
 use crate::semantic::Error as SemanticError;
 use crate::semantic::IntegerConstantError;
-
 use crate::Error;
 
 #[test]
@@ -24,7 +22,7 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::InferencePatternMatch(
+    let expected = Err(Error::Semantic(SemanticError::InferenceConstant(
         Location::new(5, 9),
         IntegerConstantError::IntegerTooLargeForField(
             "115792089237316195423570985008687907853269984665640564039457584007913129639935"

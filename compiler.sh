@@ -21,3 +21,5 @@ cargo build --package "${LIBRARY_NAME}"
 cargo test --package "${LIBRARY_NAME}"
 
 "./target/${BUILD_MODE}/${BINARY_NAME}" --input "${INPUT}" --output "${OUTPUT}"
+
+cargo run --bin zinc -- -v exec --circuit "${OUTPUT}"

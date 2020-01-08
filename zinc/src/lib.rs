@@ -1,5 +1,5 @@
-mod primitive;
 mod instructions;
+mod primitive;
 mod vm;
 
 mod facade;
