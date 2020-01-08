@@ -38,9 +38,7 @@ impl<E: Engine> ToBigInt for FrPrimitive<E> {
     }
 }
 
-impl<EN: Debug + Engine> Primitive for FrPrimitive<EN> {
-    type MerkleTree = ();
-}
+impl<EN: Debug + Engine> Primitive for FrPrimitive<EN> {}
 
 pub struct ConstrainingFrOperations<E, CS>
 where
@@ -112,28 +110,34 @@ where
 
     fn bits(
         &mut self,
-        bit_length: usize,
-        primitive: FrPrimitive<E>,
+        index: FrPrimitive<E>,
+        array_length: usize,
     ) -> Result<Vec<FrPrimitive<E>>, RuntimeError> {
+        let length = self.constant_bigint(&array_length.into())?;
+        let index_lt_length = self.lt(index.clone(), length)?;
+        self.assert(index_lt_length)?;
+
+
         let mut cs = self.cs_namespace();
         let num = AllocatedNum::alloc(
             cs.namespace(|| "allucated num"),
-            || primitive.value.ok_or(SynthesisError::AssignmentMissing))
+            || index.value.ok_or(SynthesisError::AssignmentMissing))
             .map_err(RuntimeError::SynthesisError)?;
 
+        let bit_length = utils::tree_height(array_length);
         let bits = num.into_bits_le_fixed(
             cs.namespace(|| "bits_le_fixed"), bit_length)
             .map_err(RuntimeError::SynthesisError)?;
 
-        Ok(
-            bits
-                .into_iter()
-                .map(|bit| FrPrimitive {
-                    value: bit.get_value_field::<E>(),
-                    variable: bit.get_variable().expect("bit value expected").get_variable()
-                })
-                .collect()
-            )
+        let bits = bits
+            .into_iter()
+            .map(|bit| FrPrimitive {
+                value: bit.get_value_field::<E>(),
+                variable: bit.get_variable().expect("bit value expected").get_variable()
+            })
+            .collect();
+
+        Ok(bits)
     }
 
     fn recursive_select(
@@ -705,14 +709,16 @@ where
     }
 
     fn assert(&mut self, element: FrPrimitive<E>) -> Result<(), RuntimeError> {
-        let value = match element.value {
-            None => Err(SynthesisError::AssignmentMissing),
-            Some(fr) => fr.inverse().ok_or(SynthesisError::Unsatisfiable),
-        };
+        let inverse_value = element.value
+            .map(|fr| {
+                fr
+                    .inverse()
+                    .unwrap_or(E::Fr::zero())
+            });
 
         let mut cs = self.cs_namespace();
         let inverse_variable = cs
-            .alloc(|| "inverse", || value)
+            .alloc(|| "inverse", || inverse_value.ok_or(SynthesisError::AssignmentMissing))
             .map_err(RuntimeError::SynthesisError)?;
 
         cs.enforce(
@@ -730,12 +736,7 @@ where
         array: &[FrPrimitive<E>],
         index: FrPrimitive<E>,
     ) -> Result<FrPrimitive<E>, RuntimeError> {
-        let length = self.constant_bigint(&array.len().into())?;
-        let index_lt_length = self.lt(index.clone(), length)?;
-        self.assert(index_lt_length)?;
-
-        let bits_len = utils::tree_height(array.len());
-        let bits = self.bits(bits_len, index)?;
+        let bits = self.bits(index, array.len())?;
 
         self.recursive_select(array, bits.as_slice())
     }
