@@ -102,7 +102,6 @@ mod err_element_value_and_1st_expected_boolean;
 mod err_element_value_and_2nd_expected_boolean;
 mod err_element_value_array_pushing_invalid_type;
 mod err_element_value_casting_let;
-mod err_element_value_dereference_expected_reference;
 mod err_element_value_division_1st_expected_integer;
 mod err_element_value_division_2nd_expected_integer;
 mod err_element_value_equals_1st_expected_primitive;

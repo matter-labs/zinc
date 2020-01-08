@@ -533,20 +533,6 @@ impl Element {
         }
     }
 
-    pub fn reference(&self) -> Result<Self, Error> {
-        match self {
-            Element::Value(value) => value.reference().map(Self::Value).map_err(Error::Value),
-            element => Err(Error::OperatorReferenceExpectedValue(element.to_string())),
-        }
-    }
-
-    pub fn dereference(&self) -> Result<Self, Error> {
-        match self {
-            Element::Value(value) => value.dereference().map(Self::Value).map_err(Error::Value),
-            element => Err(Error::OperatorDereferenceExpectedValue(element.to_string())),
-        }
-    }
-
     pub fn index(&mut self, other: &Self) -> Result<usize, Error> {
         match self {
             Self::Place(place) => match other {

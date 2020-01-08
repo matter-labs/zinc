@@ -203,16 +203,6 @@ pub enum Error {
         _0
     )]
     OperatorNotExpectedEvaluable(String),
-    #[fail(
-        display = "unary '&' operator expected a value expression as the operand, but got '{}'",
-        _0
-    )]
-    OperatorReferenceExpectedValue(String), // TODO
-    #[fail(
-        display = "unary '*' operator expected a value expression as the operand, but got '{}'",
-        _0
-    )]
-    OperatorDereferenceExpectedValue(String), // TODO
 
     #[fail(
         display = "'[]' operator expected a path expression as the first operand, but got '{}'",

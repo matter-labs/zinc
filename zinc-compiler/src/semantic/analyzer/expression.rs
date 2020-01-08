@@ -372,23 +372,8 @@ impl Analyzer {
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.push_operand(StackElement::Evaluated(result));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Reference) => {
-                    let operand_1 = self.evaluate_unary_operand(TranslationHint::Reference)?;
-
-                    let result = operand_1
-                        .reference()
-                        .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Evaluated(result));
-                }
-                ExpressionObject::Operator(ExpressionOperator::Dereference) => {
-                    let operand_1 =
-                        self.evaluate_unary_operand(TranslationHint::ValueExpression)?;
-
-                    let result = operand_1
-                        .dereference()
-                        .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Evaluated(result));
-                }
+                ExpressionObject::Operator(ExpressionOperator::Reference) => unimplemented!(),
+                ExpressionObject::Operator(ExpressionOperator::Dereference) => unimplemented!(),
                 ExpressionObject::Operator(ExpressionOperator::Index) => {
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::PlaceExpression,
@@ -1112,29 +1097,6 @@ impl Analyzer {
                 location,
                 path_last.name.to_owned(),
             ))),
-
-            TranslationHint::Reference => match Scope::resolve_path(self.scope(), path)? {
-                ScopeItem::Variable(variable) => {
-                    let value = Value::new(variable.r#type);
-                    self.bytecode
-                        .borrow_mut()
-                        .push_instruction(Instruction::Ref(zinc_bytecode::Ref::new(
-                            variable.address,
-                        )));
-                    Ok(Element::Value(value))
-                }
-                ScopeItem::Static(r#static) => {
-                    self.bytecode
-                        .borrow_mut()
-                        .push_instruction(Instruction::Ref(zinc_bytecode::Ref::new(
-                            r#static.address,
-                        )));
-                    Ok(Element::Constant(r#static.data))
-                }
-                ScopeItem::Constant(constant) => Ok(Element::Constant(constant)),
-                ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
-                ScopeItem::Module(_) => Ok(Element::Module(path_last.name.to_owned())),
-            },
         }
     }
 

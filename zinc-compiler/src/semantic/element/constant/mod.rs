@@ -342,7 +342,7 @@ impl Constant {
 
     pub fn to_instruction(&self) -> Instruction {
         match self {
-            Self::Unit => todo!(),
+            Self::Unit => unimplemented!(),
             Self::Boolean(boolean) => Instruction::PushConst(zinc_bytecode::PushConst::new(
                 if *boolean {
                     BigInt::one()
@@ -353,7 +353,7 @@ impl Constant {
                 crate::BITLENGTH_BOOLEAN,
             )),
             Self::Integer(integer) => integer.to_instruction(),
-            Self::String(_) => todo!(),
+            Self::String(_) => unimplemented!(),
         }
     }
 }

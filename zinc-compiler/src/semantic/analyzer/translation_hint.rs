@@ -10,5 +10,4 @@ pub enum TranslationHint {
     PathExpression,
     PlaceExpression,
     CompoundTypeMember,
-    Reference,
 }
