@@ -1,6 +1,5 @@
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::marker::PhantomData;
-use std::ops::BitAnd;
 
 use bellman::pairing::Engine;
 use bellman::{ConstraintSystem, Variable};
@@ -116,58 +115,23 @@ where
         bit_length: usize,
         primitive: FrPrimitive<E>,
     ) -> Result<Vec<FrPrimitive<E>>, RuntimeError> {
-        let bit_values = match primitive.to_bigint() {
-            None => vec![None; bit_length],
-            Some(bi) => {
-                let mut bits = Vec::new();
-                for i in 0..bit_length {
-                    if bi.clone().bitand(&BigInt::from(1 << i)) > BigInt::from(0) {
-                        bits.push(Some(E::Fr::one()))
-                    } else {
-                        bits.push(Some(E::Fr::zero()))
-                    }
-                }
-                bits
-            }
-        };
-
         let mut cs = self.cs_namespace();
+        let num = AllocatedNum::alloc(
+            cs.namespace(|| "allucated num"),
+            || primitive.value.ok_or(SynthesisError::AssignmentMissing))
+            .map_err(RuntimeError::SynthesisError)?;
 
-        let mut bit_variables = Vec::new();
-        for (i, value) in bit_values.iter().enumerate() {
-            let var = cs
-                .alloc(
-                    || format!("Bit variable #{}", i),
-                    || value.ok_or(SynthesisError::AssignmentMissing),
-                )
-                .map_err(RuntimeError::SynthesisError)?;
-
-            cs.enforce(
-                || format!("Bit constraint #{}", i),
-                |lc| lc + var,
-                |lc| lc + CS::one() - var,
-                |lc| lc,
-            );
-
-            bit_variables.push(var);
-        }
-
-        cs.enforce(
-            || "Bits sum",
-            |lc| lc + CS::one(),
-            |lc| lc + primitive.variable,
-            |mut lc| {
-                for var in bit_variables.iter() {
-                    lc = lc + *var;
-                }
-                lc
-            },
-        );
+        let bits = num.into_bits_le_fixed(
+            cs.namespace(|| "bits_le_fixed"), bit_length)
+            .map_err(RuntimeError::SynthesisError)?;
 
         Ok(
-            bit_values
-                .into_iter().zip(bit_variables.into_iter())
-                .map(|(value, variable)| FrPrimitive { value, variable })
+            bits
+                .into_iter()
+                .map(|bit| FrPrimitive {
+                    value: bit.get_value_field::<E>(),
+                    variable: bit.get_variable().expect("bit value expected").get_variable()
+                })
                 .collect()
             )
     }
@@ -766,8 +730,11 @@ where
         array: &[FrPrimitive<E>],
         index: FrPrimitive<E>,
     ) -> Result<FrPrimitive<E>, RuntimeError> {
-        let bits_len = utils::tree_height(array.len());
+        let length = self.constant_bigint(&array.len().into())?;
+        let index_lt_length = self.lt(index.clone(), length)?;
+        self.assert(index_lt_length)?;
 
+        let bits_len = utils::tree_height(array.len());
         let bits = self.bits(bits_len, index)?;
 
         self.recursive_select(array, bits.as_slice())
