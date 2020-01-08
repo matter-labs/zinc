@@ -13,9 +13,9 @@ where
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let value = vm.pop()?.value()?;
         let c = vm.condition_top()?;
-        let not_c = vm.get_operator().not(c)?;
-        let cond_value = vm.get_operator().or(value, not_c)?;
-        vm.get_operator().assert(cond_value)?;
+        let not_c = vm.operations().not(c)?;
+        let cond_value = vm.operations().or(value, not_c)?;
+        vm.operations().assert(cond_value)?;
         Ok(())
     }
 }

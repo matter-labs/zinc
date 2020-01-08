@@ -1,5 +1,5 @@
 use crate::primitive::{Primitive, PrimitiveOperations};
-use crate::vm::VMInstruction;
+use crate::vm::{VMInstruction, InternalVM};
 use crate::vm::{RuntimeError, VirtualMachine};
 use zinc_bytecode::instructions::StoreGlobal;
 
@@ -8,7 +8,8 @@ where
     E: Primitive,
     O: PrimitiveOperations<E>,
 {
-    fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        unimplemented!()
+    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+        let value = vm.pop()?;
+        vm.store_global(self.address, value)
     }
 }

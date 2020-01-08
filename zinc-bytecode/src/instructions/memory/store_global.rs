@@ -10,7 +10,7 @@ pub struct StoreGlobal {
 
 impl StoreGlobal {
     pub fn new(address: usize) -> Self {
-        Self { address: address }
+        Self { address }
     }
 }
 

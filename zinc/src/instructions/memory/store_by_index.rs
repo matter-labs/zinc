@@ -18,7 +18,7 @@ where
         }
 
         let new_array = vm
-            .get_operator()
+            .operations()
             .array_set(array.as_slice(), index, value)?;
 
         for (i, value) in new_array.into_iter().enumerate() {

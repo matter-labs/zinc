@@ -16,7 +16,7 @@ where
         let if_false = vm.pop()?.value()?;
 
         let selected = vm
-            .get_operator()
+            .operations()
             .conditional_select(condition, if_true, if_false)?;
 
         vm.push(Cell::Value(selected))
