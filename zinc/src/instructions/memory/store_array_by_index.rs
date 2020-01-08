@@ -18,7 +18,7 @@ impl<E, O> VMInstruction<E, O> for StoreSequenceByIndex
         }
 
         let mut values = Vec::with_capacity(self.value_len);
-        for i in 0..self.value_len {
+        for _ in 0..self.value_len {
             let value = vm.pop()?.value()?;
             values.push(value);
         }
