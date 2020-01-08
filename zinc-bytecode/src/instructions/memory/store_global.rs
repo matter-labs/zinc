@@ -24,7 +24,10 @@ impl InstructionInfo for StoreGlobal {
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_bigint(InstructionCode::StoreGlobal, &self.address.to_bigint().unwrap())
+        utils::encode_with_bigint(
+            InstructionCode::StoreGlobal,
+            &self.address.to_bigint().unwrap(),
+        )
     }
 
     fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {

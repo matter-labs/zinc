@@ -5,28 +5,23 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
-
 use crate::semantic::Error as SemanticError;
 use crate::semantic::ScopeError;
-use crate::semantic::Type;
-
 use crate::Error;
 
 #[test]
 fn test() {
     let input = r#"
+const NOT_NAMESPACE: u8 = 42;
+
 fn main() {
-    let array = [1, 2, 3];
-    let element = array[4];
+    let result = NOT_NAMESPACE::UNDEFINED;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
-        Location::new(4, 19),
-        ScopeError::ArrayIndexOutOfRange(
-            4,
-            Type::new_array(Type::new_integer_unsigned(8), 3).to_string(),
-        ),
+        Location::new(5, 18),
+        ScopeError::ItemIsNotNamespace("NOT_NAMESPACE".to_owned()),
     )));
 
     let result = super::get_binary_result(input);

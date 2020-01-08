@@ -44,7 +44,6 @@ pub struct State<P: Primitive> {
     pub frames_stack: Vec<FunctionFrame<P>>,
 }
 
-
 impl<P: Primitive> FunctionFrame<P> {
     pub fn new(data_stack_address: usize, return_address: usize) -> Self {
         Self {

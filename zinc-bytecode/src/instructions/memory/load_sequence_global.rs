@@ -1,4 +1,4 @@
-use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo, utils};
+use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
 
 /// Loads several values from data stack and pushes them onto evaluation stack.
 #[derive(Debug, PartialEq, Clone)]
@@ -29,10 +29,7 @@ impl InstructionInfo for LoadSequenceGlobal {
     fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         let (args, len) = utils::decode_with_usize(Self::code(), bytes, 2)?;
 
-        Ok((
-            Self::new(args[0], args[1]),
-            len,
-        ))
+        Ok((Self::new(args[0], args[1]), len))
     }
 
     fn inputs_count(&self) -> usize {

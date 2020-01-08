@@ -23,6 +23,9 @@ pub enum Variant {
     Tuple {
         type_variants: Vec<Self>,
     },
+    Reference {
+        inner: Box<Self>,
+    },
     Alias {
         path: Expression,
     },
@@ -66,6 +69,12 @@ impl Variant {
 
     pub fn new_tuple(type_variants: Vec<Self>) -> Self {
         Self::Tuple { type_variants }
+    }
+
+    pub fn new_reference(inner: Self) -> Self {
+        Self::Reference {
+            inner: Box::new(inner),
+        }
     }
 
     pub fn new_alias(path: Expression) -> Self {

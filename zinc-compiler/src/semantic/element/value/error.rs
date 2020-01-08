@@ -193,6 +193,11 @@ pub enum Error {
         _0
     )]
     OperatorNotExpectedBoolean(String),
+    #[fail(
+        display = "unary '*' operator expected a reference as the operand, but got '{}'",
+        _0
+    )]
+    OperatorDereferenceExpectedReference(String),
 
     #[fail(display = "{}", _0)]
     Integer(IntegerValueError),

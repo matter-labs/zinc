@@ -13,8 +13,8 @@ pub use self::analyzer::BinaryAnalyzer;
 pub use self::analyzer::Error;
 pub use self::analyzer::ExpressionAnalyzer;
 pub use self::analyzer::LibraryAnalyzer;
-pub use self::analyzer::ResolutionHint;
 pub use self::analyzer::StatementAnalyzer;
+pub use self::analyzer::TranslationHint;
 pub use self::bytecode::Bytecode;
 pub use self::caster::Caster;
 pub use self::caster::Error as CasterError;
@@ -28,10 +28,9 @@ pub use self::element::IntegerConstant;
 pub use self::element::IntegerConstantError;
 pub use self::element::IntegerValue;
 pub use self::element::IntegerValueError;
+pub use self::element::Path;
 pub use self::element::Place;
-pub use self::element::PlaceDescriptor;
 pub use self::element::PlaceError;
-pub use self::element::PlaceResolutionTime;
 pub use self::element::Structure;
 pub use self::element::StructureError;
 pub use self::element::Tuple;
@@ -57,8 +56,8 @@ static PANIC_THERE_MUST_ALWAYS_BE_AN_OPERAND: &str =
     "Operand stack balance is kept by the evaluation logic";
 static PANIC_THERE_MUST_ALWAYS_BE_A_CALL_STACK_POINTER: &str =
     "Call stack balance is kept by the evaluation logic";
-static PANIC_THERE_MUST_ALWAYS_BE_A_PATH_MEMBER_STRING: &str =
-    "Member string existence is ensured by the evaluation logic";
+static PANIC_THERE_MUST_ALWAYS_BE_THE_LAST_PATH_ELEMENT: &str =
+    "Path last element existence is ensured by the evaluation logic";
 
 static PANIC_VALUE_CANNOT_BE_CREATED_FROM: &str = "Impossible to create a value from type: ";
 static PANIC_SELF_ALIAS_DECLARATION: &str = "'Self' alias declaration is always valid";

@@ -1,8 +1,8 @@
 use crate::primitive::{
-    FrPrimitive, ConstrainingFrOperations, Primitive, PrimitiveOperations,
+    ConstrainingFrOperations, FrPrimitive, Primitive, PrimitiveOperations,
     SimplePrimitiveOperations,
 };
-use crate::vm::{RuntimeError, VirtualMachine, InternalVM};
+use crate::vm::{InternalVM, RuntimeError, VirtualMachine};
 use bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::BigInt;
@@ -27,8 +27,10 @@ where
 {
     for (i, expected) in expected_stack.iter().enumerate() {
         let value = vm
-            .pop().expect("expected stack value is missing")
-            .value().expect("expected Cell::Value");
+            .pop()
+            .expect("expected stack value is missing")
+            .value()
+            .expect("expected Cell::Value");
 
         assert_eq!(
             value.to_bigint(),

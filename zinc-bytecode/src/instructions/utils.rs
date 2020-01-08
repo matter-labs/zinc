@@ -23,9 +23,11 @@ pub fn encode_with_usize(code: InstructionCode, values: &[usize]) -> Vec<u8> {
     bytes
 }
 
-pub fn decode_with_usize(code: InstructionCode, bytes: &[u8], args_count: usize)
-    -> Result<(Vec<usize>, usize), DecodingError>
-{
+pub fn decode_with_usize(
+    code: InstructionCode,
+    bytes: &[u8],
+    args_count: usize,
+) -> Result<(Vec<usize>, usize), DecodingError> {
     if bytes.is_empty() {
         Err(DecodingError::UnexpectedEOF)
     } else if bytes[0] != code as u8 {
@@ -34,11 +36,11 @@ pub fn decode_with_usize(code: InstructionCode, bytes: &[u8], args_count: usize)
         let mut args = Vec::new();
         let mut len = 1;
         for _ in 0..args_count {
-            let (bigint, arg_len) = vlq::decode(&bytes[len..]).ok_or(DecodingError::UnexpectedEOF)?;
+            let (bigint, arg_len) =
+                vlq::decode(&bytes[len..]).ok_or(DecodingError::UnexpectedEOF)?;
             let value = bigint.to_usize().ok_or(DecodingError::ConstantTooLong)?;
             args.push(value);
             len += arg_len;
-
         }
         Ok((args, len))
     }

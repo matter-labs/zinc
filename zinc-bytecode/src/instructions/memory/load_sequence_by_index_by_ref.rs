@@ -8,13 +8,19 @@ pub struct LoadSequenceByIndexByRef {
 
 impl LoadSequenceByIndexByRef {
     pub fn new(value_len: usize, array_len: usize) -> Self {
-        Self { value_len, array_len }
+        Self {
+            value_len,
+            array_len,
+        }
     }
 }
 
 impl InstructionInfo for LoadSequenceByIndexByRef {
     fn to_assembly(&self) -> String {
-        format!("load_sequence_by_index_by_ref {} {}", self.value_len, self.array_len)
+        format!(
+            "load_sequence_by_index_by_ref {} {}",
+            self.value_len, self.array_len
+        )
     }
 
     fn code() -> InstructionCode {

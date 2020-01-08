@@ -4,9 +4,9 @@ use crate::vm::{RuntimeError, VirtualMachine};
 use zinc_bytecode::LoadByIndexGlobal;
 
 impl<E, O> VMInstruction<E, O> for LoadByIndexGlobal
-    where
-        E: Primitive,
-        O: PrimitiveOperations<E>,
+where
+    E: Primitive,
+    O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let index = vm.pop()?.value()?;

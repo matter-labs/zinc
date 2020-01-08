@@ -31,7 +31,7 @@ impl Array {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::new_array(self.r#type.clone(), self.size)
+        Type::new_array(self.r#type.to_owned(), self.size)
     }
 
     pub fn extend(&mut self, r#type: Type, count: usize) -> Result<(), Error> {

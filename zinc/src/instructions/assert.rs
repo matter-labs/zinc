@@ -1,7 +1,7 @@
 extern crate franklin_crypto;
 
 use crate::primitive::{Primitive, PrimitiveOperations};
-use crate::vm::{VMInstruction, InternalVM};
+use crate::vm::{InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
 use zinc_bytecode::instructions::Assert;
 
@@ -24,8 +24,8 @@ where
 mod tests {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-    use zinc_bytecode::*;
     use crate::RuntimeError;
+    use zinc_bytecode::*;
 
     #[test]
     fn test_assert_ok() -> Result<(), TestingError> {
@@ -43,11 +43,9 @@ mod tests {
             .test::<i32>(&[]);
 
         match res {
-            Err(TestingError::RuntimeError(err)) => {
-                match err {
-                    RuntimeError::AssertionError => {},
-                    _ => panic!("Expected AssertionError"),
-                }
+            Err(TestingError::RuntimeError(err)) => match err {
+                RuntimeError::AssertionError => {}
+                _ => panic!("Expected AssertionError"),
             },
             _ => panic!("Expected AssertionError"),
         }

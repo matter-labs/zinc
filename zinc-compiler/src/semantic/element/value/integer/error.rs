@@ -7,6 +7,16 @@ use failure::Fail;
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
     #[fail(
+        display = "'==' operator operand types mismatch: '{}' and '{}'",
+        _0, _1
+    )]
+    TypesMismatchEquals(String, String),
+    #[fail(
+        display = "'!=' operator operand types mismatch: '{}' and '{}'",
+        _0, _1
+    )]
+    TypesMismatchNotEquals(String, String),
+    #[fail(
         display = "'>=' operator operand types mismatch: '{}' and '{}'",
         _0, _1
     )]

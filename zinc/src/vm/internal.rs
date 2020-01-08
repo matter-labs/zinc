@@ -1,6 +1,6 @@
 use crate::primitive::{Primitive, PrimitiveOperations};
+use crate::vm::{Block, Branch, Cell, FunctionFrame, Loop, VirtualMachine};
 use crate::RuntimeError;
-use crate::vm::{VirtualMachine, Branch, Block, Loop, FunctionFrame, Cell};
 
 /// This is an internal interface to virtual machine used by instructions.
 pub trait InternalVM<P: Primitive> {
@@ -26,9 +26,9 @@ pub trait InternalVM<P: Primitive> {
 }
 
 impl<P, O> InternalVM<P> for VirtualMachine<P, O>
-    where
-        P: Primitive,
-        O: PrimitiveOperations<P>,
+where
+    P: Primitive,
+    O: PrimitiveOperations<P>,
 {
     fn push(&mut self, cell: Cell<P>) -> Result<(), RuntimeError> {
         self.state.evaluation_stack.push(cell)
@@ -61,7 +61,9 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
     }
 
     fn loop_begin(&mut self, iterations: usize) -> Result<(), RuntimeError> {
-        let frame = self.state.frames_stack
+        let frame = self
+            .state
+            .frames_stack
             .last_mut()
             .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
 
@@ -84,19 +86,16 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
                     frame.blocks.push(Block::Loop(loop_block));
                 }
                 Ok(())
-            },
-            _ => {
-                Err(RuntimeError::UnexpectedLoopEnd)
             }
+            _ => Err(RuntimeError::UnexpectedLoopEnd),
         }
     }
 
     fn call(&mut self, address: usize, inputs_count: usize) -> Result<(), RuntimeError> {
         let offset = self.top_frame()?.stack_frame_end;
-        self.state.frames_stack.push(FunctionFrame::new(
-            offset,
-            self.state.instruction_counter,
-        ));
+        self.state
+            .frames_stack
+            .push(FunctionFrame::new(offset, self.state.instruction_counter));
 
         for i in 0..inputs_count {
             let arg = self.pop()?;
@@ -114,7 +113,11 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
             outputs.push(output);
         }
 
-        let frame = self.state.frames_stack.pop().ok_or(RuntimeError::StackUnderflow)?;
+        let frame = self
+            .state
+            .frames_stack
+            .pop()
+            .ok_or(RuntimeError::StackUnderflow)?;
 
         self.state.instruction_counter = frame.return_address;
 
@@ -133,7 +136,10 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
         let next = self.ops.and(condition.clone(), prev)?;
         self.state.conditions_stack.push(next);
 
-        let branch = Branch { condition, is_full: false };
+        let branch = Branch {
+            condition,
+            is_full: false,
+        };
 
         self.top_frame()?.blocks.push(Block::Branch(branch));
 
@@ -144,7 +150,10 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
     }
 
     fn branch_else(&mut self) -> Result<(), RuntimeError> {
-        let frame = self.state.frames_stack.last_mut()
+        let frame = self
+            .state
+            .frames_stack
+            .last_mut()
             .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
 
         let mut branch = match frame.blocks.pop() {
@@ -177,7 +186,10 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
     fn branch_end(&mut self) -> Result<(), RuntimeError> {
         self.condition_pop()?;
 
-        let frame = self.state.frames_stack.last_mut()
+        let frame = self
+            .state
+            .frames_stack
+            .last_mut()
             .ok_or_else(|| RuntimeError::InternalError("Root frame is missing".into()))?;
 
         let branch = match frame.blocks.pop() {
@@ -186,12 +198,16 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
         }?;
 
         if branch.is_full {
-            self.state.evaluation_stack.merge(branch.condition.clone(), &mut self.ops)?;
+            self.state
+                .evaluation_stack
+                .merge(branch.condition.clone(), &mut self.ops)?;
         } else {
             self.state.evaluation_stack.revert()?;
         }
 
-        self.state.data_stack.merge(branch.condition, &mut self.ops)?;
+        self.state
+            .data_stack
+            .merge(branch.condition, &mut self.ops)?;
 
         Ok(())
     }

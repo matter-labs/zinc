@@ -50,6 +50,6 @@ pub trait PrimitiveOperations<P: Primitive> {
     fn array_get(&mut self, array: &[P], index: P) -> Result<P, RuntimeError>;
     fn array_set(&mut self, array: &[P], index: P, value: P) -> Result<Vec<P>, RuntimeError>;
 
-//    fn merkle_get(&mut self, tree: &MerkleTree, index: P) -> Result<Vec<P>, RuntimeError>;
-//    fn merkle_set(&mut self, tree: &mut MerkleTree, index: P, value: &[P]) -> Result<P, RuntimeError>;
+    //    fn merkle_get(&mut self, tree: &MerkleTree, index: P) -> Result<Vec<P>, RuntimeError>;
+    //    fn merkle_set(&mut self, tree: &mut MerkleTree, index: P, value: &[P]) -> Result<P, RuntimeError>;
 }

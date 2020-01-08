@@ -14,9 +14,9 @@ use crate::semantic::Element;
 use crate::semantic::Error;
 use crate::semantic::ExpressionAnalyzer;
 use crate::semantic::IntegerConstant;
-use crate::semantic::ResolutionHint;
 use crate::semantic::Scope;
 use crate::semantic::ScopeItem;
+use crate::semantic::TranslationHint;
 use crate::syntax::Identifier;
 use crate::syntax::TypeVariant;
 use crate::syntax::Variant;
@@ -32,6 +32,7 @@ pub enum Type {
         bitlength: usize,
     },
     Field,
+    String,
     Array {
         r#type: Box<Self>,
         size: usize,
@@ -54,7 +55,9 @@ pub enum Type {
         arguments: Vec<(String, Self)>,
         return_type: Box<Self>,
     },
-    String,
+    Reference {
+        inner: Box<Self>,
+    },
 }
 
 impl Type {
@@ -96,6 +99,10 @@ impl Type {
 
     pub fn new_field() -> Self {
         Self::Field
+    }
+
+    pub fn new_string() -> Self {
+        Self::String
     }
 
     pub fn new_array(r#type: Self, size: usize) -> Self {
@@ -180,8 +187,10 @@ impl Type {
         }
     }
 
-    pub fn new_string() -> Self {
-        Self::String
+    pub fn new_reference(inner: Self) -> Self {
+        Self::Reference {
+            inner: Box::new(inner),
+        }
     }
 
     pub fn size(&self) -> usize {
@@ -191,6 +200,7 @@ impl Type {
             Self::IntegerUnsigned { .. } => 1,
             Self::IntegerSigned { .. } => 1,
             Self::Field => 1,
+            Self::String { .. } => 0,
             Self::Array { r#type, size } => r#type.size() * size,
             Self::Tuple { types } => types.iter().map(|r#type| r#type.size()).sum(),
             Self::Structure { fields, .. } => {
@@ -198,41 +208,43 @@ impl Type {
             }
             Self::Enumeration { .. } => 1,
             Self::Function { .. } => 0,
-            Self::String { .. } => 0,
+            Self::Reference { .. } => 1,
         }
     }
 
     pub fn from_type_variant(
-        type_variant: TypeVariant,
+        type_variant: &TypeVariant,
         scope: Rc<RefCell<Scope>>,
     ) -> Result<Self, Error> {
         Ok(match type_variant {
-            TypeVariant::Unit => Type::Unit,
-            TypeVariant::Boolean => Type::Boolean,
-            TypeVariant::IntegerUnsigned { bitlength } => Type::IntegerUnsigned { bitlength },
-            TypeVariant::IntegerSigned { bitlength } => Type::IntegerSigned { bitlength },
-            TypeVariant::Field => Type::Field,
-            TypeVariant::Array { type_variant, size } => Type::Array {
-                r#type: Self::from_type_variant(*type_variant, scope).map(Box::new)?,
-                size: {
+            TypeVariant::Unit => Self::new_unit(),
+            TypeVariant::Boolean => Self::new_boolean(),
+            TypeVariant::IntegerUnsigned { bitlength } => Self::new_integer_unsigned(*bitlength),
+            TypeVariant::IntegerSigned { bitlength } => Self::new_integer_signed(*bitlength),
+            TypeVariant::Field => Self::new_field(),
+            TypeVariant::Array { type_variant, size } => {
+                Self::new_array(Self::from_type_variant(&*type_variant, scope)?, {
                     let location = size.location;
-                    IntegerConstant::try_from(&size)
+                    IntegerConstant::try_from(size)
                         .map_err(|error| Error::InferenceConstant(location, error))?
                         .to_usize()
                         .map_err(|error| Error::InferenceConstant(location, error))?
-                },
-            },
+                })
+            }
             TypeVariant::Tuple { type_variants } => {
                 let mut types = Vec::with_capacity(type_variants.len());
-                for type_variant in type_variants.into_iter() {
+                for type_variant in type_variants.iter() {
                     types.push(Self::from_type_variant(type_variant, scope.clone())?);
                 }
-                Type::Tuple { types }
+                Self::new_tuple(types)
+            }
+            TypeVariant::Reference { inner } => {
+                Self::new_reference(Self::from_type_variant(&*inner, scope)?)
             }
             TypeVariant::Alias { path } => {
                 let location = path.location;
                 match ExpressionAnalyzer::new_without_bytecode(scope)
-                    .expression(path, ResolutionHint::TypeExpression)?
+                    .expression(path.to_owned(), TranslationHint::TypeExpression)?
                 {
                     Element::Type(r#type) => r#type,
                     element => {
@@ -248,15 +260,18 @@ impl Type {
 
     pub fn from_element(element: &Element, scope: Rc<RefCell<Scope>>) -> Result<Self, Error> {
         Ok(match element {
-            Element::Place(place) => match Scope::resolve_place(scope, &place)? {
+            Element::Value(value) => value.r#type(),
+            Element::Constant(constant) => constant.r#type(),
+            Element::Type(r#type) => r#type.to_owned(),
+
+            Element::Path(path) => match Scope::resolve_path(scope, &path)? {
                 ScopeItem::Variable(variable) => variable.r#type,
                 ScopeItem::Constant(constant) => constant.r#type(),
                 ScopeItem::Static(r#static) => r#static.data.r#type(),
                 _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
             },
-            Element::Value(value) => value.r#type(),
-            Element::Constant(constant) => constant.r#type(),
-            Element::Type(r#type) => r#type.to_owned(),
+            Element::Place(place) => place.r#type.to_owned(),
+
             _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
         })
     }
@@ -274,6 +289,7 @@ impl PartialEq<Type> for Type {
                 b1 == b2
             }
             (Self::Field, Self::Field) => true,
+            (Self::String, Self::String) => true,
             (
                 Self::Array {
                     r#type: type_1,
@@ -315,7 +331,9 @@ impl PartialEq<Type> for Type {
                     ..
                 },
             ) => identifier_1 == identifier_2,
-            (Self::String, Self::String) => true,
+            (Self::Reference { inner: inner_1 }, Self::Reference { inner: inner_2 }) => {
+                inner_1 == inner_2
+            }
             _ => false,
         }
     }
@@ -329,6 +347,7 @@ impl fmt::Display for Type {
             Self::IntegerUnsigned { bitlength } => write!(f, "u{}", bitlength),
             Self::IntegerSigned { bitlength } => write!(f, "i{}", bitlength),
             Self::Field => write!(f, "field"),
+            Self::String => write!(f, "&str"),
             Self::Array { r#type, size } => write!(f, "[{}; {}]", r#type, size),
             Self::Tuple { types } => write!(
                 f,
@@ -367,7 +386,7 @@ impl fmt::Display for Type {
                     .join(", "),
                 return_type,
             ),
-            Self::String => write!(f, "&str"),
+            Self::Reference { inner } => write!(f, "&{}", inner),
         }
     }
 }

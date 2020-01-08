@@ -1,7 +1,7 @@
 extern crate franklin_crypto;
 
 use crate::primitive::{Primitive, PrimitiveOperations};
-use crate::vm::{VMInstruction, InternalVM, RuntimeError, VirtualMachine};
+use crate::vm::{InternalVM, RuntimeError, VMInstruction, VirtualMachine};
 use zinc_bytecode::{LoopBegin, LoopEnd};
 
 impl<E, O> VMInstruction<E, O> for LoopBegin
@@ -28,7 +28,7 @@ where
 mod test {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-    use zinc_bytecode::{Add, PushConst, Load, Store};
+    use zinc_bytecode::{Add, Load, PushConst, Store};
 
     #[test]
     fn test_loop() -> Result<(), TestingError> {
@@ -39,18 +39,16 @@ mod test {
             .add(Store::new(0))
             .add(PushConst { value: 0.into() })
             .add(Store::new(1))
-
             .add(LoopBegin::new(10))
-                .add(Load::new(0))
-                .add(PushConst { value: 1.into() })
-                .add(Add)
-                .add(Store::new(0))
-                .add(Load::new(0))
-                .add(Load::new(1))
-                .add(Add)
-                .add(Store::new(1))
+            .add(Load::new(0))
+            .add(PushConst { value: 1.into() })
+            .add(Add)
+            .add(Store::new(0))
+            .add(Load::new(0))
+            .add(Load::new(1))
+            .add(Add)
+            .add(Store::new(1))
             .add(LoopEnd)
-
             .add(Load::new(0))
             .add(Load::new(1))
             .test(&[55, 10])

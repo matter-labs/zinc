@@ -339,14 +339,12 @@ impl Constant {
         }
         Ok(Some((is_signed, bitlength)))
     }
-}
 
-impl Into<Instruction> for Constant {
-    fn into(self) -> Instruction {
+    pub fn to_instruction(&self) -> Instruction {
         match self {
-            Self::Unit => Instruction::NoOperation(zinc_bytecode::NoOperation),
+            Self::Unit => unimplemented!(),
             Self::Boolean(boolean) => Instruction::PushConst(zinc_bytecode::PushConst::new(
-                if boolean {
+                if *boolean {
                     BigInt::one()
                 } else {
                     BigInt::zero()
@@ -354,8 +352,8 @@ impl Into<Instruction> for Constant {
                 false,
                 crate::BITLENGTH_BOOLEAN,
             )),
-            Self::Integer(integer) => integer.into(),
-            Self::String(_) => Instruction::NoOperation(zinc_bytecode::NoOperation),
+            Self::Integer(integer) => integer.to_instruction(),
+            Self::String(_) => unimplemented!(),
         }
     }
 }

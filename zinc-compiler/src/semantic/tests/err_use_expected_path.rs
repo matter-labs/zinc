@@ -5,26 +5,20 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
-
 use crate::semantic::Error as SemanticError;
-use crate::semantic::ScopeItem;
-use crate::semantic::Type;
-
 use crate::Error;
 
 #[test]
 fn test() {
     let input = r#"
-type INVALID = field;
+use 5;
 
-fn main() {
-    INVALID = 25;
-}
+fn main() {}
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::AssignmentToInvalidItem(
-        Location::new(5, 5),
-        ScopeItem::Type(Type::Field).to_string(),
+    let expected = Err(Error::Semantic(SemanticError::UseExpectedPath(
+        Location::new(2, 5),
+        "5: u8".to_owned(),
     )));
 
     let result = super::get_binary_result(input);

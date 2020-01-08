@@ -1,13 +1,13 @@
-mod state;
 mod internal;
+mod state;
 
-pub use state::*;
 pub use internal::*;
+pub use state::*;
 
 use crate::primitive::{Primitive, PrimitiveOperations};
+use franklin_crypto::bellman::SynthesisError;
 use num_bigint::BigInt;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
-use franklin_crypto::bellman::SynthesisError;
 
 pub trait VMInstruction<E, O>: InstructionInfo
 where
@@ -75,10 +75,8 @@ impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
         match instructions.first() {
             Some(Instruction::Call(call)) => {
                 self.init_root_frame(call.inputs_count, inputs)?;
-            },
-            _ => {
-                unimplemented!("Call instruction must be the first one!")
             }
+            _ => unimplemented!("Call instruction must be the first one!"),
         }
 
         while self.state.instruction_counter < instructions.len() {
@@ -95,10 +93,14 @@ impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
         self.get_outputs()
     }
 
-    fn init_root_frame(&mut self, inputs_count: usize, inputs: Option<&[BigInt]>) -> Result<(), RuntimeError> {
-        self.state.frames_stack.push(
-            FunctionFrame::new(0, std::usize::MAX)
-        );
+    fn init_root_frame(
+        &mut self,
+        inputs_count: usize,
+        inputs: Option<&[BigInt]>,
+    ) -> Result<(), RuntimeError> {
+        self.state
+            .frames_stack
+            .push(FunctionFrame::new(0, std::usize::MAX));
 
         match inputs {
             None => {
@@ -106,13 +108,13 @@ impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
                     let variable = self.ops.variable_none()?;
                     self.push(Cell::Value(variable))?;
                 }
-            },
+            }
             Some(values) => {
                 for value in values.iter() {
                     let variable = self.ops.variable_bigint(value)?;
                     self.push(Cell::Value(variable))?;
                 }
-            },
+            }
         }
 
         Ok(())
@@ -143,17 +145,24 @@ impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
     }
 
     pub fn condition_pop(&mut self) -> Result<P, RuntimeError> {
-        self.state.conditions_stack.pop().ok_or(RuntimeError::StackUnderflow)
+        self.state
+            .conditions_stack
+            .pop()
+            .ok_or(RuntimeError::StackUnderflow)
     }
 
     pub fn condition_top(&mut self) -> Result<P, RuntimeError> {
-        self.state.conditions_stack
+        self.state
+            .conditions_stack
             .last()
             .map(|e| (*e).clone())
             .ok_or(RuntimeError::StackUnderflow)
     }
 
     fn top_frame(&mut self) -> Result<&mut FunctionFrame<P>, RuntimeError> {
-        self.state.frames_stack.last_mut().ok_or(RuntimeError::StackUnderflow)
+        self.state
+            .frames_stack
+            .last_mut()
+            .ok_or(RuntimeError::StackUnderflow)
     }
 }
