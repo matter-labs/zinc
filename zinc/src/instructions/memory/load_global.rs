@@ -9,6 +9,7 @@ impl<E, O> VMInstruction<E, O> for LoadGlobal
         O: PrimitiveOperations<E>,
 {
     fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        unimplemented!()
+        let value = vm.load_global(self.address)?;
+        vm.push(value)
     }
 }

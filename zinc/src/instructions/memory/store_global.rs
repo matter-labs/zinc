@@ -9,6 +9,7 @@ impl<E, O> VMInstruction<E, O> for StoreGlobal
         O: PrimitiveOperations<E>,
 {
     fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        unimplemented!()
+        let value = vm.pop()?;
+        vm.store_global(self.index, value)
     }
 }

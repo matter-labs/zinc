@@ -8,7 +8,9 @@ pub trait InternalVM<P: Primitive> {
     fn pop(&mut self) -> Result<Cell<P>, RuntimeError>;
 
     fn load(&mut self, address: usize) -> Result<Cell<P>, RuntimeError>;
+    fn load_global(&mut self, address: usize) -> Result<Cell<P>, RuntimeError>;
     fn store(&mut self, address: usize, cell: Cell<P>) -> Result<(), RuntimeError>;
+    fn store_global(&mut self, address: usize, cell: Cell<P>) -> Result<(), RuntimeError>;
 
     fn loop_begin(&mut self, iter_count: usize) -> Result<(), RuntimeError>;
     fn loop_end(&mut self) -> Result<(), RuntimeError>;
@@ -41,6 +43,10 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
         self.state.data_stack.get(offset + address)
     }
 
+    fn load_global(&mut self, address: usize) -> Result<Cell<P>, RuntimeError> {
+        self.state.data_stack.get(address)
+    }
+
     fn store(&mut self, address: usize, cell: Cell<P>) -> Result<(), RuntimeError> {
         {
             let frame = self.top_frame()?;
@@ -48,6 +54,10 @@ impl<P, O> InternalVM<P> for VirtualMachine<P, O>
         }
         let offset = self.top_frame()?.stack_frame_begin;
         self.state.data_stack.set(offset + address, cell)
+    }
+
+    fn store_global(&mut self, address: usize, cell: Cell<P>) -> Result<(), RuntimeError> {
+        self.state.data_stack.set(address, cell)
     }
 
     fn loop_begin(&mut self, iterations: usize) -> Result<(), RuntimeError> {

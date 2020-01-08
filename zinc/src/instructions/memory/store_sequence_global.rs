@@ -11,7 +11,7 @@ impl<E, O> VMInstruction<E, O> for StoreSequenceGlobal
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         for i in 0..self.len {
             let value = vm.pop()?;
-            vm.store(self.address + i, value)?;
+            vm.store_global(self.address + i, value)?;
         }
 
         Ok(())
