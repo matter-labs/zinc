@@ -39,6 +39,7 @@ pub use self::pattern_match::Parser as MatchPatternParser;
 pub use self::r#type::Parser as TypeParser;
 pub use self::statement::ConstParser as ConstStatementParser;
 pub use self::statement::EnumParser as EnumStatementParser;
+pub use self::statement::ExternFnParser as ExternFnStatementParser;
 pub use self::statement::FnParser as FnStatementParser;
 pub use self::statement::FunctionLocalStatementParser;
 pub use self::statement::ImplParser as ImplStatementParser;

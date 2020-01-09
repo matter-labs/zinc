@@ -4,10 +4,12 @@
 
 #[derive(Debug)]
 pub enum TranslationHint {
-    ValueExpression,
-    TypeExpression,
-
-    PathExpression,
+    // runtime
     PlaceExpression,
+    ValueExpression,
+
+    // compile time
+    TypeExpression,
+    PathExpression,
     CompoundTypeMember,
 }

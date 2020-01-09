@@ -9,8 +9,6 @@ where
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let index = vm.pop()?.value()?;
-
         let mut array = Vec::with_capacity(self.array_len);
         for i in 0..self.array_len {
             let value = vm.load(self.address + i)?.value()?;
@@ -23,6 +21,8 @@ where
             values.push(value);
         }
         values.reverse();
+
+        let index = vm.pop()?.value()?;
 
         for (i, value) in values.into_iter().enumerate() {
             let offset = vm.operations().constant_bigint(&i.into())?;

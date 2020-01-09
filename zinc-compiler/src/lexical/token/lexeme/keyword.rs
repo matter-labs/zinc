@@ -23,6 +23,7 @@ pub enum Keyword {
     Mod,
     Use,
     Impl,
+    Extern,
 
     // controls
     For,
@@ -86,6 +87,7 @@ impl TryFrom<&str> for Keyword {
             "mod" => return Ok(Self::Mod),
             "use" => return Ok(Self::Use),
             "impl" => return Ok(Self::Impl),
+            "extern" => return Ok(Self::Extern),
 
             "for" => return Ok(Self::For),
             "in" => return Ok(Self::In),
@@ -178,6 +180,7 @@ impl fmt::Display for Keyword {
             Self::Mod => write!(f, "mod"),
             Self::Use => write!(f, "use"),
             Self::Impl => write!(f, "impl"),
+            Self::Extern => write!(f, "extern"),
 
             Self::For => write!(f, "for"),
             Self::In => write!(f, "in"),
