@@ -4,6 +4,7 @@
 
 mod r#const;
 mod r#enum;
+mod extern_fn;
 mod r#fn;
 mod r#impl;
 mod r#let;
@@ -17,6 +18,7 @@ mod r#struct;
 mod r#type;
 mod r#use;
 
+pub use self::extern_fn::Parser as ExternFnParser;
 pub use self::local_function::Parser as FunctionLocalStatementParser;
 pub use self::local_implementation::Parser as ImplementationLocalStatementParser;
 pub use self::local_module::Parser as ModuleLocalStatementParser;

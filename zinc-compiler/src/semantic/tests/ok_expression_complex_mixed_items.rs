@@ -38,13 +38,13 @@ fn main() -> field {
         Instruction::PushConst(PushConst::new(
             BigInt::from(5),
             false,
-            crate::BITLENGTH_FIELD,
+            crate::BITLENGTH_BYTE,
         )),
         Instruction::StoreGlobal(StoreGlobal::new(0)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(69),
             false,
-            crate::BITLENGTH_FIELD,
+            crate::BITLENGTH_BYTE,
         )),
         Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
         Instruction::Store(Store::new(0)),
