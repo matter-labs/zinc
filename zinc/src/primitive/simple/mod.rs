@@ -54,6 +54,10 @@ impl PrimitiveOperations<SimplePrimitive> for SimplePrimitiveOperations {
         Ok(element)
     }
 
+    fn type_check(&mut self, _element: &SimplePrimitive) -> Result<(), RuntimeError> {
+        unimplemented!()
+    }
+
     fn add(
         &mut self,
         left: SimplePrimitive,

@@ -11,12 +11,44 @@ use num_bigint::{BigInt, ToBigInt};
 use crate::primitive::{utils, Primitive, PrimitiveOperations};
 use crate::vm::RuntimeError;
 
+#[derive(Debug, Clone)]
+struct DataType {
+    signed: bool,
+    length: usize,
+}
+
 /// ConstrainedElement is an implementation of Element
 /// that for every operation on elements generates corresponding R1CS constraints.
 #[derive(Debug, Clone)]
 pub struct FrPrimitive<E: Engine> {
     value: Option<E::Fr>,
     variable: Variable,
+    data_type: Option<DataType>,
+}
+
+impl<E: Engine> FrPrimitive<E> {
+    fn new(value: Option<E::Fr>, variable: Variable) -> Self {
+        Self {
+            value,
+            variable,
+            data_type: None
+        }
+    }
+
+    fn as_allocated_num<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<AllocatedNum<E>, RuntimeError> {
+        let num = AllocatedNum::alloc(
+            cs.namespace(|| "allucated num"),
+            || self.value.ok_or(SynthesisError::AssignmentMissing))
+            .map_err(RuntimeError::SynthesisError)?;
+
+        cs.enforce(
+            || "allocated num",
+            |lc| lc + self.variable,
+            |lc| lc + CS::one(),
+            |lc| lc + num.get_variable());
+
+        Ok(num)
+    }
 }
 
 impl<E: Engine> Display for FrPrimitive<E> {
@@ -83,17 +115,11 @@ where
             |lc| lc,
         );
 
-        Ok(FrPrimitive {
-            value: Some(value),
-            variable,
-        })
+        Ok(FrPrimitive::new(Some(value), variable))
     }
 
     fn one() -> FrPrimitive<E> {
-        FrPrimitive {
-            value: Some(E::Fr::one()),
-            variable: CS::one(),
-        }
+        FrPrimitive::new(Some(E::Fr::one()), CS::one())
     }
 
     #[allow(dead_code)]
@@ -119,11 +145,7 @@ where
 
 
         let mut cs = self.cs_namespace();
-        let num = AllocatedNum::alloc(
-            cs.namespace(|| "allucated num"),
-            || index.value.ok_or(SynthesisError::AssignmentMissing))
-            .map_err(RuntimeError::SynthesisError)?;
-
+        let num = index.as_allocated_num(cs.namespace(|| "into_allocated_num"))?;
         let bit_length = utils::tree_height(array_length);
         let bits = num.into_bits_le_fixed(
             cs.namespace(|| "bits_le_fixed"), bit_length)
@@ -131,10 +153,10 @@ where
 
         let bits = bits
             .into_iter()
-            .map(|bit| FrPrimitive {
-                value: bit.get_value_field::<E>(),
-                variable: bit.get_variable().expect("bit value expected").get_variable()
-            })
+            .map(|bit| FrPrimitive::new(
+                bit.get_value_field::<E>(),
+                bit.get_variable().expect("bit value expected").get_variable()
+            ))
             .collect();
 
         Ok(bits)
@@ -184,10 +206,7 @@ where
             )
             .map_err(RuntimeError::SynthesisError)?;
 
-        Ok(FrPrimitive {
-            value: None,
-            variable,
-        })
+        Ok(FrPrimitive::new(None, variable))
     }
 
     fn variable_bigint(&mut self, value: &BigInt) -> Result<FrPrimitive<E>, RuntimeError> {
@@ -200,10 +219,7 @@ where
             .alloc(|| "variable value", || Ok(value))
             .map_err(RuntimeError::SynthesisError)?;
 
-        Ok(FrPrimitive {
-            value: Some(value),
-            variable,
-        })
+        Ok(FrPrimitive::new(Some(value), variable))
     }
 
     fn constant_bigint(&mut self, value: &BigInt) -> Result<FrPrimitive<E>, RuntimeError> {
@@ -223,10 +239,7 @@ where
             |lc| lc + variable,
         );
 
-        Ok(FrPrimitive {
-            value: Some(value),
-            variable,
-        })
+        Ok(FrPrimitive::new(Some(value), variable))
     }
 
     fn output(&mut self, element: FrPrimitive<E>) -> Result<FrPrimitive<E>, RuntimeError> {
@@ -246,10 +259,30 @@ where
             |lc| lc + element.variable,
         );
 
-        Ok(FrPrimitive {
-            value: element.value,
-            variable,
-        })
+        Ok(FrPrimitive::new(element.value, variable))
+    }
+
+    fn type_check(&mut self, value: &FrPrimitive<E>) -> Result<(), RuntimeError> {
+        let data_type = match value.data_type {
+            Some(ref data_type) => data_type,
+            None => return Ok(())
+        };
+
+        let adjusted_value = if data_type.signed {
+            let offset_value = 1 << (data_type.length - 1);
+            let offset = self.constant_bigint(&offset_value.into())?;
+            self.add(value.clone(), offset)?
+        } else {
+            value.clone()
+        };
+
+        let mut cs = self.cs_namespace();
+        let num = adjusted_value.as_allocated_num(cs.namespace(|| "as_allocated_num"))?;
+        let _bits = num
+            .into_bits_le_fixed(cs.namespace(|| "into_bits_le_fixed"), data_type.length)
+            .map_err(RuntimeError::SynthesisError)?;
+
+        Ok(())
     }
 
     fn add(
@@ -282,10 +315,7 @@ where
             |lc| lc + sum_var,
         );
 
-        Ok(FrPrimitive {
-            value: sum,
-            variable: sum_var,
-        })
+        Ok(FrPrimitive::new(sum, sum_var))
     }
 
     fn sub(
@@ -318,10 +348,7 @@ where
             |lc| lc + sum_var,
         );
 
-        Ok(FrPrimitive {
-            value: diff,
-            variable: sum_var,
-        })
+        Ok(FrPrimitive::new(diff, sum_var))
     }
 
     fn mul(
@@ -354,10 +381,7 @@ where
             |lc| lc + sum_var,
         );
 
-        Ok(FrPrimitive {
-            value: prod,
-            variable: sum_var,
-        })
+        Ok(FrPrimitive::new(prod, sum_var))
     }
 
     fn div_rem(
@@ -405,14 +429,8 @@ where
                 |lc| lc + nominator.variable - remainder_var,
             );
 
-            let quotient = FrPrimitive {
-                value: quotient_value,
-                variable: qutioent_var,
-            };
-            let remainder = FrPrimitive {
-                value: remainder_value,
-                variable: remainder_var,
-            };
+            let quotient = FrPrimitive::new(quotient_value, qutioent_var);
+            let remainder = FrPrimitive::new(remainder_value, remainder_var);
 
             (quotient, remainder)
         };
@@ -458,10 +476,7 @@ where
             |lc| lc - neg_variable,
         );
 
-        Ok(FrPrimitive {
-            value: neg_value,
-            variable: neg_variable,
-        })
+        Ok(FrPrimitive::new(neg_value, neg_variable))
     }
 
     fn not(&mut self, element: FrPrimitive<E>) -> Result<FrPrimitive<E>, RuntimeError> {
@@ -496,7 +511,7 @@ where
             |lc| lc + variable,
         );
 
-        Ok(FrPrimitive { value, variable })
+        Ok(FrPrimitive::new(value, variable))
     }
 
     fn or(
@@ -528,7 +543,7 @@ where
             |lc| lc + CS::one() - variable,
         );
 
-        Ok(FrPrimitive { value, variable })
+        Ok(FrPrimitive::new(value, variable))
     }
 
     fn xor(
@@ -564,7 +579,7 @@ where
             |lc| lc + left.variable + right.variable - variable,
         );
 
-        Ok(FrPrimitive { value, variable })
+        Ok(FrPrimitive::new(value, variable))
     }
 
     fn lt(
@@ -611,10 +626,7 @@ where
         let lt = AllocatedNum::equals(cs.namespace(|| "equals"), &diff_num, &diff_num_repacked)
             .map_err(RuntimeError::SynthesisError)?;
 
-        Ok(FrPrimitive {
-            value: lt.get_value_field::<E>(),
-            variable: lt.get_variable(),
-        })
+        Ok(FrPrimitive::new(lt.get_value_field::<E>(), lt.get_variable()))
     }
 
     fn eq(
@@ -636,10 +648,7 @@ where
 
         let eq = AllocatedNum::equals(cs, &l_num, &r_num).map_err(RuntimeError::SynthesisError)?;
 
-        Ok(FrPrimitive {
-            value: eq.get_value_field::<E>(),
-            variable: eq.get_variable(),
-        })
+        Ok(FrPrimitive::new(eq.get_value_field::<E>(), eq.get_variable()))
     }
 
     fn ne(
@@ -705,7 +714,7 @@ where
             |lc| lc + variable - if_false.variable,
         );
 
-        Ok(FrPrimitive { value, variable })
+        Ok(FrPrimitive::new(value, variable))
     }
 
     fn assert(&mut self, element: FrPrimitive<E>) -> Result<(), RuntimeError> {
@@ -713,7 +722,7 @@ where
             .map(|fr| {
                 fr
                     .inverse()
-                    .unwrap_or(E::Fr::zero())
+                    .unwrap_or_else(E::Fr::zero)
             });
 
         let mut cs = self.cs_namespace();

@@ -18,6 +18,7 @@ pub trait PrimitiveOperations<P: Primitive> {
     fn variable_bigint(&mut self, value: &BigInt) -> Result<P, RuntimeError>;
     fn constant_bigint(&mut self, value: &BigInt) -> Result<P, RuntimeError>;
     fn output(&mut self, element: P) -> Result<P, RuntimeError>;
+    fn type_check(&mut self, element: &P) -> Result<(), RuntimeError>;
 
     fn add(&mut self, left: P, right: P) -> Result<P, RuntimeError>;
     fn sub(&mut self, left: P, right: P) -> Result<P, RuntimeError>;
