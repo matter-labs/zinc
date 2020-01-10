@@ -1,4 +1,4 @@
-use crate::primitive::{Primitive, PrimitiveOperations, DataType};
+use crate::primitive::{DataType, Primitive, PrimitiveOperations};
 use crate::vm::RuntimeError;
 use num_bigint::{BigInt, ToBigInt};
 use num_traits::ToPrimitive;
@@ -50,7 +50,11 @@ impl PrimitiveOperations<SimplePrimitive> for SimplePrimitiveOperations {
         Ok(SimplePrimitive { value })
     }
 
-    fn constant_bigint_typed(&mut self, value: &BigInt, data_type: DataType) -> Result<SimplePrimitive, RuntimeError> {
+    fn constant_bigint_typed(
+        &mut self,
+        value: &BigInt,
+        _data_type: DataType,
+    ) -> Result<SimplePrimitive, RuntimeError> {
         self.constant_bigint(value)
     }
 
@@ -58,7 +62,11 @@ impl PrimitiveOperations<SimplePrimitive> for SimplePrimitiveOperations {
         Ok(element)
     }
 
-    fn set_type(&mut self, _value: SimplePrimitive, _data_type: DataType) -> Result<SimplePrimitive, RuntimeError> {
+    fn set_type(
+        &mut self,
+        _value: SimplePrimitive,
+        _data_type: DataType,
+    ) -> Result<SimplePrimitive, RuntimeError> {
         unimplemented!()
     }
 

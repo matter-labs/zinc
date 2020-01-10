@@ -30,11 +30,15 @@ impl Parser {
                 Some(token) => token,
                 None => stream.borrow_mut().next()?,
             } {
-                token @ Token {
+                token
+                @
+                Token {
                     lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                     ..
                 } => return Ok((self.expressions, Some(token))),
-                token @ Token {
+                token
+                @
+                Token {
                     lexeme: Lexeme::Eof,
                     ..
                 } => return Ok((self.expressions, Some(token))),

@@ -8,10 +8,10 @@ use franklin_crypto::bellman::{Namespace, SynthesisError};
 use franklin_crypto::circuit::num::AllocatedNum;
 use num_bigint::{BigInt, ToBigInt};
 
-use crate::primitive::{utils, Primitive, PrimitiveOperations, DataType};
+use crate::primitive::utils::fr_to_bigint;
+use crate::primitive::{utils, DataType, Primitive, PrimitiveOperations};
 use crate::vm::RuntimeError;
 use std::mem;
-use crate::primitive::utils::fr_to_bigint;
 
 /// FrPrimitive is an implementation of Primitive
 /// that for every operation on values generates corresponding R1CS constraints.
@@ -25,19 +25,15 @@ pub struct FrPrimitive<E: Engine> {
 impl<E: Engine> Debug for FrPrimitive<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         let value_str = match self.value {
-            Some(ref value) => {
-                fr_to_bigint::<E>(value).to_string()
-            },
+            Some(ref value) => fr_to_bigint::<E>(value).to_string(),
             None => "none".into(),
         };
         let type_str = match self.data_type {
-            Some(data_type) => {
-                format!(
-                    "as {}{}",
-                    if data_type.signed { "i" } else { "u" },
-                    data_type.length,
-                )
-            },
+            Some(data_type) => format!(
+                "as {}{}",
+                if data_type.signed { "i" } else { "u" },
+                data_type.length,
+            ),
             None => "(untyped)".into(),
         };
 
@@ -50,7 +46,7 @@ impl<E: Engine> FrPrimitive<E> {
         Self {
             value,
             variable,
-            data_type: None
+            data_type: None,
         }
     }
 
@@ -62,17 +58,21 @@ impl<E: Engine> FrPrimitive<E> {
         }
     }
 
-    fn as_allocated_num<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<AllocatedNum<E>, RuntimeError> {
-        let num = AllocatedNum::alloc(
-            cs.namespace(|| "allucated num"),
-            || self.value.ok_or(SynthesisError::AssignmentMissing))
-            .map_err(RuntimeError::SynthesisError)?;
+    fn as_allocated_num<CS: ConstraintSystem<E>>(
+        &self,
+        mut cs: CS,
+    ) -> Result<AllocatedNum<E>, RuntimeError> {
+        let num = AllocatedNum::alloc(cs.namespace(|| "allucated num"), || {
+            self.value.ok_or(SynthesisError::AssignmentMissing)
+        })
+        .map_err(RuntimeError::SynthesisError)?;
 
         cs.enforce(
             || "allocated num",
             |lc| lc + self.variable,
             |lc| lc + CS::one(),
-            |lc| lc + num.get_variable());
+            |lc| lc + num.get_variable(),
+        );
 
         Ok(num)
     }
@@ -128,23 +128,6 @@ where
         self.cs.namespace(|| s)
     }
 
-    fn zero(&mut self) -> Result<FrPrimitive<E>, RuntimeError> {
-        let value = E::Fr::zero();
-        let mut cs = self.cs_namespace();
-        let variable = cs
-            .alloc(|| "zero_var", || Ok(value))
-            .map_err(RuntimeError::SynthesisError)?;
-
-        cs.enforce(
-            || "zero constraint",
-            |lc| lc + variable,
-            |lc| lc + CS::one(),
-            |lc| lc,
-        );
-
-        Ok(FrPrimitive::new(Some(value), variable))
-    }
-
     fn zero_typed(&mut self, data_type: Option<DataType>) -> Result<FrPrimitive<E>, RuntimeError> {
         let value = E::Fr::zero();
         let mut cs = self.cs_namespace();
@@ -173,11 +156,7 @@ where
     fn one_typed(&mut self, data_type: Option<DataType>) -> Result<FrPrimitive<E>, RuntimeError> {
         match data_type {
             None => Ok(Self::one()),
-            Some(data_type) => self.value_with_type_check(
-                Some(E::Fr::one()),
-                CS::one(),
-                data_type,
-            ),
+            Some(data_type) => self.value_with_type_check(Some(E::Fr::one()), CS::one(), data_type),
         }
     }
 
@@ -202,20 +181,23 @@ where
         let index_lt_length = self.lt(index.clone(), length)?;
         self.assert(index_lt_length)?;
 
-
         let mut cs = self.cs_namespace();
         let num = index.as_allocated_num(cs.namespace(|| "into_allocated_num"))?;
         let bit_length = utils::tree_height(array_length);
-        let bits = num.into_bits_le_fixed(
-            cs.namespace(|| "bits_le_fixed"), bit_length)
+        let bits = num
+            .into_bits_le_fixed(cs.namespace(|| "bits_le_fixed"), bit_length)
             .map_err(RuntimeError::SynthesisError)?;
 
         let bits = bits
             .into_iter()
-            .map(|bit| FrPrimitive::new(
-                bit.get_value_field::<E>(),
-                bit.get_variable().expect("bit value expected").get_variable()
-            ))
+            .map(|bit| {
+                FrPrimitive::new(
+                    bit.get_value_field::<E>(),
+                    bit.get_variable()
+                        .expect("bit value expected")
+                        .get_variable(),
+                )
+            })
             .collect();
 
         Ok(bits)
@@ -254,17 +236,16 @@ where
         &mut self,
         value: Option<E::Fr>,
         variable: Variable,
-        data_type: DataType)
-        -> Result<FrPrimitive<E>, RuntimeError>
-    {
+        data_type: DataType,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let untyped = FrPrimitive::new(value, variable);
 
         let adjusted = if data_type.signed {
             let offset_value = BigInt::from(1) << (data_type.length - 1);
             let offset = self.constant_bigint(&offset_value)?;
-            self.add(untyped.clone(), offset)?
+            self.add(untyped, offset)?
         } else {
-            untyped.clone()
+            untyped
         };
 
         let mut cs = self.cs_namespace();
@@ -281,9 +262,8 @@ where
         &mut self,
         value: Option<E::Fr>,
         variable: Variable,
-        operands: &[FrPrimitive<E>])
-        -> Result<FrPrimitive<E>, RuntimeError>
-    {
+        operands: &[FrPrimitive<E>],
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         assert!(!operands.is_empty());
         let data_type = operands.first().unwrap().data_type;
 
@@ -295,10 +275,9 @@ where
 
         match data_type {
             Some(data_type) => self.value_with_type_check(value, variable, data_type),
-            None => Ok(FrPrimitive::new(value, variable))
+            None => Ok(FrPrimitive::new(value, variable)),
         }
     }
-
 }
 
 impl<E, CS> PrimitiveOperations<FrPrimitive<E>> for ConstrainingFrOperations<E, CS>
@@ -352,7 +331,11 @@ where
         Ok(FrPrimitive::new(Some(value), variable))
     }
 
-    fn constant_bigint_typed(&mut self, value: &BigInt, data_type: DataType) -> Result<FrPrimitive<E>, RuntimeError> {
+    fn constant_bigint_typed(
+        &mut self,
+        value: &BigInt,
+        data_type: DataType,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         let p = self.constant_bigint(value)?;
         self.value_with_type_check(p.value, p.variable, data_type)
     }
@@ -377,7 +360,11 @@ where
         Ok(FrPrimitive::new(element.value, variable))
     }
 
-    fn set_type(&mut self, value: FrPrimitive<E>, data_type: DataType) -> Result<FrPrimitive<E>, RuntimeError> {
+    fn set_type(
+        &mut self,
+        value: FrPrimitive<E>,
+        data_type: DataType,
+    ) -> Result<FrPrimitive<E>, RuntimeError> {
         self.value_with_type_check(value.value, value.variable, data_type)
     }
 
@@ -530,8 +517,10 @@ where
 
             mem::drop(cs);
             let args = &[left, right];
-            let quotient = self.value_with_arguments_type_check(quotient_value, qutioent_var, args)?;
-            let remainder = self.value_with_arguments_type_check(remainder_value, remainder_var, args)?;
+            let quotient =
+                self.value_with_arguments_type_check(quotient_value, qutioent_var, args)?;
+            let remainder =
+                self.value_with_arguments_type_check(remainder_value, remainder_var, args)?;
 
             (quotient, remainder)
         };
@@ -709,7 +698,7 @@ where
         left: FrPrimitive<E>,
         right: FrPrimitive<E>,
     ) -> Result<FrPrimitive<E>, RuntimeError> {
-        let diff = self.sub(right.clone(), left.clone())?;
+        let diff = self.sub(right, left)?;
 
         let mut cs = self.cs_namespace();
 
@@ -768,7 +757,7 @@ where
         self.value_with_type_check(
             eq.get_value_field::<E>(),
             eq.get_variable(),
-            DataType::BOOLEAN
+            DataType::BOOLEAN,
         )
     }
 
@@ -840,16 +829,16 @@ where
     }
 
     fn assert(&mut self, element: FrPrimitive<E>) -> Result<(), RuntimeError> {
-        let inverse_value = element.value
-            .map(|fr| {
-                fr
-                    .inverse()
-                    .unwrap_or_else(E::Fr::zero)
-            });
+        let inverse_value = element
+            .value
+            .map(|fr| fr.inverse().unwrap_or_else(E::Fr::zero));
 
         let mut cs = self.cs_namespace();
         let inverse_variable = cs
-            .alloc(|| "inverse", || inverse_value.ok_or(SynthesisError::AssignmentMissing))
+            .alloc(
+                || "inverse",
+                || inverse_value.ok_or(SynthesisError::AssignmentMissing),
+            )
             .map_err(RuntimeError::SynthesisError)?;
 
         cs.enforce(

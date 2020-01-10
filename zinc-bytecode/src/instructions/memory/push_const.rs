@@ -14,13 +14,17 @@ impl PushConst {
         Self {
             value,
             is_signed,
-            bit_length
+            bit_length,
         }
     }
 
     pub fn new_untyped(value: BigInt) -> Self {
         // TODO: Remove this constructor, it is for testing only.
-        Self { value, is_signed: true, bit_length: 254 }
+        Self {
+            value,
+            is_signed: true,
+            bit_length: 254,
+        }
     }
 }
 
@@ -50,7 +54,11 @@ impl InstructionInfo for PushConst {
     fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         let (mut args, len) = utils::decode_with_bigint_args(Self::code(), bytes, 3)?;
 
-        let bit_length = args.pop().unwrap().to_usize().ok_or(DecodingError::ConstantTooLong)?;
+        let bit_length = args
+            .pop()
+            .unwrap()
+            .to_usize()
+            .ok_or(DecodingError::ConstantTooLong)?;
         let is_signed = match args.pop().unwrap().to_u8() {
             Some(b) if b == 0 => Ok(false),
             Some(b) if b == 1 => Ok(true),

@@ -1,5 +1,5 @@
 use crate::primitive::{Primitive, PrimitiveOperations};
-use crate::vm::{VMInstruction, InternalVM};
+use crate::vm::{InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
 use zinc_bytecode::LoadSequenceGlobal;
 

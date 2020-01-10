@@ -30,7 +30,9 @@ impl Parser {
                 Some(token) => token,
                 None => stream.borrow_mut().next()?,
             } {
-                token @ Token {
+                token
+                @
+                Token {
                     lexeme: Lexeme::Identifier(_),
                     ..
                 } => {

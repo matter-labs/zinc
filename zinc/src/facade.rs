@@ -39,13 +39,17 @@ pub fn exec<E: Engine>(
     let cs = vm.operations().constraint_system();
     if !cs.is_satisfied() {
         log::error!("Unsatisfied: {:?}", cs.which_is_unsatisfied());
-        return Err(RuntimeError::InternalError("Generated unsatisfied constraint system".into()));
+        return Err(RuntimeError::InternalError(
+            "Generated unsatisfied constraint system".into(),
+        ));
     }
 
     let unconstrained = cs.find_unconstrained();
     if !unconstrained.is_empty() {
         log::error!("Unconstrained: {}", unconstrained);
-        return Err(RuntimeError::InternalError("Generated unconstrained variables".into()));
+        return Err(RuntimeError::InternalError(
+            "Generated unconstrained variables".into(),
+        ));
     }
 
     Ok(result)

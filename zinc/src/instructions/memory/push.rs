@@ -1,4 +1,4 @@
-use crate::primitive::{Primitive, PrimitiveOperations, DataType};
+use crate::primitive::{DataType, Primitive, PrimitiveOperations};
 use crate::vm::{Cell, InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
 use zinc_bytecode::instructions::PushConst;
@@ -10,7 +10,10 @@ where
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let op = vm.operations();
-        let data_type = DataType { signed: self.is_signed, length: self.bit_length };
+        let data_type = DataType {
+            signed: self.is_signed,
+            length: self.bit_length,
+        };
         let value = op.constant_bigint_typed(&self.value, data_type)?;
         vm.push(Cell::Value(value))
     }

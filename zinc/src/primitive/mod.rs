@@ -16,7 +16,10 @@ pub struct DataType {
 }
 
 impl DataType {
-    pub const BOOLEAN: Self = DataType { signed: false, length: 1 };
+    pub const BOOLEAN: Self = DataType {
+        signed: false,
+        length: 1,
+    };
 }
 
 /// Primitive is a primitive value that can be stored on the stack and operated by VM's instructions.
@@ -27,7 +30,11 @@ pub trait PrimitiveOperations<P: Primitive> {
     fn variable_none(&mut self) -> Result<P, RuntimeError>;
     fn variable_bigint(&mut self, value: &BigInt) -> Result<P, RuntimeError>;
     fn constant_bigint(&mut self, value: &BigInt) -> Result<P, RuntimeError>;
-    fn constant_bigint_typed(&mut self, value: &BigInt, data_type: DataType) -> Result<P, RuntimeError>;
+    fn constant_bigint_typed(
+        &mut self,
+        value: &BigInt,
+        data_type: DataType,
+    ) -> Result<P, RuntimeError>;
     fn output(&mut self, element: P) -> Result<P, RuntimeError>;
     fn set_type(&mut self, value: P, data_type: DataType) -> Result<P, RuntimeError>;
 

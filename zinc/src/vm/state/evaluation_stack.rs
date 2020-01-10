@@ -58,8 +58,7 @@ impl<P: Primitive> EvaluationStack<P> {
                 (Cell::Value(tv), Cell::Value(ev)) => {
                     let merged = ops.conditional_select(condition.clone(), tv, ev)?;
                     self.push(Cell::Value(merged))?;
-                }
-                _ => return Err(RuntimeError::MergingNonValueTypes),
+                } //                _ => return Err(RuntimeError::MergingNonValueTypes),
             }
         }
 
