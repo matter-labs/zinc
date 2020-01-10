@@ -22,6 +22,7 @@ pub struct Place {
     pub total_size: usize,
     pub is_mutable: bool,
     pub is_global: bool,
+    pub is_indexed: bool,
 }
 
 impl Place {
@@ -40,10 +41,13 @@ impl Place {
             total_size,
             is_mutable,
             is_global,
+            is_indexed: false,
         }
     }
 
     pub fn index_array(&mut self, index_value: &Element) -> Result<usize, Error> {
+        self.is_indexed = true;
+
         match index_value {
             Element::Value(Value::Integer(..)) => {}
             Element::Constant(Constant::Integer(..)) => {}
@@ -66,6 +70,8 @@ impl Place {
     }
 
     pub fn field_tuple(&mut self, field_index: usize) -> Result<usize, Error> {
+        self.is_indexed = true;
+
         let mut offset = 0;
         match self.r#type {
             Type::Tuple { ref types } => {
@@ -81,6 +87,7 @@ impl Place {
                     tuple_index += 1;
                 }
                 self.r#type = types[tuple_index].to_owned();
+
                 Ok(offset)
             }
             ref r#type => Err(Error::OperatorFieldFirstOperandExpectedTupleOrStructure(
@@ -90,6 +97,8 @@ impl Place {
     }
 
     pub fn field_structure(&mut self, field_name: &str) -> Result<usize, Error> {
+        self.is_indexed = true;
+
         let mut offset = 0;
         match self.r#type {
             Type::Structure {

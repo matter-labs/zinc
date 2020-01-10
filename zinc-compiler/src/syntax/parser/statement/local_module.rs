@@ -13,6 +13,7 @@ use crate::lexical::TokenStream;
 use crate::syntax::ConstStatementParser;
 use crate::syntax::EnumStatementParser;
 use crate::syntax::Error as SyntaxError;
+use crate::syntax::ExternFnStatementParser;
 use crate::syntax::FnStatementParser;
 use crate::syntax::ImplStatementParser;
 use crate::syntax::ModStatementParser;
@@ -107,10 +108,17 @@ impl Parser {
             } => ImplStatementParser::default()
                 .parse(stream, Some(token))
                 .map(|(statement, next)| (ModuleLocalStatement::Impl(statement), next)),
+            token @ Token {
+                lexeme: Lexeme::Keyword(Keyword::Extern),
+                ..
+            } => ExternFnStatementParser::default()
+                .parse(stream, Some(token))
+                .map(|(statement, next)| (ModuleLocalStatement::ExternFn(statement), next)),
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
                 location,
                 vec![
                     "const", "static", "type", "struct", "enum", "fn", "mod", "use", "impl",
+                    "extern",
                 ],
                 lexeme,
             ))),

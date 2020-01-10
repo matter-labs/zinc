@@ -52,9 +52,10 @@ pub struct Analyzer {
     scope_stack: Vec<Rc<RefCell<Scope>>>,
     bytecode: Rc<RefCell<Bytecode>>,
 
-    has_place_address_started: bool,
     is_next_call_instruction: bool,
     operands: Vec<StackElement>,
+
+    is_assignment: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -76,9 +77,10 @@ impl Analyzer {
             },
             bytecode,
 
-            has_place_address_started: false,
             is_next_call_instruction: false,
             operands: Vec::with_capacity(Self::STACK_OPERAND_INITIAL_CAPACITY),
+
+            is_assignment: false,
         }
     }
 
@@ -98,6 +100,8 @@ impl Analyzer {
                     self.push_operand(StackElement::NotEvaluated(operand))
                 }
                 ExpressionObject::Operator(ExpressionOperator::Assignment) => {
+                    self.is_assignment = true;
+
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::PlaceExpression,
                         TranslationHint::ValueExpression,
@@ -121,14 +125,19 @@ impl Analyzer {
                         ));
                     }
 
-                    self.initialize_place_address();
                     self.bytecode.borrow_mut().push_instruction_store(
                         place.address,
                         place.r#type.size(),
-                        Some(place.total_size),
+                        if place.is_indexed {
+                            Some(place.total_size)
+                        } else {
+                            None
+                        },
                         false,
                     );
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
+
+                    self.is_assignment = false;
                 }
                 ExpressionObject::Operator(ExpressionOperator::Range) => unimplemented!(),
                 ExpressionObject::Operator(ExpressionOperator::RangeInclusive) => unimplemented!(),
@@ -380,9 +389,14 @@ impl Analyzer {
                         TranslationHint::ValueExpression,
                     )?;
 
+                    let is_indexed = match operand_1 {
+                        Element::Place(ref place) => place.is_indexed,
+                        _ => false,
+                    };
                     let element_size = operand_1
                         .index(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
+
                     self.bytecode
                         .borrow_mut()
                         .push_instruction(Instruction::PushConst(zinc_bytecode::PushConst::new(
@@ -390,13 +404,20 @@ impl Analyzer {
                             false,
                             crate::BITLENGTH_BYTE,
                         )));
+                    if !is_indexed {
+                        self.bytecode
+                            .borrow_mut()
+                            .push_instruction(Instruction::Add(zinc_bytecode::Add));
+                    }
                     self.bytecode
                         .borrow_mut()
                         .push_instruction(Instruction::Mul(zinc_bytecode::Mul));
-                    self.initialize_place_address();
-                    self.bytecode
-                        .borrow_mut()
-                        .push_instruction(Instruction::Add(zinc_bytecode::Add));
+                    if is_indexed {
+                        self.bytecode
+                            .borrow_mut()
+                            .push_instruction(Instruction::Add(zinc_bytecode::Add));
+                    }
+
                     self.push_operand(StackElement::Evaluated(operand_1));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Field) => {
@@ -415,7 +436,6 @@ impl Analyzer {
                             false,
                             crate::BITLENGTH_BYTE,
                         )));
-                    self.initialize_place_address();
                     self.bytecode
                         .borrow_mut()
                         .push_instruction(Instruction::Add(zinc_bytecode::Add));
@@ -538,10 +558,18 @@ impl Analyzer {
                                         ))
                                     }
                                 };
-                                Instruction::Log(zinc_bytecode::Dbg::new(
-                                    string,
-                                    argument_values_count - 1,
-                                ))
+
+                                let debug_input_size = argument_values
+                                    .into_iter()
+                                    .skip(1)
+                                    .map(|argument| match argument {
+                                        Element::Constant(constant) => constant.r#type().size(),
+                                        Element::Value(value) => value.r#type().size(),
+                                        _ => 0,
+                                    })
+                                    .sum();
+
+                                Instruction::Log(zinc_bytecode::Dbg::new(string, debug_input_size))
                             }
                             "assert" => Instruction::Assert(zinc_bytecode::Assert),
                             identifier => {
@@ -1064,7 +1092,17 @@ impl Analyzer {
             TranslationHint::PathExpression => Ok(Element::Path(path.to_owned())),
             TranslationHint::PlaceExpression => match Scope::resolve_path(self.scope(), path)? {
                 ScopeItem::Variable(variable) => {
-                    self.has_place_address_started = true;
+                    if !self.is_assignment {
+                        self.bytecode
+                            .borrow_mut()
+                            .push_instruction(Instruction::PushConst(
+                                zinc_bytecode::PushConst::new(
+                                    BigInt::zero(),
+                                    false,
+                                    crate::BITLENGTH_INDEX,
+                                ),
+                            ));
+                    }
                     Ok(Element::Place(Place::new(
                         location,
                         variable.r#type,
@@ -1074,13 +1112,17 @@ impl Analyzer {
                     )))
                 }
                 ScopeItem::Static(r#static) => {
-                    self.bytecode
-                        .borrow_mut()
-                        .push_instruction(Instruction::PushConst(zinc_bytecode::PushConst::new(
-                            BigInt::zero(),
-                            false,
-                            crate::BITLENGTH_BYTE,
-                        )));
+                    if !self.is_assignment {
+                        self.bytecode
+                            .borrow_mut()
+                            .push_instruction(Instruction::PushConst(
+                                zinc_bytecode::PushConst::new(
+                                    BigInt::zero(),
+                                    false,
+                                    crate::BITLENGTH_INDEX,
+                                ),
+                            ));
+                    }
                     Ok(Element::Place(Place::new(
                         location,
                         r#static.data.r#type(),
@@ -1145,19 +1187,6 @@ impl Analyzer {
                 element => Ok(element),
             },
         }
-    }
-
-    fn initialize_place_address(&mut self) {
-        if self.has_place_address_started {
-            self.bytecode
-                .borrow_mut()
-                .push_instruction(Instruction::PushConst(zinc_bytecode::PushConst::new(
-                    BigInt::zero(),
-                    false,
-                    crate::BITLENGTH_BYTE,
-                )));
-        }
-        self.has_place_address_started = false;
     }
 
     fn evaluate_unary_operand(

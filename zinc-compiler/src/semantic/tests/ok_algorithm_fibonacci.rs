@@ -19,7 +19,6 @@ use zinc_bytecode::LoopEnd;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 use zinc_bytecode::Store;
-use zinc_bytecode::StoreByIndex;
 
 #[test]
 fn test() {
@@ -68,26 +67,11 @@ fn main() {
         Instruction::Load(Load::new(1)),
         Instruction::Load(Load::new(0)),
         Instruction::Add(Add),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(0),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::StoreByIndex(StoreByIndex::new(2, 1)),
+        Instruction::Store(Store::new(2)),
         Instruction::Load(Load::new(1)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(0),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::StoreByIndex(StoreByIndex::new(0, 1)),
+        Instruction::Store(Store::new(0)),
         Instruction::Load(Load::new(2)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(0),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::StoreByIndex(StoreByIndex::new(1, 1)),
+        Instruction::Store(Store::new(1)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(1),
             false,

@@ -4,6 +4,7 @@
 
 mod r#const;
 mod r#enum;
+mod extern_fn;
 mod r#fn;
 mod r#impl;
 mod r#let;
@@ -17,6 +18,8 @@ mod r#struct;
 mod r#type;
 mod r#use;
 
+pub use self::extern_fn::Builder as ExternFnBuilder;
+pub use self::extern_fn::ExternFn;
 pub use self::local_function::Statement as FunctionLocalStatement;
 pub use self::local_implementation::Statement as ImplementationLocalStatement;
 pub use self::local_module::Statement as ModuleLocalStatement;

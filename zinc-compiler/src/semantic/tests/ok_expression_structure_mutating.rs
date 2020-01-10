@@ -74,12 +74,12 @@ fn main() {
         )),
         Instruction::StoreByIndex(StoreByIndex::new(0, 3)),
         Instruction::PushConst(PushConst::new(
-            BigInt::from(1),
+            BigInt::from(0),
             false,
             crate::BITLENGTH_BYTE,
         )),
         Instruction::PushConst(PushConst::new(
-            BigInt::from(0),
+            BigInt::from(1),
             false,
             crate::BITLENGTH_BYTE,
         )),
@@ -91,12 +91,12 @@ fn main() {
         )),
         Instruction::StoreByIndex(StoreByIndex::new(0, 3)),
         Instruction::PushConst(PushConst::new(
-            BigInt::from(2),
+            BigInt::from(0),
             false,
             crate::BITLENGTH_BYTE,
         )),
         Instruction::PushConst(PushConst::new(
-            BigInt::from(0),
+            BigInt::from(2),
             false,
             crate::BITLENGTH_BYTE,
         )),

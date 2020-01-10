@@ -88,17 +88,17 @@ fn main() {
             crate::BITLENGTH_BYTE,
         )),
         Instruction::PushConst(PushConst::new(
-            BigInt::from(2),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::Mul(Mul),
-        Instruction::PushConst(PushConst::new(
             BigInt::from(0),
             false,
             crate::BITLENGTH_BYTE,
         )),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(2),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
         Instruction::Add(Add),
+        Instruction::Mul(Mul),
         Instruction::PushConst(PushConst::new(
             BigInt::from(1),
             false,
@@ -112,12 +112,12 @@ fn main() {
         Instruction::Mul(Mul),
         Instruction::Add(Add),
         Instruction::PushConst(PushConst::new(
-            BigInt::from(2),
+            BigInt::from(0),
             false,
             crate::BITLENGTH_BYTE,
         )),
         Instruction::PushConst(PushConst::new(
-            BigInt::from(0),
+            BigInt::from(2),
             false,
             crate::BITLENGTH_BYTE,
         )),

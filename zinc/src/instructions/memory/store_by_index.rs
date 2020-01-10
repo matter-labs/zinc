@@ -9,8 +9,8 @@ where
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let index = vm.pop()?.value()?;
         let value = vm.pop()?.value()?;
+        let index = vm.pop()?.value()?;
 
         let mut array = Vec::new();
         for i in 0..self.len {

@@ -77,8 +77,23 @@
 //    (input, new_state)
 //}
 
+//fn main() {
+//    let mut complex = [[1, 2, 3], [4, 5, 6]];
+//
+//    complex[0] = [4, 5, 6];
+//    complex[1] = [15, 16, 17];
+//
+//    for i in 0..=1 {
+//        dbg!("{}", complex[i]);
+//    }
+//}
+
+struct Data { value: u8 }
+
 fn main() {
-    let mut array = [1, 2, 3, 4, 5];
-    array[2] = 42;
-    dbg!("test", array[2]);
+    let array = [[1, 2], [3, 4]];
+    let tuple = ((1, 2), (3, 4));
+    let structure = struct Data { value: 34 };
+
+    let result = array[1][1] + tuple.1.1 + structure.value;
 }

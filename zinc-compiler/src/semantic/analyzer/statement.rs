@@ -80,6 +80,7 @@ impl Analyzer {
             ModuleLocalStatement::Mod(statement) => self.mod_statement(statement)?,
             ModuleLocalStatement::Use(statement) => self.use_statement(statement)?,
             ModuleLocalStatement::Impl(statement) => self.impl_statement(statement)?,
+            ModuleLocalStatement::ExternFn(_statement) => unimplemented!(),
         }
 
         Ok(())
