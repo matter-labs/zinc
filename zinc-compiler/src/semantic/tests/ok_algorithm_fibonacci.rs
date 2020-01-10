@@ -71,21 +71,21 @@ fn main() {
         Instruction::PushConst(PushConst::new(
             BigInt::from(0),
             false,
-            crate::BITLENGTH_INDEX,
+            crate::BITLENGTH_BYTE,
         )),
         Instruction::StoreByIndex(StoreByIndex::new(2, 1)),
         Instruction::Load(Load::new(1)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(0),
             false,
-            crate::BITLENGTH_INDEX,
+            crate::BITLENGTH_BYTE,
         )),
         Instruction::StoreByIndex(StoreByIndex::new(0, 1)),
         Instruction::Load(Load::new(2)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(0),
             false,
-            crate::BITLENGTH_INDEX,
+            crate::BITLENGTH_BYTE,
         )),
         Instruction::StoreByIndex(StoreByIndex::new(1, 1)),
         Instruction::PushConst(PushConst::new(

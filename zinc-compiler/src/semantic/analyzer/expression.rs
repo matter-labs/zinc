@@ -388,7 +388,7 @@ impl Analyzer {
                         .push_instruction(Instruction::PushConst(zinc_bytecode::PushConst::new(
                             BigInt::from(element_size),
                             false,
-                            crate::BITLENGTH_INDEX,
+                            crate::BITLENGTH_BYTE,
                         )));
                     self.bytecode
                         .borrow_mut()
@@ -413,7 +413,7 @@ impl Analyzer {
                         .push_instruction(Instruction::PushConst(zinc_bytecode::PushConst::new(
                             BigInt::from(offset),
                             false,
-                            crate::BITLENGTH_INDEX,
+                            crate::BITLENGTH_BYTE,
                         )));
                     self.initialize_place_address();
                     self.bytecode
@@ -1079,7 +1079,7 @@ impl Analyzer {
                         .push_instruction(Instruction::PushConst(zinc_bytecode::PushConst::new(
                             BigInt::zero(),
                             false,
-                            crate::BITLENGTH_INDEX,
+                            crate::BITLENGTH_BYTE,
                         )));
                     Ok(Element::Place(Place::new(
                         location,
@@ -1154,7 +1154,7 @@ impl Analyzer {
                 .push_instruction(Instruction::PushConst(zinc_bytecode::PushConst::new(
                     BigInt::zero(),
                     false,
-                    crate::BITLENGTH_INDEX,
+                    crate::BITLENGTH_BYTE,
                 )));
         }
         self.has_place_address_started = false;

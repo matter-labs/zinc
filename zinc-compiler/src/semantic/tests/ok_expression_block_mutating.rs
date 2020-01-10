@@ -42,7 +42,7 @@ fn main() {
         Instruction::PushConst(PushConst::new(
             BigInt::from(0),
             false,
-            crate::BITLENGTH_INDEX,
+            crate::BITLENGTH_BYTE,
         )),
         Instruction::StoreByIndex(StoreByIndex::new(0, 1)),
         Instruction::Return(Return::new(0)),

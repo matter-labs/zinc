@@ -153,10 +153,23 @@ impl Analyzer {
         let mut rvalue = ExpressionAnalyzer::new(self.scope(), self.bytecode.clone())
             .expression(statement.expression, TranslationHint::ValueExpression)?;
 
-        let const_type = Type::from_type_variant(&statement.r#type.variant, self.scope())?;
+        let static_type = Type::from_type_variant(&statement.r#type.variant, self.scope())?;
         rvalue
-            .cast(&Element::Type(const_type))
+            .cast(&Element::Type(static_type.clone()))
             .map_err(|error| Error::Element(type_location, error))?;
+
+        if let Some((is_signed, bitlength)) = rvalue
+            .cast(&Element::Type(static_type))
+            .map_err(|error| Error::Element(type_location, error))?
+        {
+            self.bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::Cast(zinc_bytecode::Cast::new(
+                    is_signed,
+                    bitlength as u8,
+                )));
+        }
+
         let constant = match rvalue {
             Element::Constant(constant) => constant,
             element => {
@@ -511,7 +524,7 @@ impl Analyzer {
                 location,
                 IntegerConstantError::LiteralTooLargeForIndex(
                     iterations_count.to_string(),
-                    crate::BITLENGTH_INDEX,
+                    crate::BITLENGTH_BYTE,
                 ),
             )
         })?;
