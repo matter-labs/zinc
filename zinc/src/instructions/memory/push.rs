@@ -1,4 +1,4 @@
-use crate::primitive::{Primitive, PrimitiveOperations};
+use crate::primitive::{Primitive, PrimitiveOperations, DataType};
 use crate::vm::{Cell, InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
 use zinc_bytecode::instructions::PushConst;
@@ -10,7 +10,8 @@ where
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let op = vm.operations();
-        let value = op.constant_bigint(&self.value)?;
+        let data_type = DataType { signed: self.is_signed, length: self.bit_length };
+        let value = op.constant_bigint_typed(&self.value, data_type)?;
         vm.push(Cell::Value(value))
     }
 }
@@ -23,15 +24,11 @@ mod tests {
     #[test]
     fn test_push() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst { value: 0.into() })
-            .add(PushConst { value: 42.into() })
-            .add(PushConst {
-                value: 0xABCD.into(),
-            })
-            .add(PushConst { value: (-1).into() })
-            .add(PushConst {
-                value: (-1000).into(),
-            })
+            .add(PushConst::new_untyped(0.into()))
+            .add(PushConst::new_untyped(42.into()))
+            .add(PushConst::new_untyped(0xABCD.into()))
+            .add(PushConst::new_untyped((-1).into()))
+            .add(PushConst::new_untyped((-1000).into()))
             .test(&[-1000, -1, 0xABCD, 42, 0])
     }
 }

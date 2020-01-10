@@ -26,22 +26,12 @@ mod test {
     #[test]
     fn test_pop() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst {
-                value: BigInt::from(1),
-            })
-            .add(PushConst {
-                value: BigInt::from(2),
-            })
+            .add(PushConst::new_untyped(1.into()))
+            .add(PushConst::new_untyped(2.into()))
             .add(Pop::new(1))
-            .add(PushConst {
-                value: BigInt::from(3),
-            })
-            .add(PushConst {
-                value: BigInt::from(4),
-            })
-            .add(PushConst {
-                value: BigInt::from(5),
-            })
+            .add(PushConst::new_untyped(3.into()))
+            .add(PushConst::new_untyped(4.into()))
+            .add(PushConst::new_untyped(5.into()))
             .add(Pop::new(2))
             .test(&[3, 1])
     }

@@ -23,11 +23,11 @@ impl InstructionInfo for LoadByIndex {
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_usize(Self::code(), &[self.address, self.len])
+        utils::encode_with_args(Self::code(), &[self.address, self.len])
     }
 
     fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
-        let (args, len) = utils::decode_with_usize(Self::code(), bytes, 2)?;
+        let (args, len) = utils::decode_with_usize_args(Self::code(), bytes, 2)?;
 
         Ok((Self::new(args[0], args[1]), len))
     }

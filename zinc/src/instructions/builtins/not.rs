@@ -28,9 +28,9 @@ mod test {
     #[test]
     fn test_not() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst { value: 0.into() })
+            .add(PushConst::new_untyped(0.into()))
             .add(Not)
-            .add(PushConst { value: 1.into() })
+            .add(PushConst::new_untyped(1.into()))
             .add(Not)
             .test(&[0, 1])
     }

@@ -55,9 +55,9 @@ mod tests {
 
         for (a, b) in data.iter() {
             VMTestRunner::new()
-                .add(PushConst { value: (*a).into() })
+                .add(PushConst::new_untyped((*a).into()))
                 .add(Store::new(0))
-                .add(PushConst { value: (*b).into() })
+                .add(PushConst::new_untyped((*b).into()))
                 .add(Store::new(1))
                 .add(Load::new(0))
                 .add(Load::new(1))
@@ -77,6 +77,7 @@ mod tests {
 
     #[test]
     fn test_storage() -> Result<(), TestingError> {
+        let _ = env_logger::builder().is_test(true).try_init();
         // let mut a = 0;
         // let c = _;
         //
@@ -89,16 +90,16 @@ mod tests {
 
         for (c, r) in data.iter() {
             VMTestRunner::new()
-                .add(PushConst { value: 0.into() })
+                .add(PushConst::new_untyped(0.into()))
                 .add(Store::new(0))
-                .add(PushConst { value: (*c).into() })
+                .add(PushConst::new((*c).into(), false, 1))
                 .add(If)
-                .add(PushConst { value: 1.into() })
+                .add(PushConst::new_untyped(1.into()))
                 .add(Load::new(0))
                 .add(Add)
                 .add(Store::new(0))
                 .add(Else)
-                .add(PushConst { value: 1.into() })
+                .add(PushConst::new_untyped(1.into()))
                 .add(Load::new(0))
                 .add(Sub)
                 .add(Store::new(0))
