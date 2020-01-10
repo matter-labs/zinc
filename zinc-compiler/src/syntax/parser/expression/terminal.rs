@@ -42,9 +42,7 @@ impl Parser {
             Some(next) => next,
             None => stream.borrow_mut().next()?,
         } {
-            token
-            @
-            Token {
+            token @ Token {
                 lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                 ..
             } => {
@@ -53,9 +51,7 @@ impl Parser {
                 self.builder.extend_with_expression(expression);
                 Ok((self.builder.finish(), None))
             }
-            token
-            @
-            Token {
+            token @ Token {
                 lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                 ..
             } => {
@@ -65,9 +61,7 @@ impl Parser {
                     .push_operand(block.location, ExpressionOperand::Block(block));
                 Ok((self.builder.finish(), None))
             }
-            token
-            @
-            Token {
+            token @ Token {
                 lexeme: Lexeme::Symbol(Symbol::BracketSquareLeft),
                 ..
             } => {
@@ -77,9 +71,7 @@ impl Parser {
                     .push_operand(array.location, ExpressionOperand::Array(array));
                 Ok((self.builder.finish(), None))
             }
-            token
-            @
-            Token {
+            token @ Token {
                 lexeme: Lexeme::Keyword(Keyword::If),
                 ..
             } => {
@@ -92,9 +84,7 @@ impl Parser {
                 );
                 Ok((self.builder.finish(), next))
             }
-            token
-            @
-            Token {
+            token @ Token {
                 lexeme: Lexeme::Keyword(Keyword::Match),
                 ..
             } => {
@@ -104,9 +94,7 @@ impl Parser {
                     .push_operand(expression.location, ExpressionOperand::Match(expression));
                 Ok((self.builder.finish(), None))
             }
-            token
-            @
-            Token {
+            token @ Token {
                 lexeme: Lexeme::Keyword(Keyword::Struct),
                 ..
             } => {

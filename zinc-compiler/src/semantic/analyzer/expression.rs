@@ -1099,7 +1099,7 @@ impl Analyzer {
                                 zinc_bytecode::PushConst::new(
                                     BigInt::zero(),
                                     false,
-                                    crate::BITLENGTH_INDEX,
+                                    crate::BITLENGTH_BYTE,
                                 ),
                             ));
                     }
@@ -1119,7 +1119,7 @@ impl Analyzer {
                                 zinc_bytecode::PushConst::new(
                                     BigInt::zero(),
                                     false,
-                                    crate::BITLENGTH_INDEX,
+                                    crate::BITLENGTH_BYTE,
                                 ),
                             ));
                     }

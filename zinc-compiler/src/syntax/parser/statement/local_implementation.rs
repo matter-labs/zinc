@@ -28,17 +28,13 @@ impl Parser {
             Some(token) => token,
             None => stream.borrow_mut().next()?,
         } {
-            token
-            @
-            Token {
+            token @ Token {
                 lexeme: Lexeme::Keyword(Keyword::Const),
                 ..
             } => ConstStatementParser::default()
                 .parse(stream, Some(token))
                 .map(|(statement, next)| (ImplementationLocalStatement::Const(statement), next)),
-            token
-            @
-            Token {
+            token @ Token {
                 lexeme: Lexeme::Keyword(Keyword::Fn),
                 ..
             } => FnStatementParser::default()
