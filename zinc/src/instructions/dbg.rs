@@ -39,7 +39,7 @@ mod tests {
     #[test]
     fn test() {
         VMTestRunner::new()
-            .add(PushConst { value: 42.into() })
+            .add(PushConst::new_untyped(42.into()))
             .add(Dbg::new("Value: ".into(), 1))
             .test::<u32>(&[])
             .unwrap();

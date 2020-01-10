@@ -66,7 +66,7 @@ fn main() -> field {
 "#;
 
     let expected = Ok(vec![
-        Instruction::Call(Call::new(16, 0)),
+        Instruction::Call(Call::new(17, 0)),
         Instruction::Exit(Exit::new(1)),
         Instruction::Load(Load::new(0)),
         Instruction::Load(Load::new(1)),
@@ -85,6 +85,7 @@ fn main() -> field {
             false,
             crate::BITLENGTH_FIELD,
         )),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
         Instruction::StoreGlobal(StoreGlobal::new(0)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(69),

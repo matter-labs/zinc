@@ -31,14 +31,14 @@ impl InstructionInfo for StoreSequenceByIndex {
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_usize(
+        utils::encode_with_args(
             Self::code(),
             &[self.address, self.array_len, self.value_len],
         )
     }
 
     fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
-        let (args, len) = utils::decode_with_usize(Self::code(), bytes, 3)?;
+        let (args, len) = utils::decode_with_usize_args(Self::code(), bytes, 3)?;
 
         Ok((Self::new(args[0], args[1], args[2]), len))
     }

@@ -1,5 +1,5 @@
 use crate::primitive::{Primitive, PrimitiveOperations};
-use crate::vm::{VMInstruction, Cell, InternalVM};
+use crate::vm::{Cell, InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
 use zinc_bytecode::StoreSequenceByIndex;
 
@@ -27,7 +27,9 @@ where
         for (i, value) in values.into_iter().enumerate() {
             let offset = vm.operations().constant_bigint(&i.into())?;
             let address = vm.operations().add(index.clone(), offset)?;
-            array = vm.operations().array_set(array.as_slice(), address, value)?;
+            array = vm
+                .operations()
+                .array_set(array.as_slice(), address, value)?;
         }
 
         for (i, value) in array.into_iter().enumerate() {

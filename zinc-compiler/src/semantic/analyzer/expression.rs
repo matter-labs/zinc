@@ -402,7 +402,7 @@ impl Analyzer {
                         .push_instruction(Instruction::PushConst(zinc_bytecode::PushConst::new(
                             BigInt::from(element_size),
                             false,
-                            crate::BITLENGTH_INDEX,
+                            crate::BITLENGTH_BYTE,
                         )));
                     if !is_indexed {
                         self.bytecode
@@ -434,7 +434,7 @@ impl Analyzer {
                         .push_instruction(Instruction::PushConst(zinc_bytecode::PushConst::new(
                             BigInt::from(offset),
                             false,
-                            crate::BITLENGTH_INDEX,
+                            crate::BITLENGTH_BYTE,
                         )));
                     self.bytecode
                         .borrow_mut()

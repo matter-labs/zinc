@@ -50,7 +50,7 @@ fn main() {
         Instruction::PushConst(PushConst::new(
             BigInt::from(1),
             false,
-            crate::BITLENGTH_BYTE,
+            crate::BITLENGTH_BOOLEAN,
         )),
         Instruction::Store(Store::new(2)),
         Instruction::LoopBegin(LoopBegin::new(11)),
@@ -66,7 +66,7 @@ fn main() {
         Instruction::PushConst(PushConst::new(
             BigInt::from(0),
             false,
-            crate::BITLENGTH_BYTE,
+            crate::BITLENGTH_BOOLEAN,
         )),
         Instruction::Store(Store::new(2)),
         Instruction::EndIf(EndIf),

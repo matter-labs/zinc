@@ -15,19 +15,21 @@ where
     }
 }
 
-pub fn encode_with_usize(code: InstructionCode, values: &[usize]) -> Vec<u8> {
+pub fn encode_with_args<T: Into<BigInt> + Clone>(code: InstructionCode, values: &[T]) -> Vec<u8> {
     let mut bytes = vec![code as u8];
-    for &value in values.iter() {
-        bytes.append(vlq::encode(&BigInt::from(value)).as_mut());
+    for value in values {
+        let bigint = value.clone().into();
+        bytes.append(vlq::encode(&bigint).as_mut());
     }
     bytes
 }
 
-pub fn decode_with_usize(
+/// If Ok is returned, vector is guaranteed to have `args_count` values.
+pub fn decode_with_bigint_args(
     code: InstructionCode,
     bytes: &[u8],
     args_count: usize,
-) -> Result<(Vec<usize>, usize), DecodingError> {
+) -> Result<(Vec<BigInt>, usize), DecodingError> {
     if bytes.is_empty() {
         Err(DecodingError::UnexpectedEOF)
     } else if bytes[0] != code as u8 {
@@ -38,31 +40,27 @@ pub fn decode_with_usize(
         for _ in 0..args_count {
             let (bigint, arg_len) =
                 vlq::decode(&bytes[len..]).ok_or(DecodingError::UnexpectedEOF)?;
-            let value = bigint.to_usize().ok_or(DecodingError::ConstantTooLong)?;
-            args.push(value);
+            args.push(bigint);
             len += arg_len;
         }
         Ok((args, len))
     }
 }
 
-pub fn decode_with_two_usize<T>(bytes: &[u8]) -> Result<(T, usize), DecodingError>
-where
-    T: InstructionInfo + From<(usize, usize)>,
-{
-    if bytes.is_empty() {
-        Err(DecodingError::UnexpectedEOF)
-    } else if bytes[0] != T::code() as u8 {
-        Err(DecodingError::UnknownInstructionCode(bytes[0]))
-    } else {
-        let (bigint1, len1) = vlq::decode(&bytes[1..]).ok_or(DecodingError::UnexpectedEOF)?;
-        let value1 = bigint1.to_usize().ok_or(DecodingError::ConstantTooLong)?;
-
-        let (bigint2, len2) = vlq::decode(&bytes[1..]).ok_or(DecodingError::UnexpectedEOF)?;
-        let value2 = bigint2.to_usize().ok_or(DecodingError::ConstantTooLong)?;
-
-        Ok((T::from((value1, value2)), len1 + len2 + 1))
+/// If Ok is returned, vector is guaranteed to have `args_count` values.
+pub fn decode_with_usize_args(
+    code: InstructionCode,
+    bytes: &[u8],
+    args_count: usize,
+) -> Result<(Vec<usize>, usize), DecodingError> {
+    let (args, len) = decode_with_bigint_args(code, bytes, args_count)?;
+    let mut usize_args = Vec::new();
+    for bigint in args {
+        let value = bigint.to_usize().ok_or(DecodingError::ConstantTooLong)?;
+        usize_args.push(value)
     }
+
+    Ok((usize_args, len))
 }
 
 pub fn encode_with_bigint(code: InstructionCode, value: &BigInt) -> Vec<u8> {

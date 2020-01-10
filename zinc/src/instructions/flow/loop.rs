@@ -35,13 +35,13 @@ mod test {
         let _ = env_logger::builder().is_test(true).try_init();
 
         VMTestRunner::new()
-            .add(PushConst { value: 0.into() })
+            .add(PushConst::new_untyped(0.into()))
             .add(Store::new(0))
-            .add(PushConst { value: 0.into() })
+            .add(PushConst::new_untyped(0.into()))
             .add(Store::new(1))
             .add(LoopBegin::new(10))
             .add(Load::new(0))
-            .add(PushConst { value: 1.into() })
+            .add(PushConst::new_untyped(1.into()))
             .add(Add)
             .add(Store::new(0))
             .add(Load::new(0))

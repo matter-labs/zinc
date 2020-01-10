@@ -28,8 +28,8 @@ mod test {
     #[test]
     fn test_mul() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst { value: 3.into() })
-            .add(PushConst { value: 4.into() })
+            .add(PushConst::new_untyped(3.into()))
+            .add(PushConst::new_untyped(4.into()))
             .add(Mul)
             .test(&[12])
     }

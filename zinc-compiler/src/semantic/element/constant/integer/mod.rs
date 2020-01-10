@@ -237,7 +237,7 @@ impl Integer {
 
     pub fn to_usize(&self) -> Result<usize, Error> {
         self.value.to_usize().ok_or_else(|| {
-            Error::LiteralTooLargeForIndex(self.value.to_string(), crate::BITLENGTH_INDEX)
+            Error::LiteralTooLargeForIndex(self.value.to_string(), crate::BITLENGTH_BYTE)
         })
     }
 

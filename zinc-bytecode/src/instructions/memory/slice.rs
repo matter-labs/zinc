@@ -30,11 +30,11 @@ impl InstructionInfo for Slice {
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_usize(Self::code(), &[self.len, self.slice_len, self.slice_offset])
+        utils::encode_with_args(Self::code(), &[self.len, self.slice_len, self.slice_offset])
     }
 
     fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
-        let (args, len) = utils::decode_with_usize(Self::code(), bytes, 3)?;
+        let (args, len) = utils::decode_with_usize_args(Self::code(), bytes, 3)?;
         Ok((Self::new(args[0], args[1], args[2]), len))
     }
 

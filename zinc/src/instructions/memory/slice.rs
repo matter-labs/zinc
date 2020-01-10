@@ -46,12 +46,12 @@ mod tests {
     #[test]
     fn test_slice() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst { value: 1.into() })
-            .add(PushConst { value: 2.into() })
-            .add(PushConst { value: 3.into() })
-            .add(PushConst { value: 4.into() })
-            .add(PushConst { value: 5.into() })
-            .add(PushConst { value: 6.into() })
+            .add(PushConst::new_untyped(1.into()))
+            .add(PushConst::new_untyped(2.into()))
+            .add(PushConst::new_untyped(3.into()))
+            .add(PushConst::new_untyped(4.into()))
+            .add(PushConst::new_untyped(5.into()))
+            .add(PushConst::new_untyped(6.into()))
             .add(Slice::new(5, 2, 1))
             .test(&[4, 3, 1])
     }
