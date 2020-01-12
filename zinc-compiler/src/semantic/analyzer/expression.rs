@@ -389,33 +389,48 @@ impl Analyzer {
                         TranslationHint::ValueExpression,
                     )?;
 
-                    let is_indexed = match operand_1 {
+                    let is_place_indexed = match operand_1 {
                         Element::Place(ref place) => place.is_indexed,
                         _ => false,
                     };
+
                     let element_size = operand_1
                         .index(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
 
-                    self.bytecode
-                        .borrow_mut()
-                        .push_instruction(Instruction::PushConst(zinc_bytecode::PushConst::new(
-                            BigInt::from(element_size),
-                            false,
-                            crate::BITLENGTH_BYTE,
-                        )));
-                    if !is_indexed {
-                        self.bytecode
-                            .borrow_mut()
-                            .push_instruction(Instruction::Add(zinc_bytecode::Add));
-                    }
-                    self.bytecode
-                        .borrow_mut()
-                        .push_instruction(Instruction::Mul(zinc_bytecode::Mul));
-                    if is_indexed {
-                        self.bytecode
-                            .borrow_mut()
-                            .push_instruction(Instruction::Add(zinc_bytecode::Add));
+                    match operand_1 {
+                        Element::Place(_) => {
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::PushConst(
+                                    zinc_bytecode::PushConst::new(
+                                        BigInt::from(element_size),
+                                        false,
+                                        crate::BITLENGTH_BYTE,
+                                    ),
+                                ));
+                            if !is_place_indexed {
+                                self.bytecode
+                                    .borrow_mut()
+                                    .push_instruction(Instruction::Add(zinc_bytecode::Add));
+                            }
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::Mul(zinc_bytecode::Mul));
+                            if is_place_indexed {
+                                self.bytecode
+                                    .borrow_mut()
+                                    .push_instruction(Instruction::Add(zinc_bytecode::Add));
+                            }
+                        }
+                        Element::Value(_) | Element::Constant(_) => {
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::Slice(zinc_bytecode::Slice::new(
+                                    0, 0, 0,
+                                )));
+                        }
+                        _ => {}
                     }
 
                     self.push_operand(StackElement::Evaluated(operand_1));
@@ -429,16 +444,32 @@ impl Analyzer {
                     let offset = operand_1
                         .field(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.bytecode
-                        .borrow_mut()
-                        .push_instruction(Instruction::PushConst(zinc_bytecode::PushConst::new(
-                            BigInt::from(offset),
-                            false,
-                            crate::BITLENGTH_BYTE,
-                        )));
-                    self.bytecode
-                        .borrow_mut()
-                        .push_instruction(Instruction::Add(zinc_bytecode::Add));
+
+                    match operand_1 {
+                        Element::Place(_) => {
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::PushConst(
+                                    zinc_bytecode::PushConst::new(
+                                        BigInt::from(offset),
+                                        false,
+                                        crate::BITLENGTH_BYTE,
+                                    ),
+                                ));
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::Add(zinc_bytecode::Add));
+                        }
+                        Element::Value(_) | Element::Constant(_) => {
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::Slice(zinc_bytecode::Slice::new(
+                                    0, 0, 0,
+                                )));
+                        }
+                        _ => {}
+                    }
+
                     self.push_operand(StackElement::Evaluated(operand_1));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Instruction) => {
