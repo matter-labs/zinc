@@ -25,7 +25,11 @@ impl ToBigInt for SimplePrimitive {
     }
 }
 
-impl Primitive for SimplePrimitive {}
+impl Primitive for SimplePrimitive {
+    fn data_type(&self) -> Option<DataType> {
+        None
+    }
+}
 
 pub struct SimplePrimitiveOperations {}
 

@@ -105,7 +105,11 @@ impl<E: Engine> ToBigInt for FrPrimitive<E> {
     }
 }
 
-impl<EN: Debug + Engine> Primitive for FrPrimitive<EN> {}
+impl<EN: Debug + Engine> Primitive for FrPrimitive<EN> {
+    fn data_type(&self) -> Option<DataType> {
+        self.data_type
+    }
+}
 
 pub struct ConstrainingFrOperations<E, CS>
 where
