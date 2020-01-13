@@ -949,25 +949,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "zinc"
-version = "0.1.0"
-dependencies = [
- "bellman_ce",
- "clap",
- "colored",
- "env_logger",
- "ff_ce",
- "franklin-crypto",
- "log",
- "num-bigint",
- "num-integer",
- "num-traits 0.2.11",
- "pairing_ce",
- "rand 0.4.6",
- "zinc-bytecode",
-]
-
-[[package]]
 name = "zinc-bytecode"
 version = "0.1.0"
 dependencies = [
@@ -990,5 +971,24 @@ dependencies = [
  "num-bigint",
  "num-traits 0.2.11",
  "structopt",
+ "zinc-bytecode",
+]
+
+[[package]]
+name = "zinc-vm"
+version = "0.1.0"
+dependencies = [
+ "bellman_ce",
+ "clap",
+ "colored",
+ "env_logger",
+ "ff_ce",
+ "franklin-crypto",
+ "log",
+ "num-bigint",
+ "num-integer",
+ "num-traits 0.2.11",
+ "pairing_ce",
+ "rand 0.4.6",
  "zinc-bytecode",
 ]

@@ -2,5 +2,5 @@
 members = [
     "zinc-compiler",
     "zinc-bytecode",
-    "zinc",
+    "zinc-vm",
 ]

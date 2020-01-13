@@ -9,7 +9,7 @@ use std::fmt::Debug;
 use std::process::exit;
 use std::str::FromStr;
 use std::{fs, io};
-use zinc::{RuntimeError, VerificationError};
+use zinc_vm::{RuntimeError, VerificationError};
 use zinc_bytecode::{decode_all_instructions, DecodingError};
 
 #[derive(Debug)]
@@ -83,7 +83,7 @@ fn exec(args: ExecArguments) -> Result<(), Error> {
     let code = decode_all_instructions(bytes.as_slice()).map_err(Error::Decoding)?;
 
     let outputs =
-        zinc::exec::<Bn256>(code.as_slice(), args.witness.as_slice()).map_err(Error::Runtime)?;
+        zinc_vm::exec::<Bn256>(code.as_slice(), args.witness.as_slice()).map_err(Error::Runtime)?;
 
     for value in outputs.iter() {
         match value {
@@ -104,7 +104,7 @@ fn prove(args: ProveArguments) -> Result<(), Error> {
 
     let params = Parameters::<Bn256>::read(file, true).map_err(Error::IO)?;
 
-    let proof = zinc::prove::<Bn256>(code.as_slice(), &params, args.witness.as_slice())
+    let proof = zinc_vm::prove::<Bn256>(code.as_slice(), &params, args.witness.as_slice())
         .map_err(Error::Runtime)?;
 
     let file = fs::File::create(args.output_file).map_err(Error::IO)?;
@@ -122,7 +122,7 @@ fn verify(args: VerifyArguments) -> Result<(), Error> {
     let proof = Proof::<Bn256>::read(proof_file).map_err(Error::IO)?;
 
     let verified =
-        zinc::verify(&params, &proof, args.public_input.as_slice()).map_err(Error::Verification)?;
+        zinc_vm::verify(&params, &proof, args.public_input.as_slice()).map_err(Error::Verification)?;
 
     if verified {
         println!("{}", "Ok".bold().green());
@@ -137,7 +137,7 @@ fn verify(args: VerifyArguments) -> Result<(), Error> {
 fn setup(args: SetupArguments) -> Result<(), Error> {
     let bytes = fs::read(args.circuit_file).map_err(Error::IO)?;
     let code = decode_all_instructions(bytes.as_slice()).map_err(Error::Decoding)?;
-    let params = zinc::setup::<Bn256>(code.as_slice()).map_err(Error::Runtime)?;
+    let params = zinc_vm::setup::<Bn256>(code.as_slice()).map_err(Error::Runtime)?;
 
     let file = fs::File::create(args.output_file).map_err(Error::IO)?;
     params.write(file).map_err(Error::IO)?;
