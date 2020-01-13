@@ -1,6 +1,7 @@
 mod decode;
 pub mod instructions;
 pub mod vlq;
+pub mod builtins;
 
 pub use decode::*;
 pub use instructions::*;
@@ -100,14 +101,12 @@ pub enum InstructionCode {
     Call,
     Return,
 
+    CallBuiltin,
+
     Assert,
     Log,
 
     Exit,
-
-    MerkleInit,
-    MerkleGet,
-    MerkleSet,
 }
 
 #[derive(Debug, PartialEq)]
@@ -185,15 +184,13 @@ pub enum Instruction {
     Call(Call),
     Return(Return),
 
+    CallBuiltin(CallBuiltin),
+
     // Condition utils
     Assert(Assert),
     Log(Dbg),
 
     Exit(Exit),
-
-    MerkleInit(MerkleInit),
-    MerkleGet(MerkleGet),
-    MerkleSet(MerkleSet),
 }
 
 /// Useful macro to avoid duplicating `match` constructions.
@@ -276,14 +273,12 @@ macro_rules! dispatch_instruction {
             Instruction::Call($pattern) => $expression,
             Instruction::Return($pattern) => $expression,
 
+            Instruction::CallBuiltin($pattern) => $expression,
+
             Instruction::Assert($pattern) => $expression,
             Instruction::Log($pattern) => $expression,
 
             Instruction::Exit($pattern) => $expression,
-
-            Instruction::MerkleInit($pattern) => $expression,
-            Instruction::MerkleGet($pattern) => $expression,
-            Instruction::MerkleSet($pattern) => $expression,
         }
     };
 }

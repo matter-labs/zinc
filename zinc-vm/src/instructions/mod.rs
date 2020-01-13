@@ -8,5 +8,5 @@ pub mod memory;
 pub mod assert;
 pub mod cast;
 pub mod dbg;
-pub mod merkle;
 pub mod noop;
+pub mod call_builtin;

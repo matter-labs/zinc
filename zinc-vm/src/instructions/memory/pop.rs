@@ -20,7 +20,6 @@ where
 mod test {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-    use num_bigint::BigInt;
     use zinc_bytecode::*;
 
     #[test]
