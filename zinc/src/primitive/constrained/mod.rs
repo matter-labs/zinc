@@ -76,6 +76,14 @@ impl<E: Engine> FrPrimitive<E> {
 
         Ok(num)
     }
+
+    fn to_untyped(&self) -> Self {
+        Self {
+            value: self.value,
+            variable: self.variable,
+            data_type: None
+        }
+    }
 }
 
 impl<E: Engine> Display for FrPrimitive<E> {
@@ -177,7 +185,10 @@ where
         index: FrPrimitive<E>,
         array_length: usize,
     ) -> Result<Vec<FrPrimitive<E>>, RuntimeError> {
-        let length = self.constant_bigint(&array_length.into())?;
+        let length = match index.data_type {
+            None => self.constant_bigint(&array_length.into())?,
+            Some(data_type) => self.constant_bigint_typed(&array_length.into(), data_type)?,
+        };
         let index_lt_length = self.lt(index.clone(), length)?;
         self.assert(index_lt_length)?;
 
@@ -688,7 +699,8 @@ where
         left: FrPrimitive<E>,
         right: FrPrimitive<E>,
     ) -> Result<FrPrimitive<E>, RuntimeError> {
-        let one = self.one_typed(right.data_type)?;
+        let right = right.to_untyped();
+        let one = Self::one();
         let right_minus_one = self.sub(right, one)?;
         self.le(left, right_minus_one)
     }
@@ -698,6 +710,9 @@ where
         left: FrPrimitive<E>,
         right: FrPrimitive<E>,
     ) -> Result<FrPrimitive<E>, RuntimeError> {
+        let left = left.to_untyped();
+        let right = right.to_untyped();
+
         let diff = self.sub(right, left)?;
 
         let mut cs = self.cs_namespace();
