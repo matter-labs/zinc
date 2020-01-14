@@ -26,7 +26,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 23),
         ElementError::Value(ValueError::OperatorEqualsFirstOperandExpectedPrimitiveType(
-            Type::new_array(Type::new_integer_unsigned(8), 3).to_string(),
+            Type::new_array(Type::new_integer_unsigned(crate::BITLENGTH_BYTE), 3).to_string(),
         )),
     )));
 

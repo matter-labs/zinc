@@ -12,6 +12,7 @@ use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Expression;
+use crate::syntax::ExpressionAuxiliary;
 use crate::syntax::ExpressionBuilder;
 use crate::syntax::ExpressionOperator;
 use crate::syntax::TerminalOperandParser;
@@ -45,10 +46,7 @@ impl Parser {
         loop {
             match self.state {
                 State::Terminal => {
-                    match match initial.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
                         token => {
                             let (expression, next) = TerminalOperandParser::default()
                                 .parse(stream.clone(), Some(token))?;
@@ -63,10 +61,7 @@ impl Parser {
                     }
                 }
                 State::DoubleColonOrExclamationMarkOrEnd => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::DoubleColon),
                             location,
@@ -79,7 +74,7 @@ impl Parser {
                             location,
                         } => {
                             self.builder
-                                .push_operator(location, ExpressionOperator::Instruction);
+                                .push_auxiliary(location, ExpressionAuxiliary::Instruction);
                             return Ok((self.builder.finish(), None));
                         }
                         token => return Ok((self.builder.finish(), Some(token))),

@@ -91,10 +91,7 @@ impl Parser {
                     self.state = State::AssignmentOperator;
                 }
                 State::AssignmentOperator => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Equals),
                             location,

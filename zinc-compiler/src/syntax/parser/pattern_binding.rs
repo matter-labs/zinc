@@ -46,67 +46,64 @@ impl Parser {
     ) -> Result<(BindingPattern, Option<Token>), Error> {
         loop {
             match self.state {
-                State::KeywordMutOrIdentifierOrWildcard => match match initial.take() {
-                    Some(token) => token,
-                    None => stream.borrow_mut().next()?,
-                } {
-                    Token {
-                        lexeme: Lexeme::Keyword(Keyword::Mut),
-                        location,
-                    } => {
-                        self.builder.set_location(location);
-                        self.builder.set_mutable();
-                        self.state = State::IdentifierOrWildcard;
-                    }
-                    token => {
-                        self.builder.set_location(token.location);
-                        self.next = Some(token);
-                        self.state = State::IdentifierOrWildcard;
-                    }
-                },
-                State::IdentifierOrWildcard => match match self.next.take() {
-                    Some(token) => token,
-                    None => stream.borrow_mut().next()?,
-                } {
-                    Token {
-                        lexeme: Lexeme::Identifier(identifier),
-                        location,
-                    } => {
-                        self.builder
-                            .set_binding(Identifier::new(location, identifier.name));
-                        self.state = State::Colon;
-                    }
-                    Token {
-                        lexeme: Lexeme::Symbol(Symbol::Underscore),
-                        ..
-                    } => {
-                        self.builder.set_wildcard();
-                        self.state = State::Colon;
-                    }
-                    Token { lexeme, location } => {
-                        return Err(Error::Syntax(SyntaxError::Expected(
+                State::KeywordMutOrIdentifierOrWildcard => {
+                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                        Token {
+                            lexeme: Lexeme::Keyword(Keyword::Mut),
                             location,
-                            vec!["{identifier}", "_"],
-                            lexeme,
-                        )))
+                        } => {
+                            self.builder.set_location(location);
+                            self.builder.set_mutable();
+                            self.state = State::IdentifierOrWildcard;
+                        }
+                        token => {
+                            self.builder.set_location(token.location);
+                            self.next = Some(token);
+                            self.state = State::IdentifierOrWildcard;
+                        }
                     }
-                },
-                State::Colon => match match self.next.take() {
-                    Some(token) => token,
-                    None => stream.borrow_mut().next()?,
-                } {
-                    Token {
-                        lexeme: Lexeme::Symbol(Symbol::Colon),
-                        ..
-                    } => self.state = State::Type,
-                    Token { lexeme, location } => {
-                        return Err(Error::Syntax(SyntaxError::Expected(
+                }
+                State::IdentifierOrWildcard => {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                        Token {
+                            lexeme: Lexeme::Identifier(identifier),
                             location,
-                            vec![":"],
-                            lexeme,
-                        )))
+                        } => {
+                            self.builder
+                                .set_binding(Identifier::new(location, identifier.name));
+                            self.state = State::Colon;
+                        }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::Underscore),
+                            ..
+                        } => {
+                            self.builder.set_wildcard();
+                            self.state = State::Colon;
+                        }
+                        Token { lexeme, location } => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                vec!["{identifier}", "_"],
+                                lexeme,
+                            )))
+                        }
                     }
-                },
+                }
+                State::Colon => {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::Colon),
+                            ..
+                        } => self.state = State::Type,
+                        Token { lexeme, location } => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                vec![":"],
+                                lexeme,
+                            )))
+                        }
+                    }
+                }
                 State::Type => {
                     let (r#type, next) = TypeParser::default().parse(stream, self.next.take())?;
                     self.builder.set_type(r#type);

@@ -8,6 +8,7 @@ use num_bigint::BigInt;
 
 use zinc_bytecode::Add;
 use zinc_bytecode::Call;
+use zinc_bytecode::Cast;
 use zinc_bytecode::Exit;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::LoadByIndex;
@@ -87,15 +88,16 @@ fn main() {
             false,
             crate::BITLENGTH_BYTE,
         )),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(0),
             false,
-            crate::BITLENGTH_BYTE,
+            crate::BITLENGTH_FIELD,
         )),
         Instruction::PushConst(PushConst::new(
             BigInt::from(2),
             false,
-            crate::BITLENGTH_BYTE,
+            crate::BITLENGTH_FIELD,
         )),
         Instruction::Add(Add),
         Instruction::Mul(Mul),
@@ -104,42 +106,43 @@ fn main() {
             false,
             crate::BITLENGTH_BYTE,
         )),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(1),
             false,
-            crate::BITLENGTH_BYTE,
+            crate::BITLENGTH_FIELD,
         )),
         Instruction::Mul(Mul),
         Instruction::Add(Add),
+        Instruction::LoadByIndex(LoadByIndex::new(0, 4)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(0),
             false,
-            crate::BITLENGTH_BYTE,
+            crate::BITLENGTH_FIELD,
         )),
         Instruction::PushConst(PushConst::new(
             BigInt::from(2),
             false,
-            crate::BITLENGTH_BYTE,
+            crate::BITLENGTH_FIELD,
         )),
         Instruction::Add(Add),
         Instruction::PushConst(PushConst::new(
             BigInt::from(1),
             false,
-            crate::BITLENGTH_BYTE,
+            crate::BITLENGTH_FIELD,
         )),
         Instruction::Add(Add),
         Instruction::LoadByIndex(LoadByIndex::new(4, 4)),
-        Instruction::LoadByIndex(LoadByIndex::new(0, 4)),
         Instruction::Add(Add),
         Instruction::PushConst(PushConst::new(
             BigInt::from(0),
             false,
-            crate::BITLENGTH_BYTE,
+            crate::BITLENGTH_FIELD,
         )),
         Instruction::PushConst(PushConst::new(
             BigInt::from(0),
             false,
-            crate::BITLENGTH_BYTE,
+            crate::BITLENGTH_FIELD,
         )),
         Instruction::Add(Add),
         Instruction::LoadByIndex(LoadByIndex::new(8, 1)),

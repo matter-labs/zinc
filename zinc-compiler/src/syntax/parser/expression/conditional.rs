@@ -53,10 +53,7 @@ impl Parser {
         loop {
             match self.state {
                 State::KeywordIf => {
-                    match match initial.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::If),
                             location,
@@ -87,10 +84,7 @@ impl Parser {
                     self.state = State::ElseKeywordOrEnd;
                 }
                 State::ElseKeywordOrEnd => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Else),
                             ..
@@ -99,10 +93,7 @@ impl Parser {
                     }
                 }
                 State::KeywordIfOrElseBlock => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         token @ Token {
                             lexeme: Lexeme::Keyword(Keyword::If),
                             ..

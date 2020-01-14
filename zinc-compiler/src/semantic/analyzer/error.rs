@@ -5,11 +5,11 @@
 use failure::Fail;
 
 use crate::lexical::Location;
-use crate::semantic::ArrayError;
+use crate::semantic::ArrayValueError;
 use crate::semantic::ElementError;
 use crate::semantic::IntegerConstantError;
 use crate::semantic::ScopeError;
-use crate::semantic::StructureError;
+use crate::semantic::StructureValueError;
 
 #[derive(Debug, Fail, PartialEq)]
 #[allow(clippy::large_enum_variant)]
@@ -23,9 +23,9 @@ pub enum Error {
     InferenceConstant(Location, IntegerConstantError),
 
     #[fail(display = "{} array literal: {}", _0, _1)]
-    LiteralArray(Location, ArrayError),
+    LiteralArray(Location, ArrayValueError),
     #[fail(display = "{} structure literal: {}", _0, _1)]
-    LiteralStructure(Location, StructureError),
+    LiteralStructure(Location, StructureValueError),
 
     #[fail(display = "{} match expression must be exhausted", _0)]
     MatchNotExhausted(Location),

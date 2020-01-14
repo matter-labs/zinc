@@ -8,7 +8,9 @@ pub use self::error::Error;
 
 use std::fmt;
 
+use crate::semantic::IndexAccessResult;
 use crate::semantic::Type;
+use crate::semantic::Value;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Array {
@@ -32,6 +34,14 @@ impl Array {
 
     pub fn r#type(&self) -> Type {
         Type::new_array(self.r#type.to_owned(), self.size)
+    }
+
+    pub fn slice(&self) -> IndexAccessResult {
+        IndexAccessResult::new(
+            self.r#type.size(),
+            self.r#type().size(),
+            Some(Value::new(self.r#type.to_owned())),
+        )
     }
 
     pub fn extend(&mut self, r#type: Type, count: usize) -> Result<(), Error> {

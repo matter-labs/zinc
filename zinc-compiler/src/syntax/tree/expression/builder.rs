@@ -4,6 +4,7 @@
 
 use crate::lexical::Location;
 use crate::syntax::Expression;
+use crate::syntax::ExpressionAuxiliary;
 use crate::syntax::ExpressionElement;
 use crate::syntax::ExpressionObject;
 use crate::syntax::ExpressionOperand;
@@ -37,6 +38,13 @@ impl Builder {
         self.elements.push(ExpressionElement::new(
             location,
             ExpressionObject::Operator(operator),
+        ));
+    }
+
+    pub fn push_auxiliary(&mut self, location: Location, auxiliary: ExpressionAuxiliary) {
+        self.elements.push(ExpressionElement::new(
+            location,
+            ExpressionObject::Auxiliary(auxiliary),
         ));
     }
 
