@@ -25,6 +25,7 @@ use crate::semantic::ScopeItem;
 use crate::semantic::ScopeVariableItem;
 use crate::semantic::StatementAnalyzer;
 use crate::semantic::Structure;
+use crate::semantic::StructureValueError;
 use crate::semantic::TranslationHint;
 use crate::semantic::Tuple;
 use crate::semantic::Type;
@@ -55,8 +56,6 @@ pub struct Analyzer {
 
     is_next_call_instruction: bool,
     operands: Vec<StackElement>,
-
-    is_assignment: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -80,8 +79,6 @@ impl Analyzer {
 
             is_next_call_instruction: false,
             operands: Vec::with_capacity(Self::STACK_OPERAND_INITIAL_CAPACITY),
-
-            is_assignment: false,
         }
     }
 
@@ -101,8 +98,6 @@ impl Analyzer {
                     self.push_operand(StackElement::NotEvaluated(operand))
                 }
                 ExpressionObject::Operator(ExpressionOperator::Assignment) => {
-                    self.is_assignment = true;
-
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::PlaceExpression,
                         TranslationHint::ValueExpression,
@@ -137,8 +132,6 @@ impl Analyzer {
                         false,
                     );
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
-
-                    self.is_assignment = false;
                 }
                 ExpressionObject::Operator(ExpressionOperator::Range) => unimplemented!(),
                 ExpressionObject::Operator(ExpressionOperator::RangeInclusive) => unimplemented!(),
@@ -384,6 +377,7 @@ impl Analyzer {
                 ExpressionObject::Operator(ExpressionOperator::Reference) => unimplemented!(),
                 ExpressionObject::Operator(ExpressionOperator::Dereference) => unimplemented!(),
                 ExpressionObject::Operator(ExpressionOperator::Index) => {
+                    let offset_position = self.bytecode.borrow().next_position();
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::PlaceExpression,
                         TranslationHint::ValueExpression,
@@ -440,6 +434,18 @@ impl Analyzer {
                             self.push_operand(StackElement::Evaluated(element));
                         }
                         Element::Value(_) | Element::Constant(_) => {
+                            self.bytecode.borrow_mut().insert_instruction(
+                                offset_position + 1,
+                                Instruction::PushConst(zinc_bytecode::PushConst::new(
+                                    BigInt::from(result.element_size),
+                                    false,
+                                    crate::BITLENGTH_FIELD,
+                                )),
+                            );
+                            self.bytecode.borrow_mut().insert_instruction(
+                                offset_position + 2,
+                                Instruction::Mul(zinc_bytecode::Mul),
+                            );
                             self.bytecode
                                 .borrow_mut()
                                 .push_instruction(Instruction::Slice(zinc_bytecode::Slice::new(
@@ -456,6 +462,7 @@ impl Analyzer {
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Field) => {
+                    let offset_position = self.bytecode.borrow().next_position();
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::PlaceExpression,
                         TranslationHint::CompoundTypeMember,
@@ -496,6 +503,14 @@ impl Analyzer {
                             self.push_operand(StackElement::Evaluated(element));
                         }
                         Element::Value(_) | Element::Constant(_) => {
+                            self.bytecode.borrow_mut().insert_instruction(
+                                offset_position,
+                                Instruction::PushConst(zinc_bytecode::PushConst::new(
+                                    BigInt::from(result.offset),
+                                    false,
+                                    crate::BITLENGTH_FIELD,
+                                )),
+                            );
                             self.bytecode
                                 .borrow_mut()
                                 .push_instruction(Instruction::Slice(zinc_bytecode::Slice::new(
@@ -1087,21 +1102,36 @@ impl Analyzer {
 
     fn structure_expression(&mut self, structure: StructureExpression) -> Result<Element, Error> {
         let path_location = structure.path.location;
-        let identifier = match self.expression(structure.path, TranslationHint::TypeExpression)? {
-            Element::Type(Type::Structure { identifier, .. }) => identifier,
-            element => {
-                return Err(Error::TypeAliasDoesNotPointToStructure(
-                    path_location,
-                    element.to_string(),
-                ))
-            }
-        };
+        let (structure_identifier, structure_fields) =
+            match self.expression(structure.path, TranslationHint::TypeExpression)? {
+                Element::Type(Type::Structure {
+                    identifier, fields, ..
+                }) => (identifier, fields),
+                element => {
+                    return Err(Error::TypeAliasDoesNotPointToStructure(
+                        path_location,
+                        element.to_string(),
+                    ))
+                }
+            };
 
-        let mut result = Structure::new(identifier, Vec::with_capacity(structure.fields.len()));
+        let mut result = Structure::new(
+            structure_identifier.clone(),
+            Vec::with_capacity(structure.fields.len()),
+        );
         for (identifier, expression) in structure.fields.into_iter() {
             let location = identifier.location;
             let element = self.expression(expression, TranslationHint::ValueExpression)?;
             let element_type = Type::from_element(&element, self.scope())?;
+            let does_field_exist = structure_fields.iter().any(|(field_name, field_type)| {
+                field_name == &identifier.name && field_type == &element_type
+            });
+            if !does_field_exist {
+                return Err(Error::LiteralStructure(
+                    location,
+                    StructureValueError::FieldDoesNotExist(identifier.name, structure_identifier),
+                ));
+            }
             result
                 .push(identifier.name, element_type)
                 .map_err(|error| Error::LiteralStructure(location, error))?;
@@ -1198,7 +1228,7 @@ impl Analyzer {
         translation_hint: TranslationHint,
     ) -> Result<Element, Error> {
         match translation_hint {
-            TranslationHint::ValueExpression if !self.is_assignment => {
+            TranslationHint::ValueExpression => {
                 self.bytecode.borrow_mut().push_instruction_load(
                     place.address,
                     place.r#type.size(),

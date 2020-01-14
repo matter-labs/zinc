@@ -33,10 +33,7 @@ impl Tuple {
         let total_size = self.r#type().size();
 
         if index >= self.element_types.len() {
-            return Err(Error::FieldDoesNotExistInTuple(
-                index,
-                self.r#type().to_string(),
-            ));
+            return Err(Error::FieldDoesNotExist(index, self.r#type().to_string()));
         }
 
         let mut tuple_index = 0;

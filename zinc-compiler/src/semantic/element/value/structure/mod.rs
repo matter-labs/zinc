@@ -39,7 +39,7 @@ impl Structure {
             offset += r#type.size();
         }
 
-        Err(Error::FieldDoesNotExistInStructure(
+        Err(Error::FieldDoesNotExist(
             field_name.to_owned(),
             self.identifier.to_string(),
         ))
@@ -51,7 +51,7 @@ impl Structure {
 
     pub fn push(&mut self, key: String, r#type: Type) -> Result<(), Error> {
         if self.fields.iter().any(|field| field.0 == key) {
-            return Err(Error::FieldAlreadyExists(key));
+            return Err(Error::FieldAlreadyExists(key, self.identifier.to_owned()));
         }
 
         self.fields.push((key, r#type));

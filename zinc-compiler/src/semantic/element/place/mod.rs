@@ -80,8 +80,8 @@ impl Place {
         match self.r#type {
             Type::Tuple { ref types } => {
                 if field_index >= types.len() {
-                    return Err(Error::FieldDoesNotExistInStructure(
-                        field_index.to_string(),
+                    return Err(Error::FieldDoesNotExistInTuple(
+                        field_index,
                         self.r#type.to_string(),
                     ));
                 }
@@ -99,7 +99,7 @@ impl Place {
                     None,
                 ))
             }
-            ref r#type => Err(Error::OperatorFieldFirstOperandExpectedTupleOrStructure(
+            ref r#type => Err(Error::OperatorFieldFirstOperandExpectedTuple(
                 r#type.to_string(),
             )),
         }
@@ -134,7 +134,7 @@ impl Place {
                     identifier.to_string(),
                 ))
             }
-            ref r#type => Err(Error::OperatorFieldFirstOperandExpectedTupleOrStructure(
+            ref r#type => Err(Error::OperatorFieldFirstOperandExpectedStructure(
                 r#type.to_string(),
             )),
         }

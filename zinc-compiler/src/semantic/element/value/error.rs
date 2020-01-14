@@ -200,22 +200,22 @@ pub enum Error {
         display = "'[]' operator expected an array as the first operand, but got '{}'",
         _0
     )]
-    OperatorIndexFirstOperandExpectedArray(String), // TODO
+    OperatorIndexFirstOperandExpectedArray(String),
     #[fail(
         display = "'[]' operator expected an integer as the second operand, but got '{}'",
         _0
     )]
-    OperatorIndexSecondOperandExpectedInteger(String), // TODO
+    OperatorIndexSecondOperandExpectedInteger(String),
     #[fail(
         display = "'.' operator expected a tuple as the first operand, but got '{}'",
         _0
     )]
-    OperatorFieldFirstOperandExpectedTuple(String), // TODO
+    OperatorFieldFirstOperandExpectedTuple(String),
     #[fail(
         display = "'.' operator expected a structure as the first operand, but got '{}'",
         _0
     )]
-    OperatorFieldFirstOperandExpectedStructure(String), // TODO
+    OperatorFieldFirstOperandExpectedStructure(String),
 
     #[fail(display = "{}", _0)]
     Integer(IntegerValueError),

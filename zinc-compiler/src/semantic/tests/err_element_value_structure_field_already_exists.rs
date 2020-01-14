@@ -28,7 +28,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::LiteralStructure(
         Location::new(9, 9),
-        StructureValueError::FieldAlreadyExists("a".to_owned()),
+        StructureValueError::FieldAlreadyExists("a".to_owned(), "Data".to_owned()),
     )));
 
     let result = super::get_binary_result(input);

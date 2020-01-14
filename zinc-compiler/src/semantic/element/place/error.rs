@@ -10,19 +10,24 @@ pub enum Error {
         display = "'[]' operator expected an array as the first operand, but got '{}'",
         _0
     )]
-    OperatorIndexFirstOperandExpectedArray(String), // TODO
+    OperatorIndexFirstOperandExpectedArray(String),
     #[fail(
         display = "'[]' operator expected an integer as the second operand, but got '{}'",
         _0
     )]
-    OperatorIndexSecondOperandExpectedInteger(String), // TODO
+    OperatorIndexSecondOperandExpectedInteger(String),
     #[fail(
-        display = "'.' operator expected a tuple or structure as the first operand, but got '{}'",
+        display = "'.' operator expected a tuple as the first operand, but got '{}'",
         _0
     )]
-    OperatorFieldFirstOperandExpectedTupleOrStructure(String), // TODO
+    OperatorFieldFirstOperandExpectedTuple(String),
+    #[fail(
+        display = "'.' operator expected a structure as the first operand, but got '{}'",
+        _0
+    )]
+    OperatorFieldFirstOperandExpectedStructure(String),
     #[fail(display = "tuple field {} does not exist in '{}'", _0, _1)]
-    FieldDoesNotExistInTuple(usize, String), // TODO
+    FieldDoesNotExistInTuple(usize, String),
     #[fail(display = "structure field '{}' does not exist in '{}'", _0, _1)]
-    FieldDoesNotExistInStructure(String, String), // TODO
+    FieldDoesNotExistInStructure(String, String),
 }

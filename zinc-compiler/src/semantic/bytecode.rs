@@ -56,6 +56,10 @@ impl Bytecode {
         self.instructions.push(instruction)
     }
 
+    pub fn insert_instruction(&mut self, index: usize, instruction: Instruction) {
+        self.instructions.insert(index, instruction)
+    }
+
     pub fn push_instruction_store(
         &mut self,
         address: usize,
@@ -152,6 +156,10 @@ impl Bytecode {
             .address_stack
             .pop()
             .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_CALL_STACK_POINTER);
+    }
+
+    pub fn next_position(&self) -> usize {
+        self.instructions.len()
     }
 
     pub fn into_instructions(self) -> Vec<Instruction> {
