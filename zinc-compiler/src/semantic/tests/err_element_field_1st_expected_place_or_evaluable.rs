@@ -20,13 +20,13 @@ use crate::Error;
 fn test() {
     let input = r#"
 fn main() {
-    5[42];
+    5.data;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 6),
-        ElementError::OperatorIndexFirstOperandExpectedPlace(
+        ElementError::OperatorFieldFirstOperandExpectedPlaceOrEvaluable(
             Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,

@@ -19,11 +19,13 @@ pub use self::bytecode::Bytecode;
 pub use self::caster::Caster;
 pub use self::caster::Error as CasterError;
 pub use self::element::Array;
-pub use self::element::ArrayError;
+pub use self::element::ArrayValueError;
 pub use self::element::Constant;
 pub use self::element::ConstantError;
 pub use self::element::Element;
 pub use self::element::Error as ElementError;
+pub use self::element::FieldAccessResult;
+pub use self::element::IndexAccessResult;
 pub use self::element::IntegerConstant;
 pub use self::element::IntegerConstantError;
 pub use self::element::IntegerValue;
@@ -32,8 +34,9 @@ pub use self::element::Path;
 pub use self::element::Place;
 pub use self::element::PlaceError;
 pub use self::element::Structure;
-pub use self::element::StructureError;
+pub use self::element::StructureValueError;
 pub use self::element::Tuple;
+pub use self::element::TupleValueError;
 pub use self::element::Type;
 pub use self::element::Value;
 pub use self::element::ValueError;
@@ -58,6 +61,8 @@ static PANIC_THERE_MUST_ALWAYS_BE_A_CALL_STACK_POINTER: &str =
     "Call stack balance is kept by the evaluation logic";
 static PANIC_THERE_MUST_ALWAYS_BE_THE_LAST_PATH_ELEMENT: &str =
     "Path last element existence is ensured by the evaluation logic";
+static PANIC_THERE_MUST_ALWAYS_BE_A_SLICED_VALUE: &str =
+    "Sliced value existence is ensured by the evaluation logic";
 
 static PANIC_VALUE_CANNOT_BE_CREATED_FROM: &str = "Impossible to create a value from type: ";
 static PANIC_SELF_ALIAS_DECLARATION: &str = "'Self' alias declaration is always valid";

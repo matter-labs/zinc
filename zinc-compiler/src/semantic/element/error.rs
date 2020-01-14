@@ -205,10 +205,10 @@ pub enum Error {
     OperatorNotExpectedEvaluable(String),
 
     #[fail(
-        display = "'[]' operator expected a path expression as the first operand, but got '{}'",
+        display = "'[]' operator expected a place or evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorIndexFirstOperandExpectedPlace(String),
+    OperatorIndexFirstOperandExpectedPlaceOrEvaluable(String),
     #[fail(
         display = "'[]' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
@@ -216,10 +216,10 @@ pub enum Error {
     OperatorIndexSecondOperandExpectedEvaluable(String),
 
     #[fail(
-        display = "'.' operator expected a path expression as the first operand, but got '{}'",
+        display = "'.' operator expected a place or evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorFieldFirstOperandExpectedPlace(String),
+    OperatorFieldFirstOperandExpectedPlaceOrEvaluable(String),
     #[fail(
         display = "'.' operator expected a member identifier as the second operand, but got '{}'",
         _0

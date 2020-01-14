@@ -24,10 +24,7 @@ impl Parser {
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
     ) -> Result<(ImplementationLocalStatement, Option<Token>), Error> {
-        match match initial.take() {
-            Some(token) => token,
-            None => stream.borrow_mut().next()?,
-        } {
+        match crate::syntax::take_or_next(initial.take(), stream.clone())? {
             token @ Token {
                 lexeme: Lexeme::Keyword(Keyword::Const),
                 ..

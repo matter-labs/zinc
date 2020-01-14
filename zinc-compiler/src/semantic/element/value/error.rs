@@ -6,6 +6,8 @@ use failure::Fail;
 
 use crate::semantic::CasterError;
 use crate::semantic::IntegerValueError;
+use crate::semantic::StructureValueError;
+use crate::semantic::TupleValueError;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
@@ -193,14 +195,34 @@ pub enum Error {
         _0
     )]
     OperatorNotExpectedBoolean(String),
+
     #[fail(
-        display = "unary '*' operator expected a reference as the operand, but got '{}'",
+        display = "'[]' operator expected an array as the first operand, but got '{}'",
         _0
     )]
-    OperatorDereferenceExpectedReference(String),
+    OperatorIndexFirstOperandExpectedArray(String), // TODO
+    #[fail(
+        display = "'[]' operator expected an integer as the second operand, but got '{}'",
+        _0
+    )]
+    OperatorIndexSecondOperandExpectedInteger(String), // TODO
+    #[fail(
+        display = "'.' operator expected a tuple as the first operand, but got '{}'",
+        _0
+    )]
+    OperatorFieldFirstOperandExpectedTuple(String), // TODO
+    #[fail(
+        display = "'.' operator expected a structure as the first operand, but got '{}'",
+        _0
+    )]
+    OperatorFieldFirstOperandExpectedStructure(String), // TODO
 
     #[fail(display = "{}", _0)]
     Integer(IntegerValueError),
+    #[fail(display = "{}", _0)]
+    Tuple(TupleValueError),
+    #[fail(display = "{}", _0)]
+    Structure(StructureValueError),
     #[fail(display = "{}", _0)]
     Casting(CasterError),
 }

@@ -2,6 +2,7 @@
 //! The semantic analyzer element.
 //!
 
+mod access;
 mod constant;
 mod error;
 mod path;
@@ -9,6 +10,8 @@ mod place;
 mod r#type;
 mod value;
 
+pub use self::access::FieldResult as FieldAccessResult;
+pub use self::access::IndexResult as IndexAccessResult;
 pub use self::constant::Constant;
 pub use self::constant::Error as ConstantError;
 pub use self::constant::Integer as IntegerConstant;
@@ -19,13 +22,14 @@ pub use self::place::Error as PlaceError;
 pub use self::place::Place;
 pub use self::r#type::Type;
 pub use self::value::Array;
-pub use self::value::ArrayError;
+pub use self::value::ArrayError as ArrayValueError;
 pub use self::value::Error as ValueError;
 pub use self::value::Integer as IntegerValue;
 pub use self::value::IntegerError as IntegerValueError;
 pub use self::value::Structure;
-pub use self::value::StructureError;
+pub use self::value::StructureError as StructureValueError;
 pub use self::value::Tuple;
+pub use self::value::TupleError as TupleValueError;
 pub use self::value::Value;
 
 use std::fmt;
@@ -533,22 +537,29 @@ impl Element {
         }
     }
 
-    pub fn index(&mut self, other: &Self) -> Result<usize, Error> {
+    pub fn index(&mut self, other: &Self) -> Result<IndexAccessResult, Error> {
         match self {
             Self::Place(place) => match other {
-                element @ Self::Value(_) => place.index_array(element).map_err(Error::Place),
-                element @ Self::Constant(_) => place.index_array(element).map_err(Error::Place),
+                element @ Self::Value(_) => place.index(element).map_err(Error::Place),
+                element @ Self::Constant(_) => place.index(element).map_err(Error::Place),
                 element => Err(Error::OperatorIndexSecondOperandExpectedEvaluable(
                     element.to_string(),
                 )),
             },
-            element => Err(Error::OperatorIndexFirstOperandExpectedPlace(
+            Self::Value(value) => match other {
+                Self::Value(index) => value.index_value(index).map_err(Error::Value),
+                Self::Constant(index) => value.index_constant(index).map_err(Error::Value),
+                element => Err(Error::OperatorIndexSecondOperandExpectedEvaluable(
+                    element.to_string(),
+                )),
+            },
+            element => Err(Error::OperatorIndexFirstOperandExpectedPlaceOrEvaluable(
                 element.to_string(),
             )),
         }
     }
 
-    pub fn field(&mut self, other: &Self) -> Result<usize, Error> {
+    pub fn field(&mut self, other: &Self) -> Result<FieldAccessResult, Error> {
         match self {
             Self::Place(place) => match other {
                 Self::MemberInteger(member) => place.field_tuple(*member).map_err(Error::Place),
@@ -559,7 +570,16 @@ impl Element {
                     element.to_string(),
                 )),
             },
-            element => Err(Error::OperatorFieldFirstOperandExpectedPlace(
+            Self::Value(value) => match other {
+                Self::MemberInteger(member) => value.field_tuple(*member).map_err(Error::Value),
+                Self::MemberString(member) => {
+                    value.field_structure(&member.name).map_err(Error::Value)
+                }
+                element => Err(Error::OperatorFieldSecondOperandExpectedMember(
+                    element.to_string(),
+                )),
+            },
+            element => Err(Error::OperatorFieldFirstOperandExpectedPlaceOrEvaluable(
                 element.to_string(),
             )),
         }

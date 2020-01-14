@@ -35,6 +35,7 @@ use crate::syntax::BlockExpression;
 use crate::syntax::BooleanLiteral;
 use crate::syntax::ConditionalExpression;
 use crate::syntax::Expression;
+use crate::syntax::ExpressionAuxiliary;
 use crate::syntax::ExpressionObject;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
@@ -350,8 +351,7 @@ impl Analyzer {
                         self.bytecode
                             .borrow_mut()
                             .push_instruction(Instruction::Cast(zinc_bytecode::Cast::new(
-                                is_signed,
-                                bitlength as u8,
+                                is_signed, bitlength,
                             )));
                     }
 
@@ -394,19 +394,34 @@ impl Analyzer {
                         _ => false,
                     };
 
-                    let element_size = operand_1
+                    let result = operand_1
                         .index(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
 
                     match operand_1 {
-                        Element::Place(_) => {
+                        element @ Element::Place(_) => {
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::Cast(zinc_bytecode::Cast::new(
+                                    false,
+                                    crate::BITLENGTH_FIELD,
+                                )));
+                            if !is_place_indexed {
+                                self.bytecode.borrow_mut().push_instruction(
+                                    Instruction::PushConst(zinc_bytecode::PushConst::new(
+                                        BigInt::zero(),
+                                        false,
+                                        crate::BITLENGTH_FIELD,
+                                    )),
+                                );
+                            }
                             self.bytecode
                                 .borrow_mut()
                                 .push_instruction(Instruction::PushConst(
                                     zinc_bytecode::PushConst::new(
-                                        BigInt::from(element_size),
+                                        BigInt::from(result.element_size),
                                         false,
-                                        crate::BITLENGTH_BYTE,
+                                        crate::BITLENGTH_FIELD,
                                     ),
                                 ));
                             if !is_place_indexed {
@@ -422,18 +437,23 @@ impl Analyzer {
                                     .borrow_mut()
                                     .push_instruction(Instruction::Add(zinc_bytecode::Add));
                             }
+                            self.push_operand(StackElement::Evaluated(element));
                         }
                         Element::Value(_) | Element::Constant(_) => {
                             self.bytecode
                                 .borrow_mut()
                                 .push_instruction(Instruction::Slice(zinc_bytecode::Slice::new(
-                                    0, 0, 0,
+                                    result.total_size,
+                                    result.element_size,
                                 )));
+                            self.push_operand(StackElement::Evaluated(Element::Value(
+                                result.sliced_value.expect(
+                                    crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_SLICED_VALUE,
+                                ),
+                            )));
                         }
                         _ => {}
                     }
-
-                    self.push_operand(StackElement::Evaluated(operand_1));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Field) => {
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
@@ -441,39 +461,55 @@ impl Analyzer {
                         TranslationHint::CompoundTypeMember,
                     )?;
 
-                    let offset = operand_1
+                    let is_place_indexed = match operand_1 {
+                        Element::Place(ref place) => place.is_indexed,
+                        _ => false,
+                    };
+
+                    let result = operand_1
                         .field(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
 
                     match operand_1 {
-                        Element::Place(_) => {
+                        element @ Element::Place(_) => {
+                            if !is_place_indexed {
+                                self.bytecode.borrow_mut().push_instruction(
+                                    Instruction::PushConst(zinc_bytecode::PushConst::new(
+                                        BigInt::zero(),
+                                        false,
+                                        crate::BITLENGTH_FIELD,
+                                    )),
+                                );
+                            }
                             self.bytecode
                                 .borrow_mut()
                                 .push_instruction(Instruction::PushConst(
                                     zinc_bytecode::PushConst::new(
-                                        BigInt::from(offset),
+                                        BigInt::from(result.offset),
                                         false,
-                                        crate::BITLENGTH_BYTE,
+                                        crate::BITLENGTH_FIELD,
                                     ),
                                 ));
                             self.bytecode
                                 .borrow_mut()
                                 .push_instruction(Instruction::Add(zinc_bytecode::Add));
+                            self.push_operand(StackElement::Evaluated(element));
                         }
                         Element::Value(_) | Element::Constant(_) => {
                             self.bytecode
                                 .borrow_mut()
                                 .push_instruction(Instruction::Slice(zinc_bytecode::Slice::new(
-                                    0, 0, 0,
+                                    result.total_size,
+                                    result.element_size,
                                 )));
+                            self.push_operand(StackElement::Evaluated(Element::Value(
+                                result.sliced_value.expect(
+                                    crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_SLICED_VALUE,
+                                ),
+                            )));
                         }
                         _ => {}
                     }
-
-                    self.push_operand(StackElement::Evaluated(operand_1));
-                }
-                ExpressionObject::Operator(ExpressionOperator::Instruction) => {
-                    self.is_next_call_instruction = true;
                 }
                 ExpressionObject::Operator(ExpressionOperator::Call) => {
                     // check if the call is a direct instruction call like 'dbg' or 'assert'
@@ -627,6 +663,15 @@ impl Analyzer {
                         .path(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.push_operand(StackElement::Evaluated(operand_1));
+                }
+                ExpressionObject::Auxiliary(ExpressionAuxiliary::Instruction) => {
+                    self.is_next_call_instruction = true;
+                }
+                ExpressionObject::Auxiliary(ExpressionAuxiliary::PlaceEnd) => {
+                    let element = self
+                        .evaluate_operand(TranslationHint::ValueExpression)
+                        .map(StackElement::Evaluated)?;
+                    self.push_operand(element);
                 }
             }
         }
@@ -1122,46 +1167,20 @@ impl Analyzer {
 
             TranslationHint::PathExpression => Ok(Element::Path(path.to_owned())),
             TranslationHint::PlaceExpression => match Scope::resolve_path(self.scope(), path)? {
-                ScopeItem::Variable(variable) => {
-                    if !self.is_assignment {
-                        self.bytecode
-                            .borrow_mut()
-                            .push_instruction(Instruction::PushConst(
-                                zinc_bytecode::PushConst::new(
-                                    BigInt::zero(),
-                                    false,
-                                    crate::BITLENGTH_BYTE,
-                                ),
-                            ));
-                    }
-                    Ok(Element::Place(Place::new(
-                        location,
-                        variable.r#type,
-                        variable.address,
-                        variable.is_mutable,
-                        false,
-                    )))
-                }
-                ScopeItem::Static(r#static) => {
-                    if !self.is_assignment {
-                        self.bytecode
-                            .borrow_mut()
-                            .push_instruction(Instruction::PushConst(
-                                zinc_bytecode::PushConst::new(
-                                    BigInt::zero(),
-                                    false,
-                                    crate::BITLENGTH_BYTE,
-                                ),
-                            ));
-                    }
-                    Ok(Element::Place(Place::new(
-                        location,
-                        r#static.data.r#type(),
-                        r#static.address,
-                        false,
-                        true,
-                    )))
-                }
+                ScopeItem::Variable(variable) => Ok(Element::Place(Place::new(
+                    location,
+                    variable.r#type,
+                    variable.address,
+                    variable.is_mutable,
+                    false,
+                ))),
+                ScopeItem::Static(r#static) => Ok(Element::Place(Place::new(
+                    location,
+                    r#static.data.r#type(),
+                    r#static.address,
+                    false,
+                    true,
+                ))),
                 ScopeItem::Constant(constant) => Ok(Element::Constant(constant)),
                 ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
                 ScopeItem::Module(_) => Ok(Element::Module(path_last.name.to_owned())),
@@ -1170,6 +1189,25 @@ impl Analyzer {
                 location,
                 path_last.name.to_owned(),
             ))),
+        }
+    }
+
+    fn translate_place(
+        &mut self,
+        place: &Place,
+        translation_hint: TranslationHint,
+    ) -> Result<Element, Error> {
+        match translation_hint {
+            TranslationHint::ValueExpression if !self.is_assignment => {
+                self.bytecode.borrow_mut().push_instruction_load(
+                    place.address,
+                    place.r#type.size(),
+                    Some(place.total_size),
+                    place.is_global,
+                );
+                Ok(Element::Value(Value::new(place.r#type.to_owned())))
+            }
+            _ => Ok(Element::Place(place.to_owned())),
         }
     }
 
@@ -1203,18 +1241,7 @@ impl Analyzer {
             },
             StackElement::Evaluated(element) => match element {
                 Element::Path(path) => self.translate_path(&path, translation_hint),
-                Element::Place(place) => match translation_hint {
-                    TranslationHint::ValueExpression => {
-                        self.bytecode.borrow_mut().push_instruction_load(
-                            place.address,
-                            place.r#type.size(),
-                            Some(place.total_size),
-                            place.is_global,
-                        );
-                        Ok(Element::Value(Value::new(place.r#type)))
-                    }
-                    _ => Ok(Element::Place(place)),
-                },
+                Element::Place(place) => self.translate_place(&place, translation_hint),
                 element => Ok(element),
             },
         }

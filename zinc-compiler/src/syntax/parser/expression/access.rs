@@ -14,6 +14,7 @@ use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::Expression;
+use crate::syntax::ExpressionAuxiliary;
 use crate::syntax::ExpressionBuilder;
 use crate::syntax::ExpressionListParser;
 use crate::syntax::ExpressionOperand;
@@ -47,6 +48,7 @@ pub struct Parser {
     builder: ExpressionBuilder,
     operator: Option<(Location, ExpressionOperator)>,
     next: Option<Token>,
+    is_indexed: bool,
 }
 
 impl Parser {
@@ -66,15 +68,13 @@ impl Parser {
                     self.state = State::AccessOrCallOrEnd;
                 }
                 State::AccessOrCallOrEnd => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareLeft),
                             location,
                         } => {
                             self.operator = Some((location, ExpressionOperator::Index));
+                            self.is_indexed = true;
                             self.state = State::IndexExpression;
                         }
                         Token {
@@ -89,9 +89,23 @@ impl Parser {
                             location,
                         } => {
                             self.operator = Some((location, ExpressionOperator::Field));
+                            self.is_indexed = true;
                             self.state = State::FieldDescriptor;
                         }
-                        token => return Ok((self.builder.finish(), Some(token))),
+                        token => {
+                            match token.lexeme {
+                                Lexeme::Symbol(Symbol::Equals) => {}
+                                _ => {
+                                    if self.is_indexed {
+                                        self.builder.push_auxiliary(
+                                            token.location,
+                                            ExpressionAuxiliary::PlaceEnd,
+                                        )
+                                    }
+                                }
+                            }
+                            return Ok((self.builder.finish(), Some(token)));
+                        }
                     }
                 }
                 State::IndexExpression => {
@@ -105,10 +119,7 @@ impl Parser {
                     self.state = State::BracketSquareRight;
                 }
                 State::BracketSquareRight => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareRight),
                             ..
@@ -125,10 +136,7 @@ impl Parser {
                     }
                 }
                 State::FieldDescriptor => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme:
                                 Lexeme::Literal(lexical::Literal::Integer(
@@ -187,10 +195,7 @@ impl Parser {
                     self.state = State::ParenthesisRight;
                 }
                 State::ParenthesisRight => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                             ..
@@ -223,6 +228,7 @@ mod tests {
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Expression;
+    use crate::syntax::ExpressionAuxiliary;
     use crate::syntax::ExpressionElement;
     use crate::syntax::ExpressionObject;
     use crate::syntax::ExpressionOperand;
@@ -285,6 +291,10 @@ mod tests {
                     ExpressionElement::new(
                         Location::new(1, 13),
                         ExpressionObject::Operator(ExpressionOperator::Field),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 19),
+                        ExpressionObject::Auxiliary(ExpressionAuxiliary::PlaceEnd),
                     ),
                 ],
             ),

@@ -42,10 +42,7 @@ impl Parser {
         loop {
             match self.state {
                 State::BindingPattern => {
-                    match match initial.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
                         token @ Token {
                             lexeme: Lexeme::Keyword(Keyword::Mut),
                             ..
@@ -78,10 +75,7 @@ impl Parser {
                     self.state = State::CommaOrEnd;
                 }
                 State::CommaOrEnd => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
