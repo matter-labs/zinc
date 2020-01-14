@@ -3,8 +3,8 @@ use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
 
 #[derive(Debug, PartialEq, Default, Clone)]
 pub struct Cast {
-    signed: bool,
-    length: usize,
+    pub signed: bool,
+    pub length: usize,
 }
 
 impl Cast {

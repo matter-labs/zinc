@@ -1,17 +1,20 @@
 extern crate franklin_crypto;
 
-use crate::primitive::{Primitive, PrimitiveOperations};
-use crate::vm::VMInstruction;
+use crate::primitive::{Primitive, PrimitiveOperations, DataType};
+use crate::vm::{VMInstruction, InternalVM, Cell};
 use crate::vm::{RuntimeError, VirtualMachine};
 use zinc_bytecode::instructions::Cast;
 
-impl<E, O> VMInstruction<E, O> for Cast
+impl<P, O> VMInstruction<P, O> for Cast
 where
-    E: Primitive,
-    O: PrimitiveOperations<E>,
+    P: Primitive,
+    O: PrimitiveOperations<P>,
 {
-    fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        Ok(())
+    fn execute(&self, vm: &mut VirtualMachine<P, O>) -> Result<(), RuntimeError> {
+        let old_value = vm.pop()?.value()?;
+        let data_type = DataType { signed: self.signed, length: self.length };
+        let new_value = vm.operations().set_type(old_value, data_type)?;
+        vm.push(Cell::Value(new_value))
     }
 }
 
