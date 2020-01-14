@@ -10,16 +10,10 @@ export BUILD_MODE='debug'
 export RUST_LOG="${LIBRARY_NAME_LOG}=${LOG_LEVEL},${BINARY_NAME}=${LOG_LEVEL}"
 export RUST_BACKTRACE=1
 
-# *.zn
-export INPUT="${2}"
-
-# *.znb
-export OUTPUT="${3}"
-
 cargo fmt --package "${LIBRARY_NAME}"
 cargo build --package "${LIBRARY_NAME}"
 cargo test --package "${LIBRARY_NAME}"
 
-"./target/${BUILD_MODE}/${BINARY_NAME}" --input "${INPUT}" --output "${OUTPUT}"
+"./target/${BUILD_MODE}/${BINARY_NAME}" --output "${2}" "${@:3}"
 
-#cargo run --bin zinc -- -v exec --circuit "${OUTPUT}"
+cargo run --bin zinc -- -v exec --circuit "${2}"

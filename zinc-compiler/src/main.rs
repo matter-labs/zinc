@@ -1,11 +1,11 @@
 //!
-//! The parser binary.
+//! The Zinc compiler binary.
 //!
 
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::env;
-use std::fs;
+use std::ffi::OsString;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
@@ -26,21 +26,15 @@ use zinc_compiler::SyntaxTree;
 #[structopt(name = "znc", about = "The Zinc compiler")]
 struct Arguments {
     #[structopt(
-        short = "i",
-        long = "input",
-        name = "INPUT",
-        parse(from_os_str),
-        help = "Specifies the project directory path"
-    )]
-    input_path: PathBuf,
-    #[structopt(
         short = "o",
         long = "output",
         name = "OUTPUT",
         parse(from_os_str),
-        help = "Specifies the *.znb output file name"
+        help = "The *.znb output file name"
     )]
     output: PathBuf,
+    #[structopt(name = "INPUT", parse(from_os_str), help = "The *.zn input file names")]
+    inputs: Vec<PathBuf>,
 }
 
 #[derive(Debug, Fail)]
@@ -57,16 +51,12 @@ enum Error {
 
 #[derive(Debug, Fail)]
 enum InputError {
-    #[fail(display = "Directory: {}", _0)]
-    Directory(std::io::Error),
-    #[fail(display = "Directory entry: {}", _0)]
-    DirectoryEntry(std::io::Error),
-    #[fail(display = "File type: {}", _0)]
-    FileType(std::io::Error),
     #[fail(display = "File extension not found")]
-    FileExtension,
+    FileExtensionNotFound,
+    #[fail(display = "File extension is invalid")]
+    FileExtensionInvalid(OsString),
     #[fail(display = "File name not found")]
-    FileStem,
+    FileStemNotFound,
     #[fail(display = "Opening: {}", _0)]
     Opening(std::io::Error),
     #[fail(display = "Metadata: {}", _0)]
@@ -88,47 +78,28 @@ static ZINC_SOURCE_FILE_EXTENSION: &str = "zn";
 static PANIC_LAST_SHARED_REFERENCE: &str = "There are no other references at this point";
 
 fn main() -> Result<(), Error> {
-    if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "info");
-    }
-    env_logger::Builder::from_default_env()
-        .format_timestamp(None)
-        .init();
+    init_logger();
 
     let args: Arguments = Arguments::from_args();
 
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));
-    let directory = fs::read_dir(args.input_path)
-        .map_err(InputError::Directory)
-        .map_err(Error::Input)?;
 
     let mut modules = HashMap::<String, Rc<RefCell<Scope>>>::new();
     let mut binary_path = None;
 
-    for entry in directory.into_iter() {
-        let entry = entry
-            .map_err(InputError::DirectoryEntry)
-            .map_err(Error::Input)?;
-        let file_type = entry
-            .file_type()
-            .map_err(InputError::FileType)
-            .map_err(Error::Input)?;
-        if !file_type.is_file() {
-            continue;
-        }
-
-        let file_path = entry.path();
+    for file_path in args.inputs.into_iter() {
         let file_extension = file_path
             .extension()
-            .ok_or(InputError::FileExtension)
+            .ok_or(InputError::FileExtensionNotFound)
             .map_err(Error::Input)?;
         if file_extension != ZINC_SOURCE_FILE_EXTENSION {
-            continue;
+            return Err(InputError::FileExtensionInvalid(file_extension.to_owned()))
+                .map_err(Error::Input);
         }
 
         let file_stem = file_path
             .file_stem()
-            .ok_or(InputError::FileStem)
+            .ok_or(InputError::FileStemNotFound)
             .map_err(Error::Input)?;
         if file_stem == "main" {
             binary_path = Some(file_path);
@@ -192,4 +163,13 @@ fn path_to_syntax_tree(path: PathBuf) -> Result<SyntaxTree, Error> {
         log::error!("{}", error);
         Error::Compiler(error)
     })
+}
+
+fn init_logger() {
+    if env::var("RUST_LOG").is_err() {
+        env::set_var("RUST_LOG", "info");
+    }
+    env_logger::Builder::from_default_env()
+        .format_timestamp(None)
+        .init();
 }

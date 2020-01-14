@@ -1,5 +1,5 @@
 //!
-//! The parser error.
+//! The Zinc compiler error.
 //!
 
 use failure::Fail;
