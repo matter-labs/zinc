@@ -45,6 +45,12 @@ pub enum RuntimeError {
     OperationOnDifferentTypes,
 }
 
+impl From<SynthesisError> for RuntimeError {
+    fn from(error: SynthesisError) -> Self {
+        RuntimeError::SynthesisError(error)
+    }
+}
+
 pub struct VirtualMachine<E: Engine, O: PrimitiveOperations<E>> {
     state: State<E>,
     ops: O,

@@ -1,4 +1,4 @@
-use crate::gadgets::{ConstrainingFrOperations, Primitive, PrimitiveOperations};
+use crate::gadgets::{ConstrainingFrOperations, PrimitiveOperations};
 use crate::vm::{InternalVM, RuntimeError, VirtualMachine};
 use bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;

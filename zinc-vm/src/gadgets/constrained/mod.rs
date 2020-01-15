@@ -49,7 +49,7 @@ impl<E: Engine> Primitive<E> {
         }
     }
 
-    fn as_allocated_num<CS: ConstraintSystem<E>>(
+    pub fn as_allocated_num<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,
     ) -> Result<AllocatedNum<E>, RuntimeError> {
