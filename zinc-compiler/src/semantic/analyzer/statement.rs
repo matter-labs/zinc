@@ -166,7 +166,8 @@ impl Analyzer {
             self.bytecode
                 .borrow_mut()
                 .push_instruction(Instruction::Cast(zinc_bytecode::Cast::new(
-                    is_signed, bitlength,
+                    is_signed,
+                    bitlength,
                 )));
         }
 
@@ -411,7 +412,8 @@ impl Analyzer {
                 self.bytecode
                     .borrow_mut()
                     .push_instruction(Instruction::Cast(zinc_bytecode::Cast::new(
-                        is_signed, bitlength,
+                        is_signed,
+                        bitlength,
                     )));
             }
             let_type
