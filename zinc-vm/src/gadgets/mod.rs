@@ -35,6 +35,12 @@ pub struct Primitive<E: Engine> {
     data_type: Option<DataType>,
 }
 
+impl<E: Engine> Primitive<E> {
+    pub fn get_data_type(&self) -> Option<DataType> {
+        self.data_type
+    }
+}
+
 pub trait Gadget<E: Engine> {
     type Input;
     type Output;

@@ -28,8 +28,8 @@ fn main() {
         Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::TypesMismatchAddition(
-                Type::new_integer_unsigned(64).to_string(),
-                Type::new_integer_unsigned(128).to_string(),
+                Type::new_integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                Type::new_integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
             ),
         )),
     )));

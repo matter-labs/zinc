@@ -17,10 +17,15 @@ pub enum Error {
     )]
     OperatorIndexSecondOperandExpectedInteger(String),
     #[fail(
-        display = "'.' operator expected a tuple or structure as the first operand, but got '{}'",
+        display = "'.' operator expected a tuple as the first operand, but got '{}'",
         _0
     )]
-    OperatorFieldFirstOperandExpectedTupleOrStructure(String),
+    OperatorFieldFirstOperandExpectedTuple(String),
+    #[fail(
+        display = "'.' operator expected a structure as the first operand, but got '{}'",
+        _0
+    )]
+    OperatorFieldFirstOperandExpectedStructure(String),
     #[fail(display = "tuple field {} does not exist in '{}'", _0, _1)]
     FieldDoesNotExistInTuple(usize, String),
     #[fail(display = "structure field '{}' does not exist in '{}'", _0, _1)]

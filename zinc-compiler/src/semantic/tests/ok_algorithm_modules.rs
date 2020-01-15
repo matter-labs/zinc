@@ -85,14 +85,14 @@ fn main() -> field {
             false,
             crate::BITLENGTH_BYTE,
         )),
-        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::StoreGlobal(StoreGlobal::new(0)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(69),
             false,
             crate::BITLENGTH_BYTE,
         )),
-        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::Store(Store::new(0)),
         Instruction::LoadGlobal(LoadGlobal::new(0)),
         Instruction::PushConst(PushConst::new(
@@ -108,7 +108,7 @@ fn main() -> field {
             false,
             crate::BITLENGTH_BYTE,
         )),
-        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::Call(Call::new(10, 2)),
         Instruction::Return(Return::new(1)),
     ]);

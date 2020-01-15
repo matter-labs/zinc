@@ -8,6 +8,7 @@ mod tests;
 mod tree;
 
 pub use self::error::Error;
+pub use self::parser::take_or_next;
 pub use self::parser::AccessOperandParser;
 pub use self::parser::AddSubOperandParser;
 pub use self::parser::AndOperandParser;
@@ -65,6 +66,7 @@ pub use self::tree::ConstStatementBuilder;
 pub use self::tree::EnumStatement;
 pub use self::tree::EnumStatementBuilder;
 pub use self::tree::Expression;
+pub use self::tree::ExpressionAuxiliary;
 pub use self::tree::ExpressionBuilder;
 pub use self::tree::ExpressionElement;
 pub use self::tree::ExpressionObject;

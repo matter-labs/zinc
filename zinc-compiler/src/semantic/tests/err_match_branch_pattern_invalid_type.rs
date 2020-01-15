@@ -25,7 +25,7 @@ fn main() {
         SemanticError::MatchBranchPatternInvalidType(
             Location::new(5, 9),
             Type::new_boolean().to_string(),
-            Type::new_integer_unsigned(8).to_string(),
+            Type::new_integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
         ),
     ));
 

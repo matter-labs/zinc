@@ -263,7 +263,6 @@ impl Type {
             Element::Value(value) => value.r#type(),
             Element::Constant(constant) => constant.r#type(),
             Element::Type(r#type) => r#type.to_owned(),
-
             Element::Path(path) => match Scope::resolve_path(scope, &path)? {
                 ScopeItem::Variable(variable) => variable.r#type,
                 ScopeItem::Constant(constant) => constant.r#type(),

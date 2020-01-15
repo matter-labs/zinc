@@ -76,10 +76,7 @@ impl Parser {
 
         let mut statements = Vec::new();
         loop {
-            match match self.next.take() {
-                Some(token) => token,
-                None => stream.borrow_mut().next()?,
-            } {
+            match crate::syntax::take_or_next(self.next, stream.clone())? {
                 Token {
                     lexeme: Lexeme::Eof,
                     ..
@@ -95,5 +92,15 @@ impl Parser {
         }
 
         Ok(SyntaxTree { statements })
+    }
+}
+
+pub fn take_or_next(
+    mut token: Option<Token>,
+    stream: Rc<RefCell<TokenStream>>,
+) -> Result<Token, Error> {
+    match token.take() {
+        Some(token) => Ok(token),
+        None => Ok(stream.borrow_mut().next()?),
     }
 }

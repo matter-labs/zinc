@@ -26,7 +26,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 6),
-        ElementError::OperatorFieldFirstOperandExpectedPlace(
+        ElementError::OperatorFieldFirstOperandExpectedPlaceOrEvaluable(
             Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,

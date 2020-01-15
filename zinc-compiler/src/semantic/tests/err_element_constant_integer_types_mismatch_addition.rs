@@ -26,8 +26,8 @@ fn main() {
         Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchAddition(
-                Type::new_integer_unsigned(64).to_string(),
-                Type::new_integer_unsigned(128).to_string(),
+                Type::new_integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                Type::new_integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
             ),
         )),
     )));

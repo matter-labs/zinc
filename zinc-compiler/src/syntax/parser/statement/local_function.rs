@@ -28,13 +28,8 @@ impl Parser {
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
     ) -> Result<(FunctionLocalStatement, Option<Token>, bool), Error> {
-        let statement = match match initial.take() {
-            Some(token) => token,
-            None => stream.borrow_mut().next()?,
-        } {
-            token
-            @
-            Token {
+        let statement = match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+            token @ Token {
                 lexeme: Lexeme::Keyword(Keyword::Let),
                 ..
             } => {
@@ -43,9 +38,7 @@ impl Parser {
                 self.next = next;
                 FunctionLocalStatement::Let(statement)
             }
-            token
-            @
-            Token {
+            token @ Token {
                 lexeme: Lexeme::Keyword(Keyword::Const),
                 ..
             } => {
@@ -54,9 +47,7 @@ impl Parser {
                 self.next = next;
                 FunctionLocalStatement::Const(statement)
             }
-            token
-            @
-            Token {
+            token @ Token {
                 lexeme: Lexeme::Keyword(Keyword::For),
                 ..
             } => {
@@ -72,16 +63,15 @@ impl Parser {
             }
         };
         match statement {
-            statement @ FunctionLocalStatement::Expression { .. } => match match self.next.take() {
-                Some(token) => token,
-                None => stream.borrow_mut().next()?,
-            } {
-                Token {
-                    lexeme: Lexeme::Symbol(Symbol::Semicolon),
-                    ..
-                } => Ok((statement, None, false)),
-                token => Ok((statement, Some(token), true)),
-            },
+            statement @ FunctionLocalStatement::Expression { .. } => {
+                match crate::syntax::take_or_next(self.next.take(), stream)? {
+                    Token {
+                        lexeme: Lexeme::Symbol(Symbol::Semicolon),
+                        ..
+                    } => Ok((statement, None, false)),
+                    token => Ok((statement, Some(token), true)),
+                }
+            }
             statement => Ok((statement, None, false)),
         }
     }

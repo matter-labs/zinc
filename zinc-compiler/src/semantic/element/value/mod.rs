@@ -15,12 +15,15 @@ pub use self::integer::Error as IntegerError;
 pub use self::integer::Integer;
 pub use self::structure::Error as StructureError;
 pub use self::structure::Structure;
+pub use self::tuple::Error as TupleError;
 pub use self::tuple::Tuple;
 
 use std::fmt;
 
 use crate::semantic::Caster;
 use crate::semantic::Constant;
+use crate::semantic::FieldAccessResult;
+use crate::semantic::IndexAccessResult;
 use crate::semantic::Type;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -31,7 +34,6 @@ pub enum Value {
     Array(Array),
     Tuple(Tuple),
     Structure(Structure),
-    Reference(Box<Self>),
 }
 
 impl Value {
@@ -48,7 +50,6 @@ impl Value {
                 identifier, fields, ..
             } => Self::Structure(Structure::new(identifier, fields)),
             Type::Enumeration { bitlength, .. } => Self::Integer(Integer::new(false, bitlength)),
-            Type::Reference { inner } => Self::Reference(Box::new(Value::new(*inner))),
             r#type => panic!(
                 "{}{}",
                 crate::semantic::PANIC_VALUE_CANNOT_BE_CREATED_FROM,
@@ -65,7 +66,6 @@ impl Value {
             Self::Array(array) => array.r#type(),
             Self::Tuple(tuple) => tuple.r#type(),
             Self::Structure(structure) => structure.r#type(),
-            Self::Reference(inner) => Type::new_reference(inner.r#type()),
         }
     }
 
@@ -79,9 +79,6 @@ impl Value {
             (Self::Array(value_1), Self::Array(value_2)) => value_1.has_the_same_type_as(value_2),
             (Self::Tuple(value_1), Self::Tuple(value_2)) => value_1.has_the_same_type_as(value_2),
             (Self::Structure(value_1), Self::Structure(value_2)) => {
-                value_1.has_the_same_type_as(value_2)
-            }
-            (Self::Reference(value_1), Self::Reference(value_2)) => {
                 value_1.has_the_same_type_as(value_2)
             }
             _ => false,
@@ -367,15 +364,48 @@ impl Value {
         }
     }
 
-    pub fn reference(&self) -> Result<Self, Error> {
-        Ok(Self::Reference(Box::new(self.to_owned())))
+    pub fn index_value(&self, other: &Self) -> Result<IndexAccessResult, Error> {
+        match self {
+            Value::Array(array) => match other {
+                Value::Integer(_) => Ok(array.slice()),
+                value => Err(Error::OperatorIndexSecondOperandExpectedInteger(
+                    value.to_string(),
+                )),
+            },
+            value => Err(Error::OperatorIndexFirstOperandExpectedArray(
+                value.to_string(),
+            )),
+        }
     }
 
-    pub fn dereference(&self) -> Result<Self, Error> {
+    pub fn index_constant(&self, other: &Constant) -> Result<IndexAccessResult, Error> {
         match self {
-            Self::Reference(inner) => Ok(*inner.to_owned()),
-            value => Err(Error::OperatorDereferenceExpectedReference(
-                value.r#type().to_string(),
+            Value::Array(array) => match other {
+                Constant::Integer(_) => Ok(array.slice()),
+                constant => Err(Error::OperatorIndexSecondOperandExpectedInteger(
+                    constant.to_string(),
+                )),
+            },
+            value => Err(Error::OperatorIndexFirstOperandExpectedArray(
+                value.to_string(),
+            )),
+        }
+    }
+
+    pub fn field_tuple(&self, field_index: usize) -> Result<FieldAccessResult, Error> {
+        match self {
+            Value::Tuple(tuple) => tuple.slice(field_index).map_err(Error::Tuple),
+            value => Err(Error::OperatorFieldFirstOperandExpectedTuple(
+                value.to_string(),
+            )),
+        }
+    }
+
+    pub fn field_structure(&self, field_name: &str) -> Result<FieldAccessResult, Error> {
+        match self {
+            Value::Structure(structure) => structure.slice(field_name).map_err(Error::Structure),
+            value => Err(Error::OperatorFieldFirstOperandExpectedStructure(
+                value.to_string(),
             )),
         }
     }

@@ -8,6 +8,7 @@ use num_bigint::BigInt;
 
 use zinc_bytecode::Add;
 use zinc_bytecode::Call;
+use zinc_bytecode::Cast;
 use zinc_bytecode::Exit;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::Mul;
@@ -19,7 +20,7 @@ use zinc_bytecode::StoreSequence;
 #[test]
 fn test() {
     let input = r#"
-fn main () {
+fn main() {
     let mut array_double: [[u8; 4]; 4] = [
         [1, 2, 3, 4],
         [5, 6, 7, 8],
@@ -121,15 +122,16 @@ fn main () {
             false,
             crate::BITLENGTH_BYTE,
         )),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(0),
             false,
-            crate::BITLENGTH_BYTE,
+            crate::BITLENGTH_FIELD,
         )),
         Instruction::PushConst(PushConst::new(
             BigInt::from(4),
             false,
-            crate::BITLENGTH_BYTE,
+            crate::BITLENGTH_FIELD,
         )),
         Instruction::Add(Add),
         Instruction::Mul(Mul),
@@ -138,10 +140,11 @@ fn main () {
             false,
             crate::BITLENGTH_BYTE,
         )),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(1),
             false,
-            crate::BITLENGTH_BYTE,
+            crate::BITLENGTH_FIELD,
         )),
         Instruction::Mul(Mul),
         Instruction::Add(Add),
@@ -156,15 +159,16 @@ fn main () {
             false,
             crate::BITLENGTH_BYTE,
         )),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(0),
             false,
-            crate::BITLENGTH_BYTE,
+            crate::BITLENGTH_FIELD,
         )),
         Instruction::PushConst(PushConst::new(
             BigInt::from(4),
             false,
-            crate::BITLENGTH_BYTE,
+            crate::BITLENGTH_FIELD,
         )),
         Instruction::Add(Add),
         Instruction::Mul(Mul),
@@ -173,10 +177,11 @@ fn main () {
             false,
             crate::BITLENGTH_BYTE,
         )),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(1),
             false,
-            crate::BITLENGTH_BYTE,
+            crate::BITLENGTH_FIELD,
         )),
         Instruction::Mul(Mul),
         Instruction::Add(Add),

@@ -27,7 +27,7 @@ fn main() {
         Location::new(5, 23),
         ElementError::Value(
             ValueError::OperatorNotEqualsFirstOperandExpectedPrimitiveType(
-                Type::new_array(Type::new_integer_unsigned(8), 3).to_string(),
+                Type::new_array(Type::new_integer_unsigned(crate::BITLENGTH_BYTE), 3).to_string(),
             ),
         ),
     )));

@@ -23,7 +23,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
     use zinc_bytecode::*;
 

@@ -26,19 +26,12 @@ impl Parser {
         mut initial: Option<Token>,
     ) -> Result<(Vec<Expression>, Option<Token>), Error> {
         loop {
-            match match initial.take() {
-                Some(token) => token,
-                None => stream.borrow_mut().next()?,
-            } {
-                token
-                @
-                Token {
+            match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                token @ Token {
                     lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                     ..
                 } => return Ok((self.expressions, Some(token))),
-                token
-                @
-                Token {
+                token @ Token {
                     lexeme: Lexeme::Eof,
                     ..
                 } => return Ok((self.expressions, Some(token))),
@@ -50,10 +43,7 @@ impl Parser {
                 }
             }
 
-            match match self.next.take() {
-                Some(token) => token,
-                None => stream.borrow_mut().next()?,
-            } {
+            match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                 Token {
                     lexeme: Lexeme::Symbol(Symbol::Comma),
                     ..

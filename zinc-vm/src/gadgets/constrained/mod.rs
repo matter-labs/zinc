@@ -166,7 +166,10 @@ where
         index: Primitive<E>,
         array_length: usize,
     ) -> Result<Vec<Primitive<E>>, RuntimeError> {
-        let length = self.constant_bigint(&array_length.into())?;
+        let length = match index.data_type {
+            None => self.constant_bigint(&array_length.into())?,
+            Some(data_type) => self.constant_bigint_typed(&array_length.into(), data_type)?,
+        };
         let index_lt_length = self.lt(index.clone(), length)?;
         self.assert(index_lt_length)?;
 
