@@ -40,14 +40,14 @@ fn main() -> field {
             false,
             crate::BITLENGTH_BYTE,
         )),
-        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::StoreGlobal(StoreGlobal::new(0)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(69),
             false,
             crate::BITLENGTH_BYTE,
         )),
-        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::Store(Store::new(0)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(42),
