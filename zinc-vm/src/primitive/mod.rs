@@ -1,13 +1,16 @@
 mod constrained;
-mod simple;
 pub mod utils;
 
+use std::fmt::{Debug, Display};
+
+use pairing::Engine;
+use bellman::ConstraintSystem;
+use num_bigint::{BigInt, ToBigInt};
+
 pub use constrained::*;
-pub use simple::*;
 
 use crate::vm::RuntimeError;
-use num_bigint::{BigInt, ToBigInt};
-use std::fmt::{Debug, Display};
+use crate::primitive::utils::dummy_constraint_system::DummyConstraintSystem;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct DataType {
@@ -25,8 +28,25 @@ impl DataType {
 /// Primitive is a primitive value that can be stored on the stack and operated by VM's instructions.
 pub trait Primitive: Sized + Clone + Debug + Display + ToBigInt {}
 
+pub trait Gadget<E: Engine> {
+    type Input;
+    type Output;
+
+    /// Synthesize circuit for the function.
+    fn synthesize<CS: ConstraintSystem<E>>(&self, cs: CS, input: Self::Input) -> Result<Self::Output, RuntimeError>;
+
+    /// Calculate function's result without synthesizing a circuit.
+    fn calculate(&self, input: Self::Input) -> Result<Self::Output, RuntimeError> {
+        let cs = DummyConstraintSystem;
+        self.synthesize(cs, input)
+    }
+}
+
 /// PrimitiveOperations is an entity that knows how to operate with some Primitive.
 pub trait PrimitiveOperations<P: Primitive> {
+    type E: Engine;
+    type CS: ConstraintSystem<Self::E>;
+
     fn variable_none(&mut self) -> Result<P, RuntimeError>;
     fn variable_bigint(&mut self, value: &BigInt) -> Result<P, RuntimeError>;
     fn constant_bigint(&mut self, value: &BigInt) -> Result<P, RuntimeError>;
@@ -66,4 +86,6 @@ pub trait PrimitiveOperations<P: Primitive> {
 
     fn array_get(&mut self, array: &[P], index: P) -> Result<P, RuntimeError>;
     fn array_set(&mut self, array: &[P], index: P, value: P) -> Result<Vec<P>, RuntimeError>;
+
+    fn execute<G: Gadget<Self::E>>(&mut self, gadget: G, input: G::Input) -> Result<G::Output, RuntimeError>;
 }

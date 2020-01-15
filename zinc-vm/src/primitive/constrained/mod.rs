@@ -9,7 +9,7 @@ use franklin_crypto::circuit::num::AllocatedNum;
 use num_bigint::{BigInt, ToBigInt};
 
 use crate::primitive::utils::fr_to_bigint;
-use crate::primitive::{utils, DataType, Primitive, PrimitiveOperations};
+use crate::primitive::{utils, DataType, Primitive, PrimitiveOperations, Gadget};
 use crate::vm::RuntimeError;
 use std::mem;
 
@@ -285,6 +285,9 @@ where
     E: Debug + Engine,
     CS: ConstraintSystem<E>,
 {
+    type E = E;
+    type CS = CS;
+
     fn variable_none(&mut self) -> Result<FrPrimitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
@@ -878,5 +881,10 @@ where
         }
 
         Ok(new_array)
+    }
+
+    fn execute<G: Gadget<E>>(&mut self, gadget: G, input: G::Input) -> Result<G::Output, RuntimeError> {
+        let cs = self.cs_namespace();
+        gadget.synthesize(cs, input)
     }
 }
