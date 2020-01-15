@@ -11,7 +11,7 @@ impl Cast {
     pub fn new(signed: bool, length: usize) -> Self {
         Self {
             signed,
-            length: length as usize,
+            length,
         }
     }
 }

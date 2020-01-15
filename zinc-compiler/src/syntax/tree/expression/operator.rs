@@ -51,5 +51,4 @@ pub enum Operator {
 
     // call
     Call,
-    Instruction,
 }

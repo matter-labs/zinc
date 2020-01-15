@@ -20,7 +20,7 @@ fn main() {
     let expected = Err(Error::Semantic(
         SemanticError::ConditionalExpectedBooleanCondition(
             Location::new(3, 8),
-            Type::new_integer_unsigned(8).to_string(),
+            Type::new_integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
         ),
     ));
 

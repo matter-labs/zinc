@@ -20,7 +20,7 @@ fn main() {
     let expected = Err(Error::Semantic(
         SemanticError::ConditionalBranchTypesMismatch(
             Location::new(3, 5),
-            Type::new_integer_unsigned(8).to_string(),
+            Type::new_integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
             Type::new_boolean().to_string(),
         ),
     ));

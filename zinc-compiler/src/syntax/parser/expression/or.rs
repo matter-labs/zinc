@@ -56,10 +56,7 @@ impl Parser {
                     self.state = State::LogicalXorOperator;
                 }
                 State::LogicalXorOperator => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::DoubleCircumflex),
                             location,

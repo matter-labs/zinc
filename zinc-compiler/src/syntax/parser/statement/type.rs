@@ -48,10 +48,7 @@ impl Parser {
         loop {
             match self.state {
                 State::KeywordType => {
-                    match match initial.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Type),
                             location,
@@ -69,10 +66,7 @@ impl Parser {
                     }
                 }
                 State::Identifier => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
@@ -91,10 +85,7 @@ impl Parser {
                     }
                 }
                 State::Equals => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Equals),
                             ..
@@ -114,24 +105,19 @@ impl Parser {
                     self.builder.set_type(r#type);
                     self.state = State::Semicolon;
                 }
-                State::Semicolon => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
-                        Token {
-                            lexeme: Lexeme::Symbol(Symbol::Semicolon),
-                            ..
-                        } => return Ok((self.builder.finish(), None)),
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec![";"],
-                                lexeme,
-                            )));
-                        }
+                State::Semicolon => match crate::syntax::take_or_next(self.next.take(), stream)? {
+                    Token {
+                        lexeme: Lexeme::Symbol(Symbol::Semicolon),
+                        ..
+                    } => return Ok((self.builder.finish(), None)),
+                    Token { lexeme, location } => {
+                        return Err(Error::Syntax(SyntaxError::Expected(
+                            location,
+                            vec![";"],
+                            lexeme,
+                        )));
                     }
-                }
+                },
             }
         }
     }

@@ -50,66 +50,64 @@ impl Parser {
     ) -> Result<(MatchPattern, Option<Token>), Error> {
         loop {
             match self.state {
-                State::Start => match match initial.take() {
-                    Some(token) => token,
-                    None => stream.borrow_mut().next()?,
-                } {
-                    Token {
-                        lexeme: Lexeme::Literal(lexical::Literal::Boolean(boolean)),
-                        location,
-                    } => {
-                        self.builder.set_location(location);
-                        self.builder
-                            .set_boolean_literal(BooleanLiteral::new(location, boolean));
-                        return Ok((self.builder.finish(), None));
-                    }
-                    Token {
-                        lexeme: Lexeme::Literal(lexical::Literal::Integer(integer)),
-                        location,
-                    } => {
-                        self.builder.set_location(location);
-                        self.builder
-                            .set_integer_literal(IntegerLiteral::new(location, integer));
-                        return Ok((self.builder.finish(), None));
-                    }
-                    Token {
-                        lexeme: Lexeme::Identifier(identifier),
-                        location,
-                    } => {
-                        self.builder.set_location(location);
-                        self.builder
-                            .set_binding(Identifier::new(location, identifier.name));
-                        self.state = State::PathOperatorOrEnd;
-                    }
-                    Token {
-                        lexeme: Lexeme::Symbol(Symbol::Underscore),
-                        location,
-                    } => {
-                        self.builder.set_location(location);
-                        self.builder.set_wildcard();
-                        return Ok((self.builder.finish(), None));
-                    }
-                    Token { lexeme, location } => {
-                        return Err(Error::Syntax(SyntaxError::Expected(
+                State::Start => {
+                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                        Token {
+                            lexeme: Lexeme::Literal(lexical::Literal::Boolean(boolean)),
                             location,
-                            vec!["{integer}", "{identifier}", "_"],
-                            lexeme,
-                        )))
+                        } => {
+                            self.builder.set_location(location);
+                            self.builder
+                                .set_boolean_literal(BooleanLiteral::new(location, boolean));
+                            return Ok((self.builder.finish(), None));
+                        }
+                        Token {
+                            lexeme: Lexeme::Literal(lexical::Literal::Integer(integer)),
+                            location,
+                        } => {
+                            self.builder.set_location(location);
+                            self.builder
+                                .set_integer_literal(IntegerLiteral::new(location, integer));
+                            return Ok((self.builder.finish(), None));
+                        }
+                        Token {
+                            lexeme: Lexeme::Identifier(identifier),
+                            location,
+                        } => {
+                            self.builder.set_location(location);
+                            self.builder
+                                .set_binding(Identifier::new(location, identifier.name));
+                            self.state = State::PathOperatorOrEnd;
+                        }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::Underscore),
+                            location,
+                        } => {
+                            self.builder.set_location(location);
+                            self.builder.set_wildcard();
+                            return Ok((self.builder.finish(), None));
+                        }
+                        Token { lexeme, location } => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                vec!["{integer}", "{identifier}", "_"],
+                                lexeme,
+                            )))
+                        }
                     }
-                },
-                State::PathOperatorOrEnd => match match self.next.take() {
-                    Some(token) => token,
-                    None => stream.borrow_mut().next()?,
-                } {
-                    Token {
-                        lexeme: Lexeme::Symbol(Symbol::DoubleColon),
-                        location,
-                    } => {
-                        self.operator = Some((location, ExpressionOperator::Path));
-                        self.state = State::PathOperand;
+                }
+                State::PathOperatorOrEnd => {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::DoubleColon),
+                            location,
+                        } => {
+                            self.operator = Some((location, ExpressionOperator::Path));
+                            self.state = State::PathOperand;
+                        }
+                        token => return Ok((self.builder.finish(), Some(token))),
                     }
-                    token => return Ok((self.builder.finish(), Some(token))),
-                },
+                }
                 State::PathOperand => {
                     let (expression, next) =
                         TerminalOperandParser::default().parse(stream.clone(), self.next.take())?;

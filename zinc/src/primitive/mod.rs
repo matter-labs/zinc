@@ -23,7 +23,9 @@ impl DataType {
 }
 
 /// Primitive is a primitive value that can be stored on the stack and operated by VM's instructions.
-pub trait Primitive: Sized + Clone + Debug + Display + ToBigInt {}
+pub trait Primitive: Sized + Clone + Debug + Display + ToBigInt {
+    fn data_type(&self) -> Option<DataType>;
+}
 
 /// PrimitiveOperations is an entity that knows how to operate with some Primitive.
 pub trait PrimitiveOperations<P: Primitive> {

@@ -11,6 +11,8 @@ use std::fmt;
 use crate::lexical::Location;
 use crate::semantic::Constant;
 use crate::semantic::Element;
+use crate::semantic::FieldAccessResult;
+use crate::semantic::IndexAccessResult;
 use crate::semantic::Type;
 use crate::semantic::Value;
 
@@ -45,7 +47,7 @@ impl Place {
         }
     }
 
-    pub fn index_array(&mut self, index_value: &Element) -> Result<usize, Error> {
+    pub fn index(&mut self, index_value: &Element) -> Result<IndexAccessResult, Error> {
         self.is_indexed = true;
 
         match index_value {
@@ -59,9 +61,10 @@ impl Place {
         }
 
         match self.r#type {
-            Type::Array { ref r#type, .. } => {
+            Type::Array { ref r#type, size } => {
                 self.r#type = *r#type.to_owned();
-                Ok(self.r#type.size())
+
+                Ok(IndexAccessResult::new(self.r#type.size(), size, None))
             }
             ref r#type => Err(Error::OperatorIndexFirstOperandExpectedArray(
                 r#type.to_string(),
@@ -69,15 +72,16 @@ impl Place {
         }
     }
 
-    pub fn field_tuple(&mut self, field_index: usize) -> Result<usize, Error> {
+    pub fn field_tuple(&mut self, field_index: usize) -> Result<FieldAccessResult, Error> {
         self.is_indexed = true;
 
         let mut offset = 0;
+        let total_size = self.r#type.size();
         match self.r#type {
             Type::Tuple { ref types } => {
                 if field_index >= types.len() {
-                    return Err(Error::FieldDoesNotExistInStructure(
-                        field_index.to_string(),
+                    return Err(Error::FieldDoesNotExistInTuple(
+                        field_index,
                         self.r#type.to_string(),
                     ));
                 }
@@ -88,18 +92,24 @@ impl Place {
                 }
                 self.r#type = types[tuple_index].to_owned();
 
-                Ok(offset)
+                Ok(FieldAccessResult::new(
+                    offset,
+                    self.r#type.size(),
+                    total_size,
+                    None,
+                ))
             }
-            ref r#type => Err(Error::OperatorFieldFirstOperandExpectedTupleOrStructure(
+            ref r#type => Err(Error::OperatorFieldFirstOperandExpectedTuple(
                 r#type.to_string(),
             )),
         }
     }
 
-    pub fn field_structure(&mut self, field_name: &str) -> Result<usize, Error> {
+    pub fn field_structure(&mut self, field_name: &str) -> Result<FieldAccessResult, Error> {
         self.is_indexed = true;
 
         let mut offset = 0;
+        let total_size = self.r#type.size();
         match self.r#type {
             Type::Structure {
                 ref identifier,
@@ -109,7 +119,13 @@ impl Place {
                 for structure_field in fields.iter() {
                     if structure_field.0 == field_name {
                         self.r#type = structure_field.1.to_owned();
-                        return Ok(offset);
+
+                        return Ok(FieldAccessResult::new(
+                            offset,
+                            self.r#type.size(),
+                            total_size,
+                            None,
+                        ));
                     }
                     offset += structure_field.1.size();
                 }
@@ -118,7 +134,7 @@ impl Place {
                     identifier.to_string(),
                 ))
             }
-            ref r#type => Err(Error::OperatorFieldFirstOperandExpectedTupleOrStructure(
+            ref r#type => Err(Error::OperatorFieldFirstOperandExpectedStructure(
                 r#type.to_string(),
             )),
         }

@@ -25,7 +25,7 @@ fn main() {
         Location::new(2, 17),
         "another".to_owned(),
         Type::new_boolean().to_string(),
-        Type::new_integer_unsigned(8).to_string(),
+        Type::new_integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
     )));
 
     let result = super::get_binary_result(input);

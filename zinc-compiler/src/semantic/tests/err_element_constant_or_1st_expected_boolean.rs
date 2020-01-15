@@ -25,7 +25,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 20),
         ElementError::Constant(ConstantError::OperatorOrFirstOperandExpectedBoolean(
-            Constant::Integer(IntegerConstant::from((42, 8))),
+            Constant::Integer(IntegerConstant::from((42, crate::BITLENGTH_BYTE))),
         )),
     )));
 
