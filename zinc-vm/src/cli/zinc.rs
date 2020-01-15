@@ -9,8 +9,8 @@ use std::fmt::Debug;
 use std::process::exit;
 use std::str::FromStr;
 use std::{fs, io};
-use zinc_vm::{RuntimeError, VerificationError};
 use zinc_bytecode::{decode_all_instructions, DecodingError};
+use zinc_vm::{RuntimeError, VerificationError};
 
 #[derive(Debug)]
 enum Error {
@@ -121,8 +121,8 @@ fn verify(args: VerifyArguments) -> Result<(), Error> {
     let proof_file = fs::File::open(args.proof_file).map_err(Error::IO)?;
     let proof = Proof::<Bn256>::read(proof_file).map_err(Error::IO)?;
 
-    let verified =
-        zinc_vm::verify(&params, &proof, args.public_input.as_slice()).map_err(Error::Verification)?;
+    let verified = zinc_vm::verify(&params, &proof, args.public_input.as_slice())
+        .map_err(Error::Verification)?;
 
     if verified {
         println!("{}", "Ok".bold().green());

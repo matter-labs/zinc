@@ -36,61 +36,81 @@ impl Parser {
             Some(token) => token,
             None => stream.borrow_mut().next()?,
         } {
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::Const),
                 ..
             } => ConstStatementParser::default()
                 .parse(stream, Some(token))
                 .map(|(statement, next)| (ModuleLocalStatement::Const(statement), next)),
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::Static),
                 ..
             } => StaticStatementParser::default()
                 .parse(stream, Some(token))
                 .map(|(statement, next)| (ModuleLocalStatement::Static(statement), next)),
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::Type),
                 ..
             } => TypeStatementParser::default()
                 .parse(stream, Some(token))
                 .map(|(statement, next)| (ModuleLocalStatement::Type(statement), next)),
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::Struct),
                 ..
             } => StructStatementParser::default()
                 .parse(stream, Some(token))
                 .map(|(statement, next)| (ModuleLocalStatement::Struct(statement), next)),
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::Enum),
                 ..
             } => EnumStatementParser::default()
                 .parse(stream, Some(token))
                 .map(|(statement, next)| (ModuleLocalStatement::Enum(statement), next)),
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::Fn),
                 ..
             } => FnStatementParser::default()
                 .parse(stream, Some(token))
                 .map(|(statement, next)| (ModuleLocalStatement::Fn(statement), next)),
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::Mod),
                 ..
             } => ModStatementParser::default()
                 .parse(stream, Some(token))
                 .map(|(statement, next)| (ModuleLocalStatement::Mod(statement), next)),
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::Use),
                 ..
             } => UseStatementParser::default()
                 .parse(stream, Some(token))
                 .map(|(statement, next)| (ModuleLocalStatement::Use(statement), next)),
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::Impl),
                 ..
             } => ImplStatementParser::default()
                 .parse(stream, Some(token))
                 .map(|(statement, next)| (ModuleLocalStatement::Impl(statement), next)),
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::Extern),
                 ..
             } => ExternFnStatementParser::default()

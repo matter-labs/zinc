@@ -1,5 +1,5 @@
-use crate::primitive::utils::bigint_to_fr;
-use crate::primitive::ConstrainingFrOperations;
+use crate::gadgets::utils::bigint_to_fr;
+use crate::gadgets::ConstrainingFrOperations;
 use crate::vm::VirtualMachine;
 use bellman::groth16;
 use bellman::pairing::bn256::Bn256;

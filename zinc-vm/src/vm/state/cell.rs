@@ -1,14 +1,15 @@
-use crate::primitive::Primitive;
+use crate::gadgets::Primitive;
 use crate::RuntimeError;
+use pairing::Engine;
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum Cell<P: Primitive> {
-    Value(P),
+#[derive(Debug, Clone)]
+pub enum Cell<E: Engine> {
+    Value(Primitive<E>),
     //    Address(usize),
 }
 
-impl<P: Primitive> Cell<P> {
-    pub fn value(self) -> Result<P, RuntimeError> {
+impl<E: Engine> Cell<E> {
+    pub fn value(self) -> Result<Primitive<E>, RuntimeError> {
         match self {
             Cell::Value(value) => Ok(value),
             //            Cell::Address(_) => Err(RuntimeError::UnexpectedNonValueType),

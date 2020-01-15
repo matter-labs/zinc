@@ -1,6 +1,6 @@
 mod bigint;
-mod fr_bigint;
 pub mod dummy_constraint_system;
+mod fr_bigint;
 
 pub use bigint::*;
 pub use fr_bigint::*;

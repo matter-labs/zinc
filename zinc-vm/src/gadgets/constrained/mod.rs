@@ -8,21 +8,12 @@ use franklin_crypto::bellman::{Namespace, SynthesisError};
 use franklin_crypto::circuit::num::AllocatedNum;
 use num_bigint::{BigInt, ToBigInt};
 
-use crate::primitive::utils::fr_to_bigint;
-use crate::primitive::{utils, DataType, Primitive, PrimitiveOperations, Gadget};
+use crate::gadgets::utils::fr_to_bigint;
+use crate::gadgets::{utils, DataType, Gadget, Primitive, PrimitiveOperations};
 use crate::vm::RuntimeError;
 use std::mem;
 
-/// FrPrimitive is an implementation of Primitive
-/// that for every operation on values generates corresponding R1CS constraints.
-#[derive(Clone)]
-pub struct FrPrimitive<E: Engine> {
-    value: Option<E::Fr>,
-    variable: Variable,
-    data_type: Option<DataType>,
-}
-
-impl<E: Engine> Debug for FrPrimitive<E> {
+impl<E: Engine> Debug for Primitive<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         let value_str = match self.value {
             Some(ref value) => fr_to_bigint::<E>(value).to_string(),
@@ -37,11 +28,11 @@ impl<E: Engine> Debug for FrPrimitive<E> {
             None => "(untyped)".into(),
         };
 
-        f.write_str(format!("FrPrimitive {{ {} as {} }}", value_str, type_str).as_str())
+        f.write_str(format!("Primitive {{ {} as {} }}", value_str, type_str).as_str())
     }
 }
 
-impl<E: Engine> FrPrimitive<E> {
+impl<E: Engine> Primitive<E> {
     fn new(value: Option<E::Fr>, variable: Variable) -> Self {
         Self {
             value,
@@ -78,7 +69,7 @@ impl<E: Engine> FrPrimitive<E> {
     }
 }
 
-impl<E: Engine> Display for FrPrimitive<E> {
+impl<E: Engine> Display for Primitive<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         match &self.value {
             Some(value) => {
@@ -90,14 +81,12 @@ impl<E: Engine> Display for FrPrimitive<E> {
     }
 }
 
-impl<E: Engine> ToBigInt for FrPrimitive<E> {
+impl<E: Engine> ToBigInt for Primitive<E> {
     fn to_bigint(&self) -> Option<BigInt> {
         self.value
             .map(|fr| -> BigInt { utils::fr_to_bigint::<E>(&fr) })
     }
 }
-
-impl<EN: Debug + Engine> Primitive for FrPrimitive<EN> {}
 
 pub struct ConstrainingFrOperations<E, CS>
 where
@@ -128,7 +117,7 @@ where
         self.cs.namespace(|| s)
     }
 
-    fn zero_typed(&mut self, data_type: Option<DataType>) -> Result<FrPrimitive<E>, RuntimeError> {
+    fn zero_typed(&mut self, data_type: Option<DataType>) -> Result<Primitive<E>, RuntimeError> {
         let value = E::Fr::zero();
         let mut cs = self.cs_namespace();
         let variable = cs
@@ -145,15 +134,15 @@ where
 
         match data_type {
             Some(data_type) => self.value_with_type_check(Some(value), variable, data_type),
-            None => Ok(FrPrimitive::new(Some(value), variable)),
+            None => Ok(Primitive::new(Some(value), variable)),
         }
     }
 
-    fn one() -> FrPrimitive<E> {
-        FrPrimitive::new(Some(E::Fr::one()), CS::one())
+    fn one() -> Primitive<E> {
+        Primitive::new(Some(E::Fr::one()), CS::one())
     }
 
-    fn one_typed(&mut self, data_type: Option<DataType>) -> Result<FrPrimitive<E>, RuntimeError> {
+    fn one_typed(&mut self, data_type: Option<DataType>) -> Result<Primitive<E>, RuntimeError> {
         match data_type {
             None => Ok(Self::one()),
             Some(data_type) => self.value_with_type_check(Some(E::Fr::one()), CS::one(), data_type),
@@ -165,7 +154,7 @@ where
         &mut self.cs
     }
 
-    fn abs(&mut self, value: FrPrimitive<E>) -> Result<FrPrimitive<E>, RuntimeError> {
+    fn abs(&mut self, value: Primitive<E>) -> Result<Primitive<E>, RuntimeError> {
         let zero = self.zero_typed(value.data_type)?;
         let neg = PrimitiveOperations::neg(self, value.clone())?;
         let lt0 = PrimitiveOperations::lt(self, value.clone(), zero)?;
@@ -174,9 +163,9 @@ where
 
     fn bits(
         &mut self,
-        index: FrPrimitive<E>,
+        index: Primitive<E>,
         array_length: usize,
-    ) -> Result<Vec<FrPrimitive<E>>, RuntimeError> {
+    ) -> Result<Vec<Primitive<E>>, RuntimeError> {
         let length = self.constant_bigint(&array_length.into())?;
         let index_lt_length = self.lt(index.clone(), length)?;
         self.assert(index_lt_length)?;
@@ -191,7 +180,7 @@ where
         let bits = bits
             .into_iter()
             .map(|bit| {
-                FrPrimitive::new(
+                Primitive::new(
                     bit.get_value_field::<E>(),
                     bit.get_variable()
                         .expect("bit value expected")
@@ -205,9 +194,9 @@ where
 
     fn recursive_select(
         &mut self,
-        array: &[FrPrimitive<E>],
-        index_bits: &[FrPrimitive<E>],
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+        array: &[Primitive<E>],
+        index_bits: &[Primitive<E>],
+    ) -> Result<Primitive<E>, RuntimeError> {
         if array.len() == 1 {
             return Ok(array[0].clone());
         }
@@ -237,8 +226,8 @@ where
         value: Option<E::Fr>,
         variable: Variable,
         data_type: DataType,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
-        let untyped = FrPrimitive::new(value, variable);
+    ) -> Result<Primitive<E>, RuntimeError> {
+        let untyped = Primitive::new(value, variable);
 
         let adjusted = if data_type.signed {
             let offset_value = BigInt::from(1) << (data_type.length - 1);
@@ -254,7 +243,7 @@ where
             .into_bits_le_fixed(cs.namespace(|| "into_bits_le_fixed"), data_type.length)
             .map_err(RuntimeError::SynthesisError)?;
 
-        Ok(FrPrimitive::new_with_type(value, variable, data_type))
+        Ok(Primitive::new_with_type(value, variable, data_type))
     }
 
     /// Create new typed value and check that all the operands have the same type
@@ -262,8 +251,8 @@ where
         &mut self,
         value: Option<E::Fr>,
         variable: Variable,
-        operands: &[FrPrimitive<E>],
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+        operands: &[Primitive<E>],
+    ) -> Result<Primitive<E>, RuntimeError> {
         assert!(!operands.is_empty());
         let data_type = operands.first().unwrap().data_type;
 
@@ -275,12 +264,12 @@ where
 
         match data_type {
             Some(data_type) => self.value_with_type_check(value, variable, data_type),
-            None => Ok(FrPrimitive::new(value, variable)),
+            None => Ok(Primitive::new(value, variable)),
         }
     }
 }
 
-impl<E, CS> PrimitiveOperations<FrPrimitive<E>> for ConstrainingFrOperations<E, CS>
+impl<E, CS> PrimitiveOperations<E> for ConstrainingFrOperations<E, CS>
 where
     E: Debug + Engine,
     CS: ConstraintSystem<E>,
@@ -288,7 +277,7 @@ where
     type E = E;
     type CS = CS;
 
-    fn variable_none(&mut self) -> Result<FrPrimitive<E>, RuntimeError> {
+    fn variable_none(&mut self) -> Result<Primitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let variable = cs
@@ -298,10 +287,10 @@ where
             )
             .map_err(RuntimeError::SynthesisError)?;
 
-        Ok(FrPrimitive::new(None, variable))
+        Ok(Primitive::new(None, variable))
     }
 
-    fn variable_bigint(&mut self, value: &BigInt) -> Result<FrPrimitive<E>, RuntimeError> {
+    fn variable_bigint(&mut self, value: &BigInt) -> Result<Primitive<E>, RuntimeError> {
         let value = utils::bigint_to_fr::<E>(value)
             .ok_or_else(|| RuntimeError::InternalError("bigint_to_fr".into()))?;
 
@@ -311,10 +300,10 @@ where
             .alloc(|| "variable value", || Ok(value))
             .map_err(RuntimeError::SynthesisError)?;
 
-        Ok(FrPrimitive::new(Some(value), variable))
+        Ok(Primitive::new(Some(value), variable))
     }
 
-    fn constant_bigint(&mut self, value: &BigInt) -> Result<FrPrimitive<E>, RuntimeError> {
+    fn constant_bigint(&mut self, value: &BigInt) -> Result<Primitive<E>, RuntimeError> {
         let value = utils::bigint_to_fr::<E>(value)
             .ok_or_else(|| RuntimeError::InternalError("bigint_to_fr".into()))?;
 
@@ -331,19 +320,19 @@ where
             |lc| lc + variable,
         );
 
-        Ok(FrPrimitive::new(Some(value), variable))
+        Ok(Primitive::new(Some(value), variable))
     }
 
     fn constant_bigint_typed(
         &mut self,
         value: &BigInt,
         data_type: DataType,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+    ) -> Result<Primitive<E>, RuntimeError> {
         let p = self.constant_bigint(value)?;
         self.value_with_type_check(p.value, p.variable, data_type)
     }
 
-    fn output(&mut self, element: FrPrimitive<E>) -> Result<FrPrimitive<E>, RuntimeError> {
+    fn output(&mut self, element: Primitive<E>) -> Result<Primitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let variable = cs
@@ -360,22 +349,22 @@ where
             |lc| lc + element.variable,
         );
 
-        Ok(FrPrimitive::new(element.value, variable))
+        Ok(Primitive::new(element.value, variable))
     }
 
     fn set_type(
         &mut self,
-        value: FrPrimitive<E>,
+        value: Primitive<E>,
         data_type: DataType,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+    ) -> Result<Primitive<E>, RuntimeError> {
         self.value_with_type_check(value.value, value.variable, data_type)
     }
 
     fn add(
         &mut self,
-        left: FrPrimitive<E>,
-        right: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+        left: Primitive<E>,
+        right: Primitive<E>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let sum = match (left.value, right.value) {
             (Some(l), Some(r)) => {
                 let mut sum = l;
@@ -407,9 +396,9 @@ where
 
     fn sub(
         &mut self,
-        left: FrPrimitive<E>,
-        right: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+        left: Primitive<E>,
+        right: Primitive<E>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let diff = match (left.value, right.value) {
             (Some(l), Some(r)) => {
                 let mut diff = l;
@@ -441,9 +430,9 @@ where
 
     fn mul(
         &mut self,
-        left: FrPrimitive<E>,
-        right: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+        left: Primitive<E>,
+        right: Primitive<E>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let prod = match (left.value, right.value) {
             (Some(l), Some(r)) => {
                 let mut prod = l;
@@ -475,9 +464,9 @@ where
 
     fn div_rem(
         &mut self,
-        left: FrPrimitive<E>,
-        right: FrPrimitive<E>,
-    ) -> Result<(FrPrimitive<E>, FrPrimitive<E>), RuntimeError> {
+        left: Primitive<E>,
+        right: Primitive<E>,
+    ) -> Result<(Primitive<E>, Primitive<E>), RuntimeError> {
         let nominator = left.clone();
         let denominator = right.clone();
 
@@ -543,7 +532,7 @@ where
         Ok((quotient, remainder))
     }
 
-    fn neg(&mut self, element: FrPrimitive<E>) -> Result<FrPrimitive<E>, RuntimeError> {
+    fn neg(&mut self, element: Primitive<E>) -> Result<Primitive<E>, RuntimeError> {
         let neg_value = match element.value {
             Some(value) => {
                 let mut neg = E::Fr::zero();
@@ -575,11 +564,11 @@ where
             data_type.signed = true;
             self.value_with_arguments_type_check(neg_value, neg_variable, &[element])
         } else {
-            Ok(FrPrimitive::new(neg_value, neg_variable))
+            Ok(Primitive::new(neg_value, neg_variable))
         }
     }
 
-    fn not(&mut self, element: FrPrimitive<E>) -> Result<FrPrimitive<E>, RuntimeError> {
+    fn not(&mut self, element: Primitive<E>) -> Result<Primitive<E>, RuntimeError> {
         let one = self.one_typed(element.data_type)?;
         let not = self.sub(one, element.clone())?;
         self.value_with_arguments_type_check(not.value, not.variable, &[element])
@@ -587,9 +576,9 @@ where
 
     fn and(
         &mut self,
-        left: FrPrimitive<E>,
-        right: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+        left: Primitive<E>,
+        right: Primitive<E>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let value = match (left.value, right.value) {
@@ -618,9 +607,9 @@ where
 
     fn or(
         &mut self,
-        left: FrPrimitive<E>,
-        right: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+        left: Primitive<E>,
+        right: Primitive<E>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let value = match (left.value, right.value) {
@@ -651,9 +640,9 @@ where
 
     fn xor(
         &mut self,
-        left: FrPrimitive<E>,
-        right: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+        left: Primitive<E>,
+        right: Primitive<E>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let value = match (left.value, right.value) {
@@ -688,9 +677,9 @@ where
 
     fn lt(
         &mut self,
-        left: FrPrimitive<E>,
-        right: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+        left: Primitive<E>,
+        right: Primitive<E>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let one = self.one_typed(right.data_type)?;
         let right_minus_one = self.sub(right, one)?;
         self.le(left, right_minus_one)
@@ -698,9 +687,9 @@ where
 
     fn le(
         &mut self,
-        left: FrPrimitive<E>,
-        right: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+        left: Primitive<E>,
+        right: Primitive<E>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let diff = self.sub(right, left)?;
 
         let mut cs = self.cs_namespace();
@@ -740,9 +729,9 @@ where
 
     fn eq(
         &mut self,
-        left: FrPrimitive<E>,
-        right: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+        left: Primitive<E>,
+        right: Primitive<E>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let l_num = AllocatedNum::alloc(cs.namespace(|| "l_num"), || {
@@ -766,37 +755,37 @@ where
 
     fn ne(
         &mut self,
-        left: FrPrimitive<E>,
-        right: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+        left: Primitive<E>,
+        right: Primitive<E>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let eq = self.eq(left, right)?;
         self.not(eq)
     }
 
     fn ge(
         &mut self,
-        left: FrPrimitive<E>,
-        right: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+        left: Primitive<E>,
+        right: Primitive<E>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let not_ge = self.lt(left, right)?;
         self.not(not_ge)
     }
 
     fn gt(
         &mut self,
-        left: FrPrimitive<E>,
-        right: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+        left: Primitive<E>,
+        right: Primitive<E>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let not_gt = self.le(left, right)?;
         self.not(not_gt)
     }
 
     fn conditional_select(
         &mut self,
-        condition: FrPrimitive<E>,
-        if_true: FrPrimitive<E>,
-        if_false: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+        condition: Primitive<E>,
+        if_true: Primitive<E>,
+        if_false: Primitive<E>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let value = match condition.value {
@@ -831,7 +820,7 @@ where
         self.value_with_arguments_type_check(value, variable, &[if_true, if_false])
     }
 
-    fn assert(&mut self, element: FrPrimitive<E>) -> Result<(), RuntimeError> {
+    fn assert(&mut self, element: Primitive<E>) -> Result<(), RuntimeError> {
         let inverse_value = element
             .value
             .map(|fr| fr.inverse().unwrap_or_else(E::Fr::zero));
@@ -856,9 +845,9 @@ where
 
     fn array_get(
         &mut self,
-        array: &[FrPrimitive<E>],
-        index: FrPrimitive<E>,
-    ) -> Result<FrPrimitive<E>, RuntimeError> {
+        array: &[Primitive<E>],
+        index: Primitive<E>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let bits = self.bits(index, array.len())?;
 
         self.recursive_select(array, bits.as_slice())
@@ -866,10 +855,10 @@ where
 
     fn array_set(
         &mut self,
-        array: &[FrPrimitive<E>],
-        index: FrPrimitive<E>,
-        value: FrPrimitive<E>,
-    ) -> Result<Vec<FrPrimitive<E>>, RuntimeError> {
+        array: &[Primitive<E>],
+        index: Primitive<E>,
+        value: Primitive<E>,
+    ) -> Result<Vec<Primitive<E>>, RuntimeError> {
         let mut new_array = Vec::new();
 
         for (i, p) in array.iter().enumerate() {
@@ -883,8 +872,12 @@ where
         Ok(new_array)
     }
 
-    fn execute<G: Gadget<E>>(&mut self, gadget: G, input: G::Input) -> Result<G::Output, RuntimeError> {
+    fn execute<G: Gadget<E>>(
+        &mut self,
+        gadget: G,
+        input: &[Primitive<E>],
+    ) -> Result<Vec<Primitive<E>>, RuntimeError> {
         let cs = self.cs_namespace();
-        gadget.synthesize(cs, input)
+        gadget.synthesize_vec(cs, input)
     }
 }

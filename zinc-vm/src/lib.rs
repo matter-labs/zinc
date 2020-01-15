@@ -1,5 +1,5 @@
+mod gadgets;
 mod instructions;
-mod primitive;
 mod vm;
 
 mod facade;

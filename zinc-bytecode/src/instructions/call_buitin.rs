@@ -1,6 +1,6 @@
+use crate::builtins::BuiltinIdentifier;
 use crate::instructions::utils;
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
-use crate::builtins::BuiltinIdentifier;
 use num_traits::cast::FromPrimitive;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -11,11 +11,7 @@ pub struct CallBuiltin {
 }
 
 impl CallBuiltin {
-    pub fn new(
-        identifier: BuiltinIdentifier,
-        inputs_count: usize,
-        outputs_count: usize) -> Self
-    {
+    pub fn new(identifier: BuiltinIdentifier, inputs_count: usize, outputs_count: usize) -> Self {
         Self {
             identifier,
             inputs_count,
@@ -26,7 +22,10 @@ impl CallBuiltin {
 
 impl InstructionInfo for CallBuiltin {
     fn to_assembly(&self) -> String {
-        format!("call_builtin {}({}) -> {}", self.identifier, self.inputs_count, self.outputs_count)
+        format!(
+            "call_builtin {}({}) -> {}",
+            self.identifier, self.inputs_count, self.outputs_count
+        )
     }
 
     fn code() -> InstructionCode {
@@ -34,16 +33,20 @@ impl InstructionInfo for CallBuiltin {
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_args(Self::code(), &[
-            self.identifier as usize,
-            self.inputs_count,
-            self.outputs_count,
-        ])
+        utils::encode_with_args(
+            Self::code(),
+            &[
+                self.identifier as usize,
+                self.inputs_count,
+                self.outputs_count,
+            ],
+        )
     }
 
     fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         let (args, len) = utils::decode_with_usize_args(Self::code(), bytes, 3)?;
-        let identifier = BuiltinIdentifier::from_usize(args[0]).ok_or(DecodingError::ConstantTooLong)?;
+        let identifier =
+            BuiltinIdentifier::from_usize(args[0]).ok_or(DecodingError::ConstantTooLong)?;
         Ok((Self::new(identifier, args[1], args[2]), len))
     }
 

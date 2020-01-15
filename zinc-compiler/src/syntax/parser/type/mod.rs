@@ -54,7 +54,9 @@ impl Parser {
                     Lexeme::Keyword(keyword),
                 ))),
             },
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Identifier(_),
                 ..
             } => {
@@ -64,11 +66,15 @@ impl Parser {
                 self.builder.set_path_expression(expression);
                 Ok((self.builder.finish(), next))
             }
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Symbol(Symbol::BracketSquareLeft),
                 ..
             } => Ok((ArrayTypeParser::default().parse(stream, Some(token))?, None)),
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                 ..
             } => Ok((TupleTypeParser::default().parse(stream, Some(token))?, None)),

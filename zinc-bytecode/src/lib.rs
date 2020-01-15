@@ -1,7 +1,7 @@
+pub mod builtins;
 mod decode;
 pub mod instructions;
 pub mod vlq;
-pub mod builtins;
 
 pub use decode::*;
 pub use instructions::*;

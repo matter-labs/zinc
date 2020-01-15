@@ -1,13 +1,15 @@
 extern crate franklin_crypto;
 
-use crate::primitive::{Primitive, PrimitiveOperations};
+use crate::gadgets::{PrimitiveOperations};
 use crate::vm::{InternalVM, RuntimeError, VMInstruction, VirtualMachine};
+use num_bigint::ToBigInt;
 use num_traits::Signed;
+use pairing::Engine;
 use zinc_bytecode::instructions::Dbg;
 
 impl<E, O> VMInstruction<E, O> for Dbg
 where
-    E: Primitive,
+    E: Engine,
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {

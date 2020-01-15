@@ -4,14 +4,15 @@ mod state;
 pub use internal::*;
 pub use state::*;
 
-use crate::primitive::{DataType, Primitive, PrimitiveOperations};
+use crate::gadgets::{DataType, Primitive, PrimitiveOperations};
 use franklin_crypto::bellman::SynthesisError;
-use num_bigint::BigInt;
+use num_bigint::{BigInt, ToBigInt};
+use pairing::Engine;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 
 pub trait VMInstruction<E, O>: InstructionInfo
 where
-    E: Primitive,
+    E: Engine,
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError>;
@@ -44,13 +45,13 @@ pub enum RuntimeError {
     OperationOnDifferentTypes,
 }
 
-pub struct VirtualMachine<E: Primitive, O: PrimitiveOperations<E>> {
+pub struct VirtualMachine<E: Engine, O: PrimitiveOperations<E>> {
     state: State<E>,
     ops: O,
-    outputs: Vec<E>,
+    outputs: Vec<Primitive<E>>,
 }
 
-impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
+impl<E: Engine, O: PrimitiveOperations<E>> VirtualMachine<E, O> {
     pub fn new(operator: O) -> Self {
         Self {
             state: State {
@@ -135,26 +136,27 @@ impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
     }
 
     fn state_to_string(&self) -> String {
-        format!("{:#?}", self.state)
+        //        format!("{:#?}", self.state)
+        "".into()
     }
 
     pub fn operations(&mut self) -> &mut O {
         &mut self.ops
     }
 
-    pub fn condition_push(&mut self, element: P) -> Result<(), RuntimeError> {
+    pub fn condition_push(&mut self, element: Primitive<E>) -> Result<(), RuntimeError> {
         self.state.conditions_stack.push(element);
         Ok(())
     }
 
-    pub fn condition_pop(&mut self) -> Result<P, RuntimeError> {
+    pub fn condition_pop(&mut self) -> Result<Primitive<E>, RuntimeError> {
         self.state
             .conditions_stack
             .pop()
             .ok_or(RuntimeError::StackUnderflow)
     }
 
-    pub fn condition_top(&mut self) -> Result<P, RuntimeError> {
+    pub fn condition_top(&mut self) -> Result<Primitive<E>, RuntimeError> {
         self.state
             .conditions_stack
             .last()
@@ -162,7 +164,7 @@ impl<P: Primitive, O: PrimitiveOperations<P>> VirtualMachine<P, O> {
             .ok_or(RuntimeError::StackUnderflow)
     }
 
-    fn top_frame(&mut self) -> Result<&mut FunctionFrame<P>, RuntimeError> {
+    fn top_frame(&mut self) -> Result<&mut FunctionFrame<E>, RuntimeError> {
         self.state
             .frames_stack
             .last_mut()

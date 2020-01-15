@@ -1,27 +1,23 @@
-use crate::primitive::{
-    ConstrainingFrOperations, FrPrimitive, Primitive, PrimitiveOperations,
-    SimplePrimitiveOperations,
-};
+use crate::gadgets::{ConstrainingFrOperations, Primitive, PrimitiveOperations};
 use crate::vm::{InternalVM, RuntimeError, VirtualMachine};
 use bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
-use num_bigint::BigInt;
+use num_bigint::{BigInt, ToBigInt};
+use pairing::Engine;
 use zinc_bytecode::{decode_all_instructions, Call, DecodingError, InstructionInfo};
 
-type TestElement = FrPrimitive<Bn256>;
 type TestElementOperator = ConstrainingFrOperations<Bn256, TestConstraintSystem<Bn256>>;
-type TestVirtualMachine = VirtualMachine<TestElement, TestElementOperator>;
+type TestVirtualMachine = VirtualMachine<Bn256, TestElementOperator>;
 
 fn new_test_constrained_vm() -> TestVirtualMachine {
-    let cs = TestConstraintSystem::<Bn256>::new();
+    let cs = TestConstraintSystem::new();
     let op = TestElementOperator::new(cs);
-
     TestVirtualMachine::new(op)
 }
 
 fn assert_stack_eq<E, O, BI>(vm: &mut VirtualMachine<E, O>, expected_stack: &[BI])
 where
-    E: Primitive,
+    E: Engine,
     O: PrimitiveOperations<E>,
     BI: Into<BigInt> + Copy,
 {
@@ -69,25 +65,7 @@ impl VMTestRunner {
         &mut self,
         expected_stack: &[T],
     ) -> Result<(), TestingError> {
-        self.test_primitive(expected_stack)?;
         self.test_constrained(expected_stack)?;
-
-        Ok(())
-    }
-
-    fn test_primitive<T: Into<BigInt> + Copy>(
-        &mut self,
-        expected_stack: &[T],
-    ) -> Result<(), TestingError> {
-        let mut instructions = decode_all_instructions(self.bytecode.as_slice())
-            .map_err(TestingError::DecodingError)?;
-
-        let mut vm = VirtualMachine::new(SimplePrimitiveOperations::new());
-
-        vm.run(instructions.as_mut_slice(), Some(&[]))
-            .map_err(TestingError::RuntimeError)?;
-
-        assert_stack_eq(&mut vm, expected_stack);
 
         Ok(())
     }

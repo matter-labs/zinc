@@ -1,16 +1,17 @@
-use crate::primitive::{Primitive, PrimitiveOperations};
+use crate::gadgets::{PrimitiveOperations};
 use crate::vm::{Block, Branch, Cell, FunctionFrame, Loop, VirtualMachine};
 use crate::RuntimeError;
+use pairing::Engine;
 
 /// This is an internal interface to virtual machine used by instructions.
-pub trait InternalVM<P: Primitive> {
-    fn push(&mut self, cell: Cell<P>) -> Result<(), RuntimeError>;
-    fn pop(&mut self) -> Result<Cell<P>, RuntimeError>;
+pub trait InternalVM<E: Engine> {
+    fn push(&mut self, cell: Cell<E>) -> Result<(), RuntimeError>;
+    fn pop(&mut self) -> Result<Cell<E>, RuntimeError>;
 
-    fn load(&mut self, address: usize) -> Result<Cell<P>, RuntimeError>;
-    fn load_global(&mut self, address: usize) -> Result<Cell<P>, RuntimeError>;
-    fn store(&mut self, address: usize, cell: Cell<P>) -> Result<(), RuntimeError>;
-    fn store_global(&mut self, address: usize, cell: Cell<P>) -> Result<(), RuntimeError>;
+    fn load(&mut self, address: usize) -> Result<Cell<E>, RuntimeError>;
+    fn load_global(&mut self, address: usize) -> Result<Cell<E>, RuntimeError>;
+    fn store(&mut self, address: usize, cell: Cell<E>) -> Result<(), RuntimeError>;
+    fn store_global(&mut self, address: usize, cell: Cell<E>) -> Result<(), RuntimeError>;
 
     fn loop_begin(&mut self, iter_count: usize) -> Result<(), RuntimeError>;
     fn loop_end(&mut self) -> Result<(), RuntimeError>;
@@ -25,29 +26,29 @@ pub trait InternalVM<P: Primitive> {
     fn exit(&mut self, values_count: usize) -> Result<(), RuntimeError>;
 }
 
-impl<P, O> InternalVM<P> for VirtualMachine<P, O>
+impl<E, O> InternalVM<E> for VirtualMachine<E, O>
 where
-    P: Primitive,
-    O: PrimitiveOperations<P>,
+    E: Engine,
+    O: PrimitiveOperations<E>,
 {
-    fn push(&mut self, cell: Cell<P>) -> Result<(), RuntimeError> {
+    fn push(&mut self, cell: Cell<E>) -> Result<(), RuntimeError> {
         self.state.evaluation_stack.push(cell)
     }
 
-    fn pop(&mut self) -> Result<Cell<P>, RuntimeError> {
+    fn pop(&mut self) -> Result<Cell<E>, RuntimeError> {
         self.state.evaluation_stack.pop()
     }
 
-    fn load(&mut self, address: usize) -> Result<Cell<P>, RuntimeError> {
+    fn load(&mut self, address: usize) -> Result<Cell<E>, RuntimeError> {
         let offset = self.top_frame()?.stack_frame_begin;
         self.state.data_stack.get(offset + address)
     }
 
-    fn load_global(&mut self, address: usize) -> Result<Cell<P>, RuntimeError> {
+    fn load_global(&mut self, address: usize) -> Result<Cell<E>, RuntimeError> {
         self.state.data_stack.get(address)
     }
 
-    fn store(&mut self, address: usize, cell: Cell<P>) -> Result<(), RuntimeError> {
+    fn store(&mut self, address: usize, cell: Cell<E>) -> Result<(), RuntimeError> {
         {
             let frame = self.top_frame()?;
             frame.stack_frame_end = std::cmp::max(frame.stack_frame_end, address + 1);
@@ -56,7 +57,7 @@ where
         self.state.data_stack.set(offset + address, cell)
     }
 
-    fn store_global(&mut self, address: usize, cell: Cell<P>) -> Result<(), RuntimeError> {
+    fn store_global(&mut self, address: usize, cell: Cell<E>) -> Result<(), RuntimeError> {
         self.state.data_stack.set(address, cell)
     }
 

@@ -32,7 +32,9 @@ impl Parser {
             Some(token) => token,
             None => stream.borrow_mut().next()?,
         } {
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::Let),
                 ..
             } => {
@@ -41,7 +43,9 @@ impl Parser {
                 self.next = next;
                 FunctionLocalStatement::Let(statement)
             }
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::Const),
                 ..
             } => {
@@ -50,7 +54,9 @@ impl Parser {
                 self.next = next;
                 FunctionLocalStatement::Const(statement)
             }
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::For),
                 ..
             } => {

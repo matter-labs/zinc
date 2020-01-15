@@ -1,14 +1,15 @@
-use crate::primitive::{Primitive, PrimitiveOperations};
+use crate::gadgets::{PrimitiveOperations};
 use crate::vm::{Cell, InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
+use pairing::Engine;
 use zinc_bytecode::instructions::LoadSequenceByIndex;
 
-impl<P, O> VMInstruction<P, O> for LoadSequenceByIndex
+impl<E, O> VMInstruction<E, O> for LoadSequenceByIndex
 where
-    P: Primitive,
-    O: PrimitiveOperations<P>,
+    E: Engine,
+    O: PrimitiveOperations<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<P, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let index = vm.pop()?.value()?;
 
         let mut array = Vec::with_capacity(self.array_len);

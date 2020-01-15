@@ -1,11 +1,12 @@
-use crate::primitive::{DataType, Primitive, PrimitiveOperations};
+use crate::gadgets::{DataType, PrimitiveOperations};
 use crate::vm::{Cell, InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
+use pairing::Engine;
 use zinc_bytecode::instructions::PushConst;
 
 impl<E, O> VMInstruction<E, O> for PushConst
 where
-    E: Primitive,
+    E: Engine,
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
