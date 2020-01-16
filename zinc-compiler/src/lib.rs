@@ -1,5 +1,5 @@
 //!
-//! The parser library.
+//! The Zinc compiler library.
 //!
 
 mod error;

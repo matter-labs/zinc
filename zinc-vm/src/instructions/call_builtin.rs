@@ -1,7 +1,7 @@
 extern crate franklin_crypto;
 
 use crate::gadgets::stdlib::crypto::Sha256;
-use crate::gadgets::{PrimitiveOperations};
+use crate::gadgets::PrimitiveOperations;
 use crate::vm::{Cell, InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
 use pairing::Engine;

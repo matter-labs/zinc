@@ -1,6 +1,6 @@
 extern crate franklin_crypto;
 
-use crate::gadgets::{PrimitiveOperations};
+use crate::gadgets::PrimitiveOperations;
 use crate::vm::{InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
 use pairing::Engine;

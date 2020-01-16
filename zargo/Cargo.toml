@@ -1,0 +1,19 @@
+[package]
+name = "zargo"
+version = "1.0.0"
+authors = ["hedgar2017 <hedgar2017@gmail.com>"]
+edition = "2018"
+description = "The Zinc's circuit manager"
+
+[[bin]]
+name = "zargo"
+path = "src/main.rs"
+
+[dependencies]
+log = "0.4"
+env_logger = "0.7"
+structopt = "0.3"
+failure = "0.1"
+serde = "1.0"
+serde_derive = "1.0"
+toml = "0.5"

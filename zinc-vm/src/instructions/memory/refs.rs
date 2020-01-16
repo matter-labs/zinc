@@ -1,4 +1,4 @@
-use crate::gadgets::{PrimitiveOperations};
+use crate::gadgets::PrimitiveOperations;
 use crate::vm::VMInstruction;
 use crate::vm::{RuntimeError, VirtualMachine};
 use pairing::Engine;

@@ -2,10 +2,10 @@ mod constrained;
 pub mod stdlib;
 pub mod utils;
 
-use std::fmt::{Debug};
+use std::fmt::Debug;
 
 use bellman::ConstraintSystem;
-use num_bigint::{BigInt};
+use num_bigint::BigInt;
 use pairing::Engine;
 
 pub use constrained::*;
