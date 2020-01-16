@@ -10,6 +10,7 @@ use std::fs::File;
 use std::io::Read;
 use std::io::Write;
 use std::path::PathBuf;
+use std::process;
 use std::rc::Rc;
 
 use failure::Fail;
@@ -21,6 +22,12 @@ use zinc_compiler::LibraryAnalyzer;
 use zinc_compiler::Parser;
 use zinc_compiler::Scope;
 use zinc_compiler::SyntaxTree;
+
+static ZINC_SOURCE_FILE_EXTENSION: &str = "zn";
+static PANIC_LAST_SHARED_REFERENCE: &str = "There are no other references at this point";
+
+const EXIT_CODE_SUCCESS: i32 = 0;
+const EXIT_CODE_FAILURE: i32 = 1;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "znc", about = "The Zinc compiler")]
@@ -73,13 +80,19 @@ enum OutputError {
     Writing(std::io::Error),
 }
 
-static ZINC_SOURCE_FILE_EXTENSION: &str = "zn";
-
-static PANIC_LAST_SHARED_REFERENCE: &str = "There are no other references at this point";
-
-fn main() -> Result<(), Error> {
+fn main() {
     init_logger();
 
+    process::exit(match main_inner() {
+        Ok(()) => EXIT_CODE_SUCCESS,
+        Err(error) => {
+            log::error!("{}", error);
+            EXIT_CODE_FAILURE
+        }
+    })
+}
+
+fn main_inner() -> Result<(), Error> {
     let args: Arguments = Arguments::from_args();
 
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));
@@ -109,10 +122,7 @@ fn main() -> Result<(), Error> {
         let module_name = file_stem.to_string_lossy().to_string();
         let module = LibraryAnalyzer::new(bytecode.clone())
             .compile(path_to_syntax_tree(file_path)?)
-            .map_err(|error| {
-                log::error!("{}", error);
-                Error::Compiler(error)
-            })?;
+            .map_err(Error::Compiler)?;
 
         modules.insert(module_name, module);
     }
@@ -120,14 +130,11 @@ fn main() -> Result<(), Error> {
     match binary_path.take() {
         Some(binary_path) => BinaryAnalyzer::new(bytecode.clone())
             .compile(path_to_syntax_tree(binary_path)?, modules)
-            .map_err(|error| {
-                log::error!("{}", error);
-                Error::Compiler(error)
-            })?,
+            .map_err(Error::Compiler)?,
         None => return Err(Error::BinaryNotFound),
     }
 
-    log::info!("Output: {:?}", args.output);
+    log::info!("Compiled to {:?}", args.output);
     File::create(&args.output)
         .map_err(OutputError::Creating)
         .map_err(Error::Output)?
@@ -145,7 +152,7 @@ fn main() -> Result<(), Error> {
 }
 
 fn path_to_syntax_tree(path: PathBuf) -> Result<SyntaxTree, Error> {
-    log::info!("Input: {:?}", path);
+    log::info!("Compiling   {:?}", path);
     let mut file = File::open(path)
         .map_err(InputError::Opening)
         .map_err(Error::Input)?;
@@ -159,10 +166,7 @@ fn path_to_syntax_tree(path: PathBuf) -> Result<SyntaxTree, Error> {
         .map_err(InputError::Reading)
         .map_err(Error::Input)?;
 
-    Parser::default().parse(input).map_err(|error| {
-        log::error!("{}", error);
-        Error::Compiler(error)
-    })
+    Parser::default().parse(input).map_err(Error::Compiler)
 }
 
 fn init_logger() {

@@ -1,5 +1,5 @@
 //!
-//! The Zargo `new` command.
+//! The Zargo `init` command.
 //!
 
 use std::ffi::OsString;
@@ -26,7 +26,7 @@ pub struct Command {
         help = "Set the resulting circuit name, defaults to the directory name"
     )]
     name: Option<String>,
-    #[structopt(parse(from_os_str))]
+    #[structopt(parse(from_os_str), default_value = "./")]
     path: PathBuf,
 }
 
@@ -37,10 +37,10 @@ pub enum Error {
         _0
     )]
     ProjectNameInvalid(OsString),
-    #[fail(display = "directory {:?} already exists", _0)]
-    DirectoryAlreadyExists(OsString),
-    #[fail(display = "root directory {:?} creating: {}", _0, _1)]
-    CreatingRootDirectory(OsString, io::Error),
+    #[fail(display = "directory {:?} does not exist", _0)]
+    DirectoryDoesNotExist(OsString),
+    #[fail(display = "circuit at path {:?} is already initialized", _0)]
+    CircuitAlreadyInitialized(OsString),
     #[fail(display = "manifest file {:?} creating: {}", _0, _1)]
     CreatingZargoManifestFile(OsString, io::Error),
     #[fail(display = "manifest file {:?} template writing: {}", _0, _1)]
@@ -63,17 +63,20 @@ impl Command {
                 .to_string(),
         );
 
-        if self.path.exists() {
-            return Err(Error::DirectoryAlreadyExists(
+        if !self.path.exists() {
+            return Err(Error::DirectoryDoesNotExist(
                 self.path.as_os_str().to_owned(),
             ));
         }
-        fs::create_dir_all(&self.path).map_err(|error| {
-            Error::CreatingRootDirectory(self.path.as_os_str().to_owned(), error)
-        })?;
 
         let mut zargo_manifest_file_path = self.path.clone();
         zargo_manifest_file_path.push(PathBuf::from(crate::constants::CIRCUIT_MANIFEST_FILE_NAME));
+        if zargo_manifest_file_path.exists() {
+            return Err(Error::CircuitAlreadyInitialized(
+                zargo_manifest_file_path.as_os_str().to_owned(),
+            ));
+        }
+
         let mut zargo_file = File::create(&zargo_manifest_file_path).map_err(|error| {
             Error::CreatingZargoManifestFile(zargo_manifest_file_path.as_os_str().to_owned(), error)
         })?;
@@ -94,23 +97,25 @@ impl Command {
 
         let mut source_main_file_path = source_directory_path;
         source_main_file_path.push(PathBuf::from(crate::constants::CIRCUIT_MAIN_FILE_NAME));
-        let mut main_file = File::create(&source_main_file_path).map_err(|error| {
-            Error::CreatingSourceMainFile(source_main_file_path.as_os_str().to_owned(), error)
-        })?;
-        main_file
-            .write_all(templates::main_template(&circuit_name).as_bytes())
-            .map_err(|error| {
-                Error::WritingSourceMainFileTemplate(
-                    source_main_file_path.as_os_str().to_owned(),
-                    error,
-                )
+        if !source_main_file_path.exists() {
+            let mut main_file = File::create(&source_main_file_path).map_err(|error| {
+                Error::CreatingSourceMainFile(source_main_file_path.as_os_str().to_owned(), error)
             })?;
+            main_file
+                .write_all(templates::main_template(&circuit_name).as_bytes())
+                .map_err(|error| {
+                    Error::WritingSourceMainFileTemplate(
+                        source_main_file_path.as_os_str().to_owned(),
+                        error,
+                    )
+                })?;
+        }
 
         if !self.quiet {
             log::info!(
-                "An empty circuit '{}' has been created at '{}'",
+                "The directory '{}' has been initialized with circuit '{}'",
+                self.path.to_string_lossy(),
                 circuit_name,
-                self.path.to_string_lossy()
             );
         }
         Ok(())

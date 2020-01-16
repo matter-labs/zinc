@@ -1,5 +1,5 @@
 //!
-//! The 'fuck' main module.
+//! The 'test' main module.
 //!
 
 fn main() -> u8 {

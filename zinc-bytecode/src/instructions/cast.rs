@@ -9,10 +9,7 @@ pub struct Cast {
 
 impl Cast {
     pub fn new(signed: bool, length: usize) -> Self {
-        Self {
-            signed,
-            length,
-        }
+        Self { signed, length }
     }
 }
 

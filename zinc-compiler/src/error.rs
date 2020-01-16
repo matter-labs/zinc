@@ -10,11 +10,11 @@ use crate::syntax;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
-    #[fail(display = "Lexical error: {}", _0)]
+    #[fail(display = "lexical: {}", _0)]
     Lexical(lexical::Error),
-    #[fail(display = "Syntax error: {}", _0)]
+    #[fail(display = "syntax: {}", _0)]
     Syntax(syntax::Error),
-    #[fail(display = "Semantic error: {}", _0)]
+    #[fail(display = "semantic: {}", _0)]
     Semantic(semantic::Error),
 }
 

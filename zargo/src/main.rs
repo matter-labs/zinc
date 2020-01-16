@@ -1,38 +1,45 @@
 //!
-//! The Zargo package manager binary.
+//! The Zargo circuit manager binary.
 //!
 
 mod command;
+mod constants;
+mod manifest;
+mod templates;
 
 pub use self::command::Command;
 pub use self::command::Error as CommandError;
 
 use std::env;
+use std::process;
 
-use failure::Fail;
 use structopt::StructOpt;
 
+const EXIT_CODE_SUCCESS: i32 = 0;
+const EXIT_CODE_FAILURE: i32 = 1;
+
 #[derive(Debug, StructOpt)]
-#[structopt(name = "zargo", about = "The Zargo package manager")]
+#[structopt(name = "zargo", about = "Zinc's circuit manager")]
 struct Arguments {
     #[structopt(subcommand)]
     command: Command,
 }
 
-#[derive(Debug, Fail)]
-enum Error {
-    #[fail(display = "{}", _0)]
-    Command(CommandError),
-}
-
-fn main() -> Result<(), Error> {
+fn main() {
     init_logger();
 
-    let args: Arguments = Arguments::from_args();
+    process::exit(match main_inner() {
+        Ok(()) => EXIT_CODE_SUCCESS,
+        Err(error) => {
+            log::error!("{}", error);
+            EXIT_CODE_FAILURE
+        }
+    })
+}
 
-    args.command.execute().map_err(Error::Command)?;
-
-    Ok(())
+fn main_inner() -> Result<(), CommandError> {
+    let args = Arguments::from_args();
+    args.command.execute()
 }
 
 fn init_logger() {
