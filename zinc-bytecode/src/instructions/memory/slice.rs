@@ -8,7 +8,10 @@ pub struct Slice {
 
 impl Slice {
     pub fn new(array_len: usize, slice_len: usize) -> Self {
-        Self { array_len, slice_len }
+        Self {
+            array_len,
+            slice_len,
+        }
     }
 }
 

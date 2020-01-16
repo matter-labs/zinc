@@ -1,5 +1,5 @@
 use crate::primitive::{Primitive, PrimitiveOperations};
-use crate::vm::{InternalVM, VMInstruction, Cell};
+use crate::vm::{Cell, InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
 use zinc_bytecode::instructions::Slice;
 
@@ -21,7 +21,9 @@ where
         for i in 0..self.slice_len {
             let index = match offset.data_type() {
                 None => vm.operations().constant_bigint(&i.into())?,
-                Some(data_type) => vm.operations().constant_bigint_typed(&i.into(), data_type)?,
+                Some(data_type) => vm
+                    .operations()
+                    .constant_bigint_typed(&i.into(), data_type)?,
             };
             let address = vm.operations().add(offset.clone(), index)?;
 

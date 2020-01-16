@@ -1,0 +1,8 @@
+//!
+//! The 'test' main module.
+//!
+
+fn main() -> u8 {
+    dbg!("Zello, World!");
+    42
+}

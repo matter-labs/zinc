@@ -81,7 +81,7 @@ impl<E: Engine> FrPrimitive<E> {
         Self {
             value: self.value,
             variable: self.variable,
-            data_type: None
+            data_type: None,
         }
     }
 }
