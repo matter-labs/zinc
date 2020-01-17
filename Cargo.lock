@@ -1040,6 +1040,7 @@ dependencies = [
  "env_logger",
  "ff_ce",
  "franklin-crypto",
+ "lazy_static",
  "log",
  "num-bigint",
  "num-integer",

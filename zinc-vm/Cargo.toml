@@ -15,6 +15,7 @@ env_logger = "0.7"
 clap = "2.33.0"
 rand = "0.4.5"
 colored = "1.9.0"
+lazy_static = "1.4.0"
 
 pairing = { package = "pairing_ce", version = "0.17.0" }
 bellman = { package = "bellman_ce", version = "0.3.0" }

@@ -1,11 +1,11 @@
 use crate::gadgets::PrimitiveOperations;
 use crate::vm::{Cell, InternalVM, RuntimeError, VMInstruction, VirtualMachine};
-use pairing::Engine;
+use crate::ZincEngine;
 use zinc_bytecode::instructions::Slice;
 
 impl<E, O> VMInstruction<E, O> for Slice
 where
-    E: Engine,
+    E: ZincEngine,
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {

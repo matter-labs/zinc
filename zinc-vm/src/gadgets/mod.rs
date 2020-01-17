@@ -6,7 +6,7 @@ use std::fmt::Debug;
 
 use bellman::ConstraintSystem;
 use num_bigint::BigInt;
-use pairing::Engine;
+use crate::ZincEngine;
 
 pub use constrained::*;
 
@@ -29,19 +29,19 @@ impl DataType {
 
 /// Primitive is a primitive value that can be stored on the stack and operated by VM's instructions.
 #[derive(Clone)]
-pub struct Primitive<E: Engine> {
+pub struct Primitive<E: ZincEngine> {
     value: Option<E::Fr>,
     variable: Variable,
     data_type: Option<DataType>,
 }
 
-impl<E: Engine> Primitive<E> {
+impl<E: ZincEngine> Primitive<E> {
     pub fn get_data_type(&self) -> Option<DataType> {
         self.data_type
     }
 }
 
-pub trait Gadget<E: Engine> {
+pub trait Gadget<E: ZincEngine> {
     type Input;
     type Output;
 
@@ -73,8 +73,8 @@ pub trait Gadget<E: Engine> {
 }
 
 /// PrimitiveOperations is an entity that knows how to operate with some Primitive.
-pub trait PrimitiveOperations<E: Engine> {
-    type E: Engine;
+pub trait PrimitiveOperations<E: ZincEngine> {
+    type E: ZincEngine;
     type CS: ConstraintSystem<Self::E>;
 
     fn variable_none(&mut self) -> Result<Primitive<E>, RuntimeError>;

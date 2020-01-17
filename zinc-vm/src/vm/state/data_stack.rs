@@ -3,10 +3,10 @@ use std::collections::HashMap;
 use crate::gadgets::{Primitive, PrimitiveOperations};
 use crate::vm::Cell;
 use crate::RuntimeError;
-use pairing::Engine;
+use crate::ZincEngine;
 
 #[derive(Debug)]
-struct CellDelta<E: Engine> {
+struct CellDelta<E: ZincEngine> {
     old: Option<Cell<E>>,
     new: Cell<E>,
 }
@@ -14,12 +14,12 @@ struct CellDelta<E: Engine> {
 type DataStackDelta<E> = HashMap<usize, CellDelta<E>>;
 
 #[derive(Debug)]
-enum DataStackBranch<E: Engine> {
+enum DataStackBranch<E: ZincEngine> {
     IfThen(DataStackDelta<E>),
     IfThenElse(DataStackDelta<E>, DataStackDelta<E>),
 }
 
-impl<E: Engine> DataStackBranch<E> {
+impl<E: ZincEngine> DataStackBranch<E> {
     fn new() -> Self {
         DataStackBranch::IfThen(HashMap::new())
     }
@@ -40,12 +40,12 @@ impl<E: Engine> DataStackBranch<E> {
 }
 
 #[derive(Debug)]
-pub struct DataStack<E: Engine> {
+pub struct DataStack<E: ZincEngine> {
     memory: Vec<Option<Cell<E>>>,
     branches: Vec<DataStackBranch<E>>,
 }
 
-impl<E: Engine> DataStack<E> {
+impl<E: ZincEngine> DataStack<E> {
     pub fn new() -> Self {
         Self {
             memory: Vec::new(),
@@ -191,7 +191,7 @@ mod tests {
     use super::*;
     use franklin_crypto::circuit::test::TestConstraintSystem;
 
-    fn assert_cell_eq<E: Engine>(cell: Cell<E>, value: BigInt) {
+    fn assert_cell_eq<E: ZincEngine>(cell: Cell<E>, value: BigInt) {
         if let Cell::Value(v) = cell {
             assert_eq!(v.to_bigint().unwrap(), value);
         } else {
