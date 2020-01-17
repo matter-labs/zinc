@@ -16,7 +16,7 @@ use crate::Error;
 #[test]
 fn test() {
     let input = r#"
-fn main() {
+fn main(input: (), witness: ()) {
     let integer = 42;
     let boolean = true;
     let value = boolean == integer;

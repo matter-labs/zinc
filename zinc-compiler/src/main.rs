@@ -33,27 +33,44 @@ const EXIT_CODE_FAILURE: i32 = 1;
 #[structopt(name = "znc", about = "The Zinc compiler")]
 struct Arguments {
     #[structopt(
+        short = "i",
+        long = "input-json",
+        parse(from_os_str),
+        help = "The input JSON template output path"
+    )]
+    input_json: PathBuf,
+    #[structopt(
+        short = "w",
+        long = "witness-json",
+        parse(from_os_str),
+        help = "The witness JSON template output path"
+    )]
+    witness_json: PathBuf,
+    #[structopt(
         short = "o",
         long = "output",
-        name = "OUTPUT",
         parse(from_os_str),
-        help = "The *.znb output file name"
+        help = "The *.znb bytecode output path"
     )]
     output: PathBuf,
-    #[structopt(name = "INPUT", parse(from_os_str), help = "The *.zn input file names")]
-    inputs: Vec<PathBuf>,
+    #[structopt(parse(from_os_str), help = "The *.zn source file names")]
+    sources: Vec<PathBuf>,
 }
 
 #[derive(Debug, Fail)]
 enum Error {
-    #[fail(display = "Input: {}", _0)]
-    Input(InputError),
-    #[fail(display = "Parser: {}", _0)]
+    #[fail(display = "Source input: {}", _0)]
+    SourceInput(InputError),
+    #[fail(display = "Compiler: {}", _0)]
     Compiler(zinc_compiler::Error),
-    #[fail(display = "Output: {}", _0)]
-    Output(OutputError),
-    #[fail(display = "Binary file not found")]
-    BinaryNotFound,
+    #[fail(display = "Input template output: {}", _0)]
+    InputTemplateOutput(OutputError),
+    #[fail(display = "Witness template output: {}", _0)]
+    WitnessTemplateOutput(OutputError),
+    #[fail(display = "Bytecode output: {}", _0)]
+    BytecodeOutput(OutputError),
+    #[fail(display = "The 'main.zn' source file is missing")]
+    MainSourceFileNotFound,
 }
 
 #[derive(Debug, Fail)]
@@ -100,28 +117,30 @@ fn main_inner() -> Result<(), Error> {
     let mut modules = HashMap::<String, Rc<RefCell<Scope>>>::new();
     let mut binary_path = None;
 
-    for file_path in args.inputs.into_iter() {
-        let file_extension = file_path
+    for source_file_path in args.sources.into_iter() {
+        let source_file_extension = source_file_path
             .extension()
             .ok_or(InputError::FileExtensionNotFound)
-            .map_err(Error::Input)?;
-        if file_extension != ZINC_SOURCE_FILE_EXTENSION {
-            return Err(InputError::FileExtensionInvalid(file_extension.to_owned()))
-                .map_err(Error::Input);
+            .map_err(Error::SourceInput)?;
+        if source_file_extension != ZINC_SOURCE_FILE_EXTENSION {
+            return Err(InputError::FileExtensionInvalid(
+                source_file_extension.to_owned(),
+            ))
+            .map_err(Error::SourceInput);
         }
 
-        let file_stem = file_path
+        let source_file_stem = source_file_path
             .file_stem()
             .ok_or(InputError::FileStemNotFound)
-            .map_err(Error::Input)?;
-        if file_stem == "main" {
-            binary_path = Some(file_path);
+            .map_err(Error::SourceInput)?;
+        if source_file_stem == "main" {
+            binary_path = Some(source_file_path);
             continue;
         }
 
-        let module_name = file_stem.to_string_lossy().to_string();
+        let module_name = source_file_stem.to_string_lossy().to_string();
         let module = LibraryAnalyzer::new(bytecode.clone())
-            .compile(path_to_syntax_tree(file_path)?)
+            .compile(path_to_syntax_tree(source_file_path)?)
             .map_err(Error::Compiler)?;
 
         modules.insert(module_name, module);
@@ -131,13 +150,28 @@ fn main_inner() -> Result<(), Error> {
         Some(binary_path) => BinaryAnalyzer::new(bytecode.clone())
             .compile(path_to_syntax_tree(binary_path)?, modules)
             .map_err(Error::Compiler)?,
-        None => return Err(Error::BinaryNotFound),
+        None => return Err(Error::MainSourceFileNotFound),
     }
 
-    log::info!("Compiled to {:?}", args.output);
+    File::create(&args.input_json)
+        .map_err(OutputError::Creating)
+        .map_err(Error::InputTemplateOutput)?
+        .write_all(bytecode.borrow().to_input_template_bytes().as_slice())
+        .map_err(OutputError::Writing)
+        .map_err(Error::InputTemplateOutput)?;
+    log::info!("Input   JSON template written to {:?}", args.input_json);
+
+    File::create(&args.witness_json)
+        .map_err(OutputError::Creating)
+        .map_err(Error::WitnessTemplateOutput)?
+        .write_all(bytecode.borrow().to_witness_template_bytes().as_slice())
+        .map_err(OutputError::Writing)
+        .map_err(Error::WitnessTemplateOutput)?;
+    log::info!("Witness JSON template written to {:?}", args.witness_json);
+
     File::create(&args.output)
         .map_err(OutputError::Creating)
-        .map_err(Error::Output)?
+        .map_err(Error::BytecodeOutput)?
         .write_all(
             Rc::try_unwrap(bytecode)
                 .expect(PANIC_LAST_SHARED_REFERENCE)
@@ -146,7 +180,8 @@ fn main_inner() -> Result<(), Error> {
                 .as_slice(),
         )
         .map_err(OutputError::Writing)
-        .map_err(Error::Output)?;
+        .map_err(Error::BytecodeOutput)?;
+    log::info!("Compiled to {:?}", args.output);
 
     Ok(())
 }
@@ -155,16 +190,16 @@ fn path_to_syntax_tree(path: PathBuf) -> Result<SyntaxTree, Error> {
     log::info!("Compiling   {:?}", path);
     let mut file = File::open(path)
         .map_err(InputError::Opening)
-        .map_err(Error::Input)?;
+        .map_err(Error::SourceInput)?;
     let size = file
         .metadata()
         .map_err(InputError::Metadata)
-        .map_err(Error::Input)?
+        .map_err(Error::SourceInput)?
         .len() as usize;
     let mut input = String::with_capacity(size);
     file.read_to_string(&mut input)
         .map_err(InputError::Reading)
-        .map_err(Error::Input)?;
+        .map_err(Error::SourceInput)?;
 
     Parser::default().parse(input).map_err(Error::Compiler)
 }

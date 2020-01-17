@@ -2,7 +2,25 @@
 //! The 'test' main module.
 //!
 
-fn main() -> u8 {
+struct Inner {
+    one: [field; 3],
+    two: (),
+    three: ((), i160),
+}
+
+struct Input {
+    array: [i16; 8],
+    tuple: (bool, u8, field),
+    inner: Inner,
+}
+
+struct Witness {
+    array: [u192; 8],
+    tuple: (bool, [field; 4]),
+    inner: Inner,
+}
+
+fn main(input: Input, witness: Witness) -> u8 {
     dbg!("Zello, World!");
     42
 }

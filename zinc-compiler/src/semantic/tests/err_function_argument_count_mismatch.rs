@@ -15,7 +15,7 @@ fn another(x: u8) -> u8 {
     42
 }
 
-fn main() {
+fn main(input: (), witness: ()) {
     let value = another();
 }
 "#;

@@ -113,11 +113,22 @@ impl Command {
             Error::CreatingBuildDirectory(build_directory_path.as_os_str().to_owned(), error)
         })?;
 
-        let mut build_binary_path = build_directory_path;
+        let mut build_input_template_path = build_directory_path.clone();
+        build_input_template_path.push(crate::constants::CIRCUIT_INPUT_TEMPLATE_DEFAULT_FILE_NAME);
+
+        let mut build_witness_template_path = build_directory_path.clone();
+        build_witness_template_path
+            .push(crate::constants::CIRCUIT_OUTPUT_TEMPLATE_DEFAULT_FILE_NAME);
+
+        let mut build_binary_path = build_directory_path.clone();
         build_binary_path.push(crate::constants::CIRCUIT_BINARY_DEFAULT_FILE_NAME);
 
         let mut compiler_process =
             process::Command::new(crate::constants::ZINC_COMPILER_BINARY_NAME)
+                .arg("--input-json")
+                .arg(&build_input_template_path)
+                .arg("--witness-json")
+                .arg(&build_witness_template_path)
                 .arg("--output")
                 .arg(&build_binary_path)
                 .args(&source_file_paths)
@@ -134,7 +145,7 @@ impl Command {
             log::info!(
                 "The '{}' circuit has been built to '{}'",
                 manifest.circuit.name,
-                build_binary_path.to_string_lossy()
+                build_directory_path.to_string_lossy()
             );
         }
         Ok(())

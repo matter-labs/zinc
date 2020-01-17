@@ -8,6 +8,8 @@ use std::fmt;
 use std::rc::Rc;
 
 use num_bigint::BigInt;
+use serde_json::json;
+use serde_json::Value as JsonValue;
 
 use crate::semantic::Constant;
 use crate::semantic::Element;
@@ -55,9 +57,12 @@ pub enum Type {
         arguments: Vec<(String, Self)>,
         return_type: Box<Self>,
     },
-    Reference {
-        inner: Box<Self>,
-    },
+}
+
+impl Default for Type {
+    fn default() -> Self {
+        Self::Unit
+    }
 }
 
 impl Type {
@@ -187,12 +192,6 @@ impl Type {
         }
     }
 
-    pub fn new_reference(inner: Self) -> Self {
-        Self::Reference {
-            inner: Box::new(inner),
-        }
-    }
-
     pub fn size(&self) -> usize {
         match self {
             Self::Unit => 0,
@@ -208,7 +207,6 @@ impl Type {
             }
             Self::Enumeration { .. } => 1,
             Self::Function { .. } => 0,
-            Self::Reference { .. } => 1,
         }
     }
 
@@ -238,9 +236,7 @@ impl Type {
                 }
                 Self::new_tuple(types)
             }
-            TypeVariant::Reference { inner } => {
-                Self::new_reference(Self::from_type_variant(&*inner, scope)?)
-            }
+            TypeVariant::Reference { .. } => return Err(Error::ReferencesNotImplemented),
             TypeVariant::Alias { path } => {
                 let location = path.location;
                 match ExpressionAnalyzer::new_without_bytecode(scope)
@@ -273,6 +269,109 @@ impl Type {
 
             _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
         })
+    }
+
+    pub fn to_json_metadata(&self) -> Option<JsonValue> {
+        match self {
+            Self::Boolean => Some(json!({
+                "type": "field",
+                "is_signed": false,
+                "bitlength": crate::BITLENGTH_BOOLEAN,
+            })),
+            Self::IntegerUnsigned { bitlength } => Some(json!({
+                "type": "field",
+                "is_signed": false,
+                "bitlength": bitlength,
+            })),
+            Self::IntegerSigned { bitlength } => Some(json!({
+                "type": "field",
+                "is_signed": true,
+                "bitlength": bitlength,
+            })),
+            Self::Field => Some(json!({
+                "type": "field",
+                "is_signed": false,
+                "bitlength": crate::BITLENGTH_FIELD,
+            })),
+            Self::Enumeration { bitlength, .. } => Some(json!({
+                "type": "field",
+                "is_signed": false,
+                "bitlength": bitlength,
+            })),
+            Self::Array { r#type, size } => Some(json!({
+                "type": "array",
+                "size": size,
+                "array": r#type.to_json_metadata(),
+            })),
+            Self::Tuple { types } => Some(json!({
+                "type": "tuple",
+                "tuple": types.iter().filter_map(|r#type| r#type.to_json_metadata()).collect::<JsonValue>(),
+            })),
+            Self::Structure { fields, .. } => Some(json!({
+                "type": "structure",
+                "structure": fields.iter()
+                .filter_map(|(id, r#type)| r#type.to_json_metadata().map(|inner| (id.to_owned(), inner)))
+                .map(|(id, inner)| json!({
+                    "id": id,
+                    "value": inner,
+                })).collect::<JsonValue>(),
+            })),
+            _ => None,
+        }
+    }
+
+    pub fn to_json_template(&self) -> Option<JsonValue> {
+        match self {
+            Self::Boolean => Some(json!({
+                "type": "field",
+                "is_signed": false,
+                "bitlength": crate::BITLENGTH_BOOLEAN,
+                "value": "0",
+            })),
+            Self::IntegerUnsigned { bitlength } => Some(json!({
+                "type": "field",
+                "is_signed": false,
+                "bitlength": bitlength,
+                "value": "0",
+            })),
+            Self::IntegerSigned { bitlength } => Some(json!({
+                "type": "field",
+                "is_signed": true,
+                "bitlength": bitlength,
+                "value": "0",
+            })),
+            Self::Field => Some(json!({
+                "type": "field",
+                "is_signed": false,
+                "bitlength": crate::BITLENGTH_FIELD,
+                "value": "0",
+            })),
+            Self::Enumeration { bitlength, .. } => Some(json!({
+                "type": "field",
+                "is_signed": false,
+                "bitlength": bitlength,
+                "value": "0",
+            })),
+            Self::Array { r#type, size } => Some(json!({
+                "type": "array",
+                "size": size,
+                "array": r#type.to_json_template(),
+            })),
+            Self::Tuple { types } => Some(json!({
+                "type": "tuple",
+                "tuple": types.iter().filter_map(|r#type| r#type.to_json_template()).collect::<JsonValue>(),
+            })),
+            Self::Structure { fields, .. } => Some(json!({
+                "type": "structure",
+                "structure": fields.iter()
+                .filter_map(|(id, r#type)| r#type.to_json_template().map(|inner| (id.to_owned(), inner)))
+                .map(|(id, inner)| json!({
+                    "id": id,
+                    "value": inner,
+                })).collect::<JsonValue>(),
+            })),
+            _ => None,
+        }
     }
 }
 
@@ -330,9 +429,6 @@ impl PartialEq<Type> for Type {
                     ..
                 },
             ) => identifier_1 == identifier_2,
-            (Self::Reference { inner: inner_1 }, Self::Reference { inner: inner_2 }) => {
-                inner_1 == inner_2
-            }
             _ => false,
         }
     }
@@ -385,7 +481,6 @@ impl fmt::Display for Type {
                     .join(", "),
                 return_type,
             ),
-            Self::Reference { inner } => write!(f, "&{}", inner),
         }
     }
 }

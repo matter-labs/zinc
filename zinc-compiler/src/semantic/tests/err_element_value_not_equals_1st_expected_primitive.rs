@@ -16,7 +16,7 @@ use crate::Error;
 #[test]
 fn test() {
     let input = r#"
-fn main() {
+fn main(input: (), witness: ()) {
     let array = [1, 2, 3];
     let integer = 42;
     let value = array != integer;

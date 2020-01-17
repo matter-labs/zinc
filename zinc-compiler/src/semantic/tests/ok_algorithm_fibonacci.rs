@@ -23,7 +23,7 @@ use zinc_bytecode::Store;
 #[test]
 fn test() {
     let input = r#"
-fn main() {
+fn main(input: (), witness: ()) {
     let mut value_1: field = 0;
     let mut value_2: field = 1;
     let mut fibo = value_1;

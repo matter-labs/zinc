@@ -21,7 +21,7 @@ use zinc_bytecode::Sub;
 #[test]
 fn test() {
     let input = r#"
-fn main() {
+fn main(input: (), witness: ()) {
     let mut sum = 0;
     for i in 5+5..=0 {
         sum = sum + i;

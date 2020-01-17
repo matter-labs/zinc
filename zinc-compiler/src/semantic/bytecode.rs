@@ -3,16 +3,23 @@
 //!
 
 use std::collections::HashMap;
+use std::mem;
 
 use zinc_bytecode::dispatch_instruction;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::InstructionInfo;
 
+use crate::semantic::Type;
+
+const VERSION: u64 = 0x0000_0000_0001_0000;
+
 #[derive(Debug, Default, PartialEq)]
 pub struct Bytecode {
+    input_type: Type,
+    witness_type: Type,
     instructions: Vec<Instruction>,
-    data_stack_absolute_pointer: usize,
-    data_stack_relative_pointer: usize,
+
+    data_stack_pointer: usize,
     function_addresses: HashMap<String, usize>,
     address_stack: Vec<usize>,
 }
@@ -31,9 +38,11 @@ impl Bytecode {
         let address_stack = Vec::with_capacity(Self::ADDRESS_STACK_VECTOR_INITIAL_SIZE);
 
         Self {
+            input_type: Type::default(),
+            witness_type: Type::default(),
             instructions,
-            data_stack_absolute_pointer: 0,
-            data_stack_relative_pointer: 0,
+
+            data_stack_pointer: 0,
             function_addresses,
             address_stack,
         }
@@ -50,6 +59,14 @@ impl Bytecode {
         self.instructions[1] = Instruction::Exit(zinc_bytecode::Exit::new(output_size));
         self.function_addresses
             .insert("main".to_owned(), function_address);
+    }
+
+    pub fn set_input_type(&mut self, r#type: Type) {
+        self.input_type = r#type;
+    }
+
+    pub fn set_witness_type(&mut self, r#type: Type) {
+        self.witness_type = r#type;
     }
 
     pub fn push_instruction(&mut self, instruction: Instruction) {
@@ -133,7 +150,7 @@ impl Bytecode {
     pub fn start_new_function(&mut self, identifier: &str) {
         self.function_addresses
             .insert(identifier.to_owned(), self.instructions.len());
-        self.data_stack_relative_pointer = 0;
+        self.data_stack_pointer = 0;
     }
 
     pub fn function_address(&self, identifier: &str) -> Option<usize> {
@@ -141,18 +158,17 @@ impl Bytecode {
     }
 
     pub fn allocate_data_stack_space(&mut self, size: usize) -> usize {
-        let start_address = self.data_stack_relative_pointer;
-        self.data_stack_absolute_pointer += size;
-        self.data_stack_relative_pointer += size;
+        let start_address = self.data_stack_pointer;
+        self.data_stack_pointer += size;
         start_address
     }
 
     pub fn push_data_stack_address(&mut self) {
-        self.address_stack.push(self.data_stack_relative_pointer);
+        self.address_stack.push(self.data_stack_pointer);
     }
 
     pub fn pop_data_stack_address(&mut self) {
-        self.data_stack_relative_pointer = self
+        self.data_stack_pointer = self
             .address_stack
             .pop()
             .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_CALL_STACK_POINTER);
@@ -167,7 +183,28 @@ impl Bytecode {
     }
 
     pub fn into_bytes(self) -> Vec<u8> {
-        self.instructions
+        let input_metadata = match self.input_type.to_json_metadata() {
+            Some(input) => {
+                let input = input.to_string().into_bytes();
+                let mut data = Vec::with_capacity(mem::size_of::<u64>() + input.len());
+                data.extend(input.len().to_be_bytes().to_vec());
+                data.extend(input);
+                data
+            }
+            None => vec![0u8; mem::size_of::<u64>()],
+        };
+        let witness_metadata = match self.witness_type.to_json_metadata() {
+            Some(witness) => {
+                let witness = witness.to_string().into_bytes();
+                let mut data = Vec::with_capacity(mem::size_of::<u64>() + witness.len());
+                data.extend(witness.len().to_be_bytes().to_vec());
+                data.extend(witness);
+                data
+            }
+            None => vec![0u8; mem::size_of::<u64>()],
+        };
+        let instruction_data = self
+            .instructions
             .into_iter()
             .enumerate()
             .map(|(index, instruction)| {
@@ -175,6 +212,32 @@ impl Bytecode {
                 dispatch_instruction!(instruction => instruction.encode())
             })
             .flatten()
-            .collect::<Vec<u8>>()
+            .collect::<Vec<u8>>();
+
+        let mut result = Vec::with_capacity(
+            mem::size_of_val(&VERSION)
+                + input_metadata.len()
+                + witness_metadata.len()
+                + instruction_data.len(),
+        );
+        result.extend(VERSION.to_be_bytes().to_vec());
+        result.extend(input_metadata);
+        result.extend(witness_metadata);
+        result.extend(instruction_data);
+        result
+    }
+
+    pub fn to_input_template_bytes(&self) -> Vec<u8> {
+        match self.input_type.to_json_template() {
+            Some(input) => input.to_string().into_bytes(),
+            None => vec![],
+        }
+    }
+
+    pub fn to_witness_template_bytes(&self) -> Vec<u8> {
+        match self.witness_type.to_json_template() {
+            Some(witness) => witness.to_string().into_bytes(),
+            None => vec![],
+        }
     }
 }

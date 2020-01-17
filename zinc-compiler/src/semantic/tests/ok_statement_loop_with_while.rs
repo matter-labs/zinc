@@ -24,7 +24,7 @@ use zinc_bytecode::Store;
 #[test]
 fn test() {
     let input = r#"
-fn main() {
+fn main(input: (), witness: ()) {
     let mut sum = 0;
     for i in 0..=(2+3)*2 while i < 5 {
         sum = sum + i;

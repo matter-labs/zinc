@@ -49,10 +49,6 @@ pub use self::scope::VariableItem as ScopeVariableItem;
 static PANIC_VALIDATED_DURING_LEXICAL_ANALYSIS: &str = "Validated during the lexical analysis";
 static PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS: &str = "Validated during the syntax analysis";
 
-static PANIC_FUNCTION_RESOLUTION_MAIN: &str = "'main' function is checked above";
-static PANIC_FUNCTION_ADDRESS_ALWAYS_EXISTS: &str =
-    "Function address exists because the function type has been resolved above";
-
 static PANIC_THERE_MUST_ALWAYS_BE_A_SCOPE: &str =
     "Scope stack balance is kept by the evaluation logic";
 static PANIC_THERE_MUST_ALWAYS_BE_AN_OPERAND: &str =
@@ -64,5 +60,7 @@ static PANIC_THERE_MUST_ALWAYS_BE_THE_LAST_PATH_ELEMENT: &str =
 static PANIC_THERE_MUST_ALWAYS_BE_A_SLICED_VALUE: &str =
     "Sliced value existence is ensured by the evaluation logic";
 
+static PANIC_FUNCTION_ADDRESS_ALWAYS_EXISTS: &str =
+    "Function address exists because the function type has been resolved above";
 static PANIC_VALUE_CANNOT_BE_CREATED_FROM: &str = "Impossible to create a value from type: ";
 static PANIC_SELF_ALIAS_DECLARATION: &str = "'Self' alias declaration is always valid";

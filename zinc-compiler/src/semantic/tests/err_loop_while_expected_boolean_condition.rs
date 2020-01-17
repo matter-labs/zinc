@@ -12,7 +12,7 @@ use crate::Error;
 #[test]
 fn test() {
     let input = r#"
-fn main() {
+fn main(input: (), witness: ()) {
     let mut sum = 0;
     for i in 0..10 while 42 {
         sum = sum + i;

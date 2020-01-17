@@ -20,7 +20,7 @@ use zinc_bytecode::Store;
 #[test]
 fn test() {
     let input = r#"
-fn main() {
+fn main(input: (), witness: ()) {
     let mut sum = 0;
     for i in 0..=10-5 {
         sum = sum + i;

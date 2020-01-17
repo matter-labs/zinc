@@ -17,7 +17,7 @@ use zinc_bytecode::Store;
 #[test]
 fn test() {
     let input = r#"
-fn main() {
+fn main(input: (), witness: ()) {
     let pyramid = 1 + {
         2 + {
             3 + {

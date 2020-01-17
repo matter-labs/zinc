@@ -18,7 +18,7 @@ fn test() {
     let input = r#"
 type X = u8;
 
-fn main() {
+fn main(input: (), witness: ()) {
     let value = X - 42;
 }
 "#;

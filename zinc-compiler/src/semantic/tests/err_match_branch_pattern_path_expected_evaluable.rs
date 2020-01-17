@@ -25,7 +25,7 @@ type X = field;
     let binary = r#"
 mod module_1;
 
-fn main() -> u8 {
+fn main(input: (), witness: ()) -> u8 {
     match 42 {
         module_1::X => 1,
         _ => 0,

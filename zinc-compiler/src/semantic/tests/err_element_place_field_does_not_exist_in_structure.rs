@@ -19,7 +19,7 @@ struct Data {
     a: u8,
 }
 
-fn main() {
+fn main(input: (), witness: ()) {
     let data = struct Data {
         a: 0,
     };

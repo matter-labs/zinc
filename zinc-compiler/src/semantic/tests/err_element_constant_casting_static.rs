@@ -20,7 +20,7 @@ fn test() {
 static VALUE: u8 = 42;
 static RESULT: bool = VALUE;
 
-fn main() {}
+fn main(input: (), witness: ()) {}
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(

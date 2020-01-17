@@ -30,6 +30,12 @@ pub struct Command {
     )]
     params: PathBuf,
     #[structopt(
+        long = "witness",
+        help = "Path to the witness JSON file",
+        default_value = "./build/witness.json"
+    )]
+    witness: PathBuf,
+    #[structopt(
         long = "output",
         help = "Path to the proof file to generate",
         default_value = "./build/proof"
@@ -56,6 +62,8 @@ impl Command {
                 .arg(self.circuit)
                 .arg("--params")
                 .arg(self.params)
+                .arg("--witness")
+                .arg(self.witness)
                 .arg("--output")
                 .arg(self.output)
                 .spawn()

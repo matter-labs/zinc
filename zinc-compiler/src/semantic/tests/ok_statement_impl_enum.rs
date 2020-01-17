@@ -28,7 +28,7 @@ impl Data {
     }
 }
 
-fn main() {
+fn main(input: (), witness: ()) {
     Data::test();
     dbg!("{}", Data::VALUE, Data::ANOTHER);
 }

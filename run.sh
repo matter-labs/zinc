@@ -44,6 +44,8 @@ export VIRTUAL_MACHINE_CRATE_NAME='zinc-vm'
 export VIRTUAL_MACHINE_CRATE_NAME_LOG='zinc_vm'
 export VIRTUAL_MACHINE_BINARY_NAME='zinc'
 
+export PROJECT_DIRECTORY='./examples/test/'
+
 export RUST_LOG="
 ${ZARGO_CRATE_NAME}=${LOG_LEVEL},\
 ${ZARGO_BINARY_NAME}=${LOG_LEVEL},\
@@ -63,16 +65,18 @@ cargo test --package "${COMPILER_CRATE_NAME}"
 
 cargo build ${RELEASE_MODE_FLAG} --package "${VIRTUAL_MACHINE_CRATE_NAME}"
 
-"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" build --manifest-path './examples/test/'
-"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" exec --circuit './examples/test/build/default.znb'
-"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" setup \
-    --circuit './examples/test/build/default.znb' \
-    --output './examples/test/build/params'
-"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" prove \
-    --circuit './examples/test/build/default.znb' \
-    --params './examples/test/build/params' \
-    --output './examples/test/build/proof'
-"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" verify \
-    --circuit './examples/test/build/default.znb' \
-    --params './examples/test/build/params' \
-    --proof './examples/test/build/proof'
+"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" build --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
+#"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" exec --circuit "${PROJECT_DIRECTORY}/build/default.znb"
+#"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" setup \
+#    --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
+#    --output "${PROJECT_DIRECTORY}/build/params"
+#"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" prove \
+#    --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
+#    --params "${PROJECT_DIRECTORY}/build/params" \
+#    --output "${PROJECT_DIRECTORY}/build/proof"\
+#    --witness "${PROJECT_DIRECTORY}/build/witness.json"
+#"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" verify \
+#    --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
+#    --params "${PROJECT_DIRECTORY}/build/params" \
+#    --proof "${PROJECT_DIRECTORY}/build/proof" \
+#    --input "${PROJECT_DIRECTORY}/build/input.json"

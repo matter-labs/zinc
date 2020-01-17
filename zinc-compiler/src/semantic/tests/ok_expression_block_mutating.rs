@@ -16,7 +16,7 @@ use zinc_bytecode::Store;
 #[test]
 fn test() {
     let input = r#"
-fn main() {
+fn main(input: (), witness: ()) {
     let mut inner = 25;
     {
         inner = 50;

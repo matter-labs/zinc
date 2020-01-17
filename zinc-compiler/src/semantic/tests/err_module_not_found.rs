@@ -13,7 +13,7 @@ fn test() {
     let input = r#"
 mod unknown;
 
-fn main() {}
+fn main(input: (), witness: ()) {}
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::ModuleNotFound(
