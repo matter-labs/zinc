@@ -4,27 +4,19 @@
 
 #![cfg(test)]
 
-use crate::lexical::Location;
 use crate::semantic::Error as SemanticError;
 use crate::Error;
 
 #[test]
 fn test() {
     let input = r#"
-type X = field;
-
-impl X {
-    fn impossible() {}
+fn main(input: u8, witness: u8, wrong: field) -> u8 {
+    42
 }
-
-fn main(input: (), witness: ()) {}
 "#;
 
     let expected = Err(Error::Semantic(
-        SemanticError::ImplStatementExpectedStructureOrEnumeration(
-            Location::new(4, 6),
-            "field".to_owned(),
-        ),
+        SemanticError::FunctionMainExpectedTwoArguments(3),
     ));
 
     let result = super::get_binary_result(input);

@@ -24,7 +24,7 @@ struct Test {
     z: u8,
 }
 
-fn main() {
+fn main(input: (), witness: ()) {
     let mut test = struct Test {
         x: 1,
         y: 2,

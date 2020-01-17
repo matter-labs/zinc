@@ -25,7 +25,7 @@ static STATIC: field = 5;
 
 const CONST: field = 42;
 
-fn main() -> field {
+fn main(input: (), witness: ()) -> field {
     let var: field = 69;
 
     STATIC + CONST + var

@@ -16,7 +16,7 @@ use crate::Error;
 #[test]
 fn test() {
     let input = r#"
-fn main() {
+fn main(input: (), witness: ()) {
     let tuple = (true, true, false);
     let value = tuple.first;
 }

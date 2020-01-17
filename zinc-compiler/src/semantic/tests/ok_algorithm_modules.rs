@@ -58,7 +58,7 @@ static STATIC: field = 5;
 
 const CONST: field = 42;
 
-fn main() -> field {
+fn main(input: (), witness: ()) -> field {
     let var: field = 69;
 
     module_3::factor(module_2::diff(module_1::sum(STATIC, CONST), var), 5 as field)

@@ -16,7 +16,7 @@ enum Jabberwocky {
     Gone = 42,
 }
 
-fn main() {
+fn main(input: (), witness: ()) {
     let really = Jabberwocky::Exists;
 }
 "#;

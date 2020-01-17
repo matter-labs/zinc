@@ -101,8 +101,24 @@ pub enum Error {
     FunctionReturnTypeMismatch(Location, String, String, String),
     #[fail(display = "{} instruction function '{}' is unknown", _0, _1)]
     FunctionNotInstruction(Location, String),
+
     #[fail(display = "function 'main' is missing")]
     FunctionMainMissing,
+    #[fail(
+        display = "function 'main' expected exactly two arguments, but got {}",
+        _0
+    )]
+    FunctionMainExpectedTwoArguments(usize),
+    #[fail(
+        display = "function 'main' expected 'input' as the first argument, but got '{}'",
+        _0
+    )]
+    FunctionMainExpectedInputAsFirstArgument(String),
+    #[fail(
+        display = "function 'main' expected 'witness' as the second argument, but got '{}'",
+        _0
+    )]
+    FunctionMainExpectedWitnessAsSecondArgument(String),
 
     #[fail(display = "{} module '{}' not found in the project", _0, _1)]
     ModuleNotFound(Location, String),
@@ -136,4 +152,7 @@ pub enum Error {
         _0, _1
     )]
     InstructionDebugExpectedString(Location, String),
+
+    #[fail(display = "references not implemented")]
+    ReferencesNotImplemented,
 }

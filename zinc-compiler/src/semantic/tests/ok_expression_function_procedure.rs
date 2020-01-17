@@ -17,7 +17,7 @@ fn test() {
     let input = r#"
 fn check(a: u8) {}
 
-fn main() {
+fn main(input: (), witness: ()) {
     check(42);
 }
 "#;

@@ -13,7 +13,7 @@ fn test() {
     let input = r#"
 type another = (u8, u8);
 
-fn main() {
+fn main(input: (), witness: ()) {
     let value = another();
 }
 "#;

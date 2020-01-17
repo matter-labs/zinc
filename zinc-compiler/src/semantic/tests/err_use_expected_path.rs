@@ -13,7 +13,7 @@ fn test() {
     let input = r#"
 use 5;
 
-fn main() {}
+fn main(input: (), witness: ()) {}
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::UseExpectedPath(

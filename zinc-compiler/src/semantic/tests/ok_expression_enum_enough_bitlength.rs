@@ -27,7 +27,7 @@ enum Second {
     B = 314,
 }
 
-fn main() {
+fn main(input: (), witness: ()) {
     let result = First::B + Second::A;
 }
 "#;
