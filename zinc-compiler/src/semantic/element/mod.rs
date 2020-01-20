@@ -20,6 +20,7 @@ pub use self::error::Error;
 pub use self::path::Path;
 pub use self::place::Error as PlaceError;
 pub use self::place::Place;
+pub use self::r#type::FunctionBehavior;
 pub use self::r#type::Type;
 pub use self::value::Array;
 pub use self::value::ArrayError as ArrayValueError;

@@ -17,6 +17,7 @@ use crate::semantic::Bytecode;
 use crate::semantic::Constant;
 use crate::semantic::Element;
 use crate::semantic::Error;
+use crate::semantic::FunctionBehavior;
 use crate::semantic::IntegerConstant;
 use crate::semantic::Path;
 use crate::semantic::Place;
@@ -531,28 +532,26 @@ impl Analyzer {
                     let is_instruction = self.is_next_call_instruction;
                     self.is_next_call_instruction = false;
 
-                    if !is_instruction {
-                        self.bytecode.borrow_mut().push_data_stack_address();
-                    }
-
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::TypeExpression,
                         TranslationHint::ValueExpression,
                     )?;
 
                     // check if the first operand is a function and get its data
-                    let (identifier, argument_types, return_type) = match operand_1 {
+                    let (identifier, argument_types, return_type, behavior) = match operand_1 {
                         Element::Type(Type::Function {
                             identifier,
                             arguments,
                             return_type,
-                        }) => (identifier, arguments, return_type),
+                            behavior,
+                        }) => (identifier, arguments, return_type, behavior),
                         Element::Path(path) => match Scope::resolve_path(self.scope(), &path)? {
                             ScopeItem::Type(Type::Function {
                                 identifier,
                                 arguments,
                                 return_type,
-                            }) => (identifier, arguments, return_type),
+                                behavior,
+                            }) => (identifier, arguments, return_type, behavior),
                             item => {
                                 return Err(Error::FunctionCallingNotCallableObject(
                                     element.location,
@@ -590,36 +589,66 @@ impl Analyzer {
                             ));
                         }
 
-                        // check the argument types
-                        for (argument_index, (argument_name, expected_type)) in
-                            argument_types.into_iter().enumerate()
-                        {
+                        if let FunctionBehavior::HashPreimage(builtin_identifier) = behavior {
                             let actual_type =
-                                Type::from_element(&argument_values[argument_index], self.scope())?;
-                            if expected_type != actual_type {
+                                Type::from_element(&argument_values[0], self.scope())?;
+                            if !actual_type.is_byte_array() {
                                 return Err(Error::FunctionArgumentTypeMismatch(
                                     element.location,
                                     identifier,
-                                    argument_name,
-                                    expected_type.to_string(),
+                                    "preimage".to_owned(),
+                                    "[u8; N]".to_string(),
                                     actual_type.to_string(),
                                 ));
                             }
+
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::CallBuiltin(
+                                    zinc_bytecode::CallBuiltin::new(
+                                        builtin_identifier,
+                                        actual_type.size(),
+                                        return_type.size(),
+                                    ),
+                                ));
+                        } else {
+                            if !is_instruction {
+                                self.bytecode.borrow_mut().push_data_stack_address();
+                            }
+
+                            // check the argument types
+                            for (argument_index, (argument_name, expected_type)) in
+                                argument_types.into_iter().enumerate()
+                            {
+                                let actual_type = Type::from_element(
+                                    &argument_values[argument_index],
+                                    self.scope(),
+                                )?;
+                                if expected_type != actual_type {
+                                    return Err(Error::FunctionArgumentTypeMismatch(
+                                        element.location,
+                                        identifier,
+                                        argument_name,
+                                        expected_type.to_string(),
+                                        actual_type.to_string(),
+                                    ));
+                                }
+                            }
+
+                            let function_address = self
+                                .bytecode
+                                .borrow_mut()
+                                .function_address(identifier.as_str())
+                                .expect(crate::semantic::PANIC_FUNCTION_ADDRESS_ALWAYS_EXISTS);
+
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::Call(zinc_bytecode::Call::new(
+                                    function_address,
+                                    function_input_size,
+                                )));
+                            self.bytecode.borrow_mut().pop_data_stack_address();
                         }
-
-                        let function_address = self
-                            .bytecode
-                            .borrow_mut()
-                            .function_address(identifier.as_str())
-                            .expect(crate::semantic::PANIC_FUNCTION_ADDRESS_ALWAYS_EXISTS);
-
-                        self.bytecode
-                            .borrow_mut()
-                            .push_instruction(Instruction::Call(zinc_bytecode::Call::new(
-                                function_address,
-                                function_input_size,
-                            )));
-                        self.bytecode.borrow_mut().pop_data_stack_address();
                     } else {
                         let instruction = match identifier.as_str() {
                             "dbg" => {

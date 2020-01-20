@@ -214,6 +214,7 @@ mod ok_expression_tuple_aliased;
 mod ok_expression_tuple_nested;
 mod ok_statement_impl_enum;
 mod ok_statement_impl_struct;
+mod ok_statement_loop_array;
 mod ok_statement_loop_inclusive;
 mod ok_statement_loop_nested;
 mod ok_statement_loop_reverted;
