@@ -177,7 +177,7 @@ impl Scope {
                 "dbg".to_owned(),
                 vec![("format".to_owned(), Type::String)],
                 Type::Unit,
-                FunctionBehavior::InstructionDebug,
+                FunctionBehavior::Instruction,
             )),
         );
         items.insert(
@@ -189,7 +189,7 @@ impl Scope {
                     ("message".to_owned(), Type::String),
                 ],
                 Type::Unit,
-                FunctionBehavior::InstructionAssert,
+                FunctionBehavior::Instruction,
             )),
         );
 
@@ -206,9 +206,7 @@ impl Scope {
                     Type::new_integer_unsigned(crate::BITLENGTH_BYTE),
                     crate::SHA256_HASH_SIZE,
                 ),
-                FunctionBehavior::HashPreimage(
-                    zinc_bytecode::builtins::BuiltinIdentifier::CryptoSha256,
-                ),
+                FunctionBehavior::Hash(zinc_bytecode::builtins::BuiltinIdentifier::CryptoSha256),
             )),
         );
         std_scope.items.insert(
@@ -220,9 +218,7 @@ impl Scope {
                     Type::new_array(Type::new_integer_unsigned(crate::BITLENGTH_BYTE), 0),
                 )],
                 Type::new_tuple(vec![Type::new_field(), Type::new_field()]),
-                FunctionBehavior::HashPreimage(
-                    zinc_bytecode::builtins::BuiltinIdentifier::CryptoPedersen,
-                ),
+                FunctionBehavior::Hash(zinc_bytecode::builtins::BuiltinIdentifier::CryptoPedersen),
             )),
         );
         items.insert(

@@ -528,17 +528,13 @@ impl Analyzer {
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Call) => {
-                    // check if the call is a direct instruction call like 'dbg' or 'assert'
-                    let is_instruction = self.is_next_call_instruction;
-                    self.is_next_call_instruction = false;
-
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::TypeExpression,
                         TranslationHint::ValueExpression,
                     )?;
 
                     // check if the first operand is a function and get its data
-                    let (identifier, argument_types, return_type, behavior) = match operand_1 {
+                    let (identifier, argument_types, return_type, mut behavior) = match operand_1 {
                         Element::Type(Type::Function {
                             identifier,
                             arguments,
@@ -579,42 +575,23 @@ impl Analyzer {
                         .map(|(_name, r#type)| r#type.size())
                         .sum();
 
-                    if !is_instruction {
-                        if argument_values.len() != argument_types.len() {
-                            return Err(Error::FunctionArgumentCountMismatch(
-                                element.location,
-                                identifier,
-                                argument_types_count,
-                                argument_values_count,
-                            ));
-                        }
+                    if self.is_next_call_instruction {
+                        behavior = FunctionBehavior::Instruction;
+                        self.is_next_call_instruction = false;
+                    }
 
-                        if let FunctionBehavior::HashPreimage(builtin_identifier) = behavior {
-                            let actual_type =
-                                Type::from_element(&argument_values[0], self.scope())?;
-                            if !actual_type.is_byte_array() {
-                                return Err(Error::FunctionArgumentTypeMismatch(
+                    match behavior {
+                        FunctionBehavior::Normal => {
+                            if argument_values.len() != argument_types.len() {
+                                return Err(Error::FunctionArgumentCountMismatch(
                                     element.location,
                                     identifier,
-                                    "preimage".to_owned(),
-                                    "[u8; N]".to_string(),
-                                    actual_type.to_string(),
+                                    argument_types_count,
+                                    argument_values_count,
                                 ));
                             }
 
-                            self.bytecode
-                                .borrow_mut()
-                                .push_instruction(Instruction::CallBuiltin(
-                                    zinc_bytecode::CallBuiltin::new(
-                                        builtin_identifier,
-                                        actual_type.size(),
-                                        return_type.size(),
-                                    ),
-                                ));
-                        } else {
-                            if !is_instruction {
-                                self.bytecode.borrow_mut().push_data_stack_address();
-                            }
+                            self.bytecode.borrow_mut().push_data_stack_address();
 
                             // check the argument types
                             for (argument_index, (argument_name, expected_type)) in
@@ -649,48 +626,84 @@ impl Analyzer {
                                 )));
                             self.bytecode.borrow_mut().pop_data_stack_address();
                         }
-                    } else {
-                        let instruction = match identifier.as_str() {
-                            "dbg" => {
-                                let string = match argument_values.get(0) {
-                                    Some(Element::Constant(Constant::String(string))) => {
-                                        string.to_owned()
-                                    }
-                                    Some(argument) => {
-                                        return Err(Error::InstructionDebugExpectedString(
-                                            element.location,
-                                            argument.to_string(),
-                                        ))
-                                    }
-                                    None => {
-                                        return Err(Error::InstructionDebugExpectedString(
-                                            element.location,
-                                            "None".to_owned(),
-                                        ))
-                                    }
-                                };
+                        FunctionBehavior::Instruction => {
+                            let instruction = match identifier.as_str() {
+                                "dbg" => {
+                                    let string = match argument_values.get(0) {
+                                        Some(Element::Constant(Constant::String(string))) => {
+                                            string.to_owned()
+                                        }
+                                        Some(argument) => {
+                                            return Err(Error::InstructionDebugExpectedString(
+                                                element.location,
+                                                argument.to_string(),
+                                            ))
+                                        }
+                                        None => {
+                                            return Err(Error::InstructionDebugExpectedString(
+                                                element.location,
+                                                "None".to_owned(),
+                                            ))
+                                        }
+                                    };
 
-                                let debug_input_size = argument_values
-                                    .into_iter()
-                                    .skip(1)
-                                    .map(|argument| match argument {
-                                        Element::Constant(constant) => constant.r#type().size(),
-                                        Element::Value(value) => value.r#type().size(),
-                                        _ => 0,
-                                    })
-                                    .sum();
+                                    let debug_input_size = argument_values
+                                        .into_iter()
+                                        .skip(1)
+                                        .map(|argument| match argument {
+                                            Element::Constant(constant) => constant.r#type().size(),
+                                            Element::Value(value) => value.r#type().size(),
+                                            _ => 0,
+                                        })
+                                        .sum();
 
-                                Instruction::Log(zinc_bytecode::Dbg::new(string, debug_input_size))
-                            }
-                            "assert" => Instruction::Assert(zinc_bytecode::Assert),
-                            identifier => {
-                                return Err(Error::FunctionNotInstruction(
+                                    Instruction::Log(zinc_bytecode::Dbg::new(
+                                        string,
+                                        debug_input_size,
+                                    ))
+                                }
+                                "assert" => Instruction::Assert(zinc_bytecode::Assert),
+                                identifier => {
+                                    return Err(Error::FunctionNotInstruction(
+                                        element.location,
+                                        identifier.to_owned(),
+                                    ))
+                                }
+                            };
+                            self.bytecode.borrow_mut().push_instruction(instruction);
+                        }
+                        FunctionBehavior::Hash(builtin_identifier) => {
+                            if argument_values.len() != argument_types.len() {
+                                return Err(Error::FunctionArgumentCountMismatch(
                                     element.location,
-                                    identifier.to_owned(),
-                                ))
+                                    identifier,
+                                    argument_types_count,
+                                    argument_values_count,
+                                ));
                             }
-                        };
-                        self.bytecode.borrow_mut().push_instruction(instruction);
+
+                            let actual_type =
+                                Type::from_element(&argument_values[0], self.scope())?;
+                            if !actual_type.is_byte_array() {
+                                return Err(Error::FunctionArgumentTypeMismatch(
+                                    element.location,
+                                    identifier,
+                                    "preimage".to_owned(),
+                                    "[u8; N]".to_string(),
+                                    actual_type.to_string(),
+                                ));
+                            }
+
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::CallBuiltin(
+                                    zinc_bytecode::CallBuiltin::new(
+                                        builtin_identifier,
+                                        actual_type.size(),
+                                        return_type.size(),
+                                    ),
+                                ));
+                        }
                     }
 
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::new(

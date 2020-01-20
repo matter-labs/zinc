@@ -64,9 +64,8 @@ pub enum Type {
 #[derive(Debug, Clone)]
 pub enum FunctionBehavior {
     Normal,
-    InstructionDebug,
-    InstructionAssert,
-    HashPreimage(zinc_bytecode::builtins::BuiltinIdentifier),
+    Instruction,
+    Hash(zinc_bytecode::builtins::BuiltinIdentifier),
 }
 
 impl Default for Type {
