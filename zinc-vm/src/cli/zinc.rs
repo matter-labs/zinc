@@ -125,9 +125,9 @@ fn verify(args: VerifyArguments) -> Result<(), Error> {
         .map_err(Error::Verification)?;
 
     if verified {
-        println!("{}", "Ok".bold().green());
+        println!("{}", "Verified".bold().green());
     } else {
-        println!("{}", "Verification failed".bold().red());
+        println!("{}", "Failed to verify".bold().red());
         exit(1);
     }
 

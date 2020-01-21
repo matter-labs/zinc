@@ -3,11 +3,11 @@ use crate::RuntimeError;
 use bellman::ConstraintSystem;
 use franklin_crypto::circuit::num::AllocatedNum;
 use franklin_crypto::circuit::sha256::sha256;
-use pairing::Engine;
+use crate::ZincEngine;
 
 pub struct Sha256;
 
-impl<E: Engine> Gadget<E> for Sha256 {
+impl<E: ZincEngine> Gadget<E> for Sha256 {
     type Input = Vec<Primitive<E>>;
     type Output = Vec<Primitive<E>>;
 

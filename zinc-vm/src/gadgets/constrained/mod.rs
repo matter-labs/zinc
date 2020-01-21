@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::marker::PhantomData;
 
-use bellman::pairing::Engine;
+use crate::ZincEngine;
 use bellman::{ConstraintSystem, Variable};
 use ff::{Field, PrimeField};
 use franklin_crypto::bellman::{Namespace, SynthesisError};
@@ -13,7 +13,7 @@ use crate::gadgets::{utils, DataType, Gadget, Primitive, PrimitiveOperations};
 use crate::vm::RuntimeError;
 use std::mem;
 
-impl<E: Engine> Debug for Primitive<E> {
+impl<E: ZincEngine> Debug for Primitive<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         let value_str = match self.value {
             Some(ref value) => fr_to_bigint::<E>(value).to_string(),
@@ -32,7 +32,7 @@ impl<E: Engine> Debug for Primitive<E> {
     }
 }
 
-impl<E: Engine> Primitive<E> {
+impl<E: ZincEngine> Primitive<E> {
     fn new(value: Option<E::Fr>, variable: Variable) -> Self {
         Self {
             value,
@@ -69,7 +69,7 @@ impl<E: Engine> Primitive<E> {
     }
 }
 
-impl<E: Engine> Display for Primitive<E> {
+impl<E: ZincEngine> Display for Primitive<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         match &self.value {
             Some(value) => {
@@ -81,7 +81,7 @@ impl<E: Engine> Display for Primitive<E> {
     }
 }
 
-impl<E: Engine> ToBigInt for Primitive<E> {
+impl<E: ZincEngine> ToBigInt for Primitive<E> {
     fn to_bigint(&self) -> Option<BigInt> {
         self.value
             .map(|fr| -> BigInt { utils::fr_to_bigint::<E>(&fr) })
@@ -90,7 +90,7 @@ impl<E: Engine> ToBigInt for Primitive<E> {
 
 pub struct ConstrainingFrOperations<E, CS>
 where
-    E: Engine,
+    E: ZincEngine,
     CS: ConstraintSystem<E>,
 {
     cs: CS,
@@ -100,7 +100,7 @@ where
 
 impl<E, CS> ConstrainingFrOperations<E, CS>
 where
-    E: Engine + Debug,
+    E: ZincEngine,
     CS: ConstraintSystem<E>,
 {
     pub fn new(cs: CS) -> Self {
@@ -274,7 +274,7 @@ where
 
 impl<E, CS> PrimitiveOperations<E> for ConstrainingFrOperations<E, CS>
 where
-    E: Debug + Engine,
+    E: ZincEngine,
     CS: ConstraintSystem<E>,
 {
     type E = E;

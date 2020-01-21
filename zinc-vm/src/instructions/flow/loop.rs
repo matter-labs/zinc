@@ -2,12 +2,12 @@ extern crate franklin_crypto;
 
 use crate::gadgets::PrimitiveOperations;
 use crate::vm::{InternalVM, RuntimeError, VMInstruction, VirtualMachine};
-use pairing::Engine;
+use crate::ZincEngine;
 use zinc_bytecode::{LoopBegin, LoopEnd};
 
 impl<E, O> VMInstruction<E, O> for LoopBegin
 where
-    E: Engine,
+    E: ZincEngine,
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
@@ -17,7 +17,7 @@ where
 
 impl<E, O> VMInstruction<E, O> for LoopEnd
 where
-    E: Engine,
+    E: ZincEngine,
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {

@@ -3,7 +3,7 @@ use crate::gadgets::ConstrainingFrOperations;
 use crate::vm::VirtualMachine;
 use bellman::groth16;
 use bellman::pairing::bn256::Bn256;
-use bellman::pairing::Engine;
+use crate::ZincEngine;
 use franklin_crypto::bellman::groth16::{Parameters, Proof};
 use franklin_crypto::bellman::{Circuit, ConstraintSystem, SynthesisError};
 use franklin_crypto::circuit::test::TestConstraintSystem;
@@ -20,7 +20,7 @@ struct VMCircuit<'a, 'b, 'c> {
     result: &'c mut Option<Result<Vec<Option<BigInt>>, RuntimeError>>,
 }
 
-impl<E: Engine + Debug> Circuit<E> for VMCircuit<'_, '_, '_> {
+impl<E: ZincEngine> Circuit<E> for VMCircuit<'_, '_, '_> {
     fn synthesize<CS: ConstraintSystem<E>>(self, cs: &mut CS) -> Result<(), SynthesisError> {
         let mut vm = VirtualMachine::new(ConstrainingFrOperations::new(cs));
         *self.result = Some(vm.run(self.code, self.inputs));
@@ -28,7 +28,7 @@ impl<E: Engine + Debug> Circuit<E> for VMCircuit<'_, '_, '_> {
     }
 }
 
-pub fn exec<E: Engine>(
+pub fn exec<E: ZincEngine>(
     code: &[Instruction],
     inputs: &[BigInt],
 ) -> Result<Vec<Option<BigInt>>, RuntimeError> {
@@ -55,7 +55,7 @@ pub fn exec<E: Engine>(
     Ok(result)
 }
 
-pub fn setup<E: Engine + Debug>(code: &[Instruction]) -> Result<Parameters<E>, RuntimeError> {
+pub fn setup<E: ZincEngine>(code: &[Instruction]) -> Result<Parameters<E>, RuntimeError> {
     let rng = &mut rand::thread_rng();
     let mut result = None;
     let circuit = VMCircuit {
@@ -68,7 +68,7 @@ pub fn setup<E: Engine + Debug>(code: &[Instruction]) -> Result<Parameters<E>, R
         .map_err(RuntimeError::SynthesisError)
 }
 
-pub fn prove<E: Engine + Debug>(
+pub fn prove<E: ZincEngine>(
     code: &[Instruction],
     params: &Parameters<E>,
     witness: &[BigInt],
@@ -106,7 +106,7 @@ pub enum VerificationError {
     SynthesisError(SynthesisError),
 }
 
-pub fn verify<E: Engine + Debug>(
+pub fn verify<E: ZincEngine>(
     params: &Parameters<E>,
     proof: &Proof<E>,
     pub_inputs: &[BigInt],

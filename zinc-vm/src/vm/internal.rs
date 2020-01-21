@@ -1,10 +1,10 @@
 use crate::gadgets::PrimitiveOperations;
 use crate::vm::{Block, Branch, Cell, FunctionFrame, Loop, VirtualMachine};
 use crate::RuntimeError;
-use pairing::Engine;
+use crate::ZincEngine;
 
 /// This is an internal interface to virtual machine used by instructions.
-pub trait InternalVM<E: Engine> {
+pub trait InternalVM<E: ZincEngine> {
     fn push(&mut self, cell: Cell<E>) -> Result<(), RuntimeError>;
     fn pop(&mut self) -> Result<Cell<E>, RuntimeError>;
 
@@ -28,7 +28,7 @@ pub trait InternalVM<E: Engine> {
 
 impl<E, O> InternalVM<E> for VirtualMachine<E, O>
 where
-    E: Engine,
+    E: ZincEngine,
     O: PrimitiveOperations<E>,
 {
     fn push(&mut self, cell: Cell<E>) -> Result<(), RuntimeError> {
