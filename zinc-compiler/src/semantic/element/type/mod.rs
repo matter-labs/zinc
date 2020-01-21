@@ -57,7 +57,15 @@ pub enum Type {
         identifier: String,
         arguments: Vec<(String, Self)>,
         return_type: Box<Self>,
+        behavior: FunctionBehavior,
     },
+}
+
+#[derive(Debug, Clone)]
+pub enum FunctionBehavior {
+    Normal,
+    Instruction,
+    Hash(zinc_bytecode::builtins::BuiltinIdentifier),
 }
 
 impl Default for Type {
@@ -185,11 +193,13 @@ impl Type {
         identifier: String,
         arguments: Vec<(String, Self)>,
         return_type: Self,
+        behavior: FunctionBehavior,
     ) -> Self {
         Self::Function {
             identifier,
             arguments,
             return_type: Box::new(return_type),
+            behavior,
         }
     }
 
@@ -208,6 +218,15 @@ impl Type {
             }
             Self::Enumeration { .. } => 1,
             Self::Function { .. } => 0,
+        }
+    }
+
+    pub fn is_byte_array(&self) -> bool {
+        match self {
+            Self::Array { r#type, .. } => {
+                **r#type == Self::new_integer_unsigned(crate::BITLENGTH_BYTE)
+            }
+            _ => false,
         }
     }
 
@@ -444,6 +463,7 @@ impl fmt::Display for Type {
                 identifier,
                 arguments,
                 return_type,
+                ..
             } => write!(
                 f,
                 "fn {}({}) -> {}",
