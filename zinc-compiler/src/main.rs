@@ -47,6 +47,13 @@ struct Arguments {
     )]
     witness_json: PathBuf,
     #[structopt(
+        short = "r",
+        long = "result-json",
+        parse(from_os_str),
+        help = "The result JSON template output path"
+    )]
+    result_json: PathBuf,
+    #[structopt(
         short = "o",
         long = "output",
         parse(from_os_str),
@@ -67,6 +74,8 @@ enum Error {
     InputTemplateOutput(OutputError),
     #[fail(display = "Witness template output: {}", _0)]
     WitnessTemplateOutput(OutputError),
+    #[fail(display = "Result template output: {}", _0)]
+    ResultTemplateOutput(OutputError),
     #[fail(display = "Bytecode output: {}", _0)]
     BytecodeOutput(OutputError),
     #[fail(display = "The 'main.zn' source file is missing")]
@@ -156,7 +165,7 @@ fn main_inner() -> Result<(), Error> {
     File::create(&args.input_json)
         .map_err(OutputError::Creating)
         .map_err(Error::InputTemplateOutput)?
-        .write_all(bytecode.borrow().to_input_template_bytes().as_slice())
+        .write_all(bytecode.borrow().input_template_bytes().as_slice())
         .map_err(OutputError::Writing)
         .map_err(Error::InputTemplateOutput)?;
     log::info!("Input   JSON template written to {:?}", args.input_json);
@@ -164,10 +173,18 @@ fn main_inner() -> Result<(), Error> {
     File::create(&args.witness_json)
         .map_err(OutputError::Creating)
         .map_err(Error::WitnessTemplateOutput)?
-        .write_all(bytecode.borrow().to_witness_template_bytes().as_slice())
+        .write_all(bytecode.borrow().witness_template_bytes().as_slice())
         .map_err(OutputError::Writing)
         .map_err(Error::WitnessTemplateOutput)?;
     log::info!("Witness JSON template written to {:?}", args.witness_json);
+
+    File::create(&args.result_json)
+        .map_err(OutputError::Creating)
+        .map_err(Error::ResultTemplateOutput)?
+        .write_all(bytecode.borrow().result_template_bytes().as_slice())
+        .map_err(OutputError::Writing)
+        .map_err(Error::ResultTemplateOutput)?;
+    log::info!("Result  JSON template written to {:?}", args.result_json);
 
     File::create(&args.output)
         .map_err(OutputError::Creating)

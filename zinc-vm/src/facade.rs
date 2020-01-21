@@ -1,9 +1,9 @@
 use crate::gadgets::utils::bigint_to_fr;
 use crate::gadgets::ConstrainingFrOperations;
 use crate::vm::VirtualMachine;
+use crate::ZincEngine;
 use bellman::groth16;
 use bellman::pairing::bn256::Bn256;
-use crate::ZincEngine;
 use franklin_crypto::bellman::groth16::{Parameters, Proof};
 use franklin_crypto::bellman::{Circuit, ConstraintSystem, SynthesisError};
 use franklin_crypto::circuit::test::TestConstraintSystem;

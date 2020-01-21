@@ -1,6 +1,6 @@
+use crate::ZincEngine;
 use bellman::ConstraintSystem;
 use franklin_crypto::bellman::{Index, LinearCombination, SynthesisError, Variable};
-use crate::ZincEngine;
 
 pub struct DummyConstraintSystem;
 

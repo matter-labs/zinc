@@ -2,9 +2,9 @@ extern crate franklin_crypto;
 
 use crate::gadgets::PrimitiveOperations;
 use crate::vm::{InternalVM, RuntimeError, VMInstruction, VirtualMachine};
+use crate::ZincEngine;
 use num_bigint::ToBigInt;
 use num_traits::Signed;
-use crate::ZincEngine;
 use zinc_bytecode::instructions::Dbg;
 
 impl<E, O> VMInstruction<E, O> for Dbg

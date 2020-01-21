@@ -29,7 +29,7 @@ impl<E: ZincEngine> Gadget<E> for Pedersen {
             cs,
             Personalization::NoteCommitment,
             bits.as_slice(),
-            E::jubjub_params()
+            E::jubjub_params(),
         )?;
 
         Ok(digest)
@@ -45,7 +45,7 @@ impl<E: ZincEngine> Gadget<E> for Pedersen {
             .map(|&num| Primitive {
                 value: num.get_value(),
                 variable: num.get_variable(),
-                data_type: None
+                data_type: None,
             })
             .collect()
     }

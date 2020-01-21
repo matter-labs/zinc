@@ -4,9 +4,9 @@ pub mod utils;
 
 use std::fmt::Debug;
 
+use crate::ZincEngine;
 use bellman::ConstraintSystem;
 use num_bigint::BigInt;
-use crate::ZincEngine;
 
 pub use constrained::*;
 

@@ -1,9 +1,9 @@
 use crate::gadgets::{DataType, Gadget, Primitive};
 use crate::RuntimeError;
+use crate::ZincEngine;
 use bellman::ConstraintSystem;
 use franklin_crypto::circuit::num::AllocatedNum;
 use franklin_crypto::circuit::sha256::sha256;
-use crate::ZincEngine;
 
 pub struct Sha256;
 
