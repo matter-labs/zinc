@@ -17,6 +17,7 @@ const VERSION: u64 = 0x0000_0000_0001_0000;
 pub struct Bytecode {
     input_type: Type,
     witness_type: Type,
+    result_type: Type,
     instructions: Vec<Instruction>,
 
     data_stack_pointer: usize,
@@ -38,8 +39,9 @@ impl Bytecode {
         let address_stack = Vec::with_capacity(Self::ADDRESS_STACK_VECTOR_INITIAL_SIZE);
 
         Self {
-            input_type: Type::default(),
-            witness_type: Type::default(),
+            input_type: Type::new_unit(),
+            witness_type: Type::new_unit(),
+            result_type: Type::new_unit(),
             instructions,
 
             data_stack_pointer: 0,
@@ -67,6 +69,10 @@ impl Bytecode {
 
     pub fn set_witness_type(&mut self, r#type: Type) {
         self.witness_type = r#type;
+    }
+
+    pub fn set_result_type(&mut self, r#type: Type) {
+        self.result_type = r#type;
     }
 
     pub fn push_instruction(&mut self, instruction: Instruction) {
@@ -227,16 +233,23 @@ impl Bytecode {
         result
     }
 
-    pub fn to_input_template_bytes(&self) -> Vec<u8> {
+    pub fn input_template_bytes(&self) -> Vec<u8> {
         match self.input_type.to_json_template() {
             Some(input) => input.to_string().into_bytes(),
             None => vec![],
         }
     }
 
-    pub fn to_witness_template_bytes(&self) -> Vec<u8> {
+    pub fn witness_template_bytes(&self) -> Vec<u8> {
         match self.witness_type.to_json_template() {
             Some(witness) => witness.to_string().into_bytes(),
+            None => vec![],
+        }
+    }
+
+    pub fn result_template_bytes(&self) -> Vec<u8> {
+        match self.result_type.to_json_template() {
+            Some(result) => result.to_string().into_bytes(),
             None => vec![],
         }
     }

@@ -99,6 +99,7 @@ impl Analyzer {
 
             self.bytecode.borrow_mut().set_input_type(input_type);
             self.bytecode.borrow_mut().set_witness_type(witness_type);
+            self.bytecode.borrow_mut().set_result_type(*return_type);
             self.bytecode.borrow_mut().set_main_function(
                 main_function_address,
                 input_size,

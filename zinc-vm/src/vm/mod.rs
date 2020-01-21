@@ -5,9 +5,9 @@ pub use internal::*;
 pub use state::*;
 
 use crate::gadgets::{DataType, Primitive, PrimitiveOperations};
+use crate::ZincEngine;
 use franklin_crypto::bellman::SynthesisError;
 use num_bigint::{BigInt, ToBigInt};
-use crate::ZincEngine;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 
 pub trait VMInstruction<E, O>: InstructionInfo

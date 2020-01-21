@@ -5,10 +5,10 @@ mod vm;
 mod facade;
 pub use facade::*;
 
-use franklin_crypto::babyjubjub::{JubjubEngine, JubjubBn256};
-use std::fmt::Debug;
-use pairing::bn256::Bn256;
+use franklin_crypto::babyjubjub::{JubjubBn256, JubjubEngine};
 use lazy_static::lazy_static;
+use pairing::bn256::Bn256;
+use std::fmt::Debug;
 
 pub trait ZincEngine: JubjubEngine + Debug {
     fn jubjub_params<'a>() -> &'a Self::Params;

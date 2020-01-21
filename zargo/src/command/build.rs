@@ -118,7 +118,11 @@ impl Command {
 
         let mut build_witness_template_path = build_directory_path.clone();
         build_witness_template_path
-            .push(crate::constants::CIRCUIT_OUTPUT_TEMPLATE_DEFAULT_FILE_NAME);
+            .push(crate::constants::CIRCUIT_WITNESS_TEMPLATE_DEFAULT_FILE_NAME);
+
+        let mut build_result_template_path = build_directory_path.clone();
+        build_result_template_path
+            .push(crate::constants::CIRCUIT_RESULT_TEMPLATE_DEFAULT_FILE_NAME);
 
         let mut build_binary_path = build_directory_path.clone();
         build_binary_path.push(crate::constants::CIRCUIT_BINARY_DEFAULT_FILE_NAME);
@@ -129,6 +133,8 @@ impl Command {
                 .arg(&build_input_template_path)
                 .arg("--witness-json")
                 .arg(&build_witness_template_path)
+                .arg("--result-json")
+                .arg(&build_result_template_path)
                 .arg("--output")
                 .arg(&build_binary_path)
                 .args(&source_file_paths)
