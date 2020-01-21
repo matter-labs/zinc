@@ -65,18 +65,22 @@ cargo test --package "${COMPILER_CRATE_NAME}"
 
 cargo build ${RELEASE_MODE_FLAG} --package "${VIRTUAL_MACHINE_CRATE_NAME}"
 
-"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" build --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
-#"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" exec --circuit "${PROJECT_DIRECTORY}/build/default.znb"
-#"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" setup \
-#    --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
-#    --output "${PROJECT_DIRECTORY}/build/params"
-#"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" prove \
-#    --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
-#    --params "${PROJECT_DIRECTORY}/build/params" \
-#    --output "${PROJECT_DIRECTORY}/build/proof"\
-#    --witness "${PROJECT_DIRECTORY}/build/witness.json"
-#"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" verify \
-#    --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
-#    --params "${PROJECT_DIRECTORY}/build/params" \
-#    --proof "${PROJECT_DIRECTORY}/build/proof" \
-#    --input "${PROJECT_DIRECTORY}/build/input.json"
+"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" build \
+    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
+"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" exec \
+    --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
+    --result "${PROJECT_DIRECTORY}/build/result.json"
+"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" setup \
+    --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
+    --output "${PROJECT_DIRECTORY}/build/params"
+"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" prove \
+    --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
+    --params "${PROJECT_DIRECTORY}/build/params" \
+    --output "${PROJECT_DIRECTORY}/build/proof"\
+    --witness "${PROJECT_DIRECTORY}/build/witness.json"
+"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" verify \
+    --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
+    --params "${PROJECT_DIRECTORY}/build/params" \
+    --proof "${PROJECT_DIRECTORY}/build/proof" \
+    --input "${PROJECT_DIRECTORY}/build/input.json" \
+    --result "${PROJECT_DIRECTORY}/build/result.json"

@@ -1,12 +1,12 @@
 use crate::gadgets::PrimitiveOperations;
 use crate::vm::{Cell, InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
-use pairing::Engine;
+use crate::ZincEngine;
 use zinc_bytecode::instructions::LoadByIndex;
 
 impl<E, O> VMInstruction<E, O> for LoadByIndex
 where
-    E: Engine,
+    E: ZincEngine,
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {

@@ -1049,6 +1049,7 @@ dependencies = [
  "ff_ce",
  "franklin-crypto",
  "json",
+ "lazy_static",
  "log",
  "num-bigint",
  "num-integer",

@@ -1,10 +1,10 @@
-use bellman::pairing::Engine;
+use crate::ZincEngine;
 use ff::{Field, PrimeField, PrimeFieldRepr};
 use num_bigint::BigInt;
 use num_traits::{Signed, Zero};
 use std::ops::Neg;
 
-pub fn fr_to_bigint<E: Engine>(fr: &E::Fr) -> BigInt {
+pub fn fr_to_bigint<E: ZincEngine>(fr: &E::Fr) -> BigInt {
     let mut buf: Vec<u8> = Vec::new();
     match fr.into_repr().write_be(&mut buf) {
         Ok(_) => {}
@@ -28,7 +28,7 @@ pub fn fr_to_bigint<E: Engine>(fr: &E::Fr) -> BigInt {
     }
 }
 
-pub fn bigint_to_fr<E: Engine>(bigint: &BigInt) -> Option<E::Fr> {
+pub fn bigint_to_fr<E: ZincEngine>(bigint: &BigInt) -> Option<E::Fr> {
     if bigint.is_positive() {
         E::Fr::from_str(&bigint.to_str_radix(10))
     } else {

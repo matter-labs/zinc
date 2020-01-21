@@ -23,6 +23,12 @@ pub struct Command {
         default_value = "./build/default.znb"
     )]
     circuit: PathBuf,
+    #[structopt(
+        long = "result",
+        help = "Path to the result JSON file",
+        default_value = "./build/result.json"
+    )]
+    result: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -42,6 +48,8 @@ impl Command {
                 .arg("exec")
                 .arg("--circuit")
                 .arg(self.circuit)
+                .arg("--result")
+                .arg(self.result)
                 .spawn()
                 .map_err(Error::VirtualMachineProcessSpawning)?;
         let virtual_machine_process_status = virtual_machine_process

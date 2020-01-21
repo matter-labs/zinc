@@ -7,7 +7,7 @@ pub use data_stack::*;
 pub use evaluation_stack::*;
 
 use crate::gadgets::Primitive;
-use pairing::Engine;
+use crate::ZincEngine;
 
 #[derive(Debug)]
 pub struct Loop {
@@ -16,20 +16,20 @@ pub struct Loop {
 }
 
 #[derive(Debug)]
-pub struct Branch<E: Engine> {
+pub struct Branch<E: ZincEngine> {
     pub condition: Primitive<E>,
     /// False if there is only one case (If-Endif), true if two cases (If-Else-Endif).
     pub is_full: bool,
 }
 
 #[derive(Debug)]
-pub enum Block<E: Engine> {
+pub enum Block<E: ZincEngine> {
     Loop(Loop),
     Branch(Branch<E>),
 }
 
 #[derive(Debug)]
-pub struct FunctionFrame<E: Engine> {
+pub struct FunctionFrame<E: ZincEngine> {
     pub blocks: Vec<Block<E>>,
     pub return_address: usize,
     pub stack_frame_begin: usize,
@@ -37,7 +37,7 @@ pub struct FunctionFrame<E: Engine> {
 }
 
 #[derive(Debug)]
-pub struct State<E: Engine> {
+pub struct State<E: ZincEngine> {
     pub instruction_counter: usize,
     pub evaluation_stack: EvaluationStack<E>,
     pub data_stack: DataStack<E>,
@@ -45,7 +45,7 @@ pub struct State<E: Engine> {
     pub frames_stack: Vec<FunctionFrame<E>>,
 }
 
-impl<E: Engine> FunctionFrame<E> {
+impl<E: ZincEngine> FunctionFrame<E> {
     pub fn new(data_stack_address: usize, return_address: usize) -> Self {
         Self {
             blocks: vec![],

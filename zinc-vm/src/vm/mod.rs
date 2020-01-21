@@ -5,14 +5,14 @@ pub use internal::*;
 pub use state::*;
 
 use crate::gadgets::{DataType, Primitive, PrimitiveOperations};
+use crate::ZincEngine;
 use franklin_crypto::bellman::SynthesisError;
 use num_bigint::{BigInt, ToBigInt};
-use pairing::Engine;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 
 pub trait VMInstruction<E, O>: InstructionInfo
 where
-    E: Engine,
+    E: ZincEngine,
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError>;
@@ -51,13 +51,13 @@ impl From<SynthesisError> for RuntimeError {
     }
 }
 
-pub struct VirtualMachine<E: Engine, O: PrimitiveOperations<E>> {
+pub struct VirtualMachine<E: ZincEngine, O: PrimitiveOperations<E>> {
     state: State<E>,
     ops: O,
     outputs: Vec<Primitive<E>>,
 }
 
-impl<E: Engine, O: PrimitiveOperations<E>> VirtualMachine<E, O> {
+impl<E: ZincEngine, O: PrimitiveOperations<E>> VirtualMachine<E, O> {
     pub fn new(operator: O) -> Self {
         Self {
             state: State {

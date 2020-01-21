@@ -16,6 +16,7 @@ rand = "0.4.5"
 colored = "1.9.0"
 json = "0.12.1"
 structopt = "0.3.8"
+lazy_static = "1.4.0"
 
 pairing = { package = "pairing_ce", version = "0.17.0" }
 bellman = { package = "bellman_ce", version = "0.3.0" }

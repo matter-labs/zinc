@@ -1,10 +1,10 @@
+use crate::ZincEngine;
 use bellman::ConstraintSystem;
 use franklin_crypto::bellman::{Index, LinearCombination, SynthesisError, Variable};
-use pairing::Engine;
 
 pub struct DummyConstraintSystem;
 
-impl<E: Engine> ConstraintSystem<E> for DummyConstraintSystem {
+impl<E: ZincEngine> ConstraintSystem<E> for DummyConstraintSystem {
     type Root = Self;
 
     fn alloc<F, A, AR>(&mut self, _annotation: A, _f: F) -> Result<Variable, SynthesisError>

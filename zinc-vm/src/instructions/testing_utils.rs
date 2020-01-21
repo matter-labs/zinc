@@ -1,9 +1,9 @@
 use crate::gadgets::{ConstrainingFrOperations, PrimitiveOperations};
 use crate::vm::{InternalVM, RuntimeError, VirtualMachine};
+use crate::ZincEngine;
 use bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::{BigInt, ToBigInt};
-use pairing::Engine;
 use zinc_bytecode::{decode_all_instructions, Call, DecodingError, InstructionInfo};
 
 type TestElementOperator = ConstrainingFrOperations<Bn256, TestConstraintSystem<Bn256>>;
@@ -17,7 +17,7 @@ fn new_test_constrained_vm() -> TestVirtualMachine {
 
 fn assert_stack_eq<E, O, BI>(vm: &mut VirtualMachine<E, O>, expected_stack: &[BI])
 where
-    E: Engine,
+    E: ZincEngine,
     O: PrimitiveOperations<E>,
     BI: Into<BigInt> + Copy,
 {

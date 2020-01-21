@@ -1,14 +1,14 @@
 use crate::gadgets::{Primitive, PrimitiveOperations};
 use crate::vm::Cell;
 use crate::RuntimeError;
-use pairing::Engine;
+use crate::ZincEngine;
 
 #[derive(Debug)]
-pub struct EvaluationStack<E: Engine> {
+pub struct EvaluationStack<E: ZincEngine> {
     stack: Vec<Vec<Cell<E>>>,
 }
 
-impl<E: Engine> EvaluationStack<E> {
+impl<E: ZincEngine> EvaluationStack<E> {
     pub fn new() -> Self {
         Self {
             stack: vec![vec![]],
