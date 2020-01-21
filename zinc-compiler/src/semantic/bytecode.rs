@@ -235,21 +235,27 @@ impl Bytecode {
 
     pub fn input_template_bytes(&self) -> Vec<u8> {
         match self.input_type.to_json_template() {
-            Some(input) => input.to_string().into_bytes(),
+            Some(input) => serde_json::to_string_pretty(&input)
+                .expect(crate::semantic::PANIC_PRETTY_SERIALIZATION_INVALID)
+                .into_bytes(),
             None => vec![],
         }
     }
 
     pub fn witness_template_bytes(&self) -> Vec<u8> {
         match self.witness_type.to_json_template() {
-            Some(witness) => witness.to_string().into_bytes(),
+            Some(witness) => serde_json::to_string_pretty(&witness)
+                .expect(crate::semantic::PANIC_PRETTY_SERIALIZATION_INVALID)
+                .into_bytes(),
             None => vec![],
         }
     }
 
     pub fn result_template_bytes(&self) -> Vec<u8> {
         match self.result_type.to_json_template() {
-            Some(result) => result.to_string().into_bytes(),
+            Some(result) => serde_json::to_string_pretty(&result)
+                .expect(crate::semantic::PANIC_PRETTY_SERIALIZATION_INVALID)
+                .into_bytes(),
             None => vec![],
         }
     }
