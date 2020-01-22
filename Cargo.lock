@@ -427,12 +427,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "501266b7edd0174f8530248f87f99c88fbe60ca4ef3dd486835b8d8d53136f7f"
 
 [[package]]
-name = "json"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a38661a28126f8621fb246611288ae28935ddf180f5e21f2d0fbfe5e4131dbe"
-
-[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1061,7 +1055,6 @@ dependencies = [
  "env_logger",
  "ff_ce",
  "franklin-crypto",
- "json",
  "lazy_static",
  "log",
  "num-bigint",
@@ -1069,6 +1062,7 @@ dependencies = [
  "num-traits 0.2.11",
  "pairing_ce",
  "rand 0.4.6",
+ "serde_json",
  "structopt",
  "zinc-bytecode",
 ]

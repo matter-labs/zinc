@@ -14,7 +14,7 @@ env_logger = "0.7"
 clap = "2.33.0"
 rand = "0.4.5"
 colored = "1.9.0"
-json = "0.12.1"
+serde_json = "1.0.44"
 structopt = "0.3.8"
 lazy_static = "1.4.0"
 

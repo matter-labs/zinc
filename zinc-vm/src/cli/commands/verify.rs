@@ -1,4 +1,3 @@
-use crate::data_io::json_to_flat_input;
 use crate::Error;
 use colored::Colorize;
 use franklin_crypto::bellman::groth16::{Parameters, Proof};
@@ -7,6 +6,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::exit;
 use structopt::StructOpt;
+use zinc_bytecode::data::values::Value;
 
 #[derive(Debug, StructOpt)]
 pub struct VerifyCommand {
@@ -32,9 +32,8 @@ impl VerifyCommand {
         let proof = Proof::<Bn256>::read(proof_file)?;
 
         let output_text = fs::read_to_string(&self.output_path)?;
-        let output_json = json::parse(output_text.as_str())?;
-        // TODO: Remove unwrap
-        let output = json_to_flat_input(&output_json).unwrap();
+        let output_value: Value = serde_json::from_str(output_text.as_str())?;
+        let output = output_value.to_flat_values();
 
         let verified = zinc_vm::verify(&params, &proof, &output)?;
 

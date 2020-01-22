@@ -31,7 +31,7 @@ impl<E: ZincEngine> Circuit<E> for VMCircuit<'_> {
 pub fn exec<E: ZincEngine>(
     program: &Program,
     inputs: &[BigInt],
-) -> Result<Vec<Option<BigInt>>, RuntimeError> {
+) -> Result<Vec<BigInt>, RuntimeError> {
     let cs = TestConstraintSystem::<Bn256>::new();
     let mut vm = VirtualMachine::new(ConstrainingFrOperations::new(cs));
     let result = vm.run(program, Some(inputs))?;
@@ -52,7 +52,12 @@ pub fn exec<E: ZincEngine>(
         ));
     }
 
-    Ok(result)
+    // TODO: Remove unwrap
+    Ok(result
+        .into_iter()
+        .map(|v| v.unwrap())
+        .collect()
+    )
 }
 
 pub fn setup<E: ZincEngine>(program: &Program) -> Result<Parameters<E>, RuntimeError> {

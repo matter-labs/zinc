@@ -1,5 +1,4 @@
 mod commands;
-mod data_io;
 
 use crate::commands::{Arguments, Command};
 use log::LevelFilter;
@@ -15,7 +14,7 @@ pub enum Error {
     Decoding(DecodingError),
     Runtime(RuntimeError),
     Verification(VerificationError),
-    Json(json::Error),
+    Json(serde_json::Error),
 }
 
 impl From<io::Error> for Error {
@@ -42,8 +41,8 @@ impl From<VerificationError> for Error {
     }
 }
 
-impl From<json::Error> for Error {
-    fn from(error: json::Error) -> Self {
+impl From<serde_json::Error> for Error {
+    fn from(error: serde_json::Error) -> Self {
         Error::Json(error)
     }
 }
