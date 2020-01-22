@@ -15,20 +15,30 @@ use structopt::StructOpt;
 pub struct Command {
     #[structopt(short = "q", long = "quiet", help = "No output printed to stdout")]
     quiet: bool,
+
     #[structopt(short = "v", long = "verbose", help = "Use verbose output")]
     verbose: bool,
+
     #[structopt(
         long = "circuit",
         help = "Path to the circuit binary file",
         default_value = "./build/default.znb"
     )]
     circuit: PathBuf,
+
+    #[structopt(
+        long = "input",
+        help = "Path to the input JSON file",
+        default_value = "./build/input.json"
+    )]
+    input: PathBuf,
+
     #[structopt(
         long = "result",
         help = "Path to the result JSON file",
         default_value = "./build/result.json"
     )]
-    result: PathBuf,
+    output: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -48,8 +58,10 @@ impl Command {
                 .arg("exec")
                 .arg("--circuit")
                 .arg(self.circuit)
-                .arg("--result")
-                .arg(self.result)
+                .arg("--input")
+                .arg(self.input)
+                .arg("--output")
+                .arg(self.output)
                 .spawn()
                 .map_err(Error::VirtualMachineProcessSpawning)?;
         let virtual_machine_process_status = virtual_machine_process

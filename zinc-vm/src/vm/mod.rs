@@ -9,6 +9,7 @@ use crate::ZincEngine;
 use franklin_crypto::bellman::SynthesisError;
 use num_bigint::{BigInt, ToBigInt};
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
+use zinc_bytecode::program::Program;
 
 pub trait VMInstruction<E, O>: InstructionInfo
 where
@@ -74,7 +75,7 @@ impl<E: ZincEngine, O: PrimitiveOperations<E>> VirtualMachine<E, O> {
 
     pub fn run(
         &mut self,
-        instructions: &[Instruction],
+        program: &Program,
         inputs: Option<&[BigInt]>,
     ) -> Result<Vec<Option<BigInt>>, RuntimeError> {
         let one = self
@@ -82,15 +83,15 @@ impl<E: ZincEngine, O: PrimitiveOperations<E>> VirtualMachine<E, O> {
             .constant_bigint_typed(&1.into(), DataType::BOOLEAN)?;
         self.condition_push(one)?;
 
-        match instructions.first() {
+        match program.bytecode.first() {
             Some(Instruction::Call(call)) => {
                 self.init_root_frame(call.inputs_count, inputs)?;
             }
-            _ => unimplemented!("Call instruction must be the first one!"),
+            _ => unimplemented!("Program must start with Call instruction"),
         }
 
-        while self.state.instruction_counter < instructions.len() {
-            let instruction = &instructions[self.state.instruction_counter];
+        while self.state.instruction_counter < program.bytecode.len() {
+            let instruction = &program.bytecode[self.state.instruction_counter];
             self.state.instruction_counter += 1;
             log::info!(
                 "> {}",

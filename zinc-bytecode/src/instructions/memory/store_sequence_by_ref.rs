@@ -1,7 +1,8 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
+use serde_derive::{Serialize, Deserialize};
 
 /// Stores value from evaluation stack in data stack.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct StoreSequenceByRef {
     pub len: usize,
 }

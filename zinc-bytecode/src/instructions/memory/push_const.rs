@@ -1,8 +1,9 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
+use serde_derive::{Serialize, Deserialize};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct PushConst {
     pub value: BigInt,
     pub is_signed: bool,

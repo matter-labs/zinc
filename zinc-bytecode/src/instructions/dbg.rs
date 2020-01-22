@@ -1,6 +1,7 @@
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
+use serde_derive::{Serialize, Deserialize};
 
-#[derive(Debug, PartialEq, Default, Clone)]
+#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
 pub struct Dbg {
     pub string: String,
     pub nargs: usize,

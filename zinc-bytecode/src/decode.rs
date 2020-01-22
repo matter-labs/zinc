@@ -9,6 +9,7 @@ pub fn decode_all_instructions(bytes: &[u8]) -> Result<Vec<Instruction>, Decodin
     while offset < bytes.len() {
         match decode_instruction(&bytes[offset..]) {
             Ok((instr, len)) => {
+                log::trace!("Decoded instruction: {:?}", &instr);
                 instructions.push(instr);
                 offset += len;
             }
@@ -124,5 +125,6 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Instruction, usize), Decoding
 fn decode_and_wrap<I: InstructionInfo>(
     bytes: &[u8],
 ) -> Result<(Instruction, usize), DecodingError> {
-    I::decode(bytes).map(|(i, l)| (i.wrap(), l))
+    let (instruction, len) = I::decode(bytes)?;
+    Ok((instruction.wrap(), len))
 }

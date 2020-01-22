@@ -1,7 +1,8 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
+use serde_derive::{Serialize, Deserialize};
 
 /// Loads value from data stack and pushes it onto evaluation stack.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Load {
     pub address: usize,
 }

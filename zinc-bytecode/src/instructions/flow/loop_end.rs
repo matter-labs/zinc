@@ -1,7 +1,8 @@
 use crate::instructions::utils::decode_simple_instruction;
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
+use serde_derive::{Serialize, Deserialize};
 
-#[derive(Debug, PartialEq, Default, Clone)]
+#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
 pub struct LoopEnd;
 
 impl InstructionInfo for LoopEnd {

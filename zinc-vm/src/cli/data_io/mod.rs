@@ -1,3 +1,5 @@
+pub mod circuit_format;
+
 use json::JsonValue;
 use num_bigint::BigInt;
 
@@ -58,7 +60,7 @@ pub fn json_to_flat_input(json: &JsonValue) -> Option<Vec<BigInt>> {
 
 #[cfg(test)]
 mod tests {
-    use crate::witness::json_to_flat_input;
+    use crate::io::json_to_flat_input;
     use num_bigint::BigInt;
 
     static TEST_JSON: &str = r#"{

@@ -1,11 +1,11 @@
 use std::path::PathBuf;
 use structopt::StructOpt;
 use std::fs;
-use zinc_bytecode::decode_all_instructions;
 use crate::Error;
 use franklin_crypto::bellman::groth16::Parameters;
-use crate::witness::json_to_flat_input;
+use crate::data_io::json_to_flat_input;
 use pairing::bn256::Bn256;
+use zinc_bytecode::program::Program;
 
 #[derive(Debug, StructOpt)]
 pub struct ProveCommand {
@@ -26,7 +26,7 @@ impl ProveCommand {
     pub fn execute(&self) -> Result<(), Error> {
         // Read & parse bytecode
         let bytes = fs::read(&self.circuit_path)?;
-        let code = decode_all_instructions(bytes.as_slice())?;
+        let program = Program::from_bytes(bytes.as_slice()).unwrap();
 
         // Read & parse params
         let file = fs::File::open(&self.params_path)?;
@@ -38,7 +38,7 @@ impl ProveCommand {
         // TODO: Remove unwrap
         let input = json_to_flat_input(&input_json).unwrap();
 
-        let proof = zinc_vm::prove::<Bn256>(code.as_slice(), &params, input.as_slice())?;
+        let proof = zinc_vm::prove::<Bn256>(&program, &params, input.as_slice())?;
 
         // Write proof
         let file = fs::File::create(&self.proof_path)?;

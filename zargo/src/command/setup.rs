@@ -24,11 +24,11 @@ pub struct Command {
     )]
     circuit: PathBuf,
     #[structopt(
-        long = "output",
+        long = "params",
         help = "Path to the parameters file to generate",
         default_value = "./build/params"
     )]
-    output: PathBuf,
+    params: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -48,8 +48,8 @@ impl Command {
                 .arg("setup")
                 .arg("--circuit")
                 .arg(self.circuit)
-                .arg("--output")
-                .arg(self.output)
+                .arg("--params")
+                .arg(self.params)
                 .spawn()
                 .map_err(Error::VirtualMachineProcessSpawning)?;
         let virtual_machine_process_status = virtual_machine_process

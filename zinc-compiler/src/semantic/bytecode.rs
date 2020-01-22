@@ -3,15 +3,14 @@
 //!
 
 use std::collections::HashMap;
+use std::convert::{TryFrom, TryInto};
 use std::mem;
 
-use zinc_bytecode::dispatch_instruction;
+use zinc_bytecode::{dispatch_instruction, DataType, PrimitiveType, BinaryInteger, Program};
 use zinc_bytecode::Instruction;
 use zinc_bytecode::InstructionInfo;
 
 use crate::semantic::Type;
-
-const VERSION: u64 = 0x0000_0000_0001_0000;
 
 #[derive(Debug, Default, PartialEq)]
 pub struct Bytecode {
@@ -189,48 +188,17 @@ impl Bytecode {
     }
 
     pub fn into_bytes(self) -> Vec<u8> {
-        let input_metadata = match self.input_type.to_json_metadata() {
-            Some(input) => {
-                let input = input.to_string().into_bytes();
-                let mut data = Vec::with_capacity(mem::size_of::<u64>() + input.len());
-                data.extend(input.len().to_be_bytes().to_vec());
-                data.extend(input);
-                data
-            }
-            None => vec![0u8; mem::size_of::<u64>()],
-        };
-        let witness_metadata = match self.witness_type.to_json_metadata() {
-            Some(witness) => {
-                let witness = witness.to_string().into_bytes();
-                let mut data = Vec::with_capacity(mem::size_of::<u64>() + witness.len());
-                data.extend(witness.len().to_be_bytes().to_vec());
-                data.extend(witness);
-                data
-            }
-            None => vec![0u8; mem::size_of::<u64>()],
-        };
-        let instruction_data = self
-            .instructions
-            .into_iter()
-            .enumerate()
-            .map(|(index, instruction)| {
-                log::trace!("{:03} {:?}", index, instruction);
-                dispatch_instruction!(instruction => instruction.encode())
-            })
-            .flatten()
-            .collect::<Vec<u8>>();
-
-        let mut result = Vec::with_capacity(
-            mem::size_of_val(&VERSION)
-                + input_metadata.len()
-                + witness_metadata.len()
-                + instruction_data.len(),
+        for instruction in self.instructions.iter() {
+            log::trace!("{:?}", instruction)
+        }
+        // TODO: Remove unwrap
+        let program = Program::new(
+            (&self.input_type).try_into().unwrap(),
+            (&self.result_type).try_into().unwrap(),
+            &self.instructions
         );
-        result.extend(VERSION.to_be_bytes().to_vec());
-        result.extend(input_metadata);
-        result.extend(witness_metadata);
-        result.extend(instruction_data);
-        result
+
+        program.to_bytes()
     }
 
     pub fn input_template_bytes(&self) -> Vec<u8> {
@@ -251,6 +219,84 @@ impl Bytecode {
         match self.result_type.to_json_template() {
             Some(result) => result.to_string().into_bytes(),
             None => vec![],
+        }
+    }
+}
+
+impl TryFrom<&Type> for DataType {
+    type Error = ();
+
+    fn try_from(value: &Type) -> Result<Self, Self::Error> {
+        match value {
+            Type::String |
+            Type::Function { .. } => {
+                Err(())
+            }
+
+            Type::Unit => {
+                Ok(DataType::Unit)
+            }
+
+            Type::Enumeration { bitlength, .. } => {
+                Ok(DataType::Primitive(
+                    PrimitiveType::Integer(BinaryInteger {
+                        is_signed: false,
+                        bit_length: *bitlength
+                    })
+                ))
+            }
+
+            Type::Boolean => {
+                Ok(DataType::Primitive(
+                    PrimitiveType::Integer(BinaryInteger {
+                        is_signed: false,
+                        bit_length: 1
+                    })
+                ))
+            }
+
+            Type::IntegerUnsigned { bitlength } => {
+                Ok(DataType::Primitive(
+                    PrimitiveType::Integer(BinaryInteger {
+                        is_signed: false,
+                        bit_length: *bitlength
+                    })
+                ))
+            }
+
+            Type::IntegerSigned { bitlength } => {
+                Ok(DataType::Primitive(
+                    PrimitiveType::Integer(BinaryInteger {
+                        is_signed: true,
+                        bit_length: *bitlength
+                    })
+                ))
+            }
+
+            Type::Field => {
+                Ok(DataType::Primitive(PrimitiveType::Field))
+            }
+
+            Type::Array { r#type, size } => {
+                let element_type = r#type.as_ref().try_into()?;
+                Ok(DataType::Array(Box::new(element_type), *size))
+            }
+
+            Type::Tuple { types } => {
+                let mut data_types = Vec::new();
+                for t in types.iter() {
+                    data_types.push(t.try_into()?);
+                }
+                Ok(DataType::Struct(data_types))
+            }
+
+            Type::Structure { fields, .. } => {
+                let mut data_types = Vec::new();
+                for (_, t) in fields.iter() {
+                    data_types.push(t.try_into()?);
+                }
+                Ok(DataType::Struct(data_types))
+            }
         }
     }
 }

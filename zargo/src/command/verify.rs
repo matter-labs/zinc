@@ -15,38 +15,37 @@ use structopt::StructOpt;
 pub struct Command {
     #[structopt(short = "q", long = "quiet", help = "No output printed to stdout")]
     quiet: bool,
+
     #[structopt(short = "v", long = "verbose", help = "Use verbose output")]
     verbose: bool,
+
     #[structopt(
         long = "circuit",
         help = "Path to the circuit binary file",
         default_value = "./build/default.znb"
     )]
     circuit: PathBuf,
+
     #[structopt(
         long = "params",
         help = "Path to the prover parameters file",
         default_value = "./build/params"
     )]
     params: PathBuf,
+
     #[structopt(
         long = "proof",
         help = "Path to the zero-knowledge proof file",
         default_value = "./build/proof"
     )]
     proof: PathBuf,
+
     #[structopt(
-        long = "input",
-        help = "Path to the input JSON file",
-        default_value = "./build/input.json"
-    )]
-    input: PathBuf,
-    #[structopt(
-        long = "result",
-        help = "Path to the result JSON file",
+        long = "output",
+        help = "Path to the program's output JSON file",
         default_value = "./build/result.json"
     )]
-    result: PathBuf,
+    output: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -70,10 +69,8 @@ impl Command {
                 .arg(self.params)
                 .arg("--proof")
                 .arg(self.proof)
-                .arg("--public-input")
-                .arg(self.input)
-                .arg("--result")
-                .arg(self.result)
+                .arg("--output")
+                .arg(self.output)
                 .spawn()
                 .map_err(Error::VirtualMachineProcessSpawning)?;
         let virtual_machine_process_status = virtual_machine_process

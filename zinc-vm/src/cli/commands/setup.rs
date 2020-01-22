@@ -1,9 +1,9 @@
 use structopt::StructOpt;
 use std::path::PathBuf;
 use crate::Error;
-use zinc_bytecode::decode_all_instructions;
 use std::fs;
 use pairing::bn256::Bn256;
+use zinc_bytecode::program::Program;
 
 #[derive(Debug, StructOpt)]
 pub struct SetupCommand {
@@ -17,9 +17,9 @@ pub struct SetupCommand {
 impl SetupCommand {
     pub fn execute(&self) -> Result<(), Error> {
         let bytes = fs::read(&self.circuit_path)?;
-        let code = decode_all_instructions(bytes.as_slice())?;
+        let program = Program::from_bytes(bytes.as_slice()).unwrap();
 
-        let params = zinc_vm::setup::<Bn256>(code.as_slice())?;
+        let params = zinc_vm::setup::<Bn256>(&program)?;
 
         let file = fs::File::create(&self.params_path)?;
         params.write(file)?;

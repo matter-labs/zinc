@@ -10,31 +10,31 @@ use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::BigInt;
 use rand::ThreadRng;
 use std::fmt::Debug;
-use zinc_bytecode::Instruction;
 
 pub use crate::vm::RuntimeError;
+use zinc_bytecode::program::Program;
 
-struct VMCircuit<'a, 'b, 'c> {
-    code: &'a [Instruction],
-    inputs: Option<&'b [BigInt]>,
-    result: &'c mut Option<Result<Vec<Option<BigInt>>, RuntimeError>>,
+struct VMCircuit<'a> {
+    program: &'a Program,
+    inputs: Option<&'a [BigInt]>,
+    result: &'a mut Option<Result<Vec<Option<BigInt>>, RuntimeError>>,
 }
 
-impl<E: ZincEngine> Circuit<E> for VMCircuit<'_, '_, '_> {
+impl<E: ZincEngine> Circuit<E> for VMCircuit<'_> {
     fn synthesize<CS: ConstraintSystem<E>>(self, cs: &mut CS) -> Result<(), SynthesisError> {
         let mut vm = VirtualMachine::new(ConstrainingFrOperations::new(cs));
-        *self.result = Some(vm.run(self.code, self.inputs));
+        *self.result = Some(vm.run(self.program, self.inputs));
         Ok(())
     }
 }
 
 pub fn exec<E: ZincEngine>(
-    code: &[Instruction],
+    program: &Program,
     inputs: &[BigInt],
 ) -> Result<Vec<Option<BigInt>>, RuntimeError> {
     let cs = TestConstraintSystem::<Bn256>::new();
     let mut vm = VirtualMachine::new(ConstrainingFrOperations::new(cs));
-    let result = vm.run(code, Some(inputs))?;
+    let result = vm.run(program, Some(inputs))?;
 
     let cs = vm.operations().constraint_system();
     if !cs.is_satisfied() {
@@ -55,11 +55,11 @@ pub fn exec<E: ZincEngine>(
     Ok(result)
 }
 
-pub fn setup<E: ZincEngine>(code: &[Instruction]) -> Result<Parameters<E>, RuntimeError> {
+pub fn setup<E: ZincEngine>(program: &Program) -> Result<Parameters<E>, RuntimeError> {
     let rng = &mut rand::thread_rng();
     let mut result = None;
     let circuit = VMCircuit {
-        code,
+        program,
         inputs: None,
         result: &mut result,
     };
@@ -69,7 +69,7 @@ pub fn setup<E: ZincEngine>(code: &[Instruction]) -> Result<Parameters<E>, Runti
 }
 
 pub fn prove<E: ZincEngine>(
-    code: &[Instruction],
+    program: &Program,
     params: &Parameters<E>,
     witness: &[BigInt],
 ) -> Result<Proof<E>, RuntimeError> {
@@ -78,7 +78,7 @@ pub fn prove<E: ZincEngine>(
     let (result, proof) = {
         let mut result = None;
         let circuit = VMCircuit {
-            code,
+            program,
             inputs: Some(witness),
             result: &mut result,
         };

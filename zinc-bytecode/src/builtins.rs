@@ -1,9 +1,9 @@
 use enum_primitive_derive::Primitive;
-use failure::_core::fmt::{Error, Formatter};
-use std::fmt::{Debug, Display};
+use std::fmt::{Debug, Display, Formatter, Error};
+use serde_derive::{Serialize, Deserialize};
 
 /// Built-in function identifier.
-#[derive(Primitive, Debug, PartialEq, Clone, Copy)]
+#[derive(Primitive, Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
 pub enum BuiltinIdentifier {
     CryptoSha256 = 1,
     CryptoPedersen = 2,

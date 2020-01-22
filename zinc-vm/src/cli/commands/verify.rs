@@ -5,7 +5,7 @@ use std::fs;
 use franklin_crypto::bellman::groth16::{Parameters, Proof};
 use colored::Colorize;
 use std::process::exit;
-use crate::witness::json_to_flat_input;
+use crate::data_io::json_to_flat_input;
 use pairing::bn256::Bn256;
 
 #[derive(Debug, StructOpt)]
