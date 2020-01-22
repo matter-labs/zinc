@@ -25,8 +25,12 @@ impl ExecCommand {
         let program = Program::from_bytes(bytes.as_slice()).unwrap();
 
         let input_text = fs::read_to_string(&self.input_path)?;
-        let input_value: Value = serde_json::from_str(&input_text)?;
-        let input = input_value.to_flat_values();
+        let input_values: Vec<Value> = serde_json::from_str(&input_text)?;
+        let input: Vec<_> = input_values
+            .into_iter()
+            .map(|v| v.to_flat_values())
+            .flatten()
+            .collect();
 
         let output_values = zinc_vm::exec::<Bn256>(&program, &input)?;
 
