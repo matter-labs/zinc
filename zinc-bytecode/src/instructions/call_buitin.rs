@@ -1,8 +1,8 @@
 use crate::builtins::BuiltinIdentifier;
 use crate::instructions::utils;
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
-use serde_derive::{Serialize, Deserialize};
 use num_traits::cast::FromPrimitive;
+use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct CallBuiltin {

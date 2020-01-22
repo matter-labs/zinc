@@ -1,13 +1,13 @@
-mod data_io;
 mod commands;
+mod data_io;
 
+use crate::commands::{Arguments, Command};
 use log::LevelFilter;
 use std::fmt::Debug;
 use std::io;
+use structopt::StructOpt;
 use zinc_bytecode::DecodingError;
 use zinc_vm::{RuntimeError, VerificationError};
-use crate::commands::{Arguments, Command};
-use structopt::StructOpt;
 
 #[derive(Debug)]
 pub enum Error {
@@ -55,7 +55,7 @@ fn main() -> Result<(), Error> {
         .format_timestamp(None)
         .filter_level(match args.verbose {
             true => LevelFilter::Info,
-            false => LevelFilter::Warn
+            false => LevelFilter::Warn,
         })
         .init();
 

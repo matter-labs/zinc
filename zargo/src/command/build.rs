@@ -116,12 +116,8 @@ impl Command {
         let mut build_input_template_path = build_directory_path.clone();
         build_input_template_path.push(crate::constants::CIRCUIT_INPUT_TEMPLATE_DEFAULT_FILE_NAME);
 
-        let mut build_witness_template_path = build_directory_path.clone();
-        build_witness_template_path
-            .push(crate::constants::CIRCUIT_WITNESS_TEMPLATE_DEFAULT_FILE_NAME);
-
-        let mut build_result_template_path = build_directory_path.clone();
-        build_result_template_path
+        let mut build_output_template_path = build_directory_path.clone();
+        build_output_template_path
             .push(crate::constants::CIRCUIT_RESULT_TEMPLATE_DEFAULT_FILE_NAME);
 
         let mut build_binary_path = build_directory_path.clone();
@@ -131,10 +127,8 @@ impl Command {
             process::Command::new(crate::constants::ZINC_COMPILER_BINARY_NAME)
                 .arg("--input-json")
                 .arg(&build_input_template_path)
-                .arg("--witness-json")
-                .arg(&build_witness_template_path)
-                .arg("--result-json")
-                .arg(&build_result_template_path)
+                .arg("--output-json")
+                .arg(&build_output_template_path)
                 .arg("--output")
                 .arg(&build_binary_path)
                 .args(&source_file_paths)

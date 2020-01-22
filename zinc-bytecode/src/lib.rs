@@ -1,15 +1,15 @@
 pub mod builtins;
 mod decode;
 pub mod instructions;
-pub mod vlq;
 pub mod program;
+pub mod vlq;
 
 pub use decode::*;
 pub use instructions::*;
 pub use program::*;
 
+use serde_derive::{Deserialize, Serialize};
 use std::fmt;
-use serde_derive::{Serialize, Deserialize};
 
 pub trait InstructionInfo: PartialEq + fmt::Debug + Sized {
     fn to_assembly(&self) -> String;

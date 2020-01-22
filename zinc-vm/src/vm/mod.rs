@@ -8,8 +8,8 @@ use crate::gadgets::{DataType, Primitive, PrimitiveOperations};
 use crate::ZincEngine;
 use franklin_crypto::bellman::SynthesisError;
 use num_bigint::{BigInt, ToBigInt};
-use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 use zinc_bytecode::program::Program;
+use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 
 pub trait VMInstruction<E, O>: InstructionInfo
 where

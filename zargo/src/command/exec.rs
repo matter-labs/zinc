@@ -34,9 +34,9 @@ pub struct Command {
     input: PathBuf,
 
     #[structopt(
-        long = "result",
-        help = "Path to the result JSON file",
-        default_value = "./build/result.json"
+        long = "output",
+        help = "Path to the output JSON file",
+        default_value = "./build/output.json"
     )]
     output: PathBuf,
 }

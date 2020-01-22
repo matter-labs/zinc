@@ -15,10 +15,6 @@ use crate::semantic::StatementAnalyzer;
 use crate::semantic::Type;
 use crate::SyntaxTree;
 
-const FUNCTION_MAIN_ARGUMENTS_COUNT: usize = 2;
-const FUNCTION_MAIN_ARGUMENT_INPUT_INDEX: usize = 0;
-const FUNCTION_MAIN_ARGUMENT_WITNESS_INDEX: usize = 1;
-
 pub struct Analyzer {
     scope_stack: Vec<Rc<RefCell<Scope>>>,
     bytecode: Rc<RefCell<Bytecode>>,
@@ -67,39 +63,16 @@ impl Analyzer {
             .map_err(CompilerError::Semantic)?;
 
         if let Ok(ScopeItem::Type(Type::Function {
-            mut arguments,
+            arguments,
             return_type,
             ..
         })) = Scope::resolve_item(self.scope(), "main")
         {
-            if arguments.len() != FUNCTION_MAIN_ARGUMENTS_COUNT {
-                return Err(CompilerError::Semantic(
-                    Error::FunctionMainExpectedTwoArguments(arguments.len()),
-                ));
-            }
-
-            let (witness_identifier, witness_type) =
-                arguments.remove(FUNCTION_MAIN_ARGUMENT_WITNESS_INDEX);
-            if witness_identifier != "witness" {
-                return Err(CompilerError::Semantic(
-                    Error::FunctionMainExpectedWitnessAsSecondArgument(witness_identifier),
-                ));
-            }
-
-            let (input_identifier, input_type) =
-                arguments.remove(FUNCTION_MAIN_ARGUMENT_INPUT_INDEX);
-            if input_identifier != "input" {
-                return Err(CompilerError::Semantic(
-                    Error::FunctionMainExpectedInputAsFirstArgument(input_identifier),
-                ));
-            }
-
-            let input_size = input_type.size() + witness_type.size();
+            let input_size = arguments.iter().map(|(_name, r#type)| r#type.size()).sum();
             let output_size = return_type.size();
 
-            self.bytecode.borrow_mut().set_input_type(input_type);
-            self.bytecode.borrow_mut().set_witness_type(witness_type);
-            self.bytecode.borrow_mut().set_result_type(*return_type);
+            self.bytecode.borrow_mut().set_input_fields(arguments);
+            self.bytecode.borrow_mut().set_output_type(*return_type);
             self.bytecode.borrow_mut().set_main_function(
                 main_function_address,
                 input_size,

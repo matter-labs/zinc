@@ -1,9 +1,9 @@
-use structopt::StructOpt;
-use std::path::PathBuf;
-use std::fs;
+use crate::data_io::json_to_flat_input;
 use crate::Error;
 use pairing::bn256::Bn256;
-use crate::data_io::json_to_flat_input;
+use std::fs;
+use std::path::PathBuf;
+use structopt::StructOpt;
 use zinc_bytecode::program::Program;
 
 #[derive(Debug, StructOpt)]

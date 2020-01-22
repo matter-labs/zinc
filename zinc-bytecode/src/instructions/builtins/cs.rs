@@ -1,6 +1,6 @@
 use crate::instructions::utils::decode_simple_instruction;
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
-use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
 //#[deprecated(note = "Use If-Else-EndIf instead")]

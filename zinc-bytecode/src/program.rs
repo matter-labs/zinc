@@ -1,5 +1,5 @@
 use crate::Instruction;
-use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct BinaryInteger {
@@ -23,17 +23,21 @@ pub enum DataType {
 
 #[derive(Serialize, Deserialize)]
 pub struct Program {
-    pub input: DataType,
+    pub inputs: Vec<(String, DataType)>,
     pub output: DataType,
     pub bytecode: Vec<Instruction>,
 }
 
 impl Program {
-    pub fn new(input: DataType, output: DataType, bytecode: &[Instruction]) -> Self {
+    pub fn new(
+        inputs: Vec<(String, DataType)>,
+        output: DataType,
+        bytecode: Vec<Instruction>,
+    ) -> Self {
         Self {
-            input,
+            inputs,
             output,
-            bytecode: bytecode.to_vec(),
+            bytecode,
         }
     }
 

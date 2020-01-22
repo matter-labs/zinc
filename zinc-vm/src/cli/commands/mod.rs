@@ -1,13 +1,13 @@
 mod exec;
-mod setup;
 mod prove;
+mod setup;
 mod verify;
 
-use structopt::StructOpt;
 use self::exec::ExecCommand;
 use self::prove::ProveCommand;
 use self::setup::SetupCommand;
 use crate::commands::verify::VerifyCommand;
+use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "zinc", about = "Zinc Virtual Machine")]
@@ -16,7 +16,7 @@ pub struct Arguments {
     pub verbose: bool,
 
     #[structopt(subcommand)]
-    pub command: Command
+    pub command: Command,
 }
 
 #[derive(Debug, StructOpt)]

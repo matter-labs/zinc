@@ -162,9 +162,6 @@ mod err_element_xor_2nd_expected_evaluable;
 mod err_function_argument_count_mismatch;
 mod err_function_argument_type_mismatch;
 mod err_function_calling_not_callable;
-mod err_function_main_expected_input_as_first_argument;
-mod err_function_main_expected_two_arguments;
-mod err_function_main_expected_witness_as_second_argument;
 mod err_function_main_missing;
 mod err_function_not_instruction;
 mod err_function_return_type_mismatch;
@@ -278,5 +275,5 @@ pub(self) fn get_instructions_with_dependencies(
     Ok(Rc::try_unwrap(bytecode)
         .expect(PANIC_ONLY_REFERENCE)
         .into_inner()
-        .into_instructions())
+        .into())
 }

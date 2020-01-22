@@ -69,18 +69,18 @@ cargo build ${RELEASE_MODE_FLAG} --package "${VIRTUAL_MACHINE_CRATE_NAME}"
     --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
 "./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" exec \
     --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
-    --result "${PROJECT_DIRECTORY}/build/result.json"
+    --input "${PROJECT_DIRECTORY}/build/input.json" \
+    --output "${PROJECT_DIRECTORY}/build/output.json"
 "./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" setup \
     --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
-    --output "${PROJECT_DIRECTORY}/build/params"
+    --params "${PROJECT_DIRECTORY}/build/params"
 "./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" prove \
     --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
     --params "${PROJECT_DIRECTORY}/build/params" \
-    --output "${PROJECT_DIRECTORY}/build/proof"\
-    --witness "${PROJECT_DIRECTORY}/build/witness.json"
+    --input "${PROJECT_DIRECTORY}/build/input.json" \
+    --proof "${PROJECT_DIRECTORY}/build/proof"
 "./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" verify \
     --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
     --params "${PROJECT_DIRECTORY}/build/params" \
     --proof "${PROJECT_DIRECTORY}/build/proof" \
-    --input "${PROJECT_DIRECTORY}/build/input.json" \
-    --result "${PROJECT_DIRECTORY}/build/result.json"
+    --output "${PROJECT_DIRECTORY}/build/output.json"

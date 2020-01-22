@@ -1,8 +1,8 @@
-use structopt::StructOpt;
-use std::path::PathBuf;
 use crate::Error;
-use std::fs;
 use pairing::bn256::Bn256;
+use std::fs;
+use std::path::PathBuf;
+use structopt::StructOpt;
 use zinc_bytecode::program::Program;
 
 #[derive(Debug, StructOpt)]
@@ -11,7 +11,7 @@ pub struct SetupCommand {
     pub circuit_path: PathBuf,
 
     #[structopt(short = "P", long = "params", about = "Params file to write")]
-    pub params_path: PathBuf
+    pub params_path: PathBuf,
 }
 
 impl SetupCommand {

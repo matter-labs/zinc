@@ -1,12 +1,12 @@
-use structopt::StructOpt;
-use std::path::PathBuf;
-use crate::Error;
-use std::fs;
-use franklin_crypto::bellman::groth16::{Parameters, Proof};
-use colored::Colorize;
-use std::process::exit;
 use crate::data_io::json_to_flat_input;
+use crate::Error;
+use colored::Colorize;
+use franklin_crypto::bellman::groth16::{Parameters, Proof};
 use pairing::bn256::Bn256;
+use std::fs;
+use std::path::PathBuf;
+use std::process::exit;
+use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 pub struct VerifyCommand {
@@ -20,7 +20,7 @@ pub struct VerifyCommand {
     pub proof_path: PathBuf,
 
     #[structopt(short = "o", long = "output", about = "Program's output file")]
-    pub output_path: PathBuf
+    pub output_path: PathBuf,
 }
 
 impl VerifyCommand {

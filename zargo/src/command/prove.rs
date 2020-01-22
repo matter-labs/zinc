@@ -31,7 +31,6 @@ pub struct Command {
         help = "Path to the prover parameters file",
         default_value = "./build/params"
     )]
-
     params: PathBuf,
 
     #[structopt(

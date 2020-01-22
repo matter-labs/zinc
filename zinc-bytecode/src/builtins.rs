@@ -1,6 +1,6 @@
 use enum_primitive_derive::Primitive;
-use std::fmt::{Debug, Display, Formatter, Error};
-use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Deserialize, Serialize};
+use std::fmt::{Debug, Display, Error, Formatter};
 
 /// Built-in function identifier.
 #[derive(Primitive, Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]

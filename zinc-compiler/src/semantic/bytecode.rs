@@ -3,20 +3,19 @@
 //!
 
 use std::collections::HashMap;
-use std::convert::{TryFrom, TryInto};
-use std::mem;
 
-use zinc_bytecode::{dispatch_instruction, DataType, PrimitiveType, BinaryInteger, Program};
+use zinc_bytecode::BinaryInteger;
+use zinc_bytecode::DataType;
 use zinc_bytecode::Instruction;
-use zinc_bytecode::InstructionInfo;
+use zinc_bytecode::PrimitiveType;
+use zinc_bytecode::Program;
 
 use crate::semantic::Type;
 
 #[derive(Debug, Default, PartialEq)]
 pub struct Bytecode {
-    input_type: Type,
-    witness_type: Type,
-    result_type: Type,
+    input_fields: Vec<(String, Type)>,
+    output_type: Type,
     instructions: Vec<Instruction>,
 
     data_stack_pointer: usize,
@@ -38,9 +37,8 @@ impl Bytecode {
         let address_stack = Vec::with_capacity(Self::ADDRESS_STACK_VECTOR_INITIAL_SIZE);
 
         Self {
-            input_type: Type::new_unit(),
-            witness_type: Type::new_unit(),
-            result_type: Type::new_unit(),
+            input_fields: vec![],
+            output_type: Type::new_unit(),
             instructions,
 
             data_stack_pointer: 0,
@@ -62,16 +60,12 @@ impl Bytecode {
             .insert("main".to_owned(), function_address);
     }
 
-    pub fn set_input_type(&mut self, r#type: Type) {
-        self.input_type = r#type;
+    pub fn set_input_fields(&mut self, fields: Vec<(String, Type)>) {
+        self.input_fields = fields;
     }
 
-    pub fn set_witness_type(&mut self, r#type: Type) {
-        self.witness_type = r#type;
-    }
-
-    pub fn set_result_type(&mut self, r#type: Type) {
-        self.result_type = r#type;
+    pub fn set_output_type(&mut self, r#type: Type) {
+        self.output_type = r#type;
     }
 
     pub fn push_instruction(&mut self, instruction: Instruction) {
@@ -183,120 +177,93 @@ impl Bytecode {
         self.instructions.len()
     }
 
-    pub fn into_instructions(self) -> Vec<Instruction> {
-        self.instructions
-    }
-
-    pub fn into_bytes(self) -> Vec<u8> {
-        for instruction in self.instructions.iter() {
-            log::trace!("{:?}", instruction)
-        }
-        // TODO: Remove unwrap
-        let program = Program::new(
-            (&self.input_type).try_into().unwrap(),
-            (&self.result_type).try_into().unwrap(),
-            &self.instructions
-        );
-
-        program.to_bytes()
-    }
-
     pub fn input_template_bytes(&self) -> Vec<u8> {
-        match self.input_type.to_json_template() {
+        let input_type = Type::new_structure("input".to_owned(), self.input_fields.clone(), None);
+        match input_type.to_json_template() {
             Some(input) => input.to_string().into_bytes(),
             None => vec![],
         }
     }
 
-    pub fn witness_template_bytes(&self) -> Vec<u8> {
-        match self.witness_type.to_json_template() {
-            Some(witness) => witness.to_string().into_bytes(),
-            None => vec![],
-        }
-    }
-
-    pub fn result_template_bytes(&self) -> Vec<u8> {
-        match self.result_type.to_json_template() {
-            Some(result) => result.to_string().into_bytes(),
+    pub fn output_template_bytes(&self) -> Vec<u8> {
+        match self.output_type.to_json_template() {
+            Some(output) => output.to_string().into_bytes(),
             None => vec![],
         }
     }
 }
 
-impl TryFrom<&Type> for DataType {
-    type Error = ();
+impl Into<Vec<Instruction>> for Bytecode {
+    fn into(self) -> Vec<Instruction> {
+        self.instructions
+    }
+}
 
-    fn try_from(value: &Type) -> Result<Self, Self::Error> {
-        match value {
-            Type::String |
-            Type::Function { .. } => {
-                Err(())
-            }
+impl Into<Vec<u8>> for Bytecode {
+    fn into(self) -> Vec<u8> {
+        for instruction in self.instructions.iter() {
+            log::trace!("{:?}", instruction)
+        }
 
-            Type::Unit => {
-                Ok(DataType::Unit)
-            }
+        let program = Program::new(
+            self.input_fields
+                .into_iter()
+                .map(|(name, r#type)| (name, r#type.into()))
+                .collect(),
+            self.output_type.into(),
+            self.instructions,
+        );
 
-            Type::Enumeration { bitlength, .. } => {
-                Ok(DataType::Primitive(
-                    PrimitiveType::Integer(BinaryInteger {
-                        is_signed: false,
-                        bit_length: *bitlength
-                    })
-                ))
-            }
+        program.to_bytes()
+    }
+}
 
-            Type::Boolean => {
-                Ok(DataType::Primitive(
-                    PrimitiveType::Integer(BinaryInteger {
-                        is_signed: false,
-                        bit_length: 1
-                    })
-                ))
-            }
-
+impl Into<DataType> for Type {
+    fn into(self) -> DataType {
+        match self {
+            Type::Unit => DataType::Unit,
+            Type::Boolean => DataType::Primitive(PrimitiveType::Integer(BinaryInteger {
+                is_signed: false,
+                bit_length: crate::BITLENGTH_BOOLEAN,
+            })),
             Type::IntegerUnsigned { bitlength } => {
-                Ok(DataType::Primitive(
-                    PrimitiveType::Integer(BinaryInteger {
-                        is_signed: false,
-                        bit_length: *bitlength
-                    })
-                ))
+                DataType::Primitive(PrimitiveType::Integer(BinaryInteger {
+                    is_signed: false,
+                    bit_length: bitlength,
+                }))
             }
-
             Type::IntegerSigned { bitlength } => {
-                Ok(DataType::Primitive(
-                    PrimitiveType::Integer(BinaryInteger {
-                        is_signed: true,
-                        bit_length: *bitlength
-                    })
-                ))
+                DataType::Primitive(PrimitiveType::Integer(BinaryInteger {
+                    is_signed: true,
+                    bit_length: bitlength,
+                }))
             }
-
-            Type::Field => {
-                Ok(DataType::Primitive(PrimitiveType::Field))
+            Type::Field => DataType::Primitive(PrimitiveType::Field),
+            Type::Enumeration { bitlength, .. } => {
+                DataType::Primitive(PrimitiveType::Integer(BinaryInteger {
+                    is_signed: false,
+                    bit_length: bitlength,
+                }))
             }
-
             Type::Array { r#type, size } => {
-                let element_type = r#type.as_ref().try_into()?;
-                Ok(DataType::Array(Box::new(element_type), *size))
+                let element_type: DataType = (*r#type).into();
+                DataType::Array(Box::new(element_type), size)
             }
-
             Type::Tuple { types } => {
                 let mut data_types = Vec::new();
-                for t in types.iter() {
-                    data_types.push(t.try_into()?);
+                for r#type in types.into_iter() {
+                    data_types.push(r#type.into());
                 }
-                Ok(DataType::Struct(data_types))
+                DataType::Struct(data_types)
             }
-
             Type::Structure { fields, .. } => {
                 let mut data_types = Vec::new();
-                for (_, t) in fields.iter() {
-                    data_types.push(t.try_into()?);
+                for (_, r#type) in fields.into_iter() {
+                    data_types.push(r#type.into());
                 }
-                Ok(DataType::Struct(data_types))
+                DataType::Struct(data_types)
             }
+            _ => panic!(crate::semantic::PANIC_VALUE_CANNOT_BE_CREATED_FROM),
         }
     }
 }

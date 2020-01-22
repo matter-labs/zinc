@@ -1,5 +1,5 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
-use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Deserialize, Serialize};
 
 /// Takes `index` from evaluation stack, loads several values from data stack from `address + index` onto evaluation stack.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]

@@ -23,7 +23,7 @@ pub struct Command {
     verbose: bool,
     #[structopt(
         long = "name",
-        help = "Set the resulting circuit name, defaults to the directory name"
+        help = "Set the outputing circuit name, defaults to the directory name"
     )]
     name: Option<String>,
     #[structopt(parse(from_os_str))]

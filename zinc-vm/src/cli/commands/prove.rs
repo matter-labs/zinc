@@ -1,10 +1,10 @@
-use std::path::PathBuf;
-use structopt::StructOpt;
-use std::fs;
+use crate::data_io::json_to_flat_input;
 use crate::Error;
 use franklin_crypto::bellman::groth16::Parameters;
-use crate::data_io::json_to_flat_input;
 use pairing::bn256::Bn256;
+use std::fs;
+use std::path::PathBuf;
+use structopt::StructOpt;
 use zinc_bytecode::program::Program;
 
 #[derive(Debug, StructOpt)]
@@ -12,7 +12,11 @@ pub struct ProveCommand {
     #[structopt(short = "c", long = "circuit", about = "Circuit's bytecode file")]
     pub circuit_path: PathBuf,
 
-    #[structopt(short = "P", long = "params", about = "Generated parameters file for prover and verifier")]
+    #[structopt(
+        short = "P",
+        long = "params",
+        about = "Generated parameters file for prover and verifier"
+    )]
     pub params_path: PathBuf,
 
     #[structopt(short = "i", long = "input", about = "Program's input file")]
