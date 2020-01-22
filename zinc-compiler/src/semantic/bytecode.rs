@@ -4,11 +4,8 @@
 
 use std::collections::HashMap;
 
-use zinc_bytecode::BinaryInteger;
-use zinc_bytecode::DataType;
-use zinc_bytecode::Instruction;
-use zinc_bytecode::PrimitiveType;
-use zinc_bytecode::Program;
+use zinc_bytecode::{Program, Instruction};
+use zinc_bytecode::data::types::*;
 
 use crate::semantic::Type;
 
@@ -254,14 +251,16 @@ impl Into<DataType> for Type {
                 for r#type in types.into_iter() {
                     data_types.push(r#type.into());
                 }
-                DataType::Struct(data_types)
+                DataType::Tuple(data_types)
             }
             Type::Structure { fields, .. } => {
-                let mut data_types = Vec::new();
-                for (_, r#type) in fields.into_iter() {
-                    data_types.push(r#type.into());
+                let mut new_fields: Vec<(String, DataType)> = Vec::new();
+                for (name, r#type) in fields.into_iter() {
+                    new_fields.push(
+                        (name, r#type.into())
+                    );
                 }
-                DataType::Struct(data_types)
+                DataType::Struct(new_fields)
             }
             _ => panic!(crate::semantic::PANIC_VALUE_CANNOT_BE_CREATED_FROM),
         }
