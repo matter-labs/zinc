@@ -4,8 +4,8 @@ use pairing::bn256::Bn256;
 use std::fs;
 use std::path::PathBuf;
 use structopt::StructOpt;
-use zinc_bytecode::program::Program;
 use zinc_bytecode::data::values::Value;
+use zinc_bytecode::program::Program;
 
 #[derive(Debug, StructOpt)]
 pub struct ProveCommand {

@@ -3,8 +3,8 @@ use pairing::bn256::Bn256;
 use std::fs;
 use std::path::PathBuf;
 use structopt::StructOpt;
-use zinc_bytecode::program::Program;
 use zinc_bytecode::data::values::Value;
+use zinc_bytecode::program::Program;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "exec", about = "Executes circuit and prints program's output")]
@@ -37,7 +37,7 @@ impl ExecCommand {
         // TODO: Remove unwrap
         let output = Value::from_flat_values(&program.output, &output_values).unwrap();
 
-        let output_json =  serde_json::to_string_pretty(&output)?;
+        let output_json = serde_json::to_string_pretty(&output)?;
         fs::write(&self.output_path, &output_json)?;
 
         println!("{:?}", &output_json);

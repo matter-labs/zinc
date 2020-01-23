@@ -53,11 +53,7 @@ pub fn exec<E: ZincEngine>(
     }
 
     // TODO: Remove unwrap
-    Ok(result
-        .into_iter()
-        .map(|v| v.unwrap())
-        .collect()
-    )
+    Ok(result.into_iter().map(|v| v.unwrap()).collect())
 }
 
 pub fn setup<E: ZincEngine>(program: &Program) -> Result<Parameters<E>, RuntimeError> {

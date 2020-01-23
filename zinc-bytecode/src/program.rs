@@ -1,6 +1,6 @@
+use crate::data::types::DataType;
 use crate::Instruction;
 use serde_derive::{Deserialize, Serialize};
-use crate::data::types::DataType;
 
 #[derive(Serialize, Deserialize)]
 pub struct Program {

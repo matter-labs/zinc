@@ -3,9 +3,14 @@
 //!
 
 use std::collections::HashMap;
+use std::ops::Deref;
 
-use zinc_bytecode::{Program, Instruction};
-use zinc_bytecode::data::types::*;
+use zinc_bytecode::data::types::BinaryInteger;
+use zinc_bytecode::data::types::DataType;
+use zinc_bytecode::data::types::PrimitiveType;
+use zinc_bytecode::data::values::Value as TemplateValue;
+use zinc_bytecode::Instruction;
+use zinc_bytecode::Program;
 
 use crate::semantic::Type;
 
@@ -175,17 +180,36 @@ impl Bytecode {
     }
 
     pub fn input_template_bytes(&self) -> Vec<u8> {
-        let input_type = Type::new_structure("input".to_owned(), self.input_fields.clone(), None);
-        match input_type.to_json_template() {
-            Some(input) => input.to_string().into_bytes(),
-            None => vec![],
+        let input_value_fields = self
+            .input_fields
+            .iter()
+            .map(|(name, r#type)| {
+                let input_bytecode_type = r#type.into();
+                (
+                    name.to_owned(),
+                    TemplateValue::default_from_type(&input_bytecode_type),
+                )
+            })
+            .collect::<Vec<(String, TemplateValue)>>();
+        let input_template_value = TemplateValue::Struct(input_value_fields);
+        match serde_json::to_string_pretty(&input_template_value) {
+            Ok(json) => json.into_bytes(),
+            Err(error) => panic!(
+                crate::semantic::PANIC_JSON_TEMPLATE_SERIALIZATION.to_owned()
+                    + error.to_string().as_str()
+            ),
         }
     }
 
     pub fn output_template_bytes(&self) -> Vec<u8> {
-        match self.output_type.to_json_template() {
-            Some(output) => output.to_string().into_bytes(),
-            None => vec![],
+        let output_bytecode_type = (&self.output_type).into();
+        let output_value_template = TemplateValue::default_from_type(&output_bytecode_type);
+        match serde_json::to_string_pretty(&output_value_template) {
+            Ok(json) => json.into_bytes(),
+            Err(error) => panic!(
+                crate::semantic::PANIC_JSON_TEMPLATE_SERIALIZATION.to_owned()
+                    + error.to_string().as_str()
+            ),
         }
     }
 }
@@ -204,10 +228,10 @@ impl Into<Vec<u8>> for Bytecode {
 
         let program = Program::new(
             self.input_fields
-                .into_iter()
-                .map(|(name, r#type)| (name, r#type.into()))
-                .collect(),
-            self.output_type.into(),
+                .iter()
+                .map(|(name, r#type)| (name.to_owned(), r#type.into()))
+                .collect::<Vec<(String, DataType)>>(),
+            (&self.output_type).into(),
             self.instructions,
         );
 
@@ -215,7 +239,7 @@ impl Into<Vec<u8>> for Bytecode {
     }
 }
 
-impl Into<DataType> for Type {
+impl Into<DataType> for &Type {
     fn into(self) -> DataType {
         match self {
             Type::Unit => DataType::Unit,
@@ -226,39 +250,37 @@ impl Into<DataType> for Type {
             Type::IntegerUnsigned { bitlength } => {
                 DataType::Primitive(PrimitiveType::Integer(BinaryInteger {
                     is_signed: false,
-                    bit_length: bitlength,
+                    bit_length: *bitlength,
                 }))
             }
             Type::IntegerSigned { bitlength } => {
                 DataType::Primitive(PrimitiveType::Integer(BinaryInteger {
                     is_signed: true,
-                    bit_length: bitlength,
+                    bit_length: *bitlength,
                 }))
             }
             Type::Field => DataType::Primitive(PrimitiveType::Field),
             Type::Enumeration { bitlength, .. } => {
                 DataType::Primitive(PrimitiveType::Integer(BinaryInteger {
                     is_signed: false,
-                    bit_length: bitlength,
+                    bit_length: *bitlength,
                 }))
             }
             Type::Array { r#type, size } => {
-                let element_type: DataType = (*r#type).into();
-                DataType::Array(Box::new(element_type), size)
+                let element_type: DataType = r#type.deref().into();
+                DataType::Array(Box::new(element_type), *size)
             }
             Type::Tuple { types } => {
                 let mut data_types = Vec::new();
-                for r#type in types.into_iter() {
+                for r#type in types.iter() {
                     data_types.push(r#type.into());
                 }
                 DataType::Tuple(data_types)
             }
             Type::Structure { fields, .. } => {
                 let mut new_fields: Vec<(String, DataType)> = Vec::new();
-                for (name, r#type) in fields.into_iter() {
-                    new_fields.push(
-                        (name, r#type.into())
-                    );
+                for (name, r#type) in fields.iter() {
+                    new_fields.push((name.to_owned(), r#type.into()));
                 }
                 DataType::Struct(new_fields)
             }
