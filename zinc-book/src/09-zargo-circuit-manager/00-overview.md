@@ -5,8 +5,8 @@ to generate and verify proofs.
 
 ## Commands overview
 
-All the commands have default values, so you may omit them in usual circumstances.
-See the tool `--help` for more detail.
+All the commands have default values, so you may omit them in normal circumstances.
+See `zargo --help` for more detail.
 
 ### `new`
 
