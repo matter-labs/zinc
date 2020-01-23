@@ -1,33 +1,19 @@
-# Inputs, witnesses and the output
+# Input and output
 
-Public inputs (defined as the `Input` type) and secret witness (defined as the
-`Witness` type) are the arguments of the program for which the circuit is
-implemented. The prover must provide both public inputs and secret witness data
-in order to generate proofs. The verifier must provide the same public input
-to verify the satisfiability of the proof.
+Public inputs and secret witness are the arguments of the program for which the
+circuit is implemented. The prover must provide both public inputs and secret
+witness data in order to generate proofs. The verifier must provide the same
+public input to verify the satisfiability of the proof.
 
-The output data defined as the `Output` type contain the result of a
-circuit execution.
+The output data contains the result of circuit execution.
 
-Actually, input, witness, and output can be of any type, but using
-structures is considered a good design as it makes their use in the code more
-explicit.
+The following example illustrates a circuit proving knowledge of some
+`sha256` hash preimage:
 
 ```rust,no_run,noplaypen
-struct Input {
-    {identifier}: {type},
-    ...
-}
+use std::sha256;
 
-struct Witness {
-    {identifier}: {type},
-    ...
+fn main(preimage: [u8; 256]) -> [u8; 32] {
+    sha256(preimage)
 }
-
-struct Output {
-    {identifier}: {type},
-    ...
-}
-
-fn main(input: Input, witness: Witness) -> Output { Output { ... } }
 ```

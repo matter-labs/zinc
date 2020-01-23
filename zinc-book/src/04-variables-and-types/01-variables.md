@@ -30,11 +30,10 @@ global variable, you should declare a constant. This limitation is devised to
 prevent unwanted side effects, polluting the global namespace, and bad design.
 
 ```rust,no_run,noplaypen
-const VALUE: field = 0; // ok
+const VALUE: field = 0;
 
 fn test() {
-    // compile error: a constant not in the global scope
-    // const VALUE: field = 0;
+    let variable = VALUE;
 }
 ```
 

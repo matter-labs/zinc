@@ -14,6 +14,7 @@ integer literal for now.
 Arrays support the index operator, which is explained in detail in **Chapter 5**.
 
 ```rust,no_run,noplaypen
+let mut fibbonaci = [0, 1, 1, 2, 3, 5, 8, 13];
 let element = fibbonaci[3];
 fibbonaci[2] = 1;
 ```

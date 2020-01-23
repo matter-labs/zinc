@@ -4,7 +4,7 @@
 
 - [Design background](01-design-background.md)
 - [Getting started](02-basic-concepts/00-overview.md)
-    - [Inputs, witnesses and output](02-basic-concepts/01-input-output.md)
+    - [Input and output](02-basic-concepts/01-input-output.md)
     - [Standard library](02-basic-concepts/02-standard-library.md)
 - [Examples](03-examples/00-overview.md)
     - [Binary](03-examples/01-binary.md)
@@ -24,10 +24,10 @@
     - [Precedence](06-operators/01-precedence.md)
 - [Expressions](07-expressions/00-overview.md)
 - [Virtual machine](08-virtual-machine/00-overview.md)
+- [Zargo circuit manager](09-zargo-circuit-manager/00-overview.md)
 - [Appendix](appendix/_overview.md)
     - [A - Lexical grammar](appendix/A-grammar-lexical.md)
     - [B - Syntax grammar](appendix/B-grammar-syntax.md)
     - [C - Keywords](appendix/C-keywords.md)
     - [D - Built-in functions](appendix/D-built-in-functions.md)
-
-[Compiler CLI](compiler.md)
+    - [E - Standard library](appendix/E-standard-library.md)

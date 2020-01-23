@@ -60,6 +60,22 @@ fn sum(a: u8, b: u8) -> u8 {
 }
 ```
 
+## `impl` namespace declaration
+
+The `impl` statement declares a namespace of a structure or enumeration.
+
+```rust,no_run,noplaypen
+struct Data {
+    value: field,
+}
+
+impl Data {
+    fn print(data: Self) {
+        dbg!("{}", data.value);
+    }
+}
+```
+
 ## `mod` module declaration
 
 `mod {identifier};`

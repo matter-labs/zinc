@@ -8,7 +8,9 @@ data, and returns the output data.
 
 Library files may contain only declarations of types, functions, and constants.
 
-## Zargo build tool
+## Zargo circuit manager
 
-The Zargo build tool is the Zinc project builder which will be available soon.
-It is being designed after the `cargo` tool from the Rust ecosystem.
+`Zargo` is the Zinc circuit manager created to assist in creating,
+building, and facilitating circuits through its convenient interface.
+
+The tool is described in **Chapter 9**.

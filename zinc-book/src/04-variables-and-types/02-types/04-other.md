@@ -7,9 +7,11 @@ may be changed in the future. One such type is the string.
 
 For now, strings have very limited implementation and usability.
 
-The string type exists only in the literal form and can only appear as the
-second argument of the `require` function:
+The string type exists only in the literal form and can only appear in `dbg` and
+`assert` built-in functions:
 
 ```rust,no_run,noplaypen
-std::require(true != false, "mega ultra extra total global example");
+dbg!("{}", 42);
+
+assert!(true != false, "mega ultra extra total global example");
 ```
