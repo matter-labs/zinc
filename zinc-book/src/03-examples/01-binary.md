@@ -4,7 +4,7 @@
 /// 
 /// './main.zn'
 ///
-/// Proves a knowledge of a cubic root `r` for a given public input `x`.
+/// Proves a knowledge of a cube root `r` for a given public input `x`.
 ///
 
 mod simple_math;

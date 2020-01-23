@@ -1,6 +1,6 @@
 # Statements
 
-The basic element of the Zinc program is **a statement**.
+The basic element of a Zinc program is a **statement**.
 
 Statements are divided into several types:
 1. Declaration statements
