@@ -60,7 +60,7 @@ zargo build
 
 # fill the input template JSON usually located at ./build/input.json with values
 
-# execute the circuit to check it without input data
+# execute the circuit and write the result to a JSON file
 zargo exec
 
 # generate the prover parameters

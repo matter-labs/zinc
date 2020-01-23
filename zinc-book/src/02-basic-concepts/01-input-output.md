@@ -1,11 +1,12 @@
 # Input and output
 
-Public inputs and secret witness are the arguments of the program for which the
-circuit is implemented. The prover must provide both public inputs and secret
-witness data in order to generate proofs. The verifier must provide the same
-public input to verify the satisfiability of the proof.
+Secret witness are the arguments of the program for which the
+circuit is implemented. The prover must provide secret witness data in order to
+generate proofs. The verifier must provide the same public input to verify the
+satisfiability of the proof.
 
-The output data contains the result of circuit execution.
+The arguments of the `main` function are the secret witness data, and the result
+of the function is the public data.
 
 The following example illustrates a circuit proving knowledge of some
 `sha256` hash preimage:
