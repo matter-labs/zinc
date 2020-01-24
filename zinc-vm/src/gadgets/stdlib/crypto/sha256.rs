@@ -17,10 +17,14 @@ impl<E: ZincEngine> Gadget<E> for Sha256 {
         input: Self::Input,
     ) -> Result<Self::Output, RuntimeError> {
         let mut bits = Vec::new();
-        for byte in input {
-            let byte_num = byte.as_allocated_num(cs.namespace(|| "as_allocated_num"))?;
-            let mut byte_bits =
-                byte_num.into_bits_le_fixed(cs.namespace(|| "into_bits_le_fixed"), 8)?;
+        for (i, byte) in input.into_iter().enumerate() {
+            let byte_num = byte.as_allocated_num(
+                cs.namespace(|| format!("as_allocated_num {}", i))
+            )?;
+            let mut byte_bits = byte_num.into_bits_le_fixed(
+                cs.namespace(|| format!("into_bits_le_fixed {}", i)),
+                8
+            )?;
             bits.append(&mut byte_bits)
         }
 
@@ -29,9 +33,9 @@ impl<E: ZincEngine> Gadget<E> for Sha256 {
         assert_eq!(digest.len(), 256);
 
         let mut digest_bytes = Vec::new();
-        for byte_bits in digest.chunks(8) {
+        for (i, byte_bits) in digest.chunks(8).enumerate() {
             let byte = AllocatedNum::pack_bits_to_element(
-                cs.namespace(|| "pack_bits_to_element"),
+                cs.namespace(|| format!("pack_bits_to_element {}", i)),
                 byte_bits,
             )?;
 
