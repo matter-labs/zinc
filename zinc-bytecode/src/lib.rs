@@ -1,11 +1,15 @@
 pub mod builtins;
+pub mod data;
 mod decode;
 pub mod instructions;
+pub mod program;
 pub mod vlq;
 
 pub use decode::*;
 pub use instructions::*;
+pub use program::*;
 
+use serde_derive::{Deserialize, Serialize};
 use std::fmt;
 
 pub trait InstructionInfo: PartialEq + fmt::Debug + Sized {
@@ -109,7 +113,7 @@ pub enum InstructionCode {
     Exit,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Instruction {
     NoOperation(NoOperation),
 

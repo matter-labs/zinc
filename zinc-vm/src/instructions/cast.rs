@@ -1,6 +1,6 @@
 extern crate franklin_crypto;
 
-use crate::gadgets::{DataType, PrimitiveOperations};
+use crate::gadgets::{ScalarType, PrimitiveOperations};
 use crate::vm::{Cell, InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
 use crate::ZincEngine;
@@ -13,7 +13,7 @@ where
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let old_value = vm.pop()?.value()?;
-        let data_type = DataType {
+        let data_type = ScalarType {
             signed: self.signed,
             length: self.length,
         };

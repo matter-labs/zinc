@@ -1,8 +1,9 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
 use num_bigint::ToBigInt;
 use num_traits::ToPrimitive;
+use serde_derive::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Default, Clone)]
+#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
 pub struct Pop {
     pub count: usize,
 }

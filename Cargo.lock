@@ -90,6 +90,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "bincode"
+version = "1.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5753e2a71534719bf3f4e57006c3a4f0d2c672a4b676eec84161f763eca87dbf"
+dependencies = [
+ "byteorder",
+ "serde",
+]
+
+[[package]]
 name = "bit-vec"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -467,6 +477,7 @@ dependencies = [
  "autocfg 1.0.0",
  "num-integer",
  "num-traits 0.2.11",
+ "serde",
 ]
 
 [[package]]
@@ -1008,13 +1019,15 @@ dependencies = [
 name = "zinc-bytecode"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "enum-primitive-derive",
  "env_logger",
- "failure",
  "log",
  "num-bigint",
  "num-integer",
  "num-traits 0.1.43",
+ "serde",
+ "serde_derive",
  "structopt",
 ]
 
@@ -1049,5 +1062,7 @@ dependencies = [
  "num-traits 0.2.11",
  "pairing_ce",
  "rand 0.4.6",
+ "serde_json",
+ "structopt",
  "zinc-bytecode",
 ]

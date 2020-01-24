@@ -1,8 +1,9 @@
 use crate::{vlq, DecodingError, Instruction, InstructionCode, InstructionInfo};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
+use serde_derive::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Call {
     pub address: usize,
     pub inputs_count: usize,

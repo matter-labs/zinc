@@ -3,21 +3,21 @@
 //!
 
 use std::collections::HashMap;
-use std::mem;
+use std::ops::Deref;
 
-use zinc_bytecode::dispatch_instruction;
+use zinc_bytecode::data::types::BinaryInteger;
+use zinc_bytecode::data::types::DataType;
+use zinc_bytecode::data::types::PrimitiveType;
+use zinc_bytecode::data::values::Value as TemplateValue;
 use zinc_bytecode::Instruction;
-use zinc_bytecode::InstructionInfo;
+use zinc_bytecode::Program;
 
 use crate::semantic::Type;
 
-const VERSION: u64 = 0x0000_0000_0001_0000;
-
 #[derive(Debug, Default, PartialEq)]
 pub struct Bytecode {
-    input_type: Type,
-    witness_type: Type,
-    result_type: Type,
+    input_fields: Vec<(String, Type)>,
+    output_type: Type,
     instructions: Vec<Instruction>,
 
     data_stack_pointer: usize,
@@ -39,9 +39,8 @@ impl Bytecode {
         let address_stack = Vec::with_capacity(Self::ADDRESS_STACK_VECTOR_INITIAL_SIZE);
 
         Self {
-            input_type: Type::new_unit(),
-            witness_type: Type::new_unit(),
-            result_type: Type::new_unit(),
+            input_fields: vec![],
+            output_type: Type::new_unit(),
             instructions,
 
             data_stack_pointer: 0,
@@ -63,16 +62,12 @@ impl Bytecode {
             .insert("main".to_owned(), function_address);
     }
 
-    pub fn set_input_type(&mut self, r#type: Type) {
-        self.input_type = r#type;
+    pub fn set_input_fields(&mut self, fields: Vec<(String, Type)>) {
+        self.input_fields = fields;
     }
 
-    pub fn set_witness_type(&mut self, r#type: Type) {
-        self.witness_type = r#type;
-    }
-
-    pub fn set_result_type(&mut self, r#type: Type) {
-        self.result_type = r#type;
+    pub fn set_output_type(&mut self, r#type: Type) {
+        self.output_type = r#type;
     }
 
     pub fn push_instruction(&mut self, instruction: Instruction) {
@@ -184,79 +179,112 @@ impl Bytecode {
         self.instructions.len()
     }
 
-    pub fn into_instructions(self) -> Vec<Instruction> {
-        self.instructions
-    }
-
-    pub fn into_bytes(self) -> Vec<u8> {
-        let input_metadata = match self.input_type.to_json_metadata() {
-            Some(input) => {
-                let input = input.to_string().into_bytes();
-                let mut data = Vec::with_capacity(mem::size_of::<u64>() + input.len());
-                data.extend(input.len().to_be_bytes().to_vec());
-                data.extend(input);
-                data
-            }
-            None => vec![0u8; mem::size_of::<u64>()],
-        };
-        let witness_metadata = match self.witness_type.to_json_metadata() {
-            Some(witness) => {
-                let witness = witness.to_string().into_bytes();
-                let mut data = Vec::with_capacity(mem::size_of::<u64>() + witness.len());
-                data.extend(witness.len().to_be_bytes().to_vec());
-                data.extend(witness);
-                data
-            }
-            None => vec![0u8; mem::size_of::<u64>()],
-        };
-        let instruction_data = self
-            .instructions
-            .into_iter()
-            .enumerate()
-            .map(|(index, instruction)| {
-                log::trace!("{:03} {:?}", index, instruction);
-                dispatch_instruction!(instruction => instruction.encode())
-            })
-            .flatten()
-            .collect::<Vec<u8>>();
-
-        let mut result = Vec::with_capacity(
-            mem::size_of_val(&VERSION)
-                + input_metadata.len()
-                + witness_metadata.len()
-                + instruction_data.len(),
-        );
-        result.extend(VERSION.to_be_bytes().to_vec());
-        result.extend(input_metadata);
-        result.extend(witness_metadata);
-        result.extend(instruction_data);
-        result
+    fn input_types_as_struct(&self) -> DataType {
+        DataType::Struct(
+            self
+                .input_fields
+                .iter()
+                .map(|(name, r#type)| (
+                    name.clone(),
+                    r#type.into(),
+                ))
+                .collect()
+        )
     }
 
     pub fn input_template_bytes(&self) -> Vec<u8> {
-        match self.input_type.to_json_template() {
-            Some(input) => serde_json::to_string_pretty(&input)
-                .expect(crate::semantic::PANIC_PRETTY_SERIALIZATION_INVALID)
-                .into_bytes(),
-            None => vec![],
+        let input_type = self.input_types_as_struct();
+        let input_template_value = TemplateValue::default_from_type(&input_type);
+        match serde_json::to_string_pretty(&input_template_value) {
+            Ok(json) => json.into_bytes(),
+            Err(error) => panic!(
+                crate::semantic::PANIC_JSON_TEMPLATE_SERIALIZATION.to_owned()
+                    + error.to_string().as_str()
+            ),
         }
     }
 
-    pub fn witness_template_bytes(&self) -> Vec<u8> {
-        match self.witness_type.to_json_template() {
-            Some(witness) => serde_json::to_string_pretty(&witness)
-                .expect(crate::semantic::PANIC_PRETTY_SERIALIZATION_INVALID)
-                .into_bytes(),
-            None => vec![],
+    pub fn output_template_bytes(&self) -> Vec<u8> {
+        let output_bytecode_type = (&self.output_type).into();
+        let output_value_template = TemplateValue::default_from_type(&output_bytecode_type);
+        match serde_json::to_string_pretty(&output_value_template) {
+            Ok(json) => json.into_bytes(),
+            Err(error) => panic!(
+                crate::semantic::PANIC_JSON_TEMPLATE_SERIALIZATION.to_owned()
+                    + error.to_string().as_str()
+            ),
         }
     }
+}
 
-    pub fn result_template_bytes(&self) -> Vec<u8> {
-        match self.result_type.to_json_template() {
-            Some(result) => serde_json::to_string_pretty(&result)
-                .expect(crate::semantic::PANIC_PRETTY_SERIALIZATION_INVALID)
-                .into_bytes(),
-            None => vec![],
+impl Into<Vec<Instruction>> for Bytecode {
+    fn into(self) -> Vec<Instruction> {
+        self.instructions
+    }
+}
+
+impl Into<Vec<u8>> for Bytecode {
+    fn into(self) -> Vec<u8> {
+        for instruction in self.instructions.iter() {
+            log::trace!("{:?}", instruction)
+        }
+
+        let program = Program::new(
+            self.input_types_as_struct(),
+            (&self.output_type).into(),
+            self.instructions,
+        );
+
+        program.to_bytes()
+    }
+}
+
+impl Into<DataType> for &Type {
+    fn into(self) -> DataType {
+        match self {
+            Type::Unit => DataType::Unit,
+            Type::Boolean => DataType::Primitive(PrimitiveType::Integer(BinaryInteger {
+                is_signed: false,
+                bit_length: crate::BITLENGTH_BOOLEAN,
+            })),
+            Type::IntegerUnsigned { bitlength } => {
+                DataType::Primitive(PrimitiveType::Integer(BinaryInteger {
+                    is_signed: false,
+                    bit_length: *bitlength,
+                }))
+            }
+            Type::IntegerSigned { bitlength } => {
+                DataType::Primitive(PrimitiveType::Integer(BinaryInteger {
+                    is_signed: true,
+                    bit_length: *bitlength,
+                }))
+            }
+            Type::Field => DataType::Primitive(PrimitiveType::Field),
+            Type::Enumeration { bitlength, .. } => {
+                DataType::Primitive(PrimitiveType::Integer(BinaryInteger {
+                    is_signed: false,
+                    bit_length: *bitlength,
+                }))
+            }
+            Type::Array { r#type, size } => {
+                let element_type: DataType = r#type.deref().into();
+                DataType::Array(Box::new(element_type), *size)
+            }
+            Type::Tuple { types } => {
+                let mut data_types = Vec::new();
+                for r#type in types.iter() {
+                    data_types.push(r#type.into());
+                }
+                DataType::Tuple(data_types)
+            }
+            Type::Structure { fields, .. } => {
+                let mut new_fields: Vec<(String, DataType)> = Vec::new();
+                for (name, r#type) in fields.iter() {
+                    new_fields.push((name.to_owned(), r#type.into()));
+                }
+                DataType::Struct(new_fields)
+            }
+            _ => panic!(crate::semantic::PANIC_VALUE_CANNOT_BE_CREATED_FROM),
         }
     }
 }

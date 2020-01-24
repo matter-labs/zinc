@@ -33,26 +33,17 @@ const EXIT_CODE_FAILURE: i32 = 1;
 #[structopt(name = "znc", about = "The Zinc compiler")]
 struct Arguments {
     #[structopt(
-        short = "i",
         long = "input-json",
         parse(from_os_str),
         help = "The input JSON template output path"
     )]
     input_json: PathBuf,
     #[structopt(
-        short = "w",
-        long = "witness-json",
+        long = "output-json",
         parse(from_os_str),
-        help = "The witness JSON template output path"
+        help = "The output JSON template output path"
     )]
-    witness_json: PathBuf,
-    #[structopt(
-        short = "r",
-        long = "result-json",
-        parse(from_os_str),
-        help = "The result JSON template output path"
-    )]
-    result_json: PathBuf,
+    output_json: PathBuf,
     #[structopt(
         short = "o",
         long = "output",
@@ -72,10 +63,8 @@ enum Error {
     Compiler(zinc_compiler::Error),
     #[fail(display = "Input template output: {}", _0)]
     InputTemplateOutput(OutputError),
-    #[fail(display = "Witness template output: {}", _0)]
-    WitnessTemplateOutput(OutputError),
-    #[fail(display = "Result template output: {}", _0)]
-    ResultTemplateOutput(OutputError),
+    #[fail(display = "Output template output: {}", _0)]
+    OutputTemplateOutput(OutputError),
     #[fail(display = "Bytecode output: {}", _0)]
     BytecodeOutput(OutputError),
     #[fail(display = "The 'main.zn' source file is missing")]
@@ -168,34 +157,25 @@ fn main_inner() -> Result<(), Error> {
         .write_all(bytecode.borrow().input_template_bytes().as_slice())
         .map_err(OutputError::Writing)
         .map_err(Error::InputTemplateOutput)?;
-    log::info!("Input   JSON template written to {:?}", args.input_json);
+    log::info!("Input  JSON template written to {:?}", args.input_json);
 
-    File::create(&args.witness_json)
+    File::create(&args.output_json)
         .map_err(OutputError::Creating)
-        .map_err(Error::WitnessTemplateOutput)?
-        .write_all(bytecode.borrow().witness_template_bytes().as_slice())
+        .map_err(Error::OutputTemplateOutput)?
+        .write_all(bytecode.borrow().output_template_bytes().as_slice())
         .map_err(OutputError::Writing)
-        .map_err(Error::WitnessTemplateOutput)?;
-    log::info!("Witness JSON template written to {:?}", args.witness_json);
+        .map_err(Error::OutputTemplateOutput)?;
+    log::info!("Output JSON template written to {:?}", args.output_json);
 
-    File::create(&args.result_json)
-        .map_err(OutputError::Creating)
-        .map_err(Error::ResultTemplateOutput)?
-        .write_all(bytecode.borrow().result_template_bytes().as_slice())
-        .map_err(OutputError::Writing)
-        .map_err(Error::ResultTemplateOutput)?;
-    log::info!("Result  JSON template written to {:?}", args.result_json);
+    let bytecode: Vec<u8> = Rc::try_unwrap(bytecode)
+        .expect(PANIC_LAST_SHARED_REFERENCE)
+        .into_inner()
+        .into();
 
     File::create(&args.output)
         .map_err(OutputError::Creating)
         .map_err(Error::BytecodeOutput)?
-        .write_all(
-            Rc::try_unwrap(bytecode)
-                .expect(PANIC_LAST_SHARED_REFERENCE)
-                .into_inner()
-                .into_bytes()
-                .as_slice(),
-        )
+        .write_all(bytecode.as_slice())
         .map_err(OutputError::Writing)
         .map_err(Error::BytecodeOutput)?;
     log::info!("Compiled to {:?}", args.output);

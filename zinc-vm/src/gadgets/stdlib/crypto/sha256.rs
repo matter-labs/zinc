@@ -1,4 +1,4 @@
-use crate::gadgets::{DataType, Gadget, Primitive};
+use crate::gadgets::{ScalarType, Gadget, Primitive};
 use crate::RuntimeError;
 use crate::ZincEngine;
 use bellman::ConstraintSystem;
@@ -38,7 +38,7 @@ impl<E: ZincEngine> Gadget<E> for Sha256 {
             digest_bytes.push(Primitive {
                 value: byte.get_value(),
                 variable: byte.get_variable(),
-                data_type: Some(DataType {
+                data_type: Some(ScalarType {
                     signed: false,
                     length: 8,
                 }),

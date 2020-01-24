@@ -1,7 +1,8 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
+use serde_derive::{Deserialize, Serialize};
 
 /// Takes `index` from evaluation stack, loads several values from data stack from `address + index` onto evaluation stack.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct LoadSequenceByIndexGlobal {
     pub address: usize,
     pub array_len: usize,

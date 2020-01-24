@@ -15,13 +15,13 @@ use crate::vm::RuntimeError;
 use franklin_crypto::bellman::Variable;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct DataType {
+pub struct ScalarType {
     pub signed: bool,
     pub length: usize,
 }
 
-impl DataType {
-    pub const BOOLEAN: Self = DataType {
+impl ScalarType {
+    pub const BOOLEAN: Self = ScalarType {
         signed: false,
         length: 1,
     };
@@ -32,11 +32,11 @@ impl DataType {
 pub struct Primitive<E: ZincEngine> {
     value: Option<E::Fr>,
     variable: Variable,
-    data_type: Option<DataType>,
+    data_type: Option<ScalarType>,
 }
 
 impl<E: ZincEngine> Primitive<E> {
-    pub fn get_data_type(&self) -> Option<DataType> {
+    pub fn get_data_type(&self) -> Option<ScalarType> {
         self.data_type
     }
 }
@@ -83,13 +83,13 @@ pub trait PrimitiveOperations<E: ZincEngine> {
     fn constant_bigint_typed(
         &mut self,
         value: &BigInt,
-        data_type: DataType,
+        data_type: ScalarType,
     ) -> Result<Primitive<E>, RuntimeError>;
     fn output(&mut self, element: Primitive<E>) -> Result<Primitive<E>, RuntimeError>;
     fn set_type(
         &mut self,
         value: Primitive<E>,
-        data_type: DataType,
+        data_type: ScalarType,
     ) -> Result<Primitive<E>, RuntimeError>;
 
     fn add(

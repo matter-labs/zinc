@@ -12,5 +12,4 @@ pub static CIRCUIT_MANIFEST_FILE_NAME: &str = "Zargo.toml";
 pub static CIRCUIT_MAIN_FILE_NAME: &str = "main.zn";
 pub static CIRCUIT_BINARY_DEFAULT_FILE_NAME: &str = "default.znb";
 pub static CIRCUIT_INPUT_TEMPLATE_DEFAULT_FILE_NAME: &str = "input.json";
-pub static CIRCUIT_WITNESS_TEMPLATE_DEFAULT_FILE_NAME: &str = "witness.json";
-pub static CIRCUIT_RESULT_TEMPLATE_DEFAULT_FILE_NAME: &str = "result.json";
+pub static CIRCUIT_RESULT_TEMPLATE_DEFAULT_FILE_NAME: &str = "output.json";

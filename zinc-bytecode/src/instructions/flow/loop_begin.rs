@@ -1,7 +1,8 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
 use num_traits::ToPrimitive;
+use serde_derive::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct LoopBegin {
     pub iterations: usize,
 }
