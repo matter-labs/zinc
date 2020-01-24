@@ -7,6 +7,7 @@ use std::path::PathBuf;
 use std::process::exit;
 use structopt::StructOpt;
 use zinc_bytecode::data::values::Value;
+use std::io::Read;
 
 #[derive(Debug, StructOpt)]
 pub struct VerifyCommand {
@@ -28,8 +29,12 @@ impl VerifyCommand {
         let params_file = fs::File::open(&self.params_path)?;
         let params = Parameters::<Bn256>::read(params_file, true)?;
 
-        let proof_file = fs::File::open(&self.proof_path)?;
-        let proof = Proof::<Bn256>::read(proof_file)?;
+        let mut stdin = std::io::stdin();
+        let mut proof_hex_bytes = Vec::new();
+        stdin.read_to_end(&mut proof_hex_bytes).expect("failed to read from stdin");
+        let proof_hex = String::from_utf8(proof_hex_bytes).expect("invalid utf-8");
+        let proof_bytes = hex::decode(proof_hex.trim()).expect("failed to decode hex proof");
+        let proof = Proof::<Bn256>::read(proof_bytes.as_slice())?;
 
         let output_text = fs::read_to_string(&self.output_path)?;
         let output_value: Value = serde_json::from_str(output_text.as_str())?;
@@ -38,9 +43,9 @@ impl VerifyCommand {
         let verified = zinc_vm::verify(&params, &proof, &output)?;
 
         if verified {
-            println!("{}", "Ok".bold().green());
+            println!("{}", "✔  Verified".bold().green());
         } else {
-            println!("{}", "Verification failed".bold().red());
+            println!("{}", "❌  Failed".bold().red());
             exit(1);
         }
 
