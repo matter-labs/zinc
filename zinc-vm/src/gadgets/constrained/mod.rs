@@ -16,7 +16,7 @@ use std::mem;
 impl<E: ZincEngine> Debug for Primitive<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         let value_str = match self.value {
-            Some(ref value) => fr_to_bigint::<E>(value).to_string(),
+            Some(ref value) => fr_to_bigint(value).to_string(),
             None => "none".into(),
         };
         let type_str = match self.data_type {
@@ -73,7 +73,7 @@ impl<E: ZincEngine> Display for Primitive<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         match &self.value {
             Some(value) => {
-                let bigint = utils::fr_to_bigint::<E>(value);
+                let bigint = utils::fr_to_bigint(value);
                 Display::fmt(&bigint, f)
             }
             None => Display::fmt("none", f),
@@ -84,7 +84,7 @@ impl<E: ZincEngine> Display for Primitive<E> {
 impl<E: ZincEngine> ToBigInt for Primitive<E> {
     fn to_bigint(&self) -> Option<BigInt> {
         self.value
-            .map(|fr| -> BigInt { utils::fr_to_bigint::<E>(&fr) })
+            .map(|fr| -> BigInt { utils::fr_to_bigint(&fr) })
     }
 }
 
@@ -477,8 +477,8 @@ where
         let mut remainder_value: Option<E::Fr> = None;
 
         if let (Some(nom), Some(denom)) = (nominator.value, denominator.value) {
-            let nom_bi = utils::fr_to_bigint::<E>(&nom);
-            let denom_bi = utils::fr_to_bigint::<E>(&denom);
+            let nom_bi = utils::fr_to_bigint(&nom);
+            let denom_bi = utils::fr_to_bigint(&denom);
 
             let (q, r) = utils::euclidean_div_rem(&nom_bi, &denom_bi);
 
