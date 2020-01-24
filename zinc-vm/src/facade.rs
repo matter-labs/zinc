@@ -22,7 +22,7 @@ struct VMCircuit<'a> {
 
 impl<E: ZincEngine> Circuit<E> for VMCircuit<'_> {
     fn synthesize<CS: ConstraintSystem<E>>(self, cs: &mut CS) -> Result<(), SynthesisError> {
-        let mut vm = VirtualMachine::new(ConstrainingFrOperations::new(cs));
+        let mut vm = VirtualMachine::new(ConstrainingFrOperations::new(cs), false);
         *self.result = Some(vm.run(self.program, self.inputs));
         Ok(())
     }
@@ -33,7 +33,7 @@ pub fn exec<E: ZincEngine>(
     inputs: &[BigInt],
 ) -> Result<Vec<BigInt>, RuntimeError> {
     let cs = TestConstraintSystem::<Bn256>::new();
-    let mut vm = VirtualMachine::new(ConstrainingFrOperations::new(cs));
+    let mut vm = VirtualMachine::new(ConstrainingFrOperations::new(cs), true);
     let result = vm.run(program, Some(inputs))?;
 
     let cs = vm.operations().constraint_system();

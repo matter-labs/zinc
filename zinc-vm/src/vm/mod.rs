@@ -53,14 +53,16 @@ impl From<SynthesisError> for RuntimeError {
 }
 
 pub struct VirtualMachine<E: ZincEngine, O: PrimitiveOperations<E>> {
+    pub(crate) debugging: bool,
     state: State<E>,
     ops: O,
     outputs: Vec<Primitive<E>>,
 }
 
 impl<E: ZincEngine, O: PrimitiveOperations<E>> VirtualMachine<E, O> {
-    pub fn new(operator: O) -> Self {
+    pub fn new(operator: O, debugging: bool) -> Self {
         Self {
+            debugging,
             state: State {
                 instruction_counter: 0,
                 evaluation_stack: EvaluationStack::new(),

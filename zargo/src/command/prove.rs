@@ -39,13 +39,6 @@ pub struct Command {
         default_value = "./build/input.json"
     )]
     input: PathBuf,
-
-    #[structopt(
-        long = "proof",
-        help = "Path to the proof file to generate",
-        default_value = "./build/proof"
-    )]
-    proof: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -69,8 +62,6 @@ impl Command {
                 .arg(self.params)
                 .arg("--input")
                 .arg(self.input)
-                .arg("--proof")
-                .arg(self.proof)
                 .spawn()
                 .map_err(Error::VirtualMachineProcessSpawning)?;
         let virtual_machine_process_status = virtual_machine_process

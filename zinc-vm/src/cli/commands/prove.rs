@@ -21,9 +21,6 @@ pub struct ProveCommand {
 
     #[structopt(short = "i", long = "input", about = "Program's input file")]
     pub input_path: PathBuf,
-
-    #[structopt(short = "p", long = "proof", about = "Proof file to write")]
-    pub proof_path: PathBuf,
 }
 
 impl ProveCommand {
@@ -42,9 +39,11 @@ impl ProveCommand {
 
         let proof = zinc_vm::prove::<Bn256>(&program, &params, input.as_slice())?;
 
-        // Write proof
-        let file = fs::File::create(&self.proof_path)?;
-        proof.write(file).map_err(Error::IO)?;
+        // Write proof to stdout
+        let mut proof_bytes = Vec::new();
+        proof.write(&mut proof_bytes)?;
+        let proof_hex = hex::encode(proof_bytes);
+        println!("{}", proof_hex);
 
         Ok(())
     }

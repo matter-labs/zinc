@@ -19,7 +19,7 @@ where
         }
 
         if let Some(condition) = vm.condition_top()?.to_bigint() {
-            if condition.is_positive() {
+            if condition.is_positive() && vm.debugging {
                 print!("{}", self.string);
                 for value in args.iter() {
                     print!(" {}", value)

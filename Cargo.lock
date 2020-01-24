@@ -412,6 +412,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "805026a5d0141ffc30abb3be3173848ad46a1b1664fe632428479619a3644d77"
 
 [[package]]
+name = "hex"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "023b39be39e3a2da62a94feb433e91e8bcd37676fbc8bea371daf52b7a769a3e"
+
+[[package]]
 name = "humantime"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -526,7 +532,7 @@ checksum = "cce626fb8f97e304423451d63e29b7f5882de5cfe79925ffc4a32cf4c243f40f"
 dependencies = [
  "byteorder",
  "ff_ce",
- "hex",
+ "hex 0.3.2",
  "rand 0.4.6",
  "serde",
  "serde_derive",
@@ -1055,6 +1061,7 @@ dependencies = [
  "env_logger",
  "ff_ce",
  "franklin-crypto",
+ "hex 0.4.0",
  "lazy_static",
  "log",
  "num-bigint",
