@@ -4,19 +4,19 @@ use serde_derive::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct Program {
-    pub inputs: Vec<(String, DataType)>,
+    pub input: DataType,
     pub output: DataType,
     pub bytecode: Vec<Instruction>,
 }
 
 impl Program {
     pub fn new(
-        inputs: Vec<(String, DataType)>,
+        input: DataType,
         output: DataType,
         bytecode: Vec<Instruction>,
     ) -> Self {
         Self {
-            inputs,
+            input,
             output,
             bytecode,
         }

@@ -1,4 +1,4 @@
-use crate::gadgets::{DataType, PrimitiveOperations};
+use crate::gadgets::{ScalarType, PrimitiveOperations};
 use crate::vm::{Cell, InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
 use crate::ZincEngine;
@@ -11,7 +11,7 @@ where
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
         let op = vm.operations();
-        let data_type = DataType {
+        let data_type = ScalarType {
             signed: self.is_signed,
             length: self.bit_length,
         };

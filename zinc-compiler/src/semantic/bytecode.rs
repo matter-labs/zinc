@@ -179,19 +179,22 @@ impl Bytecode {
         self.instructions.len()
     }
 
+    fn input_types_as_struct(&self) -> DataType {
+        DataType::Struct(
+            self
+                .input_fields
+                .iter()
+                .map(|(name, r#type)| (
+                    name.clone(),
+                    r#type.into(),
+                ))
+                .collect()
+        )
+    }
+
     pub fn input_template_bytes(&self) -> Vec<u8> {
-        let input_value_fields = self
-            .input_fields
-            .iter()
-            .map(|(name, r#type)| {
-                let input_bytecode_type = r#type.into();
-                (
-                    name.to_owned(),
-                    TemplateValue::default_from_type(&input_bytecode_type),
-                )
-            })
-            .collect::<Vec<(String, TemplateValue)>>();
-        let input_template_value = TemplateValue::Struct(input_value_fields);
+        let input_type = self.input_types_as_struct();
+        let input_template_value = TemplateValue::default_from_type(&input_type);
         match serde_json::to_string_pretty(&input_template_value) {
             Ok(json) => json.into_bytes(),
             Err(error) => panic!(
@@ -227,10 +230,7 @@ impl Into<Vec<u8>> for Bytecode {
         }
 
         let program = Program::new(
-            self.input_fields
-                .iter()
-                .map(|(name, r#type)| (name.to_owned(), r#type.into()))
-                .collect::<Vec<(String, DataType)>>(),
+            self.input_types_as_struct(),
             (&self.output_type).into(),
             self.instructions,
         );

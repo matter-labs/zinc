@@ -4,7 +4,8 @@ use crate::ZincEngine;
 use bellman::pairing::bn256::Bn256;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::{BigInt, ToBigInt};
-use zinc_bytecode::{decode_all_instructions, Call, DecodingError, InstructionInfo};
+use zinc_bytecode::{decode_all_instructions, Call, DecodingError, InstructionInfo, Program};
+use zinc_bytecode::data::types::DataType;
 
 type TestElementOperator = ConstrainingFrOperations<Bn256, TestConstraintSystem<Bn256>>;
 type TestVirtualMachine = VirtualMachine<Bn256, TestElementOperator>;
@@ -74,12 +75,14 @@ impl VMTestRunner {
         &mut self,
         expected_stack: &[T],
     ) -> Result<(), TestingError> {
-        let mut instructions = decode_all_instructions(self.bytecode.as_slice())
+        let instructions = decode_all_instructions(self.bytecode.as_slice())
             .map_err(TestingError::DecodingError)?;
 
         let mut vm = new_test_constrained_vm();
 
-        vm.run(instructions.as_mut_slice(), Some(&[]))
+        let program = Program::new(DataType::Unit, DataType::Unit, instructions);
+
+        vm.run(&program, Some(&[]))
             .map_err(TestingError::RuntimeError)?;
 
         let cs = vm.operations().constraint_system();

@@ -4,7 +4,7 @@ mod state;
 pub use internal::*;
 pub use state::*;
 
-use crate::gadgets::{DataType, Primitive, PrimitiveOperations};
+use crate::gadgets::{ScalarType, Primitive, PrimitiveOperations};
 use crate::ZincEngine;
 use franklin_crypto::bellman::SynthesisError;
 use num_bigint::{BigInt, ToBigInt};
@@ -80,7 +80,7 @@ impl<E: ZincEngine, O: PrimitiveOperations<E>> VirtualMachine<E, O> {
     ) -> Result<Vec<Option<BigInt>>, RuntimeError> {
         let one = self
             .ops
-            .constant_bigint_typed(&1.into(), DataType::BOOLEAN)?;
+            .constant_bigint_typed(&1.into(), ScalarType::BOOLEAN)?;
         self.condition_push(one)?;
 
         match program.bytecode.first() {

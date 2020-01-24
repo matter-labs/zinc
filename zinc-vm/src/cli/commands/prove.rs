@@ -37,12 +37,8 @@ impl ProveCommand {
         let params = Parameters::<Bn256>::read(file, true)?;
 
         let input_text = fs::read_to_string(&self.input_path)?;
-        let input_values: Vec<Value> = serde_json::from_str(&input_text)?;
-        let input: Vec<_> = input_values
-            .into_iter()
-            .map(|v| v.to_flat_values())
-            .flatten()
-            .collect();
+        let input_values: Value = serde_json::from_str(&input_text)?;
+        let input = input_values.to_flat_values();
 
         let proof = zinc_vm::prove::<Bn256>(&program, &params, input.as_slice())?;
 

@@ -1,14 +1,45 @@
 use crate::data::types::DataType;
 use num_bigint::BigInt;
 use serde_derive::{Deserialize, Serialize};
+use num_traits::Num;
 
-#[derive(Clone, Serialize, Deserialize)]
+fn serialize_bigint_into_string<S>(bigint: &BigInt, serializer: S)
+                                   -> Result<S::Ok, S::Error>
+    where S: serde::Serializer
+{
+    let s = bigint.to_string();
+    serializer.serialize_str(&s)
+}
+
+fn deserialize_bigint_from_string<'de, D>(deserializer: D)
+                                          -> Result<BigInt, D::Error>
+    where D: serde::Deserializer<'de>
+{
+    use serde::de::{Deserialize, Error};
+
+    let str = String::deserialize(deserializer)?;
+    BigInt::from_str_radix(&str, 10).map_err(|_| D::Error::invalid_value(
+        serde::de::Unexpected::Str(&str),
+        &"a decimal number"
+    ))
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StructField {
+    pub field: String,
+    pub value: Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum Value {
     Unit,
-    Primitive(BigInt),
-    Enum(BigInt),
-    Struct(Vec<(String, Value)>),
-    Tuple(Vec<Value>),
+    Scalar(
+        #[serde(serialize_with = "serialize_bigint_into_string")]
+        #[serde(deserialize_with = "deserialize_bigint_from_string")]
+        BigInt
+    ),
+    Struct(Vec<StructField>),
     Array(Vec<Value>),
 }
 
@@ -16,19 +47,22 @@ impl Value {
     pub fn default_from_type(data_type: &DataType) -> Self {
         match data_type {
             DataType::Unit => Value::Unit,
-            DataType::Enum => Value::Enum(0.into()),
-            DataType::Primitive(_) => Value::Primitive(0.into()),
+            DataType::Enum => Value::Scalar(0.into()),
+            DataType::Primitive(_) => Value::Scalar(0.into()),
             DataType::Struct(fields) => Value::Struct(
                 fields
                     .iter()
-                    .map(|(name, data_type)| (name.clone(), Value::default_from_type(data_type)))
+                    .map(|(name, data_type)| StructField {
+                        field: name.clone(),
+                        value: Value::default_from_type(data_type)
+                    })
                     .collect(),
             ),
             DataType::Array(data_type, len) => {
                 Value::Array(vec![Value::default_from_type(data_type); *len])
             }
             DataType::Tuple(fields) => {
-                Value::Tuple(fields.iter().map(|t| Value::default_from_type(t)).collect())
+                Value::Array(fields.iter().map(|t| Value::default_from_type(t)).collect())
             }
         }
     }
@@ -42,15 +76,9 @@ impl Value {
     fn to_flat_values_recursive(&self, flat_array: &mut Vec<BigInt>) {
         match self {
             Value::Unit => {}
-            Value::Primitive(value) => flat_array.push(value.clone()),
-            Value::Enum(value) => flat_array.push(value.clone()),
+            Value::Scalar(value) => flat_array.push(value.clone()),
             Value::Struct(fields) => {
-                for (_name, value) in fields.iter() {
-                    value.to_flat_values_recursive(flat_array);
-                }
-            }
-            Value::Tuple(fields) => {
-                for value in fields.iter() {
+                for StructField { value, .. } in fields.iter() {
                     value.to_flat_values_recursive(flat_array);
                 }
             }
@@ -77,25 +105,13 @@ impl Value {
     fn fill_from_flat_values(&mut self, flat_values: &[BigInt]) -> Option<usize> {
         match self {
             Value::Unit => Some(0),
-            Value::Primitive(value) => {
-                *value = flat_values.first()?.clone();
-                Some(1)
-            }
-            Value::Enum(value) => {
+            Value::Scalar(value) => {
                 *value = flat_values.first()?.clone();
                 Some(1)
             }
             Value::Struct(fields) => {
                 let mut offset = 0;
-                for (_name, value) in fields.iter_mut() {
-                    let slice = &flat_values[offset..];
-                    offset += value.fill_from_flat_values(slice)?;
-                }
-                Some(offset)
-            }
-            Value::Tuple(fields) => {
-                let mut offset = 0;
-                for value in fields.iter_mut() {
+                for StructField { value, .. } in fields.iter_mut() {
                     let slice = &flat_values[offset..];
                     offset += value.fill_from_flat_values(slice)?;
                 }
