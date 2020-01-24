@@ -20,32 +20,19 @@ pub struct Command {
     verbose: bool,
 
     #[structopt(
-        long = "circuit",
-        help = "Path to the circuit binary file",
-        default_value = "./build/default.znb"
+        short = "k",
+        long = "verifying-key",
+        help = "Path to the verfying key file",
+        default_value = "./build/verifying-key.txt"
     )]
-    circuit: PathBuf,
+    verifying_key: PathBuf,
 
     #[structopt(
-        long = "params",
-        help = "Path to the prover parameters file",
-        default_value = "./build/params"
+        long = "public-data",
+        help = "Path to the program's public data JSON file",
+        default_value = "./build/public-data.json"
     )]
-    params: PathBuf,
-
-    #[structopt(
-        long = "proof",
-        help = "Path to the zero-knowledge proof file",
-        default_value = "./build/proof"
-    )]
-    proof: PathBuf,
-
-    #[structopt(
-        long = "output",
-        help = "Path to the program's output JSON file",
-        default_value = "./build/output.json"
-    )]
-    output: PathBuf,
+    public_data: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -63,14 +50,10 @@ impl Command {
         let mut virtual_machine_process =
             process::Command::new(crate::constants::ZINC_VIRTUAL_MACHINE_BINARY_NAME)
                 .arg("verify")
-                .arg("--circuit")
-                .arg(self.circuit)
-                .arg("--params")
-                .arg(self.params)
-                .arg("--proof")
-                .arg(self.proof)
-                .arg("--output")
-                .arg(self.output)
+                .arg("--verifying-key")
+                .arg(self.verifying_key)
+                .arg("--public-data")
+                .arg(self.public_data)
                 .spawn()
                 .map_err(Error::VirtualMachineProcessSpawning)?;
         let virtual_machine_process_status = virtual_machine_process

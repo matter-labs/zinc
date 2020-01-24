@@ -1,18 +1,20 @@
-use crate::gadgets::utils::bigint_to_fr;
-use crate::gadgets::ConstrainingFrOperations;
-use crate::vm::VirtualMachine;
-use crate::ZincEngine;
+use std::fmt::Debug;
+
 use bellman::groth16;
 use bellman::pairing::bn256::Bn256;
-use franklin_crypto::bellman::groth16::{Parameters, Proof};
 use franklin_crypto::bellman::{Circuit, ConstraintSystem, SynthesisError};
+use franklin_crypto::bellman::groth16::{Parameters, Proof, VerifyingKey};
 use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::BigInt;
 use rand::ThreadRng;
-use std::fmt::Debug;
 
-pub use crate::vm::RuntimeError;
 use zinc_bytecode::program::Program;
+
+use crate::gadgets::ConstrainingFrOperations;
+use crate::gadgets::utils::bigint_to_fr;
+pub use crate::vm::RuntimeError;
+use crate::vm::VirtualMachine;
+use crate::ZincEngine;
 
 struct VMCircuit<'a> {
     program: &'a Program,
@@ -65,8 +67,8 @@ pub fn setup<E: ZincEngine>(program: &Program) -> Result<Parameters<E>, RuntimeE
         result: &mut result,
     };
 
-    groth16::generate_random_parameters::<E, VMCircuit, ThreadRng>(circuit, rng)
-        .map_err(RuntimeError::SynthesisError)
+    let params = groth16::generate_random_parameters::<E, VMCircuit, ThreadRng>(circuit, rng)?;
+    Ok(params)
 }
 
 pub fn prove<E: ZincEngine>(
@@ -108,7 +110,7 @@ pub enum VerificationError {
 }
 
 pub fn verify<E: ZincEngine>(
-    params: &Parameters<E>,
+    key: &VerifyingKey<E>,
     proof: &Proof<E>,
     pub_inputs: &[BigInt],
 ) -> Result<bool, VerificationError> {
@@ -118,8 +120,8 @@ pub fn verify<E: ZincEngine>(
         pub_inputs_fr.push(fr);
     }
 
-    let key = groth16::prepare_verifying_key(&params.vk);
-    let success = groth16::verify_proof(&key, proof, pub_inputs_fr.as_slice())
+    let pvk = groth16::prepare_verifying_key(&key);
+    let success = groth16::verify_proof(&pvk, proof, pub_inputs_fr.as_slice())
         .map_err(VerificationError::SynthesisError)?;
 
     Ok(success)

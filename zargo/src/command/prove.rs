@@ -29,7 +29,7 @@ pub struct Command {
     #[structopt(
         long = "params",
         help = "Path to the prover parameters file",
-        default_value = "./build/params"
+        default_value = "./build/proving-key"
     )]
     params: PathBuf,
 
