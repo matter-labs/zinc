@@ -25,6 +25,7 @@ pub use self::element::ConstantError;
 pub use self::element::Element;
 pub use self::element::Error as ElementError;
 pub use self::element::FieldAccessResult;
+pub use self::element::FunctionBehavior;
 pub use self::element::IndexAccessResult;
 pub use self::element::IntegerConstant;
 pub use self::element::IntegerConstantError;
