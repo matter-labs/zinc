@@ -75,7 +75,7 @@ pub fn prove<E: ZincEngine>(
     program: &Program,
     params: &Parameters<E>,
     witness: &[BigInt],
-) -> Result<Proof<E>, RuntimeError> {
+) -> Result<(Vec<BigInt>, Proof<E>), RuntimeError> {
     let rng = &mut rand::thread_rng();
 
     let (result, proof) = {
@@ -97,7 +97,12 @@ pub fn prove<E: ZincEngine>(
             "circuit hasn't generate outputs".into(),
         )),
         Some(res) => match res {
-            Ok(_) => Ok(proof),
+            Ok(values) => Ok((
+                values
+                    .into_iter()
+                    .map(|v| v.unwrap())
+                    .collect(),
+                proof)),
             Err(err) => Err(err),
         },
     }

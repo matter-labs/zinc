@@ -7,8 +7,8 @@ use zinc_bytecode::data::values::Value;
 use zinc_bytecode::program::Program;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "exec", about = "Executes circuit and prints program's output")]
-pub struct ExecCommand {
+#[structopt(name = "run", about = "Executes circuit and prints program's output")]
+pub struct RunCommand {
     #[structopt(short = "c", long = "circuit", about = "Circuit's bytecode file")]
     pub circuit_path: PathBuf,
 
@@ -19,7 +19,7 @@ pub struct ExecCommand {
     pub output_path: PathBuf,
 }
 
-impl ExecCommand {
+impl RunCommand {
     pub fn execute(&self) -> Result<(), Error> {
         let bytes = fs::read(&self.circuit_path)?;
         let program = Program::from_bytes(bytes.as_slice()).unwrap();
@@ -32,7 +32,6 @@ impl ExecCommand {
 
         // TODO: Remove unwrap
         let output = Value::from_flat_values(&program.output, &output_values).unwrap();
-
         let output_json = serde_json::to_string_pretty(&output)? + "\n";
         fs::write(&self.output_path, &output_json)?;
 

@@ -1,0 +1,32 @@
+struct Inner {
+    one: [field; 3],
+    two: (),
+    three: ((), i160),
+}
+
+struct Input {
+    array: [i16; 8],
+    tuple: (bool, u8, field),
+    inner: Inner,
+}
+
+struct Witness {
+    array: [u192; 8],
+    tuple: (bool, [field; 4]),
+    inner: Inner,
+}
+
+struct Output {
+    sha256: [u8; 32],
+    pedersen: (field, field),
+}
+
+fn main(/* input: Input, witness: Witness */) -> Output {
+    dbg!("Zello, World!");
+    let preimage = [1, 2, 3, 4];
+
+    struct Output {
+        sha256: std::sha256(preimage),
+        pedersen: std::pedersen(preimage),
+    }
+}

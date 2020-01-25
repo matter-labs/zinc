@@ -29,7 +29,7 @@ pub struct Command {
     #[structopt(
         long = "input",
         help = "Path to the input JSON file",
-        default_value = "./build/input.json"
+        default_value = "./build/witness.json"
     )]
     input: PathBuf,
 
@@ -55,7 +55,7 @@ impl Command {
     pub fn execute(self) -> Result<(), Error> {
         let mut virtual_machine_process =
             process::Command::new(crate::constants::ZINC_VIRTUAL_MACHINE_BINARY_NAME)
-                .arg("exec")
+                .arg("run")
                 .arg("--circuit")
                 .arg(self.circuit)
                 .arg("--input")

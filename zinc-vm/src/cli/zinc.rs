@@ -60,7 +60,7 @@ fn main() -> Result<(), Error> {
         .init();
 
     match args.command {
-        Command::Exec(command) => command.execute(),
+        Command::Run(command) => command.execute(),
         Command::Setup(command) => command.execute(),
         Command::Prove(command) => command.execute(),
         Command::Verify(command) => command.execute(),
