@@ -8,16 +8,16 @@ set -ev
 
 cleanup
 
-zargo init --name test 2> /dev/null
+zargo init --name test
 
-zargo build 2> /dev/null
-zargo run > /dev/null
-zargo clean 2> /dev/null
+zargo build
+zargo run
+zargo clean
 
-zargo build 2> /dev/null
-zargo setup > /dev/null
+zargo build
+zargo setup
 zargo prove > proof.txt
 zargo verify < proof.txt
-zargo clean 2> /dev/null
+zargo clean
 
 cleanup
