@@ -68,7 +68,10 @@ build directory, which are used to provide the secret witness data to the circui
 
 ## Trusted setup
 
-To generate the verification key for a prover key, use this command:
+To be able to verify proofs, you must create a pair of keys for the prover and
+the verifier.
+
+To generate the verifier key for a prover key, use this command:
 
 `zargo setup --pkey=prover.pk > verifier.vk`
 
@@ -97,3 +100,8 @@ Congratulations! You have developed your first circuit and verified your first
 Zero-Knowledge Proof!
 
 Feel free to proceed to the next chapters to know more about the Zinc framework!
+
+## Compatibility
+
+The prover and the verifier must use the same version of the Zinc framework.
+Some versions may be compatible, but it is to be decided yet.
