@@ -1,6 +1,6 @@
 # Control statements
 
-Control statements do neither ignore the result nor declare a new item. The
+Control statements neither ignore the result nor declare a new item. The
 only such statement is the `for-while` loop.
 
 ## `for-while` loop

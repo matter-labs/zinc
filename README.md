@@ -1,4 +1,38 @@
-# The Zinc compiler
+# The Zinc framework
+
+## Workflow example
+
+At first, you should install the following binaries into your `PATH`:
+- `zargo` - the circuit management tool
+- `znc` - the Zinc compiler
+- `zinc` - the Zinc virtual machine
+
+Then, follow the example to create and use your first circuit:
+
+```bash
+# create a new circuit called 'zircuit'
+zargo new zircuit
+cd zircuit/
+
+# write some code in the circuit
+
+# build the circuit
+zargo build
+
+# fill the input template JSON usually located at ./build/input.json with values
+
+# execute the circuit to check it without input data
+zargo exec
+
+# generate the prover parameters
+zargo setup
+
+# generate the proof
+zargo prove
+
+# verify the proof
+zargo verify
+```
 
 ## Roadmap
 
@@ -43,7 +77,7 @@
 ### Version 0.6
 
 - [ ] conditional optimization
-- [ ] std lib
+- [x] std lib
 - [ ] `Option<>`
 
 ### Version 0.7
