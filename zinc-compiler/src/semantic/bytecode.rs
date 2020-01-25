@@ -181,14 +181,10 @@ impl Bytecode {
 
     fn input_types_as_struct(&self) -> DataType {
         DataType::Struct(
-            self
-                .input_fields
+            self.input_fields
                 .iter()
-                .map(|(name, r#type)| (
-                    name.clone(),
-                    r#type.into(),
-                ))
-                .collect()
+                .map(|(name, r#type)| (name.clone(), r#type.into()))
+                .collect(),
         )
     }
 

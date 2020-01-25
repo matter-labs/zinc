@@ -11,7 +11,7 @@ use failure::Fail;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(about = "Generates parameters for prover and verifier")]
+#[structopt(about = "Generates a pair of the proving and verifying keys")]
 pub struct Command {
     #[structopt(short = "q", long = "quiet", help = "No output printed to stdout")]
     quiet: bool,

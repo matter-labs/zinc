@@ -1,27 +1,25 @@
 use crate::data::types::DataType;
 use num_bigint::BigInt;
-use serde_derive::{Deserialize, Serialize};
 use num_traits::Num;
+use serde_derive::{Deserialize, Serialize};
 
-fn serialize_bigint_into_string<S>(bigint: &BigInt, serializer: S)
-                                   -> Result<S::Ok, S::Error>
-    where S: serde::Serializer
+fn serialize_bigint_into_string<S>(bigint: &BigInt, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
 {
     let s = bigint.to_string();
     serializer.serialize_str(&s)
 }
 
-fn deserialize_bigint_from_string<'de, D>(deserializer: D)
-                                          -> Result<BigInt, D::Error>
-    where D: serde::Deserializer<'de>
+fn deserialize_bigint_from_string<'de, D>(deserializer: D) -> Result<BigInt, D::Error>
+where
+    D: serde::Deserializer<'de>,
 {
     use serde::de::{Deserialize, Error};
 
     let str = String::deserialize(deserializer)?;
-    BigInt::from_str_radix(&str, 10).map_err(|_| D::Error::invalid_value(
-        serde::de::Unexpected::Str(&str),
-        &"a decimal number"
-    ))
+    BigInt::from_str_radix(&str, 10)
+        .map_err(|_| D::Error::invalid_value(serde::de::Unexpected::Str(&str), &"a decimal number"))
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -37,7 +35,7 @@ pub enum Value {
     Scalar(
         #[serde(serialize_with = "serialize_bigint_into_string")]
         #[serde(deserialize_with = "deserialize_bigint_from_string")]
-        BigInt
+        BigInt,
     ),
     Struct(Vec<StructField>),
     Array(Vec<Value>),
@@ -54,7 +52,7 @@ impl Value {
                     .iter()
                     .map(|(name, data_type)| StructField {
                         field: name.clone(),
-                        value: Value::default_from_type(data_type)
+                        value: Value::default_from_type(data_type),
                     })
                     .collect(),
             ),

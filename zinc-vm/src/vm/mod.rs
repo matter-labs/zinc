@@ -4,7 +4,7 @@ mod state;
 pub use internal::*;
 pub use state::*;
 
-use crate::gadgets::{ScalarType, Primitive, PrimitiveOperations};
+use crate::gadgets::{Primitive, PrimitiveOperations, ScalarType};
 use crate::ZincEngine;
 use franklin_crypto::bellman::SynthesisError;
 use num_bigint::{BigInt, ToBigInt};

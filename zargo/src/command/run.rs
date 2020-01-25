@@ -11,7 +11,7 @@ use failure::Fail;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(about = "Executes a circuit and prints its output")]
+#[structopt(about = "Runs a circuit and saves its output")]
 pub struct Command {
     #[structopt(short = "q", long = "quiet", help = "No output printed to stdout")]
     quiet: bool,
@@ -28,14 +28,14 @@ pub struct Command {
 
     #[structopt(
         long = "input",
-        help = "Path to the input JSON file",
+        help = "Path to the input witness JSON file",
         default_value = "./build/witness.json"
     )]
     input: PathBuf,
 
     #[structopt(
         long = "output",
-        help = "Path to the output JSON file",
+        help = "Path to the output public data JSON file",
         default_value = "./build/public-data.json"
     )]
     output: PathBuf,

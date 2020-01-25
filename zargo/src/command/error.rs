@@ -6,10 +6,10 @@ use failure::Fail;
 
 use crate::command::BuildCommandError;
 use crate::command::CleanCommandError;
-use crate::command::ExecCommandError;
 use crate::command::InitCommandError;
 use crate::command::NewCommandError;
 use crate::command::ProveCommandError;
+use crate::command::RunCommandError;
 use crate::command::SetupCommandError;
 use crate::command::VerifyCommandError;
 
@@ -24,7 +24,7 @@ pub enum Error {
     #[fail(display = "{}", _0)]
     Clean(CleanCommandError),
     #[fail(display = "{}", _0)]
-    Exec(ExecCommandError),
+    Run(RunCommandError),
     #[fail(display = "{}", _0)]
     Setup(SetupCommandError),
     #[fail(display = "{}", _0)]
@@ -57,9 +57,9 @@ impl From<CleanCommandError> for Error {
     }
 }
 
-impl From<ExecCommandError> for Error {
-    fn from(inner: ExecCommandError) -> Self {
-        Self::Exec(inner)
+impl From<RunCommandError> for Error {
+    fn from(inner: RunCommandError) -> Self {
+        Self::Run(inner)
     }
 }
 

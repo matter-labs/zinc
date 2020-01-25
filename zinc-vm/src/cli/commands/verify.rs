@@ -1,3 +1,4 @@
+use crate::commands::read_hex;
 use crate::Error;
 use colored::Colorize;
 use franklin_crypto::bellman::groth16::{Proof, VerifyingKey};
@@ -7,14 +8,21 @@ use std::path::PathBuf;
 use std::process::exit;
 use structopt::StructOpt;
 use zinc_bytecode::data::values::Value;
-use crate::commands::read_hex;
 
 #[derive(Debug, StructOpt)]
 pub struct VerifyCommand {
-    #[structopt(short = "k", long = "verifying-key", about = "Path to verifying key file")]
+    #[structopt(
+        short = "k",
+        long = "verifying-key",
+        about = "Path to verifying key file"
+    )]
     pub key_path: PathBuf,
 
-    #[structopt(short = "d", long = "public-data", about = "Path to public data JSON file")]
+    #[structopt(
+        short = "d",
+        long = "public-data",
+        about = "Path to public data JSON file"
+    )]
     pub public_data_path: PathBuf,
 }
 

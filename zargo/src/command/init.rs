@@ -15,7 +15,7 @@ use structopt::StructOpt;
 use crate::templates;
 
 #[derive(Debug, StructOpt)]
-#[structopt(about = "Creates a new circuit")]
+#[structopt(about = "Initializes a new circuit in the specified directory")]
 pub struct Command {
     #[structopt(short = "q", long = "quiet", help = "No output printed to stdout")]
     quiet: bool,
@@ -57,11 +57,12 @@ impl Command {
     pub fn execute(mut self) -> Result<(), Error> {
         let circuit_name = match self.name.take() {
             Some(name) => name,
-            None => self.path
-                    .file_stem()
-                    .ok_or_else(|| Error::ProjectNameInvalid(self.path.as_os_str().to_owned()))?
-                    .to_string_lossy()
-                    .to_string()
+            None => self
+                .path
+                .file_stem()
+                .ok_or_else(|| Error::ProjectNameInvalid(self.path.as_os_str().to_owned()))?
+                .to_string_lossy()
+                .to_string(),
         };
 
         if !self.path.exists() {

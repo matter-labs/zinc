@@ -1,4 +1,4 @@
-use crate::gadgets::{ScalarType, PrimitiveOperations};
+use crate::gadgets::{PrimitiveOperations, ScalarType};
 use crate::vm::{Cell, InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
 use crate::ZincEngine;
