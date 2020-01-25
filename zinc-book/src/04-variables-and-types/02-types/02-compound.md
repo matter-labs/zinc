@@ -11,7 +11,8 @@ Fixed-sized arrays follow the Rust rules. The only exception is the restriction
 to constant indexes, that is, you cannot index an array with anything but an
 integer literal for now.
 
-Arrays support the index operator, which is explained in detail in **Chapter 5**.
+Arrays support the index operator, which is explained in detail in
+[Chapter 6](../../06-operators/00-overview.md).
 
 ```rust,no_run,noplaypen
 let mut fibbonaci = [0, 1, 1, 2, 3, 5, 8, 13];
@@ -28,10 +29,10 @@ Like in Rust, `()` is the void value, `(value)` is a parenthesized expression,
 and `(value,)` is a tuple with one element.
 
 Tuple fields can be accessed via the dot operator, which is explained in detail
-in **Chapter 5**.
+in [Chapter 6](../../06-operators/00-overview.md).
 
 ```rust,no_run,noplaypen
 let mut tuple: (u8, field) = (0xff, 0 as field);
 tuple.0 = 42;
-debug(tuple.1);
+dbg!("{}", tuple.1);
 ```

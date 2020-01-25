@@ -1,0 +1,99 @@
+# Getting started
+
+## Cargo installation
+
+To install Zinc into your system, you must first install the Rust package manager `cargo`.
+
+On Linux or Mac OS, this simple command will work:
+
+`curl https://sh.rustup.rs -sSf | sh`
+
+If you are using Windows, download the [installer](https://win.rustup.rs/).
+
+For more information on `cargo` and its installation, see
+[the Cargo book](https://doc.rust-lang.org/cargo/getting-started/installation.html).
+
+## Zinc installation
+
+Once you have `cargo` installed into your system, you can download the Zinc
+binaries from its repository:
+
+`cargo install zinc`
+
+This command will install the following binaries into your `PATH`:
+
+- `zargo` circuit manager
+- `znc` Zinc compiler
+- `zinc` Zinc virtual machine
+
+`zargo` is able to use the compiler and virtual machine through its interface,
+so you will only need `zargo` to work with your circuits.
+
+For more information on `zargo`, check out this [chapter](./09-zargo-circuit-manager/00-overview.md).
+
+Let's now move on to writing 'Hello, World!' in Zinc!
+
+## Creating the circuit
+
+Let's create our first circuit, which will be able to prove the knowledge of
+some `sha256` hash preimage:
+
+```
+zargo new preimage
+cd preimage
+```
+
+The command above will create a directory with `Zargo.toml` manifest and the `src/`
+folder with an entry point module `main.zn`.
+
+Let's replace the `main.zn` contents with the following code:
+
+```rust,no_run,noplaypen
+use std::sha256;
+
+fn main(preimage: [u8; 256]) -> [u8; 32] {
+    sha256(preimage)
+}
+```
+
+## Building the circuit
+
+Now, you need to compile the circuit into Zinc bytecode:
+
+`zargo build`
+
+The command above will write the bytecode to the `build` directory located in
+the project root. There are also `witness.json` and `pubdata.json` files in the
+build directory, which are used to provide the secret witness data to the circuit.
+
+## Trusted setup
+
+To generate the verification key for a prover key, use this command:
+
+`zargo setup --pkey=prover.pk > verifier.vk`
+
+## Generating a proof
+
+Before generating a proof, open the `witness.json` and `pubdata.json` files with
+your favorite editor and fill them with some meaningful values.
+
+To generate a proof, provide the witness and public data to the Zinc VM with
+the following command:
+
+```bash
+cat witness.json | zargo prove --pubdata=pubdata.json > proof.txt
+```
+
+## Verifying a proof
+
+To verify a proof, pass it to the Zinc VM with the same public data you used to
+generated it, and the verification key:
+
+```bash
+cat proof.txt | zargo verify --vkey=verifier.vk --pubdata=data.json
+```
+
+Congratulations! You have developed your first circuit and verified your first
+Zero-Knowledge Proof!
+
+Feel free to proceed to the next chapters to know more about the Zinc framework!
