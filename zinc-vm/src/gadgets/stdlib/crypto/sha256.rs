@@ -1,9 +1,10 @@
 use crate::gadgets::{Gadget, Primitive, ScalarType};
 use crate::RuntimeError;
 use crate::ZincEngine;
+use ff::Field;
 use bellman::ConstraintSystem;
-use franklin_crypto::circuit::num::AllocatedNum;
 use franklin_crypto::circuit::sha256::sha256;
+use franklin_crypto::circuit::boolean::AllocatedBit;
 
 pub struct Sha256;
 
@@ -17,36 +18,32 @@ impl<E: ZincEngine> Gadget<E> for Sha256 {
         input: Self::Input,
     ) -> Result<Self::Output, RuntimeError> {
         let mut bits = Vec::new();
-        for (i, byte) in input.into_iter().enumerate() {
-            let byte_num =
-                byte.as_allocated_num(cs.namespace(|| format!("as_allocated_num {}", i)))?;
-            let mut byte_bits = byte_num
-                .into_bits_le_fixed(cs.namespace(|| format!("into_bits_le_fixed {}", i)), 8)?;
-            bits.append(&mut byte_bits)
-        }
-
-        let digest = sha256(cs.namespace(|| "sha256"), bits.as_slice())?;
-
-        assert_eq!(digest.len(), 256);
-
-        let mut digest_bytes = Vec::new();
-        for (i, byte_bits) in digest.chunks(8).enumerate() {
-            let byte = AllocatedNum::pack_bits_to_element(
-                cs.namespace(|| format!("pack_bits_to_element {}", i)),
-                byte_bits,
+        for (i, bit_scalar) in input.into_iter().enumerate() {
+            let allocated_bit = AllocatedBit::alloc(
+                cs.namespace(|| format!("AllocatedBit {}", i)),
+                bit_scalar.value.map(|fr| !fr.is_zero())
             )?;
 
-            digest_bytes.push(Primitive {
-                value: byte.get_value(),
-                variable: byte.get_variable(),
-                data_type: Some(ScalarType {
-                    signed: false,
-                    length: 8,
-                }),
-            });
+            bits.push(allocated_bit.into());
         }
 
-        Ok(digest_bytes)
+        let digest_bits = sha256(cs.namespace(|| "sha256"), &bits)?;
+
+        assert_eq!(digest_bits.len(), 256);
+
+        let digest = digest_bits
+            .into_iter()
+            .enumerate()
+            .map(|(i, f)| {
+                Primitive {
+                    value: f.get_value_field::<E>(),
+                    variable: f.get_variable().expect("sha256 must allocate").get_variable(),
+                    data_type: Some(ScalarType::BOOLEAN)
+                }
+            })
+            .collect();
+
+        Ok(digest)
     }
 
     fn input_from_vec(input: &[Primitive<E>]) -> Result<Self::Input, RuntimeError> {
