@@ -22,7 +22,7 @@ pub struct Command {
     #[structopt(
         short = "k",
         long = "verifying-key",
-        help = "Path to the verfying key file",
+        help = "Path to the verifying key file",
         default_value = "./build/verifying-key.txt"
     )]
     verifying_key: PathBuf,

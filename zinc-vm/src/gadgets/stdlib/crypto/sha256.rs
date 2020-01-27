@@ -1,4 +1,4 @@
-use crate::gadgets::{ScalarType, Gadget, Primitive};
+use crate::gadgets::{Gadget, Primitive, ScalarType};
 use crate::RuntimeError;
 use crate::ZincEngine;
 use bellman::ConstraintSystem;
@@ -18,13 +18,10 @@ impl<E: ZincEngine> Gadget<E> for Sha256 {
     ) -> Result<Self::Output, RuntimeError> {
         let mut bits = Vec::new();
         for (i, byte) in input.into_iter().enumerate() {
-            let byte_num = byte.as_allocated_num(
-                cs.namespace(|| format!("as_allocated_num {}", i))
-            )?;
-            let mut byte_bits = byte_num.into_bits_le_fixed(
-                cs.namespace(|| format!("into_bits_le_fixed {}", i)),
-                8
-            )?;
+            let byte_num =
+                byte.as_allocated_num(cs.namespace(|| format!("as_allocated_num {}", i)))?;
+            let mut byte_bits = byte_num
+                .into_bits_le_fixed(cs.namespace(|| format!("into_bits_le_fixed {}", i)), 8)?;
             bits.append(&mut byte_bits)
         }
 

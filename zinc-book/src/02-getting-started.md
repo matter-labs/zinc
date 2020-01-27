@@ -73,7 +73,9 @@ the verifier.
 
 To generate the verifier key for a prover key, use this command:
 
-`zargo setup --pkey=prover.pk > verifier.vk`
+```bash
+zargo setup
+```
 
 ## Generating a proof
 
@@ -84,7 +86,7 @@ To generate a proof, provide the witness and public data to the Zinc VM with
 the following command:
 
 ```bash
-cat witness.json | zargo prove --pubdata=pubdata.json > proof.txt
+zargo prove > 'proof.txt'
 ```
 
 ## Verifying a proof
@@ -93,7 +95,7 @@ To verify a proof, pass it to the Zinc VM with the same public data you used to
 generated it, and the verification key:
 
 ```bash
-cat proof.txt | zargo verify --vkey=verifier.vk --pubdata=data.json
+zargo verify < 'proof.txt'
 ```
 
 Congratulations! You have developed your first circuit and verified your first

@@ -17,7 +17,7 @@ use crate::manifest::Error as ManifestError;
 use crate::manifest::Manifest;
 
 #[derive(Debug, StructOpt)]
-#[structopt(about = "Builds the current circuit")]
+#[structopt(about = "Builds the circuit at the given path")]
 pub struct Command {
     #[structopt(short = "q", long = "quiet", help = "No output printed to stdout")]
     quiet: bool,

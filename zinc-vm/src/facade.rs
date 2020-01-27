@@ -2,16 +2,16 @@ use std::fmt::Debug;
 
 use bellman::groth16;
 use bellman::pairing::bn256::Bn256;
-use franklin_crypto::bellman::{Circuit, ConstraintSystem, SynthesisError};
 use franklin_crypto::bellman::groth16::{Parameters, Proof, VerifyingKey};
+use franklin_crypto::bellman::{Circuit, ConstraintSystem, SynthesisError};
 use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::BigInt;
 use rand::ThreadRng;
 
 use zinc_bytecode::program::Program;
 
-use crate::gadgets::ConstrainingFrOperations;
 use crate::gadgets::utils::bigint_to_fr;
+use crate::gadgets::ConstrainingFrOperations;
 pub use crate::vm::RuntimeError;
 use crate::vm::VirtualMachine;
 use crate::ZincEngine;
@@ -97,12 +97,7 @@ pub fn prove<E: ZincEngine>(
             "circuit hasn't generate outputs".into(),
         )),
         Some(res) => match res {
-            Ok(values) => Ok((
-                values
-                    .into_iter()
-                    .map(|v| v.unwrap())
-                    .collect(),
-                proof)),
+            Ok(values) => Ok((values.into_iter().map(|v| v.unwrap()).collect(), proof)),
             Err(err) => Err(err),
         },
     }

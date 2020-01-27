@@ -15,7 +15,7 @@ use structopt::StructOpt;
 use crate::templates;
 
 #[derive(Debug, StructOpt)]
-#[structopt(about = "Creates a new circuit")]
+#[structopt(about = "Creates a new circuit project directory")]
 pub struct Command {
     #[structopt(short = "q", long = "quiet", help = "No output printed to stdout")]
     quiet: bool,

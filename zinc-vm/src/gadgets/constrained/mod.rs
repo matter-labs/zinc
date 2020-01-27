@@ -9,7 +9,7 @@ use franklin_crypto::circuit::num::AllocatedNum;
 use num_bigint::{BigInt, ToBigInt};
 
 use crate::gadgets::utils::fr_to_bigint;
-use crate::gadgets::{utils, ScalarType, Gadget, Primitive, PrimitiveOperations};
+use crate::gadgets::{utils, Gadget, Primitive, PrimitiveOperations, ScalarType};
 use crate::vm::RuntimeError;
 use std::mem;
 
@@ -83,8 +83,7 @@ impl<E: ZincEngine> Display for Primitive<E> {
 
 impl<E: ZincEngine> ToBigInt for Primitive<E> {
     fn to_bigint(&self) -> Option<BigInt> {
-        self.value
-            .map(|fr| -> BigInt { utils::fr_to_bigint(&fr) })
+        self.value.map(|fr| -> BigInt { utils::fr_to_bigint(&fr) })
     }
 }
 

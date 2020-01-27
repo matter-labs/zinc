@@ -1,13 +1,9 @@
 #!/usr/bin/env bash
 
-function cleanup {
-    rm -rf Zargo.toml proof.txt build
-}
+set -Cex
 
-set -ev
-
-cleanup
-
+cd test
+rm -fv './Zargo.toml'
 zargo init --name test
 
 zargo build
@@ -16,8 +12,6 @@ zargo clean
 
 zargo build
 zargo setup
-zargo prove > proof.txt
-zargo verify < proof.txt
+zargo prove > './build/proof.txt'
+zargo verify < './build/proof.txt'
 zargo clean
-
-cleanup

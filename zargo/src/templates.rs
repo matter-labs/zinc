@@ -18,8 +18,8 @@ pub fn main_template(circuit_name: &str) -> String {
 //! The '{}' main module.
 //!
 
-fn main(input: u8) -> u8 {{
-    dbg!("Zello, World!", input);
+fn main(witness: u8) -> u8 {{
+    dbg!("Zello, World!", witness);
     42
 }}
 "#,
