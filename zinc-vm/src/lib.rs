@@ -3,6 +3,9 @@ mod gadgets;
 mod instructions;
 mod vm;
 
+#[cfg(test)]
+mod tests;
+
 mod facade;
 pub use facade::*;
 

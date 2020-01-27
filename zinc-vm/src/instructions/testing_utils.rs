@@ -92,7 +92,7 @@ impl VMTestRunner {
 
         assert_stack_eq(&mut vm, expected_stack);
 
-        if unconstrained != "" {
+        if !unconstrained.is_empty() {
             Err(TestingError::Unconstrained(unconstrained))
         } else if !satisfied {
             Err(TestingError::Unsatisfied)
