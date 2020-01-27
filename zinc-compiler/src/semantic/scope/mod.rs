@@ -184,6 +184,14 @@ impl Scope {
             "pedersen".to_owned(),
             Item::Type(Type::new_std_function(BuiltinIdentifier::CryptoPedersen)),
         );
+        std_scope.items.insert(
+            "from_bits".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::FromBits)),
+        );
+        std_scope.items.insert(
+            "to_bits".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::ToBits)),
+        );
         items.insert(
             "std".to_owned(),
             Item::Module(Rc::new(RefCell::new(std_scope))),

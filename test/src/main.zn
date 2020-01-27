@@ -1,14 +1,14 @@
 struct Output {
-    sha256: [bool; 256],
-    pedersen: (field, field),
+    to_bits: [bool; 256],
+    from_bits: field,
 }
 
 fn main() -> Output {
-    dbg!("Zello, World!");
-    let preimage = [false, true, false, true];
-
+    let value: field = 42;
+    let to_bits = std::to_bits(value);
+    let from_bits = std::from_bits(to_bits);
     struct Output {
-        sha256: std::sha256(preimage),
-        pedersen: std::pedersen(preimage),
+        to_bits: to_bits,
+        from_bits: from_bits,
     }
 }

@@ -8,7 +8,7 @@ use zinc_bytecode::builtins::BuiltinIdentifier;
 
 use crate::semantic::Type;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Sha256StandardLibraryFunction {
     pub identifier: &'static str,
     pub return_type: Box<Type>,
@@ -27,6 +27,10 @@ impl Sha256StandardLibraryFunction {
 
     pub fn builtin_identifier() -> BuiltinIdentifier {
         BuiltinIdentifier::CryptoSha256
+    }
+
+    pub fn arguments_count(&self) -> usize {
+        1
     }
 }
 

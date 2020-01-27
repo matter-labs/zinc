@@ -8,7 +8,7 @@ use zinc_bytecode::builtins::BuiltinIdentifier;
 
 use crate::semantic::Type;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct PedersenStandardLibraryFunction {
     pub identifier: &'static str,
     pub return_type: Box<Type>,
@@ -24,6 +24,10 @@ impl PedersenStandardLibraryFunction {
 
     pub fn builtin_identifier() -> BuiltinIdentifier {
         BuiltinIdentifier::CryptoPedersen
+    }
+
+    pub fn arguments_count(&self) -> usize {
+        1
     }
 }
 

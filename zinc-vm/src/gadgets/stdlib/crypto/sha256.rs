@@ -1,10 +1,10 @@
 use crate::gadgets::{Gadget, Primitive, ScalarType};
 use crate::RuntimeError;
 use crate::ZincEngine;
-use ff::Field;
 use bellman::ConstraintSystem;
-use franklin_crypto::circuit::sha256::sha256;
+use ff::Field;
 use franklin_crypto::circuit::boolean::AllocatedBit;
+use franklin_crypto::circuit::sha256::sha256;
 
 pub struct Sha256;
 
@@ -21,7 +21,7 @@ impl<E: ZincEngine> Gadget<E> for Sha256 {
         for (i, bit_scalar) in input.into_iter().enumerate() {
             let allocated_bit = AllocatedBit::alloc(
                 cs.namespace(|| format!("AllocatedBit {}", i)),
-                bit_scalar.value.map(|fr| !fr.is_zero())
+                bit_scalar.value.map(|fr| !fr.is_zero()),
             )?;
 
             bits.push(allocated_bit.into());
@@ -34,12 +34,13 @@ impl<E: ZincEngine> Gadget<E> for Sha256 {
         let digest = digest_bits
             .into_iter()
             .enumerate()
-            .map(|(i, f)| {
-                Primitive {
-                    value: f.get_value_field::<E>(),
-                    variable: f.get_variable().expect("sha256 must allocate").get_variable(),
-                    data_type: Some(ScalarType::BOOLEAN)
-                }
+            .map(|(i, f)| Primitive {
+                value: f.get_value_field::<E>(),
+                variable: f
+                    .get_variable()
+                    .expect("sha256 must allocate")
+                    .get_variable(),
+                data_type: Some(ScalarType::BOOLEAN),
             })
             .collect();
 

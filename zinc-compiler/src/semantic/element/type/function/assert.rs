@@ -4,7 +4,7 @@
 
 use std::fmt;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct AssertInstructionFunction {
     pub identifier: &'static str,
 }

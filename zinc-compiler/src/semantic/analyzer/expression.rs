@@ -732,13 +732,11 @@ impl Analyzer {
 
                 let (input_type, return_type) = match function {
                     StandardLibraryFunctionType::Sha256(function) => {
-                        if argument_values.len() != 1
-                        /* TODO */
-                        {
+                        if argument_values.len() != function.arguments_count() {
                             return Err(Error::FunctionArgumentCountMismatch(
                                 element.location,
                                 function.identifier.to_owned(),
-                                1, /* TODO */
+                                function.arguments_count(),
                                 argument_values_count,
                             ));
                         }
@@ -756,13 +754,11 @@ impl Analyzer {
                         (actual_type, *function.return_type)
                     }
                     StandardLibraryFunctionType::Pedersen(function) => {
-                        if argument_values.len() != 1
-                        /* TODO */
-                        {
+                        if argument_values.len() != function.arguments_count() {
                             return Err(Error::FunctionArgumentCountMismatch(
                                 element.location,
                                 function.identifier.to_owned(),
-                                1, /* TODO */
+                                function.arguments_count(),
                                 argument_values_count,
                             ));
                         }
@@ -778,6 +774,56 @@ impl Analyzer {
                             ));
                         }
                         (actual_type, *function.return_type)
+                    }
+                    StandardLibraryFunctionType::FromBits(function) => {
+                        if argument_values.len() != function.arguments_count() {
+                            return Err(Error::FunctionArgumentCountMismatch(
+                                element.location,
+                                function.identifier.to_owned(),
+                                function.arguments_count(),
+                                argument_values_count,
+                            ));
+                        }
+
+                        let input_type = Type::from_element(&argument_values[0], self.scope())?;
+                        let return_type = match function.simulate(&input_type) {
+                            Some(return_type) => return_type,
+                            None => {
+                                return Err(Error::FunctionArgumentTypeMismatch(
+                                    element.location,
+                                    function.identifier.to_owned(),
+                                    "bits".to_owned(),
+                                    "[bool; N]".to_string(),
+                                    input_type.to_string(),
+                                ))
+                            }
+                        };
+                        (input_type, return_type)
+                    }
+                    StandardLibraryFunctionType::ToBits(function) => {
+                        if argument_values.len() != function.arguments_count() {
+                            return Err(Error::FunctionArgumentCountMismatch(
+                                element.location,
+                                function.identifier.to_owned(),
+                                function.arguments_count(),
+                                argument_values_count,
+                            ));
+                        }
+
+                        let input_type = Type::from_element(&argument_values[0], self.scope())?;
+                        let return_type = match function.simulate(&input_type) {
+                            Some(return_type) => return_type,
+                            None => {
+                                return Err(Error::FunctionArgumentTypeMismatch(
+                                    element.location,
+                                    function.identifier.to_owned(),
+                                    "value".to_owned(),
+                                    "u{N}".to_string(),
+                                    input_type.to_string(),
+                                ))
+                            }
+                        };
+                        (input_type, return_type)
                     }
                 };
 
