@@ -8,6 +8,7 @@ use crate::ZincEngine;
 use zinc_bytecode::builtins::BuiltinIdentifier;
 use zinc_bytecode::instructions::CallBuiltin;
 use crate::gadgets::stdlib::to_bits::ToBits;
+use crate::gadgets::stdlib::from_bits::FromBits;
 
 impl<E, O> VMInstruction<E, O> for CallBuiltin
 where
@@ -25,7 +26,8 @@ where
             BuiltinIdentifier::CryptoSha256 => vm.operations().execute(Sha256, &input),
             BuiltinIdentifier::CryptoPedersen => vm.operations().execute(Pedersen, &input),
             BuiltinIdentifier::ToBits => vm.operations().execute(ToBits, &input),
-            f => unimplemented!("Builtin function {} is not implemented.", f)
+            BuiltinIdentifier::FromBits => vm.operations().execute(FromBits, &input),
+//            f => unimplemented!("Builtin function {} is not implemented.", f)
         }?;
 
         for value in output {
