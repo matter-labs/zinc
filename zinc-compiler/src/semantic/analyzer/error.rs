@@ -99,8 +99,10 @@ pub enum Error {
         _0, _1, _2, _3
     )]
     FunctionReturnTypeMismatch(Location, String, String, String),
-    #[fail(display = "{} instruction function '{}' is unknown", _0, _1)]
-    FunctionNotInstruction(Location, String),
+    #[fail(display = "{} built-in function '{}' is unknown", _0, _1)]
+    FunctionInstructionUnknown(Location, String),
+    #[fail(display = "{} built-in function '{}' must be called with '!'", _0, _1)]
+    FunctionInstructionSpecifierMissing(Location, &'static str),
 
     #[fail(display = "function 'main' is missing")]
     FunctionMainMissing,
@@ -152,6 +154,11 @@ pub enum Error {
         _0, _1
     )]
     InstructionDebugExpectedString(Location, String),
+    #[fail(
+        display = "{} instruction 'assert' expected a boolean, but got '{}'",
+        _0, _1
+    )]
+    InstructionAssertExpectedBoolean(Location, String),
 
     #[fail(display = "references not implemented")]
     ReferencesNotImplemented,

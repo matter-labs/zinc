@@ -9,10 +9,12 @@ use std::rc::Rc;
 use crate::error::Error as CompilerError;
 use crate::semantic::Bytecode;
 use crate::semantic::Error;
+use crate::semantic::FunctionType;
 use crate::semantic::Scope;
 use crate::semantic::ScopeItem;
 use crate::semantic::StatementAnalyzer;
 use crate::semantic::Type;
+use crate::semantic::UserDefinedFunctionType;
 use crate::SyntaxTree;
 
 pub struct Analyzer {
@@ -62,11 +64,13 @@ impl Analyzer {
             .ok_or(Error::FunctionMainMissing)
             .map_err(CompilerError::Semantic)?;
 
-        if let Ok(ScopeItem::Type(Type::Function {
-            arguments,
-            return_type,
-            ..
-        })) = Scope::resolve_item(self.scope(), "main")
+        if let Ok(ScopeItem::Type(Type::Function(FunctionType::UserDefined(
+            UserDefinedFunctionType {
+                arguments,
+                return_type,
+                ..
+            },
+        )))) = Scope::resolve_item(self.scope(), "main")
         {
             let input_size = arguments.iter().map(|(_name, r#type)| r#type.size()).sum();
             let output_size = return_type.size();

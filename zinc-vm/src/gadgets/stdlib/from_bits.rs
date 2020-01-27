@@ -20,10 +20,14 @@ impl<E: ZincEngine> Gadget<E> for FromBits {
         let (data_type, length) = if input.len() == (E::Fr::NUM_BITS as usize) {
             (None, E::Fr::NUM_BITS as usize)
         } else {
-            assert_eq!(input.len() % 8, 0, "Scalar bit length should be multiple of 8");
+            assert_eq!(
+                input.len() % 8,
+                0,
+                "Scalar bit length should be multiple of 8"
+            );
             let data_type = ScalarType {
                 signed: false,
-                length: input.len()
+                length: input.len(),
             };
             (Some(data_type), input.len())
         };
@@ -31,22 +35,18 @@ impl<E: ZincEngine> Gadget<E> for FromBits {
         let mut bits = Vec::with_capacity(length);
         for (i, value) in input.iter().enumerate() {
             let bit = value.value.map(|fr| -> bool { !fr.is_zero() });
-            let allocated_bit = AllocatedBit::alloc(
-                cs.namespace(|| format!("AllocatedBit {}", i)),
-                bit
-            )?;
+            let allocated_bit =
+                AllocatedBit::alloc(cs.namespace(|| format!("AllocatedBit {}", i)), bit)?;
             bits.push(allocated_bit.into());
         }
 
-        let num = AllocatedNum::pack_bits_to_element(
-            cs.namespace(|| "pack_bits_to_element"),
-            &bits
-        )?;
+        let num =
+            AllocatedNum::pack_bits_to_element(cs.namespace(|| "pack_bits_to_element"), &bits)?;
 
         Ok(Primitive {
             value: num.get_value(),
             variable: num.get_variable(),
-            data_type
+            data_type,
         })
     }
 

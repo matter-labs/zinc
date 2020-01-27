@@ -18,7 +18,7 @@ fn main(input: (), witness: ()) {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::FunctionNotInstruction(
+    let expected = Err(Error::Semantic(SemanticError::FunctionInstructionUnknown(
         Location::new(5, 13),
         "unknown".to_owned(),
     )));

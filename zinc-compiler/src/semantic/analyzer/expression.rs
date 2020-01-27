@@ -17,13 +17,14 @@ use crate::semantic::Bytecode;
 use crate::semantic::Constant;
 use crate::semantic::Element;
 use crate::semantic::Error;
-use crate::semantic::FunctionBehavior;
+use crate::semantic::FunctionType;
 use crate::semantic::IntegerConstant;
 use crate::semantic::Path;
 use crate::semantic::Place;
 use crate::semantic::Scope;
 use crate::semantic::ScopeItem;
 use crate::semantic::ScopeVariableItem;
+use crate::semantic::StandardLibraryFunctionType;
 use crate::semantic::StatementAnalyzer;
 use crate::semantic::Structure;
 use crate::semantic::StructureValueError;
@@ -38,6 +39,7 @@ use crate::syntax::BooleanLiteral;
 use crate::syntax::ConditionalExpression;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionAuxiliary;
+use crate::syntax::ExpressionElement;
 use crate::syntax::ExpressionObject;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
@@ -528,187 +530,7 @@ impl Analyzer {
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Call) => {
-                    let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        TranslationHint::TypeExpression,
-                        TranslationHint::ValueExpression,
-                    )?;
-
-                    // check if the first operand is a function and get its data
-                    let (identifier, argument_types, return_type, mut behavior) = match operand_1 {
-                        Element::Type(Type::Function {
-                            identifier,
-                            arguments,
-                            return_type,
-                            behavior,
-                        }) => (identifier, arguments, return_type, behavior),
-                        Element::Path(path) => match Scope::resolve_path(self.scope(), &path)? {
-                            ScopeItem::Type(Type::Function {
-                                identifier,
-                                arguments,
-                                return_type,
-                                behavior,
-                            }) => (identifier, arguments, return_type, behavior),
-                            item => {
-                                return Err(Error::FunctionCallingNotCallableObject(
-                                    element.location,
-                                    item.to_string(),
-                                ))
-                            }
-                        },
-                        operand => {
-                            return Err(Error::FunctionCallingNotCallableObject(
-                                element.location,
-                                operand.to_string(),
-                            ))
-                        }
-                    };
-
-                    // check the number of the arguments
-                    let argument_values = match operand_2 {
-                        Element::ArgumentList(values) => values,
-                        _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
-                    };
-                    let argument_types_count = argument_types.len();
-                    let argument_values_count = argument_values.len();
-                    let function_input_size = argument_types
-                        .iter()
-                        .map(|(_name, r#type)| r#type.size())
-                        .sum();
-
-                    if self.is_next_call_instruction {
-                        behavior = FunctionBehavior::Instruction;
-                        self.is_next_call_instruction = false;
-                    }
-
-                    match behavior {
-                        FunctionBehavior::Normal => {
-                            if argument_values.len() != argument_types.len() {
-                                return Err(Error::FunctionArgumentCountMismatch(
-                                    element.location,
-                                    identifier,
-                                    argument_types_count,
-                                    argument_values_count,
-                                ));
-                            }
-
-                            self.bytecode.borrow_mut().push_data_stack_address();
-
-                            // check the argument types
-                            for (argument_index, (argument_name, expected_type)) in
-                                argument_types.into_iter().enumerate()
-                            {
-                                let actual_type = Type::from_element(
-                                    &argument_values[argument_index],
-                                    self.scope(),
-                                )?;
-                                if expected_type != actual_type {
-                                    return Err(Error::FunctionArgumentTypeMismatch(
-                                        element.location,
-                                        identifier,
-                                        argument_name,
-                                        expected_type.to_string(),
-                                        actual_type.to_string(),
-                                    ));
-                                }
-                            }
-
-                            let function_address = self
-                                .bytecode
-                                .borrow_mut()
-                                .function_address(identifier.as_str())
-                                .expect(crate::semantic::PANIC_FUNCTION_ADDRESS_ALWAYS_EXISTS);
-
-                            self.bytecode
-                                .borrow_mut()
-                                .push_instruction(Instruction::Call(zinc_bytecode::Call::new(
-                                    function_address,
-                                    function_input_size,
-                                )));
-                            self.bytecode.borrow_mut().pop_data_stack_address();
-                        }
-                        FunctionBehavior::Instruction => {
-                            let instruction = match identifier.as_str() {
-                                "dbg" => {
-                                    let string = match argument_values.get(0) {
-                                        Some(Element::Constant(Constant::String(string))) => {
-                                            string.to_owned()
-                                        }
-                                        Some(argument) => {
-                                            return Err(Error::InstructionDebugExpectedString(
-                                                element.location,
-                                                argument.to_string(),
-                                            ))
-                                        }
-                                        None => {
-                                            return Err(Error::InstructionDebugExpectedString(
-                                                element.location,
-                                                "None".to_owned(),
-                                            ))
-                                        }
-                                    };
-
-                                    let debug_input_size = argument_values
-                                        .into_iter()
-                                        .skip(1)
-                                        .map(|argument| match argument {
-                                            Element::Constant(constant) => constant.r#type().size(),
-                                            Element::Value(value) => value.r#type().size(),
-                                            _ => 0,
-                                        })
-                                        .sum();
-
-                                    Instruction::Log(zinc_bytecode::Dbg::new(
-                                        string,
-                                        debug_input_size,
-                                    ))
-                                }
-                                "assert" => Instruction::Assert(zinc_bytecode::Assert),
-                                identifier => {
-                                    return Err(Error::FunctionNotInstruction(
-                                        element.location,
-                                        identifier.to_owned(),
-                                    ))
-                                }
-                            };
-                            self.bytecode.borrow_mut().push_instruction(instruction);
-                        }
-                        FunctionBehavior::Hash(builtin_identifier) => {
-                            if argument_values.len() != argument_types.len() {
-                                return Err(Error::FunctionArgumentCountMismatch(
-                                    element.location,
-                                    identifier,
-                                    argument_types_count,
-                                    argument_values_count,
-                                ));
-                            }
-
-                            let actual_type =
-                                Type::from_element(&argument_values[0], self.scope())?;
-                            if !actual_type.is_byte_array() {
-                                return Err(Error::FunctionArgumentTypeMismatch(
-                                    element.location,
-                                    identifier,
-                                    "preimage".to_owned(),
-                                    "[u8; N]".to_string(),
-                                    actual_type.to_string(),
-                                ));
-                            }
-
-                            self.bytecode
-                                .borrow_mut()
-                                .push_instruction(Instruction::CallBuiltin(
-                                    zinc_bytecode::CallBuiltin::new(
-                                        builtin_identifier,
-                                        actual_type.size(),
-                                        return_type.size(),
-                                    ),
-                                ));
-                        }
-                    }
-
-                    self.push_operand(StackElement::Evaluated(Element::Value(Value::new(
-                        *return_type,
-                    ))));
+                    self.operator_function_call(element)?
                 }
                 ExpressionObject::Operator(ExpressionOperator::Path) => {
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
@@ -734,6 +556,248 @@ impl Analyzer {
         }
 
         self.evaluate_operand(translation_hint)
+    }
+
+    pub fn operator_function_call(&mut self, element: ExpressionElement) -> Result<(), Error> {
+        let (operand_1, operand_2) = self.evaluate_binary_operands(
+            TranslationHint::TypeExpression,
+            TranslationHint::ValueExpression,
+        )?;
+
+        let function = match operand_1 {
+            Element::Type(Type::Function(function)) => function,
+            Element::Path(path) => match Scope::resolve_path(self.scope(), &path)? {
+                ScopeItem::Type(Type::Function(function)) => function,
+                item => {
+                    return Err(Error::FunctionCallingNotCallableObject(
+                        element.location,
+                        item.to_string(),
+                    ))
+                }
+            },
+            operand => {
+                return Err(Error::FunctionCallingNotCallableObject(
+                    element.location,
+                    operand.to_string(),
+                ))
+            }
+        };
+
+        // check the number of the arguments
+        let argument_values = match operand_2 {
+            Element::ArgumentList(values) => values,
+            _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+        };
+        let argument_values_count = argument_values.len();
+
+        let return_type = match function {
+            FunctionType::UserDefined(function) => {
+                if self.is_next_call_instruction {
+                    return Err(Error::FunctionInstructionUnknown(
+                        element.location,
+                        function.identifier,
+                    ));
+                }
+
+                if argument_values.len() != function.arguments.len() {
+                    return Err(Error::FunctionArgumentCountMismatch(
+                        element.location,
+                        function.identifier,
+                        function.arguments.len(),
+                        argument_values_count,
+                    ));
+                }
+
+                let function_address = self
+                    .bytecode
+                    .borrow_mut()
+                    .function_address(function.identifier.as_str())
+                    .expect(crate::semantic::PANIC_FUNCTION_ADDRESS_ALWAYS_EXISTS);
+                let function_input_size = function
+                    .arguments
+                    .iter()
+                    .map(|(_name, r#type)| r#type.size())
+                    .sum();
+
+                for (argument_index, (argument_name, expected_type)) in
+                    function.arguments.into_iter().enumerate()
+                {
+                    let actual_type =
+                        Type::from_element(&argument_values[argument_index], self.scope())?;
+                    if expected_type != actual_type {
+                        return Err(Error::FunctionArgumentTypeMismatch(
+                            element.location,
+                            function.identifier,
+                            argument_name,
+                            expected_type.to_string(),
+                            actual_type.to_string(),
+                        ));
+                    }
+                }
+
+                self.bytecode.borrow_mut().push_data_stack_address();
+                self.bytecode
+                    .borrow_mut()
+                    .push_instruction(Instruction::Call(zinc_bytecode::Call::new(
+                        function_address,
+                        function_input_size,
+                    )));
+                self.bytecode.borrow_mut().pop_data_stack_address();
+
+                *function.return_type
+            }
+            FunctionType::DebugInstruction(instruction) => {
+                if !self.is_next_call_instruction {
+                    return Err(Error::FunctionInstructionSpecifierMissing(
+                        element.location,
+                        instruction.identifier,
+                    ));
+                }
+
+                let string = match argument_values.get(0) {
+                    Some(Element::Constant(Constant::String(string))) => string.to_owned(),
+                    Some(argument) => {
+                        return Err(Error::InstructionDebugExpectedString(
+                            element.location,
+                            argument.to_string(),
+                        ))
+                    }
+                    None => {
+                        return Err(Error::InstructionDebugExpectedString(
+                            element.location,
+                            "None".to_owned(),
+                        ))
+                    }
+                };
+
+                let debug_input_size = argument_values
+                    .into_iter()
+                    .skip(1)
+                    .map(|argument| match argument {
+                        Element::Constant(constant) => constant.r#type().size(),
+                        Element::Value(value) => value.r#type().size(),
+                        _ => 0,
+                    })
+                    .sum();
+
+                self.bytecode
+                    .borrow_mut()
+                    .push_instruction(Instruction::Log(zinc_bytecode::Dbg::new(
+                        string,
+                        debug_input_size,
+                    )));
+
+                Type::new_unit()
+            }
+            FunctionType::AssertInstruction(instruction) => {
+                if !self.is_next_call_instruction {
+                    return Err(Error::FunctionInstructionSpecifierMissing(
+                        element.location,
+                        instruction.identifier,
+                    ));
+                }
+
+                match argument_values.get(0) {
+                    Some(Element::Constant(Constant::Boolean(_))) => {}
+                    Some(Element::Value(Value::Boolean)) => {}
+                    Some(argument) => {
+                        return Err(Error::InstructionAssertExpectedBoolean(
+                            element.location,
+                            argument.to_string(),
+                        ))
+                    }
+                    None => {
+                        return Err(Error::InstructionAssertExpectedBoolean(
+                            element.location,
+                            "None".to_owned(),
+                        ))
+                    }
+                }
+
+                self.bytecode
+                    .borrow_mut()
+                    .push_instruction(Instruction::Assert(zinc_bytecode::Assert));
+
+                Type::new_unit()
+            }
+            FunctionType::StandardLibrary(function) => {
+                if self.is_next_call_instruction {
+                    return Err(Error::FunctionInstructionUnknown(
+                        element.location,
+                        function.identifier().to_owned(),
+                    ));
+                }
+
+                let builtin_identifier = function.builtin_identifier();
+
+                let (input_type, return_type) = match function {
+                    StandardLibraryFunctionType::Sha256(function) => {
+                        if argument_values.len() != 1
+                        /* TODO */
+                        {
+                            return Err(Error::FunctionArgumentCountMismatch(
+                                element.location,
+                                function.identifier.to_owned(),
+                                1, /* TODO */
+                                argument_values_count,
+                            ));
+                        }
+
+                        let actual_type = Type::from_element(&argument_values[0], self.scope())?;
+                        if !actual_type.is_bit_array() {
+                            return Err(Error::FunctionArgumentTypeMismatch(
+                                element.location,
+                                function.identifier.to_owned(),
+                                "preimage".to_owned(),
+                                "[bool; N]".to_string(),
+                                actual_type.to_string(),
+                            ));
+                        }
+                        (actual_type, *function.return_type)
+                    }
+                    StandardLibraryFunctionType::Pedersen(function) => {
+                        if argument_values.len() != 1
+                        /* TODO */
+                        {
+                            return Err(Error::FunctionArgumentCountMismatch(
+                                element.location,
+                                function.identifier.to_owned(),
+                                1, /* TODO */
+                                argument_values_count,
+                            ));
+                        }
+
+                        let actual_type = Type::from_element(&argument_values[0], self.scope())?;
+                        if !actual_type.is_bit_array() {
+                            return Err(Error::FunctionArgumentTypeMismatch(
+                                element.location,
+                                function.identifier.to_owned(),
+                                "preimage".to_owned(),
+                                "[bool; N]".to_string(),
+                                actual_type.to_string(),
+                            ));
+                        }
+                        (actual_type, *function.return_type)
+                    }
+                };
+
+                self.bytecode
+                    .borrow_mut()
+                    .push_instruction(Instruction::CallBuiltin(zinc_bytecode::CallBuiltin::new(
+                        builtin_identifier,
+                        input_type.size(),
+                        return_type.size(),
+                    )));
+
+                return_type
+            }
+        };
+
+        self.is_next_call_instruction = false;
+        self.push_operand(StackElement::Evaluated(Element::Value(Value::new(
+            return_type,
+        ))));
+        Ok(())
     }
 
     pub fn block_expression(&mut self, block: BlockExpression) -> Result<Element, Error> {
@@ -1165,15 +1229,34 @@ impl Analyzer {
             let location = identifier.location;
             let element = self.expression(expression, TranslationHint::ValueExpression)?;
             let element_type = Type::from_element(&element, self.scope())?;
-            let does_field_exist = structure_fields.iter().any(|(field_name, field_type)| {
-                field_name == &identifier.name && field_type == &element_type
-            });
-            if !does_field_exist {
-                return Err(Error::LiteralStructure(
-                    location,
-                    StructureValueError::FieldDoesNotExist(identifier.name, structure_identifier),
-                ));
+            let field = structure_fields
+                .iter()
+                .find(|(field_name, _field_type)| field_name == &identifier.name);
+
+            match field {
+                Some((_field_name, field_type)) => {
+                    if field_type != &element_type {
+                        return Err(Error::LiteralStructure(
+                            location,
+                            StructureValueError::FieldInvalidType(
+                                identifier.name,
+                                field_type.to_string(),
+                                element_type.to_string(),
+                            ),
+                        ));
+                    }
+                }
+                None => {
+                    return Err(Error::LiteralStructure(
+                        location,
+                        StructureValueError::FieldDoesNotExist(
+                            identifier.name,
+                            structure_identifier,
+                        ),
+                    ))
+                }
             }
+
             result
                 .push(identifier.name, element_type)
                 .map_err(|error| Error::LiteralStructure(location, error))?;

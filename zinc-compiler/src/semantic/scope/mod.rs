@@ -15,9 +15,10 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::str;
 
+use zinc_bytecode::builtins::BuiltinIdentifier;
+
 use crate::semantic::Constant;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::FunctionBehavior;
 use crate::semantic::Path;
 use crate::semantic::Type;
 use crate::semantic::Type as TypeItem;
@@ -171,55 +172,17 @@ impl Scope {
     fn default_items() -> HashMap<String, Item> {
         let mut items = HashMap::with_capacity(2);
 
-        items.insert(
-            "dbg".to_owned(),
-            Item::Type(Type::new_function(
-                "dbg".to_owned(),
-                vec![("format".to_owned(), Type::String)],
-                Type::Unit,
-                FunctionBehavior::Instruction,
-            )),
-        );
-        items.insert(
-            "assert".to_owned(),
-            Item::Type(Type::new_function(
-                "assert".to_owned(),
-                vec![
-                    ("condition".to_owned(), Type::Boolean),
-                    ("message".to_owned(), Type::String),
-                ],
-                Type::Unit,
-                FunctionBehavior::Instruction,
-            )),
-        );
+        items.insert("dbg".to_owned(), Item::Type(Type::new_dbg_function()));
+        items.insert("assert".to_owned(), Item::Type(Type::new_assert_function()));
 
         let mut std_scope = Scope::default();
         std_scope.items.insert(
             "sha256".to_owned(),
-            Item::Type(Type::new_function(
-                "sha256".to_owned(),
-                vec![(
-                    "preimage".to_owned(),
-                    Type::new_array(Type::new_integer_unsigned(crate::BITLENGTH_BYTE), 0),
-                )],
-                Type::new_array(
-                    Type::new_integer_unsigned(crate::BITLENGTH_BYTE),
-                    crate::SHA256_HASH_SIZE,
-                ),
-                FunctionBehavior::Hash(zinc_bytecode::builtins::BuiltinIdentifier::CryptoSha256),
-            )),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::CryptoSha256)),
         );
         std_scope.items.insert(
             "pedersen".to_owned(),
-            Item::Type(Type::new_function(
-                "pedersen".to_owned(),
-                vec![(
-                    "preimage".to_owned(),
-                    Type::new_array(Type::new_integer_unsigned(crate::BITLENGTH_BYTE), 0),
-                )],
-                Type::new_tuple(vec![Type::new_field(), Type::new_field()]),
-                FunctionBehavior::Hash(zinc_bytecode::builtins::BuiltinIdentifier::CryptoPedersen),
-            )),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::CryptoPedersen)),
         );
         items.insert(
             "std".to_owned(),

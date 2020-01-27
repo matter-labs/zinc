@@ -1,14 +1,14 @@
 extern crate franklin_crypto;
 
 use crate::gadgets::stdlib::crypto::{Pedersen, Sha256};
+use crate::gadgets::stdlib::from_bits::FromBits;
+use crate::gadgets::stdlib::to_bits::ToBits;
 use crate::gadgets::PrimitiveOperations;
 use crate::vm::{Cell, InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
 use crate::ZincEngine;
 use zinc_bytecode::builtins::BuiltinIdentifier;
 use zinc_bytecode::instructions::CallBuiltin;
-use crate::gadgets::stdlib::to_bits::ToBits;
-use crate::gadgets::stdlib::from_bits::FromBits;
 
 impl<E, O> VMInstruction<E, O> for CallBuiltin
 where
@@ -27,7 +27,7 @@ where
             BuiltinIdentifier::CryptoPedersen => vm.operations().execute(Pedersen, &input),
             BuiltinIdentifier::ToBits => vm.operations().execute(ToBits, &input),
             BuiltinIdentifier::FromBits => vm.operations().execute(FromBits, &input),
-//            f => unimplemented!("Builtin function {} is not implemented.", f)
+            //            f => unimplemented!("Builtin function {} is not implemented.", f)
         }?;
 
         for value in output {

@@ -22,18 +22,17 @@ impl<E: ZincEngine> Gadget<E> for ToBits {
             None => E::Fr::NUM_BITS as usize,
         };
 
-        let bits = num.into_bits_le_fixed(
-            cs.namespace(|| "into_bits_le"), len
-        )?;
+        let bits = num.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), len)?;
 
         let scalars = bits
             .into_iter()
-            .map(|bit| {
-                Primitive {
-                    value: bit.get_value_field::<E>(),
-                    variable: bit.get_variable().expect("into_bits_le_fixed must allocate").get_variable(),
-                    data_type: Some(ScalarType::BOOLEAN),
-                }
+            .map(|bit| Primitive {
+                value: bit.get_value_field::<E>(),
+                variable: bit
+                    .get_variable()
+                    .expect("into_bits_le_fixed must allocate")
+                    .get_variable(),
+                data_type: Some(ScalarType::BOOLEAN),
             })
             .collect();
 

@@ -2,15 +2,24 @@
 //! The semantic analyzer type element.
 //!
 
+mod function;
+
+pub use self::function::AssertInstructionFunction;
+pub use self::function::DebugInstructionFunction;
+pub use self::function::Function;
+pub use self::function::PedersenStandardLibraryFunction;
+pub use self::function::Sha256StandardLibraryFunction;
+pub use self::function::StandardLibraryFunction;
+pub use self::function::UserDefinedFunction;
+
 use std::cell::RefCell;
 use std::convert::TryFrom;
 use std::fmt;
 use std::rc::Rc;
 
 use num_bigint::BigInt;
-use serde_json::json;
-use serde_json::Map as JsonMap;
-use serde_json::Value as JsonValue;
+
+use zinc_bytecode::builtins::BuiltinIdentifier;
 
 use crate::semantic::Constant;
 use crate::semantic::Element;
@@ -53,19 +62,7 @@ pub enum Type {
         bitlength: usize,
         scope: Rc<RefCell<Scope>>,
     },
-    Function {
-        identifier: String,
-        arguments: Vec<(String, Self)>,
-        return_type: Box<Self>,
-        behavior: FunctionBehavior,
-    },
-}
-
-#[derive(Debug, Clone)]
-pub enum FunctionBehavior {
-    Normal,
-    Instruction,
-    Hash(zinc_bytecode::builtins::BuiltinIdentifier),
+    Function(Function),
 }
 
 impl Default for Type {
@@ -189,18 +186,28 @@ impl Type {
         Ok(enumeration)
     }
 
-    pub fn new_function(
+    pub fn new_assert_function() -> Self {
+        Self::Function(Function::new_assert())
+    }
+
+    pub fn new_dbg_function() -> Self {
+        Self::Function(Function::new_dbg())
+    }
+
+    pub fn new_std_function(builtin_identifier: BuiltinIdentifier) -> Self {
+        Self::Function(Function::new_std(builtin_identifier))
+    }
+
+    pub fn new_user_defined_function(
         identifier: String,
         arguments: Vec<(String, Self)>,
         return_type: Self,
-        behavior: FunctionBehavior,
     ) -> Self {
-        Self::Function {
+        Self::Function(Function::new_user_defined(
             identifier,
             arguments,
-            return_type: Box::new(return_type),
-            behavior,
-        }
+            return_type,
+        ))
     }
 
     pub fn size(&self) -> usize {
@@ -218,6 +225,13 @@ impl Type {
             }
             Self::Enumeration { .. } => 1,
             Self::Function { .. } => 0,
+        }
+    }
+
+    pub fn is_bit_array(&self) -> bool {
+        match self {
+            Self::Array { r#type, .. } => **r#type == Self::new_boolean(),
+            _ => false,
         }
     }
 
@@ -290,82 +304,6 @@ impl Type {
             _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
         })
     }
-
-    pub fn to_json_metadata(&self) -> Option<JsonValue> {
-        match self {
-            Self::Boolean => Some(json!({
-                "type": "field",
-                "is_signed": false,
-                "bitlength": crate::BITLENGTH_BOOLEAN,
-            })),
-            Self::IntegerUnsigned { bitlength } => Some(json!({
-                "type": "field",
-                "is_signed": false,
-                "bitlength": bitlength,
-            })),
-            Self::IntegerSigned { bitlength } => Some(json!({
-                "type": "field",
-                "is_signed": true,
-                "bitlength": bitlength,
-            })),
-            Self::Field => Some(json!({
-                "type": "field",
-                "is_signed": false,
-                "bitlength": crate::BITLENGTH_FIELD,
-            })),
-            Self::Enumeration { bitlength, .. } => Some(json!({
-                "type": "field",
-                "is_signed": false,
-                "bitlength": bitlength,
-            })),
-            Self::Array { r#type, size } => Some(json!({
-                "type": "array",
-                "size": size,
-                "array": r#type.to_json_metadata(),
-            })),
-            Self::Tuple { types } => Some(json!({
-                "type": "tuple",
-                "tuple": types.iter().filter_map(|r#type| r#type.to_json_metadata()).collect::<JsonValue>(),
-            })),
-            Self::Structure { fields, .. } => Some(json!({
-                "type": "structure",
-                "structure": fields.iter()
-                .filter_map(|(id, r#type)| r#type.to_json_metadata().map(|inner| (id.to_owned(), inner)))
-                .map(|(id, inner)| json!({
-                    "id": id,
-                    "value": inner,
-                })).collect::<JsonValue>(),
-            })),
-            _ => None,
-        }
-    }
-
-    pub fn to_json_template(&self) -> Option<JsonValue> {
-        match self {
-            Self::Boolean => Some(json!(false)),
-            Self::IntegerUnsigned { .. } => Some(json!("0")),
-            Self::IntegerSigned { .. } => Some(json!("0")),
-            Self::Field => Some(json!("0")),
-            Self::Enumeration { .. } => Some(json!("0")),
-            Self::Array { r#type, size } => r#type
-                .to_json_template()
-                .map(|r#type| json!(vec![r#type; *size])),
-            Self::Tuple { types } => Some(json!(types
-                .iter()
-                .filter_map(|r#type| r#type.to_json_template())
-                .collect::<JsonValue>())),
-            Self::Structure { fields, .. } => {
-                let mut map = JsonMap::with_capacity(fields.len());
-                for (field_name, field_type) in fields.iter() {
-                    if let Some(value) = field_type.to_json_template() {
-                        map.insert(field_name.to_owned(), value);
-                    }
-                }
-                Some(JsonValue::Object(map))
-            }
-            _ => None,
-        }
-    }
 }
 
 impl PartialEq<Type> for Type {
@@ -412,16 +350,6 @@ impl PartialEq<Type> for Type {
                     ..
                 },
             ) => identifier_1 == identifier_2,
-            (
-                Self::Function {
-                    identifier: identifier_1,
-                    ..
-                },
-                Self::Function {
-                    identifier: identifier_2,
-                    ..
-                },
-            ) => identifier_1 == identifier_2,
             _ => false,
         }
     }
@@ -459,22 +387,7 @@ impl fmt::Display for Type {
                     .join(", "),
             ),
             Self::Enumeration { identifier, .. } => write!(f, "enum {}", identifier),
-            Self::Function {
-                identifier,
-                arguments,
-                return_type,
-                ..
-            } => write!(
-                f,
-                "fn {}({}) -> {}",
-                identifier,
-                arguments
-                    .iter()
-                    .map(|(name, r#type)| format!("{}: {}", name, r#type))
-                    .collect::<Vec<String>>()
-                    .join(", "),
-                return_type,
-            ),
+            Self::Function(function) => write!(f, "{}", function),
         }
     }
 }

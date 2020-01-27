@@ -20,7 +20,6 @@ use crate::semantic::Constant;
 use crate::semantic::Element;
 use crate::semantic::Error;
 use crate::semantic::ExpressionAnalyzer;
-use crate::semantic::FunctionBehavior;
 use crate::semantic::IntegerConstant;
 use crate::semantic::IntegerConstantError;
 use crate::semantic::Scope;
@@ -269,12 +268,8 @@ impl Analyzer {
             ));
         }
         let return_type = Type::from_type_variant(&statement.return_type.variant, self.scope())?;
-        let r#type = Type::new_function(
-            identifier.clone(),
-            argument_bindings,
-            return_type,
-            FunctionBehavior::Normal,
-        );
+        let r#type =
+            Type::new_user_defined_function(identifier.clone(), argument_bindings, return_type);
 
         self.scope()
             .borrow_mut()

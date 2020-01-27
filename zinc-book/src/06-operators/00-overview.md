@@ -1,5 +1,8 @@
 # Operators
 
+Operators do not perform any kind of overflow checking. If an overflow happens,
+the Zinc VM will fail during proof generation.
+
 ## Assignment
 
 `=`
