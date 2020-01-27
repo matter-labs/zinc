@@ -7,6 +7,7 @@ use crate::vm::{RuntimeError, VirtualMachine};
 use crate::ZincEngine;
 use zinc_bytecode::builtins::BuiltinIdentifier;
 use zinc_bytecode::instructions::CallBuiltin;
+use crate::gadgets::stdlib::to_bits::ToBits;
 
 impl<E, O> VMInstruction<E, O> for CallBuiltin
 where
@@ -21,10 +22,9 @@ where
         }
 
         let output = match self.identifier {
-            BuiltinIdentifier::CryptoSha256 => vm.operations().execute(Sha256, input.as_slice()),
-            BuiltinIdentifier::CryptoPedersen => {
-                vm.operations().execute(Pedersen, input.as_slice())
-            },
+            BuiltinIdentifier::CryptoSha256 => vm.operations().execute(Sha256, &input),
+            BuiltinIdentifier::CryptoPedersen => vm.operations().execute(Pedersen, &input),
+            BuiltinIdentifier::ToBits => vm.operations().execute(ToBits, &input),
             f => unimplemented!("Builtin function {} is not implemented.", f)
         }?;
 
