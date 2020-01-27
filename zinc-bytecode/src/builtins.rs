@@ -7,6 +7,8 @@ use std::fmt::{Debug, Display, Error, Formatter};
 pub enum BuiltinIdentifier {
     CryptoSha256 = 1,
     CryptoPedersen = 2,
+    ToBits = 3,
+    FromBits = 4,
 }
 
 impl Display for BuiltinIdentifier {
@@ -14,6 +16,8 @@ impl Display for BuiltinIdentifier {
         let name = match self {
             BuiltinIdentifier::CryptoSha256 => "CryptoSha256",
             BuiltinIdentifier::CryptoPedersen => "CryptoPedersen",
+            BuiltinIdentifier::ToBits => "ToBits",
+            BuiltinIdentifier::FromBits => "FromBits",
         };
         f.write_str(name)
     }

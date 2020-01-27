@@ -13,7 +13,7 @@ type TestVirtualMachine = VirtualMachine<Bn256, TestElementOperator>;
 fn new_test_constrained_vm() -> TestVirtualMachine {
     let cs = TestConstraintSystem::new();
     let op = TestElementOperator::new(cs);
-    TestVirtualMachine::new(op)
+    TestVirtualMachine::new(op, true)
 }
 
 fn assert_stack_eq<E, O, BI>(vm: &mut VirtualMachine<E, O>, expected_stack: &[BI])

@@ -24,7 +24,8 @@ where
             BuiltinIdentifier::CryptoSha256 => vm.operations().execute(Sha256, input.as_slice()),
             BuiltinIdentifier::CryptoPedersen => {
                 vm.operations().execute(Pedersen, input.as_slice())
-            }
+            },
+            f => unimplemented!("Builtin function {} is not implemented.", f)
         }?;
 
         for value in output {
