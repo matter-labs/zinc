@@ -2,7 +2,9 @@
 //! The semantic analyzer standard library function type element.
 //!
 
+mod array_pad;
 mod array_reverse;
+mod array_truncate;
 mod error;
 mod from_bits_field;
 mod from_bits_signed;
@@ -11,7 +13,9 @@ mod pedersen;
 mod sha256;
 mod to_bits;
 
+pub use self::array_pad::ArrayPadStandardLibraryFunction;
 pub use self::array_reverse::ArrayReverseStandardLibraryFunction;
+pub use self::array_truncate::ArrayTruncateStandardLibraryFunction;
 pub use self::error::Error;
 pub use self::from_bits_field::FromBitsFieldStandardLibraryFunction;
 pub use self::from_bits_signed::FromBitsSignedStandardLibraryFunction;
@@ -33,6 +37,8 @@ pub enum StandardLibraryFunction {
     FromBitsSigned(FromBitsSignedStandardLibraryFunction),
     FromBitsField(FromBitsFieldStandardLibraryFunction),
     ArrayReverse(ArrayReverseStandardLibraryFunction),
+    ArrayTruncate(ArrayTruncateStandardLibraryFunction),
+    ArrayPad(ArrayPadStandardLibraryFunction),
 }
 
 impl StandardLibraryFunction {
@@ -55,7 +61,10 @@ impl StandardLibraryFunction {
             BuiltinIdentifier::ArrayReverse => {
                 Self::ArrayReverse(ArrayReverseStandardLibraryFunction::new())
             }
-            _ => unimplemented!(),
+            BuiltinIdentifier::ArrayTruncate => {
+                Self::ArrayTruncate(ArrayTruncateStandardLibraryFunction::new())
+            }
+            BuiltinIdentifier::ArrayPad => Self::ArrayPad(ArrayPadStandardLibraryFunction::new()),
         }
     }
 
@@ -68,6 +77,8 @@ impl StandardLibraryFunction {
             Self::FromBitsSigned(inner) => inner.identifier,
             Self::FromBitsField(inner) => inner.identifier,
             Self::ArrayReverse(inner) => inner.identifier,
+            Self::ArrayTruncate(inner) => inner.identifier,
+            Self::ArrayPad(inner) => inner.identifier,
         }
     }
 
@@ -82,6 +93,8 @@ impl StandardLibraryFunction {
             Self::FromBitsSigned(_) => FromBitsSignedStandardLibraryFunction::builtin_identifier(),
             Self::FromBitsField(_) => FromBitsFieldStandardLibraryFunction::builtin_identifier(),
             Self::ArrayReverse(_) => FromBitsFieldStandardLibraryFunction::builtin_identifier(),
+            Self::ArrayTruncate(_) => FromBitsFieldStandardLibraryFunction::builtin_identifier(),
+            Self::ArrayPad(_) => FromBitsFieldStandardLibraryFunction::builtin_identifier(),
         }
     }
 }
@@ -96,6 +109,8 @@ impl fmt::Display for StandardLibraryFunction {
             Self::FromBitsSigned(inner) => write!(f, "{}", inner),
             Self::FromBitsField(inner) => write!(f, "{}", inner),
             Self::ArrayReverse(inner) => write!(f, "{}", inner),
+            Self::ArrayTruncate(inner) => write!(f, "{}", inner),
+            Self::ArrayPad(inner) => write!(f, "{}", inner),
         }
     }
 }

@@ -170,33 +170,69 @@ impl Scope {
     }
 
     fn default_items() -> HashMap<String, Item> {
-        let mut items = HashMap::with_capacity(2);
-
-        items.insert("dbg".to_owned(), Item::Type(Type::new_dbg_function()));
-        items.insert("assert".to_owned(), Item::Type(Type::new_assert_function()));
-
-        let mut std_scope = Scope::default();
-        std_scope.items.insert(
+        let mut std_crypto_scope = Scope::default();
+        std_crypto_scope.items.insert(
             "sha256".to_owned(),
             Item::Type(Type::new_std_function(BuiltinIdentifier::CryptoSha256)),
         );
-        std_scope.items.insert(
+        std_crypto_scope.items.insert(
             "pedersen".to_owned(),
             Item::Type(Type::new_std_function(BuiltinIdentifier::CryptoPedersen)),
         );
-        std_scope.items.insert(
-            "from_bits".to_owned(),
-            Item::Type(Type::new_std_function(BuiltinIdentifier::UnsignedFromBits)),
-        );
-        std_scope.items.insert(
+
+        let mut std_convert_scope = Scope::default();
+        std_convert_scope.items.insert(
             "to_bits".to_owned(),
             Item::Type(Type::new_std_function(BuiltinIdentifier::ToBits)),
         );
+        std_convert_scope.items.insert(
+            "from_bits_unsigned".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::UnsignedFromBits)),
+        );
+        std_convert_scope.items.insert(
+            "from_bits_signed".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::SignedFromBits)),
+        );
+        std_convert_scope.items.insert(
+            "from_bits_field".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::FieldFromBits)),
+        );
+
+        let mut std_array_scope = Scope::default();
+        std_array_scope.items.insert(
+            "reverse".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::ArrayReverse)),
+        );
+        std_array_scope.items.insert(
+            "truncate".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::ArrayReverse)),
+        );
+        std_array_scope.items.insert(
+            "pad".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::ArrayReverse)),
+        );
+
+        let mut std_scope = Scope::default();
+        std_scope.items.insert(
+            "crypto".to_owned(),
+            Item::Module(Rc::new(RefCell::new(std_crypto_scope))),
+        );
+        std_scope.items.insert(
+            "convert".to_owned(),
+            Item::Module(Rc::new(RefCell::new(std_convert_scope))),
+        );
+        std_scope.items.insert(
+            "array".to_owned(),
+            Item::Module(Rc::new(RefCell::new(std_array_scope))),
+        );
+
+        let mut items = HashMap::with_capacity(2);
+        items.insert("dbg".to_owned(), Item::Type(Type::new_dbg_function()));
+        items.insert("assert".to_owned(), Item::Type(Type::new_assert_function()));
         items.insert(
             "std".to_owned(),
             Item::Module(Rc::new(RefCell::new(std_scope))),
         );
-
         items
     }
 }

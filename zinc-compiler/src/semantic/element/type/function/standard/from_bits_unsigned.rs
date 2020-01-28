@@ -51,13 +51,11 @@ impl FromBitsUnsignedStandardLibraryFunction {
                 "[bool; {{N}}]".to_owned(),
                 r#type.to_string(),
             )),
-            None => {
-                return Err(StandardLibraryFunctionError::ArgumentCount(
-                    self.identifier,
-                    self.arguments_count(),
-                    inputs.len(),
-                ))
-            }
+            None => Err(StandardLibraryFunctionError::ArgumentCount(
+                self.identifier,
+                self.arguments_count(),
+                inputs.len(),
+            )),
         }
     }
 }

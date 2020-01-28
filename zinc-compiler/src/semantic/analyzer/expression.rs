@@ -584,11 +584,10 @@ impl Analyzer {
         };
 
         // check the number of the arguments
-        let argument_values = match operand_2 {
+        let argument_elements = match operand_2 {
             Element::ArgumentList(values) => values,
             _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
         };
-        let argument_values_count = argument_values.len();
 
         let return_type = match function {
             FunctionType::UserDefined(function) => {
@@ -599,12 +598,12 @@ impl Analyzer {
                     ));
                 }
 
-                if argument_values.len() != function.arguments.len() {
+                if argument_elements.len() != function.arguments.len() {
                     return Err(Error::FunctionArgumentCountMismatch(
                         element.location,
                         function.identifier,
                         function.arguments.len(),
-                        argument_values_count,
+                        argument_elements.len(),
                     ));
                 }
 
@@ -623,7 +622,7 @@ impl Analyzer {
                     function.arguments.into_iter().enumerate()
                 {
                     let actual_type =
-                        Type::from_element(&argument_values[argument_index], self.scope())?;
+                        Type::from_element(&argument_elements[argument_index], self.scope())?;
                     if expected_type != actual_type {
                         return Err(Error::FunctionArgumentTypeMismatch(
                             element.location,
@@ -654,7 +653,7 @@ impl Analyzer {
                     ));
                 }
 
-                let string = match argument_values.get(0) {
+                let string = match argument_elements.get(0) {
                     Some(Element::Constant(Constant::String(string))) => string.to_owned(),
                     Some(argument) => {
                         return Err(Error::InstructionDebugExpectedString(
@@ -670,7 +669,7 @@ impl Analyzer {
                     }
                 };
 
-                let debug_input_size = argument_values
+                let debug_input_size = argument_elements
                     .into_iter()
                     .skip(1)
                     .map(|argument| match argument {
@@ -697,7 +696,7 @@ impl Analyzer {
                     ));
                 }
 
-                match argument_values.get(0) {
+                match argument_elements.get(0) {
                     Some(Element::Constant(Constant::Boolean(_))) => {}
                     Some(Element::Value(Value::Boolean)) => {}
                     Some(argument) => {
@@ -730,8 +729,8 @@ impl Analyzer {
 
                 let builtin_identifier = function.builtin_identifier();
 
-                let mut arguments = Vec::with_capacity(argument_values_count);
-                for element in argument_values.iter() {
+                let mut arguments = Vec::with_capacity(argument_elements.len());
+                for element in argument_elements.iter() {
                     arguments.push(Type::from_element(element, self.scope())?);
                 }
 
@@ -757,6 +756,48 @@ impl Analyzer {
                     StandardLibraryFunctionType::ArrayReverse(function) => function
                         .validate(arguments.as_slice())
                         .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                    StandardLibraryFunctionType::ArrayTruncate(function) => {
+                        match argument_elements.get(1) {
+                            Some(Element::Constant(Constant::Integer(
+                                integer @ IntegerConstant { .. },
+                            ))) if integer.is_signed => {
+                                let new_length = integer.to_usize().unwrap();
+                                function
+                                    .validate(arguments.as_slice(), new_length)
+                                    .map_err(|error| {
+                                        Error::FunctionStandardLibrary(element.location, error)
+                                    })?
+                            }
+                            argument => {
+                                return Err(Error::FunctionExpectedConstantArgument(
+                                    element.location,
+                                    function.identifier,
+                                    format!("{:?}", argument),
+                                ))
+                            }
+                        }
+                    }
+                    StandardLibraryFunctionType::ArrayPad(function) => {
+                        match argument_elements.get(1) {
+                            Some(Element::Constant(Constant::Integer(
+                                integer @ IntegerConstant { .. },
+                            ))) if integer.is_signed => {
+                                let new_length = integer.to_usize().unwrap();
+                                function
+                                    .validate(arguments.as_slice(), new_length)
+                                    .map_err(|error| {
+                                        Error::FunctionStandardLibrary(element.location, error)
+                                    })?
+                            }
+                            argument => {
+                                return Err(Error::FunctionExpectedConstantArgument(
+                                    element.location,
+                                    function.identifier,
+                                    format!("{:?}", argument),
+                                ))
+                            }
+                        }
+                    }
                 };
 
                 self.bytecode

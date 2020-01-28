@@ -104,6 +104,11 @@ pub enum Error {
     FunctionInstructionUnknown(Location, String),
     #[fail(display = "{} built-in function '{}' must be called with '!'", _0, _1)]
     FunctionInstructionSpecifierMissing(Location, &'static str),
+    #[fail(
+        display = "{} function '{}' expected a constant argument, but got '{}'",
+        _0, _1, _2
+    )]
+    FunctionExpectedConstantArgument(Location, &'static str, String),
 
     #[fail(display = "{} {}", _0, _1)]
     FunctionStandardLibrary(Location, StandardLibraryFunctionError),
@@ -148,6 +153,6 @@ pub enum Error {
     )]
     InstructionAssertExpectedBoolean(Location, String),
 
-    #[fail(display = "references not implemented")]
+    #[fail(display = "references are not implemented yet")]
     ReferencesNotImplemented,
 }

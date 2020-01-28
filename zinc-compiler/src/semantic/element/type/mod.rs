@@ -239,6 +239,21 @@ impl Type {
         }
     }
 
+    pub fn is_scalar_unsigned(&self) -> bool {
+        match self {
+            Self::IntegerUnsigned { .. } => true,
+            Self::Field => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_scalar_signed(&self) -> bool {
+        match self {
+            Self::IntegerSigned { .. } => true,
+            _ => false,
+        }
+    }
+
     pub fn is_bit_array(&self) -> bool {
         match self {
             Self::Array { r#type, .. } => **r#type == Self::new_boolean(),

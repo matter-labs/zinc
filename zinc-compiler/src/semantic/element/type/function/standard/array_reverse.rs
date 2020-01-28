@@ -3,6 +3,7 @@
 //!
 
 use std::fmt;
+use std::ops::Deref;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
@@ -31,7 +32,9 @@ impl ArrayReverseStandardLibraryFunction {
 
     pub fn validate(&self, inputs: &[Type]) -> Result<Type, StandardLibraryFunctionError> {
         match inputs.get(0) {
-            Some(array @ Type::Array { .. }) if array.is_scalar() => Ok(array.to_owned()),
+            Some(Type::Array { r#type, size }) if r#type.is_scalar() => {
+                Ok(Type::new_array(r#type.deref().to_owned(), *size))
+            }
             Some(r#type) => Err(StandardLibraryFunctionError::ArgumentType(
                 self.identifier,
                 "[{scalar}; {N}]".to_owned(),

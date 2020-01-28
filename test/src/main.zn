@@ -1,14 +1,5 @@
-struct Output {
-    to_bits: [bool; 128],
-    from_bits: u128,
-}
-
-fn main() -> Output {
-    let value: u128 = 42;
-    let to_bits = std::to_bits(value);
-    let from_bits = std::from_bits(to_bits);
-    struct Output {
-        to_bits: to_bits,
-        from_bits: from_bits,
-    }
+fn main() {
+    let array = [1, 2, 3, 4, 5];
+    let reversed = std::array::reverse(array);
+    dbg!("{}", reversed);
 }
