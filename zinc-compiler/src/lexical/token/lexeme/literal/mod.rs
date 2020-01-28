@@ -2,15 +2,15 @@
 //! The lexical token literal lexeme.
 //!
 
-mod boolean;
-mod integer;
-mod string;
-
-pub use self::boolean::Boolean;
-pub use self::integer::Integer;
-pub use self::string::String;
+pub mod boolean;
+pub mod integer;
+pub mod string;
 
 use std::fmt;
+
+use self::boolean::Boolean;
+use self::integer::Integer;
+use self::string::String;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Literal {

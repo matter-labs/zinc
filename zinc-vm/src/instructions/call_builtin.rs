@@ -27,7 +27,7 @@ where
             BuiltinIdentifier::CryptoPedersen => vm.operations().execute(Pedersen, &input),
             BuiltinIdentifier::ToBits => vm.operations().execute(ToBits, &input),
             BuiltinIdentifier::UnsignedFromBits => vm.operations().execute(FromBits, &input),
-            f => unimplemented!("Builtin function {} is not implemented.", f)
+            f => unimplemented!("Builtin function {} is not implemented.", f),
         }?;
 
         for value in output {

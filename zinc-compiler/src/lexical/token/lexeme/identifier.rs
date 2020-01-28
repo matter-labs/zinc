@@ -7,7 +7,7 @@ use std::fmt;
 
 use failure::Fail;
 
-use crate::lexical::Keyword;
+use crate::lexical::token::lexeme::keyword::Keyword;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Identifier {

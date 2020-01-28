@@ -1,10 +1,10 @@
 struct Output {
-    to_bits: [bool; 256],
-    from_bits: field,
+    to_bits: [bool; 128],
+    from_bits: u128,
 }
 
 fn main() -> Output {
-    let value: field = 42;
+    let value: u128 = 42;
     let to_bits = std::to_bits(value);
     let from_bits = std::from_bits(to_bits);
     struct Output {

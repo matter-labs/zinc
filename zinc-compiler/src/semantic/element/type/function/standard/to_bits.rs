@@ -6,6 +6,7 @@ use std::fmt;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
+use crate::semantic::StandardLibraryFunctionError;
 use crate::semantic::Type;
 
 #[derive(Debug, Default, Clone)]
@@ -28,20 +29,29 @@ impl ToBitsStandardLibraryFunction {
         1
     }
 
-    pub fn simulate(&self, input: &Type) -> Option<Type> {
-        match input {
-            Type::Boolean => Some(Type::new_array(
+    pub fn validate(&self, inputs: &[Type]) -> Result<Type, StandardLibraryFunctionError> {
+        match inputs.get(0) {
+            Some(Type::Boolean) => Ok(Type::new_array(
                 Type::new_boolean(),
                 crate::BITLENGTH_BOOLEAN,
             )),
-            Type::IntegerUnsigned { bitlength } => {
-                Some(Type::new_array(Type::new_boolean(), *bitlength))
+            Some(Type::IntegerUnsigned { bitlength }) => {
+                Ok(Type::new_array(Type::new_boolean(), *bitlength))
             }
-            Type::Field => Some(Type::new_array(
-                Type::new_boolean(),
-                crate::BITLENGTH_FIELD_PADDED,
+            Some(Type::IntegerSigned { bitlength }) => {
+                Ok(Type::new_array(Type::new_boolean(), *bitlength))
+            }
+            Some(Type::Field) => Ok(Type::new_array(Type::new_boolean(), crate::BITLENGTH_FIELD)),
+            Some(r#type) => Err(StandardLibraryFunctionError::ArgumentType(
+                self.identifier,
+                "integer".to_owned(),
+                r#type.to_string(),
             )),
-            _ => None,
+            None => Err(StandardLibraryFunctionError::ArgumentCount(
+                self.identifier,
+                self.arguments_count(),
+                inputs.len(),
+            )),
         }
     }
 }

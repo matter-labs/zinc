@@ -38,6 +38,7 @@ pub use self::element::PedersenStandardLibraryFunctionType;
 pub use self::element::Place;
 pub use self::element::PlaceError;
 pub use self::element::Sha256StandardLibraryFunctionType;
+pub use self::element::StandardLibraryFunctionError;
 pub use self::element::StandardLibraryFunctionType;
 pub use self::element::Structure;
 pub use self::element::StructureValueError;

@@ -2,12 +2,20 @@
 //! The semantic analyzer standard library function type element.
 //!
 
-mod from_bits;
+mod array_reverse;
+mod error;
+mod from_bits_field;
+mod from_bits_signed;
+mod from_bits_unsigned;
 mod pedersen;
 mod sha256;
 mod to_bits;
 
-pub use self::from_bits::FromBitsStandardLibraryFunction;
+pub use self::array_reverse::ArrayReverseStandardLibraryFunction;
+pub use self::error::Error;
+pub use self::from_bits_field::FromBitsFieldStandardLibraryFunction;
+pub use self::from_bits_signed::FromBitsSignedStandardLibraryFunction;
+pub use self::from_bits_unsigned::FromBitsUnsignedStandardLibraryFunction;
 pub use self::pedersen::PedersenStandardLibraryFunction;
 pub use self::sha256::Sha256StandardLibraryFunction;
 pub use self::to_bits::ToBitsStandardLibraryFunction;
@@ -20,33 +28,46 @@ use zinc_bytecode::builtins::BuiltinIdentifier;
 pub enum StandardLibraryFunction {
     Sha256(Sha256StandardLibraryFunction),
     Pedersen(PedersenStandardLibraryFunction),
-    FromBits(FromBitsStandardLibraryFunction),
     ToBits(ToBitsStandardLibraryFunction),
+    FromBitsUnsigned(FromBitsUnsignedStandardLibraryFunction),
+    FromBitsSigned(FromBitsSignedStandardLibraryFunction),
+    FromBitsField(FromBitsFieldStandardLibraryFunction),
+    ArrayReverse(ArrayReverseStandardLibraryFunction),
 }
 
 impl StandardLibraryFunction {
-    pub fn new_sha256() -> Self {
-        Self::Sha256(Sha256StandardLibraryFunction::new())
-    }
-
-    pub fn new_pedersen() -> Self {
-        Self::Pedersen(PedersenStandardLibraryFunction::new())
-    }
-
-    pub fn new_from_bits() -> Self {
-        Self::FromBits(FromBitsStandardLibraryFunction::new())
-    }
-
-    pub fn new_to_bits() -> Self {
-        Self::ToBits(ToBitsStandardLibraryFunction::new())
+    pub fn new(identifier: BuiltinIdentifier) -> Self {
+        match identifier {
+            BuiltinIdentifier::CryptoSha256 => Self::Sha256(Sha256StandardLibraryFunction::new()),
+            BuiltinIdentifier::CryptoPedersen => {
+                Self::Pedersen(PedersenStandardLibraryFunction::new())
+            }
+            BuiltinIdentifier::ToBits => Self::ToBits(ToBitsStandardLibraryFunction::new()),
+            BuiltinIdentifier::UnsignedFromBits => {
+                Self::FromBitsUnsigned(FromBitsUnsignedStandardLibraryFunction::new())
+            }
+            BuiltinIdentifier::SignedFromBits => {
+                Self::FromBitsSigned(FromBitsSignedStandardLibraryFunction::new())
+            }
+            BuiltinIdentifier::FieldFromBits => {
+                Self::FromBitsField(FromBitsFieldStandardLibraryFunction::new())
+            }
+            BuiltinIdentifier::ArrayReverse => {
+                Self::ArrayReverse(ArrayReverseStandardLibraryFunction::new())
+            }
+            _ => unimplemented!(),
+        }
     }
 
     pub fn identifier(&self) -> &'static str {
         match self {
             Self::Sha256(inner) => inner.identifier,
             Self::Pedersen(inner) => inner.identifier,
-            Self::FromBits(inner) => inner.identifier,
             Self::ToBits(inner) => inner.identifier,
+            Self::FromBitsUnsigned(inner) => inner.identifier,
+            Self::FromBitsSigned(inner) => inner.identifier,
+            Self::FromBitsField(inner) => inner.identifier,
+            Self::ArrayReverse(inner) => inner.identifier,
         }
     }
 
@@ -54,8 +75,13 @@ impl StandardLibraryFunction {
         match self {
             Self::Sha256(_) => Sha256StandardLibraryFunction::builtin_identifier(),
             Self::Pedersen(_) => PedersenStandardLibraryFunction::builtin_identifier(),
-            Self::FromBits(_) => FromBitsStandardLibraryFunction::builtin_identifier(),
             Self::ToBits(_) => ToBitsStandardLibraryFunction::builtin_identifier(),
+            Self::FromBitsUnsigned(_) => {
+                FromBitsUnsignedStandardLibraryFunction::builtin_identifier()
+            }
+            Self::FromBitsSigned(_) => FromBitsSignedStandardLibraryFunction::builtin_identifier(),
+            Self::FromBitsField(_) => FromBitsFieldStandardLibraryFunction::builtin_identifier(),
+            Self::ArrayReverse(_) => FromBitsFieldStandardLibraryFunction::builtin_identifier(),
         }
     }
 }
@@ -65,8 +91,11 @@ impl fmt::Display for StandardLibraryFunction {
         match self {
             Self::Sha256(inner) => write!(f, "{}", inner),
             Self::Pedersen(inner) => write!(f, "{}", inner),
-            Self::FromBits(inner) => write!(f, "{}", inner),
             Self::ToBits(inner) => write!(f, "{}", inner),
+            Self::FromBitsUnsigned(inner) => write!(f, "{}", inner),
+            Self::FromBitsSigned(inner) => write!(f, "{}", inner),
+            Self::FromBitsField(inner) => write!(f, "{}", inner),
+            Self::ArrayReverse(inner) => write!(f, "{}", inner),
         }
     }
 }

@@ -5,7 +5,7 @@
 use std::convert::TryFrom;
 use std::fmt;
 
-use crate::lexical::Keyword;
+use crate::lexical::token::lexeme::keyword::Keyword;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Boolean {

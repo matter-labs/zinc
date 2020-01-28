@@ -9,6 +9,7 @@ mod user;
 
 pub use self::assert::AssertInstructionFunction;
 pub use self::debug::DebugInstructionFunction;
+pub use self::standard::Error as StandardLibraryFunctionError;
 pub use self::standard::PedersenStandardLibraryFunction;
 pub use self::standard::Sha256StandardLibraryFunction;
 pub use self::standard::StandardLibraryFunction;
@@ -38,13 +39,7 @@ impl Function {
     }
 
     pub fn new_std(identifier: BuiltinIdentifier) -> Self {
-        Self::StandardLibrary(match identifier {
-            BuiltinIdentifier::CryptoSha256 => StandardLibraryFunction::new_sha256(),
-            BuiltinIdentifier::CryptoPedersen => StandardLibraryFunction::new_pedersen(),
-            BuiltinIdentifier::UnsignedFromBits => StandardLibraryFunction::new_from_bits(),
-            BuiltinIdentifier::ToBits => StandardLibraryFunction::new_to_bits(),
-            function => unimplemented!("function `{}` is not implemented", function)
-        })
+        Self::StandardLibrary(StandardLibraryFunction::new(identifier))
     }
 
     pub fn new_user_defined(

@@ -10,6 +10,7 @@ pub use self::function::Function;
 pub use self::function::PedersenStandardLibraryFunction;
 pub use self::function::Sha256StandardLibraryFunction;
 pub use self::function::StandardLibraryFunction;
+pub use self::function::StandardLibraryFunctionError;
 pub use self::function::UserDefinedFunction;
 
 use std::cell::RefCell;
@@ -228,6 +229,16 @@ impl Type {
         }
     }
 
+    pub fn is_scalar(&self) -> bool {
+        match self {
+            Self::Boolean => true,
+            Self::IntegerUnsigned { .. } => true,
+            Self::IntegerSigned { .. } => true,
+            Self::Field => true,
+            _ => false,
+        }
+    }
+
     pub fn is_bit_array(&self) -> bool {
         match self {
             Self::Array { r#type, .. } => **r#type == Self::new_boolean(),
@@ -240,6 +251,13 @@ impl Type {
             Self::Array { r#type, .. } => {
                 **r#type == Self::new_integer_unsigned(crate::BITLENGTH_BYTE)
             }
+            _ => false,
+        }
+    }
+
+    pub fn is_scalar_array(&self) -> bool {
+        match self {
+            Self::Array { r#type, .. } => r#type.is_scalar(),
             _ => false,
         }
     }

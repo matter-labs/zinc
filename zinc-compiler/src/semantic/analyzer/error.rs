@@ -9,6 +9,7 @@ use crate::semantic::ArrayValueError;
 use crate::semantic::ElementError;
 use crate::semantic::IntegerConstantError;
 use crate::semantic::ScopeError;
+use crate::semantic::StandardLibraryFunctionError;
 use crate::semantic::StructureValueError;
 
 #[derive(Debug, Fail, PartialEq)]
@@ -104,23 +105,10 @@ pub enum Error {
     #[fail(display = "{} built-in function '{}' must be called with '!'", _0, _1)]
     FunctionInstructionSpecifierMissing(Location, &'static str),
 
+    #[fail(display = "{} {}", _0, _1)]
+    FunctionStandardLibrary(Location, StandardLibraryFunctionError),
     #[fail(display = "function 'main' is missing")]
     FunctionMainMissing,
-    #[fail(
-        display = "function 'main' expected exactly two arguments, but got {}",
-        _0
-    )]
-    FunctionMainExpectedTwoArguments(usize),
-    #[fail(
-        display = "function 'main' expected 'input' as the first argument, but got '{}'",
-        _0
-    )]
-    FunctionMainExpectedInputAsFirstArgument(String),
-    #[fail(
-        display = "function 'main' expected 'witness' as the second argument, but got '{}'",
-        _0
-    )]
-    FunctionMainExpectedWitnessAsSecondArgument(String),
 
     #[fail(display = "{} module '{}' not found in the project", _0, _1)]
     ModuleNotFound(Location, String),

@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer standard library `pedersen` function type element.
+//! The semantic analyzer standard library `from_bits_signed` function type element.
 //!
 
 use std::fmt;
@@ -11,21 +11,19 @@ use crate::semantic::StandardLibraryFunctionError;
 use crate::semantic::Type;
 
 #[derive(Debug, Default, Clone)]
-pub struct PedersenStandardLibraryFunction {
+pub struct FromBitsSignedStandardLibraryFunction {
     pub identifier: &'static str,
-    pub return_type: Box<Type>,
 }
 
-impl PedersenStandardLibraryFunction {
+impl FromBitsSignedStandardLibraryFunction {
     pub fn new() -> Self {
         Self {
-            identifier: "pedersen",
-            return_type: Box::new(Type::new_tuple(vec![Type::new_field(), Type::new_field()])),
+            identifier: "from_bits_signed",
         }
     }
 
     pub fn builtin_identifier() -> BuiltinIdentifier {
-        BuiltinIdentifier::CryptoPedersen
+        BuiltinIdentifier::SignedFromBits
     }
 
     pub fn arguments_count(&self) -> usize {
@@ -35,16 +33,22 @@ impl PedersenStandardLibraryFunction {
     pub fn validate(&self, inputs: &[Type]) -> Result<Type, StandardLibraryFunctionError> {
         match inputs.get(0) {
             Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
-                (Type::Boolean, _) => Ok(self.return_type.deref().to_owned()),
+                (Type::Boolean, size)
+                    if crate::BITLENGTH_BYTE <= size
+                        && size <= crate::BITLENGTH_MAX_INT
+                        && size % crate::BITLENGTH_BYTE == 0 =>
+                {
+                    Ok(Type::new_integer_signed(size))
+                }
                 (r#type, size) => Err(StandardLibraryFunctionError::ArgumentType(
                     self.identifier,
-                    "[bool; {N}]".to_owned(),
+                    "[bool; {{N}}]".to_owned(),
                     format!("[{}; {}]", r#type, size),
                 )),
             },
             Some(r#type) => Err(StandardLibraryFunctionError::ArgumentType(
                 self.identifier,
-                "[bool; {N}]".to_owned(),
+                "[bool; {{N}}]".to_owned(),
                 r#type.to_string(),
             )),
             None => Err(StandardLibraryFunctionError::ArgumentCount(
@@ -56,12 +60,12 @@ impl PedersenStandardLibraryFunction {
     }
 }
 
-impl fmt::Display for PedersenStandardLibraryFunction {
+impl fmt::Display for FromBitsSignedStandardLibraryFunction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "fn std::{}(preimage: [bool: N]) -> {}",
-            self.identifier, self.return_type,
+            "fn std::{}(bits: [bool; {{N}}]) -> i{{N}}",
+            self.identifier
         )
     }
 }

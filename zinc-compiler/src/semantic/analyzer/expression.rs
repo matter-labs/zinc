@@ -730,108 +730,40 @@ impl Analyzer {
 
                 let builtin_identifier = function.builtin_identifier();
 
-                let (input_type, return_type) = match function {
-                    StandardLibraryFunctionType::Sha256(function) => {
-                        if argument_values.len() != function.arguments_count() {
-                            return Err(Error::FunctionArgumentCountMismatch(
-                                element.location,
-                                function.identifier.to_owned(),
-                                function.arguments_count(),
-                                argument_values_count,
-                            ));
-                        }
+                let mut arguments = Vec::with_capacity(argument_values_count);
+                for element in argument_values.iter() {
+                    arguments.push(Type::from_element(element, self.scope())?);
+                }
 
-                        let actual_type = Type::from_element(&argument_values[0], self.scope())?;
-                        if !actual_type.is_bit_array() {
-                            return Err(Error::FunctionArgumentTypeMismatch(
-                                element.location,
-                                function.identifier.to_owned(),
-                                "preimage".to_owned(),
-                                "[bool; N]".to_string(),
-                                actual_type.to_string(),
-                            ));
-                        }
-                        (actual_type, *function.return_type)
-                    }
-                    StandardLibraryFunctionType::Pedersen(function) => {
-                        if argument_values.len() != function.arguments_count() {
-                            return Err(Error::FunctionArgumentCountMismatch(
-                                element.location,
-                                function.identifier.to_owned(),
-                                function.arguments_count(),
-                                argument_values_count,
-                            ));
-                        }
-
-                        let actual_type = Type::from_element(&argument_values[0], self.scope())?;
-                        if !actual_type.is_bit_array() {
-                            return Err(Error::FunctionArgumentTypeMismatch(
-                                element.location,
-                                function.identifier.to_owned(),
-                                "preimage".to_owned(),
-                                "[bool; N]".to_string(),
-                                actual_type.to_string(),
-                            ));
-                        }
-                        (actual_type, *function.return_type)
-                    }
-                    StandardLibraryFunctionType::FromBits(function) => {
-                        if argument_values.len() != function.arguments_count() {
-                            return Err(Error::FunctionArgumentCountMismatch(
-                                element.location,
-                                function.identifier.to_owned(),
-                                function.arguments_count(),
-                                argument_values_count,
-                            ));
-                        }
-
-                        let input_type = Type::from_element(&argument_values[0], self.scope())?;
-                        let return_type = match function.simulate(&input_type) {
-                            Some(return_type) => return_type,
-                            None => {
-                                return Err(Error::FunctionArgumentTypeMismatch(
-                                    element.location,
-                                    function.identifier.to_owned(),
-                                    "bits".to_owned(),
-                                    "[bool; N]".to_string(),
-                                    input_type.to_string(),
-                                ))
-                            }
-                        };
-                        (input_type, return_type)
-                    }
-                    StandardLibraryFunctionType::ToBits(function) => {
-                        if argument_values.len() != function.arguments_count() {
-                            return Err(Error::FunctionArgumentCountMismatch(
-                                element.location,
-                                function.identifier.to_owned(),
-                                function.arguments_count(),
-                                argument_values_count,
-                            ));
-                        }
-
-                        let input_type = Type::from_element(&argument_values[0], self.scope())?;
-                        let return_type = match function.simulate(&input_type) {
-                            Some(return_type) => return_type,
-                            None => {
-                                return Err(Error::FunctionArgumentTypeMismatch(
-                                    element.location,
-                                    function.identifier.to_owned(),
-                                    "value".to_owned(),
-                                    "u{N}".to_string(),
-                                    input_type.to_string(),
-                                ))
-                            }
-                        };
-                        (input_type, return_type)
-                    }
+                let return_type = match function {
+                    StandardLibraryFunctionType::Sha256(function) => function
+                        .validate(arguments.as_slice())
+                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                    StandardLibraryFunctionType::Pedersen(function) => function
+                        .validate(arguments.as_slice())
+                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                    StandardLibraryFunctionType::ToBits(function) => function
+                        .validate(arguments.as_slice())
+                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                    StandardLibraryFunctionType::FromBitsUnsigned(function) => function
+                        .validate(arguments.as_slice())
+                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                    StandardLibraryFunctionType::FromBitsSigned(function) => function
+                        .validate(arguments.as_slice())
+                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                    StandardLibraryFunctionType::FromBitsField(function) => function
+                        .validate(arguments.as_slice())
+                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                    StandardLibraryFunctionType::ArrayReverse(function) => function
+                        .validate(arguments.as_slice())
+                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
                 };
 
                 self.bytecode
                     .borrow_mut()
                     .push_instruction(Instruction::CallBuiltin(zinc_bytecode::CallBuiltin::new(
                         builtin_identifier,
-                        input_type.size(),
+                        arguments.into_iter().map(|r#type| r#type.size()).sum(),
                         return_type.size(),
                     )));
 
