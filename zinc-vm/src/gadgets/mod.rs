@@ -13,6 +13,8 @@ pub use constrained::*;
 use crate::gadgets::utils::dummy_constraint_system::DummyConstraintSystem;
 use crate::vm::RuntimeError;
 use franklin_crypto::bellman::Variable;
+use crate::gadgets::utils::fr_to_bigint;
+use num_traits::ToPrimitive;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScalarType {
@@ -38,6 +40,16 @@ pub struct Primitive<E: ZincEngine> {
 impl<E: ZincEngine> Primitive<E> {
     pub fn get_data_type(&self) -> Option<ScalarType> {
         self.data_type
+    }
+
+    pub fn get_constant(&self) -> Result<E::Fr, RuntimeError> {
+        self.value.ok_or(RuntimeError::ExpectedConstant)
+    }
+
+    pub fn get_constant_usize(&self) -> Result<usize, RuntimeError> {
+        let fr = self.get_constant()?;
+        let bigint = fr_to_bigint(&fr);
+        bigint.to_usize().ok_or(RuntimeError::ExpectedUsize)
     }
 }
 

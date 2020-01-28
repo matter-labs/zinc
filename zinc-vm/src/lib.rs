@@ -1,6 +1,7 @@
 mod gadgets;
 mod instructions;
 mod vm;
+mod errors;
 
 mod facade;
 pub use facade::*;
