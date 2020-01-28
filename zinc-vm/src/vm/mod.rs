@@ -3,10 +3,10 @@ mod state;
 
 pub use internal::*;
 pub use state::*;
+pub use crate::errors::RuntimeError;
 
 use crate::gadgets::{Primitive, PrimitiveOperations, ScalarType};
 use crate::ZincEngine;
-use franklin_crypto::bellman::SynthesisError;
 use num_bigint::{BigInt, ToBigInt};
 use zinc_bytecode::program::Program;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
@@ -17,39 +17,6 @@ where
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError>;
-}
-
-#[derive(Debug)]
-pub enum RuntimeError {
-    InvalidArguments,
-    StackUnderflow,
-    StackOverflow,
-    UnexpectedEndOfFile,
-    SynthesisError(SynthesisError),
-    InternalError(String),
-    IntegerOverflow,
-    UnexpectedLoopEnd,
-    UnexpectedReturn,
-    UnexpectedFrameExit,
-    UnexpectedElse,
-    UnexpectedEndIf,
-    AssertionError,
-    FirstInstructionNotCall,
-    WrongInputsCount,
-    StackIndexOutOfRange,
-    UninitializedStorageAccess,
-    MissingArgument,
-    BranchStacksDoNotMatch,
-    IndexOutOfBounds,
-    MergingNonValueTypes,
-    UnexpectedNonValueType,
-    OperationOnDifferentTypes,
-}
-
-impl From<SynthesisError> for RuntimeError {
-    fn from(error: SynthesisError) -> Self {
-        RuntimeError::SynthesisError(error)
-    }
 }
 
 pub struct VirtualMachine<E: ZincEngine, O: PrimitiveOperations<E>> {

@@ -12,7 +12,7 @@ use zinc_bytecode::program::Program;
 
 use crate::gadgets::utils::bigint_to_fr;
 use crate::gadgets::ConstrainingFrOperations;
-pub use crate::vm::RuntimeError;
+pub use crate::errors::RuntimeError;
 use crate::vm::VirtualMachine;
 use crate::ZincEngine;
 
