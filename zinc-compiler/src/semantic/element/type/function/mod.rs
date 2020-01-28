@@ -41,8 +41,9 @@ impl Function {
         Self::StandardLibrary(match identifier {
             BuiltinIdentifier::CryptoSha256 => StandardLibraryFunction::new_sha256(),
             BuiltinIdentifier::CryptoPedersen => StandardLibraryFunction::new_pedersen(),
-            BuiltinIdentifier::FromBits => StandardLibraryFunction::new_from_bits(),
+            BuiltinIdentifier::UnsignedFromBits => StandardLibraryFunction::new_from_bits(),
             BuiltinIdentifier::ToBits => StandardLibraryFunction::new_to_bits(),
+            function => unimplemented!("function `{}` is not implemented", function)
         })
     }
 

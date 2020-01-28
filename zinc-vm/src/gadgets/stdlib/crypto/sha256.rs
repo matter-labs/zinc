@@ -33,10 +33,9 @@ impl<E: ZincEngine> Gadget<E> for Sha256 {
 
         let digest = digest_bits
             .into_iter()
-            .enumerate()
-            .map(|(i, f)| Primitive {
-                value: f.get_value_field::<E>(),
-                variable: f
+            .map(|bit| Primitive {
+                value: bit.get_value_field::<E>(),
+                variable: bit
                     .get_variable()
                     .expect("sha256 must allocate")
                     .get_variable(),

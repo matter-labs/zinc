@@ -186,7 +186,7 @@ impl Scope {
         );
         std_scope.items.insert(
             "from_bits".to_owned(),
-            Item::Type(Type::new_std_function(BuiltinIdentifier::FromBits)),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::UnsignedFromBits)),
         );
         std_scope.items.insert(
             "to_bits".to_owned(),

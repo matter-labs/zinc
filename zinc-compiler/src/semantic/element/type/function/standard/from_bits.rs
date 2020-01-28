@@ -22,7 +22,7 @@ impl FromBitsStandardLibraryFunction {
     }
 
     pub fn builtin_identifier() -> BuiltinIdentifier {
-        BuiltinIdentifier::FromBits
+        BuiltinIdentifier::UnsignedFromBits
     }
 
     pub fn arguments_count(&self) -> usize {
