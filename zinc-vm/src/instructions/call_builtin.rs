@@ -9,7 +9,7 @@ use crate::vm::{RuntimeError, VirtualMachine};
 use crate::ZincEngine;
 use zinc_bytecode::builtins::BuiltinIdentifier;
 use zinc_bytecode::instructions::CallBuiltin;
-use crate::gadgets::stdlib::arrays::ArrayPad;
+use crate::gadgets::stdlib::arrays::{ArrayPad, Truncate};
 
 impl<E, O> VMInstruction<E, O> for CallBuiltin
 where
@@ -29,6 +29,7 @@ where
             BuiltinIdentifier::ToBits => vm.operations().execute(ToBits, &input),
             BuiltinIdentifier::UnsignedFromBits => vm.operations().execute(FromBits, &input),
             BuiltinIdentifier::ArrayPad => vm.operations().execute(ArrayPad, &input),
+            BuiltinIdentifier::ArrayTruncate => vm.operations().execute(Truncate, &input),
             f => unimplemented!("Builtin function {} is not implemented.", f)
         }?;
 
