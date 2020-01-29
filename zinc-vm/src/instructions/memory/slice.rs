@@ -46,11 +46,11 @@ mod tests {
         VMTestRunner::new()
             .add(PushConst::new_untyped(1.into()))
             .add(PushConst::new_untyped(2.into()))
-            .add(PushConst::new_untyped(2.into()))
             .add(PushConst::new_untyped(3.into()))
             .add(PushConst::new_untyped(4.into()))
             .add(PushConst::new_untyped(5.into()))
             .add(PushConst::new_untyped(6.into()))
+            .add(PushConst::new_untyped(2.into()))
             .add(Slice::new(5, 2))
             .test(&[5, 4, 1])
     }

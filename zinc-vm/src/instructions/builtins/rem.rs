@@ -32,17 +32,17 @@ mod test {
         let _ = env_logger::builder().is_test(true).try_init();
 
         VMTestRunner::new()
-            .add(PushConst::new_untyped(4.into()))
             .add(PushConst::new_untyped(9.into()))
-            .add(Rem)
-            .add(PushConst::new_untyped((-4).into()))
-            .add(PushConst::new_untyped(9.into()))
-            .add(Rem)
             .add(PushConst::new_untyped(4.into()))
-            .add(PushConst::new_untyped((-9).into()))
             .add(Rem)
+            .add(PushConst::new_untyped(9.into()))
             .add(PushConst::new_untyped((-4).into()))
+            .add(Rem)
             .add(PushConst::new_untyped((-9).into()))
+            .add(PushConst::new_untyped(4.into()))
+            .add(Rem)
+            .add(PushConst::new_untyped((-9).into()))
+            .add(PushConst::new_untyped((-4).into()))
             .add(Rem)
             .test(&[3, 3, 1, 1])
     }

@@ -33,13 +33,13 @@ mod test {
     #[test]
     fn test_cs() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new_untyped(1337.into()))
-            .add(PushConst::new_untyped(42.into()))
             .add(PushConst::new_untyped(0.into()))
+            .add(PushConst::new_untyped(42.into()))
+            .add(PushConst::new_untyped(1337.into()))
             .add(ConditionalSelect)
-            .add(PushConst::new_untyped(420.into()))
-            .add(PushConst::new_untyped(69.into()))
             .add(PushConst::new_untyped(1.into()))
+            .add(PushConst::new_untyped(69.into()))
+            .add(PushConst::new_untyped(420.into()))
             .add(ConditionalSelect)
             .test(&[69, 1337])
     }

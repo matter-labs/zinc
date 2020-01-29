@@ -40,11 +40,11 @@ mod tests {
             // call main
             .add(Call::new(9, 0))
             // func min(field, field) -> field
-            .add(Load::new(1))
             .add(Load::new(0))
             .add(Load::new(1))
-            .add(Load::new(0))
             .add(Lt)
+            .add(Load::new(0))
+            .add(Load::new(1))
             .add(ConditionalSelect)
             .add(Return::new(1))
             // func main

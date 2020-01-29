@@ -30,8 +30,8 @@ mod test {
     #[test]
     fn test_sub() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new_untyped(1.into()))
             .add(PushConst::new_untyped(2.into()))
+            .add(PushConst::new_untyped(1.into()))
             .add(Sub)
             .test(&[1])
     }

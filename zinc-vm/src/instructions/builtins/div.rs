@@ -30,17 +30,17 @@ mod test {
     #[test]
     fn test_div() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new_untyped((4).into()))
             .add(PushConst::new_untyped((9).into()))
-            .add(Div)
-            .add(PushConst::new_untyped((-4).into()))
-            .add(PushConst::new_untyped((9).into()))
-            .add(Div)
             .add(PushConst::new_untyped((4).into()))
-            .add(PushConst::new_untyped((-9).into()))
             .add(Div)
+            .add(PushConst::new_untyped((9).into()))
             .add(PushConst::new_untyped((-4).into()))
+            .add(Div)
             .add(PushConst::new_untyped((-9).into()))
+            .add(PushConst::new_untyped((4).into()))
+            .add(Div)
+            .add(PushConst::new_untyped((-9).into()))
+            .add(PushConst::new_untyped((-4).into()))
             .add(Div)
             .test(&[3, -3, -2, 2])
     }
