@@ -12,9 +12,9 @@ where
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let condition = vm.pop()?.value()?;
-        let if_true = vm.pop()?.value()?;
         let if_false = vm.pop()?.value()?;
+        let if_true = vm.pop()?.value()?;
+        let condition = vm.pop()?.value()?;
 
         let selected = vm
             .operations()

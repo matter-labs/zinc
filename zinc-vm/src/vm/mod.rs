@@ -1,9 +1,9 @@
 mod internal;
 mod state;
 
+pub use crate::errors::RuntimeError;
 pub use internal::*;
 pub use state::*;
-pub use crate::errors::RuntimeError;
 
 use crate::gadgets::{Primitive, PrimitiveOperations, ScalarType};
 use crate::ZincEngine;
@@ -103,7 +103,7 @@ impl<E: ZincEngine, O: PrimitiveOperations<E>> VirtualMachine<E, O> {
     fn get_outputs(&mut self) -> Result<Vec<Option<BigInt>>, RuntimeError> {
         let mut outputs = Vec::new();
 
-        for o in self.outputs.iter() {
+        for o in self.outputs.iter().rev() {
             let e = self.ops.output(o.clone())?;
             outputs.push(e.to_bigint());
         }

@@ -49,12 +49,12 @@ fn main(input: (), witness: ()) -> field {
         )),
         Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::Store(Store::new(0)),
+        Instruction::LoadGlobal(LoadGlobal::new(0)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(42),
             false,
             crate::BITLENGTH_FIELD,
         )),
-        Instruction::LoadGlobal(LoadGlobal::new(0)),
         Instruction::Add(Add),
         Instruction::Load(Load::new(0)),
         Instruction::Add(Add),

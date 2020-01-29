@@ -18,7 +18,7 @@ use zinc_bytecode::StoreSequence;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     let mut tuple_nested: ((u8, u8), (u8, u8)) = (
         (1, 2),
         (3, 4),

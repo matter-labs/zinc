@@ -9,14 +9,14 @@ where
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+        let offset = vm.pop()?.value()?;
+
         let mut array = Vec::with_capacity(self.array_len);
         for _ in 0..self.array_len {
             let value = vm.pop()?.value()?;
             array.push(value);
         }
         array.reverse();
-
-        let offset = vm.pop()?.value()?;
 
         for i in 0..self.slice_len {
             let index = match offset.get_data_type() {

@@ -1,10 +1,10 @@
-mod exec;
 mod prove;
+mod run;
 mod setup;
 mod verify;
 
-use self::exec::RunCommand;
 use self::prove::ProveCommand;
+use self::run::RunCommand;
 use self::setup::SetupCommand;
 use crate::commands::verify::VerifyCommand;
 use structopt::StructOpt;

@@ -27,7 +27,7 @@ enum Second {
     B = 314,
 }
 
-fn main(input: (), witness: ()) {
+fn main() {
     let result = First::B + Second::A;
 }
 "#;
@@ -36,12 +36,12 @@ fn main(input: (), witness: ()) {
         Instruction::Call(Call::new(2, 0)),
         Instruction::Exit(Exit::new(0)),
         Instruction::PushConst(PushConst::new(
-            BigInt::from(25),
+            BigInt::from(512),
             false,
             crate::BITLENGTH_BYTE * 2,
         )),
         Instruction::PushConst(PushConst::new(
-            BigInt::from(512),
+            BigInt::from(25),
             false,
             crate::BITLENGTH_BYTE * 2,
         )),

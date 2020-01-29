@@ -74,10 +74,6 @@ impl Bytecode {
         self.instructions.push(instruction)
     }
 
-    pub fn insert_instruction(&mut self, index: usize, instruction: Instruction) {
-        self.instructions.insert(index, instruction)
-    }
-
     pub fn push_instruction_store(
         &mut self,
         address: usize,
@@ -175,19 +171,6 @@ impl Bytecode {
             .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_CALL_STACK_POINTER);
     }
 
-    pub fn next_position(&self) -> usize {
-        self.instructions.len()
-    }
-
-    fn input_types_as_struct(&self) -> DataType {
-        DataType::Struct(
-            self.input_fields
-                .iter()
-                .map(|(name, r#type)| (name.clone(), r#type.into()))
-                .collect(),
-        )
-    }
-
     pub fn input_template_bytes(&self) -> Vec<u8> {
         let input_type = self.input_types_as_struct();
         let input_template_value = TemplateValue::default_from_type(&input_type);
@@ -210,6 +193,15 @@ impl Bytecode {
                     + error.to_string().as_str()
             ),
         }
+    }
+
+    fn input_types_as_struct(&self) -> DataType {
+        DataType::Struct(
+            self.input_fields
+                .iter()
+                .map(|(name, r#type)| (name.clone(), r#type.into()))
+                .collect(),
+        )
     }
 }
 

@@ -17,7 +17,7 @@ use zinc_bytecode::Store;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     let pyramid = 1 + {
         2 + {
             3 + {
@@ -32,39 +32,39 @@ fn main(input: (), witness: ()) {
         Instruction::Call(Call::new(2, 0)),
         Instruction::Exit(Exit::new(0)),
         Instruction::PushConst(PushConst::new(
-            BigInt::from(4),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(3),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::Add(Add),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(3),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::Add(Add),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(2),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::Add(Add),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(2),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::Add(Add),
-        Instruction::PushConst(PushConst::new(
             BigInt::from(1),
             false,
             crate::BITLENGTH_BYTE,
         )),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(2),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(3),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(4),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
+        Instruction::Add(Add),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(3),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
+        Instruction::Add(Add),
+        Instruction::Add(Add),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(2),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
+        Instruction::Add(Add),
         Instruction::Add(Add),
         Instruction::PushConst(PushConst::new(
             BigInt::from(1),

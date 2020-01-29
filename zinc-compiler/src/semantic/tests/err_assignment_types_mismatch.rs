@@ -12,7 +12,7 @@ use crate::Error;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     let mut result = 42;
     result = false;
 }

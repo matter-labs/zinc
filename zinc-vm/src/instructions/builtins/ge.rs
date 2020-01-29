@@ -12,8 +12,8 @@ where
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let left = vm.pop()?.value()?;
         let right = vm.pop()?.value()?;
+        let left = vm.pop()?.value()?;
 
         let ge = vm.operations().ge(left, right)?;
 

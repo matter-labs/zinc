@@ -24,7 +24,7 @@ use zinc_bytecode::Store;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     let mut sum = 0;
     for i in 0..=(2+3)*2 while i < 5 {
         sum = sum + i;
@@ -54,12 +54,12 @@ fn main(input: (), witness: ()) {
         )),
         Instruction::Store(Store::new(2)),
         Instruction::LoopBegin(LoopBegin::new(11)),
+        Instruction::Load(Load::new(1)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(5),
             false,
             crate::BITLENGTH_BYTE,
         )),
-        Instruction::Load(Load::new(1)),
         Instruction::Lt(Lt),
         Instruction::Not(Not),
         Instruction::If(If),
@@ -72,8 +72,8 @@ fn main(input: (), witness: ()) {
         Instruction::EndIf(EndIf),
         Instruction::Load(Load::new(2)),
         Instruction::If(If),
-        Instruction::Load(Load::new(1)),
         Instruction::Load(Load::new(0)),
+        Instruction::Load(Load::new(1)),
         Instruction::Add(Add),
         Instruction::Store(Store::new(0)),
         Instruction::EndIf(EndIf),

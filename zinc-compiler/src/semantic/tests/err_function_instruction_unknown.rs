@@ -13,7 +13,7 @@ fn test() {
     let input = r#"
 fn unknown() {}
 
-fn main(input: (), witness: ()) {
+fn main() {
     unknown!();
 }
 "#;

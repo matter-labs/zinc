@@ -15,7 +15,7 @@ use crate::Error;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     let value: field = 0;
     let result = value as u8;
 }

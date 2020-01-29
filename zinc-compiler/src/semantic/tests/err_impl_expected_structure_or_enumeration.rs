@@ -17,7 +17,7 @@ impl X {
     fn impossible() {}
 }
 
-fn main(input: (), witness: ()) {}
+fn main() {}
 "#;
 
     let expected = Err(Error::Semantic(

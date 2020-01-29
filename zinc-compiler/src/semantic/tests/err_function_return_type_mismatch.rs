@@ -16,7 +16,7 @@ fn another() -> bool {
     42
 }
 
-fn main(input: (), witness: ()) {
+fn main() {
     let value = another();
 }
 "#;

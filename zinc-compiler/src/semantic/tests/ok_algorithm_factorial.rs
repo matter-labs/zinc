@@ -24,7 +24,7 @@ use zinc_bytecode::Store;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     let mut fact: field = 1;
 
     for i in 2..6 {

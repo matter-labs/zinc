@@ -18,7 +18,7 @@ fn test() {
     let input = r#"
 type Tuple = (u8, u8);
 
-fn main(input: (), witness: ()) {
+fn main() {
     let tuple: Tuple = (11, 42);
 }
 "#;

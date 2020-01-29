@@ -18,9 +18,11 @@ impl<E: ZincEngine> Gadget<E> for ArrayPad {
         let len = len_value.get_constant_usize()?;
 
         if len < array.len() {
-            return Err(RuntimeError::InvalidArguments(
-                format!("ArrayPad: new length ({}) can't be less than old length ({})", len, array.len())
-            ));
+            return Err(RuntimeError::InvalidArguments(format!(
+                "ArrayPad: new length ({}) can't be less than old length ({})",
+                len,
+                array.len()
+            )));
         }
 
         array.resize(len, value);
@@ -30,14 +32,13 @@ impl<E: ZincEngine> Gadget<E> for ArrayPad {
 
     fn input_from_vec(input: &[Primitive<E>]) -> Result<Self::Input, RuntimeError> {
         if input.len() < 2 {
-            return Err(RuntimeError::InvalidArguments(format!("ArrayPad expected at least 2 arguments, got {}", input.len())))
+            return Err(RuntimeError::InvalidArguments(format!(
+                "ArrayPad expected at least 2 arguments, got {}",
+                input.len()
+            )));
         }
 
-        Ok((
-            input[0].clone(),
-            input[1].clone(),
-            Vec::from(&input[2..])
-        ))
+        Ok((input[0].clone(), input[1].clone(), Vec::from(&input[2..])))
     }
 
     fn output_into_vec(output: Self::Output) -> Vec<Primitive<E>> {

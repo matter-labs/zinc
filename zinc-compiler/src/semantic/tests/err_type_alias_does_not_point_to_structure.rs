@@ -15,7 +15,7 @@ fn test() {
     let input = r#"
 type X = field;
 
-fn main(input: (), witness: ()) {
+fn main() {
     let data = struct X;
 }
 "#;

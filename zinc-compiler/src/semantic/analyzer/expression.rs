@@ -380,7 +380,6 @@ impl Analyzer {
                 ExpressionObject::Operator(ExpressionOperator::Reference) => unimplemented!(),
                 ExpressionObject::Operator(ExpressionOperator::Dereference) => unimplemented!(),
                 ExpressionObject::Operator(ExpressionOperator::Index) => {
-                    let offset_position = self.bytecode.borrow().next_position();
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::PlaceExpression,
                         TranslationHint::ValueExpression,
@@ -437,18 +436,24 @@ impl Analyzer {
                             self.push_operand(StackElement::Evaluated(element));
                         }
                         Element::Value(_) | Element::Constant(_) => {
-                            self.bytecode.borrow_mut().insert_instruction(
-                                offset_position + 1,
-                                Instruction::PushConst(zinc_bytecode::PushConst::new(
-                                    BigInt::from(result.element_size),
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::Cast(zinc_bytecode::Cast::new(
                                     false,
                                     crate::BITLENGTH_FIELD,
-                                )),
-                            );
-                            self.bytecode.borrow_mut().insert_instruction(
-                                offset_position + 2,
-                                Instruction::Mul(zinc_bytecode::Mul),
-                            );
+                                )));
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::PushConst(
+                                    zinc_bytecode::PushConst::new(
+                                        BigInt::from(result.element_size),
+                                        false,
+                                        crate::BITLENGTH_FIELD,
+                                    ),
+                                ));
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::Mul(zinc_bytecode::Mul));
                             self.bytecode
                                 .borrow_mut()
                                 .push_instruction(Instruction::Slice(zinc_bytecode::Slice::new(
@@ -465,7 +470,6 @@ impl Analyzer {
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Field) => {
-                    let offset_position = self.bytecode.borrow().next_position();
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::PlaceExpression,
                         TranslationHint::CompoundTypeMember,
@@ -506,14 +510,15 @@ impl Analyzer {
                             self.push_operand(StackElement::Evaluated(element));
                         }
                         Element::Value(_) | Element::Constant(_) => {
-                            self.bytecode.borrow_mut().insert_instruction(
-                                offset_position,
-                                Instruction::PushConst(zinc_bytecode::PushConst::new(
-                                    BigInt::from(result.offset),
-                                    false,
-                                    crate::BITLENGTH_FIELD,
-                                )),
-                            );
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::PushConst(
+                                    zinc_bytecode::PushConst::new(
+                                        BigInt::from(result.offset),
+                                        false,
+                                        crate::BITLENGTH_FIELD,
+                                    ),
+                                ));
                             self.bytecode
                                 .borrow_mut()
                                 .push_instruction(Instruction::Slice(zinc_bytecode::Slice::new(
@@ -1433,8 +1438,9 @@ impl Analyzer {
         translation_hint_1: TranslationHint,
         translation_hint_2: TranslationHint,
     ) -> Result<(Element, Element), Error> {
-        let operand_2 = self.evaluate_operand(translation_hint_2)?;
+        self.swap_operands();
         let operand_1 = self.evaluate_operand(translation_hint_1)?;
+        let operand_2 = self.evaluate_operand(translation_hint_2)?;
         Ok((operand_1, operand_2))
     }
 
@@ -1446,6 +1452,12 @@ impl Analyzer {
         self.operands
             .pop()
             .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_AN_OPERAND)
+    }
+
+    fn swap_operands(&mut self) {
+        let last_index = self.operands.len() - 1;
+        let last_but_one_index = self.operands.len() - 2;
+        self.operands.swap(last_index, last_but_one_index)
     }
 
     fn scope(&self) -> Rc<RefCell<Scope>> {

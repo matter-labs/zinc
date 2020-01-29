@@ -21,7 +21,7 @@ use zinc_bytecode::Store;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     let mut result = 0;
     let value = 2;
     match value {

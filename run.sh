@@ -59,14 +59,10 @@ ${VIRTUAL_MACHINE_BINARY_NAME}=${LOG_LEVEL},\
 "
 export RUST_BACKTRACE=1
 
-
 cargo fmt --all
-
 cargo build ${RELEASE_MODE_FLAG} --package "${ZARGO_CRATE_NAME}"
-
 cargo build ${RELEASE_MODE_FLAG} --package "${COMPILER_CRATE_NAME}"
 cargo test --package "${COMPILER_CRATE_NAME}"
-
 cargo build ${RELEASE_MODE_FLAG} --package "${VIRTUAL_MACHINE_CRATE_NAME}"
 
 export ZARGO_PATH="./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}"

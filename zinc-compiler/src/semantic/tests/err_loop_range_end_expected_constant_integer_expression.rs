@@ -11,7 +11,7 @@ use crate::Error;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     let mut sum = 0;
     for i in 0..true {
         sum = sum + i;

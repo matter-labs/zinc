@@ -10,9 +10,9 @@ use rand::ThreadRng;
 
 use zinc_bytecode::program::Program;
 
+pub use crate::errors::RuntimeError;
 use crate::gadgets::utils::bigint_to_fr;
 use crate::gadgets::ConstrainingFrOperations;
-pub use crate::errors::RuntimeError;
 use crate::vm::VirtualMachine;
 use crate::ZincEngine;
 
@@ -30,7 +30,7 @@ impl<E: ZincEngine> Circuit<E> for VMCircuit<'_> {
     }
 }
 
-pub fn exec<E: ZincEngine>(
+pub fn run<E: ZincEngine>(
     program: &Program,
     inputs: &[BigInt],
 ) -> Result<Vec<BigInt>, RuntimeError> {

@@ -12,8 +12,9 @@ where
     O: PrimitiveOperations<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let left = vm.pop()?.value()?;
         let right = vm.pop()?.value()?;
+        let left = vm.pop()?.value()?;
+
         let (div, _rem) = vm.operations().div_rem(left, right)?;
 
         vm.push(Cell::Value(div))

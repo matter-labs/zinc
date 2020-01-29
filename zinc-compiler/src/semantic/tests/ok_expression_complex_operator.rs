@@ -23,7 +23,7 @@ use zinc_bytecode::Xor;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     let result = 2 + 2 * 2 - (42 - 7 * 3) == { 6 - 21 } && (false ^^ (true || (2 + 2 == 5)));
 }
 "#;
@@ -49,12 +49,12 @@ fn main(input: (), witness: ()) {
         )),
         Instruction::Add(Add),
         Instruction::PushConst(PushConst::new(
-            BigInt::from(3),
+            BigInt::from(7),
             false,
             crate::BITLENGTH_BYTE,
         )),
         Instruction::PushConst(PushConst::new(
-            BigInt::from(7),
+            BigInt::from(3),
             false,
             crate::BITLENGTH_BYTE,
         )),
@@ -67,12 +67,12 @@ fn main(input: (), witness: ()) {
         Instruction::Sub(Sub),
         Instruction::Sub(Sub),
         Instruction::PushConst(PushConst::new(
-            BigInt::from(21),
+            BigInt::from(6),
             false,
             crate::BITLENGTH_BYTE,
         )),
         Instruction::PushConst(PushConst::new(
-            BigInt::from(6),
+            BigInt::from(21),
             false,
             crate::BITLENGTH_BYTE,
         )),

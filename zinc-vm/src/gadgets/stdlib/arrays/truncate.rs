@@ -21,9 +21,11 @@ impl<E: ZincEngine> Gadget<E> for Truncate {
         let len = new_len.get_constant_usize()?;
 
         if len > array.len() {
-            return Err(RuntimeError::InvalidArguments(
-                format!("Truncate: new length ({}) can't be greater than old length ({})", len, array.len())
-            ));
+            return Err(RuntimeError::InvalidArguments(format!(
+                "Truncate: new length ({}) can't be greater than old length ({})",
+                len,
+                array.len()
+            )));
         }
 
         array.truncate(len);

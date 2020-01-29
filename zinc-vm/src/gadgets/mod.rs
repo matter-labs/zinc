@@ -11,9 +11,9 @@ use num_bigint::BigInt;
 pub use constrained::*;
 
 use crate::gadgets::utils::dummy_constraint_system::DummyConstraintSystem;
+use crate::gadgets::utils::fr_to_bigint;
 use crate::vm::RuntimeError;
 use franklin_crypto::bellman::Variable;
-use crate::gadgets::utils::fr_to_bigint;
 use num_traits::ToPrimitive;
 
 #[derive(Debug, Clone, Copy, PartialEq)]

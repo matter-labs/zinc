@@ -28,7 +28,7 @@ impl RunCommand {
         let input_values: Value = serde_json::from_str(&input_text)?;
         let input = input_values.to_flat_values();
 
-        let output_values = zinc_vm::exec::<Bn256>(&program, &input)?;
+        let output_values = zinc_vm::run::<Bn256>(&program, &input)?;
 
         // TODO: Remove unwrap
         let output = Value::from_flat_values(&program.output, &output_values).unwrap();

@@ -13,7 +13,7 @@ use crate::Error;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     let unknown = 0;
     let result = 42 as unknown;
 }

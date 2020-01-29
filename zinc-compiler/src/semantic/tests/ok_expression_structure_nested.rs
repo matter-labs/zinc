@@ -24,7 +24,7 @@ struct Test {
     inner: Inner,
 }
 
-fn main(input: (), witness: ()) {
+fn main() {
     let test = struct Test {
         inner: struct Inner {
             value: 3,

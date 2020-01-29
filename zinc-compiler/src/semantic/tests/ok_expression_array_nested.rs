@@ -20,7 +20,7 @@ use zinc_bytecode::StoreSequence;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     let mut array_double: [[u8; 4]; 4] = [
         [1, 2, 3, 4],
         [5, 6, 7, 8],

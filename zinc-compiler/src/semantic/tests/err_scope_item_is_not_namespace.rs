@@ -14,7 +14,7 @@ fn test() {
     let input = r#"
 const NOT_NAMESPACE: u8 = 42;
 
-fn main(input: (), witness: ()) {
+fn main() {
     let result = NOT_NAMESPACE::UNDEFINED;
 }
 "#;
