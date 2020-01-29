@@ -1,14 +1,16 @@
 use crate::gadgets::{Gadget, Primitive, ScalarType};
 use crate::RuntimeError;
 use crate::ZincEngine;
-use bellman::ConstraintSystem;
+use bellman::{ConstraintSystem, SynthesisError};
 use ff::{Field, PrimeField};
 use franklin_crypto::circuit::boolean::AllocatedBit;
 use franklin_crypto::circuit::num::AllocatedNum;
+use num_bigint::BigInt;
+use crate::gadgets::utils::bigint_to_fr;
 
-pub struct FromBits;
+pub struct SignedFromBits;
 
-impl<E: ZincEngine> Gadget<E> for FromBits {
+impl<E: ZincEngine> Gadget<E> for SignedFromBits {
     type Input = Vec<Primitive<E>>;
     type Output = Primitive<E>;
 
@@ -40,12 +42,31 @@ impl<E: ZincEngine> Gadget<E> for FromBits {
             bits.push(allocated_bit.into());
         }
 
-        let num =
+        let adjusted_num =
             AllocatedNum::pack_bits_to_element(cs.namespace(|| "pack_bits_to_element"), &bits)?;
 
+        let adjustment_bigint = BigInt::from(1) << (input.len() - 1);
+        let adjustment_fr: E::Fr = bigint_to_fr::<E>(&adjustment_bigint).expect("too much bits");
+        let value = match adjusted_num.get_value() {
+            None => None,
+            Some(mut fr) => {
+                fr.sub_assign(&adjustment_fr);
+                Some(fr)
+            },
+        };
+
+        let variable = cs.alloc(|| "variable", || value.ok_or(SynthesisError::AssignmentMissing))?;
+
+        cs.enforce(
+            || "hello",
+            |zero| zero + variable + (adjustment_fr, CS::one()),
+            |zero| zero + CS::one(),
+            |zero| zero + adjusted_num.get_variable()
+        );
+
         Ok(Primitive {
-            value: num.get_value(),
-            variable: num.get_variable(),
+            value,
+            variable,
             data_type,
         })
     }

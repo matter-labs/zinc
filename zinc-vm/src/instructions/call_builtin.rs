@@ -1,8 +1,7 @@
 extern crate franklin_crypto;
 
 use crate::gadgets::stdlib::crypto::{Pedersen, Sha256};
-use crate::gadgets::stdlib::from_bits::FromBits;
-use crate::gadgets::stdlib::to_bits::ToBits;
+use crate::gadgets::stdlib::bits::*;
 use crate::gadgets::PrimitiveOperations;
 use crate::vm::{Cell, InternalVM, VMInstruction};
 use crate::vm::{RuntimeError, VirtualMachine};
@@ -27,7 +26,8 @@ where
             BuiltinIdentifier::CryptoSha256 => vm.operations().execute(Sha256, &input),
             BuiltinIdentifier::CryptoPedersen => vm.operations().execute(Pedersen, &input),
             BuiltinIdentifier::ToBits => vm.operations().execute(ToBits, &input),
-            BuiltinIdentifier::UnsignedFromBits => vm.operations().execute(FromBits, &input),
+            BuiltinIdentifier::UnsignedFromBits => vm.operations().execute(UnsignedFromBits, &input),
+            BuiltinIdentifier::SignedFromBits => vm.operations().execute(SignedFromBits, &input),
             BuiltinIdentifier::ArrayPad => vm.operations().execute(ArrayPad, &input),
             BuiltinIdentifier::ArrayTruncate => vm.operations().execute(Truncate, &input),
             BuiltinIdentifier::ArrayReverse => vm.operations().execute(Reverse, &input),
