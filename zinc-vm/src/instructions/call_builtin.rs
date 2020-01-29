@@ -28,6 +28,7 @@ where
             BuiltinIdentifier::ToBits => vm.operations().execute(ToBits, &input),
             BuiltinIdentifier::UnsignedFromBits => vm.operations().execute(UnsignedFromBits, &input),
             BuiltinIdentifier::SignedFromBits => vm.operations().execute(SignedFromBits, &input),
+            BuiltinIdentifier::FieldFromBits => vm.operations().execute(FieldFromBits, &input),
             BuiltinIdentifier::ArrayPad => vm.operations().execute(ArrayPad, &input),
             BuiltinIdentifier::ArrayTruncate => vm.operations().execute(Truncate, &input),
             BuiltinIdentifier::ArrayReverse => vm.operations().execute(Reverse, &input),
