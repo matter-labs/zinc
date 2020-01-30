@@ -18,6 +18,8 @@ use num_traits::Zero;
 use zinc_bytecode::Instruction;
 
 use crate::lexical;
+use crate::semantic::RangeConstant;
+use crate::semantic::RangeInclusiveConstant;
 use crate::semantic::Type;
 use crate::syntax::IntegerLiteral;
 
@@ -37,10 +39,10 @@ impl Integer {
         }
     }
 
-    pub fn new_one(bitlength: usize) -> Self {
+    pub fn new_one(is_signed: bool, bitlength: usize) -> Self {
         Self {
             value: BigInt::one(),
-            is_signed: false,
+            is_signed,
             bitlength,
         }
     }
@@ -55,6 +57,38 @@ impl Integer {
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
         self.is_signed == other.is_signed && self.bitlength == other.bitlength
+    }
+
+    pub fn range_inclusive(&self, other: &Self) -> Result<RangeInclusiveConstant, Error> {
+        if !self.has_the_same_type_as(&other) {
+            return Err(Error::TypesMismatchRangeInclusive(
+                self.r#type().to_string(),
+                other.r#type().to_string(),
+            ));
+        }
+
+        Ok(RangeInclusiveConstant::new(
+            self.value.to_owned(),
+            other.value.to_owned(),
+            self.is_signed,
+            self.bitlength,
+        ))
+    }
+
+    pub fn range(&self, other: &Self) -> Result<RangeConstant, Error> {
+        if !self.has_the_same_type_as(&other) {
+            return Err(Error::TypesMismatchRange(
+                self.r#type().to_string(),
+                other.r#type().to_string(),
+            ));
+        }
+
+        Ok(RangeConstant::new(
+            self.value.to_owned(),
+            other.value.to_owned(),
+            self.is_signed,
+            self.bitlength,
+        ))
     }
 
     pub fn equals(&self, other: &Self) -> Result<bool, Error> {

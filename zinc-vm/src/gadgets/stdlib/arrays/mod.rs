@@ -1,7 +1,7 @@
 mod array_pad;
-mod truncate;
 mod reverse;
+mod truncate;
 
 pub use array_pad::*;
-pub use truncate::*;
 pub use reverse::*;
+pub use truncate::*;

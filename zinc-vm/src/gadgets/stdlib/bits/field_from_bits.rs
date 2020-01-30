@@ -18,7 +18,10 @@ impl<E: ZincEngine> Gadget<E> for FieldFromBits {
         input: Self::Input,
     ) -> Result<Self::Output, RuntimeError> {
         if input.len() != E::Fr::NUM_BITS as usize {
-            return Err(RuntimeError::InvalidArguments(format!("FieldFromBits expects exactly {} arguments", E::Fr::NUM_BITS)))
+            return Err(RuntimeError::InvalidArguments(format!(
+                "FieldFromBits expects exactly {} arguments",
+                E::Fr::NUM_BITS
+            )));
         }
 
         let mut bits = Vec::with_capacity(E::Fr::NUM_BITS as usize);

@@ -24,9 +24,11 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 22),
-        ElementError::Place(PlaceError::OperatorIndexSecondOperandExpectedInteger(
-            Constant::Boolean(true).to_string(),
-        )),
+        ElementError::Place(
+            PlaceError::OperatorIndexSecondOperandExpectedIntegerOrRange(
+                Constant::Boolean(true).to_string(),
+            ),
+        ),
     )));
 
     let result = super::get_binary_result(input);

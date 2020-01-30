@@ -23,9 +23,7 @@ pub enum State {
     KeywordFor,
     IndexIdentifier,
     KeywordIn,
-    RangeStartExpression,
-    RangeOperator,
-    RangeEndExpression,
+    BoundsExpression,
     BlockExpressionOrKeywordWhile,
     WhileConditionExpression,
     BlockExpression,
@@ -95,7 +93,7 @@ impl Parser {
                             lexeme: Lexeme::Keyword(Keyword::In),
                             ..
                         } => {
-                            self.state = State::RangeStartExpression;
+                            self.state = State::BoundsExpression;
                         }
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
@@ -106,42 +104,11 @@ impl Parser {
                         }
                     }
                 }
-                State::RangeStartExpression => {
+                State::BoundsExpression => {
                     let (expression, next) =
                         ExpressionParser::default().parse(stream.clone(), self.next.take())?;
                     self.next = next;
-                    self.builder.set_range_start_expression(expression);
-                    self.state = State::RangeOperator;
-                }
-                State::RangeOperator => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
-                        Token {
-                            lexeme: Lexeme::Symbol(Symbol::DoubleDot),
-                            ..
-                        } => {
-                            self.state = State::RangeEndExpression;
-                        }
-                        Token {
-                            lexeme: Lexeme::Symbol(Symbol::DoubleDotEquals),
-                            ..
-                        } => {
-                            self.builder.set_range_inclusive();
-                            self.state = State::RangeEndExpression;
-                        }
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec![".."],
-                                lexeme,
-                            )));
-                        }
-                    }
-                }
-                State::RangeEndExpression => {
-                    let (expression, next) =
-                        ExpressionParser::default().parse(stream.clone(), self.next.take())?;
-                    self.next = next;
-                    self.builder.set_range_end_expression(expression);
+                    self.builder.set_bounds_expression(expression);
                     self.state = State::BlockExpressionOrKeywordWhile;
                 }
                 State::BlockExpressionOrKeywordWhile => {
@@ -214,29 +181,31 @@ mod tests {
             Identifier::new(Location::new(1, 5), "i".to_owned()),
             Expression::new(
                 Location::new(1, 10),
-                vec![ExpressionElement::new(
-                    Location::new(1, 10),
-                    ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-                        IntegerLiteral::new(
-                            Location::new(1, 10),
-                            lexical::IntegerLiteral::new_decimal("0".to_owned()),
-                        ),
-                    )),
-                )],
+                vec![
+                    ExpressionElement::new(
+                        Location::new(1, 10),
+                        ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 10),
+                                lexical::IntegerLiteral::new_decimal("0".to_owned()),
+                            ),
+                        )),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 14),
+                        ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 14),
+                                lexical::IntegerLiteral::new_decimal("4".to_owned()),
+                            ),
+                        )),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 11),
+                        ExpressionObject::Operator(ExpressionOperator::RangeInclusive),
+                    ),
+                ],
             ),
-            Expression::new(
-                Location::new(1, 14),
-                vec![ExpressionElement::new(
-                    Location::new(1, 14),
-                    ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-                        IntegerLiteral::new(
-                            Location::new(1, 14),
-                            lexical::IntegerLiteral::new_decimal("4".to_owned()),
-                        ),
-                    )),
-                )],
-            ),
-            true,
             None,
             BlockExpression::new(
                 Location::new(1, 16),
@@ -288,29 +257,31 @@ mod tests {
             Identifier::new(Location::new(1, 5), "i".to_owned()),
             Expression::new(
                 Location::new(1, 10),
-                vec![ExpressionElement::new(
-                    Location::new(1, 10),
-                    ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-                        IntegerLiteral::new(
-                            Location::new(1, 10),
-                            lexical::IntegerLiteral::new_decimal("0".to_owned()),
-                        ),
-                    )),
-                )],
+                vec![
+                    ExpressionElement::new(
+                        Location::new(1, 10),
+                        ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 10),
+                                lexical::IntegerLiteral::new_decimal("0".to_owned()),
+                            ),
+                        )),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 13),
+                        ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 13),
+                                lexical::IntegerLiteral::new_decimal("4".to_owned()),
+                            ),
+                        )),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 11),
+                        ExpressionObject::Operator(ExpressionOperator::Range),
+                    ),
+                ],
             ),
-            Expression::new(
-                Location::new(1, 13),
-                vec![ExpressionElement::new(
-                    Location::new(1, 13),
-                    ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-                        IntegerLiteral::new(
-                            Location::new(1, 13),
-                            lexical::IntegerLiteral::new_decimal("4".to_owned()),
-                        ),
-                    )),
-                )],
-            ),
-            false,
             None,
             BlockExpression::new(Location::new(1, 15), vec![], None),
         ));

@@ -46,6 +46,12 @@ pub enum Type {
     },
     Field,
     String,
+    Range {
+        r#type: Box<Self>,
+    },
+    RangeInclusive {
+        r#type: Box<Self>,
+    },
     Array {
         r#type: Box<Self>,
         size: usize,
@@ -115,6 +121,18 @@ impl Type {
 
     pub fn new_string() -> Self {
         Self::String
+    }
+
+    pub fn new_range(r#type: Self) -> Self {
+        Self::Range {
+            r#type: Box::new(r#type),
+        }
+    }
+
+    pub fn new_range_inclusive(r#type: Self) -> Self {
+        Self::RangeInclusive {
+            r#type: Box::new(r#type),
+        }
     }
 
     pub fn new_array(r#type: Self, size: usize) -> Self {
@@ -219,6 +237,8 @@ impl Type {
             Self::IntegerSigned { .. } => 1,
             Self::Field => 1,
             Self::String { .. } => 0,
+            Self::Range { .. } => 0,
+            Self::RangeInclusive { .. } => 0,
             Self::Array { r#type, size } => r#type.size() * size,
             Self::Tuple { types } => types.iter().map(|r#type| r#type.size()).sum(),
             Self::Structure { fields, .. } => {
@@ -352,6 +372,10 @@ impl PartialEq<Type> for Type {
             }
             (Self::Field, Self::Field) => true,
             (Self::String, Self::String) => true,
+            (Self::Range { r#type: type_1 }, Self::Range { r#type: type_2 }) => type_1 == type_2,
+            (Self::RangeInclusive { r#type: type_1 }, Self::RangeInclusive { r#type: type_2 }) => {
+                type_1 == type_2
+            }
             (
                 Self::Array {
                     r#type: type_1,
@@ -397,6 +421,8 @@ impl fmt::Display for Type {
             Self::IntegerSigned { bitlength } => write!(f, "i{}", bitlength),
             Self::Field => write!(f, "field"),
             Self::String => write!(f, "&str"),
+            Self::Range { r#type } => write!(f, "{0} .. {0}", r#type),
+            Self::RangeInclusive { r#type } => write!(f, "{0} ..= {0}", r#type),
             Self::Array { r#type, size } => write!(f, "[{}; {}]", r#type, size),
             Self::Tuple { types } => write!(
                 f,

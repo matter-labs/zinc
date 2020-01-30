@@ -1,3 +1,4 @@
+use crate::gadgets::utils::bigint_to_fr;
 use crate::gadgets::{Gadget, Primitive, ScalarType};
 use crate::RuntimeError;
 use crate::ZincEngine;
@@ -6,7 +7,6 @@ use ff::{Field, PrimeField};
 use franklin_crypto::circuit::boolean::AllocatedBit;
 use franklin_crypto::circuit::num::AllocatedNum;
 use num_bigint::BigInt;
-use crate::gadgets::utils::bigint_to_fr;
 
 pub struct SignedFromBits;
 
@@ -52,16 +52,19 @@ impl<E: ZincEngine> Gadget<E> for SignedFromBits {
             Some(mut fr) => {
                 fr.sub_assign(&adjustment_fr);
                 Some(fr)
-            },
+            }
         };
 
-        let variable = cs.alloc(|| "variable", || value.ok_or(SynthesisError::AssignmentMissing))?;
+        let variable = cs.alloc(
+            || "variable",
+            || value.ok_or(SynthesisError::AssignmentMissing),
+        )?;
 
         cs.enforce(
             || "hello",
             |zero| zero + variable + (adjustment_fr, CS::one()),
             |zero| zero + CS::one(),
-            |zero| zero + adjusted_num.get_variable()
+            |zero| zero + adjusted_num.get_variable(),
         );
 
         Ok(Primitive {

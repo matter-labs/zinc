@@ -29,7 +29,7 @@ implementation_local_statement =
 ';' ;
 
 let_statement = 'let', [ 'mut' ], identifier, [ ':', type ], '=', expression ;
-loop_statement = 'for', identifier, 'in', integer, '..' | '..=', integer, [ 'while', expression ], block_expression ;
+loop_statement = 'for', identifier, 'in', expression, [ 'while', expression ], block_expression ;
 type_statement = 'type', identifier, '=', type ;
 struct_statement = 'struct', field_list ;
 enum_statement = 'enum', variant_list ;
@@ -39,7 +39,9 @@ use_statement = 'use', path_expression ;
 impl_statement = 'impl', identifier, '{', { implementation_local_statement }, '}' ;
 
 (* Expressions *)
-expression = operand_or, { '||', operand_or } ;
+expression = operand_assignment, [ '=', operand_assignment ] ;
+operand_assignment = operand_range, [ '..' | '..=', operand_range ] ;
+operand_range = operand_or, { '||', operand_or } ;
 operand_or = operand_xor, { '^^', operand_xor } ;
 operand_xor = operand_and, { '&&', operand_and } ;
 operand_and = operand_comparison, [ '==' | '!=' | '>=' | '<=' | '>' | '<', operand_comparison ] ;

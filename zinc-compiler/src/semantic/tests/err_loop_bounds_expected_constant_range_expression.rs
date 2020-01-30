@@ -13,15 +13,15 @@ fn test() {
     let input = r#"
 fn main() {
     let mut sum = 0;
-    for i in 0..true {
+    for i in true {
         sum = sum + i;
     }
 }
 "#;
 
     let expected = Err(Error::Semantic(
-        SemanticError::LoopRangeEndExpectedConstantIntegerExpression(
-            Location::new(4, 17),
+        SemanticError::LoopBoundsExpectedConstantRangeExpression(
+            Location::new(4, 14),
             "true".to_owned(),
         ),
     ));

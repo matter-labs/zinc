@@ -136,8 +136,36 @@ impl Analyzer {
                     );
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Range) => unimplemented!(),
-                ExpressionObject::Operator(ExpressionOperator::RangeInclusive) => unimplemented!(),
+                ExpressionObject::Operator(ExpressionOperator::RangeInclusive) => {
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                    )?;
+                    self.bytecode.borrow_mut().swap_top();
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Sub(zinc_bytecode::Sub));
+
+                    let result = operand_1
+                        .range_inclusive(&operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    self.push_operand(StackElement::Evaluated(result));
+                }
+                ExpressionObject::Operator(ExpressionOperator::Range) => {
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                    )?;
+                    self.bytecode.borrow_mut().swap_top();
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Sub(zinc_bytecode::Sub));
+
+                    let result = operand_1
+                        .range(&operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    self.push_operand(StackElement::Evaluated(result));
+                }
                 ExpressionObject::Operator(ExpressionOperator::Or) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
@@ -1438,7 +1466,7 @@ impl Analyzer {
         translation_hint_1: TranslationHint,
         translation_hint_2: TranslationHint,
     ) -> Result<(Element, Element), Error> {
-        self.swap_operands();
+        self.swap_top();
         let operand_1 = self.evaluate_operand(translation_hint_1)?;
         let operand_2 = self.evaluate_operand(translation_hint_2)?;
         Ok((operand_1, operand_2))
@@ -1454,7 +1482,7 @@ impl Analyzer {
             .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_AN_OPERAND)
     }
 
-    fn swap_operands(&mut self) {
+    fn swap_top(&mut self) {
         let last_index = self.operands.len() - 1;
         let last_but_one_index = self.operands.len() - 2;
         self.operands.swap(last_index, last_but_one_index)

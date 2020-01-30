@@ -40,6 +40,7 @@ pub use self::parser::MulDivRemOperandParser;
 pub use self::parser::OrOperandParser;
 pub use self::parser::Parser;
 pub use self::parser::PathOperandParser;
+pub use self::parser::RangeOperandParser;
 pub use self::parser::StaticStatementParser;
 pub use self::parser::StructStatementParser;
 pub use self::parser::StructureExpressionParser;

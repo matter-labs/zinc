@@ -11,6 +11,27 @@ use crate::semantic::IntegerConstantError;
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
     #[fail(
+        display = "'..=' operator expected integer as the first operand, but got '{}'",
+        _0
+    )]
+    OperatorRangeInclusiveFirstOperandExpectedInteger(Constant),
+    #[fail(
+        display = "'..=' operator expected integer as the second operand, but got '{}'",
+        _0
+    )]
+    OperatorRangeInclusiveSecondOperandExpectedInteger(Constant),
+    #[fail(
+        display = "'..' operator expected integer as the first operand, but got '{}'",
+        _0
+    )]
+    OperatorRangeFirstOperandExpectedInteger(Constant),
+    #[fail(
+        display = "'..' operator expected integer as the second operand, but got '{}'",
+        _0
+    )]
+    OperatorRangeSecondOperandExpectedInteger(Constant),
+
+    #[fail(
         display = "'||' operator expected boolean as the first operand, but got '{}'",
         _0
     )]

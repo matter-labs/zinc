@@ -160,6 +160,12 @@ impl Bytecode {
         start_address
     }
 
+    pub fn swap_top(&mut self) {
+        let last_index = self.instructions.len() - 1;
+        let last_but_one_index = self.instructions.len() - 2;
+        self.instructions.swap(last_index, last_but_one_index)
+    }
+
     pub fn push_data_stack_address(&mut self) {
         self.address_stack.push(self.data_stack_pointer);
     }

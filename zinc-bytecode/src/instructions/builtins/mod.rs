@@ -17,8 +17,6 @@ mod le;
 mod lt;
 mod ne;
 
-mod cs;
-
 pub use add::Add;
 pub use div::Div;
 pub use mul::Mul;
@@ -37,5 +35,3 @@ pub use gt::Gt;
 pub use le::Le;
 pub use lt::Lt;
 pub use ne::Ne;
-
-pub use cs::ConditionalSelect;

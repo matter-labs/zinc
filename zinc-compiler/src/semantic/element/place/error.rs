@@ -15,7 +15,7 @@ pub enum Error {
         display = "'[]' operator expected an integer as the second operand, but got '{}'",
         _0
     )]
-    OperatorIndexSecondOperandExpectedInteger(String),
+    OperatorIndexSecondOperandExpectedIntegerOrRange(String),
     #[fail(
         display = "'.' operator expected a tuple as the first operand, but got '{}'",
         _0

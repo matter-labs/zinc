@@ -27,6 +27,7 @@ pub use self::expression::MulDivRemOperandParser;
 pub use self::expression::OrOperandParser;
 pub use self::expression::Parser as ExpressionParser;
 pub use self::expression::PathOperandParser;
+pub use self::expression::RangeOperandParser;
 pub use self::expression::StructureExpressionParser;
 pub use self::expression::TerminalOperandParser;
 pub use self::expression::TupleExpressionParser;

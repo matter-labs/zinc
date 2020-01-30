@@ -62,15 +62,10 @@ pub enum Error {
     )]
     LoopWhileExpectedBooleanCondition(Location, String),
     #[fail(
-        display = "{} loop expected an integer constant as the range start, but got '{}'",
+        display = "{} loop expected a range expression as bounds, but got '{}'",
         _0, _1
     )]
-    LoopRangeStartExpectedConstantIntegerExpression(Location, String),
-    #[fail(
-        display = "{} loop expected an integer constant as the range end, but got '{}'",
-        _0, _1
-    )]
-    LoopRangeEndExpectedConstantIntegerExpression(Location, String),
+    LoopBoundsExpectedConstantRangeExpression(Location, String),
 
     #[fail(
         display = "{} conditional expected a boolean condition expression, but got '{}'",

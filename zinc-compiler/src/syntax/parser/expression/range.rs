@@ -1,46 +1,6 @@
 //!
-//! The expression parser.
+//! The assignment operand parser.
 //!
-
-mod access;
-mod add_sub;
-mod and;
-mod array;
-mod assignment;
-mod block;
-mod casting;
-mod comparison;
-mod conditional;
-mod list;
-mod r#match;
-mod mul_div_rem;
-mod or;
-mod path;
-mod range;
-mod structure;
-mod terminal;
-mod tuple;
-mod xor;
-
-pub use self::access::Parser as AccessOperandParser;
-pub use self::add_sub::Parser as AddSubOperandParser;
-pub use self::and::Parser as AndOperandParser;
-pub use self::array::Parser as ArrayExpressionParser;
-pub use self::assignment::Parser as AssignmentOperandParser;
-pub use self::block::Parser as BlockExpressionParser;
-pub use self::casting::Parser as CastingOperandParser;
-pub use self::comparison::Parser as ComparisonOperandParser;
-pub use self::conditional::Parser as ConditionalExpressionParser;
-pub use self::list::Parser as ListParser;
-pub use self::mul_div_rem::Parser as MulDivRemOperandParser;
-pub use self::or::Parser as OrOperandParser;
-pub use self::path::Parser as PathOperandParser;
-pub use self::r#match::Parser as MatchExpressionParser;
-pub use self::range::Parser as RangeOperandParser;
-pub use self::structure::Parser as StructureExpressionParser;
-pub use self::terminal::Parser as TerminalOperandParser;
-pub use self::tuple::Parser as TupleExpressionParser;
-pub use self::xor::Parser as XorOperandParser;
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -54,17 +14,17 @@ use crate::lexical::TokenStream;
 use crate::syntax::Expression;
 use crate::syntax::ExpressionBuilder;
 use crate::syntax::ExpressionOperator;
+use crate::syntax::OrOperandParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    AssignmentFirstOperand,
-    AssignmentOperator,
-    AssignmentSecondOperand,
+    LogicalOrOperand,
+    LogicalOrOperator,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::AssignmentFirstOperand
+        State::LogicalOrOperand
     }
 }
 
@@ -84,34 +44,28 @@ impl Parser {
     ) -> Result<(Expression, Option<Token>), Error> {
         loop {
             match self.state {
-                State::AssignmentFirstOperand => {
+                State::LogicalOrOperand => {
                     let (expression, next) =
-                        AssignmentOperandParser::default().parse(stream.clone(), initial.take())?;
+                        OrOperandParser::default().parse(stream.clone(), initial.take())?;
                     self.next = next;
                     self.builder.set_location_if_unset(expression.location);
-                    self.builder.extend_with_expression(expression);
-                    self.state = State::AssignmentOperator;
-                }
-                State::AssignmentOperator => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
-                        Token {
-                            lexeme: Lexeme::Symbol(Symbol::Equals),
-                            location,
-                        } => {
-                            self.operator = Some((location, ExpressionOperator::Assignment));
-                            self.state = State::AssignmentSecondOperand;
-                        }
-                        token => return Ok((self.builder.finish(), Some(token))),
-                    }
-                }
-                State::AssignmentSecondOperand => {
-                    let (expression, token) =
-                        AssignmentOperandParser::default().parse(stream, None)?;
                     self.builder.extend_with_expression(expression);
                     if let Some((location, operator)) = self.operator.take() {
                         self.builder.push_operator(location, operator);
                     }
-                    return Ok((self.builder.finish(), token));
+                    self.state = State::LogicalOrOperator;
+                }
+                State::LogicalOrOperator => {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::DoubleVerticalBar),
+                            location,
+                        } => {
+                            self.operator = Some((location, ExpressionOperator::Or));
+                            self.state = State::LogicalOrOperand;
+                        }
+                        token => return Ok((self.builder.finish(), Some(token))),
+                    }
                 }
             }
         }

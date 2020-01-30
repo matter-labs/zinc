@@ -1,4 +1,4 @@
-use crate::instructions::testing_utils::{VMTestRunner, TestingError};
+use crate::instructions::testing_utils::{TestingError, VMTestRunner};
 use zinc_bytecode::instructions::*;
 
 #[test]
@@ -10,7 +10,7 @@ fn unsigned_overflow_fail() {
         .test(&[256]);
 
     match res.err().expect("expected overflow error") {
-        TestingError::Unsatisfied => {},
+        TestingError::Unsatisfied => {}
         err => panic!("expected overflow error, got {:?} instead", err),
     }
 }
@@ -24,7 +24,7 @@ fn unsigned_underflow_fail() {
         .test(&[-1]);
 
     match res.err().expect("expected overflow error") {
-        TestingError::Unsatisfied => {},
+        TestingError::Unsatisfied => {}
         err => panic!("expected overflow error, got {:?} instead", err),
     }
 }
@@ -38,7 +38,7 @@ fn signed_overflow_fail() {
         .test(&[128]);
 
     match res.err().expect("expected overflow error") {
-        TestingError::Unsatisfied => {},
+        TestingError::Unsatisfied => {}
         err => panic!("expected overflow error, got {:?} instead", err),
     }
 }
@@ -52,7 +52,7 @@ fn signed_underflow_fail() {
         .test(&[-129]);
 
     match res.err().expect("expected overflow error") {
-        TestingError::Unsatisfied => {},
+        TestingError::Unsatisfied => {}
         err => panic!("expected overflow error, got {:?} instead", err),
     }
 }

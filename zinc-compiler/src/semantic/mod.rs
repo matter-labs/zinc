@@ -37,6 +37,8 @@ pub use self::element::Path;
 pub use self::element::PedersenStandardLibraryFunctionType;
 pub use self::element::Place;
 pub use self::element::PlaceError;
+pub use self::element::RangeConstant;
+pub use self::element::RangeInclusiveConstant;
 pub use self::element::Sha256StandardLibraryFunctionType;
 pub use self::element::StandardLibraryFunctionError;
 pub use self::element::StandardLibraryFunctionType;
