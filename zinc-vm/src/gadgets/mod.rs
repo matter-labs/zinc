@@ -6,7 +6,7 @@ use std::fmt::Debug;
 
 use crate::Engine;
 use bellman::ConstraintSystem;
-use num_bigint::BigInt;
+
 
 pub use constrained::*;
 

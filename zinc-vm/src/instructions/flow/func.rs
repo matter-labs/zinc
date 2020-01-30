@@ -1,6 +1,6 @@
 extern crate franklin_crypto;
 
-use crate::gadgets::Gadgets;
+
 use crate::core::{InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
@@ -29,9 +29,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-    use zinc_bytecode::*;
+    
+    
+    
 
 //    #[test]
 //    fn test_func() -> Result<(), TestingError> {

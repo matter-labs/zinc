@@ -1,4 +1,3 @@
-use crate::gadgets::Gadgets;
 use crate::core::{InternalVM, RuntimeError, VirtualMachine};
 use crate::Engine;
 use bellman::pairing::bn256::Bn256;
@@ -12,8 +11,7 @@ type TestVirtualMachine = VirtualMachine<Bn256, TestConstraintSystem<Bn256>>;
 
 fn new_test_constrained_vm() -> TestVirtualMachine {
     let cs = TestConstraintSystem::new();
-    let op = Gadgets::new(cs);
-    TestVirtualMachine::new(op, true)
+    TestVirtualMachine::new(cs, true)
 }
 
 fn assert_stack_eq<E, CS, BI>(vm: &mut VirtualMachine<E, CS>, expected_stack: &[BI])
@@ -85,7 +83,7 @@ impl VMTestRunner {
         vm.run(&program, Some(&[]))
             .map_err(TestingError::RuntimeError)?;
 
-        let cs = vm.operations().constraint_system();
+        let cs = vm.constraint_system();
 
         let unconstrained = cs.find_unconstrained();
         let satisfied = cs.is_satisfied();

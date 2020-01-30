@@ -3,7 +3,7 @@ extern crate franklin_crypto;
 use crate::gadgets::stdlib::arrays::{ArrayPad, Reverse, Truncate};
 use crate::gadgets::stdlib::bits::*;
 use crate::gadgets::stdlib::crypto::{Pedersen, Sha256};
-use crate::gadgets::Gadgets;
+
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;

@@ -1,6 +1,6 @@
 extern crate franklin_crypto;
 
-use crate::gadgets::Gadgets;
+
 use crate::core::{InternalVM, RuntimeError, VMInstruction, VirtualMachine};
 use crate::Engine;
 use zinc_bytecode::{LoopBegin, LoopEnd};

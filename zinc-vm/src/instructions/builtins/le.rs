@@ -1,6 +1,6 @@
 extern crate franklin_crypto;
 
-use crate::gadgets::Gadgets;
+
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;

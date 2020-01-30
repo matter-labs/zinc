@@ -1,8 +1,9 @@
-use crate::gadgets::Gadgets;
+
 use crate::core::{Block, Branch, Cell, FunctionFrame, Loop, VirtualMachine};
 use crate::RuntimeError;
 use crate::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
+use crate::gadgets::Gadgets;
 
 /// This is an internal interface to virtual machine used by instructions.
 pub trait InternalVM<E: Engine> {
@@ -135,7 +136,7 @@ where
 
         let prev = self.condition_top()?;
 
-        let next = self.ops.and(condition.clone(), prev)?;
+        let next = self.operations().and(condition.clone(), prev)?;
         self.state.conditions_stack.push(next);
 
         let branch = Branch {
@@ -175,8 +176,8 @@ where
 
         self.condition_pop()?;
         let prev = self.condition_top()?;
-        let not_cond = self.ops.not(condition)?;
-        let next = self.ops.and(prev, not_cond)?;
+        let not_cond = self.operations().not(condition)?;
+        let next = self.operations().and(prev, not_cond)?;
         self.condition_push(next)?;
 
         self.state.data_stack.switch_branch()?;
@@ -202,14 +203,14 @@ where
         if branch.is_full {
             self.state
                 .evaluation_stack
-                .merge(branch.condition.clone(), &mut self.ops)?;
+                .merge(branch.condition.clone(), &mut Gadgets::new(&mut self.cs))?;
         } else {
             self.state.evaluation_stack.revert()?;
         }
 
         self.state
             .data_stack
-            .merge(branch.condition, &mut self.ops)?;
+            .merge(branch.condition, &mut Gadgets::new(&mut self.cs))?;
 
         Ok(())
     }

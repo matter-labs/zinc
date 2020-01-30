@@ -12,7 +12,6 @@ use zinc_bytecode::program::Program;
 
 pub use crate::errors::RuntimeError;
 use crate::gadgets::utils::bigint_to_fr;
-use crate::gadgets::Gadgets;
 use crate::core::VirtualMachine;
 use crate::Engine;
 
@@ -24,7 +23,7 @@ struct VMCircuit<'a> {
 
 impl<E: Engine> Circuit<E> for VMCircuit<'_> {
     fn synthesize<CS: ConstraintSystem<E>>(self, cs: &mut CS) -> Result<(), SynthesisError> {
-        let mut vm = VirtualMachine::new(Gadgets::new(cs), false);
+        let mut vm = VirtualMachine::new(cs, false);
         *self.result = Some(vm.run(self.program, self.inputs));
         Ok(())
     }
@@ -35,10 +34,10 @@ pub fn run<E: Engine>(
     inputs: &[BigInt],
 ) -> Result<Vec<BigInt>, RuntimeError> {
     let cs = TestConstraintSystem::<Bn256>::new();
-    let mut vm = VirtualMachine::new(Gadgets::new(cs), true);
+    let mut vm = VirtualMachine::new(cs, true);
     let result = vm.run(program, Some(inputs))?;
 
-    let cs = vm.operations().constraint_system();
+    let cs = vm.constraint_system();
     if !cs.is_satisfied() {
         log::error!("Unsatisfied: {:?}", cs.which_is_unsatisfied());
         return Err(RuntimeError::InternalError(

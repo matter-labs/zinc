@@ -193,18 +193,15 @@ mod tests {
     use franklin_crypto::circuit::test::TestConstraintSystem;
 
     fn assert_cell_eq<E: Engine>(cell: Cell<E>, value: BigInt) {
-        if let Cell::Value(v) = cell {
-            assert_eq!(v.to_bigint().unwrap(), value);
-        } else {
-            panic!("assert_cell_eq() failed");
-        }
+        let Cell::Value(v) = cell;
+        assert_eq!(v.to_bigint().unwrap(), value);
     }
 
     #[test]
     fn test_get_set() {
         let mut ds = DataStack::new();
-        let cs = TestConstraintSystem::<Bn256>::new();
-        let mut op = Gadgets::new(cs);
+        let mut cs = TestConstraintSystem::<Bn256>::new();
+        let mut op = Gadgets::new(&mut cs);
         let value = op.constant_bigint(&42.into()).unwrap();
         ds.set(4, Cell::Value(value)).unwrap();
 
@@ -214,8 +211,8 @@ mod tests {
     #[test]
     fn test_fork_merge_true() {
         let mut ds = DataStack::new();
-        let cs = TestConstraintSystem::<Bn256>::new();
-        let mut ops = Gadgets::new(cs);
+        let mut cs = TestConstraintSystem::<Bn256>::new();
+        let mut ops = Gadgets::new(&mut cs);
         let value = ops.constant_bigint(&42.into()).unwrap();
         ds.set(4, Cell::Value(value)).unwrap();
 
@@ -235,8 +232,8 @@ mod tests {
     #[test]
     fn test_fork_merge_false() {
         let mut ds = DataStack::new();
-        let cs = TestConstraintSystem::<Bn256>::new();
-        let mut ops = Gadgets::new(cs);
+        let mut cs = TestConstraintSystem::<Bn256>::new();
+        let mut ops = Gadgets::new(&mut cs);
         let value = ops.constant_bigint(&42.into()).unwrap();
         ds.set(4, Cell::Value(value)).unwrap();
 

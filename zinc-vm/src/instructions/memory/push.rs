@@ -1,4 +1,4 @@
-use crate::gadgets::{Gadgets, ScalarType};
+use crate::gadgets::{ScalarType};
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
@@ -11,12 +11,11 @@ where
     CS: ConstraintSystem<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
-        let op = vm.operations();
         let data_type = ScalarType {
             signed: self.is_signed,
             length: self.bit_length,
         };
-        let value = op.constant_bigint_typed(&self.value, data_type)?;
+        let value = vm.operations().constant_bigint_typed(&self.value, data_type)?;
         vm.push(Cell::Value(value))
     }
 }

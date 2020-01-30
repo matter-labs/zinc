@@ -1,4 +1,4 @@
-use crate::gadgets::Gadgets;
+
 use crate::core::{Cell, InternalVM, RuntimeError, VMInstruction, VirtualMachine};
 use crate::Engine;
 use zinc_bytecode::instructions::Slice;

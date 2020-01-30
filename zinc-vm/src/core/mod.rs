@@ -23,12 +23,13 @@ where
 pub struct VirtualMachine<E: Engine, CS: ConstraintSystem<E>> {
     pub(crate) debugging: bool,
     state: State<E>,
-    ops: Gadgets<E, CS>,
+    cs: CS,
+    cs_counter: usize,
     outputs: Vec<Primitive<E>>,
 }
 
 impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
-    pub fn new(operator: Gadgets<E, CS>, debugging: bool) -> Self {
+    pub fn new(cs: CS, debugging: bool) -> Self {
         Self {
             debugging,
             state: State {
@@ -38,9 +39,14 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
                 conditions_stack: vec![],
                 frames_stack: vec![],
             },
-            ops: operator,
+            cs,
+            cs_counter: 0,
             outputs: vec![],
         }
+    }
+
+    pub fn constraint_system(&mut self) -> &mut CS {
+        &mut self.cs
     }
 
     pub fn run(
@@ -49,7 +55,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         inputs: Option<&[BigInt]>,
     ) -> Result<Vec<Option<BigInt>>, RuntimeError> {
         let one = self
-            .ops
+            .operations()
             .constant_bigint_typed(&1.into(), ScalarType::BOOLEAN)?;
         self.condition_push(one)?;
 
@@ -60,7 +66,10 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             _ => unimplemented!("Program must start with Call instruction"),
         }
 
+        let mut step = 0;
         while self.state.instruction_counter < program.bytecode.len() {
+            let namespace = format!("step={}, instruction={}", step, self.state.instruction_counter);
+            self.cs.push_namespace(|| namespace);
             let instruction = &program.bytecode[self.state.instruction_counter];
             self.state.instruction_counter += 1;
             log::info!(
@@ -69,6 +78,8 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             );
             dispatch_instruction!(instruction => instruction.execute(self))?;
             log::info!("{}", self.state_to_string());
+            self.cs.pop_namespace();
+            step += 1;
         }
 
         self.get_outputs()
@@ -86,13 +97,13 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         match inputs {
             None => {
                 for _ in 0..inputs_count {
-                    let variable = self.ops.variable_none()?;
+                    let variable = self.operations().variable_none()?;
                     self.push(Cell::Value(variable))?;
                 }
             }
             Some(values) => {
                 for value in values.iter() {
-                    let variable = self.ops.variable_bigint(value)?;
+                    let variable = self.operations().variable_bigint(value)?;
                     self.push(Cell::Value(variable))?;
                 }
             }
@@ -105,7 +116,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         let mut outputs = Vec::new();
 
         for o in self.outputs.iter().rev() {
-            let e = self.ops.output(o.clone())?;
+            let e = Gadgets::new(&mut self.cs).output(o.clone())?;
             outputs.push(e.to_bigint());
         }
 
@@ -113,12 +124,13 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
     }
 
     fn state_to_string(&self) -> String {
-        //        format!("{:#?}", self.state)
-        "".into()
+        format!("{:#?}", self.state)
     }
 
-    pub fn operations(&mut self) -> &mut Gadgets<E, CS> {
-        &mut self.ops
+    pub fn operations<'a>(&'a mut self) -> Gadgets<E, bellman::Namespace<'a, E, CS::Root>> {
+        let namespace = format!("{}", self.cs_counter);
+        self.cs_counter += 1;
+        Gadgets::new(self.cs.namespace(|| namespace))
     }
 
     pub fn condition_push(&mut self, element: Primitive<E>) -> Result<(), RuntimeError> {
