@@ -203,14 +203,14 @@ where
         if branch.is_full {
             self.state
                 .evaluation_stack
-                .merge(branch.condition.clone(), &mut Gadgets::new(&mut self.cs))?;
+                .merge(branch.condition.clone(), &mut Gadgets::new(self.cs.namespace()))?;
         } else {
             self.state.evaluation_stack.revert()?;
         }
 
         self.state
             .data_stack
-            .merge(branch.condition, &mut Gadgets::new(&mut self.cs))?;
+            .merge(branch.condition, &mut Gadgets::new(self.cs.namespace()))?;
 
         Ok(())
     }

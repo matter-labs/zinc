@@ -11,6 +11,7 @@ use num_bigint::{BigInt, ToBigInt};
 use zinc_bytecode::program::Program;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 use franklin_crypto::bellman::ConstraintSystem;
+use std::marker::PhantomData;
 
 pub trait VMInstruction<E, CS>: InstructionInfo
 where
@@ -20,11 +21,28 @@ where
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError>;
 }
 
+struct CounterNamespace<E: Engine, CS: ConstraintSystem<E>> {
+    cs: CS,
+    counter: usize,
+    _pd: PhantomData<E>,
+}
+
+impl<E: Engine, CS: ConstraintSystem<E>> CounterNamespace<E, CS> {
+    fn new(cs: CS) -> Self {
+        Self { cs, counter: 0, _pd: PhantomData }
+    }
+
+    fn namespace(&mut self) -> bellman::Namespace<E, CS::Root> {
+        let namespace = self.counter.to_string();
+        self.counter += 1;
+        self.cs.namespace(|| namespace)
+    }
+}
+
 pub struct VirtualMachine<E: Engine, CS: ConstraintSystem<E>> {
     pub(crate) debugging: bool,
     state: State<E>,
-    cs: CS,
-    cs_counter: usize,
+    cs: CounterNamespace<E, CS>,
     outputs: Vec<Primitive<E>>,
 }
 
@@ -39,14 +57,13 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
                 conditions_stack: vec![],
                 frames_stack: vec![],
             },
-            cs,
-            cs_counter: 0,
+            cs: CounterNamespace::new(cs),
             outputs: vec![],
         }
     }
 
     pub fn constraint_system(&mut self) -> &mut CS {
-        &mut self.cs
+        &mut self.cs.cs
     }
 
     pub fn run(
@@ -68,17 +85,19 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
 
         let mut step = 0;
         while self.state.instruction_counter < program.bytecode.len() {
-            let namespace = format!("step={}, instruction={}", step, self.state.instruction_counter);
-            self.cs.push_namespace(|| namespace);
+            let namespace = format!("step={}, addr={}", step, self.state.instruction_counter);
+            self.cs.cs.push_namespace(|| namespace);
             let instruction = &program.bytecode[self.state.instruction_counter];
-            self.state.instruction_counter += 1;
             log::info!(
-                "> {}",
+                "{}:{} > {}",
+                step,
+                self.state.instruction_counter,
                 dispatch_instruction!(instruction => instruction.to_assembly())
             );
+            self.state.instruction_counter += 1;
             dispatch_instruction!(instruction => instruction.execute(self))?;
             log::info!("{}", self.state_to_string());
-            self.cs.pop_namespace();
+            self.cs.cs.pop_namespace();
             step += 1;
         }
 
@@ -113,24 +132,27 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
     }
 
     fn get_outputs(&mut self) -> Result<Vec<Option<BigInt>>, RuntimeError> {
-        let mut outputs = Vec::new();
+        let outputs_fr: Vec<_> = self.outputs
+            .iter()
+            .rev()
+            .map(|f| (*f).clone())
+            .collect();
 
-        for o in self.outputs.iter().rev() {
-            let e = Gadgets::new(&mut self.cs).output(o.clone())?;
-            outputs.push(e.to_bigint());
+        let mut outputs_bigint = Vec::with_capacity(outputs_fr.len());
+        for o in outputs_fr.into_iter() {
+            let e = self.operations().output(o.clone())?;
+            outputs_bigint.push(e.to_bigint());
         }
 
-        Ok(outputs)
+        Ok(outputs_bigint)
     }
 
     fn state_to_string(&self) -> String {
         format!("{:#?}", self.state)
     }
 
-    pub fn operations<'a>(&'a mut self) -> Gadgets<E, bellman::Namespace<'a, E, CS::Root>> {
-        let namespace = format!("{}", self.cs_counter);
-        self.cs_counter += 1;
-        Gadgets::new(self.cs.namespace(|| namespace))
+    pub fn operations(&mut self) -> Gadgets<E, bellman::Namespace<E, CS::Root>> {
+        Gadgets::new(self.cs.namespace())
     }
 
     pub fn condition_push(&mut self, element: Primitive<E>) -> Result<(), RuntimeError> {

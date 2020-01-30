@@ -170,6 +170,7 @@ where
             Some(data_type) => self.constant_bigint_typed(&array_length.into(), data_type)?,
         };
         let index_lt_length = self.lt(index.clone(), length)?;
+
         self.assert(index_lt_length)?;
 
         let mut cs = self.cs_namespace();
@@ -260,7 +261,7 @@ where
 
         for value in operands {
             if value.data_type != data_type {
-                return Err(RuntimeError::OperationOnDifferentTypes);
+                return Err(RuntimeError::TypeError);
             }
         }
 
@@ -711,12 +712,13 @@ where
 
         let diff_num_repacked = AllocatedNum::pack_bits_to_element(
             cs.namespace(|| "diff_num_repacked"),
-            &bits[0..(E::Fr::CAPACITY as usize - 1)],
-        )
-        .map_err(RuntimeError::SynthesisError)?;
+            &bits[0..(E::Fr::CAPACITY as usize - 1)])?;
 
-        let lt = AllocatedNum::equals(cs.namespace(|| "equals"), &diff_num, &diff_num_repacked)
-            .map_err(RuntimeError::SynthesisError)?;
+        let lt = AllocatedNum::equals(
+            cs.namespace(|| "equals"),
+            &diff_num,
+            &diff_num_repacked)?;
+
 
         mem::drop(cs);
         self.value_with_type_check(

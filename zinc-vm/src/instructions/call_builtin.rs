@@ -35,7 +35,7 @@ where
             BuiltinIdentifier::ArrayPad => vm.operations().execute(ArrayPad, &input),
             BuiltinIdentifier::ArrayTruncate => vm.operations().execute(Truncate, &input),
             BuiltinIdentifier::ArrayReverse => vm.operations().execute(Reverse, &input),
-            f => unimplemented!("Builtin function {} is not implemented.", f),
+            // f => unimplemented!("Builtin function {} is not implemented.", f),
         }?;
 
         for value in output {

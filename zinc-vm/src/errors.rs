@@ -24,7 +24,7 @@ pub enum RuntimeError {
     IndexOutOfBounds,
     MergingNonValueTypes,
     UnexpectedNonValueType,
-    OperationOnDifferentTypes,
+    TypeError,
     ExpectedConstant,
     ExpectedUsize,
 }
