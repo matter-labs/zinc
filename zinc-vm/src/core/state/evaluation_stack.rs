@@ -1,14 +1,15 @@
-use crate::gadgets::{Primitive, PrimitiveOperations};
-use crate::vm::Cell;
+use crate::gadgets::{Primitive, Gadgets};
+use crate::core::Cell;
 use crate::RuntimeError;
-use crate::ZincEngine;
+use crate::Engine;
+use franklin_crypto::bellman::ConstraintSystem;
 
 #[derive(Debug)]
-pub struct EvaluationStack<E: ZincEngine> {
+pub struct EvaluationStack<E: Engine> {
     stack: Vec<Vec<Cell<E>>>,
 }
 
-impl<E: ZincEngine> EvaluationStack<E> {
+impl<E: Engine> EvaluationStack<E> {
     pub fn new() -> Self {
         Self {
             stack: vec![vec![]],
@@ -39,9 +40,9 @@ impl<E: ZincEngine> EvaluationStack<E> {
         self.stack.push(vec![]);
     }
 
-    pub fn merge<O>(&mut self, condition: Primitive<E>, ops: &mut O) -> Result<(), RuntimeError>
+    pub fn merge<CS>(&mut self, condition: Primitive<E>, ops: &mut Gadgets<E, CS>) -> Result<(), RuntimeError>
     where
-        O: PrimitiveOperations<E>,
+        CS: ConstraintSystem<E>,
     {
         let else_case = self.stack.pop().ok_or_else(|| {
             RuntimeError::InternalError("Evaluation stack root frame missing".into())

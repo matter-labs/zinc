@@ -1,15 +1,16 @@
-use crate::gadgets::PrimitiveOperations;
-use crate::vm::{Cell, InternalVM, VMInstruction};
-use crate::vm::{RuntimeError, VirtualMachine};
-use crate::ZincEngine;
+use crate::gadgets::Gadgets;
+use crate::core::{Cell, InternalVM, VMInstruction};
+use crate::core::{RuntimeError, VirtualMachine};
+use crate::Engine;
 use zinc_bytecode::StoreSequenceByIndex;
+use franklin_crypto::bellman::ConstraintSystem;
 
-impl<E, O> VMInstruction<E, O> for StoreSequenceByIndex
+impl<E, CS> VMInstruction<E, CS> for StoreSequenceByIndex
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         let mut array = Vec::with_capacity(self.array_len);
         for i in 0..self.array_len {
             let value = vm.load(self.address + i)?.value()?;

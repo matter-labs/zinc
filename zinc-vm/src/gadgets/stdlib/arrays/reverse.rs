@@ -1,12 +1,12 @@
 use crate::gadgets::{Gadget, Primitive};
 use crate::RuntimeError;
-use crate::ZincEngine;
+use crate::Engine;
 use bellman::ConstraintSystem;
 
 /// Reverse array.
 pub struct Reverse;
 
-impl<E: ZincEngine> Gadget<E> for Reverse {
+impl<E: Engine> Gadget<E> for Reverse {
     type Input = Vec<Primitive<E>>;
     type Output = Vec<Primitive<E>>;
 

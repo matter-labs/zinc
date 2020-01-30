@@ -1,15 +1,16 @@
-use crate::gadgets::PrimitiveOperations;
-use crate::vm::{InternalVM, VMInstruction};
-use crate::vm::{RuntimeError, VirtualMachine};
-use crate::ZincEngine;
+use crate::gadgets::Gadgets;
+use crate::core::{InternalVM, VMInstruction};
+use crate::core::{RuntimeError, VirtualMachine};
+use crate::Engine;
 use zinc_bytecode::instructions::Load;
+use franklin_crypto::bellman::ConstraintSystem;
 
-impl<E, O> VMInstruction<E, O> for Load
+impl<E, CS> VMInstruction<E, CS> for Load
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         let value = vm.load(self.address)?;
         vm.push(value)
     }

@@ -1,4 +1,4 @@
-use crate::ZincEngine;
+use crate::Engine;
 use ff::{Field, PrimeField, PrimeFieldRepr};
 use num_bigint::{BigInt, Sign};
 use num_traits::Signed;
@@ -24,7 +24,7 @@ pub fn fr_to_bigint<Fr: PrimeField>(fr: &Fr) -> BigInt {
     }
 }
 
-pub fn bigint_to_fr<E: ZincEngine>(bigint: &BigInt) -> Option<E::Fr> {
+pub fn bigint_to_fr<E: Engine>(bigint: &BigInt) -> Option<E::Fr> {
     if bigint.is_positive() {
         E::Fr::from_str(&bigint.to_str_radix(10))
     } else {

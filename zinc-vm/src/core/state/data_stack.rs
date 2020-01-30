@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 
-use crate::gadgets::{Primitive, PrimitiveOperations};
-use crate::vm::Cell;
+use crate::gadgets::{Primitive, Gadgets};
+use crate::core::Cell;
 use crate::RuntimeError;
-use crate::ZincEngine;
+use crate::Engine;
+use franklin_crypto::bellman::ConstraintSystem;
 
 #[derive(Debug)]
-struct CellDelta<E: ZincEngine> {
+struct CellDelta<E: Engine> {
     old: Option<Cell<E>>,
     new: Cell<E>,
 }
@@ -14,12 +15,12 @@ struct CellDelta<E: ZincEngine> {
 type DataStackDelta<E> = HashMap<usize, CellDelta<E>>;
 
 #[derive(Debug)]
-enum DataStackBranch<E: ZincEngine> {
+enum DataStackBranch<E: Engine> {
     IfThen(DataStackDelta<E>),
     IfThenElse(DataStackDelta<E>, DataStackDelta<E>),
 }
 
-impl<E: ZincEngine> DataStackBranch<E> {
+impl<E: Engine> DataStackBranch<E> {
     fn new() -> Self {
         DataStackBranch::IfThen(HashMap::new())
     }
@@ -40,12 +41,12 @@ impl<E: ZincEngine> DataStackBranch<E> {
 }
 
 #[derive(Debug)]
-pub struct DataStack<E: ZincEngine> {
+pub struct DataStack<E: Engine> {
     memory: Vec<Option<Cell<E>>>,
     branches: Vec<DataStackBranch<E>>,
 }
 
-impl<E: ZincEngine> DataStack<E> {
+impl<E: Engine> DataStack<E> {
     pub fn new() -> Self {
         Self {
             memory: Vec::new(),
@@ -102,10 +103,10 @@ impl<E: ZincEngine> DataStack<E> {
     }
 
     /// Merge top-level branch or branches into parent branch.
-    pub fn merge<O: PrimitiveOperations<E>>(
+    pub fn merge<CS: ConstraintSystem<E>>(
         &mut self,
         condition: Primitive<E>,
-        ops: &mut O,
+        ops: &mut Gadgets<E, CS>,
     ) -> Result<(), RuntimeError> {
         let mut branch = self.branches.pop().ok_or(RuntimeError::UnexpectedEndIf)?;
         self.revert(branch.active_delta());
@@ -125,11 +126,11 @@ impl<E: ZincEngine> DataStack<E> {
     }
 
     /// Conditionally apply delta
-    fn merge_single<O: PrimitiveOperations<E>>(
+    fn merge_single<CS: ConstraintSystem<E>>(
         &mut self,
         condition: Primitive<E>,
         delta: &DataStackDelta<E>,
-        ops: &mut O,
+        ops: &mut Gadgets<E, CS>,
     ) -> Result<(), RuntimeError> {
         for (&addr, diff) in delta.iter() {
             match (&self.memory[addr], &diff.new) {
@@ -148,15 +149,15 @@ impl<E: ZincEngine> DataStack<E> {
     }
 
     /// Conditionally apply one of two deltas.
-    fn merge_pair<O>(
+    fn merge_pair<CS>(
         &mut self,
         condition: Primitive<E>,
         delta_then: &DataStackDelta<E>,
         delta_else: &DataStackDelta<E>,
-        ops: &mut O,
+        ops: &mut Gadgets<E, CS>,
     ) -> Result<(), RuntimeError>
     where
-        O: PrimitiveOperations<E>,
+        CS: ConstraintSystem<E>,
     {
         for (addr, diff) in delta_then.iter() {
             let alt = if let Some(diff) = delta_else.get(addr) {
@@ -186,12 +187,12 @@ mod tests {
     use num_bigint::{BigInt, ToBigInt};
     use pairing::bn256::Bn256;
 
-    use crate::gadgets::{ConstrainingFrOperations, PrimitiveOperations};
+    use crate::gadgets::Gadgets;
 
     use super::*;
     use franklin_crypto::circuit::test::TestConstraintSystem;
 
-    fn assert_cell_eq<E: ZincEngine>(cell: Cell<E>, value: BigInt) {
+    fn assert_cell_eq<E: Engine>(cell: Cell<E>, value: BigInt) {
         if let Cell::Value(v) = cell {
             assert_eq!(v.to_bigint().unwrap(), value);
         } else {
@@ -203,7 +204,7 @@ mod tests {
     fn test_get_set() {
         let mut ds = DataStack::new();
         let cs = TestConstraintSystem::<Bn256>::new();
-        let mut op = ConstrainingFrOperations::new(cs);
+        let mut op = Gadgets::new(cs);
         let value = op.constant_bigint(&42.into()).unwrap();
         ds.set(4, Cell::Value(value)).unwrap();
 
@@ -214,7 +215,7 @@ mod tests {
     fn test_fork_merge_true() {
         let mut ds = DataStack::new();
         let cs = TestConstraintSystem::<Bn256>::new();
-        let mut ops = ConstrainingFrOperations::new(cs);
+        let mut ops = Gadgets::new(cs);
         let value = ops.constant_bigint(&42.into()).unwrap();
         ds.set(4, Cell::Value(value)).unwrap();
 
@@ -235,7 +236,7 @@ mod tests {
     fn test_fork_merge_false() {
         let mut ds = DataStack::new();
         let cs = TestConstraintSystem::<Bn256>::new();
-        let mut ops = ConstrainingFrOperations::new(cs);
+        let mut ops = Gadgets::new(cs);
         let value = ops.constant_bigint(&42.into()).unwrap();
         ds.set(4, Cell::Value(value)).unwrap();
 

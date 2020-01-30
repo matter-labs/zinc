@@ -1,14 +1,15 @@
-use crate::gadgets::PrimitiveOperations;
-use crate::vm::{Cell, InternalVM, RuntimeError, VMInstruction, VirtualMachine};
-use crate::ZincEngine;
+use crate::gadgets::Gadgets;
+use crate::core::{Cell, InternalVM, RuntimeError, VMInstruction, VirtualMachine};
+use crate::Engine;
 use zinc_bytecode::instructions::Slice;
+use franklin_crypto::bellman::ConstraintSystem;
 
-impl<E, O> VMInstruction<E, O> for Slice
+impl<E, CS> VMInstruction<E, CS> for Slice
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         let offset = vm.pop()?.value()?;
 
         let mut array = Vec::with_capacity(self.array_len);

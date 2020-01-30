@@ -1,10 +1,11 @@
-use crate::gadgets::PrimitiveOperations;
-use crate::vm::{Block, Branch, Cell, FunctionFrame, Loop, VirtualMachine};
+use crate::gadgets::Gadgets;
+use crate::core::{Block, Branch, Cell, FunctionFrame, Loop, VirtualMachine};
 use crate::RuntimeError;
-use crate::ZincEngine;
+use crate::Engine;
+use franklin_crypto::bellman::ConstraintSystem;
 
 /// This is an internal interface to virtual machine used by instructions.
-pub trait InternalVM<E: ZincEngine> {
+pub trait InternalVM<E: Engine> {
     fn push(&mut self, cell: Cell<E>) -> Result<(), RuntimeError>;
     fn pop(&mut self) -> Result<Cell<E>, RuntimeError>;
 
@@ -26,10 +27,10 @@ pub trait InternalVM<E: ZincEngine> {
     fn exit(&mut self, values_count: usize) -> Result<(), RuntimeError>;
 }
 
-impl<E, O> InternalVM<E> for VirtualMachine<E, O>
+impl<E, CS> InternalVM<E> for VirtualMachine<E, CS>
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
     fn push(&mut self, cell: Cell<E>) -> Result<(), RuntimeError> {
         self.state.evaluation_stack.push(cell)

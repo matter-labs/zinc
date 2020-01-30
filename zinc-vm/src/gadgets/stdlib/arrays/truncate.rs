@@ -1,6 +1,6 @@
 use crate::gadgets::{Gadget, Primitive};
 use crate::RuntimeError;
-use crate::ZincEngine;
+use crate::Engine;
 use bellman::ConstraintSystem;
 
 /// Truncate array.
@@ -8,7 +8,7 @@ use bellman::ConstraintSystem;
 /// Signature: fn truncate(len: field, array: [field; len], new_len: field);
 pub struct Truncate;
 
-impl<E: ZincEngine> Gadget<E> for Truncate {
+impl<E: Engine> Gadget<E> for Truncate {
     type Input = (Primitive<E>, Vec<Primitive<E>>);
     type Output = Vec<Primitive<E>>;
 

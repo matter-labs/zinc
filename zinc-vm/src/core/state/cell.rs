@@ -1,14 +1,14 @@
 use crate::gadgets::Primitive;
 use crate::RuntimeError;
-use crate::ZincEngine;
+use crate::Engine;
 
 #[derive(Debug, Clone)]
-pub enum Cell<E: ZincEngine> {
+pub enum Cell<E: Engine> {
     Value(Primitive<E>),
     //    Address(usize),
 }
 
-impl<E: ZincEngine> Cell<E> {
+impl<E: Engine> Cell<E> {
     pub fn value(self) -> Result<Primitive<E>, RuntimeError> {
         match self {
             Cell::Value(value) => Ok(value),

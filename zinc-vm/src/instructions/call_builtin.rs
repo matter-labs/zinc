@@ -3,19 +3,20 @@ extern crate franklin_crypto;
 use crate::gadgets::stdlib::arrays::{ArrayPad, Reverse, Truncate};
 use crate::gadgets::stdlib::bits::*;
 use crate::gadgets::stdlib::crypto::{Pedersen, Sha256};
-use crate::gadgets::PrimitiveOperations;
-use crate::vm::{Cell, InternalVM, VMInstruction};
-use crate::vm::{RuntimeError, VirtualMachine};
-use crate::ZincEngine;
+use crate::gadgets::Gadgets;
+use crate::core::{Cell, InternalVM, VMInstruction};
+use crate::core::{RuntimeError, VirtualMachine};
+use crate::Engine;
 use zinc_bytecode::builtins::BuiltinIdentifier;
 use zinc_bytecode::instructions::CallBuiltin;
+use self::franklin_crypto::bellman::ConstraintSystem;
 
-impl<E, O> VMInstruction<E, O> for CallBuiltin
+impl<E, CS> VMInstruction<E, CS> for CallBuiltin
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         let mut input = Vec::new();
         for _ in 0..self.inputs_count {
             let value = vm.pop()?.value()?;

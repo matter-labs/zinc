@@ -1,6 +1,6 @@
 use crate::gadgets::{Gadget, Primitive, ScalarType};
 use crate::RuntimeError;
-use crate::ZincEngine;
+use crate::Engine;
 use bellman::ConstraintSystem;
 use ff::Field;
 use franklin_crypto::circuit::boolean::AllocatedBit;
@@ -8,7 +8,7 @@ use franklin_crypto::circuit::sha256::sha256;
 
 pub struct Sha256;
 
-impl<E: ZincEngine> Gadget<E> for Sha256 {
+impl<E: Engine> Gadget<E> for Sha256 {
     type Input = Vec<Primitive<E>>;
     type Output = Vec<Primitive<E>>;
 

@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::marker::PhantomData;
 
-use crate::ZincEngine;
+use crate::Engine;
 use bellman::{ConstraintSystem, Variable};
 use ff::{Field, PrimeField};
 use franklin_crypto::bellman::{Namespace, SynthesisError};
@@ -9,11 +9,11 @@ use franklin_crypto::circuit::num::AllocatedNum;
 use num_bigint::{BigInt, ToBigInt};
 
 use crate::gadgets::utils::fr_to_bigint;
-use crate::gadgets::{utils, Gadget, Primitive, PrimitiveOperations, ScalarType};
-use crate::vm::RuntimeError;
+use crate::gadgets::{utils, Gadget, Primitive, ScalarType};
+use crate::core::RuntimeError;
 use std::mem;
 
-impl<E: ZincEngine> Debug for Primitive<E> {
+impl<E: Engine> Debug for Primitive<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         let value_str = match self.value {
             Some(ref value) => fr_to_bigint(value).to_string(),
@@ -32,7 +32,7 @@ impl<E: ZincEngine> Debug for Primitive<E> {
     }
 }
 
-impl<E: ZincEngine> Primitive<E> {
+impl<E: Engine> Primitive<E> {
     fn new(value: Option<E::Fr>, variable: Variable) -> Self {
         Self {
             value,
@@ -69,7 +69,7 @@ impl<E: ZincEngine> Primitive<E> {
     }
 }
 
-impl<E: ZincEngine> Display for Primitive<E> {
+impl<E: Engine> Display for Primitive<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         match &self.value {
             Some(value) => {
@@ -81,15 +81,15 @@ impl<E: ZincEngine> Display for Primitive<E> {
     }
 }
 
-impl<E: ZincEngine> ToBigInt for Primitive<E> {
+impl<E: Engine> ToBigInt for Primitive<E> {
     fn to_bigint(&self) -> Option<BigInt> {
         self.value.map(|fr| -> BigInt { utils::fr_to_bigint(&fr) })
     }
 }
 
-pub struct ConstrainingFrOperations<E, CS>
+pub struct Gadgets<E, CS>
 where
-    E: ZincEngine,
+    E: Engine,
     CS: ConstraintSystem<E>,
 {
     cs: CS,
@@ -97,9 +97,9 @@ where
     pd: PhantomData<E>,
 }
 
-impl<E, CS> ConstrainingFrOperations<E, CS>
+impl<E, CS> Gadgets<E, CS>
 where
-    E: ZincEngine,
+    E: Engine,
     CS: ConstraintSystem<E>,
 {
     pub fn new(cs: CS) -> Self {
@@ -155,8 +155,8 @@ where
 
     fn abs(&mut self, value: Primitive<E>) -> Result<Primitive<E>, RuntimeError> {
         let zero = self.zero_typed(value.data_type)?;
-        let neg = PrimitiveOperations::neg(self, value.clone())?;
-        let lt0 = PrimitiveOperations::lt(self, value.clone(), zero)?;
+        let neg = Gadgets::neg(self, value.clone())?;
+        let lt0 = Gadgets::lt(self, value.clone(), zero)?;
         self.conditional_select(lt0, neg, value)
     }
 
@@ -271,15 +271,12 @@ where
     }
 }
 
-impl<E, CS> PrimitiveOperations<E> for ConstrainingFrOperations<E, CS>
+impl<E, CS> Gadgets<E, CS>
 where
-    E: ZincEngine,
+    E: Engine,
     CS: ConstraintSystem<E>,
 {
-    type E = E;
-    type CS = CS;
-
-    fn variable_none(&mut self) -> Result<Primitive<E>, RuntimeError> {
+    pub fn variable_none(&mut self) -> Result<Primitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let variable = cs
@@ -292,7 +289,7 @@ where
         Ok(Primitive::new(None, variable))
     }
 
-    fn variable_bigint(&mut self, value: &BigInt) -> Result<Primitive<E>, RuntimeError> {
+    pub fn variable_bigint(&mut self, value: &BigInt) -> Result<Primitive<E>, RuntimeError> {
         let value = utils::bigint_to_fr::<E>(value)
             .ok_or_else(|| RuntimeError::InternalError("bigint_to_fr".into()))?;
 
@@ -305,7 +302,7 @@ where
         Ok(Primitive::new(Some(value), variable))
     }
 
-    fn constant_bigint(&mut self, value: &BigInt) -> Result<Primitive<E>, RuntimeError> {
+    pub fn constant_bigint(&mut self, value: &BigInt) -> Result<Primitive<E>, RuntimeError> {
         let value = utils::bigint_to_fr::<E>(value)
             .ok_or_else(|| RuntimeError::InternalError("bigint_to_fr".into()))?;
 
@@ -325,7 +322,7 @@ where
         Ok(Primitive::new(Some(value), variable))
     }
 
-    fn constant_bigint_typed(
+    pub fn constant_bigint_typed(
         &mut self,
         value: &BigInt,
         data_type: ScalarType,
@@ -334,7 +331,7 @@ where
         self.value_with_type_check(p.value, p.variable, data_type)
     }
 
-    fn output(&mut self, element: Primitive<E>) -> Result<Primitive<E>, RuntimeError> {
+    pub fn output(&mut self, element: Primitive<E>) -> Result<Primitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let variable = cs
@@ -354,7 +351,7 @@ where
         Ok(Primitive::new(element.value, variable))
     }
 
-    fn set_type(
+    pub fn set_type(
         &mut self,
         value: Primitive<E>,
         data_type: ScalarType,
@@ -362,7 +359,7 @@ where
         self.value_with_type_check(value.value, value.variable, data_type)
     }
 
-    fn add(
+    pub fn add(
         &mut self,
         left: Primitive<E>,
         right: Primitive<E>,
@@ -396,7 +393,7 @@ where
         self.value_with_arguments_type_check(sum, sum_var, &[left, right])
     }
 
-    fn sub(
+    pub fn sub(
         &mut self,
         left: Primitive<E>,
         right: Primitive<E>,
@@ -430,7 +427,7 @@ where
         self.value_with_arguments_type_check(diff, diff_var, &[left, right])
     }
 
-    fn mul(
+    pub fn mul(
         &mut self,
         left: Primitive<E>,
         right: Primitive<E>,
@@ -464,7 +461,7 @@ where
         self.value_with_arguments_type_check(prod, prod_var, &[left, right])
     }
 
-    fn div_rem(
+    pub fn div_rem(
         &mut self,
         left: Primitive<E>,
         right: Primitive<E>,
@@ -534,7 +531,7 @@ where
         Ok((quotient, remainder))
     }
 
-    fn neg(&mut self, element: Primitive<E>) -> Result<Primitive<E>, RuntimeError> {
+    pub fn neg(&mut self, element: Primitive<E>) -> Result<Primitive<E>, RuntimeError> {
         let neg_value = match element.value {
             Some(value) => {
                 let mut neg = E::Fr::zero();
@@ -570,13 +567,13 @@ where
         }
     }
 
-    fn not(&mut self, element: Primitive<E>) -> Result<Primitive<E>, RuntimeError> {
+    pub fn not(&mut self, element: Primitive<E>) -> Result<Primitive<E>, RuntimeError> {
         let one = self.one_typed(element.data_type)?;
         let not = self.sub(one, element.clone())?;
         self.value_with_arguments_type_check(not.value, not.variable, &[element])
     }
 
-    fn and(
+    pub fn and(
         &mut self,
         left: Primitive<E>,
         right: Primitive<E>,
@@ -607,7 +604,7 @@ where
         self.value_with_arguments_type_check(value, variable, &[left, right])
     }
 
-    fn or(
+    pub fn or(
         &mut self,
         left: Primitive<E>,
         right: Primitive<E>,
@@ -640,7 +637,7 @@ where
         self.value_with_arguments_type_check(value, variable, &[left, right])
     }
 
-    fn xor(
+    pub fn xor(
         &mut self,
         left: Primitive<E>,
         right: Primitive<E>,
@@ -677,7 +674,7 @@ where
         self.value_with_arguments_type_check(value, variable, &[left, right])
     }
 
-    fn lt(
+    pub fn lt(
         &mut self,
         left: Primitive<E>,
         right: Primitive<E>,
@@ -687,7 +684,7 @@ where
         self.le(left, right_minus_one)
     }
 
-    fn le(
+    pub fn le(
         &mut self,
         left: Primitive<E>,
         right: Primitive<E>,
@@ -729,7 +726,7 @@ where
         )
     }
 
-    fn eq(
+    pub fn eq(
         &mut self,
         left: Primitive<E>,
         right: Primitive<E>,
@@ -755,7 +752,7 @@ where
         )
     }
 
-    fn ne(
+    pub fn ne(
         &mut self,
         left: Primitive<E>,
         right: Primitive<E>,
@@ -764,7 +761,7 @@ where
         self.not(eq)
     }
 
-    fn ge(
+    pub fn ge(
         &mut self,
         left: Primitive<E>,
         right: Primitive<E>,
@@ -773,7 +770,7 @@ where
         self.not(not_ge)
     }
 
-    fn gt(
+    pub fn gt(
         &mut self,
         left: Primitive<E>,
         right: Primitive<E>,
@@ -782,7 +779,7 @@ where
         self.not(not_gt)
     }
 
-    fn conditional_select(
+    pub fn conditional_select(
         &mut self,
         condition: Primitive<E>,
         if_true: Primitive<E>,
@@ -822,7 +819,7 @@ where
         self.value_with_arguments_type_check(value, variable, &[if_true, if_false])
     }
 
-    fn assert(&mut self, element: Primitive<E>) -> Result<(), RuntimeError> {
+    pub fn assert(&mut self, element: Primitive<E>) -> Result<(), RuntimeError> {
         let inverse_value = element
             .value
             .map(|fr| fr.inverse().unwrap_or_else(E::Fr::zero));
@@ -845,7 +842,7 @@ where
         Ok(())
     }
 
-    fn array_get(
+    pub fn array_get(
         &mut self,
         array: &[Primitive<E>],
         index: Primitive<E>,
@@ -855,7 +852,7 @@ where
         self.recursive_select(array, bits.as_slice())
     }
 
-    fn array_set(
+    pub fn array_set(
         &mut self,
         array: &[Primitive<E>],
         index: Primitive<E>,
@@ -874,7 +871,7 @@ where
         Ok(new_array)
     }
 
-    fn execute<G: Gadget<E>>(
+    pub fn execute<G: Gadget<E>>(
         &mut self,
         gadget: G,
         input: &[Primitive<E>],

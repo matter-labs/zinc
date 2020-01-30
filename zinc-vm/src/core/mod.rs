@@ -5,29 +5,30 @@ pub use crate::errors::RuntimeError;
 pub use internal::*;
 pub use state::*;
 
-use crate::gadgets::{Primitive, PrimitiveOperations, ScalarType};
-use crate::ZincEngine;
+use crate::gadgets::{Primitive, Gadgets, ScalarType};
+use crate::Engine;
 use num_bigint::{BigInt, ToBigInt};
 use zinc_bytecode::program::Program;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
+use franklin_crypto::bellman::ConstraintSystem;
 
-pub trait VMInstruction<E, O>: InstructionInfo
+pub trait VMInstruction<E, CS>: InstructionInfo
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError>;
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError>;
 }
 
-pub struct VirtualMachine<E: ZincEngine, O: PrimitiveOperations<E>> {
+pub struct VirtualMachine<E: Engine, CS: ConstraintSystem<E>> {
     pub(crate) debugging: bool,
     state: State<E>,
-    ops: O,
+    ops: Gadgets<E, CS>,
     outputs: Vec<Primitive<E>>,
 }
 
-impl<E: ZincEngine, O: PrimitiveOperations<E>> VirtualMachine<E, O> {
-    pub fn new(operator: O, debugging: bool) -> Self {
+impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
+    pub fn new(operator: Gadgets<E, CS>, debugging: bool) -> Self {
         Self {
             debugging,
             state: State {
@@ -116,7 +117,7 @@ impl<E: ZincEngine, O: PrimitiveOperations<E>> VirtualMachine<E, O> {
         "".into()
     }
 
-    pub fn operations(&mut self) -> &mut O {
+    pub fn operations(&mut self) -> &mut Gadgets<E, CS> {
         &mut self.ops
     }
 

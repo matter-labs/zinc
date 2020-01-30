@@ -1,6 +1,6 @@
 use crate::gadgets::{Gadget, Primitive};
 use crate::RuntimeError;
-use crate::ZincEngine;
+use crate::Engine;
 use bellman::ConstraintSystem;
 use ff::{Field, PrimeField};
 use franklin_crypto::circuit::boolean::AllocatedBit;
@@ -8,7 +8,7 @@ use franklin_crypto::circuit::num::AllocatedNum;
 
 pub struct FieldFromBits;
 
-impl<E: ZincEngine> Gadget<E> for FieldFromBits {
+impl<E: Engine> Gadget<E> for FieldFromBits {
     type Input = Vec<Primitive<E>>;
     type Output = Primitive<E>;
 

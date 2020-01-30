@@ -1,7 +1,7 @@
 use crate::gadgets::utils::bigint_to_fr;
 use crate::gadgets::{Gadget, Primitive, ScalarType};
 use crate::RuntimeError;
-use crate::ZincEngine;
+use crate::Engine;
 use bellman::{ConstraintSystem, SynthesisError};
 use ff::{Field, PrimeField};
 use franklin_crypto::circuit::boolean::AllocatedBit;
@@ -10,7 +10,7 @@ use num_bigint::BigInt;
 
 pub struct SignedFromBits;
 
-impl<E: ZincEngine> Gadget<E> for SignedFromBits {
+impl<E: Engine> Gadget<E> for SignedFromBits {
     type Input = Vec<Primitive<E>>;
     type Output = Primitive<E>;
 

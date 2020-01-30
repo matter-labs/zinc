@@ -12,9 +12,9 @@ use zinc_bytecode::program::Program;
 
 pub use crate::errors::RuntimeError;
 use crate::gadgets::utils::bigint_to_fr;
-use crate::gadgets::ConstrainingFrOperations;
-use crate::vm::VirtualMachine;
-use crate::ZincEngine;
+use crate::gadgets::Gadgets;
+use crate::core::VirtualMachine;
+use crate::Engine;
 
 struct VMCircuit<'a> {
     program: &'a Program,
@@ -22,20 +22,20 @@ struct VMCircuit<'a> {
     result: &'a mut Option<Result<Vec<Option<BigInt>>, RuntimeError>>,
 }
 
-impl<E: ZincEngine> Circuit<E> for VMCircuit<'_> {
+impl<E: Engine> Circuit<E> for VMCircuit<'_> {
     fn synthesize<CS: ConstraintSystem<E>>(self, cs: &mut CS) -> Result<(), SynthesisError> {
-        let mut vm = VirtualMachine::new(ConstrainingFrOperations::new(cs), false);
+        let mut vm = VirtualMachine::new(Gadgets::new(cs), false);
         *self.result = Some(vm.run(self.program, self.inputs));
         Ok(())
     }
 }
 
-pub fn run<E: ZincEngine>(
+pub fn run<E: Engine>(
     program: &Program,
     inputs: &[BigInt],
 ) -> Result<Vec<BigInt>, RuntimeError> {
     let cs = TestConstraintSystem::<Bn256>::new();
-    let mut vm = VirtualMachine::new(ConstrainingFrOperations::new(cs), true);
+    let mut vm = VirtualMachine::new(Gadgets::new(cs), true);
     let result = vm.run(program, Some(inputs))?;
 
     let cs = vm.operations().constraint_system();
@@ -58,7 +58,7 @@ pub fn run<E: ZincEngine>(
     Ok(result.into_iter().map(|v| v.unwrap()).collect())
 }
 
-pub fn setup<E: ZincEngine>(program: &Program) -> Result<Parameters<E>, RuntimeError> {
+pub fn setup<E: Engine>(program: &Program) -> Result<Parameters<E>, RuntimeError> {
     let rng = &mut rand::thread_rng();
     let mut result = None;
     let circuit = VMCircuit {
@@ -71,7 +71,7 @@ pub fn setup<E: ZincEngine>(program: &Program) -> Result<Parameters<E>, RuntimeE
     Ok(params)
 }
 
-pub fn prove<E: ZincEngine>(
+pub fn prove<E: Engine>(
     program: &Program,
     params: &Parameters<E>,
     witness: &[BigInt],
@@ -109,7 +109,7 @@ pub enum VerificationError {
     SynthesisError(SynthesisError),
 }
 
-pub fn verify<E: ZincEngine>(
+pub fn verify<E: Engine>(
     key: &VerifyingKey<E>,
     proof: &Proof<E>,
     pub_inputs: &[BigInt],

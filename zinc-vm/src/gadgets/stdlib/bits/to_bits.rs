@@ -1,12 +1,12 @@
 use crate::gadgets::{Gadget, Primitive, ScalarType};
 use crate::RuntimeError;
-use crate::ZincEngine;
+use crate::Engine;
 use bellman::ConstraintSystem;
 use ff::PrimeField;
 
 pub struct ToBits;
 
-impl<E: ZincEngine> Gadget<E> for ToBits {
+impl<E: Engine> Gadget<E> for ToBits {
     type Input = Primitive<E>;
     type Output = Vec<Primitive<E>>;
 

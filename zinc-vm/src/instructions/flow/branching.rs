@@ -1,37 +1,38 @@
 extern crate franklin_crypto;
 
-use crate::gadgets::PrimitiveOperations;
-use crate::vm::{InternalVM, VMInstruction};
-use crate::vm::{RuntimeError, VirtualMachine};
-use crate::ZincEngine;
+use crate::gadgets::Gadgets;
+use crate::core::{InternalVM, VMInstruction};
+use crate::core::{RuntimeError, VirtualMachine};
+use crate::Engine;
 use zinc_bytecode::{Else, EndIf, If};
+use self::franklin_crypto::bellman::ConstraintSystem;
 
-impl<E, O> VMInstruction<E, O> for If
+impl<E, CS> VMInstruction<E, CS> for If
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         vm.branch_then()
     }
 }
 
-impl<E, O> VMInstruction<E, O> for Else
+impl<E, CS> VMInstruction<E, CS> for Else
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         vm.branch_else()
     }
 }
 
-impl<E, O> VMInstruction<E, O> for EndIf
+impl<E, CS> VMInstruction<E, CS> for EndIf
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         vm.branch_end()
     }
 }

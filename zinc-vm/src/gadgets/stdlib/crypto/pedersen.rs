@@ -1,5 +1,5 @@
 use crate::gadgets::{Gadget, Primitive};
-use crate::{RuntimeError, ZincEngine};
+use crate::{RuntimeError, Engine};
 use bellman::ConstraintSystem;
 
 use franklin_crypto::circuit::baby_pedersen_hash::{pedersen_hash, Personalization};
@@ -8,7 +8,7 @@ use franklin_crypto::circuit::baby_ecc::EdwardsPoint;
 
 pub struct Pedersen;
 
-impl<E: ZincEngine> Gadget<E> for Pedersen {
+impl<E: Engine> Gadget<E> for Pedersen {
     type Input = Vec<Primitive<E>>;
     type Output = EdwardsPoint<E>;
 

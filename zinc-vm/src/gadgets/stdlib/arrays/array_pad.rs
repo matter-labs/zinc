@@ -1,11 +1,11 @@
 use crate::gadgets::{Gadget, Primitive};
 use crate::RuntimeError;
-use crate::ZincEngine;
+use crate::Engine;
 use bellman::ConstraintSystem;
 
 pub struct ArrayPad;
 
-impl<E: ZincEngine> Gadget<E> for ArrayPad {
+impl<E: Engine> Gadget<E> for ArrayPad {
     type Input = (Primitive<E>, Primitive<E>, Vec<Primitive<E>>);
     type Output = Vec<Primitive<E>>;
 
