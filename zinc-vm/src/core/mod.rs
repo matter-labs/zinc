@@ -5,13 +5,13 @@ pub use crate::errors::RuntimeError;
 pub use internal::*;
 pub use state::*;
 
-use crate::gadgets::{Primitive, Gadgets, ScalarType};
+use crate::gadgets::{Gadgets, Primitive, ScalarType};
 use crate::Engine;
+use franklin_crypto::bellman::ConstraintSystem;
 use num_bigint::{BigInt, ToBigInt};
+use std::marker::PhantomData;
 use zinc_bytecode::program::Program;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
-use franklin_crypto::bellman::ConstraintSystem;
-use std::marker::PhantomData;
 
 pub trait VMInstruction<E, CS>: InstructionInfo
 where
@@ -29,7 +29,11 @@ struct CounterNamespace<E: Engine, CS: ConstraintSystem<E>> {
 
 impl<E: Engine, CS: ConstraintSystem<E>> CounterNamespace<E, CS> {
     fn new(cs: CS) -> Self {
-        Self { cs, counter: 0, _pd: PhantomData }
+        Self {
+            cs,
+            counter: 0,
+            _pd: PhantomData,
+        }
     }
 
     fn namespace(&mut self) -> bellman::Namespace<E, CS::Root> {
@@ -132,11 +136,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
     }
 
     fn get_outputs(&mut self) -> Result<Vec<Option<BigInt>>, RuntimeError> {
-        let outputs_fr: Vec<_> = self.outputs
-            .iter()
-            .rev()
-            .map(|f| (*f).clone())
-            .collect();
+        let outputs_fr: Vec<_> = self.outputs.iter().rev().map(|f| (*f).clone()).collect();
 
         let mut outputs_bigint = Vec::with_capacity(outputs_fr.len());
         for o in outputs_fr.into_iter() {

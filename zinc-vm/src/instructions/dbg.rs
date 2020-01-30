@@ -1,12 +1,11 @@
 extern crate franklin_crypto;
 
-
+use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{InternalVM, RuntimeError, VMInstruction, VirtualMachine};
 use crate::Engine;
 use num_bigint::ToBigInt;
 use num_traits::Signed;
 use zinc_bytecode::instructions::Dbg;
-use self::franklin_crypto::bellman::ConstraintSystem;
 
 impl<E, CS> VMInstruction<E, CS> for Dbg
 where

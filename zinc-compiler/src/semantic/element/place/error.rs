@@ -16,6 +16,19 @@ pub enum Error {
         _0
     )]
     OperatorIndexSecondOperandExpectedIntegerOrRange(String),
+    #[fail(display = "left range bound {} cannot be negative", _0)]
+    IndexSliceStartOutOfRange(String),
+    #[fail(
+        display = "right range bound {} is out of range of the array of size {}",
+        _0, _1
+    )]
+    IndexSliceEndOutOfRange(String, String),
+    #[fail(
+        display = "right range bound {} is lesser than the left one {}",
+        _0, _1
+    )]
+    IndexSliceEndLesserThanStart(String, String),
+
     #[fail(
         display = "'.' operator expected a tuple as the first operand, but got '{}'",
         _0

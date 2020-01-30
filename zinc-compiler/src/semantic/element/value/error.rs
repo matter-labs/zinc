@@ -4,6 +4,7 @@
 
 use failure::Fail;
 
+use crate::semantic::ArrayValueError;
 use crate::semantic::CasterError;
 use crate::semantic::IntegerValueError;
 use crate::semantic::StructureValueError;
@@ -205,7 +206,7 @@ pub enum Error {
         display = "'[]' operator expected an integer as the second operand, but got '{}'",
         _0
     )]
-    OperatorIndexSecondOperandExpectedInteger(String),
+    OperatorIndexSecondOperandExpectedIntegerOrRange(String),
     #[fail(
         display = "'.' operator expected a tuple as the first operand, but got '{}'",
         _0
@@ -219,6 +220,8 @@ pub enum Error {
 
     #[fail(display = "{}", _0)]
     Integer(IntegerValueError),
+    #[fail(display = "{}", _0)]
+    Array(ArrayValueError),
     #[fail(display = "{}", _0)]
     Tuple(TupleValueError),
     #[fail(display = "{}", _0)]

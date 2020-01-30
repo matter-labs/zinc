@@ -1,11 +1,11 @@
 use crate::core::{InternalVM, RuntimeError, VirtualMachine};
 use crate::Engine;
 use bellman::pairing::bn256::Bn256;
+use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::{BigInt, ToBigInt};
 use zinc_bytecode::data::types::DataType;
 use zinc_bytecode::{decode_all_instructions, Call, DecodingError, InstructionInfo, Program};
-use franklin_crypto::bellman::ConstraintSystem;
 
 type TestVirtualMachine = VirtualMachine<Bn256, TestConstraintSystem<Bn256>>;
 

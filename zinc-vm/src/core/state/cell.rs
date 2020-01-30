@@ -1,6 +1,6 @@
 use crate::gadgets::Primitive;
-use crate::RuntimeError;
 use crate::Engine;
+use crate::RuntimeError;
 
 #[derive(Debug, Clone)]
 pub enum Cell<E: Engine> {

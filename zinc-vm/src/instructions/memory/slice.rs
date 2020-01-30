@@ -1,8 +1,7 @@
-
 use crate::core::{Cell, InternalVM, RuntimeError, VMInstruction, VirtualMachine};
 use crate::Engine;
-use zinc_bytecode::instructions::Slice;
 use franklin_crypto::bellman::ConstraintSystem;
+use zinc_bytecode::instructions::Slice;
 
 impl<E, CS> VMInstruction<E, CS> for Slice
 where

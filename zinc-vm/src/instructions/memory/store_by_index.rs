@@ -1,9 +1,8 @@
-
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
-use zinc_bytecode::instructions::StoreByIndex;
 use franklin_crypto::bellman::ConstraintSystem;
+use zinc_bytecode::instructions::StoreByIndex;
 
 impl<E, CS> VMInstruction<E, CS> for StoreByIndex
 where

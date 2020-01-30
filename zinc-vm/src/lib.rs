@@ -1,7 +1,7 @@
+mod core;
 mod errors;
 mod gadgets;
 mod instructions;
-mod core;
 
 #[cfg(test)]
 mod tests;

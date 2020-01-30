@@ -141,10 +141,9 @@ impl Analyzer {
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
                     )?;
-                    self.bytecode.borrow_mut().swap_top();
                     self.bytecode
                         .borrow_mut()
-                        .push_instruction(Instruction::Sub(zinc_bytecode::Sub));
+                        .push_instruction(Instruction::Pop(zinc_bytecode::Pop::new(2)));
 
                     let result = operand_1
                         .range_inclusive(&operand_2)
@@ -156,10 +155,9 @@ impl Analyzer {
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
                     )?;
-                    self.bytecode.borrow_mut().swap_top();
                     self.bytecode
                         .borrow_mut()
-                        .push_instruction(Instruction::Sub(zinc_bytecode::Sub));
+                        .push_instruction(Instruction::Pop(zinc_bytecode::Pop::new(2)));
 
                     let result = operand_1
                         .range(&operand_2)
@@ -424,12 +422,24 @@ impl Analyzer {
 
                     match operand_1 {
                         element @ Element::Place(_) => {
-                            self.bytecode
-                                .borrow_mut()
-                                .push_instruction(Instruction::Cast(zinc_bytecode::Cast::new(
-                                    false,
-                                    crate::BITLENGTH_FIELD,
-                                )));
+                            if let Element::Constant(Constant::Range(_))
+                            | Element::Constant(Constant::RangeInclusive(_)) = operand_2
+                            {
+                                self.bytecode.borrow_mut().push_instruction(
+                                    Instruction::PushConst(zinc_bytecode::PushConst::new(
+                                        BigInt::from(result.offset),
+                                        false,
+                                        crate::BITLENGTH_FIELD,
+                                    )),
+                                );
+                            } else {
+                                self.bytecode
+                                    .borrow_mut()
+                                    .push_instruction(Instruction::Cast(zinc_bytecode::Cast::new(
+                                        false,
+                                        crate::BITLENGTH_FIELD,
+                                    )));
+                            }
                             if !is_place_indexed {
                                 self.bytecode.borrow_mut().push_instruction(
                                     Instruction::PushConst(zinc_bytecode::PushConst::new(
@@ -464,24 +474,35 @@ impl Analyzer {
                             self.push_operand(StackElement::Evaluated(element));
                         }
                         Element::Value(_) | Element::Constant(_) => {
-                            self.bytecode
-                                .borrow_mut()
-                                .push_instruction(Instruction::Cast(zinc_bytecode::Cast::new(
-                                    false,
-                                    crate::BITLENGTH_FIELD,
-                                )));
-                            self.bytecode
-                                .borrow_mut()
-                                .push_instruction(Instruction::PushConst(
-                                    zinc_bytecode::PushConst::new(
-                                        BigInt::from(result.element_size),
-                                        false,
-                                        crate::BITLENGTH_FIELD,
-                                    ),
-                                ));
-                            self.bytecode
-                                .borrow_mut()
-                                .push_instruction(Instruction::Mul(zinc_bytecode::Mul));
+                            match operand_2 {
+                                Element::Constant(Constant::Range(_))
+                                | Element::Constant(Constant::RangeInclusive(_)) => {
+                                    self.bytecode.borrow_mut().push_instruction(
+                                        Instruction::PushConst(zinc_bytecode::PushConst::new(
+                                            BigInt::from(result.offset),
+                                            false,
+                                            crate::BITLENGTH_FIELD,
+                                        )),
+                                    );
+                                }
+                                _ => {
+                                    self.bytecode
+                                        .borrow_mut()
+                                        .push_instruction(Instruction::Cast(
+                                            zinc_bytecode::Cast::new(false, crate::BITLENGTH_FIELD),
+                                        ));
+                                    self.bytecode.borrow_mut().push_instruction(
+                                        Instruction::PushConst(zinc_bytecode::PushConst::new(
+                                            BigInt::from(result.element_size),
+                                            false,
+                                            crate::BITLENGTH_FIELD,
+                                        )),
+                                    );
+                                    self.bytecode
+                                        .borrow_mut()
+                                        .push_instruction(Instruction::Mul(zinc_bytecode::Mul));
+                                }
+                            }
                             self.bytecode
                                 .borrow_mut()
                                 .push_instruction(Instruction::Slice(zinc_bytecode::Slice::new(

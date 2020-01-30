@@ -1,9 +1,8 @@
-
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
-use zinc_bytecode::instructions::LoadByIndex;
 use franklin_crypto::bellman::ConstraintSystem;
+use zinc_bytecode::instructions::LoadByIndex;
 
 impl<E, CS> VMInstruction<E, CS> for LoadByIndex
 where

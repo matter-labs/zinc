@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use crate::gadgets::{Primitive, Gadgets};
 use crate::core::Cell;
-use crate::RuntimeError;
+use crate::gadgets::{Gadgets, Primitive};
 use crate::Engine;
+use crate::RuntimeError;
 use franklin_crypto::bellman::ConstraintSystem;
 
 #[derive(Debug)]

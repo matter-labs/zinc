@@ -1,11 +1,11 @@
 extern crate franklin_crypto;
 
-use crate::gadgets::{ScalarType};
+use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
+use crate::gadgets::ScalarType;
 use crate::Engine;
 use zinc_bytecode::instructions::Cast;
-use self::franklin_crypto::bellman::ConstraintSystem;
 
 impl<E, CS> VMInstruction<E, CS> for Cast
 where

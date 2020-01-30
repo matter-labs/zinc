@@ -1,10 +1,9 @@
 extern crate franklin_crypto;
 
-
+use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{InternalVM, RuntimeError, VMInstruction, VirtualMachine};
 use crate::Engine;
 use zinc_bytecode::{LoopBegin, LoopEnd};
-use self::franklin_crypto::bellman::ConstraintSystem;
 
 impl<E, CS> VMInstruction<E, CS> for LoopBegin
 where

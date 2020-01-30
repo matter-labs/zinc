@@ -1,11 +1,10 @@
 extern crate franklin_crypto;
 
-
+use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
 use zinc_bytecode::instructions::Assert;
-use self::franklin_crypto::bellman::ConstraintSystem;
 
 impl<E, CS> VMInstruction<E, CS> for Assert
 where

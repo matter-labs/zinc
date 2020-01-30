@@ -1,9 +1,8 @@
-
 use crate::core::{InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
-use zinc_bytecode::LoadSequenceGlobal;
 use franklin_crypto::bellman::ConstraintSystem;
+use zinc_bytecode::LoadSequenceGlobal;
 
 impl<E, CS> VMInstruction<E, CS> for LoadSequenceGlobal
 where

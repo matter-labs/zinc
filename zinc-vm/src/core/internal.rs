@@ -1,9 +1,8 @@
-
 use crate::core::{Block, Branch, Cell, FunctionFrame, Loop, VirtualMachine};
-use crate::RuntimeError;
-use crate::Engine;
-use franklin_crypto::bellman::ConstraintSystem;
 use crate::gadgets::Gadgets;
+use crate::Engine;
+use crate::RuntimeError;
+use franklin_crypto::bellman::ConstraintSystem;
 
 /// This is an internal interface to virtual machine used by instructions.
 pub trait InternalVM<E: Engine> {
@@ -201,9 +200,10 @@ where
         }?;
 
         if branch.is_full {
-            self.state
-                .evaluation_stack
-                .merge(branch.condition.clone(), &mut Gadgets::new(self.cs.namespace()))?;
+            self.state.evaluation_stack.merge(
+                branch.condition.clone(),
+                &mut Gadgets::new(self.cs.namespace()),
+            )?;
         } else {
             self.state.evaluation_stack.revert()?;
         }

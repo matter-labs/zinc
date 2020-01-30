@@ -367,8 +367,8 @@ impl Value {
     pub fn index_value(&self, other: &Self) -> Result<IndexAccessResult, Error> {
         match self {
             Value::Array(array) => match other {
-                Value::Integer(_) => Ok(array.slice()),
-                value => Err(Error::OperatorIndexSecondOperandExpectedInteger(
+                Value::Integer(_) => Ok(array.slice_single()),
+                value => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange(
                     value.to_string(),
                 )),
             },
@@ -381,8 +381,14 @@ impl Value {
     pub fn index_constant(&self, other: &Constant) -> Result<IndexAccessResult, Error> {
         match self {
             Value::Array(array) => match other {
-                Constant::Integer(_) => Ok(array.slice()),
-                constant => Err(Error::OperatorIndexSecondOperandExpectedInteger(
+                Constant::Integer(_) => Ok(array.slice_single()),
+                Constant::Range(range) => array
+                    .slice_range(&range.start, &range.end)
+                    .map_err(Error::Array),
+                Constant::RangeInclusive(range) => array
+                    .slice_range_inclusive(&range.start, &range.end)
+                    .map_err(Error::Array),
+                constant => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange(
                     constant.to_string(),
                 )),
             },

@@ -8,9 +8,9 @@ use franklin_crypto::bellman::{Namespace, SynthesisError};
 use franklin_crypto::circuit::num::AllocatedNum;
 use num_bigint::{BigInt, ToBigInt};
 
+use crate::core::RuntimeError;
 use crate::gadgets::utils::fr_to_bigint;
 use crate::gadgets::{utils, Gadget, Primitive, ScalarType};
-use crate::core::RuntimeError;
 use std::mem;
 
 impl<E: Engine> Debug for Primitive<E> {
@@ -712,13 +712,10 @@ where
 
         let diff_num_repacked = AllocatedNum::pack_bits_to_element(
             cs.namespace(|| "diff_num_repacked"),
-            &bits[0..(E::Fr::CAPACITY as usize - 1)])?;
+            &bits[0..(E::Fr::CAPACITY as usize - 1)],
+        )?;
 
-        let lt = AllocatedNum::equals(
-            cs.namespace(|| "equals"),
-            &diff_num,
-            &diff_num_repacked)?;
-
+        let lt = AllocatedNum::equals(cs.namespace(|| "equals"), &diff_num, &diff_num_repacked)?;
 
         mem::drop(cs);
         self.value_with_type_check(

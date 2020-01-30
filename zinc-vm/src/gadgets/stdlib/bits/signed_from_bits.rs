@@ -1,7 +1,7 @@
 use crate::gadgets::utils::bigint_to_fr;
 use crate::gadgets::{Gadget, Primitive, ScalarType};
-use crate::RuntimeError;
 use crate::Engine;
+use crate::RuntimeError;
 use bellman::{ConstraintSystem, SynthesisError};
 use ff::{Field, PrimeField};
 use franklin_crypto::circuit::boolean::AllocatedBit;

@@ -10,9 +10,9 @@ use rand::ThreadRng;
 
 use zinc_bytecode::program::Program;
 
+use crate::core::VirtualMachine;
 pub use crate::errors::RuntimeError;
 use crate::gadgets::utils::bigint_to_fr;
-use crate::core::VirtualMachine;
 use crate::Engine;
 
 struct VMCircuit<'a> {
@@ -29,10 +29,7 @@ impl<E: Engine> Circuit<E> for VMCircuit<'_> {
     }
 }
 
-pub fn run<E: Engine>(
-    program: &Program,
-    inputs: &[BigInt],
-) -> Result<Vec<BigInt>, RuntimeError> {
+pub fn run<E: Engine>(program: &Program, inputs: &[BigInt]) -> Result<Vec<BigInt>, RuntimeError> {
     let cs = TestConstraintSystem::<Bn256>::new();
     let mut vm = VirtualMachine::new(cs, true);
     let result = vm.run(program, Some(inputs))?;

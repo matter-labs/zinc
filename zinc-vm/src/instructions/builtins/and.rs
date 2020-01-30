@@ -1,11 +1,10 @@
 extern crate franklin_crypto;
 
-
+use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
 use zinc_bytecode::instructions::And;
-use self::franklin_crypto::bellman::ConstraintSystem;
 
 impl<E, CS> VMInstruction<E, CS> for And
 where

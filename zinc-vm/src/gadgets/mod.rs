@@ -7,12 +7,11 @@ use std::fmt::Debug;
 use crate::Engine;
 use bellman::ConstraintSystem;
 
-
 pub use constrained::*;
 
+use crate::core::RuntimeError;
 use crate::gadgets::utils::dummy_constraint_system::DummyConstraintSystem;
 use crate::gadgets::utils::fr_to_bigint;
-use crate::core::RuntimeError;
 use franklin_crypto::bellman::Variable;
 use num_traits::ToPrimitive;
 

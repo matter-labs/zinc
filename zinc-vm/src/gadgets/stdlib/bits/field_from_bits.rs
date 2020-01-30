@@ -1,6 +1,6 @@
 use crate::gadgets::{Gadget, Primitive};
-use crate::RuntimeError;
 use crate::Engine;
+use crate::RuntimeError;
 use bellman::ConstraintSystem;
 use ff::{Field, PrimeField};
 use franklin_crypto::circuit::boolean::AllocatedBit;

@@ -1,6 +1,6 @@
 use crate::gadgets::{Gadget, Primitive};
-use crate::RuntimeError;
 use crate::Engine;
+use crate::RuntimeError;
 use bellman::ConstraintSystem;
 
 /// Truncate array.

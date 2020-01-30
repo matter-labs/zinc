@@ -1,5 +1,5 @@
 use crate::gadgets::{Gadget, Primitive};
-use crate::{RuntimeError, Engine};
+use crate::{Engine, RuntimeError};
 use bellman::ConstraintSystem;
 
 use franklin_crypto::circuit::baby_pedersen_hash::{pedersen_hash, Personalization};

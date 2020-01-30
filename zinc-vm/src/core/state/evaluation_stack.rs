@@ -1,7 +1,7 @@
-use crate::gadgets::{Primitive, Gadgets};
 use crate::core::Cell;
-use crate::RuntimeError;
+use crate::gadgets::{Gadgets, Primitive};
 use crate::Engine;
+use crate::RuntimeError;
 use franklin_crypto::bellman::ConstraintSystem;
 
 #[derive(Debug)]
@@ -40,7 +40,11 @@ impl<E: Engine> EvaluationStack<E> {
         self.stack.push(vec![]);
     }
 
-    pub fn merge<CS>(&mut self, condition: Primitive<E>, ops: &mut Gadgets<E, CS>) -> Result<(), RuntimeError>
+    pub fn merge<CS>(
+        &mut self,
+        condition: Primitive<E>,
+        ops: &mut Gadgets<E, CS>,
+    ) -> Result<(), RuntimeError>
     where
         CS: ConstraintSystem<E>,
     {

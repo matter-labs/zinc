@@ -2,6 +2,8 @@
 //! The Zinc compiler library.
 //!
 
+#![allow(clippy::op_ref)]
+
 mod error;
 mod lexical;
 mod semantic;
