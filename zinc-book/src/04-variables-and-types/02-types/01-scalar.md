@@ -33,11 +33,10 @@ let y = check(true); // y is ()
 
 `bool` is the boolean type keyword.
 
-Its internal representation uses the BN256 field of bitlength `1`. But in
-general, its behavior is indistinguishable from the same type from Rust or other
+Boolean value is represented as `field` with value set to either `0` or `1`.
+To ensure type safety casting between boolean and integer types is not allowed.
+In general, its behavior is indistinguishable from the same type from Rust or other
 C-like languages.
-
-Boolean values cannot be casted to or from.
 
 ### Literals
 

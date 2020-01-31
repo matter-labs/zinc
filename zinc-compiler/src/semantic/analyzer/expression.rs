@@ -814,7 +814,7 @@ impl Analyzer {
                         match argument_elements.get(1) {
                             Some(Element::Constant(Constant::Integer(
                                 integer @ IntegerConstant { .. },
-                            ))) if integer.is_signed => {
+                            ))) if !integer.is_signed => {
                                 let new_length = integer.to_usize().unwrap();
                                 function
                                     .validate(arguments.as_slice(), new_length)
@@ -823,7 +823,7 @@ impl Analyzer {
                                     })?
                             }
                             argument => {
-                                return Err(Error::FunctionExpectedConstantArgument(
+                                return Err(Error::FunctionExpectedConstantLengthArgument(
                                     element.location,
                                     function.identifier,
                                     format!("{:?}", argument),
@@ -832,10 +832,11 @@ impl Analyzer {
                         }
                     }
                     StandardLibraryFunctionType::ArrayPad(function) => {
+                        dbg!(&argument_elements[1]);
                         match argument_elements.get(1) {
                             Some(Element::Constant(Constant::Integer(
                                 integer @ IntegerConstant { .. },
-                            ))) if integer.is_signed => {
+                            ))) if !integer.is_signed => {
                                 let new_length = integer.to_usize().unwrap();
                                 function
                                     .validate(arguments.as_slice(), new_length)
@@ -844,7 +845,7 @@ impl Analyzer {
                                     })?
                             }
                             argument => {
-                                return Err(Error::FunctionExpectedConstantArgument(
+                                return Err(Error::FunctionExpectedConstantLengthArgument(
                                     element.location,
                                     function.identifier,
                                     format!("{:?}", argument),
@@ -1246,22 +1247,29 @@ impl Analyzer {
 
         for expression in array.elements.into_iter() {
             let location = expression.location;
-            let element = self.expression(expression, TranslationHint::ValueExpression)?;
-            let element_type = Type::from_element(&element, self.scope())?;
             match array.repeats_count {
                 Some(ref repeats_count) => {
                     let repeats_count = IntegerConstant::try_from(repeats_count)
                         .map_err(|error| Error::InferenceConstant(location, error))?
                         .to_usize()
                         .map_err(|error| Error::InferenceConstant(location, error))?;
-                    result
-                        .extend(element_type, repeats_count)
-                        .map_err(|error| Error::LiteralArray(location, error))?;
+                    for _ in 0..repeats_count {
+                        let element =
+                            self.expression(expression.clone(), TranslationHint::ValueExpression)?;
+                        let element_type = Type::from_element(&element, self.scope())?;
+                        result
+                            .push(element_type)
+                            .map_err(|error| Error::LiteralArray(location, error))?;
+                    }
                     break;
                 }
-                None => result
-                    .extend(element_type, 1)
-                    .map_err(|error| Error::LiteralArray(location, error))?,
+                None => {
+                    let element = self.expression(expression, TranslationHint::ValueExpression)?;
+                    let element_type = Type::from_element(&element, self.scope())?;
+                    result
+                        .push(element_type)
+                        .map_err(|error| Error::LiteralArray(location, error))?
+                }
             }
         }
 

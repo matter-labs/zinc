@@ -43,7 +43,9 @@ impl Parser {
             match self.state {
                 State::BindingPattern => {
                     match crate::syntax::take_or_next(initial.take(), stream.clone())? {
-                        token @ Token {
+                        token
+                        @
+                        Token {
                             lexeme: Lexeme::Keyword(Keyword::Mut),
                             ..
                         } => {
@@ -52,7 +54,9 @@ impl Parser {
                             self.next = next;
                             self.patterns.push(pattern);
                         }
-                        token @ Token {
+                        token
+                        @
+                        Token {
                             lexeme: Lexeme::Identifier(_),
                             ..
                         } => {
@@ -61,7 +65,9 @@ impl Parser {
                             self.next = next;
                             self.patterns.push(pattern);
                         }
-                        token @ Token {
+                        token
+                        @
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::Underscore),
                             ..
                         } => {

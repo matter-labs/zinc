@@ -84,17 +84,15 @@ impl StandardLibraryFunction {
 
     pub fn builtin_identifier(&self) -> BuiltinIdentifier {
         match self {
-            Self::Sha256(_) => Sha256StandardLibraryFunction::builtin_identifier(),
-            Self::Pedersen(_) => PedersenStandardLibraryFunction::builtin_identifier(),
-            Self::ToBits(_) => ToBitsStandardLibraryFunction::builtin_identifier(),
-            Self::FromBitsUnsigned(_) => {
-                FromBitsUnsignedStandardLibraryFunction::builtin_identifier()
-            }
-            Self::FromBitsSigned(_) => FromBitsSignedStandardLibraryFunction::builtin_identifier(),
-            Self::FromBitsField(_) => FromBitsFieldStandardLibraryFunction::builtin_identifier(),
-            Self::ArrayReverse(_) => FromBitsFieldStandardLibraryFunction::builtin_identifier(),
-            Self::ArrayTruncate(_) => FromBitsFieldStandardLibraryFunction::builtin_identifier(),
-            Self::ArrayPad(_) => FromBitsFieldStandardLibraryFunction::builtin_identifier(),
+            Self::Sha256(inner) => inner.builtin_identifier(),
+            Self::Pedersen(inner) => inner.builtin_identifier(),
+            Self::ToBits(inner) => inner.builtin_identifier(),
+            Self::FromBitsUnsigned(inner) => inner.builtin_identifier(),
+            Self::FromBitsSigned(inner) => inner.builtin_identifier(),
+            Self::FromBitsField(inner) => inner.builtin_identifier(),
+            Self::ArrayReverse(inner) => inner.builtin_identifier(),
+            Self::ArrayTruncate(inner) => inner.builtin_identifier(),
+            Self::ArrayPad(inner) => inner.builtin_identifier(),
         }
     }
 }

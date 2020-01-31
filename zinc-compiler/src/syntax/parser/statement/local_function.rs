@@ -29,7 +29,9 @@ impl Parser {
         mut initial: Option<Token>,
     ) -> Result<(FunctionLocalStatement, Option<Token>, bool), Error> {
         let statement = match crate::syntax::take_or_next(initial.take(), stream.clone())? {
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::Let),
                 ..
             } => {
@@ -38,7 +40,9 @@ impl Parser {
                 self.next = next;
                 FunctionLocalStatement::Let(statement)
             }
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::Const),
                 ..
             } => {
@@ -47,7 +51,9 @@ impl Parser {
                 self.next = next;
                 FunctionLocalStatement::Const(statement)
             }
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::For),
                 ..
             } => {

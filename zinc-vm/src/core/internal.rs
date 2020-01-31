@@ -52,7 +52,10 @@ where
     fn store(&mut self, address: usize, cell: Cell<E>) -> Result<(), RuntimeError> {
         {
             let frame = self.top_frame()?;
-            frame.stack_frame_end = std::cmp::max(frame.stack_frame_end, address + 1);
+            frame.stack_frame_end = std::cmp::max(
+                frame.stack_frame_end,
+                frame.stack_frame_begin + address + 1
+            );
         }
         let offset = self.top_frame()?.stack_frame_begin;
         self.state.data_stack.set(offset + address, cell)

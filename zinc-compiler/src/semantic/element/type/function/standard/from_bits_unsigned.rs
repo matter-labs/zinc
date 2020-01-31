@@ -22,7 +22,7 @@ impl FromBitsUnsignedStandardLibraryFunction {
         }
     }
 
-    pub fn builtin_identifier() -> BuiltinIdentifier {
+    pub fn builtin_identifier(&self) -> BuiltinIdentifier {
         BuiltinIdentifier::UnsignedFromBits
     }
 

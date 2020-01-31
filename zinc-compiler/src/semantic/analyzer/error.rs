@@ -100,10 +100,10 @@ pub enum Error {
     #[fail(display = "{} built-in function '{}' must be called with '!'", _0, _1)]
     FunctionInstructionSpecifierMissing(Location, &'static str),
     #[fail(
-        display = "{} function '{}' expected a constant argument, but got '{}'",
+        display = "{} function '{}' expected a constant unsigned length argument, but got '{}'",
         _0, _1, _2
     )]
-    FunctionExpectedConstantArgument(Location, &'static str, String),
+    FunctionExpectedConstantLengthArgument(Location, &'static str, String),
 
     #[fail(display = "{} {}", _0, _1)]
     FunctionStandardLibrary(Location, StandardLibraryFunctionError),

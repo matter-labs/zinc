@@ -94,7 +94,9 @@ impl Parser {
                 }
                 State::KeywordIfOrElseBlock => {
                     match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
-                        token @ Token {
+                        token
+                        @
+                        Token {
                             lexeme: Lexeme::Keyword(Keyword::If),
                             ..
                         } => {
@@ -115,7 +117,9 @@ impl Parser {
                             self.builder.set_else_block(block);
                             return Ok((self.builder.finish(), next));
                         }
-                        token @ Token {
+                        token
+                        @
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
                         } => {

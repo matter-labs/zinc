@@ -205,11 +205,11 @@ impl Scope {
         );
         std_array_scope.items.insert(
             "truncate".to_owned(),
-            Item::Type(Type::new_std_function(BuiltinIdentifier::ArrayReverse)),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::ArrayTruncate)),
         );
         std_array_scope.items.insert(
             "pad".to_owned(),
-            Item::Type(Type::new_std_function(BuiltinIdentifier::ArrayReverse)),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::ArrayPad)),
         );
 
         let mut std_scope = Scope::default();

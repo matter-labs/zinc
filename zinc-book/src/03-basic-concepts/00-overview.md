@@ -15,7 +15,7 @@ Module files may contain only declarations of types, functions, and constants.
 
 ```rust,no_run,noplaypen
 /// 
-/// './main.zn'
+/// 'src/main.zn'
 ///
 /// Proves a knowledge of a cube root `r` for a given public input `x`.
 ///
@@ -34,10 +34,10 @@ fn main(x: field, r: field) -> field {
 
 ```rust,no_run,noplaypen
 /// 
-/// './lib.zn'
+/// 'src/simple_math.zn'
 /// 
+
 /// Returns x^3.
-/// 
 fn cube(x: field) -> field {
     x * x * x
 }

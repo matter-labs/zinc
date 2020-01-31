@@ -113,7 +113,9 @@ impl Parser {
                 }
                 State::BlockExpressionOrKeywordWhile => {
                     match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
-                        token @ Token {
+                        token
+                        @
+                        Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
                         } => {

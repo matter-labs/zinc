@@ -22,7 +22,7 @@ impl ArrayPadStandardLibraryFunction {
         }
     }
 
-    pub fn builtin_identifier() -> BuiltinIdentifier {
+    pub fn builtin_identifier(&self) -> BuiltinIdentifier {
         BuiltinIdentifier::ArrayPad
     }
 
@@ -74,7 +74,7 @@ impl ArrayPadStandardLibraryFunction {
         }
 
         match inputs.get(2) {
-            Some(r#type) if r#type.is_scalar() => {}
+            Some(r#type) if r#type.is_scalar() && r#type == &input_array_type => {}
             Some(r#type) => {
                 return Err(StandardLibraryFunctionError::ArgumentType(
                     self.identifier,
