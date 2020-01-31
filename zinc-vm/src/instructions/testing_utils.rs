@@ -80,7 +80,7 @@ impl VMTestRunner {
 
         let program = Program::new(DataType::Unit, DataType::Unit, instructions);
 
-        vm.run(&program, Some(&[]))
+        vm.run(&program, Some(&[]), |_| {})
             .map_err(TestingError::RuntimeError)?;
 
         let cs = vm.constraint_system();
