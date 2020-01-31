@@ -13,17 +13,14 @@ fn balance_hash(balance: field) -> Digest {
 }
 
 fn merkle_node_hash(left: Digest, right: Digest) -> Digest {
-    let v = [false; 256];
-    v
+    let mut data = [false; 512];
 
-    // let mut data = [false; 512];
+    for i in 0 as u16..256 {
+        data[i] = left[i];
+        data[256 + i] = right[i];
+    }
 
-    // for i in 0 as u16..256 {
-    //     data[i] = left[i];
-    //     data[256 + i] = right[i];
-    // }
-
-    // crypto::sha256(data)
+    crypto::sha256(data)
 }
 
 fn restore_root_hash(
