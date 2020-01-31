@@ -3,7 +3,7 @@
 [Introduction](README.md)
 
 - [Design background](01-design-background.md)
-- [Getting started](02-getting-started.md)
+- [Getting started](01-first-circuit/02-getting-started.md)
 - [Basic concepts](03-basic-concepts/00-overview.md)
     - [Input and output](03-basic-concepts/01-input-output.md)
     - [Standard library](03-basic-concepts/02-standard-library.md)

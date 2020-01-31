@@ -114,6 +114,20 @@ impl Array {
         ))
     }
 
+    pub fn push(&mut self, r#type: Type) -> Result<(), Error> {
+        if self.size == 0 {
+            self.r#type = r#type;
+        } else if r#type != self.r#type {
+            return Err(Error::PushingInvalidType(
+                r#type.to_string(),
+                self.r#type.to_string(),
+            ));
+        }
+        self.size += 1;
+
+        Ok(())
+    }
+
     pub fn extend(&mut self, r#type: Type, count: usize) -> Result<(), Error> {
         if self.size == 0 {
             self.r#type = r#type;

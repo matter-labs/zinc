@@ -29,7 +29,7 @@ This command will install the following binaries into your `PATH`:
 `zargo` is able to use the compiler and virtual machine through its interface,
 so you will only need `zargo` to work with your circuits.
 
-For more information on `zargo`, check out this [chapter](./09-zargo-circuit-manager/00-overview.md).
+For more information on `zargo`, check out this [chapter](../09-zargo-circuit-manager/00-overview.md).
 
 Let's now move on to writing 'Hello, World!' in Zinc!
 

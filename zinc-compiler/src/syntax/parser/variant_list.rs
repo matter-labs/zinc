@@ -27,7 +27,9 @@ impl Parser {
     ) -> Result<(Vec<Variant>, Option<Token>), Error> {
         loop {
             match crate::syntax::take_or_next(initial.take(), stream.clone())? {
-                token @ Token {
+                token
+                @
+                Token {
                     lexeme: Lexeme::Identifier(_),
                     ..
                 } => {

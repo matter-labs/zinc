@@ -27,11 +27,15 @@ impl Parser {
     ) -> Result<(Vec<Expression>, Option<Token>), Error> {
         loop {
             match crate::syntax::take_or_next(initial.take(), stream.clone())? {
-                token @ Token {
+                token
+                @
+                Token {
                     lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                     ..
                 } => return Ok((self.expressions, Some(token))),
-                token @ Token {
+                token
+                @
+                Token {
                     lexeme: Lexeme::Eof,
                     ..
                 } => return Ok((self.expressions, Some(token))),

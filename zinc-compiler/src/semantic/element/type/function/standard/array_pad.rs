@@ -74,7 +74,7 @@ impl ArrayPadStandardLibraryFunction {
         }
 
         match inputs.get(2) {
-            Some(r#type) if r#type.is_scalar() && r#type == input_array_type => {}
+            Some(r#type) if r#type.is_scalar() && r#type == &input_array_type => {}
             Some(r#type) => {
                 return Err(StandardLibraryFunctionError::ArgumentType(
                     self.identifier,

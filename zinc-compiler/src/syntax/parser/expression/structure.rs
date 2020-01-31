@@ -70,7 +70,9 @@ impl Parser {
                 }
                 State::Path => {
                     match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
-                        token @ Token {
+                        token
+                        @
+                        Token {
                             lexeme: Lexeme::Identifier(_),
                             ..
                         } => {
