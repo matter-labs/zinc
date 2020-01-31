@@ -18,4 +18,12 @@ for i in 0..10 while i % x != 8 {
 };
 ```
 
-Only integer literals can be used as the bounds of the iterator range for now.
+Only constant expressions can be used as the bounds of the iterator range. The
+`while` condition will not cause an early return, but it will suppress the loop
+body side effects.
+
+Zinc is a turing-incomplete language, as it is dictated by R1CS restrictions, so
+loops always have fixed number of iterations. On the one hand, the loop counter
+can be optimized to be treated as a constant, reducing the circuit cost, but on
+the other hand, you cannot force a loop to return early, increasing the circuit
+cost.

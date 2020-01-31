@@ -16,7 +16,7 @@ system, but `std` makes an exception to simpilify development for now.
 - `i{N}` - a signed integer of bitlength `N`
 - `field` - a field element of bitlength `254`
 
-## Crypto module
+## `crypto` module
 
 ### `std::crypto::sha256`
 
@@ -38,7 +38,7 @@ Arguments:
 
 Returns: elliptic curve point coordinates `(field, field)`
 
-## Convert module
+## `convert` module
 
 ### `std::convert::to_bits`
 
@@ -76,7 +76,7 @@ Arguments:
 
 Returns: `field`
 
-## Array module
+## `array` module
 
 ### `std::array::reverse`
 
