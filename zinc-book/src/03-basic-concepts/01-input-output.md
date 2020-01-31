@@ -24,7 +24,7 @@ The following example illustrates a circuit proving knowledge of some
 ```rust,no_run,noplaypen
 use std::sha256;
 
-fn main(preimage: [u8; 256]) -> [u8; 32] {
+fn main(preimage: [bool; 256]) -> [bool; 256] {
     sha256(preimage)
 }
 ```
