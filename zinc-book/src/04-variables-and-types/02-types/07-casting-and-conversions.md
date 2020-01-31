@@ -8,7 +8,7 @@ types in places where they are highly obvious.
 ## Explicit
 
 Type conversions can be only performed on the integer and enumeration types with
-the casting operator. [Chapter 6](../../06-operators/00-overview.md) explains
+the casting operator. [This chapter](../../05-operators/00-overview.md) explains
 the operator behavior in detail.
 
 ## Implicit
@@ -34,7 +34,7 @@ let positive = 100; // u8
 let negative = -positive; // i8
 ```
 
-[Chapter 6](../../06-operators/00-overview.md) describes the negation operator
+[This chapter](../../05-operators/00-overview.md) describes the negation operator
 with more detail.
 
 ## Inference

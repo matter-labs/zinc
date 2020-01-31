@@ -11,7 +11,7 @@ let mut a = 0;
 a = 42; // an expression statement ignoring the '()' result of the assignment
 ```
 
-For for information on expressions, check the [Chapter 7](../../07-expressions/01-overview).
+For for information on expressions, check [this chapter](../06-expressions/00-overview.md).
 
 ## Semicolons
 
