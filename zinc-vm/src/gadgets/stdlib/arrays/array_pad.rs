@@ -14,7 +14,7 @@ impl<E: Engine> Gadget<E> for ArrayPad {
         _cs: CS,
         input: Self::Input,
     ) -> Result<Self::Output, RuntimeError> {
-        let (len_value, value, mut array) = input;
+        let (value, len_value, mut array) = input;
         let len = len_value.get_constant_usize()?;
 
         if len < array.len() {

@@ -27,7 +27,7 @@ impl Sha256StandardLibraryFunction {
         }
     }
 
-    pub fn builtin_identifier() -> BuiltinIdentifier {
+    pub fn builtin_identifier(&self) -> BuiltinIdentifier {
         BuiltinIdentifier::CryptoSha256
     }
 

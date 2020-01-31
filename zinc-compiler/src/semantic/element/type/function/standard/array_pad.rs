@@ -22,7 +22,7 @@ impl ArrayPadStandardLibraryFunction {
         }
     }
 
-    pub fn builtin_identifier() -> BuiltinIdentifier {
+    pub fn builtin_identifier(&self) -> BuiltinIdentifier {
         BuiltinIdentifier::ArrayPad
     }
 

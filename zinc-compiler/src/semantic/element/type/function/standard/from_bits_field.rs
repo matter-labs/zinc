@@ -22,7 +22,7 @@ impl FromBitsFieldStandardLibraryFunction {
         }
     }
 
-    pub fn builtin_identifier() -> BuiltinIdentifier {
+    pub fn builtin_identifier(&self) -> BuiltinIdentifier {
         BuiltinIdentifier::FieldFromBits
     }
 

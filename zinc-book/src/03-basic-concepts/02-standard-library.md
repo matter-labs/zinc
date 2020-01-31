@@ -26,12 +26,12 @@ fn main(preimage: [bool; 256]) -> ([bool; 256], (field, field)) {
 
 ## Built-in functions
 
-Built-in functions closely resemble `macro_rules` found in Rust, but you do not
-have to declare them since the compiler already knows all their signatures.
+There are several built-in functions, which can be called directly from
+anywhere in your code.
 
 The exhaustive list of function signatures is provided in [Appendix D](../appendix/D-built-in-functions.md).
 
-To call such a function, use the Rust macro syntax, as in the following example:
+To call such a function, use the syntax, as in the following example:
 
 ```rust,no_run,noplaypen
 fn main(/* ... */) {
@@ -40,3 +40,7 @@ fn main(/* ... */) {
     assert!(value == 42);
 }
 ```
+
+If you are familiar with Rust, it can resemble the macro syntax found there, but
+actually these functions have nothing to do with macros. Instead, they
+represent some special Zinc VM instructions.

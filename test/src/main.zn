@@ -8,8 +8,6 @@ use std::crypto;
 
 struct PublicInput {
     root_hash: lib::Digest,
-    address: [bool; 10],
-    balance: field,
 }
 
 fn main(
@@ -27,6 +25,5 @@ fn main(
 
     struct PublicInput {
         root_hash: root_hash,
-        balance: 0 as field,
     }
 }

@@ -814,7 +814,7 @@ impl Analyzer {
                         match argument_elements.get(1) {
                             Some(Element::Constant(Constant::Integer(
                                 integer @ IntegerConstant { .. },
-                            ))) if integer.is_signed => {
+                            ))) if !integer.is_signed => {
                                 let new_length = integer.to_usize().unwrap();
                                 function
                                     .validate(arguments.as_slice(), new_length)
@@ -823,7 +823,7 @@ impl Analyzer {
                                     })?
                             }
                             argument => {
-                                return Err(Error::FunctionExpectedConstantArgument(
+                                return Err(Error::FunctionExpectedConstantLengthArgument(
                                     element.location,
                                     function.identifier,
                                     format!("{:?}", argument),
@@ -832,10 +832,11 @@ impl Analyzer {
                         }
                     }
                     StandardLibraryFunctionType::ArrayPad(function) => {
+                        dbg!(&argument_elements[1]);
                         match argument_elements.get(1) {
                             Some(Element::Constant(Constant::Integer(
                                 integer @ IntegerConstant { .. },
-                            ))) if integer.is_signed => {
+                            ))) if !integer.is_signed => {
                                 let new_length = integer.to_usize().unwrap();
                                 function
                                     .validate(arguments.as_slice(), new_length)
@@ -844,7 +845,7 @@ impl Analyzer {
                                     })?
                             }
                             argument => {
-                                return Err(Error::FunctionExpectedConstantArgument(
+                                return Err(Error::FunctionExpectedConstantLengthArgument(
                                     element.location,
                                     function.identifier,
                                     format!("{:?}", argument),

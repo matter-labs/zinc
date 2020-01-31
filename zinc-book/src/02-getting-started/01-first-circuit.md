@@ -1,4 +1,4 @@
-# Getting started
+# First circuit
 
 ## Cargo installation
 
@@ -93,6 +93,10 @@ This will also write program's output to `build/pubdata.json` which is later use
 
 ## Verifying a proof
 
+Before verifying a proof, make sure that the prover and verifier use the same
+version of the Zinc framework.
+Some versions may be compatible, but it is to be decided yet.
+
 To verify a proof, pass it to the Zinc VM with the same public data you used to
 generated it, and the verification key:
 
@@ -104,8 +108,3 @@ Congratulations! You have developed your first circuit and verified your first
 Zero-Knowledge Proof!
 
 Feel free to proceed to the next chapters to know more about the Zinc framework!
-
-## Compatibility
-
-The prover and the verifier must use the same version of the Zinc framework.
-Some versions may be compatible, but it is to be decided yet.
