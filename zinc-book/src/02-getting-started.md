@@ -35,7 +35,7 @@ Let's now move on to writing 'Hello, World!' in Zinc!
 
 ## Creating the circuit
 
-Let's create our first circuit, which will be able to prove the knowledge of
+Let's create our first circuit, which will be able to prove knowledge of
 some `sha256` hash preimage:
 
 ```
