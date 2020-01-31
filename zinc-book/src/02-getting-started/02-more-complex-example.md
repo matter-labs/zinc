@@ -335,7 +335,7 @@ fn restore_root_hash(
 }
 ```
 
-You may notice a `use` statement as the first line of code. It is an import statement
+You may notice a `use` statement at the first line of code. It is an import statement
 which is designed to prevent using long repeated paths in our code. As you can see,
 now we call the standard library function like this `sha256(data)`, but not like
 that `std::crypto::sha256(data)`.
