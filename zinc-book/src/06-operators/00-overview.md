@@ -216,9 +216,10 @@ let c: u8 = Order::First; // casting to an integer of enough bitlength
 
 **Accepts**
 1. Array expression
-2. Integer expression
+2. Integer or range expression
 
-**Returns** an array element or error.
+**Returns** an array element (if the 2nd operand is an integer) or a sub-array
+(if the 2nd operand is a range).
 
 #### Field access
 
@@ -228,14 +229,30 @@ let c: u8 = Order::First; // casting to an integer of enough bitlength
 1. Tuple or structure expression
 2. Tuple index or structure field name
 
-**Returns** a tuple or structure element or error.
+**Returns** a tuple or structure element.
 
 ## Range
 
-#### Exclusive range (TODO)
+#### Range
 
 `..`
 
-#### Inclusive range (TODO)
+Range operator is used only for loop bounds or array slicing.
+
+**Accepts**
+1. Constant integer expression
+2. Constant integer expression
+
+**Returns** a temporary range element of the same type as that of the constants passed.
+
+#### Inclusive range
 
 `..=`
+
+The same as the above, but includes the right range bound.
+
+**Accepts**
+1. Constant integer expression
+2. Constant integer expression
+
+**Returns** a temporary range element of the same type as that of the constants passed.

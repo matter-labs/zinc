@@ -92,7 +92,7 @@ match value {
 }
 ```
 
-For now, only these match patterns are supported:
+For now, only the following match patterns are supported:
 - constant (e.g. `42`)
 - path (e.g. `MyEnum::ValueOne`)
 - variable binding (e.g. `value`)
