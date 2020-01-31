@@ -30,7 +30,7 @@ cost.
 
 ## `if` and `match`
 
-The [conditional and match](../06-expressions/03-conditional.md) expressions can act as control statements, ignoring
+The [conditional and match](../06-expressions/03-conditionals.md) expressions can act as control statements, ignoring
 the returned value. To use them in such role, just terminate the expression with
 a semicolon:
 

@@ -1,8 +1,5 @@
 # Operators
 
-Operators do not perform any kind of overflow checking. If an overflow happens,
-the Zinc VM will fail during proof generation.
-
 ## Assignment
 
 `=`
@@ -14,6 +11,9 @@ the Zinc VM will fail during proof generation.
 **Returns** `()`.
 
 ## Arithmetic
+
+Arithmetic operators do not perform any kind of overflow checking. If an
+overflow happens, the Zinc VM will fail during proof generation.
 
 #### Addition
 
@@ -189,8 +189,8 @@ the Zinc VM will fail during proof generation.
 
 Casting allowed:
 
-- integers to types of greater bitlength
-- enums to integers of enough bitlength
+- from integers to types of greater bitlength
+- from enums to integers of enough or greater bitlength
 
 ```rust,no_run,noplaypen
 let a = -1; // inference

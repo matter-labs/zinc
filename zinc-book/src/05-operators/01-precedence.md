@@ -6,7 +6,7 @@ The top one is executed first.
 |----------------- |-----------------|
 |        ::        |  left to right  |
 |       [] .       |  left to right  |
-|        - !       |      unary      |
+|     - ! & *      |      unary      |
 |        as        |  left to right  |
 |       * / %      |  left to right  |
 |        + -       |  left to right  |
