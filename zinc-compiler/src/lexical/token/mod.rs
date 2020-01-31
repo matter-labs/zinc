@@ -2,23 +2,13 @@
 //! The lexical token.
 //!
 
-mod lexeme;
-mod location;
-
-pub use self::lexeme::BooleanLiteral;
-pub use self::lexeme::Comment;
-pub use self::lexeme::Identifier;
-pub use self::lexeme::IdentifierError;
-pub use self::lexeme::IntegerLiteral;
-pub use self::lexeme::Keyword;
-pub use self::lexeme::KeywordError;
-pub use self::lexeme::Lexeme;
-pub use self::lexeme::Literal;
-pub use self::lexeme::StringLiteral;
-pub use self::lexeme::Symbol;
-pub use self::location::Location;
+pub mod lexeme;
+pub mod location;
 
 use std::fmt;
+
+use self::lexeme::Lexeme;
+use self::location::Location;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {

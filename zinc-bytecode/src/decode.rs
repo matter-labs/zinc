@@ -104,9 +104,6 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Instruction, usize), Decoding
         x if x == InstructionCode::Ge as u8 => decode_and_wrap::<Ge>(bytes),
         x if x == InstructionCode::Gt as u8 => decode_and_wrap::<Gt>(bytes),
         x if x == InstructionCode::Cast as u8 => decode_and_wrap::<Cast>(bytes),
-        x if x == InstructionCode::ConditionalSelect as u8 => {
-            decode_and_wrap::<ConditionalSelect>(bytes)
-        }
         x if x == InstructionCode::If as u8 => decode_and_wrap::<If>(bytes),
         x if x == InstructionCode::Else as u8 => decode_and_wrap::<Else>(bytes),
         x if x == InstructionCode::EndIf as u8 => decode_and_wrap::<EndIf>(bytes),

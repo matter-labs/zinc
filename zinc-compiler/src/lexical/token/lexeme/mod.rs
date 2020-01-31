@@ -2,24 +2,19 @@
 //! The lexical token lexeme.
 //!
 
-mod comment;
-mod identifier;
-mod keyword;
-mod literal;
-mod symbol;
-
-pub use self::comment::Comment;
-pub use self::identifier::Error as IdentifierError;
-pub use self::identifier::Identifier;
-pub use self::keyword::Error as KeywordError;
-pub use self::keyword::Keyword;
-pub use self::literal::Boolean as BooleanLiteral;
-pub use self::literal::Integer as IntegerLiteral;
-pub use self::literal::Literal;
-pub use self::literal::String as StringLiteral;
-pub use self::symbol::Symbol;
+pub mod comment;
+pub mod identifier;
+pub mod keyword;
+pub mod literal;
+pub mod symbol;
 
 use std::fmt;
+
+use self::comment::Comment;
+use self::identifier::Identifier;
+use self::keyword::Keyword;
+use self::literal::Literal;
+use self::symbol::Symbol;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Lexeme {

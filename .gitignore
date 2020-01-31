@@ -10,4 +10,4 @@
 /zinc-book/build/*
 
 # Zinc build
-/examples/test/build/*
+/test/build/*

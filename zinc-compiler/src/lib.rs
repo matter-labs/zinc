@@ -2,6 +2,8 @@
 //! The Zinc compiler library.
 //!
 
+#![allow(clippy::op_ref)]
+
 mod error;
 mod lexical;
 mod semantic;
@@ -21,4 +23,5 @@ pub const BITLENGTH_BOOLEAN: usize = 1;
 pub const BITLENGTH_BYTE: usize = 8;
 pub const BITLENGTH_MAX_INT: usize = 248;
 pub const BITLENGTH_FIELD: usize = 254;
-pub const SHA256_HASH_SIZE: usize = 32;
+
+pub const SHA256_HASH_SIZE_BITS: usize = 256;

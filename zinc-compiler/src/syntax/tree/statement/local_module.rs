@@ -4,7 +4,6 @@
 
 use crate::syntax::ConstStatement;
 use crate::syntax::EnumStatement;
-use crate::syntax::ExternFnStatement;
 use crate::syntax::FnStatement;
 use crate::syntax::ImplStatement;
 use crate::syntax::ModStatement;
@@ -24,5 +23,4 @@ pub enum Statement {
     Mod(ModStatement),
     Use(UseStatement),
     Impl(ImplStatement),
-    ExternFn(ExternFnStatement),
 }

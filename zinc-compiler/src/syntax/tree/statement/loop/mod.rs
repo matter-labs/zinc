@@ -14,11 +14,8 @@ use crate::syntax::Identifier;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Loop {
     pub location: Location,
-    pub id: String,
     pub index_identifier: Identifier,
-    pub range_start_expression: Expression,
-    pub range_end_expression: Expression,
-    pub is_range_inclusive: bool,
+    pub bounds_expression: Expression,
     pub while_condition: Option<Expression>,
     pub block: BlockExpression,
 }
@@ -27,21 +24,14 @@ impl Loop {
     pub fn new(
         location: Location,
         index_identifier: Identifier,
-        range_start_expression: Expression,
-        range_end_expression: Expression,
-        is_range_inclusive: bool,
+        bounds_expression: Expression,
         while_condition: Option<Expression>,
         block: BlockExpression,
     ) -> Self {
-        let id = format!("L{}", location.line);
-
         Self {
             location,
-            id,
             index_identifier,
-            range_start_expression,
-            range_end_expression,
-            is_range_inclusive,
+            bounds_expression,
             while_condition,
             block,
         }

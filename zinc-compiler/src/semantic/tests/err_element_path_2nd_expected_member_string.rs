@@ -18,7 +18,7 @@ enum Value {
     FIRST = 1,
 }
 
-fn main(input: (), witness: ()) {
+fn main() {
     let value = Value::5;
 }
 "#;

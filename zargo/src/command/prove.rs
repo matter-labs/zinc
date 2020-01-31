@@ -27,25 +27,25 @@ pub struct Command {
     circuit: PathBuf,
 
     #[structopt(
-        long = "params",
-        help = "Path to the prover parameters file",
-        default_value = "./build/params"
+        long = "proving-key",
+        help = "Path to the proving key file",
+        default_value = "./build/proving-key"
     )]
-    params: PathBuf,
+    proving_key: PathBuf,
 
     #[structopt(
-        long = "input",
-        help = "Path to the input JSON file",
-        default_value = "./build/input.json"
+        long = "witness",
+        help = "Path to the witness JSON file",
+        default_value = "./build/witness.json"
     )]
-    input: PathBuf,
+    witness: PathBuf,
 
     #[structopt(
-        long = "proof",
-        help = "Path to the proof file to generate",
-        default_value = "./build/proof"
+        long = "pubdata",
+        help = "Path to the pubdata JSON file to write",
+        default_value = "./build/public-data.json"
     )]
-    proof: PathBuf,
+    pubdata: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -65,12 +65,12 @@ impl Command {
                 .arg("prove")
                 .arg("--circuit")
                 .arg(self.circuit)
-                .arg("--params")
-                .arg(self.params)
-                .arg("--input")
-                .arg(self.input)
-                .arg("--proof")
-                .arg(self.proof)
+                .arg("--proving-key")
+                .arg(self.proving_key)
+                .arg("--witness")
+                .arg(self.witness)
+                .arg("--pubdata")
+                .arg(self.pubdata)
                 .spawn()
                 .map_err(Error::VirtualMachineProcessSpawning)?;
         let virtual_machine_process_status = virtual_machine_process

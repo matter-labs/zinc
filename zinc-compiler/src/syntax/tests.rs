@@ -21,7 +21,7 @@ fn err_expected() {
     let expected: Result<SyntaxTree, Error> = Err(Error::Syntax(SyntaxError::Expected(
         Location::new(1, 1),
         vec![
-            "const", "static", "type", "struct", "enum", "fn", "mod", "use", "impl", "extern",
+            "const", "static", "type", "struct", "enum", "fn", "mod", "use", "impl",
         ],
         Lexeme::Keyword(Keyword::Bool),
     )));

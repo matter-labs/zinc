@@ -14,7 +14,7 @@ to easily build complex data types and pass them around your code with as little
 verbosity as possible.
 
 Structure fields can be accessed via the dot operator, which is explained in
-detail in **Chapter 5**.
+detail in [Chapter 6](../../06-operators/00-overview.md).
 
 ```rust,no_run,noplaypen
 struct Person {
@@ -85,5 +85,5 @@ fn wierd_sum(a: u8, b: u8) -> u8 {
 }
 
 let result = wierd_sum(42, 27);
-std::require(result == 100);
+assert!(result == 100, "the weird sum is incorrect");
 ```

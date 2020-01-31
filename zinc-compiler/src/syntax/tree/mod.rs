@@ -59,8 +59,6 @@ pub use self::statement::Const as ConstStatement;
 pub use self::statement::ConstBuilder as ConstStatementBuilder;
 pub use self::statement::Enum as EnumStatement;
 pub use self::statement::EnumBuilder as EnumStatementBuilder;
-pub use self::statement::ExternFn as ExternFnStatement;
-pub use self::statement::ExternFnBuilder as ExternFnStatementBuilder;
 pub use self::statement::Fn as FnStatement;
 pub use self::statement::FnBuilder as FnStatementBuilder;
 pub use self::statement::FunctionLocalStatement;

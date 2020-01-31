@@ -23,7 +23,7 @@ fn sum(a: u8, b: u8) -> u8 {
     result
 }
 
-fn main(input: (), witness: ()) {
+fn main() {
     let result = sum(42, 25);
 }
 "#;
@@ -31,8 +31,8 @@ fn main(input: (), witness: ()) {
     let expected = Ok(vec![
         Instruction::Call(Call::new(8, 0)),
         Instruction::Exit(Exit::new(0)),
-        Instruction::Load(Load::new(0)),
         Instruction::Load(Load::new(1)),
+        Instruction::Load(Load::new(0)),
         Instruction::Add(Add),
         Instruction::Store(Store::new(2)),
         Instruction::Load(Load::new(2)),

@@ -10,11 +10,7 @@ pub struct Program {
 }
 
 impl Program {
-    pub fn new(
-        input: DataType,
-        output: DataType,
-        bytecode: Vec<Instruction>,
-    ) -> Self {
+    pub fn new(input: DataType, output: DataType, bytecode: Vec<Instruction>) -> Self {
         Self {
             input,
             output,

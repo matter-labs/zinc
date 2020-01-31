@@ -1,19 +1,22 @@
 extern crate franklin_crypto;
 
+use crate::gadgets::stdlib::arrays::{ArrayPad, Reverse, Truncate};
+use crate::gadgets::stdlib::bits::*;
 use crate::gadgets::stdlib::crypto::{Pedersen, Sha256};
-use crate::gadgets::PrimitiveOperations;
-use crate::vm::{Cell, InternalVM, VMInstruction};
-use crate::vm::{RuntimeError, VirtualMachine};
-use crate::ZincEngine;
+
+use self::franklin_crypto::bellman::ConstraintSystem;
+use crate::core::{Cell, InternalVM, VMInstruction};
+use crate::core::{RuntimeError, VirtualMachine};
+use crate::Engine;
 use zinc_bytecode::builtins::BuiltinIdentifier;
 use zinc_bytecode::instructions::CallBuiltin;
 
-impl<E, O> VMInstruction<E, O> for CallBuiltin
+impl<E, CS> VMInstruction<E, CS> for CallBuiltin
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         let mut input = Vec::new();
         for _ in 0..self.inputs_count {
             let value = vm.pop()?.value()?;
@@ -21,10 +24,18 @@ where
         }
 
         let output = match self.identifier {
-            BuiltinIdentifier::CryptoSha256 => vm.operations().execute(Sha256, input.as_slice()),
-            BuiltinIdentifier::CryptoPedersen => {
-                vm.operations().execute(Pedersen, input.as_slice())
+            BuiltinIdentifier::CryptoSha256 => vm.operations().execute(Sha256, &input),
+            BuiltinIdentifier::CryptoPedersen => vm.operations().execute(Pedersen, &input),
+            BuiltinIdentifier::ToBits => vm.operations().execute(ToBits, &input),
+            BuiltinIdentifier::UnsignedFromBits => {
+                vm.operations().execute(UnsignedFromBits, &input)
             }
+            BuiltinIdentifier::SignedFromBits => vm.operations().execute(SignedFromBits, &input),
+            BuiltinIdentifier::FieldFromBits => vm.operations().execute(FieldFromBits, &input),
+            BuiltinIdentifier::ArrayPad => vm.operations().execute(ArrayPad, &input),
+            BuiltinIdentifier::ArrayTruncate => vm.operations().execute(Truncate, &input),
+            BuiltinIdentifier::ArrayReverse => vm.operations().execute(Reverse, &input),
+            // f => unimplemented!("Builtin function {} is not implemented.", f),
         }?;
 
         for value in output {

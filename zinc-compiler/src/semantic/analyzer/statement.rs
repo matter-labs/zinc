@@ -9,7 +9,6 @@ use std::rc::Rc;
 
 use num_bigint::BigInt;
 use num_traits::One;
-use num_traits::Signed;
 use num_traits::ToPrimitive;
 use num_traits::Zero;
 
@@ -20,7 +19,6 @@ use crate::semantic::Constant;
 use crate::semantic::Element;
 use crate::semantic::Error;
 use crate::semantic::ExpressionAnalyzer;
-use crate::semantic::FunctionBehavior;
 use crate::semantic::IntegerConstant;
 use crate::semantic::IntegerConstantError;
 use crate::semantic::Scope;
@@ -81,7 +79,6 @@ impl Analyzer {
             ModuleLocalStatement::Mod(statement) => self.mod_statement(statement)?,
             ModuleLocalStatement::Use(statement) => self.use_statement(statement)?,
             ModuleLocalStatement::Impl(statement) => self.impl_statement(statement)?,
-            ModuleLocalStatement::ExternFn(_statement) => unimplemented!(),
         }
 
         Ok(())
@@ -269,12 +266,8 @@ impl Analyzer {
             ));
         }
         let return_type = Type::from_type_variant(&statement.return_type.variant, self.scope())?;
-        let r#type = Type::new_function(
-            identifier.clone(),
-            argument_bindings,
-            return_type,
-            FunctionBehavior::Normal,
-        );
+        let r#type =
+            Type::new_user_defined_function(identifier.clone(), argument_bindings, return_type);
 
         self.scope()
             .borrow_mut()
@@ -443,45 +436,39 @@ impl Analyzer {
 
     fn loop_statement(&mut self, statement: LoopStatement) -> Result<(), Error> {
         let location = statement.location;
-        let range_start_location = statement.range_start_expression.location;
-        let range_end_location = statement.range_end_expression.location;
+        let bounds_expression_location = statement.bounds_expression.location;
 
-        let range_start = match ExpressionAnalyzer::new_without_bytecode(self.scope()).expression(
-            statement.range_start_expression,
-            TranslationHint::ValueExpression,
-        )? {
-            Element::Constant(Constant::Integer(integer)) => integer.value,
-            element => {
-                return Err(Error::LoopRangeStartExpectedConstantIntegerExpression(
-                    range_start_location,
-                    element.to_string(),
-                ))
-            }
-        };
-
-        let range_end = match ExpressionAnalyzer::new_without_bytecode(self.scope()).expression(
-            statement.range_end_expression,
-            TranslationHint::ValueExpression,
-        )? {
-            Element::Constant(Constant::Integer(integer)) => integer.value,
-            element => {
-                return Err(Error::LoopRangeEndExpectedConstantIntegerExpression(
-                    range_end_location,
-                    element.to_string(),
-                ))
-            }
-        };
-
-        let are_bounds_signed = range_start.is_negative() || range_end.is_negative();
-
-        let minimal_bitlength =
-            IntegerConstant::minimal_bitlength_bigints(&[&range_start, &range_end])
-                .map_err(|error| Error::InferenceConstant(location, error))?;
+        let (range_start, range_end, bitlength, is_signed, is_inclusive) =
+            match ExpressionAnalyzer::new_without_bytecode(self.scope()).expression(
+                statement.bounds_expression,
+                TranslationHint::ValueExpression,
+            )? {
+                Element::Constant(Constant::RangeInclusive(range)) => (
+                    range.start,
+                    range.end,
+                    range.bitlength,
+                    range.is_signed,
+                    true,
+                ),
+                Element::Constant(Constant::Range(range)) => (
+                    range.start,
+                    range.end,
+                    range.bitlength,
+                    range.is_signed,
+                    false,
+                ),
+                element => {
+                    return Err(Error::LoopBoundsExpectedConstantRangeExpression(
+                        bounds_expression_location,
+                        element.to_string(),
+                    ))
+                }
+            };
 
         // calculate the iterations number and if the loop is reverse
         let iterations_count = cmp::max(&range_start, &range_end)
             - cmp::min(&range_start, &range_end)
-            + if statement.is_range_inclusive {
+            + if is_inclusive {
                 BigInt::one()
             } else {
                 BigInt::zero()
@@ -489,7 +476,7 @@ impl Analyzer {
         let is_reverse = range_start > range_end;
 
         // create the index value and get its address
-        let index = IntegerConstant::new(range_start, are_bounds_signed, minimal_bitlength);
+        let index = IntegerConstant::new(range_start, is_signed, bitlength);
         let index_type = index.r#type();
         let index_size = index_type.size();
         let index_address = self
@@ -546,7 +533,7 @@ impl Analyzer {
             .declare_variable(
                 statement.index_identifier.name,
                 ScopeVariableItem::new(
-                    Type::new_integer_unsigned(minimal_bitlength),
+                    Type::new_numeric(is_signed, bitlength),
                     false,
                     index_address,
                 ),
@@ -614,7 +601,7 @@ impl Analyzer {
         // increment the loop counter
         self.bytecode
             .borrow_mut()
-            .push_instruction(IntegerConstant::new_one(minimal_bitlength).to_instruction());
+            .push_instruction(IntegerConstant::new_one(is_signed, bitlength).to_instruction());
         self.bytecode
             .borrow_mut()
             .push_instruction(Instruction::Load(zinc_bytecode::Load::new(index_address)));

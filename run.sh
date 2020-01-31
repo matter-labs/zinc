@@ -1,4 +1,6 @@
-#!/bin/bash -Cex
+#!/usr/bin/env bash
+
+set -ex
 
 # 'error' | 'warn' | 'info' | 'debug' | 'trace'
 case "${1}" in
@@ -44,7 +46,8 @@ export VIRTUAL_MACHINE_CRATE_NAME='zinc-vm'
 export VIRTUAL_MACHINE_CRATE_NAME_LOG='zinc_vm'
 export VIRTUAL_MACHINE_BINARY_NAME='zinc'
 
-export PROJECT_DIRECTORY='./examples/test/'
+export PROJECT_DIRECTORY='./test/'
+export PROJECT_BUILD_DIRECTORY="${PROJECT_DIRECTORY}/build/"
 
 export RUST_LOG="
 ${ZARGO_CRATE_NAME}=${LOG_LEVEL},\
@@ -57,30 +60,30 @@ ${VIRTUAL_MACHINE_BINARY_NAME}=${LOG_LEVEL},\
 export RUST_BACKTRACE=1
 
 cargo fmt --all
-
 cargo build ${RELEASE_MODE_FLAG} --package "${ZARGO_CRATE_NAME}"
-
 cargo build ${RELEASE_MODE_FLAG} --package "${COMPILER_CRATE_NAME}"
-cargo test --package "${COMPILER_CRATE_NAME}"
-
 cargo build ${RELEASE_MODE_FLAG} --package "${VIRTUAL_MACHINE_CRATE_NAME}"
+cargo test
 
-"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" build \
+export ZARGO_PATH="./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}"
+rm -fv "${PROJECT_DIRECTORY}/Zargo.toml"
+
+"${ZARGO_PATH}" init "${PROJECT_DIRECTORY}"
+"${ZARGO_PATH}" build \
     --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
-"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" exec \
-    --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
-    --input "${PROJECT_DIRECTORY}/build/input.json" \
-    --output "${PROJECT_DIRECTORY}/build/output.json"
-"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" setup \
-    --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
-    --params "${PROJECT_DIRECTORY}/build/params"
-"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" prove \
-    --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
-    --params "${PROJECT_DIRECTORY}/build/params" \
-    --input "${PROJECT_DIRECTORY}/build/input.json" \
-    --proof "${PROJECT_DIRECTORY}/build/proof"
-"./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}" verify \
-    --circuit "${PROJECT_DIRECTORY}/build/default.znb" \
-    --params "${PROJECT_DIRECTORY}/build/params" \
-    --proof "${PROJECT_DIRECTORY}/build/proof" \
-    --output "${PROJECT_DIRECTORY}/build/output.json"
+"${ZARGO_PATH}" run \
+    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
+    --input "${PROJECT_BUILD_DIRECTORY}/witness.json" \
+    --output "${PROJECT_BUILD_DIRECTORY}/public-data.json"
+"${ZARGO_PATH}" setup \
+    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
+    --proving-key "${PROJECT_BUILD_DIRECTORY}/proving-key" \
+    --verifying-key "${PROJECT_BUILD_DIRECTORY}/verifying-key.txt"
+"${ZARGO_PATH}" prove \
+    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
+    --proving-key "${PROJECT_BUILD_DIRECTORY}/proving-key" \
+    --witness "${PROJECT_BUILD_DIRECTORY}/witness.json" \
+    --pubdata "${PROJECT_BUILD_DIRECTORY}/public-data.json" > "${PROJECT_BUILD_DIRECTORY}/proof.txt"
+"${ZARGO_PATH}" verify \
+    --verifying-key "${PROJECT_BUILD_DIRECTORY}/verifying-key.txt" \
+    --public-data "${PROJECT_BUILD_DIRECTORY}/public-data.json" < "${PROJECT_BUILD_DIRECTORY}/proof.txt"

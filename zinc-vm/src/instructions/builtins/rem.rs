@@ -1,19 +1,20 @@
 extern crate franklin_crypto;
 
-use crate::gadgets::PrimitiveOperations;
-use crate::vm::{Cell, InternalVM, VMInstruction};
-use crate::vm::{RuntimeError, VirtualMachine};
-use crate::ZincEngine;
+use self::franklin_crypto::bellman::ConstraintSystem;
+use crate::core::{Cell, InternalVM, VMInstruction};
+use crate::core::{RuntimeError, VirtualMachine};
+use crate::Engine;
 use zinc_bytecode::instructions::Rem;
 
-impl<E, O> VMInstruction<E, O> for Rem
+impl<E, CS> VMInstruction<E, CS> for Rem
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let left = vm.pop()?.value()?;
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         let right = vm.pop()?.value()?;
+        let left = vm.pop()?.value()?;
+
         let (_div, rem) = vm.operations().div_rem(left, right)?;
 
         vm.push(Cell::Value(rem))
@@ -31,17 +32,17 @@ mod test {
         let _ = env_logger::builder().is_test(true).try_init();
 
         VMTestRunner::new()
-            .add(PushConst::new_untyped(4.into()))
             .add(PushConst::new_untyped(9.into()))
-            .add(Rem)
-            .add(PushConst::new_untyped((-4).into()))
-            .add(PushConst::new_untyped(9.into()))
-            .add(Rem)
             .add(PushConst::new_untyped(4.into()))
-            .add(PushConst::new_untyped((-9).into()))
             .add(Rem)
+            .add(PushConst::new_untyped(9.into()))
             .add(PushConst::new_untyped((-4).into()))
+            .add(Rem)
             .add(PushConst::new_untyped((-9).into()))
+            .add(PushConst::new_untyped(4.into()))
+            .add(Rem)
+            .add(PushConst::new_untyped((-9).into()))
+            .add(PushConst::new_untyped((-4).into()))
             .add(Rem)
             .test(&[3, 3, 1, 1])
     }

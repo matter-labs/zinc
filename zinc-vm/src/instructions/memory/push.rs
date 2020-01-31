@@ -1,21 +1,23 @@
-use crate::gadgets::{ScalarType, PrimitiveOperations};
-use crate::vm::{Cell, InternalVM, VMInstruction};
-use crate::vm::{RuntimeError, VirtualMachine};
-use crate::ZincEngine;
+use crate::core::{Cell, InternalVM, VMInstruction};
+use crate::core::{RuntimeError, VirtualMachine};
+use crate::gadgets::ScalarType;
+use crate::Engine;
+use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::instructions::PushConst;
 
-impl<E, O> VMInstruction<E, O> for PushConst
+impl<E, CS> VMInstruction<E, CS> for PushConst
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let op = vm.operations();
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         let data_type = ScalarType {
             signed: self.is_signed,
             length: self.bit_length,
         };
-        let value = op.constant_bigint_typed(&self.value, data_type)?;
+        let value = vm
+            .operations()
+            .constant_bigint_typed(&self.value, data_type)?;
         vm.push(Cell::Value(value))
     }
 }

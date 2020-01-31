@@ -1,105 +1,105 @@
-use crate::gadgets::PrimitiveOperations;
-use crate::vm::VMInstruction;
-use crate::vm::{RuntimeError, VirtualMachine};
-use crate::ZincEngine;
+use crate::core::VMInstruction;
+use crate::core::{RuntimeError, VirtualMachine};
+use crate::Engine;
+use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::*;
 
-impl<E, O> VMInstruction<E, O> for Ref
+impl<E, CS> VMInstruction<E, CS> for Ref
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, _vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         unimplemented!()
     }
 }
 
-impl<E, O> VMInstruction<E, O> for RefGlobal
+impl<E, CS> VMInstruction<E, CS> for RefGlobal
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, _vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         unimplemented!()
     }
 }
 
-impl<E, O> VMInstruction<E, O> for StoreByRef
+impl<E, CS> VMInstruction<E, CS> for StoreByRef
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, _vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         unimplemented!()
     }
 }
 
-impl<E, O> VMInstruction<E, O> for StoreSequenceByRef
+impl<E, CS> VMInstruction<E, CS> for StoreSequenceByRef
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, _vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         unimplemented!()
     }
 }
 
-impl<E, O> VMInstruction<E, O> for StoreByIndexByRef
+impl<E, CS> VMInstruction<E, CS> for StoreByIndexByRef
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, _vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         unimplemented!()
     }
 }
 
-impl<E, O> VMInstruction<E, O> for StoreSequenceByIndexByRef
+impl<E, CS> VMInstruction<E, CS> for StoreSequenceByIndexByRef
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, _vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         unimplemented!()
     }
 }
 
-impl<E, O> VMInstruction<E, O> for LoadByRef
+impl<E, CS> VMInstruction<E, CS> for LoadByRef
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, _vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         unimplemented!()
     }
 }
 
-impl<E, O> VMInstruction<E, O> for LoadSequenceByRef
+impl<E, CS> VMInstruction<E, CS> for LoadSequenceByRef
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, _vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         unimplemented!()
     }
 }
 
-impl<E, O> VMInstruction<E, O> for LoadByIndexByRef
+impl<E, CS> VMInstruction<E, CS> for LoadByIndexByRef
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, _vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         unimplemented!()
     }
 }
 
-impl<E, O> VMInstruction<E, O> for LoadSequenceByIndexByRef
+impl<E, CS> VMInstruction<E, CS> for LoadSequenceByIndexByRef
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, _vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, _vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         unimplemented!()
     }
 }

@@ -15,9 +15,10 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::str;
 
+use zinc_bytecode::builtins::BuiltinIdentifier;
+
 use crate::semantic::Constant;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::FunctionBehavior;
 use crate::semantic::Path;
 use crate::semantic::Type;
 use crate::semantic::Type as TypeItem;
@@ -169,63 +170,69 @@ impl Scope {
     }
 
     fn default_items() -> HashMap<String, Item> {
-        let mut items = HashMap::with_capacity(2);
-
-        items.insert(
-            "dbg".to_owned(),
-            Item::Type(Type::new_function(
-                "dbg".to_owned(),
-                vec![("format".to_owned(), Type::String)],
-                Type::Unit,
-                FunctionBehavior::Instruction,
-            )),
+        let mut std_crypto_scope = Scope::default();
+        std_crypto_scope.items.insert(
+            "sha256".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::CryptoSha256)),
         );
-        items.insert(
-            "assert".to_owned(),
-            Item::Type(Type::new_function(
-                "assert".to_owned(),
-                vec![
-                    ("condition".to_owned(), Type::Boolean),
-                    ("message".to_owned(), Type::String),
-                ],
-                Type::Unit,
-                FunctionBehavior::Instruction,
-            )),
+        std_crypto_scope.items.insert(
+            "pedersen".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::CryptoPedersen)),
+        );
+
+        let mut std_convert_scope = Scope::default();
+        std_convert_scope.items.insert(
+            "to_bits".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::ToBits)),
+        );
+        std_convert_scope.items.insert(
+            "from_bits_unsigned".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::UnsignedFromBits)),
+        );
+        std_convert_scope.items.insert(
+            "from_bits_signed".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::SignedFromBits)),
+        );
+        std_convert_scope.items.insert(
+            "from_bits_field".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::FieldFromBits)),
+        );
+
+        let mut std_array_scope = Scope::default();
+        std_array_scope.items.insert(
+            "reverse".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::ArrayReverse)),
+        );
+        std_array_scope.items.insert(
+            "truncate".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::ArrayReverse)),
+        );
+        std_array_scope.items.insert(
+            "pad".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::ArrayReverse)),
         );
 
         let mut std_scope = Scope::default();
         std_scope.items.insert(
-            "sha256".to_owned(),
-            Item::Type(Type::new_function(
-                "sha256".to_owned(),
-                vec![(
-                    "preimage".to_owned(),
-                    Type::new_array(Type::new_integer_unsigned(crate::BITLENGTH_BYTE), 0),
-                )],
-                Type::new_array(
-                    Type::new_integer_unsigned(crate::BITLENGTH_BYTE),
-                    crate::SHA256_HASH_SIZE,
-                ),
-                FunctionBehavior::Hash(zinc_bytecode::builtins::BuiltinIdentifier::CryptoSha256),
-            )),
+            "crypto".to_owned(),
+            Item::Module(Rc::new(RefCell::new(std_crypto_scope))),
         );
         std_scope.items.insert(
-            "pedersen".to_owned(),
-            Item::Type(Type::new_function(
-                "pedersen".to_owned(),
-                vec![(
-                    "preimage".to_owned(),
-                    Type::new_array(Type::new_integer_unsigned(crate::BITLENGTH_BYTE), 0),
-                )],
-                Type::new_tuple(vec![Type::new_field(), Type::new_field()]),
-                FunctionBehavior::Hash(zinc_bytecode::builtins::BuiltinIdentifier::CryptoPedersen),
-            )),
+            "convert".to_owned(),
+            Item::Module(Rc::new(RefCell::new(std_convert_scope))),
         );
+        std_scope.items.insert(
+            "array".to_owned(),
+            Item::Module(Rc::new(RefCell::new(std_array_scope))),
+        );
+
+        let mut items = HashMap::with_capacity(2);
+        items.insert("dbg".to_owned(), Item::Type(Type::new_dbg_function()));
+        items.insert("assert".to_owned(), Item::Type(Type::new_assert_function()));
         items.insert(
             "std".to_owned(),
             Item::Module(Rc::new(RefCell::new(std_scope))),
         );
-
         items
     }
 }

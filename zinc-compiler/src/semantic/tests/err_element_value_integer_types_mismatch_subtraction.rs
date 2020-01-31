@@ -17,7 +17,7 @@ use crate::Error;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     let integer_64: u64 = 42;
     let integer_128: u128 = 69;
     let value = integer_64 - integer_128;

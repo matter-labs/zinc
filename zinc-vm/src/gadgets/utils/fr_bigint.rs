@@ -1,45 +1,37 @@
-use crate::ZincEngine;
+use crate::Engine;
 use ff::{Field, PrimeField, PrimeFieldRepr};
-use num_bigint::BigInt;
-use num_traits::{Signed, Zero};
-use std::ops::Neg;
+use num_bigint::{BigInt, Sign};
+use num_traits::Signed;
+use std::ops::{Div, Neg};
 
-pub fn fr_to_bigint<E: ZincEngine>(fr: &E::Fr) -> BigInt {
-    let mut buf: Vec<u8> = Vec::new();
-    match fr.into_repr().write_be(&mut buf) {
-        Ok(_) => {}
-        Err(_) => {
-            log::error!("Failed to convert Fr to BigInt: {:?}", fr);
-        }
-    }
+pub fn fr_to_bigint<Fr: PrimeField>(fr: &Fr) -> BigInt {
+    let mut buffer = Vec::<u8>::new();
+    Fr::char()
+        .write_be(&mut buffer)
+        .expect("failed to write into Vec<u8>");
+    let modulus = BigInt::from_bytes_be(Sign::Plus, &buffer);
+    buffer.clear();
 
-    let mut bigint = BigInt::zero();
+    fr.into_repr()
+        .write_be(&mut buffer)
+        .expect("failed to write into Vec<u8>");
+    let value = BigInt::from_bytes_be(Sign::Plus, &buffer);
 
-    for byte in buf.iter() {
-        bigint = (bigint << 8) + *byte;
-    }
-
-    if bigint.bits() < E::Fr::CAPACITY as usize {
-        bigint
+    if value < (modulus.clone().div(2)) {
+        value
     } else {
-        let mut fr_neg = *fr;
-        fr_neg.negate();
-        -fr_to_bigint::<E>(&fr_neg)
+        value - modulus
     }
 }
 
-pub fn bigint_to_fr<E: ZincEngine>(bigint: &BigInt) -> Option<E::Fr> {
+pub fn bigint_to_fr<E: Engine>(bigint: &BigInt) -> Option<E::Fr> {
     if bigint.is_positive() {
         E::Fr::from_str(&bigint.to_str_radix(10))
     } else {
+        let abs = E::Fr::from_str(&bigint.neg().to_str_radix(10))?;
         let mut fr = E::Fr::zero();
-        match E::Fr::from_str(&bigint.neg().to_str_radix(10)) {
-            Some(abs) => {
-                fr.sub_assign(&abs);
-                Some(fr)
-            }
-            None => None,
-        }
+        fr.sub_assign(&abs);
+        Some(fr)
     }
 }
 
@@ -55,7 +47,7 @@ mod test {
 
         for v in values.iter() {
             let fr = Fr::from_str(&v.to_string()).unwrap();
-            let bigint = fr_to_bigint::<Bn256>(&fr);
+            let bigint = fr_to_bigint(&fr);
             assert_eq!(bigint.to_i32(), Some(*v));
         }
     }
@@ -78,7 +70,7 @@ mod test {
         for &v in values.iter() {
             let expected = BigInt::from(v);
             let fr = bigint_to_fr::<Bn256>(&expected).expect("bigint_to_fr");
-            let actual = fr_to_bigint::<Bn256>(&fr);
+            let actual = fr_to_bigint(&fr);
             assert_eq!(actual, expected);
         }
     }

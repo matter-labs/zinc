@@ -29,6 +29,27 @@ pub enum Error {
     OperatorAssignmentSecondOperandExpectedEvaluable(String),
 
     #[fail(
+        display = "'..=' operator expected a constant expression as the first operand, but got '{}'",
+        _0
+    )]
+    OperatorRangeInclusiveFirstOperandExpectedConstant(String),
+    #[fail(
+        display = "'..=' operator expected a constant expression as the second operand, but got '{}'",
+        _0
+    )]
+    OperatorRangeInclusiveSecondOperandExpectedConstant(String),
+    #[fail(
+        display = "'..' operator expected a constant expression as the first operand, but got '{}'",
+        _0
+    )]
+    OperatorRangeFirstOperandExpectedConstant(String),
+    #[fail(
+        display = "'..' operator expected a constant expression as the second operand, but got '{}'",
+        _0
+    )]
+    OperatorRangeSecondOperandExpectedConstant(String),
+
+    #[fail(
         display = "'||' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]

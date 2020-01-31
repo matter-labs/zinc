@@ -1,15 +1,15 @@
-use crate::gadgets::PrimitiveOperations;
-use crate::vm::{InternalVM, VMInstruction};
-use crate::vm::{RuntimeError, VirtualMachine};
-use crate::ZincEngine;
+use crate::core::{InternalVM, VMInstruction};
+use crate::core::{RuntimeError, VirtualMachine};
+use crate::Engine;
+use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::instructions::StoreSequence;
 
-impl<E, O> VMInstruction<E, O> for StoreSequence
+impl<E, CS> VMInstruction<E, CS> for StoreSequence
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         for i in 0..self.len {
             let value = vm.pop()?;
             vm.store(self.address + self.len - i - 1, value)?;

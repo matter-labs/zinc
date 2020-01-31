@@ -17,7 +17,7 @@ use crate::Error;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     let result = (true, true, false).5;
 }
 "#;

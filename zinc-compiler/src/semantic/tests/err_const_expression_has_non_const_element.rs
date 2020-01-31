@@ -14,7 +14,7 @@ use crate::Error;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     let variable = 42;
     const CONSTANT: u8 = variable;
 }

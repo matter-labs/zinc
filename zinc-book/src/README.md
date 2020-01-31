@@ -1,6 +1,6 @@
 <img style="display: block; margin: auto;" width="200" height="200" src="./zinc-color.png"/>
 
-# Introduction
+# Foreword
 
 Recent rapid advances in R1CS-based SNARKs finally make application of
 zero-knowledge proofs practical for bringing scalability and privacy to blockchains.

@@ -23,7 +23,7 @@ use zinc_bytecode::Store;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     let mut value_1: field = 0;
     let mut value_2: field = 1;
     let mut fibo = value_1;
@@ -64,8 +64,8 @@ fn main(input: (), witness: ()) {
         )),
         Instruction::Store(Store::new(3)),
         Instruction::LoopBegin(LoopBegin::new(10)),
-        Instruction::Load(Load::new(1)),
         Instruction::Load(Load::new(0)),
+        Instruction::Load(Load::new(1)),
         Instruction::Add(Add),
         Instruction::Store(Store::new(2)),
         Instruction::Load(Load::new(1)),

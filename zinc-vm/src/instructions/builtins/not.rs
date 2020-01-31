@@ -1,17 +1,17 @@
 extern crate franklin_crypto;
 
-use crate::gadgets::PrimitiveOperations;
-use crate::vm::{Cell, InternalVM, VMInstruction};
-use crate::vm::{RuntimeError, VirtualMachine};
-use crate::ZincEngine;
+use self::franklin_crypto::bellman::ConstraintSystem;
+use crate::core::{Cell, InternalVM, VMInstruction};
+use crate::core::{RuntimeError, VirtualMachine};
+use crate::Engine;
 use zinc_bytecode::instructions::Not;
 
-impl<E, O> VMInstruction<E, O> for Not
+impl<E, CS> VMInstruction<E, CS> for Not
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         let value = vm.pop()?.value()?;
 
         let not = vm.operations().not(value)?;

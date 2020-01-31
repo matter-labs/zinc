@@ -1,19 +1,19 @@
 extern crate franklin_crypto;
 
-use crate::gadgets::PrimitiveOperations;
-use crate::vm::{Cell, InternalVM, VMInstruction};
-use crate::vm::{RuntimeError, VirtualMachine};
-use crate::ZincEngine;
+use self::franklin_crypto::bellman::ConstraintSystem;
+use crate::core::{Cell, InternalVM, VMInstruction};
+use crate::core::{RuntimeError, VirtualMachine};
+use crate::Engine;
 use zinc_bytecode::instructions::Gt;
 
-impl<E, O> VMInstruction<E, O> for Gt
+impl<E, CS> VMInstruction<E, CS> for Gt
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
-        let left = vm.pop()?.value()?;
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         let right = vm.pop()?.value()?;
+        let left = vm.pop()?.value()?;
 
         let gt = vm.operations().gt(left, right)?;
 
@@ -30,14 +30,14 @@ mod test {
     #[test]
     fn test_gt() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new_untyped(1.into()))
             .add(PushConst::new_untyped(2.into()))
+            .add(PushConst::new_untyped(1.into()))
             .add(Gt)
             .add(PushConst::new_untyped(2.into()))
             .add(PushConst::new_untyped(2.into()))
             .add(Gt)
-            .add(PushConst::new_untyped(2.into()))
             .add(PushConst::new_untyped(1.into()))
+            .add(PushConst::new_untyped(2.into()))
             .add(Gt)
             .test(&[0, 0, 1])
     }

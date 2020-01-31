@@ -74,10 +74,6 @@ impl Bytecode {
         self.instructions.push(instruction)
     }
 
-    pub fn insert_instruction(&mut self, index: usize, instruction: Instruction) {
-        self.instructions.insert(index, instruction)
-    }
-
     pub fn push_instruction_store(
         &mut self,
         address: usize,
@@ -164,6 +160,12 @@ impl Bytecode {
         start_address
     }
 
+    pub fn swap_top(&mut self) {
+        let last_index = self.instructions.len() - 1;
+        let last_but_one_index = self.instructions.len() - 2;
+        self.instructions.swap(last_index, last_but_one_index)
+    }
+
     pub fn push_data_stack_address(&mut self) {
         self.address_stack.push(self.data_stack_pointer);
     }
@@ -173,23 +175,6 @@ impl Bytecode {
             .address_stack
             .pop()
             .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_CALL_STACK_POINTER);
-    }
-
-    pub fn next_position(&self) -> usize {
-        self.instructions.len()
-    }
-
-    fn input_types_as_struct(&self) -> DataType {
-        DataType::Struct(
-            self
-                .input_fields
-                .iter()
-                .map(|(name, r#type)| (
-                    name.clone(),
-                    r#type.into(),
-                ))
-                .collect()
-        )
     }
 
     pub fn input_template_bytes(&self) -> Vec<u8> {
@@ -214,6 +199,15 @@ impl Bytecode {
                     + error.to_string().as_str()
             ),
         }
+    }
+
+    fn input_types_as_struct(&self) -> DataType {
+        DataType::Struct(
+            self.input_fields
+                .iter()
+                .map(|(name, r#type)| (name.clone(), r#type.into()))
+                .collect(),
+        )
     }
 }
 

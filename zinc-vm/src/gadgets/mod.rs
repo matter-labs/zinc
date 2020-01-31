@@ -4,15 +4,16 @@ pub mod utils;
 
 use std::fmt::Debug;
 
-use crate::ZincEngine;
+use crate::Engine;
 use bellman::ConstraintSystem;
-use num_bigint::BigInt;
 
 pub use constrained::*;
 
+use crate::core::RuntimeError;
 use crate::gadgets::utils::dummy_constraint_system::DummyConstraintSystem;
-use crate::vm::RuntimeError;
+use crate::gadgets::utils::fr_to_bigint;
 use franklin_crypto::bellman::Variable;
+use num_traits::ToPrimitive;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScalarType {
@@ -29,19 +30,29 @@ impl ScalarType {
 
 /// Primitive is a primitive value that can be stored on the stack and operated by VM's instructions.
 #[derive(Clone)]
-pub struct Primitive<E: ZincEngine> {
+pub struct Primitive<E: Engine> {
     value: Option<E::Fr>,
     variable: Variable,
     data_type: Option<ScalarType>,
 }
 
-impl<E: ZincEngine> Primitive<E> {
+impl<E: Engine> Primitive<E> {
     pub fn get_data_type(&self) -> Option<ScalarType> {
         self.data_type
     }
+
+    pub fn get_constant(&self) -> Result<E::Fr, RuntimeError> {
+        self.value.ok_or(RuntimeError::ExpectedConstant)
+    }
+
+    pub fn get_constant_usize(&self) -> Result<usize, RuntimeError> {
+        let fr = self.get_constant()?;
+        let bigint = fr_to_bigint(&fr);
+        bigint.to_usize().ok_or(RuntimeError::ExpectedUsize)
+    }
 }
 
-pub trait Gadget<E: ZincEngine> {
+pub trait Gadget<E: Engine> {
     type Input;
     type Output;
 
@@ -72,98 +83,4 @@ pub trait Gadget<E: ZincEngine> {
     }
 }
 
-/// PrimitiveOperations is an entity that knows how to operate with some Primitive.
-pub trait PrimitiveOperations<E: ZincEngine> {
-    type E: ZincEngine;
-    type CS: ConstraintSystem<Self::E>;
-
-    fn variable_none(&mut self) -> Result<Primitive<E>, RuntimeError>;
-    fn variable_bigint(&mut self, value: &BigInt) -> Result<Primitive<E>, RuntimeError>;
-    fn constant_bigint(&mut self, value: &BigInt) -> Result<Primitive<E>, RuntimeError>;
-    fn constant_bigint_typed(
-        &mut self,
-        value: &BigInt,
-        data_type: ScalarType,
-    ) -> Result<Primitive<E>, RuntimeError>;
-    fn output(&mut self, element: Primitive<E>) -> Result<Primitive<E>, RuntimeError>;
-    fn set_type(
-        &mut self,
-        value: Primitive<E>,
-        data_type: ScalarType,
-    ) -> Result<Primitive<E>, RuntimeError>;
-
-    fn add(
-        &mut self,
-        left: Primitive<E>,
-        right: Primitive<E>,
-    ) -> Result<Primitive<E>, RuntimeError>;
-    fn sub(
-        &mut self,
-        left: Primitive<E>,
-        right: Primitive<E>,
-    ) -> Result<Primitive<E>, RuntimeError>;
-    fn mul(
-        &mut self,
-        left: Primitive<E>,
-        right: Primitive<E>,
-    ) -> Result<Primitive<E>, RuntimeError>;
-    fn div_rem(
-        &mut self,
-        left: Primitive<E>,
-        right: Primitive<E>,
-    ) -> Result<(Primitive<E>, Primitive<E>), RuntimeError>;
-    fn neg(&mut self, element: Primitive<E>) -> Result<Primitive<E>, RuntimeError>;
-
-    fn not(&mut self, element: Primitive<E>) -> Result<Primitive<E>, RuntimeError>;
-    fn and(
-        &mut self,
-        left: Primitive<E>,
-        right: Primitive<E>,
-    ) -> Result<Primitive<E>, RuntimeError>;
-    fn or(&mut self, left: Primitive<E>, right: Primitive<E>)
-        -> Result<Primitive<E>, RuntimeError>;
-    fn xor(
-        &mut self,
-        left: Primitive<E>,
-        right: Primitive<E>,
-    ) -> Result<Primitive<E>, RuntimeError>;
-
-    fn lt(&mut self, left: Primitive<E>, right: Primitive<E>)
-        -> Result<Primitive<E>, RuntimeError>;
-    fn le(&mut self, left: Primitive<E>, right: Primitive<E>)
-        -> Result<Primitive<E>, RuntimeError>;
-    fn eq(&mut self, left: Primitive<E>, right: Primitive<E>)
-        -> Result<Primitive<E>, RuntimeError>;
-    fn ne(&mut self, left: Primitive<E>, right: Primitive<E>)
-        -> Result<Primitive<E>, RuntimeError>;
-    fn ge(&mut self, left: Primitive<E>, right: Primitive<E>)
-        -> Result<Primitive<E>, RuntimeError>;
-    fn gt(&mut self, left: Primitive<E>, right: Primitive<E>)
-        -> Result<Primitive<E>, RuntimeError>;
-
-    fn conditional_select(
-        &mut self,
-        condition: Primitive<E>,
-        if_true: Primitive<E>,
-        if_false: Primitive<E>,
-    ) -> Result<Primitive<E>, RuntimeError>;
-    fn assert(&mut self, element: Primitive<E>) -> Result<(), RuntimeError>;
-
-    fn array_get(
-        &mut self,
-        array: &[Primitive<E>],
-        index: Primitive<E>,
-    ) -> Result<Primitive<E>, RuntimeError>;
-    fn array_set(
-        &mut self,
-        array: &[Primitive<E>],
-        index: Primitive<E>,
-        value: Primitive<E>,
-    ) -> Result<Vec<Primitive<E>>, RuntimeError>;
-
-    fn execute<G: Gadget<Self::E>>(
-        &mut self,
-        gadget: G,
-        input: &[Primitive<E>],
-    ) -> Result<Vec<Primitive<E>>, RuntimeError>;
-}
+pub use constrained::Gadgets;

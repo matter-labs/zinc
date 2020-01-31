@@ -26,7 +26,7 @@ impl Data {
     }
 }
 
-fn main(input: (), witness: ()) {
+fn main() {
     Data::test();
 }
 "#;

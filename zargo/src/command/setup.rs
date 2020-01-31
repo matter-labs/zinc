@@ -11,24 +11,34 @@ use failure::Fail;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(about = "Generates parameters for prover and verifier")]
+#[structopt(about = "Generates a pair of the proving and verifying keys")]
 pub struct Command {
     #[structopt(short = "q", long = "quiet", help = "No output printed to stdout")]
     quiet: bool,
+
     #[structopt(short = "v", long = "verbose", help = "Use verbose output")]
     verbose: bool,
+
     #[structopt(
         long = "circuit",
         help = "Path to the circuit binary file",
         default_value = "./build/default.znb"
     )]
     circuit: PathBuf,
+
     #[structopt(
-        long = "params",
-        help = "Path to the parameters file to generate",
-        default_value = "./build/params"
+        long = "proving-key",
+        help = "Path to the proving key file to generate",
+        default_value = "./build/proving-key"
     )]
-    params: PathBuf,
+    proving_key: PathBuf,
+
+    #[structopt(
+        long = "verifying-key",
+        help = "Path to the verifying key file to generate",
+        default_value = "./build/verifying-key.txt"
+    )]
+    verifying_key: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -48,8 +58,10 @@ impl Command {
                 .arg("setup")
                 .arg("--circuit")
                 .arg(self.circuit)
-                .arg("--params")
-                .arg(self.params)
+                .arg("--proving-key")
+                .arg(self.proving_key)
+                .arg("--verifying-key")
+                .arg(self.verifying_key)
                 .spawn()
                 .map_err(Error::VirtualMachineProcessSpawning)?;
         let virtual_machine_process_status = virtual_machine_process

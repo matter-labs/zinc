@@ -23,7 +23,7 @@ fn test() {
     let input = r#"
 struct Data { value: u8 }
 
-fn main(input: (), witness: ()) {
+fn main() {
     let array = [[1, 2], [3, 4]];
     let tuple = ((1, 2), (3, 4));
     let structure = struct Data { value: 34 };

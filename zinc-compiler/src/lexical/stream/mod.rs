@@ -2,30 +2,24 @@
 //! The lexical token stream.
 //!
 
-mod comment;
-mod integer;
-mod string;
-mod symbol;
-mod word;
+pub mod comment;
+pub mod integer;
+pub mod string;
+pub mod symbol;
+pub mod word;
 
-pub use self::comment::parse as parse_comment;
-pub use self::comment::Error as CommentParserError;
-pub use self::integer::parse as parse_integer;
-pub use self::integer::Error as IntegerParserError;
-pub use self::string::parse as parse_string;
-pub use self::string::Error as StringParserError;
-pub use self::symbol::parse as parse_symbol;
-pub use self::symbol::Error as SymbolParserError;
-pub use self::word::parse as parse_word;
-pub use self::word::Error as WordParserError;
+use crate::lexical::error::Error;
+use crate::lexical::token::lexeme::identifier::Identifier;
+use crate::lexical::token::lexeme::literal::string::String as StringLiteral;
+use crate::lexical::token::lexeme::literal::Literal;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::location::Location;
+use crate::lexical::token::Token;
 
-use crate::lexical::Error;
-use crate::lexical::Identifier;
-use crate::lexical::Lexeme;
-use crate::lexical::Literal;
-use crate::lexical::Location;
-use crate::lexical::StringLiteral;
-use crate::lexical::Token;
+use self::comment::Error as CommentParserError;
+use self::integer::Error as IntegerParserError;
+use self::string::Error as StringParserError;
+use self::symbol::Error as SymbolParserError;
 
 pub struct TokenStream {
     input: String,
@@ -74,7 +68,7 @@ impl TokenStream {
             }
 
             if character == '/' {
-                match parse_comment(&self.input[self.offset..]) {
+                match self::comment::parse(&self.input[self.offset..]) {
                     Ok((size, lines, column, _comment)) => {
                         self.location.line += lines;
                         self.location.column = column;
@@ -90,7 +84,7 @@ impl TokenStream {
             }
 
             if character == '\"' {
-                match parse_string(&self.input[self.offset..]) {
+                match self::string::parse(&self.input[self.offset..]) {
                     Ok((size, value)) => {
                         let location = Location::new(self.location.line, self.location.column);
                         self.location.column += size;
@@ -109,7 +103,7 @@ impl TokenStream {
             }
 
             if character.is_ascii_digit() {
-                match parse_integer(&self.input[self.offset..]) {
+                match self::integer::parse(&self.input[self.offset..]) {
                     Ok((size, integer)) => {
                         let location = Location::new(self.location.line, self.location.column);
                         self.location.column += size;
@@ -126,27 +120,27 @@ impl TokenStream {
                     Err(IntegerParserError::NotAnInteger) => {}
                     Err(error) => {
                         let location = Location::new(self.location.line, self.location.column);
-                        return Err(Error::InvalidIntegerLiteral(location, error));
+                        return Err(Error::InvalidInteger(location, error));
                     }
                 }
             }
 
             if Identifier::can_start_with(character) {
-                match parse_word(&self.input[self.offset..]) {
+                return match self::word::parse(&self.input[self.offset..]) {
                     Ok((size, lexeme)) => {
                         let location = Location::new(self.location.line, self.location.column);
                         self.location.column += size;
                         self.offset += size;
-                        return Ok(Token::new(lexeme, location));
+                        Ok(Token::new(lexeme, location))
                     }
                     Err(error) => {
                         let location = Location::new(self.location.line, self.location.column);
-                        return Err(Error::InvalidWord(location, error));
+                        Err(Error::InvalidWord(location, error))
                     }
-                }
+                };
             }
 
-            match parse_symbol(&self.input[self.offset..]) {
+            match self::symbol::parse(&self.input[self.offset..]) {
                 Ok((size, symbol)) => {
                     let location = Location::new(self.location.line, self.location.column);
                     self.location.column += size;

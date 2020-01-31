@@ -9,6 +9,7 @@ use crate::semantic::ArrayValueError;
 use crate::semantic::ElementError;
 use crate::semantic::IntegerConstantError;
 use crate::semantic::ScopeError;
+use crate::semantic::StandardLibraryFunctionError;
 use crate::semantic::StructureValueError;
 
 #[derive(Debug, Fail, PartialEq)]
@@ -61,15 +62,10 @@ pub enum Error {
     )]
     LoopWhileExpectedBooleanCondition(Location, String),
     #[fail(
-        display = "{} loop expected an integer constant as the range start, but got '{}'",
+        display = "{} loop expected a range expression as bounds, but got '{}'",
         _0, _1
     )]
-    LoopRangeStartExpectedConstantIntegerExpression(Location, String),
-    #[fail(
-        display = "{} loop expected an integer constant as the range end, but got '{}'",
-        _0, _1
-    )]
-    LoopRangeEndExpectedConstantIntegerExpression(Location, String),
+    LoopBoundsExpectedConstantRangeExpression(Location, String),
 
     #[fail(
         display = "{} conditional expected a boolean condition expression, but got '{}'",
@@ -99,26 +95,20 @@ pub enum Error {
         _0, _1, _2, _3
     )]
     FunctionReturnTypeMismatch(Location, String, String, String),
-    #[fail(display = "{} instruction function '{}' is unknown", _0, _1)]
-    FunctionNotInstruction(Location, String),
+    #[fail(display = "{} built-in function '{}' is unknown", _0, _1)]
+    FunctionInstructionUnknown(Location, String),
+    #[fail(display = "{} built-in function '{}' must be called with '!'", _0, _1)]
+    FunctionInstructionSpecifierMissing(Location, &'static str),
+    #[fail(
+        display = "{} function '{}' expected a constant argument, but got '{}'",
+        _0, _1, _2
+    )]
+    FunctionExpectedConstantArgument(Location, &'static str, String),
 
+    #[fail(display = "{} {}", _0, _1)]
+    FunctionStandardLibrary(Location, StandardLibraryFunctionError),
     #[fail(display = "function 'main' is missing")]
     FunctionMainMissing,
-    #[fail(
-        display = "function 'main' expected exactly two arguments, but got {}",
-        _0
-    )]
-    FunctionMainExpectedTwoArguments(usize),
-    #[fail(
-        display = "function 'main' expected 'input' as the first argument, but got '{}'",
-        _0
-    )]
-    FunctionMainExpectedInputAsFirstArgument(String),
-    #[fail(
-        display = "function 'main' expected 'witness' as the second argument, but got '{}'",
-        _0
-    )]
-    FunctionMainExpectedWitnessAsSecondArgument(String),
 
     #[fail(display = "{} module '{}' not found in the project", _0, _1)]
     ModuleNotFound(Location, String),
@@ -152,7 +142,12 @@ pub enum Error {
         _0, _1
     )]
     InstructionDebugExpectedString(Location, String),
+    #[fail(
+        display = "{} instruction 'assert' expected a boolean, but got '{}'",
+        _0, _1
+    )]
+    InstructionAssertExpectedBoolean(Location, String),
 
-    #[fail(display = "references not implemented")]
+    #[fail(display = "references are not implemented yet")]
     ReferencesNotImplemented,
 }

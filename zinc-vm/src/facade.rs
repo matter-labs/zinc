@@ -1,18 +1,19 @@
-use crate::gadgets::utils::bigint_to_fr;
-use crate::gadgets::ConstrainingFrOperations;
-use crate::vm::VirtualMachine;
-use crate::ZincEngine;
+use std::fmt::Debug;
+
 use bellman::groth16;
 use bellman::pairing::bn256::Bn256;
-use franklin_crypto::bellman::groth16::{Parameters, Proof};
+use franklin_crypto::bellman::groth16::{Parameters, Proof, VerifyingKey};
 use franklin_crypto::bellman::{Circuit, ConstraintSystem, SynthesisError};
 use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::BigInt;
 use rand::ThreadRng;
-use std::fmt::Debug;
 
-pub use crate::vm::RuntimeError;
 use zinc_bytecode::program::Program;
+
+use crate::core::VirtualMachine;
+pub use crate::errors::RuntimeError;
+use crate::gadgets::utils::bigint_to_fr;
+use crate::Engine;
 
 struct VMCircuit<'a> {
     program: &'a Program,
@@ -20,23 +21,20 @@ struct VMCircuit<'a> {
     result: &'a mut Option<Result<Vec<Option<BigInt>>, RuntimeError>>,
 }
 
-impl<E: ZincEngine> Circuit<E> for VMCircuit<'_> {
+impl<E: Engine> Circuit<E> for VMCircuit<'_> {
     fn synthesize<CS: ConstraintSystem<E>>(self, cs: &mut CS) -> Result<(), SynthesisError> {
-        let mut vm = VirtualMachine::new(ConstrainingFrOperations::new(cs));
+        let mut vm = VirtualMachine::new(cs, false);
         *self.result = Some(vm.run(self.program, self.inputs));
         Ok(())
     }
 }
 
-pub fn exec<E: ZincEngine>(
-    program: &Program,
-    inputs: &[BigInt],
-) -> Result<Vec<BigInt>, RuntimeError> {
+pub fn run<E: Engine>(program: &Program, inputs: &[BigInt]) -> Result<Vec<BigInt>, RuntimeError> {
     let cs = TestConstraintSystem::<Bn256>::new();
-    let mut vm = VirtualMachine::new(ConstrainingFrOperations::new(cs));
+    let mut vm = VirtualMachine::new(cs, true);
     let result = vm.run(program, Some(inputs))?;
 
-    let cs = vm.operations().constraint_system();
+    let cs = vm.constraint_system();
     if !cs.is_satisfied() {
         log::error!("Unsatisfied: {:?}", cs.which_is_unsatisfied());
         return Err(RuntimeError::InternalError(
@@ -56,7 +54,7 @@ pub fn exec<E: ZincEngine>(
     Ok(result.into_iter().map(|v| v.unwrap()).collect())
 }
 
-pub fn setup<E: ZincEngine>(program: &Program) -> Result<Parameters<E>, RuntimeError> {
+pub fn setup<E: Engine>(program: &Program) -> Result<Parameters<E>, RuntimeError> {
     let rng = &mut rand::thread_rng();
     let mut result = None;
     let circuit = VMCircuit {
@@ -65,15 +63,15 @@ pub fn setup<E: ZincEngine>(program: &Program) -> Result<Parameters<E>, RuntimeE
         result: &mut result,
     };
 
-    groth16::generate_random_parameters::<E, VMCircuit, ThreadRng>(circuit, rng)
-        .map_err(RuntimeError::SynthesisError)
+    let params = groth16::generate_random_parameters::<E, VMCircuit, ThreadRng>(circuit, rng)?;
+    Ok(params)
 }
 
-pub fn prove<E: ZincEngine>(
+pub fn prove<E: Engine>(
     program: &Program,
     params: &Parameters<E>,
     witness: &[BigInt],
-) -> Result<Proof<E>, RuntimeError> {
+) -> Result<(Vec<BigInt>, Proof<E>), RuntimeError> {
     let rng = &mut rand::thread_rng();
 
     let (result, proof) = {
@@ -95,7 +93,7 @@ pub fn prove<E: ZincEngine>(
             "circuit hasn't generate outputs".into(),
         )),
         Some(res) => match res {
-            Ok(_) => Ok(proof),
+            Ok(values) => Ok((values.into_iter().map(|v| v.unwrap()).collect(), proof)),
             Err(err) => Err(err),
         },
     }
@@ -107,8 +105,8 @@ pub enum VerificationError {
     SynthesisError(SynthesisError),
 }
 
-pub fn verify<E: ZincEngine>(
-    params: &Parameters<E>,
+pub fn verify<E: Engine>(
+    key: &VerifyingKey<E>,
     proof: &Proof<E>,
     pub_inputs: &[BigInt],
 ) -> Result<bool, VerificationError> {
@@ -118,8 +116,8 @@ pub fn verify<E: ZincEngine>(
         pub_inputs_fr.push(fr);
     }
 
-    let key = groth16::prepare_verifying_key(&params.vk);
-    let success = groth16::verify_proof(&key, proof, pub_inputs_fr.as_slice())
+    let pvk = groth16::prepare_verifying_key(&key);
+    let success = groth16::verify_proof(&pvk, proof, pub_inputs_fr.as_slice())
         .map_err(VerificationError::SynthesisError)?;
 
     Ok(success)

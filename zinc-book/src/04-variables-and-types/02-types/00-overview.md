@@ -8,14 +8,14 @@ and restrictions.
 
 Types are divided into three major classes: scalar, compound, and custom.
 Unit, boolean, integer, and string are the scalar types and you can learn more
-about them in **subchapter 1**.
-Arrays and tuples are the compound types explained in **subchapter 2**.
-Structures, enumerations, and functions are custom types described in **subchapter 3**.
+about them in [this chapter](./01-scalar.md).
+Arrays and tuples are the compound types explained in [this chapter](./02-compound.md).
+Structures, enumerations, and functions are custom types described in [this chapter](./03-custom.md).
 Custom types differ from others in having a user-defined name and special
 declaration syntax.
 The string type does not belong to any of the classes described above since
 it is used mostly to annotate statements and provide error messages. For more
-details, check the **subchapter 4**.
+details, check the [this chapter](./04-other.md).
 
 You can also declare type aliases in Zinc, which allow you to shorten type
 signatures of complex types by giving them a name:
@@ -36,7 +36,8 @@ types in places where they are highly obvious.
 ### Explicit
 
 Type conversions can be only performed on the integer and enumeration types with
-the casting operator. **Chapter 5** explains the operator behavior in details.
+the casting operator. [Chapter 6](../../06-operators/00-overview.md) explains
+the operator behavior in detail.
 
 ### Implicit
 
@@ -61,7 +62,8 @@ let positive = 100; // u8
 let negative = -positive; // i8
 ```
 
-**Chapter 5** explains the negation operator with more detail.
+[Chapter 6](../../06-operators/00-overview.md) describes the negation operator
+with more detail.
 
 ### Inference
 

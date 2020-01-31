@@ -16,7 +16,7 @@ use crate::Error;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     let array = [1, 2, 3];
     let value = array[true];
 }
@@ -24,9 +24,11 @@ fn main(input: (), witness: ()) {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 22),
-        ElementError::Place(PlaceError::OperatorIndexSecondOperandExpectedInteger(
-            Constant::Boolean(true).to_string(),
-        )),
+        ElementError::Place(
+            PlaceError::OperatorIndexSecondOperandExpectedIntegerOrRange(
+                Constant::Boolean(true).to_string(),
+            ),
+        ),
     )));
 
     let result = super::get_binary_result(input);

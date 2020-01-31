@@ -20,7 +20,7 @@ use zinc_bytecode::Store;
 #[test]
 fn test() {
     let input = r#"
-fn main(input: (), witness: ()) {
+fn main() {
     for i in 0..2+3 {}
 
     for i in 2+3..(2+3)*2 {}

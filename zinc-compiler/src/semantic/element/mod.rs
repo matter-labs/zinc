@@ -16,12 +16,21 @@ pub use self::constant::Constant;
 pub use self::constant::Error as ConstantError;
 pub use self::constant::Integer as IntegerConstant;
 pub use self::constant::IntegerError as IntegerConstantError;
+pub use self::constant::Range as RangeConstant;
+pub use self::constant::RangeInclusive as RangeInclusiveConstant;
 pub use self::error::Error;
 pub use self::path::Path;
 pub use self::place::Error as PlaceError;
 pub use self::place::Place;
-pub use self::r#type::FunctionBehavior;
+pub use self::r#type::AssertInstructionFunction as AssertInstructionFunctionType;
+pub use self::r#type::DebugInstructionFunction as DebugInstructionFunctionType;
+pub use self::r#type::Function as FunctionType;
+pub use self::r#type::Sha256StandardLibraryFunction as Sha256StandardLibraryFunctionType;
+pub use self::r#type::Sha256StandardLibraryFunction as PedersenStandardLibraryFunctionType;
+pub use self::r#type::StandardLibraryFunction as StandardLibraryFunctionType;
+pub use self::r#type::StandardLibraryFunctionError;
 pub use self::r#type::Type;
+pub use self::r#type::UserDefinedFunction as UserDefinedFunctionType;
 pub use self::value::Array;
 pub use self::value::ArrayError as ArrayValueError;
 pub use self::value::Error as ValueError;
@@ -76,6 +85,36 @@ impl Element {
             Self::Place(place) => Ok(place),
             element => Err(Error::OperatorAssignmentFirstOperandExpectedPlace(
                 element.to_string(),
+            )),
+        }
+    }
+
+    pub fn range_inclusive(&self, other: &Self) -> Result<Self, Error> {
+        match (self, other) {
+            (Element::Constant(value_1), Element::Constant(value_2)) => value_1
+                .range_inclusive(value_2)
+                .map(Self::Constant)
+                .map_err(Error::Constant),
+            (Element::Constant(_), element_2) => Err(
+                Error::OperatorRangeInclusiveSecondOperandExpectedConstant(element_2.to_string()),
+            ),
+            (element_1, _) => Err(Error::OperatorRangeInclusiveFirstOperandExpectedConstant(
+                element_1.to_string(),
+            )),
+        }
+    }
+
+    pub fn range(&self, other: &Self) -> Result<Self, Error> {
+        match (self, other) {
+            (Element::Constant(value_1), Element::Constant(value_2)) => value_1
+                .range(value_2)
+                .map(Self::Constant)
+                .map_err(Error::Constant),
+            (Element::Constant(_), element_2) => Err(
+                Error::OperatorRangeSecondOperandExpectedConstant(element_2.to_string()),
+            ),
+            (element_1, _) => Err(Error::OperatorRangeFirstOperandExpectedConstant(
+                element_1.to_string(),
             )),
         }
     }

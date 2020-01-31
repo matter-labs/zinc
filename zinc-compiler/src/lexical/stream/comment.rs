@@ -4,7 +4,7 @@
 
 use failure::Fail;
 
-use crate::lexical::Comment;
+use crate::lexical::token::lexeme::comment::Comment;
 
 pub enum State {
     Start,
@@ -100,7 +100,7 @@ pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
 mod tests {
     use super::parse;
     use super::Error;
-    use crate::lexical::Comment;
+    use crate::lexical::token::lexeme::comment::Comment;
 
     #[test]
     fn ok_single_line() {

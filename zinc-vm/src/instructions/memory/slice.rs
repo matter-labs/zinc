@@ -1,22 +1,22 @@
-use crate::gadgets::PrimitiveOperations;
-use crate::vm::{Cell, InternalVM, RuntimeError, VMInstruction, VirtualMachine};
-use crate::ZincEngine;
+use crate::core::{Cell, InternalVM, RuntimeError, VMInstruction, VirtualMachine};
+use crate::Engine;
+use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::instructions::Slice;
 
-impl<E, O> VMInstruction<E, O> for Slice
+impl<E, CS> VMInstruction<E, CS> for Slice
 where
-    E: ZincEngine,
-    O: PrimitiveOperations<E>,
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
-    fn execute(&self, vm: &mut VirtualMachine<E, O>) -> Result<(), RuntimeError> {
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
+        let offset = vm.pop()?.value()?;
+
         let mut array = Vec::with_capacity(self.array_len);
         for _ in 0..self.array_len {
             let value = vm.pop()?.value()?;
             array.push(value);
         }
         array.reverse();
-
-        let offset = vm.pop()?.value()?;
 
         for i in 0..self.slice_len {
             let index = match offset.get_data_type() {
@@ -46,11 +46,11 @@ mod tests {
         VMTestRunner::new()
             .add(PushConst::new_untyped(1.into()))
             .add(PushConst::new_untyped(2.into()))
-            .add(PushConst::new_untyped(2.into()))
             .add(PushConst::new_untyped(3.into()))
             .add(PushConst::new_untyped(4.into()))
             .add(PushConst::new_untyped(5.into()))
             .add(PushConst::new_untyped(6.into()))
+            .add(PushConst::new_untyped(2.into()))
             .add(Slice::new(5, 2))
             .test(&[5, 4, 1])
     }
