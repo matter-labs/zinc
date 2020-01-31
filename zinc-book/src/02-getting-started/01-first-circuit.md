@@ -26,7 +26,7 @@ This command will install the following binaries into your `PATH`:
 - `znc` Zinc compiler
 - `zinc` Zinc virtual machine
 
-`zargo` is able to use the compiler and virtual machine through its interface,
+`zargo` can use the compiler and virtual machine through its interface,
 so you will only need `zargo` to work with your circuits.
 
 For more information on `zargo`, check out this [chapter](../09-zargo-circuit-manager/00-overview.md).
@@ -63,7 +63,7 @@ Now, you need to compile the circuit into Zinc bytecode:
 `zargo build`
 
 The command above will write the bytecode to the `build` directory located in
-the project root. There are also `witness.json` file in the
+the project root. There is also a file called `witness.json` in the
 `build` directory, which is used to provide the secret witness data to the circuit.
 
 ## Trusted setup
@@ -89,7 +89,8 @@ the following command:
 zargo prove > proof.txt
 ```
 
-This will also write program's output to `build/pubdata.json` which is later used by verifier.
+This will also write the program's output to `build/pubdata.json` which is later
+used by the verifier.
 
 ## Verifying a proof
 

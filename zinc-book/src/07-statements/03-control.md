@@ -22,17 +22,17 @@ Only constant expressions can be used as the bounds of the iterator range. The
 `while` condition will not cause an early return, but it will suppress the loop
 body side effects.
 
-Zinc is a turing-incomplete language, as it is dictated by R1CS restrictions, so
-loops always have fixed number of iterations. On the one hand, the loop counter
+Zinc is a Turing-incomplete language, as it is dictated by R1CS restrictions, so
+loops always have a fixed number of iterations. On the one hand, the loop counter
 can be optimized to be treated as a constant, reducing the circuit cost, but on
 the other hand, you cannot force a loop to return early, increasing the circuit
 cost.
 
 ## `if` and `match`
 
-The [conditional and match](../06-expressions/03-conditionals.md) expressions can act as control statements, ignoring
-the returned value. To use them in such role, just terminate the expression with
-a semicolon:
+The [conditional and match](../06-expressions/03-conditionals.md) expressions
+can act as control statements, ignoring the returned value. To use them in such
+role, just terminate the expression with a semicolon:
 
 ```rust
 fn unknown(value: u8) -> u8 {

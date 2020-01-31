@@ -2,21 +2,20 @@
 
 ## Expression
 
-The expression statement is an expression terminated with a `;` in order
-to ignore its result. The most common use is the assignment to a mutable
-variable:
+The expression statement is an expression terminated with a `;` to ignore its
+result. The most common use is the assignment to a mutable variable:
 
 ```rust,no_run,noplaypen
 let mut a = 0;
 a = 42; // an expression statement ignoring the '()' result of the assignment
 ```
 
-For for information on expressions, check [this chapter](../06-expressions/00-overview.md).
+For more information on expressions, check [this chapter](../06-expressions/00-overview.md).
 
 ## Semicolons
 
-In contrast with Rust, expression statements must be always terminated with `;`
-in Zinc to get rid of some ambiguities regarding block and conditional
+In contrast with Rust, expression statements in Zinc must be always terminated
+with `;` to get rid of some ambiguities regarding block and conditional
 expressions. Let us compare the examples of Rust and Zinc to illustrate the
 problem.
 

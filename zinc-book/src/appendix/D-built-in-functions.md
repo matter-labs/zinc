@@ -10,7 +10,7 @@ Arguments:
 
 Return type: `()`
 
-**Note**: This function is special, as it accepts arbitrary number of arguments
+**Note**: This function is special, as it accepts an arbitrary number of arguments
 of any type after the format string.
 
 ## `assert`

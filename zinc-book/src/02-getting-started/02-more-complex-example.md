@@ -1,14 +1,14 @@
 # Merkle proof
 
-In this chapter we will implement a circuit able to validate the merkle tree
+In this chapter, we will implement a circuit able to validate the Merkle tree
 root hash.
 
-At this stage of reading the book you may be unfamiliar with some language
+At this stage of reading the book, you may be unfamiliar with some language
 concepts. So, if you struggle to understand some examples, you are welcome to
 read the rest of the book first, and then come back here.
 
 Our circuit will accept the tree node path, address, and the balance available
-as the secret witness data. The public data will be the merkle tree root hash.
+as the secret witness data. The public data will be the Merkle tree root hash.
 
 ## Creating a new project
 
@@ -24,7 +24,7 @@ where we are going to start writing the circuit code.
 
 ## Defining types
 
-Let's start from defining the secret witness data arguments and the public data
+Let's start by defining the secret witness data arguments and the public data
 return type.
 
 ```rust
@@ -52,7 +52,7 @@ type Sha256Digest = [bool; 256];
 
 Now, we will write a function to calculate the `sha256` hash of
 our balance. We need it to verify the balance stored within the leaf node at our
-merkle tree path.
+Merkle tree path.
 
 ```rust
 fn balance_hash(balance: field) -> Sha256Digest {
@@ -69,7 +69,7 @@ array with 2 extra zero bits, since we are going to pass 256 bit vector to the
 
 We have also used here three functions from the Zinc [standard library](../appendix/E-standard-library.md)
 from three different modules. The `std::crypto::sha256`-like paths might seem a
-bit verbose, but we will definitely solve this problem later.
+bit verbose, but we will solve this problem later.
 
 At this stage, this is how our code looks like:
 
@@ -114,7 +114,7 @@ fn merkle_node_hash(left: Sha256Digest, right: Sha256Digest) -> Sha256Digest {
 }
 ```
 
-The Zinc standard library does not support array concatenation yet, so for now
+The Zinc standard library does not support array concatenation yet, so, for now,
 we will do it by hand, allocating an array to contain two leaf node digests,
 then put the digests together and hash them with `std::crypto::sha256`.
 
@@ -150,7 +150,7 @@ fn restore_root_hash(
 }
 ```
 
-Congratulations! Now we have a working circuit able to verify the merkle proof!
+Congratulations! Now we have a working circuit able to verify the Merkle proof!
 
 ```rust
 // main.zn
@@ -289,7 +289,7 @@ fn main(
 ```
 
 Perfect! Now all our functions and types are defined. By the way, let's have a
-glances at our `merkle` module, where you can find another improvement!
+glance at our `merkle` module, where you can find another improvement!
 
 ```rust
 use std::crypto::sha256; // an import
@@ -343,6 +343,6 @@ that `std::crypto::sha256(data)`.
 ## Finalizing
 
 Congratulations, now you are an experienced Zinc developer!
-Now, you may build the circuit, generate and verify a proof like it was
+Now, you may build the circuit, generate and verify a proof, like it was
 explained in the [previous chapter](./01-first-circuit.md),
 and move on to reading the rest of the book!

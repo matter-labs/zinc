@@ -2,7 +2,7 @@
 
 The standard library is currently located in a built-in module called `std`.
 The library contains three modules for now:
-- `crypto` - cryptographics and hash functions
+- `crypto` - cryptographic and hash functions
 - `convert` - bit array conversion functions
 - `array` - array processing functions
 

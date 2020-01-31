@@ -1,7 +1,7 @@
 # Blocks
 
-A block expression contains of zero or more statements and an optional result
-expression. Each block has its own scope of visibility.
+A block expression consists of zero or more statements and an optional result
+expression. Every block starts a new scope of visibility.
 
 ```rust,no_run,noplaypen
 let c = {

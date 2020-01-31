@@ -3,8 +3,7 @@
 ## `if`
 
 An `if` conditional expression consists of the condition, main block, and optional
-`else` block.
-Each block has its own scope of visibility.
+`else` block. Every block starts a new scope of visibility.
 
 ```rust,no_run,noplaypen
 let condition = true;
@@ -19,8 +18,8 @@ let c = if condition {
 
 ## `match`
 
-A match expression is actually a syntactic sugar for nested conditional
-expressions. Each branch block has its own scope of visibility.
+The match expression is a syntactic sugar for nested conditional
+expressions. Each branch block starts a new scope of visibility.
 
 ```rust,no_run,noplaypen
 let value = MyEnum::ValueOne;
