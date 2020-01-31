@@ -1,6 +1,6 @@
-/*
-    The hash functions.
-*/
+//
+// Merkle tree library
+//
 
 use std::crypto;
 
@@ -13,25 +13,28 @@ fn balance_hash(balance: field) -> Digest {
 }
 
 fn merkle_node_hash(left: Digest, right: Digest) -> Digest {
-    let mut data = [false; 512];
+    let v = [false; 256];
+    v
 
-    for i in 0 as u16..256 {
-        data[i] = left[i];
-        data[256 + i] = right[i];
-    }
+    // let mut data = [false; 512];
 
-    crypto::sha256(data)
+    // for i in 0 as u16..256 {
+    //     data[i] = left[i];
+    //     data[256 + i] = right[i];
+    // }
+
+    // crypto::sha256(data)
 }
 
 fn restore_root_hash(
     leaf_hash: Digest,
-    address: [bool; 10],
-    merkle_path: [Digest; 10],
+    address: [bool; 1],
+    merkle_path: [Digest; 1],
 ) -> Digest
 {
     let mut current = leaf_hash;
 
-    for i in 0..10 {
+    for i in 0..1 {
         let left_and_right = if address[i] {
             [current, merkle_path[i]]
         } else {
