@@ -3,7 +3,7 @@
 In terms of zero-knowledge circuits the information that we are trying to prove valid is called **public input**.
 And the secret piece of information that may be known only by prover is called **witness**.
 
-In Zinc framework the program's **result** becomes **public witness**.
+In Zinc framework the program's **result** becomes **public input**.
 That means that whatever the `main` function returns should be known by verifier.
 All other runtime values including **arguments** represent circuit's **witness**.
 
