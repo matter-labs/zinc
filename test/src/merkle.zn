@@ -2,17 +2,17 @@
     The hash functions.
 */
 
-use std::crypto;
+use std::crypto::sha256; // an import
 
-type Digest = [bool; 256];
+type Sha256Digest = [bool; 256];
 
-fn balance_hash(balance: field) -> Digest {
+fn balance_hash(balance: field) -> Sha256Digest {
     let bits = std::convert::to_bits(balance);
     let bits_padded = std::array::pad(bits, 256, false);
-    crypto::sha256(bits_padded)
+    sha256(bits_padded)
 }
 
-fn merkle_node_hash(left: Digest, right: Digest) -> Digest {
+fn merkle_node_hash(left: Sha256Digest, right: Sha256Digest) -> Sha256Digest {
     let mut data = [false; 512];
 
     for i in 0 as u16..256 {
@@ -20,14 +20,14 @@ fn merkle_node_hash(left: Digest, right: Digest) -> Digest {
         data[256 + i] = right[i];
     }
 
-    crypto::sha256(data)
+    sha256(data)
 }
 
 fn restore_root_hash(
-    leaf_hash: Digest,
+    leaf_hash: Sha256Digest,
     address: [bool; 10],
-    merkle_path: [Digest; 10],
-) -> Digest
+    merkle_path: [Sha256Digest; 10],
+) -> Sha256Digest
 {
     let mut current = leaf_hash;
 
