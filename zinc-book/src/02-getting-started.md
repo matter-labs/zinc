@@ -51,7 +51,7 @@ Let's replace the `main.zn` contents with the following code:
 ```rust,no_run,noplaypen
 use std::sha256;
 
-fn main(preimage: [u8; 256]) -> [u8; 32] {
+fn main(preimage: [bool; 256]) -> [bool; 256] {
     sha256(preimage)
 }
 ```
@@ -63,15 +63,15 @@ Now, you need to compile the circuit into Zinc bytecode:
 `zargo build`
 
 The command above will write the bytecode to the `build` directory located in
-the project root. There are also `witness.json` and `pubdata.json` files in the
-build directory, which are used to provide the secret witness data to the circuit.
+the project root. There are also `witness.json` file in the
+`build` directory, which is used to provide the secret witness data to the circuit.
 
 ## Trusted setup
 
 To be able to verify proofs, you must create a pair of keys for the prover and
 the verifier.
 
-To generate the verifier key for a prover key, use this command:
+To generate a new pair of proving and verifying keys, use this command:
 
 ```bash
 zargo setup
@@ -79,15 +79,17 @@ zargo setup
 
 ## Generating a proof
 
-Before generating a proof, open the `witness.json` and `pubdata.json` files with
-your favorite editor and fill them with some meaningful values.
+Before generating a proof, open the `build/witness.json` file with
+your favorite editor and fill it with some meaningful values.
 
 To generate a proof, provide the witness and public data to the Zinc VM with
 the following command:
 
 ```bash
-zargo prove > 'proof.txt'
+zargo prove > proof.txt
 ```
+
+This will also write program's output to `build/pubdata.json` which is later used by verifier.
 
 ## Verifying a proof
 
@@ -95,7 +97,7 @@ To verify a proof, pass it to the Zinc VM with the same public data you used to
 generated it, and the verification key:
 
 ```bash
-zargo verify < 'proof.txt'
+zargo verify < proof.txt
 ```
 
 Congratulations! You have developed your first circuit and verified your first
