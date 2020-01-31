@@ -12,6 +12,7 @@ use crate::core::RuntimeError;
 use crate::gadgets::utils::fr_to_bigint;
 use crate::gadgets::{utils, Gadget, Primitive, ScalarType};
 use std::mem;
+use num_traits::ToPrimitive;
 
 impl<E: Engine> Debug for Primitive<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
@@ -856,9 +857,25 @@ where
         array: &[Primitive<E>],
         index: Primitive<E>,
     ) -> Result<Primitive<E>, RuntimeError> {
-        let bits = self.bits(index, array.len())?;
+        // TODO: This is very unsafe.
+        // TODO: This is very unsafe.
+        // TODO: This is very unsafe.
 
-        self.recursive_select(array, bits.as_slice())
+        match index.value {
+            None => unimplemented!("Variable indices are not supported"),
+            Some(f) => {
+                let bi = fr_to_bigint(&f);
+                let i = bi.to_usize().ok_or(RuntimeError::IndexOutOfBounds)?;
+                if i >= array.len() {
+                    return Err(RuntimeError::IndexOutOfBounds)
+                }
+                Ok(array[i].clone())
+            },
+        }
+
+//        let bits = self.bits(index, array.len())?;
+//
+//        self.recursive_select(array, bits.as_slice())
     }
 
     pub fn array_set(
@@ -867,17 +884,37 @@ where
         index: Primitive<E>,
         value: Primitive<E>,
     ) -> Result<Vec<Primitive<E>>, RuntimeError> {
-        let mut new_array = Vec::new();
+        // TODO: This is very unsafe.
+        // TODO: This is very unsafe.
+        // TODO: This is very unsafe.
 
-        for (i, p) in array.iter().enumerate() {
-            let curr_index = self.constant_bigint(&i.into())?;
+        let mut new_array = Vec::from(array);
 
-            let cond = self.eq(curr_index, index.clone())?;
-            let value = self.conditional_select(cond, value.clone(), p.clone())?;
-            new_array.push(value);
-        }
+        let value = match index.value {
+            None => unimplemented!("Variable indices are not supported"),
+            Some(f) => {
+                let bi = fr_to_bigint(&f);
+                let i = bi.to_usize().ok_or(RuntimeError::IndexOutOfBounds)?;
+                if i >= array.len() {
+                    return Err(RuntimeError::IndexOutOfBounds)
+                }
+                new_array[i] = value;
+            },
+        };
 
         Ok(new_array)
+
+//        let mut new_array = Vec::new();
+//
+//        for (i, p) in array.iter().enumerate() {
+//            let curr_index = self.constant_bigint(&i.into())?;
+//
+//            let cond = self.eq(curr_index, index.clone())?;
+//            let value = self.conditional_select(cond, value.clone(), p.clone())?;
+//            new_array.push(value);
+//        }
+//
+//        Ok(new_array)
     }
 
     pub fn execute<G: Gadget<E>>(
