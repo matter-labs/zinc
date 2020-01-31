@@ -219,8 +219,8 @@ impl Into<Vec<Instruction>> for Bytecode {
 
 impl Into<Vec<u8>> for Bytecode {
     fn into(self) -> Vec<u8> {
-        for instruction in self.instructions.iter() {
-            log::trace!("{:?}", instruction)
+        for (index, instruction) in self.instructions.iter().enumerate() {
+            log::trace!("{:03} {:?}", index + 1, instruction)
         }
 
         let program = Program::new(
