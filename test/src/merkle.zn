@@ -1,6 +1,6 @@
-/*
-    The hash functions.
-*/
+//
+// Merkle tree library
+//
 
 use std::crypto::sha256; // an import
 
@@ -31,7 +31,7 @@ fn restore_root_hash(
 {
     let mut current = leaf_hash;
 
-    for i in 0..10 {
+    for i in 0..1 {
         let left_and_right = if address[i] {
             [current, merkle_path[i]]
         } else {

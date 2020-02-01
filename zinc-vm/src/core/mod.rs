@@ -12,6 +12,7 @@ use num_bigint::{BigInt, ToBigInt};
 use std::marker::PhantomData;
 use zinc_bytecode::program::Program;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
+use zinc_bytecode::data::types::{DataType, PrimitiveType};
 
 pub trait VMInstruction<E, CS>: InstructionInfo
 where
@@ -80,12 +81,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             .constant_bigint_typed(&1.into(), ScalarType::BOOLEAN)?;
         self.condition_push(one)?;
 
-        match program.bytecode.first() {
-            Some(Instruction::Call(call)) => {
-                self.init_root_frame(call.inputs_count, inputs)?;
-            }
-            _ => unimplemented!("Program must start with Call instruction"),
-        }
+        self.init_root_frame(&program.input, inputs)?;
 
         let mut step = 0;
         while self.state.instruction_counter < program.bytecode.len() {
@@ -110,23 +106,25 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
 
     fn init_root_frame(
         &mut self,
-        inputs_count: usize,
+        input_type: &DataType,
         inputs: Option<&[BigInt]>,
     ) -> Result<(), RuntimeError> {
         self.state
             .frames_stack
             .push(FunctionFrame::new(0, std::usize::MAX));
 
+        let types = data_type_into_scalar_types(&input_type);
+
         match inputs {
             None => {
-                for _ in 0..inputs_count {
-                    let variable = self.operations().variable_none()?;
+                for t in types {
+                    let variable = self.operations().variable_none(t)?;
                     self.push(Cell::Value(variable))?;
                 }
             }
             Some(values) => {
-                for value in values.iter() {
-                    let variable = self.operations().variable_bigint(value)?;
+                for (value, dtype) in values.iter().zip(types) {
+                    let variable = self.operations().variable_bigint(value, dtype)?;
                     self.push(Cell::Value(variable))?;
                 }
             }
@@ -181,4 +179,47 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             .last_mut()
             .ok_or(RuntimeError::StackUnderflow)
     }
+}
+
+fn data_type_into_scalar_types(dtype: &DataType) -> Vec<Option<ScalarType>> {
+    fn internal(types: &mut Vec<Option<ScalarType>>, dtype: &DataType) {
+        match dtype {
+            DataType::Unit => {},
+            DataType::Primitive(t) => {
+                match t {
+                    PrimitiveType::Field => {
+                        types.push(None);
+                    },
+                    PrimitiveType::Integer(int) => {
+                        types.push(Some(ScalarType {
+                            signed: int.is_signed,
+                            length: int.bit_length,
+                        }))
+                    },
+                }
+            },
+            DataType::Enum => {
+                types.push(None);
+            },
+            DataType::Struct(fields) => {
+                for (_, t) in fields {
+                    internal(types, t);
+                }
+            },
+            DataType::Tuple(fields) => {
+                for t in fields {
+                    internal(types, t);
+                }
+            },
+            DataType::Array(t, size) => {
+                for _ in 0..*size {
+                    internal(types, t.as_ref());
+                }
+            },
+        }
+    }
+
+    let mut types = Vec::new();
+    internal(&mut types, dtype);
+    types
 }

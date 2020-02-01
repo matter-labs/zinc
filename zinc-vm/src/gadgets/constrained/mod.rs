@@ -277,7 +277,7 @@ where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    pub fn variable_none(&mut self) -> Result<Primitive<E>, RuntimeError> {
+    pub fn variable_none(&mut self, data_type: Option<ScalarType>) -> Result<Primitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let variable = cs
@@ -287,10 +287,15 @@ where
             )
             .map_err(RuntimeError::SynthesisError)?;
 
-        Ok(Primitive::new(None, variable))
+        mem::drop(cs);
+
+        match data_type {
+            None => Ok(Primitive::new(None, variable)),
+            Some(t) => self.value_with_type_check(None, variable, t),
+        }
     }
 
-    pub fn variable_bigint(&mut self, value: &BigInt) -> Result<Primitive<E>, RuntimeError> {
+    pub fn variable_bigint(&mut self, value: &BigInt, data_type: Option<ScalarType>) -> Result<Primitive<E>, RuntimeError> {
         let value = utils::bigint_to_fr::<E>(value)
             .ok_or_else(|| RuntimeError::InternalError("bigint_to_fr".into()))?;
 
@@ -300,7 +305,12 @@ where
             .alloc(|| "variable value", || Ok(value))
             .map_err(RuntimeError::SynthesisError)?;
 
-        Ok(Primitive::new(Some(value), variable))
+        mem::drop(cs);
+
+        match data_type {
+            None => Ok(Primitive::new(Some(value), variable)),
+            Some(t) => self.value_with_type_check(Some(value), variable, t),
+        }
     }
 
     pub fn constant_bigint(&mut self, value: &BigInt) -> Result<Primitive<E>, RuntimeError> {
