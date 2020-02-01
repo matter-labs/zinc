@@ -16,6 +16,7 @@ mod r#match;
 mod mul_div_rem;
 mod or;
 mod path;
+mod range;
 mod structure;
 mod terminal;
 mod tuple;
@@ -35,6 +36,7 @@ pub use self::mul_div_rem::Parser as MulDivRemOperandParser;
 pub use self::or::Parser as OrOperandParser;
 pub use self::path::Parser as PathOperandParser;
 pub use self::r#match::Parser as MatchExpressionParser;
+pub use self::range::Parser as RangeOperandParser;
 pub use self::structure::Parser as StructureExpressionParser;
 pub use self::terminal::Parser as TerminalOperandParser;
 pub use self::tuple::Parser as TupleExpressionParser;
@@ -91,10 +93,7 @@ impl Parser {
                     self.state = State::AssignmentOperator;
                 }
                 State::AssignmentOperator => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Equals),
                             location,

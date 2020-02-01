@@ -27,6 +27,7 @@ pub use self::expression::MulDivRemOperandParser;
 pub use self::expression::OrOperandParser;
 pub use self::expression::Parser as ExpressionParser;
 pub use self::expression::PathOperandParser;
+pub use self::expression::RangeOperandParser;
 pub use self::expression::StructureExpressionParser;
 pub use self::expression::TerminalOperandParser;
 pub use self::expression::TupleExpressionParser;
@@ -75,10 +76,7 @@ impl Parser {
 
         let mut statements = Vec::new();
         loop {
-            match match self.next.take() {
-                Some(token) => token,
-                None => stream.borrow_mut().next()?,
-            } {
+            match crate::syntax::take_or_next(self.next, stream.clone())? {
                 Token {
                     lexeme: Lexeme::Eof,
                     ..
@@ -87,12 +85,22 @@ impl Parser {
                     let (statement, next) =
                         ModuleLocalStatementParser::default().parse(stream.clone(), Some(token))?;
                     self.next = next;
-                    log::trace!("Statement: {:?}", statement);
+                    log::trace!("Module statement: {:?}", statement);
                     statements.push(statement);
                 }
             }
         }
 
         Ok(SyntaxTree { statements })
+    }
+}
+
+pub fn take_or_next(
+    mut token: Option<Token>,
+    stream: Rc<RefCell<TokenStream>>,
+) -> Result<Token, Error> {
+    match token.take() {
+        Some(token) => Ok(token),
+        None => Ok(stream.borrow_mut().next()?),
     }
 }

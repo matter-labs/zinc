@@ -2,6 +2,17 @@
 //! The semantic analyzer type element.
 //!
 
+mod function;
+
+pub use self::function::AssertInstructionFunction;
+pub use self::function::DebugInstructionFunction;
+pub use self::function::Function;
+pub use self::function::PedersenStandardLibraryFunction;
+pub use self::function::Sha256StandardLibraryFunction;
+pub use self::function::StandardLibraryFunction;
+pub use self::function::StandardLibraryFunctionError;
+pub use self::function::UserDefinedFunction;
+
 use std::cell::RefCell;
 use std::convert::TryFrom;
 use std::fmt;
@@ -9,14 +20,16 @@ use std::rc::Rc;
 
 use num_bigint::BigInt;
 
+use zinc_bytecode::builtins::BuiltinIdentifier;
+
 use crate::semantic::Constant;
 use crate::semantic::Element;
 use crate::semantic::Error;
 use crate::semantic::ExpressionAnalyzer;
 use crate::semantic::IntegerConstant;
-use crate::semantic::ResolutionHint;
 use crate::semantic::Scope;
 use crate::semantic::ScopeItem;
+use crate::semantic::TranslationHint;
 use crate::syntax::Identifier;
 use crate::syntax::TypeVariant;
 use crate::syntax::Variant;
@@ -32,6 +45,13 @@ pub enum Type {
         bitlength: usize,
     },
     Field,
+    String,
+    Range {
+        r#type: Box<Self>,
+    },
+    RangeInclusive {
+        r#type: Box<Self>,
+    },
     Array {
         r#type: Box<Self>,
         size: usize,
@@ -49,12 +69,13 @@ pub enum Type {
         bitlength: usize,
         scope: Rc<RefCell<Scope>>,
     },
-    Function {
-        identifier: String,
-        arguments: Vec<(String, Self)>,
-        return_type: Box<Self>,
-    },
-    String,
+    Function(Function),
+}
+
+impl Default for Type {
+    fn default() -> Self {
+        Self::Unit
+    }
 }
 
 impl Type {
@@ -96,6 +117,22 @@ impl Type {
 
     pub fn new_field() -> Self {
         Self::Field
+    }
+
+    pub fn new_string() -> Self {
+        Self::String
+    }
+
+    pub fn new_range(r#type: Self) -> Self {
+        Self::Range {
+            r#type: Box::new(r#type),
+        }
+    }
+
+    pub fn new_range_inclusive(r#type: Self) -> Self {
+        Self::RangeInclusive {
+            r#type: Box::new(r#type),
+        }
     }
 
     pub fn new_array(r#type: Self, size: usize) -> Self {
@@ -168,20 +205,28 @@ impl Type {
         Ok(enumeration)
     }
 
-    pub fn new_function(
+    pub fn new_assert_function() -> Self {
+        Self::Function(Function::new_assert())
+    }
+
+    pub fn new_dbg_function() -> Self {
+        Self::Function(Function::new_dbg())
+    }
+
+    pub fn new_std_function(builtin_identifier: BuiltinIdentifier) -> Self {
+        Self::Function(Function::new_std(builtin_identifier))
+    }
+
+    pub fn new_user_defined_function(
         identifier: String,
         arguments: Vec<(String, Self)>,
         return_type: Self,
     ) -> Self {
-        Self::Function {
+        Self::Function(Function::new_user_defined(
             identifier,
             arguments,
-            return_type: Box::new(return_type),
-        }
-    }
-
-    pub fn new_string() -> Self {
-        Self::String
+            return_type,
+        ))
     }
 
     pub fn size(&self) -> usize {
@@ -191,6 +236,9 @@ impl Type {
             Self::IntegerUnsigned { .. } => 1,
             Self::IntegerSigned { .. } => 1,
             Self::Field => 1,
+            Self::String { .. } => 0,
+            Self::Range { .. } => 0,
+            Self::RangeInclusive { .. } => 0,
             Self::Array { r#type, size } => r#type.size() * size,
             Self::Tuple { types } => types.iter().map(|r#type| r#type.size()).sum(),
             Self::Structure { fields, .. } => {
@@ -198,41 +246,88 @@ impl Type {
             }
             Self::Enumeration { .. } => 1,
             Self::Function { .. } => 0,
-            Self::String { .. } => 0,
+        }
+    }
+
+    pub fn is_scalar(&self) -> bool {
+        match self {
+            Self::Boolean => true,
+            Self::IntegerUnsigned { .. } => true,
+            Self::IntegerSigned { .. } => true,
+            Self::Field => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_scalar_unsigned(&self) -> bool {
+        match self {
+            Self::IntegerUnsigned { .. } => true,
+            Self::Field => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_scalar_signed(&self) -> bool {
+        match self {
+            Self::IntegerSigned { .. } => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_bit_array(&self) -> bool {
+        match self {
+            Self::Array { r#type, .. } => **r#type == Self::new_boolean(),
+            _ => false,
+        }
+    }
+
+    pub fn is_byte_array(&self) -> bool {
+        match self {
+            Self::Array { r#type, .. } => {
+                **r#type == Self::new_integer_unsigned(crate::BITLENGTH_BYTE)
+            }
+            _ => false,
+        }
+    }
+
+    pub fn is_scalar_array(&self) -> bool {
+        match self {
+            Self::Array { r#type, .. } => r#type.is_scalar(),
+            _ => false,
         }
     }
 
     pub fn from_type_variant(
-        type_variant: TypeVariant,
+        type_variant: &TypeVariant,
         scope: Rc<RefCell<Scope>>,
     ) -> Result<Self, Error> {
         Ok(match type_variant {
-            TypeVariant::Unit => Type::Unit,
-            TypeVariant::Boolean => Type::Boolean,
-            TypeVariant::IntegerUnsigned { bitlength } => Type::IntegerUnsigned { bitlength },
-            TypeVariant::IntegerSigned { bitlength } => Type::IntegerSigned { bitlength },
-            TypeVariant::Field => Type::Field,
-            TypeVariant::Array { type_variant, size } => Type::Array {
-                r#type: Self::from_type_variant(*type_variant, scope).map(Box::new)?,
-                size: {
+            TypeVariant::Unit => Self::new_unit(),
+            TypeVariant::Boolean => Self::new_boolean(),
+            TypeVariant::IntegerUnsigned { bitlength } => Self::new_integer_unsigned(*bitlength),
+            TypeVariant::IntegerSigned { bitlength } => Self::new_integer_signed(*bitlength),
+            TypeVariant::Field => Self::new_field(),
+            TypeVariant::Array { type_variant, size } => {
+                Self::new_array(Self::from_type_variant(&*type_variant, scope)?, {
                     let location = size.location;
-                    IntegerConstant::try_from(&size)
+                    IntegerConstant::try_from(size)
                         .map_err(|error| Error::InferenceConstant(location, error))?
                         .to_usize()
                         .map_err(|error| Error::InferenceConstant(location, error))?
-                },
-            },
+                })
+            }
             TypeVariant::Tuple { type_variants } => {
                 let mut types = Vec::with_capacity(type_variants.len());
-                for type_variant in type_variants.into_iter() {
+                for type_variant in type_variants.iter() {
                     types.push(Self::from_type_variant(type_variant, scope.clone())?);
                 }
-                Type::Tuple { types }
+                Self::new_tuple(types)
             }
+            TypeVariant::Reference { .. } => return Err(Error::ReferencesNotImplemented),
             TypeVariant::Alias { path } => {
                 let location = path.location;
                 match ExpressionAnalyzer::new_without_bytecode(scope)
-                    .expression(path, ResolutionHint::TypeExpression)?
+                    .expression(path.to_owned(), TranslationHint::TypeExpression)?
                 {
                     Element::Type(r#type) => r#type,
                     element => {
@@ -248,15 +343,17 @@ impl Type {
 
     pub fn from_element(element: &Element, scope: Rc<RefCell<Scope>>) -> Result<Self, Error> {
         Ok(match element {
-            Element::Place(place) => match Scope::resolve_place(scope, &place)? {
+            Element::Value(value) => value.r#type(),
+            Element::Constant(constant) => constant.r#type(),
+            Element::Type(r#type) => r#type.to_owned(),
+            Element::Path(path) => match Scope::resolve_path(scope, &path)? {
                 ScopeItem::Variable(variable) => variable.r#type,
                 ScopeItem::Constant(constant) => constant.r#type(),
                 ScopeItem::Static(r#static) => r#static.data.r#type(),
                 _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
             },
-            Element::Value(value) => value.r#type(),
-            Element::Constant(constant) => constant.r#type(),
-            Element::Type(r#type) => r#type.to_owned(),
+            Element::Place(place) => place.r#type.to_owned(),
+
             _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
         })
     }
@@ -274,6 +371,11 @@ impl PartialEq<Type> for Type {
                 b1 == b2
             }
             (Self::Field, Self::Field) => true,
+            (Self::String, Self::String) => true,
+            (Self::Range { r#type: type_1 }, Self::Range { r#type: type_2 }) => type_1 == type_2,
+            (Self::RangeInclusive { r#type: type_1 }, Self::RangeInclusive { r#type: type_2 }) => {
+                type_1 == type_2
+            }
             (
                 Self::Array {
                     r#type: type_1,
@@ -305,17 +407,6 @@ impl PartialEq<Type> for Type {
                     ..
                 },
             ) => identifier_1 == identifier_2,
-            (
-                Self::Function {
-                    identifier: identifier_1,
-                    ..
-                },
-                Self::Function {
-                    identifier: identifier_2,
-                    ..
-                },
-            ) => identifier_1 == identifier_2,
-            (Self::String, Self::String) => true,
             _ => false,
         }
     }
@@ -329,6 +420,9 @@ impl fmt::Display for Type {
             Self::IntegerUnsigned { bitlength } => write!(f, "u{}", bitlength),
             Self::IntegerSigned { bitlength } => write!(f, "i{}", bitlength),
             Self::Field => write!(f, "field"),
+            Self::String => write!(f, "&str"),
+            Self::Range { r#type } => write!(f, "{0} .. {0}", r#type),
+            Self::RangeInclusive { r#type } => write!(f, "{0} ..= {0}", r#type),
             Self::Array { r#type, size } => write!(f, "[{}; {}]", r#type, size),
             Self::Tuple { types } => write!(
                 f,
@@ -352,22 +446,7 @@ impl fmt::Display for Type {
                     .join(", "),
             ),
             Self::Enumeration { identifier, .. } => write!(f, "enum {}", identifier),
-            Self::Function {
-                identifier,
-                arguments,
-                return_type,
-            } => write!(
-                f,
-                "fn {}({}) -> {}",
-                identifier,
-                arguments
-                    .iter()
-                    .map(|(name, r#type)| format!("{}: {}", name, r#type))
-                    .collect::<Vec<String>>()
-                    .join(", "),
-                return_type,
-            ),
-            Self::String => write!(f, "&str"),
+            Self::Function(function) => write!(f, "{}", function),
         }
     }
 }

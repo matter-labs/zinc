@@ -58,7 +58,7 @@ static STATIC: field = 5;
 
 const CONST: field = 42;
 
-fn main() -> field {
+fn main(input: (), witness: ()) -> field {
     let var: field = 69;
 
     module_3::factor(module_2::diff(module_1::sum(STATIC, CONST), var), 5 as field)
@@ -66,32 +66,49 @@ fn main() -> field {
 "#;
 
     let expected = Ok(vec![
-        Instruction::Call(Call::new(16, 0)),
+        Instruction::Call(Call::new(17, 0)),
         Instruction::Exit(Exit::new(1)),
-        Instruction::Load(Load::new(0)),
         Instruction::Load(Load::new(1)),
+        Instruction::Load(Load::new(0)),
         Instruction::Add(Add),
         Instruction::Return(Return::new(1)),
-        Instruction::Load(Load::new(0)),
         Instruction::Load(Load::new(1)),
+        Instruction::Load(Load::new(0)),
         Instruction::Sub(Sub),
         Instruction::Return(Return::new(1)),
-        Instruction::Load(Load::new(0)),
         Instruction::Load(Load::new(1)),
+        Instruction::Load(Load::new(0)),
         Instruction::Mul(Mul),
         Instruction::Return(Return::new(1)),
-        Instruction::PushConst(PushConst::new(BigInt::from(5), false, 8)),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(5),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::StoreGlobal(StoreGlobal::new(0)),
-        Instruction::PushConst(PushConst::new(BigInt::from(69), false, 8)),
-        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(69),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::Store(Store::new(0)),
         Instruction::LoadGlobal(LoadGlobal::new(0)),
-        Instruction::PushConst(PushConst::new(BigInt::from(42), false, 42)),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(42),
+            false,
+            crate::BITLENGTH_FIELD,
+        )),
         Instruction::Call(Call::new(2, 2)),
         Instruction::Load(Load::new(0)),
         Instruction::Call(Call::new(6, 2)),
-        Instruction::PushConst(PushConst::new(BigInt::from(5), false, 8)),
-        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(5),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::Call(Call::new(10, 2)),
         Instruction::Return(Return::new(1)),
     ]);

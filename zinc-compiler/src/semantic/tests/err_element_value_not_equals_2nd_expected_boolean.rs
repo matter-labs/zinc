@@ -26,7 +26,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 25),
         ElementError::Value(ValueError::OperatorNotEqualsSecondOperandExpectedBoolean(
-            Type::new_integer_unsigned(8).to_string(),
+            Type::new_integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
         )),
     )));
 

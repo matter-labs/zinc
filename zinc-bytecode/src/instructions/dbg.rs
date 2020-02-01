@@ -1,6 +1,7 @@
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
+use serde_derive::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Default, Clone)]
+#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
 pub struct Dbg {
     pub string: String,
     pub nargs: usize,
@@ -46,7 +47,7 @@ impl InstructionInfo for Dbg {
             return Err(DecodingError::UnexpectedEOF);
         }
 
-        let string = String::from_utf8(Vec::from(&bytes[3..3+ string_len]))
+        let string = String::from_utf8(Vec::from(&bytes[3..3 + string_len]))
             .map_err(|_| DecodingError::UTF8Error)?;
 
         Ok((Self::new(string, nargs), 3 + string_len))

@@ -29,6 +29,27 @@ pub enum Error {
     OperatorAssignmentSecondOperandExpectedEvaluable(String),
 
     #[fail(
+        display = "'..=' operator expected a constant expression as the first operand, but got '{}'",
+        _0
+    )]
+    OperatorRangeInclusiveFirstOperandExpectedConstant(String),
+    #[fail(
+        display = "'..=' operator expected a constant expression as the second operand, but got '{}'",
+        _0
+    )]
+    OperatorRangeInclusiveSecondOperandExpectedConstant(String),
+    #[fail(
+        display = "'..' operator expected a constant expression as the first operand, but got '{}'",
+        _0
+    )]
+    OperatorRangeFirstOperandExpectedConstant(String),
+    #[fail(
+        display = "'..' operator expected a constant expression as the second operand, but got '{}'",
+        _0
+    )]
+    OperatorRangeSecondOperandExpectedConstant(String),
+
+    #[fail(
         display = "'||' operator expected an evaluable expression as the first operand, but got '{}'",
         _0
     )]
@@ -205,21 +226,21 @@ pub enum Error {
     OperatorNotExpectedEvaluable(String),
 
     #[fail(
-        display = "'[]' operator expected a place expression as the first operand, but got '{}'",
+        display = "'[]' operator expected a place or evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorIndexFirstOperandExpectedPlace(String),
+    OperatorIndexFirstOperandExpectedPlaceOrEvaluable(String),
     #[fail(
-        display = "'[]' operator expected a constant expression as the second operand, but got '{}'",
+        display = "'[]' operator expected an evaluable expression as the second operand, but got '{}'",
         _0
     )]
-    OperatorIndexSecondOperandExpectedInteger(String),
+    OperatorIndexSecondOperandExpectedEvaluable(String),
 
     #[fail(
-        display = "'.' operator expected a place expression as the first operand, but got '{}'",
+        display = "'.' operator expected a place or evaluable expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorFieldFirstOperandExpectedPlace(String),
+    OperatorFieldFirstOperandExpectedPlaceOrEvaluable(String),
     #[fail(
         display = "'.' operator expected a member identifier as the second operand, but got '{}'",
         _0
@@ -227,10 +248,10 @@ pub enum Error {
     OperatorFieldSecondOperandExpectedMember(String),
 
     #[fail(
-        display = "'::' operator expected a place expression as the first operand, but got '{}'",
+        display = "'::' operator expected a path expression as the first operand, but got '{}'",
         _0
     )]
-    OperatorPathFirstOperandExpectedPlace(String),
+    OperatorPathFirstOperandExpectedPath(String),
     #[fail(
         display = "'::' operator expected a member string as the second operand, but got '{}'",
         _0

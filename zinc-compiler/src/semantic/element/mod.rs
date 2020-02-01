@@ -2,30 +2,44 @@
 //! The semantic analyzer element.
 //!
 
+mod access;
 mod constant;
 mod error;
+mod path;
 mod place;
 mod r#type;
 mod value;
 
+pub use self::access::FieldResult as FieldAccessResult;
+pub use self::access::IndexResult as IndexAccessResult;
 pub use self::constant::Constant;
 pub use self::constant::Error as ConstantError;
 pub use self::constant::Integer as IntegerConstant;
 pub use self::constant::IntegerError as IntegerConstantError;
+pub use self::constant::Range as RangeConstant;
+pub use self::constant::RangeInclusive as RangeInclusiveConstant;
 pub use self::error::Error;
-pub use self::place::Descriptor as PlaceDescriptor;
+pub use self::path::Path;
 pub use self::place::Error as PlaceError;
 pub use self::place::Place;
-pub use self::place::ResolutionTime as PlaceResolutionTime;
+pub use self::r#type::AssertInstructionFunction as AssertInstructionFunctionType;
+pub use self::r#type::DebugInstructionFunction as DebugInstructionFunctionType;
+pub use self::r#type::Function as FunctionType;
+pub use self::r#type::Sha256StandardLibraryFunction as Sha256StandardLibraryFunctionType;
+pub use self::r#type::Sha256StandardLibraryFunction as PedersenStandardLibraryFunctionType;
+pub use self::r#type::StandardLibraryFunction as StandardLibraryFunctionType;
+pub use self::r#type::StandardLibraryFunctionError;
 pub use self::r#type::Type;
+pub use self::r#type::UserDefinedFunction as UserDefinedFunctionType;
 pub use self::value::Array;
-pub use self::value::ArrayError;
+pub use self::value::ArrayError as ArrayValueError;
 pub use self::value::Error as ValueError;
 pub use self::value::Integer as IntegerValue;
 pub use self::value::IntegerError as IntegerValueError;
 pub use self::value::Structure;
-pub use self::value::StructureError;
+pub use self::value::StructureError as StructureValueError;
 pub use self::value::Tuple;
+pub use self::value::TupleError as TupleValueError;
 pub use self::value::Value;
 
 use std::fmt;
@@ -34,17 +48,19 @@ use crate::syntax::MemberString;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Element {
-    /// Memory descriptor (a.k.a. `lvalue`)
-    Place(Place),
     /// Runtime value, which is unknown at compile time (a.k.a. `lvalue`)
     Value(Value),
     /// Constant value, which is known at compile time (a.k.a. `lvalue`)
     Constant(Constant),
     /// The second operand of the casting operator
     Type(Type),
-
     /// The second operand of the function call operator
     ArgumentList(Vec<Self>),
+
+    /// Path to be resolved in the scope
+    Path(Path),
+    /// Memory descriptor (a.k.a. `lvalue`)
+    Place(Place),
     /// Tuple field index
     MemberInteger(usize),
     /// Structure field name
@@ -55,15 +71,6 @@ pub enum Element {
 
 impl Element {
     pub fn assign(self, other: &Self) -> Result<Place, Error> {
-        let place = match self {
-            Self::Place(place) => place,
-            element => {
-                return Err(Error::OperatorAssignmentFirstOperandExpectedPlace(
-                    element.to_string(),
-                ))
-            }
-        };
-
         match other {
             Self::Value(_) => {}
             Self::Constant(_) => {}
@@ -74,7 +81,42 @@ impl Element {
             }
         }
 
-        Ok(place)
+        match self {
+            Self::Place(place) => Ok(place),
+            element => Err(Error::OperatorAssignmentFirstOperandExpectedPlace(
+                element.to_string(),
+            )),
+        }
+    }
+
+    pub fn range_inclusive(&self, other: &Self) -> Result<Self, Error> {
+        match (self, other) {
+            (Element::Constant(value_1), Element::Constant(value_2)) => value_1
+                .range_inclusive(value_2)
+                .map(Self::Constant)
+                .map_err(Error::Constant),
+            (Element::Constant(_), element_2) => Err(
+                Error::OperatorRangeInclusiveSecondOperandExpectedConstant(element_2.to_string()),
+            ),
+            (element_1, _) => Err(Error::OperatorRangeInclusiveFirstOperandExpectedConstant(
+                element_1.to_string(),
+            )),
+        }
+    }
+
+    pub fn range(&self, other: &Self) -> Result<Self, Error> {
+        match (self, other) {
+            (Element::Constant(value_1), Element::Constant(value_2)) => value_1
+                .range(value_2)
+                .map(Self::Constant)
+                .map_err(Error::Constant),
+            (Element::Constant(_), element_2) => Err(
+                Error::OperatorRangeSecondOperandExpectedConstant(element_2.to_string()),
+            ),
+            (element_1, _) => Err(Error::OperatorRangeFirstOperandExpectedConstant(
+                element_1.to_string(),
+            )),
+        }
     }
 
     pub fn or(&self, other: &Self) -> Result<Self, Error> {
@@ -535,61 +577,59 @@ impl Element {
         }
     }
 
-    pub fn index(&mut self, other: &Self) -> Result<(), Error> {
-        let place = match self {
-            Self::Place(place) => place,
-            element => {
-                return Err(Error::OperatorIndexFirstOperandExpectedPlace(
+    pub fn index(&mut self, other: &Self) -> Result<IndexAccessResult, Error> {
+        match self {
+            Self::Place(place) => match other {
+                element @ Self::Value(_) => place.index(element).map_err(Error::Place),
+                element @ Self::Constant(_) => place.index(element).map_err(Error::Place),
+                element => Err(Error::OperatorIndexSecondOperandExpectedEvaluable(
                     element.to_string(),
-                ))
-            }
-        };
-
-        match other {
-            Self::Value(Value::Integer(value)) => {
-                place.index_value(value);
-                Ok(())
-            }
-            Self::Constant(Constant::Integer(constant)) => {
-                place.index_constant(constant);
-                Ok(())
-            }
-            element => Err(Error::OperatorIndexSecondOperandExpectedInteger(
+                )),
+            },
+            Self::Value(value) => match other {
+                Self::Value(index) => value.index_value(index).map_err(Error::Value),
+                Self::Constant(index) => value.index_constant(index).map_err(Error::Value),
+                element => Err(Error::OperatorIndexSecondOperandExpectedEvaluable(
+                    element.to_string(),
+                )),
+            },
+            element => Err(Error::OperatorIndexFirstOperandExpectedPlaceOrEvaluable(
                 element.to_string(),
             )),
         }
     }
 
-    pub fn field(&mut self, other: &Self) -> Result<(), Error> {
-        let place = match self {
-            Self::Place(place) => place,
-            element => {
-                return Err(Error::OperatorFieldFirstOperandExpectedPlace(
+    pub fn field(&mut self, other: &Self) -> Result<FieldAccessResult, Error> {
+        match self {
+            Self::Place(place) => match other {
+                Self::MemberInteger(member) => place.field_tuple(*member).map_err(Error::Place),
+                Self::MemberString(member) => {
+                    place.field_structure(&member.name).map_err(Error::Place)
+                }
+                element => Err(Error::OperatorFieldSecondOperandExpectedMember(
                     element.to_string(),
-                ))
-            }
-        };
-
-        match other {
-            Self::MemberInteger(integer) => {
-                place.access_tuple(*integer);
-                Ok(())
-            }
-            Self::MemberString(string) => {
-                place.access_structure(string);
-                Ok(())
-            }
-            element => Err(Error::OperatorFieldSecondOperandExpectedMember(
+                )),
+            },
+            Self::Value(value) => match other {
+                Self::MemberInteger(member) => value.field_tuple(*member).map_err(Error::Value),
+                Self::MemberString(member) => {
+                    value.field_structure(&member.name).map_err(Error::Value)
+                }
+                element => Err(Error::OperatorFieldSecondOperandExpectedMember(
+                    element.to_string(),
+                )),
+            },
+            element => Err(Error::OperatorFieldFirstOperandExpectedPlaceOrEvaluable(
                 element.to_string(),
             )),
         }
     }
 
     pub fn path(&mut self, other: &Self) -> Result<(), Error> {
-        let place = match self {
-            Self::Place(place) => place,
+        let path = match self {
+            Self::Path(path) => path,
             element => {
-                return Err(Error::OperatorPathFirstOperandExpectedPlace(
+                return Err(Error::OperatorPathFirstOperandExpectedPath(
                     element.to_string(),
                 ))
             }
@@ -604,7 +644,7 @@ impl Element {
             }
         };
 
-        place.path(member).map_err(Error::Place)?;
+        path.push_element(member.to_owned());
         Ok(())
     }
 }
@@ -612,7 +652,6 @@ impl Element {
 impl fmt::Display for Element {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Place(place) => write!(f, "{}", place),
             Self::Value(value) => write!(f, "{}", value),
             Self::Constant(constant) => write!(f, "{}", constant),
             Self::Type(r#type) => write!(f, "{}", r#type),
@@ -625,6 +664,8 @@ impl fmt::Display for Element {
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
+            Self::Path(path) => write!(f, "{}", path),
+            Self::Place(place) => write!(f, "{}", place),
             Self::MemberInteger(integer) => write!(f, "{}", integer),
             Self::MemberString(member) => write!(f, "{}", member.name),
             Self::Module(name) => write!(f, "{}", name),

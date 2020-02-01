@@ -4,10 +4,14 @@
 
 mod error;
 mod integer;
+mod range;
+mod range_inclusive;
 
 pub use self::error::Error;
 pub use self::integer::Error as IntegerError;
 pub use self::integer::Integer;
+pub use self::range::Range;
+pub use self::range_inclusive::RangeInclusive;
 
 use std::fmt;
 
@@ -26,6 +30,8 @@ pub enum Constant {
     Unit,
     Boolean(bool),
     Integer(Integer),
+    Range(Range),
+    RangeInclusive(RangeInclusive),
     String(String),
 }
 
@@ -34,7 +40,9 @@ impl Constant {
         match self {
             Self::Unit => Type::new_unit(),
             Self::Boolean(_) => Type::new_boolean(),
-            Self::Integer(integer) => integer.r#type(),
+            Self::Integer(inner) => inner.r#type(),
+            Self::Range(inner) => inner.r#type(),
+            Self::RangeInclusive(inner) => inner.r#type(),
             Self::String(_) => Type::new_string(),
         }
     }
@@ -43,10 +51,48 @@ impl Constant {
         match (self, other) {
             (Self::Unit, Self::Unit) => true,
             (Self::Boolean(_), Self::Boolean(_)) => true,
-            (Self::Integer(value_1), Self::Integer(value_2)) => {
-                value_1.has_the_same_type_as(value_2)
+            (Self::Integer(inner_1), Self::Integer(inner_2)) => {
+                inner_1.has_the_same_type_as(inner_2)
+            }
+            (Self::Range(inner_1), Self::Range(inner_2)) => inner_1.has_the_same_type_as(inner_2),
+            (Self::RangeInclusive(inner_1), Self::RangeInclusive(inner_2)) => {
+                inner_1.has_the_same_type_as(inner_2)
             }
             _ => false,
+        }
+    }
+
+    pub fn range_inclusive(&self, other: &Self) -> Result<Self, Error> {
+        match self {
+            Self::Integer(integer_1) => match other {
+                Self::Integer(integer_2) => integer_1
+                    .range_inclusive(integer_2)
+                    .map(Self::RangeInclusive)
+                    .map_err(Error::Integer),
+                value => Err(Error::OperatorRangeInclusiveSecondOperandExpectedInteger(
+                    value.to_owned(),
+                )),
+            },
+            value => Err(Error::OperatorRangeInclusiveFirstOperandExpectedInteger(
+                value.to_owned(),
+            )),
+        }
+    }
+
+    pub fn range(&self, other: &Self) -> Result<Self, Error> {
+        match self {
+            Self::Integer(integer_1) => match other {
+                Self::Integer(integer_2) => integer_1
+                    .range(integer_2)
+                    .map(Self::Range)
+                    .map_err(Error::Integer),
+                value => Err(Error::OperatorRangeSecondOperandExpectedInteger(
+                    value.to_owned(),
+                )),
+            },
+            value => Err(Error::OperatorRangeFirstOperandExpectedInteger(
+                value.to_owned(),
+            )),
         }
     }
 
@@ -339,14 +385,11 @@ impl Constant {
         }
         Ok(Some((is_signed, bitlength)))
     }
-}
 
-impl Into<Instruction> for Constant {
-    fn into(self) -> Instruction {
+    pub fn to_instruction(&self) -> Instruction {
         match self {
-            Self::Unit => Instruction::NoOperation(zinc_bytecode::NoOperation),
             Self::Boolean(boolean) => Instruction::PushConst(zinc_bytecode::PushConst::new(
-                if boolean {
+                if *boolean {
                     BigInt::one()
                 } else {
                     BigInt::zero()
@@ -354,8 +397,11 @@ impl Into<Instruction> for Constant {
                 false,
                 crate::BITLENGTH_BOOLEAN,
             )),
-            Self::Integer(integer) => integer.into(),
-            Self::String(_) => Instruction::NoOperation(zinc_bytecode::NoOperation),
+            Self::Integer(integer) => integer.to_instruction(),
+            Self::Unit => unreachable!(),
+            Self::Range(_) => unreachable!(),
+            Self::RangeInclusive(_) => unreachable!(),
+            Self::String(_) => unreachable!(),
         }
     }
 }
@@ -383,9 +429,11 @@ impl fmt::Display for Constant {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Unit => write!(f, "()"),
-            Self::Boolean(boolean) => write!(f, "{}", boolean),
-            Self::Integer(integer) => write!(f, "{}", integer),
-            Self::String(string) => write!(f, "{}", string),
+            Self::Boolean(inner) => write!(f, "{}", inner),
+            Self::Integer(inner) => write!(f, "{}", inner),
+            Self::Range(inner) => write!(f, "{}", inner),
+            Self::RangeInclusive(inner) => write!(f, "{}", inner),
+            Self::String(inner) => write!(f, "{}", inner),
         }
     }
 }

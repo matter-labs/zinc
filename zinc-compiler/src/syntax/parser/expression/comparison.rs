@@ -55,26 +55,25 @@ impl Parser {
                     }
                     self.state = State::AddSubOperator;
                 }
-                State::AddSubOperator => match match self.next.take() {
-                    Some(token) => token,
-                    None => stream.borrow_mut().next()?,
-                } {
-                    Token {
-                        lexeme: Lexeme::Symbol(Symbol::Plus),
-                        location,
-                    } => {
-                        self.operator = Some((location, ExpressionOperator::Addition));
-                        self.state = State::AddSubOperand;
+                State::AddSubOperator => {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::Plus),
+                            location,
+                        } => {
+                            self.operator = Some((location, ExpressionOperator::Addition));
+                            self.state = State::AddSubOperand;
+                        }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::Minus),
+                            location,
+                        } => {
+                            self.operator = Some((location, ExpressionOperator::Subtraction));
+                            self.state = State::AddSubOperand;
+                        }
+                        token => return Ok((self.builder.finish(), Some(token))),
                     }
-                    Token {
-                        lexeme: Lexeme::Symbol(Symbol::Minus),
-                        location,
-                    } => {
-                        self.operator = Some((location, ExpressionOperator::Subtraction));
-                        self.state = State::AddSubOperand;
-                    }
-                    token => return Ok((self.builder.finish(), Some(token))),
-                },
+                }
             }
         }
     }

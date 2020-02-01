@@ -7,6 +7,9 @@ use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::rc::Rc;
 
+use num_bigint::BigInt;
+use num_traits::Zero;
+
 use zinc_bytecode::Instruction;
 
 use crate::semantic::Array;
@@ -14,14 +17,18 @@ use crate::semantic::Bytecode;
 use crate::semantic::Constant;
 use crate::semantic::Element;
 use crate::semantic::Error;
+use crate::semantic::FunctionType;
 use crate::semantic::IntegerConstant;
+use crate::semantic::Path;
 use crate::semantic::Place;
-use crate::semantic::ResolutionHint;
 use crate::semantic::Scope;
 use crate::semantic::ScopeItem;
 use crate::semantic::ScopeVariableItem;
+use crate::semantic::StandardLibraryFunctionType;
 use crate::semantic::StatementAnalyzer;
 use crate::semantic::Structure;
+use crate::semantic::StructureValueError;
+use crate::semantic::TranslationHint;
 use crate::semantic::Tuple;
 use crate::semantic::Type;
 use crate::semantic::Value;
@@ -31,6 +38,8 @@ use crate::syntax::BlockExpression;
 use crate::syntax::BooleanLiteral;
 use crate::syntax::ConditionalExpression;
 use crate::syntax::Expression;
+use crate::syntax::ExpressionAuxiliary;
+use crate::syntax::ExpressionElement;
 use crate::syntax::ExpressionObject;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
@@ -83,7 +92,7 @@ impl Analyzer {
     pub fn expression(
         &mut self,
         expression: Expression,
-        resolution_hint: ResolutionHint,
+        translation_hint: TranslationHint,
     ) -> Result<Element, Error> {
         let location = expression.location;
         for element in expression.into_iter() {
@@ -93,48 +102,72 @@ impl Analyzer {
                 }
                 ExpressionObject::Operator(ExpressionOperator::Assignment) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::PlaceExpression,
-                        ResolutionHint::ValueExpression,
+                        TranslationHint::PlaceExpression,
+                        TranslationHint::ValueExpression,
                     )?;
                     let place = operand_1
                         .assign(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
-                    let item = Scope::resolve_place(self.scope(), &place)?;
-                    let variable = match item {
-                        ScopeItem::Variable(variable) => variable,
-                        item => {
-                            return Err(Error::AssignmentToInvalidItem(location, item.to_string()))
-                        }
-                    };
-                    if !variable.is_mutable {
-                        return Err(Error::AssignmentToImmutableMemory(location, place));
+                    if !place.is_mutable {
+                        return Err(Error::AssignmentToImmutableMemory(
+                            location,
+                            place.to_string(),
+                        ));
                     }
-                    let size = variable.r#type.size();
-                    if variable.r#type != r#type {
+                    if place.r#type != r#type {
                         return Err(Error::AssignmentTypesMismatch(
                             location,
                             r#type.to_string(),
-                            place,
-                            variable.r#type.to_string(),
+                            place.r#type.to_string(),
                         ));
                     }
 
                     self.bytecode.borrow_mut().push_instruction_store(
-                        variable.address,
-                        size,
-                        None,
+                        place.address,
+                        place.r#type.size(),
+                        if place.is_indexed {
+                            Some(place.total_size)
+                        } else {
+                            None
+                        },
                         false,
                     );
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Range) => unimplemented!(),
-                ExpressionObject::Operator(ExpressionOperator::RangeInclusive) => unimplemented!(),
+                ExpressionObject::Operator(ExpressionOperator::RangeInclusive) => {
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                    )?;
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Pop(zinc_bytecode::Pop::new(2)));
+
+                    let result = operand_1
+                        .range_inclusive(&operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    self.push_operand(StackElement::Evaluated(result));
+                }
+                ExpressionObject::Operator(ExpressionOperator::Range) => {
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                    )?;
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Pop(zinc_bytecode::Pop::new(2)));
+
+                    let result = operand_1
+                        .range(&operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    self.push_operand(StackElement::Evaluated(result));
+                }
                 ExpressionObject::Operator(ExpressionOperator::Or) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::ValueExpression,
-                        ResolutionHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -147,8 +180,8 @@ impl Analyzer {
                 }
                 ExpressionObject::Operator(ExpressionOperator::Xor) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::ValueExpression,
-                        ResolutionHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -161,8 +194,8 @@ impl Analyzer {
                 }
                 ExpressionObject::Operator(ExpressionOperator::And) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::ValueExpression,
-                        ResolutionHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -175,8 +208,8 @@ impl Analyzer {
                 }
                 ExpressionObject::Operator(ExpressionOperator::Equals) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::ValueExpression,
-                        ResolutionHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -189,8 +222,8 @@ impl Analyzer {
                 }
                 ExpressionObject::Operator(ExpressionOperator::NotEquals) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::ValueExpression,
-                        ResolutionHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -203,8 +236,8 @@ impl Analyzer {
                 }
                 ExpressionObject::Operator(ExpressionOperator::GreaterEquals) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::ValueExpression,
-                        ResolutionHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -217,8 +250,8 @@ impl Analyzer {
                 }
                 ExpressionObject::Operator(ExpressionOperator::LesserEquals) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::ValueExpression,
-                        ResolutionHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -231,8 +264,8 @@ impl Analyzer {
                 }
                 ExpressionObject::Operator(ExpressionOperator::Greater) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::ValueExpression,
-                        ResolutionHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -245,8 +278,8 @@ impl Analyzer {
                 }
                 ExpressionObject::Operator(ExpressionOperator::Lesser) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::ValueExpression,
-                        ResolutionHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -259,8 +292,8 @@ impl Analyzer {
                 }
                 ExpressionObject::Operator(ExpressionOperator::Addition) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::ValueExpression,
-                        ResolutionHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -273,8 +306,8 @@ impl Analyzer {
                 }
                 ExpressionObject::Operator(ExpressionOperator::Subtraction) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::ValueExpression,
-                        ResolutionHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -287,8 +320,8 @@ impl Analyzer {
                 }
                 ExpressionObject::Operator(ExpressionOperator::Multiplication) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::ValueExpression,
-                        ResolutionHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -301,8 +334,8 @@ impl Analyzer {
                 }
                 ExpressionObject::Operator(ExpressionOperator::Division) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::ValueExpression,
-                        ResolutionHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -315,8 +348,8 @@ impl Analyzer {
                 }
                 ExpressionObject::Operator(ExpressionOperator::Remainder) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::ValueExpression,
-                        ResolutionHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -329,8 +362,8 @@ impl Analyzer {
                 }
                 ExpressionObject::Operator(ExpressionOperator::Casting) => {
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::ValueExpression,
-                        ResolutionHint::TypeExpression,
+                        TranslationHint::ValueExpression,
+                        TranslationHint::TypeExpression,
                     )?;
 
                     if let Some((is_signed, bitlength)) = operand_1
@@ -340,15 +373,15 @@ impl Analyzer {
                         self.bytecode
                             .borrow_mut()
                             .push_instruction(Instruction::Cast(zinc_bytecode::Cast::new(
-                                is_signed,
-                                bitlength as u8,
+                                is_signed, bitlength,
                             )));
                     }
 
                     self.push_operand(StackElement::Evaluated(operand_1));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Negation) => {
-                    let operand_1 = self.evaluate_unary_operand(ResolutionHint::ValueExpression)?;
+                    let operand_1 =
+                        self.evaluate_unary_operand(TranslationHint::ValueExpression)?;
                     self.bytecode
                         .borrow_mut()
                         .push_instruction(Instruction::Neg(zinc_bytecode::Neg));
@@ -359,7 +392,8 @@ impl Analyzer {
                     self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Not) => {
-                    let operand_1 = self.evaluate_unary_operand(ResolutionHint::ValueExpression)?;
+                    let operand_1 =
+                        self.evaluate_unary_operand(TranslationHint::ValueExpression)?;
                     self.bytecode
                         .borrow_mut()
                         .push_instruction(Instruction::Not(zinc_bytecode::Not));
@@ -369,163 +403,193 @@ impl Analyzer {
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.push_operand(StackElement::Evaluated(result));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Borrow) => unimplemented!(),
+                ExpressionObject::Operator(ExpressionOperator::Reference) => unimplemented!(),
                 ExpressionObject::Operator(ExpressionOperator::Dereference) => unimplemented!(),
                 ExpressionObject::Operator(ExpressionOperator::Index) => {
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::PlaceExpression,
-                        ResolutionHint::ValueExpression,
+                        TranslationHint::PlaceExpression,
+                        TranslationHint::ValueExpression,
                     )?;
 
-                    operand_1
+                    let is_place_indexed = match operand_1 {
+                        Element::Place(ref place) => place.is_indexed,
+                        _ => false,
+                    };
+
+                    let result = operand_1
                         .index(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Evaluated(operand_1));
+
+                    match operand_1 {
+                        element @ Element::Place(_) => {
+                            if let Element::Constant(Constant::Range(_))
+                            | Element::Constant(Constant::RangeInclusive(_)) = operand_2
+                            {
+                                self.bytecode.borrow_mut().push_instruction(
+                                    Instruction::PushConst(zinc_bytecode::PushConst::new(
+                                        BigInt::from(result.offset),
+                                        false,
+                                        crate::BITLENGTH_FIELD,
+                                    )),
+                                );
+                            } else {
+                                self.bytecode
+                                    .borrow_mut()
+                                    .push_instruction(Instruction::Cast(zinc_bytecode::Cast::new(
+                                        false,
+                                        crate::BITLENGTH_FIELD,
+                                    )));
+                            }
+                            if !is_place_indexed {
+                                self.bytecode.borrow_mut().push_instruction(
+                                    Instruction::PushConst(zinc_bytecode::PushConst::new(
+                                        BigInt::zero(),
+                                        false,
+                                        crate::BITLENGTH_FIELD,
+                                    )),
+                                );
+                            }
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::PushConst(
+                                    zinc_bytecode::PushConst::new(
+                                        BigInt::from(result.element_size),
+                                        false,
+                                        crate::BITLENGTH_FIELD,
+                                    ),
+                                ));
+                            if !is_place_indexed {
+                                self.bytecode
+                                    .borrow_mut()
+                                    .push_instruction(Instruction::Add(zinc_bytecode::Add));
+                            }
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::Mul(zinc_bytecode::Mul));
+                            if is_place_indexed {
+                                self.bytecode
+                                    .borrow_mut()
+                                    .push_instruction(Instruction::Add(zinc_bytecode::Add));
+                            }
+                            self.push_operand(StackElement::Evaluated(element));
+                        }
+                        Element::Value(_) | Element::Constant(_) => {
+                            match operand_2 {
+                                Element::Constant(Constant::Range(_))
+                                | Element::Constant(Constant::RangeInclusive(_)) => {
+                                    self.bytecode.borrow_mut().push_instruction(
+                                        Instruction::PushConst(zinc_bytecode::PushConst::new(
+                                            BigInt::from(result.offset),
+                                            false,
+                                            crate::BITLENGTH_FIELD,
+                                        )),
+                                    );
+                                }
+                                _ => {
+                                    self.bytecode
+                                        .borrow_mut()
+                                        .push_instruction(Instruction::Cast(
+                                            zinc_bytecode::Cast::new(false, crate::BITLENGTH_FIELD),
+                                        ));
+                                    self.bytecode.borrow_mut().push_instruction(
+                                        Instruction::PushConst(zinc_bytecode::PushConst::new(
+                                            BigInt::from(result.element_size),
+                                            false,
+                                            crate::BITLENGTH_FIELD,
+                                        )),
+                                    );
+                                    self.bytecode
+                                        .borrow_mut()
+                                        .push_instruction(Instruction::Mul(zinc_bytecode::Mul));
+                                }
+                            }
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::Slice(zinc_bytecode::Slice::new(
+                                    result.total_size,
+                                    result.element_size,
+                                )));
+                            self.push_operand(StackElement::Evaluated(Element::Value(
+                                result.sliced_value.expect(
+                                    crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_SLICED_VALUE,
+                                ),
+                            )));
+                        }
+                        _ => {}
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Field) => {
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::PlaceExpression,
-                        ResolutionHint::CompoundTypeMember,
+                        TranslationHint::PlaceExpression,
+                        TranslationHint::CompoundTypeMember,
                     )?;
 
-                    operand_1
+                    let is_place_indexed = match operand_1 {
+                        Element::Place(ref place) => place.is_indexed,
+                        _ => false,
+                    };
+
+                    let result = operand_1
                         .field(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Evaluated(operand_1));
-                }
-                ExpressionObject::Operator(ExpressionOperator::Instruction) => {
-                    self.is_next_call_instruction = true;
+
+                    match operand_1 {
+                        element @ Element::Place(_) => {
+                            if !is_place_indexed {
+                                self.bytecode.borrow_mut().push_instruction(
+                                    Instruction::PushConst(zinc_bytecode::PushConst::new(
+                                        BigInt::zero(),
+                                        false,
+                                        crate::BITLENGTH_FIELD,
+                                    )),
+                                );
+                            }
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::PushConst(
+                                    zinc_bytecode::PushConst::new(
+                                        BigInt::from(result.offset),
+                                        false,
+                                        crate::BITLENGTH_FIELD,
+                                    ),
+                                ));
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::Add(zinc_bytecode::Add));
+                            self.push_operand(StackElement::Evaluated(element));
+                        }
+                        Element::Value(_) | Element::Constant(_) => {
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::PushConst(
+                                    zinc_bytecode::PushConst::new(
+                                        BigInt::from(result.offset),
+                                        false,
+                                        crate::BITLENGTH_FIELD,
+                                    ),
+                                ));
+                            self.bytecode
+                                .borrow_mut()
+                                .push_instruction(Instruction::Slice(zinc_bytecode::Slice::new(
+                                    result.total_size,
+                                    result.element_size,
+                                )));
+                            self.push_operand(StackElement::Evaluated(Element::Value(
+                                result.sliced_value.expect(
+                                    crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_SLICED_VALUE,
+                                ),
+                            )));
+                        }
+                        _ => {}
+                    }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Call) => {
-                    // check if the call is a direct instruction call like 'dbg' or 'assert'
-                    let is_instruction = self.is_next_call_instruction;
-                    self.is_next_call_instruction = false;
-
-                    if !is_instruction {
-                        self.bytecode.borrow_mut().push_data_stack_address();
-                    }
-
-                    let (operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::TypeExpression,
-                        ResolutionHint::ValueExpression,
-                    )?;
-
-                    // check if the first operand is a function and get its data
-                    let (identifier, argument_types, return_type) = match operand_1 {
-                        Element::Type(Type::Function {
-                            identifier,
-                            arguments,
-                            return_type,
-                        }) => (identifier, arguments, return_type),
-                        Element::Place(place) => {
-                            match Scope::resolve_place(self.scope(), &place)? {
-                                ScopeItem::Type(Type::Function {
-                                    identifier,
-                                    arguments,
-                                    return_type,
-                                }) => (identifier, arguments, return_type),
-                                item => {
-                                    return Err(Error::FunctionCallingNotCallableObject(
-                                        element.location,
-                                        item.to_string(),
-                                    ))
-                                }
-                            }
-                        }
-                        operand => {
-                            return Err(Error::FunctionCallingNotCallableObject(
-                                element.location,
-                                operand.to_string(),
-                            ))
-                        }
-                    };
-
-                    // check the number of the arguments
-                    let argument_values = match operand_2 {
-                        Element::ArgumentList(values) => values,
-                        _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
-                    };
-                    let argument_types_count = argument_types.len();
-                    let argument_values_count = argument_values.len();
-
-                    if !is_instruction {
-                        if argument_values.len() != argument_types.len() {
-                            return Err(Error::FunctionArgumentCountMismatch(
-                                element.location,
-                                identifier,
-                                argument_types_count,
-                                argument_values_count,
-                            ));
-                        }
-
-                        // check the argument types
-                        for (argument_index, (argument_name, expected_type)) in
-                            argument_types.into_iter().enumerate()
-                        {
-                            let actual_type =
-                                Type::from_element(&argument_values[argument_index], self.scope())?;
-                            if expected_type != actual_type {
-                                return Err(Error::FunctionArgumentTypeMismatch(
-                                    element.location,
-                                    identifier,
-                                    argument_name,
-                                    expected_type.to_string(),
-                                    actual_type.to_string(),
-                                ));
-                            }
-                        }
-
-                        let function_address = self
-                            .bytecode
-                            .borrow_mut()
-                            .function_address(identifier.as_str())
-                            .expect(crate::semantic::PANIC_FUNCTION_ADDRESS_ALWAYS_EXISTS);
-
-                        self.bytecode
-                            .borrow_mut()
-                            .push_instruction(Instruction::Call(zinc_bytecode::Call::new(
-                                function_address,
-                                argument_values_count,
-                            )));
-                        self.bytecode.borrow_mut().pop_data_stack_address();
-                    } else {
-                        let instruction = match identifier.as_str() {
-                            "dbg" => {
-                                let string = match &argument_values[0] {
-                                    Element::Constant(Constant::String(string)) => {
-                                        string.to_owned()
-                                    }
-                                    argument => {
-                                        return Err(Error::InstructionDebugExpectedString(
-                                            element.location,
-                                            argument.to_string(),
-                                        ))
-                                    }
-                                };
-                                Instruction::Log(zinc_bytecode::Dbg::new(
-                                    string,
-                                    argument_values_count - 1,
-                                ))
-                            }
-                            "assert" => Instruction::Assert(zinc_bytecode::Assert),
-                            identifier => {
-                                return Err(Error::FunctionNotInstruction(
-                                    element.location,
-                                    identifier.to_owned(),
-                                ))
-                            }
-                        };
-                        self.bytecode.borrow_mut().push_instruction(instruction);
-                    }
-
-                    self.push_operand(StackElement::Evaluated(Element::Value(Value::new(
-                        *return_type,
-                    ))));
+                    self.operator_function_call(element)?
                 }
                 ExpressionObject::Operator(ExpressionOperator::Path) => {
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
-                        ResolutionHint::PlaceExpression,
-                        ResolutionHint::CompoundTypeMember,
+                        TranslationHint::PathExpression,
+                        TranslationHint::CompoundTypeMember,
                     )?;
 
                     operand_1
@@ -533,10 +597,281 @@ impl Analyzer {
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.push_operand(StackElement::Evaluated(operand_1));
                 }
+                ExpressionObject::Auxiliary(ExpressionAuxiliary::Instruction) => {
+                    self.is_next_call_instruction = true;
+                }
+                ExpressionObject::Auxiliary(ExpressionAuxiliary::PlaceEnd) => {
+                    let element = self
+                        .evaluate_operand(TranslationHint::ValueExpression)
+                        .map(StackElement::Evaluated)?;
+                    self.push_operand(element);
+                }
             }
         }
 
-        self.evaluate_operand(resolution_hint)
+        self.evaluate_operand(translation_hint)
+    }
+
+    pub fn operator_function_call(&mut self, element: ExpressionElement) -> Result<(), Error> {
+        let (operand_1, operand_2) = self.evaluate_binary_operands(
+            TranslationHint::TypeExpression,
+            TranslationHint::ValueExpression,
+        )?;
+
+        let function = match operand_1 {
+            Element::Type(Type::Function(function)) => function,
+            Element::Path(path) => match Scope::resolve_path(self.scope(), &path)? {
+                ScopeItem::Type(Type::Function(function)) => function,
+                item => {
+                    return Err(Error::FunctionCallingNotCallableObject(
+                        element.location,
+                        item.to_string(),
+                    ))
+                }
+            },
+            operand => {
+                return Err(Error::FunctionCallingNotCallableObject(
+                    element.location,
+                    operand.to_string(),
+                ))
+            }
+        };
+
+        // check the number of the arguments
+        let argument_elements = match operand_2 {
+            Element::ArgumentList(values) => values,
+            _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+        };
+
+        let return_type = match function {
+            FunctionType::UserDefined(function) => {
+                if self.is_next_call_instruction {
+                    return Err(Error::FunctionInstructionUnknown(
+                        element.location,
+                        function.identifier,
+                    ));
+                }
+
+                if argument_elements.len() != function.arguments.len() {
+                    return Err(Error::FunctionArgumentCountMismatch(
+                        element.location,
+                        function.identifier,
+                        function.arguments.len(),
+                        argument_elements.len(),
+                    ));
+                }
+
+                let function_address = self
+                    .bytecode
+                    .borrow_mut()
+                    .function_address(function.identifier.as_str())
+                    .expect(crate::semantic::PANIC_FUNCTION_ADDRESS_ALWAYS_EXISTS);
+                let function_input_size = function
+                    .arguments
+                    .iter()
+                    .map(|(_name, r#type)| r#type.size())
+                    .sum();
+
+                for (argument_index, (argument_name, expected_type)) in
+                    function.arguments.into_iter().enumerate()
+                {
+                    let actual_type =
+                        Type::from_element(&argument_elements[argument_index], self.scope())?;
+                    if expected_type != actual_type {
+                        return Err(Error::FunctionArgumentTypeMismatch(
+                            element.location,
+                            function.identifier,
+                            argument_name,
+                            expected_type.to_string(),
+                            actual_type.to_string(),
+                        ));
+                    }
+                }
+
+                self.bytecode.borrow_mut().push_data_stack_address();
+                self.bytecode
+                    .borrow_mut()
+                    .push_instruction(Instruction::Call(zinc_bytecode::Call::new(
+                        function_address,
+                        function_input_size,
+                    )));
+                self.bytecode.borrow_mut().pop_data_stack_address();
+
+                *function.return_type
+            }
+            FunctionType::DebugInstruction(instruction) => {
+                if !self.is_next_call_instruction {
+                    return Err(Error::FunctionInstructionSpecifierMissing(
+                        element.location,
+                        instruction.identifier,
+                    ));
+                }
+
+                let string = match argument_elements.get(0) {
+                    Some(Element::Constant(Constant::String(string))) => string.to_owned(),
+                    Some(argument) => {
+                        return Err(Error::InstructionDebugExpectedString(
+                            element.location,
+                            argument.to_string(),
+                        ))
+                    }
+                    None => {
+                        return Err(Error::InstructionDebugExpectedString(
+                            element.location,
+                            "None".to_owned(),
+                        ))
+                    }
+                };
+
+                let debug_input_size = argument_elements
+                    .into_iter()
+                    .skip(1)
+                    .map(|argument| match argument {
+                        Element::Constant(constant) => constant.r#type().size(),
+                        Element::Value(value) => value.r#type().size(),
+                        _ => 0,
+                    })
+                    .sum();
+
+                self.bytecode
+                    .borrow_mut()
+                    .push_instruction(Instruction::Log(zinc_bytecode::Dbg::new(
+                        string,
+                        debug_input_size,
+                    )));
+
+                Type::new_unit()
+            }
+            FunctionType::AssertInstruction(instruction) => {
+                if !self.is_next_call_instruction {
+                    return Err(Error::FunctionInstructionSpecifierMissing(
+                        element.location,
+                        instruction.identifier,
+                    ));
+                }
+
+                match argument_elements.get(0) {
+                    Some(Element::Constant(Constant::Boolean(_))) => {}
+                    Some(Element::Value(Value::Boolean)) => {}
+                    Some(argument) => {
+                        return Err(Error::InstructionAssertExpectedBoolean(
+                            element.location,
+                            argument.to_string(),
+                        ))
+                    }
+                    None => {
+                        return Err(Error::InstructionAssertExpectedBoolean(
+                            element.location,
+                            "None".to_owned(),
+                        ))
+                    }
+                }
+
+                self.bytecode
+                    .borrow_mut()
+                    .push_instruction(Instruction::Assert(zinc_bytecode::Assert));
+
+                Type::new_unit()
+            }
+            FunctionType::StandardLibrary(function) => {
+                if self.is_next_call_instruction {
+                    return Err(Error::FunctionInstructionUnknown(
+                        element.location,
+                        function.identifier().to_owned(),
+                    ));
+                }
+
+                let builtin_identifier = function.builtin_identifier();
+
+                let mut arguments = Vec::with_capacity(argument_elements.len());
+                for element in argument_elements.iter() {
+                    arguments.push(Type::from_element(element, self.scope())?);
+                }
+
+                let return_type = match function {
+                    StandardLibraryFunctionType::Sha256(function) => function
+                        .validate(arguments.as_slice())
+                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                    StandardLibraryFunctionType::Pedersen(function) => function
+                        .validate(arguments.as_slice())
+                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                    StandardLibraryFunctionType::ToBits(function) => function
+                        .validate(arguments.as_slice())
+                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                    StandardLibraryFunctionType::FromBitsUnsigned(function) => function
+                        .validate(arguments.as_slice())
+                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                    StandardLibraryFunctionType::FromBitsSigned(function) => function
+                        .validate(arguments.as_slice())
+                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                    StandardLibraryFunctionType::FromBitsField(function) => function
+                        .validate(arguments.as_slice())
+                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                    StandardLibraryFunctionType::ArrayReverse(function) => function
+                        .validate(arguments.as_slice())
+                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                    StandardLibraryFunctionType::ArrayTruncate(function) => {
+                        match argument_elements.get(1) {
+                            Some(Element::Constant(Constant::Integer(
+                                integer @ IntegerConstant { .. },
+                            ))) if !integer.is_signed => {
+                                let new_length = integer.to_usize().unwrap();
+                                function
+                                    .validate(arguments.as_slice(), new_length)
+                                    .map_err(|error| {
+                                        Error::FunctionStandardLibrary(element.location, error)
+                                    })?
+                            }
+                            argument => {
+                                return Err(Error::FunctionExpectedConstantLengthArgument(
+                                    element.location,
+                                    function.identifier,
+                                    format!("{:?}", argument),
+                                ))
+                            }
+                        }
+                    }
+                    StandardLibraryFunctionType::ArrayPad(function) => {
+                        dbg!(&argument_elements[1]);
+                        match argument_elements.get(1) {
+                            Some(Element::Constant(Constant::Integer(
+                                integer @ IntegerConstant { .. },
+                            ))) if !integer.is_signed => {
+                                let new_length = integer.to_usize().unwrap();
+                                function
+                                    .validate(arguments.as_slice(), new_length)
+                                    .map_err(|error| {
+                                        Error::FunctionStandardLibrary(element.location, error)
+                                    })?
+                            }
+                            argument => {
+                                return Err(Error::FunctionExpectedConstantLengthArgument(
+                                    element.location,
+                                    function.identifier,
+                                    format!("{:?}", argument),
+                                ))
+                            }
+                        }
+                    }
+                };
+
+                self.bytecode
+                    .borrow_mut()
+                    .push_instruction(Instruction::CallBuiltin(zinc_bytecode::CallBuiltin::new(
+                        builtin_identifier,
+                        arguments.into_iter().map(|r#type| r#type.size()).sum(),
+                        return_type.size(),
+                    )));
+
+                return_type
+            }
+        };
+
+        self.is_next_call_instruction = false;
+        self.push_operand(StackElement::Evaluated(Element::Value(Value::new(
+            return_type,
+        ))));
+        Ok(())
     }
 
     pub fn block_expression(&mut self, block: BlockExpression) -> Result<Element, Error> {
@@ -545,7 +880,7 @@ impl Analyzer {
                 .function_local_statement(statement)?;
         }
         match block.expression {
-            Some(expression) => self.expression(*expression, ResolutionHint::ValueExpression),
+            Some(expression) => self.expression(*expression, TranslationHint::ValueExpression),
             None => Ok(Element::Value(Value::Unit)),
         }
     }
@@ -554,7 +889,7 @@ impl Analyzer {
         let constant = Constant::from(literal);
         self.bytecode
             .borrow_mut()
-            .push_instruction(constant.clone().into());
+            .push_instruction(constant.to_instruction());
         Ok(Element::Constant(constant))
     }
 
@@ -565,7 +900,7 @@ impl Analyzer {
             .map_err(|error| Error::InferenceConstant(location, error))?;
         self.bytecode
             .borrow_mut()
-            .push_instruction(integer.clone().into());
+            .push_instruction(integer.to_instruction());
         Ok(Element::Constant(Constant::Integer(integer)))
     }
 
@@ -589,70 +924,16 @@ impl Analyzer {
     fn identifier(
         &mut self,
         identifier: Identifier,
-        resolution_hint: ResolutionHint,
+        translation_hint: TranslationHint,
     ) -> Result<Element, Error> {
         let location = identifier.location;
 
-        match resolution_hint {
-            ResolutionHint::ValueExpression => {
-                match Scope::resolve_item(self.scope(), &identifier.name)
-                    .map_err(|error| Error::Scope(location, error))?
-                {
-                    ScopeItem::Variable(variable) => {
-                        let size = variable.r#type.size();
-                        let value = Value::new(variable.r#type);
-                        self.bytecode.borrow_mut().push_instruction_load(
-                            variable.address,
-                            size,
-                            None,
-                            false,
-                        );
-                        Ok(Element::Value(value))
-                    }
-                    ScopeItem::Constant(constant) => {
-                        self.bytecode
-                            .borrow_mut()
-                            .push_instruction(constant.clone().into());
-                        Ok(Element::Constant(constant))
-                    }
-                    ScopeItem::Static(r#static) => {
-                        let r#type = r#static.data.r#type();
-                        let size = r#type.size();
-                        self.bytecode.borrow_mut().push_instruction_load(
-                            r#static.address,
-                            size,
-                            None,
-                            true,
-                        );
-                        Ok(Element::Constant(r#static.data))
-                    }
-                    ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
-                    ScopeItem::Module(_) => Ok(Element::Module(identifier.name)),
-                }
-            }
-            ResolutionHint::PlaceExpression => Ok(Element::Place(Place::new(
-                location,
-                MemberString::from(identifier),
-            ))),
-            ResolutionHint::TypeExpression => {
-                match Scope::resolve_item(self.scope(), &identifier.name)
-                    .map_err(|error| Error::Scope(location, error))?
-                {
-                    ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
-                    _ => Ok(Element::Place(Place::new(
-                        location,
-                        MemberString::from(identifier),
-                    ))),
-                }
-            }
-            ResolutionHint::CompoundTypeMember => {
-                Ok(Element::MemberString(MemberString::from(identifier)))
-            }
-        }
+        let path = Path::new(location, identifier.into());
+        self.translate_path(&path, translation_hint)
     }
 
     fn r#type(&mut self, r#type: syntax::Type) -> Result<Element, Error> {
-        Type::from_type_variant(r#type.variant, self.scope()).map(Element::Type)
+        Type::from_type_variant(&r#type.variant, self.scope()).map(Element::Type)
     }
 
     fn conditional_expression(
@@ -664,7 +945,7 @@ impl Analyzer {
 
         // compile the condition and check if it is boolean
         let condition_result =
-            self.expression(*conditional.condition, ResolutionHint::ValueExpression)?;
+            self.expression(*conditional.condition, TranslationHint::ValueExpression)?;
         match Type::from_element(&condition_result, self.scope())? {
             Type::Boolean => {}
             r#type => {
@@ -719,7 +1000,7 @@ impl Analyzer {
         let location = r#match.location;
 
         let scrutinee_result =
-            self.expression(r#match.scrutinee, ResolutionHint::ValueExpression)?;
+            self.expression(r#match.scrutinee, TranslationHint::ValueExpression)?;
         let scrutinee_type = Type::from_element(&scrutinee_result, self.scope())?;
         let scrutinee_size = scrutinee_type.size();
         let scrutinee_address = self
@@ -768,7 +1049,9 @@ impl Analyzer {
                         None,
                         false,
                     );
-                    self.bytecode.borrow_mut().push_instruction(constant.into());
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(constant.to_instruction());
                     self.bytecode
                         .borrow_mut()
                         .push_instruction(Instruction::Eq(zinc_bytecode::Eq));
@@ -776,11 +1059,11 @@ impl Analyzer {
                         .borrow_mut()
                         .push_instruction(Instruction::If(zinc_bytecode::If));
 
-                    self.expression(expression, ResolutionHint::ValueExpression)?
+                    self.expression(expression, TranslationHint::ValueExpression)?
                 }
                 MatchPatternVariant::IntegerLiteral(integer) => {
                     let constant = IntegerConstant::try_from(&integer)
-                        .map_err(|error| Error::InferencePatternMatch(integer.location, error))?;
+                        .map_err(|error| Error::InferenceConstant(integer.location, error))?;
                     let pattern_type = constant.r#type();
                     if pattern_type != scrutinee_type {
                         return Err(Error::MatchBranchPatternInvalidType(
@@ -803,7 +1086,9 @@ impl Analyzer {
                         None,
                         false,
                     );
-                    self.bytecode.borrow_mut().push_instruction(constant.into());
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(constant.to_instruction());
                     self.bytecode
                         .borrow_mut()
                         .push_instruction(Instruction::Eq(zinc_bytecode::Eq));
@@ -811,7 +1096,7 @@ impl Analyzer {
                         .borrow_mut()
                         .push_instruction(Instruction::If(zinc_bytecode::If));
 
-                    self.expression(expression, ResolutionHint::ValueExpression)?
+                    self.expression(expression, TranslationHint::ValueExpression)?
                 }
                 MatchPatternVariant::Binding(identifier) => {
                     let location = identifier.location;
@@ -834,7 +1119,7 @@ impl Analyzer {
                             ),
                         )
                         .map_err(|error| Error::Scope(location, error))?;
-                    let result = self.expression(expression, ResolutionHint::ValueExpression)?;
+                    let result = self.expression(expression, TranslationHint::ValueExpression)?;
                     self.pop_scope();
 
                     if index > 0 {
@@ -845,7 +1130,69 @@ impl Analyzer {
 
                     result
                 }
-                MatchPatternVariant::Ignoring => {
+                MatchPatternVariant::Path(path) => {
+                    if index > 0 {
+                        self.bytecode
+                            .borrow_mut()
+                            .push_instruction(Instruction::Else(zinc_bytecode::Else));
+                        endifs += 1;
+                    }
+
+                    let expression_location = path.location;
+                    let path = match self.expression(path, TranslationHint::PathExpression)? {
+                        Element::Path(path) => path,
+                        element => {
+                            return Err(Error::MatchBranchPatternPathExpectedEvaluable(
+                                expression_location,
+                                element.to_string(),
+                            ))
+                        }
+                    };
+
+                    self.bytecode.borrow_mut().push_instruction_load(
+                        scrutinee_address,
+                        scrutinee_size,
+                        None,
+                        false,
+                    );
+                    match Scope::resolve_path(self.scope(), &path)? {
+                        ScopeItem::Variable(variable) => {
+                            self.bytecode.borrow_mut().push_instruction_load(
+                                variable.address,
+                                variable.r#type.size(),
+                                None,
+                                false,
+                            )
+                        }
+                        ScopeItem::Static(r#static) => {
+                            self.bytecode.borrow_mut().push_instruction_load(
+                                r#static.address,
+                                r#static.data.r#type().size(),
+                                None,
+                                true,
+                            )
+                        }
+                        ScopeItem::Constant(constant) => self
+                            .bytecode
+                            .borrow_mut()
+                            .push_instruction(constant.to_instruction()),
+                        item => {
+                            return Err(Error::MatchBranchPatternPathExpectedEvaluable(
+                                path.location,
+                                item.to_string(),
+                            ))
+                        }
+                    }
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Eq(zinc_bytecode::Eq));
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::If(zinc_bytecode::If));
+
+                    self.expression(expression, TranslationHint::ValueExpression)?
+                }
+                MatchPatternVariant::Wildcard => {
                     is_exhausted = true;
 
                     if index > 0 {
@@ -854,7 +1201,7 @@ impl Analyzer {
                             .push_instruction(Instruction::Else(zinc_bytecode::Else));
                     }
 
-                    let result = self.expression(expression, ResolutionHint::ValueExpression)?;
+                    let result = self.expression(expression, TranslationHint::ValueExpression)?;
 
                     if index > 0 {
                         self.bytecode
@@ -900,22 +1247,29 @@ impl Analyzer {
 
         for expression in array.elements.into_iter() {
             let location = expression.location;
-            let element = self.expression(expression, ResolutionHint::ValueExpression)?;
-            let element_type = Type::from_element(&element, self.scope())?;
             match array.repeats_count {
                 Some(ref repeats_count) => {
                     let repeats_count = IntegerConstant::try_from(repeats_count)
                         .map_err(|error| Error::InferenceConstant(location, error))?
                         .to_usize()
                         .map_err(|error| Error::InferenceConstant(location, error))?;
-                    result
-                        .extend(element_type, repeats_count)
-                        .map_err(|error| Error::LiteralArray(location, error))?;
+                    for _ in 0..repeats_count {
+                        let element =
+                            self.expression(expression.clone(), TranslationHint::ValueExpression)?;
+                        let element_type = Type::from_element(&element, self.scope())?;
+                        result
+                            .push(element_type)
+                            .map_err(|error| Error::LiteralArray(location, error))?;
+                    }
                     break;
                 }
-                None => result
-                    .extend(element_type, 1)
-                    .map_err(|error| Error::LiteralArray(location, error))?,
+                None => {
+                    let element = self.expression(expression, TranslationHint::ValueExpression)?;
+                    let element_type = Type::from_element(&element, self.scope())?;
+                    result
+                        .push(element_type)
+                        .map_err(|error| Error::LiteralArray(location, error))?
+                }
             }
         }
 
@@ -925,7 +1279,7 @@ impl Analyzer {
     fn tuple_expression(&mut self, tuple: TupleExpression) -> Result<Element, Error> {
         let mut result = Tuple::default();
         for expression in tuple.elements.into_iter() {
-            let element = self.expression(expression, ResolutionHint::ValueExpression)?;
+            let element = self.expression(expression, TranslationHint::ValueExpression)?;
             let element_type = Type::from_element(&element, self.scope())?;
             result.push(element_type);
         }
@@ -935,21 +1289,55 @@ impl Analyzer {
 
     fn structure_expression(&mut self, structure: StructureExpression) -> Result<Element, Error> {
         let path_location = structure.path.location;
-        let identifier = match self.expression(structure.path, ResolutionHint::TypeExpression)? {
-            Element::Type(Type::Structure { identifier, .. }) => identifier,
-            element => {
-                return Err(Error::TypeAliasDoesNotPointToStructure(
-                    path_location,
-                    element.to_string(),
-                ))
-            }
-        };
+        let (structure_identifier, structure_fields) =
+            match self.expression(structure.path, TranslationHint::TypeExpression)? {
+                Element::Type(Type::Structure {
+                    identifier, fields, ..
+                }) => (identifier, fields),
+                element => {
+                    return Err(Error::TypeAliasDoesNotPointToStructure(
+                        path_location,
+                        element.to_string(),
+                    ))
+                }
+            };
 
-        let mut result = Structure::new(identifier, Vec::with_capacity(structure.fields.len()));
+        let mut result = Structure::new(
+            structure_identifier.clone(),
+            Vec::with_capacity(structure.fields.len()),
+        );
         for (identifier, expression) in structure.fields.into_iter() {
             let location = identifier.location;
-            let element = self.expression(expression, ResolutionHint::ValueExpression)?;
+            let element = self.expression(expression, TranslationHint::ValueExpression)?;
             let element_type = Type::from_element(&element, self.scope())?;
+            let field = structure_fields
+                .iter()
+                .find(|(field_name, _field_type)| field_name == &identifier.name);
+
+            match field {
+                Some((_field_name, field_type)) => {
+                    if field_type != &element_type {
+                        return Err(Error::LiteralStructure(
+                            location,
+                            StructureValueError::FieldInvalidType(
+                                identifier.name,
+                                field_type.to_string(),
+                                element_type.to_string(),
+                            ),
+                        ));
+                    }
+                }
+                None => {
+                    return Err(Error::LiteralStructure(
+                        location,
+                        StructureValueError::FieldDoesNotExist(
+                            identifier.name,
+                            structure_identifier,
+                        ),
+                    ))
+                }
+            }
+
             result
                 .push(identifier.name, element_type)
                 .map_err(|error| Error::LiteralStructure(location, error))?;
@@ -961,13 +1349,105 @@ impl Analyzer {
     fn list_expression(&mut self, list: Vec<Expression>) -> Result<Element, Error> {
         let mut elements = Vec::with_capacity(list.len());
         for expression in list.into_iter() {
-            let element = self.expression(expression, ResolutionHint::ValueExpression)?;
+            let element = self.expression(expression, TranslationHint::ValueExpression)?;
             elements.push(element);
         }
         Ok(Element::ArgumentList(elements))
     }
 
-    fn evaluate_operand(&mut self, resolution_hint: ResolutionHint) -> Result<Element, Error> {
+    fn translate_path(
+        &mut self,
+        path: &Path,
+        translation_hint: TranslationHint,
+    ) -> Result<Element, Error> {
+        let location = path.location;
+        let path_last = path.last();
+
+        match translation_hint {
+            TranslationHint::ValueExpression => match Scope::resolve_path(self.scope(), path)? {
+                ScopeItem::Variable(variable) => {
+                    let size = variable.r#type.size();
+                    let value = Value::new(variable.r#type);
+                    self.bytecode.borrow_mut().push_instruction_load(
+                        variable.address,
+                        size,
+                        None,
+                        false,
+                    );
+                    Ok(Element::Value(value))
+                }
+                ScopeItem::Constant(constant) => {
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(constant.to_instruction());
+                    Ok(Element::Constant(constant))
+                }
+                ScopeItem::Static(r#static) => {
+                    let r#type = r#static.data.r#type();
+                    let size = r#type.size();
+                    self.bytecode.borrow_mut().push_instruction_load(
+                        r#static.address,
+                        size,
+                        None,
+                        true,
+                    );
+                    Ok(Element::Constant(r#static.data))
+                }
+                ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
+                ScopeItem::Module(_) => Ok(Element::Module(path_last.name.to_owned())),
+            },
+            TranslationHint::TypeExpression => match Scope::resolve_path(self.scope(), path)? {
+                ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
+                _ => Ok(Element::Path(path.to_owned())),
+            },
+
+            TranslationHint::PathExpression => Ok(Element::Path(path.to_owned())),
+            TranslationHint::PlaceExpression => match Scope::resolve_path(self.scope(), path)? {
+                ScopeItem::Variable(variable) => Ok(Element::Place(Place::new(
+                    location,
+                    variable.r#type,
+                    variable.address,
+                    variable.is_mutable,
+                    false,
+                ))),
+                ScopeItem::Static(r#static) => Ok(Element::Place(Place::new(
+                    location,
+                    r#static.data.r#type(),
+                    r#static.address,
+                    false,
+                    true,
+                ))),
+                ScopeItem::Constant(constant) => Ok(Element::Constant(constant)),
+                ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
+                ScopeItem::Module(_) => Ok(Element::Module(path_last.name.to_owned())),
+            },
+            TranslationHint::CompoundTypeMember => Ok(Element::MemberString(MemberString::new(
+                location,
+                path_last.name.to_owned(),
+            ))),
+        }
+    }
+
+    fn translate_place(
+        &mut self,
+        place: &Place,
+        translation_hint: TranslationHint,
+    ) -> Result<Element, Error> {
+        match translation_hint {
+            TranslationHint::ValueExpression => {
+                self.bytecode.borrow_mut().push_instruction_load(
+                    place.address,
+                    place.r#type.size(),
+                    Some(place.total_size),
+                    place.is_global,
+                );
+                Ok(Element::Value(Value::new(place.r#type.to_owned())))
+            }
+            _ => Ok(Element::Place(place.to_owned())),
+        }
+    }
+
+    fn evaluate_operand(&mut self, translation_hint: TranslationHint) -> Result<Element, Error> {
         match self.pop_operand() {
             StackElement::NotEvaluated(operand) => match operand {
                 ExpressionOperand::Unit => Ok(Element::Constant(Constant::Unit)),
@@ -977,7 +1457,7 @@ impl Analyzer {
                 ExpressionOperand::MemberInteger(integer) => self.member_integer(integer),
                 ExpressionOperand::MemberString(identifier) => self.member_string(identifier),
                 ExpressionOperand::Identifier(identifier) => {
-                    self.identifier(identifier, resolution_hint)
+                    self.identifier(identifier, translation_hint)
                 }
                 ExpressionOperand::ExpressionList(expressions) => self.list_expression(expressions),
                 ExpressionOperand::Type(r#type) => self.r#type(r#type),
@@ -995,58 +1475,29 @@ impl Analyzer {
                 ExpressionOperand::Tuple(expression) => self.tuple_expression(expression),
                 ExpressionOperand::Structure(expression) => self.structure_expression(expression),
             },
-            StackElement::Evaluated(element) => match (resolution_hint, element) {
-                (ResolutionHint::ValueExpression, Element::Place(place)) => {
-                    match Scope::resolve_place(self.scope(), &place)? {
-                        ScopeItem::Variable(variable) => {
-                            let size = variable.r#type.size();
-                            self.bytecode.borrow_mut().push_instruction_load(
-                                variable.address,
-                                size,
-                                None,
-                                false,
-                            );
-                            let value = Value::new(variable.r#type);
-                            Ok(Element::Value(value))
-                        }
-                        ScopeItem::Constant(constant) => {
-                            self.bytecode
-                                .borrow_mut()
-                                .push_instruction(constant.clone().into());
-                            Ok(Element::Constant(constant))
-                        }
-                        ScopeItem::Static(r#static) => {
-                            let size = r#static.data.r#type().size();
-                            self.bytecode.borrow_mut().push_instruction_load(
-                                r#static.address,
-                                size,
-                                None,
-                                true,
-                            );
-                            Ok(Element::Constant(r#static.data))
-                        }
-                        _ => Ok(Element::Place(place)),
-                    }
-                }
-                (_resolution_hint, element) => Ok(element),
+            StackElement::Evaluated(element) => match element {
+                Element::Path(path) => self.translate_path(&path, translation_hint),
+                Element::Place(place) => self.translate_place(&place, translation_hint),
+                element => Ok(element),
             },
         }
     }
 
     fn evaluate_unary_operand(
         &mut self,
-        resolution_hint: ResolutionHint,
+        translation_hint: TranslationHint,
     ) -> Result<Element, Error> {
-        self.evaluate_operand(resolution_hint)
+        self.evaluate_operand(translation_hint)
     }
 
     fn evaluate_binary_operands(
         &mut self,
-        resolution_hint_1: ResolutionHint,
-        resolution_hint_2: ResolutionHint,
+        translation_hint_1: TranslationHint,
+        translation_hint_2: TranslationHint,
     ) -> Result<(Element, Element), Error> {
-        let operand_2 = self.evaluate_operand(resolution_hint_2)?;
-        let operand_1 = self.evaluate_operand(resolution_hint_1)?;
+        self.swap_top();
+        let operand_1 = self.evaluate_operand(translation_hint_1)?;
+        let operand_2 = self.evaluate_operand(translation_hint_2)?;
         Ok((operand_1, operand_2))
     }
 
@@ -1058,6 +1509,12 @@ impl Analyzer {
         self.operands
             .pop()
             .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_AN_OPERAND)
+    }
+
+    fn swap_top(&mut self) {
+        let last_index = self.operands.len() - 1;
+        let last_but_one_index = self.operands.len() - 2;
+        self.operands.swap(last_index, last_but_one_index)
     }
 
     fn scope(&self) -> Rc<RefCell<Scope>> {

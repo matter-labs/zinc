@@ -2,6 +2,7 @@
 //! The expression object.
 //!
 
+use crate::syntax::ExpressionAuxiliary;
 use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
 
@@ -9,4 +10,5 @@ use crate::syntax::ExpressionOperator;
 pub enum Object {
     Operator(ExpressionOperator),
     Operand(ExpressionOperand),
+    Auxiliary(ExpressionAuxiliary),
 }

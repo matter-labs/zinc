@@ -9,6 +9,7 @@ pub fn decode_all_instructions(bytes: &[u8]) -> Result<Vec<Instruction>, Decodin
     while offset < bytes.len() {
         match decode_instruction(&bytes[offset..]) {
             Ok((instr, len)) => {
+                log::trace!("Decoded instruction: {:?}", &instr);
                 instructions.push(instr);
                 offset += len;
             }
@@ -37,30 +38,55 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Instruction, usize), Decoding
         x if x == InstructionCode::NoOperation as u8 => decode_and_wrap::<NoOperation>(bytes),
         x if x == InstructionCode::PushConst as u8 => decode_and_wrap::<PushConst>(bytes),
         x if x == InstructionCode::Pop as u8 => decode_and_wrap::<Pop>(bytes),
+        x if x == InstructionCode::Slice as u8 => decode_and_wrap::<Slice>(bytes),
         x if x == InstructionCode::Load as u8 => decode_and_wrap::<Load>(bytes),
         x if x == InstructionCode::LoadSequence as u8 => decode_and_wrap::<LoadSequence>(bytes),
         x if x == InstructionCode::LoadByIndex as u8 => decode_and_wrap::<LoadByIndex>(bytes),
-        x if x == InstructionCode::LoadSequenceByIndex as u8 => decode_and_wrap::<LoadSequenceByIndex>(bytes),
+        x if x == InstructionCode::LoadSequenceByIndex as u8 => {
+            decode_and_wrap::<LoadSequenceByIndex>(bytes)
+        }
         x if x == InstructionCode::Store as u8 => decode_and_wrap::<Store>(bytes),
         x if x == InstructionCode::StoreSequence as u8 => decode_and_wrap::<StoreSequence>(bytes),
         x if x == InstructionCode::StoreByIndex as u8 => decode_and_wrap::<StoreByIndex>(bytes),
-        x if x == InstructionCode::StoreSequenceByIndex as u8 => decode_and_wrap::<StoreSequenceByIndex>(bytes),
+        x if x == InstructionCode::StoreSequenceByIndex as u8 => {
+            decode_and_wrap::<StoreSequenceByIndex>(bytes)
+        }
         x if x == InstructionCode::LoadGlobal as u8 => decode_and_wrap::<LoadGlobal>(bytes),
-        x if x == InstructionCode::LoadSequenceGlobal as u8 => decode_and_wrap::<LoadSequenceGlobal>(bytes),
-        x if x == InstructionCode::LoadByIndexGlobal as u8 => decode_and_wrap::<LoadByIndexGlobal>(bytes),
-        x if x == InstructionCode::LoadSequenceByIndexGlobal as u8 => decode_and_wrap::<LoadSequenceByIndexGlobal>(bytes),
+        x if x == InstructionCode::LoadSequenceGlobal as u8 => {
+            decode_and_wrap::<LoadSequenceGlobal>(bytes)
+        }
+        x if x == InstructionCode::LoadByIndexGlobal as u8 => {
+            decode_and_wrap::<LoadByIndexGlobal>(bytes)
+        }
+        x if x == InstructionCode::LoadSequenceByIndexGlobal as u8 => {
+            decode_and_wrap::<LoadSequenceByIndexGlobal>(bytes)
+        }
         x if x == InstructionCode::StoreGlobal as u8 => decode_and_wrap::<StoreGlobal>(bytes),
-        x if x == InstructionCode::StoreSequenceGlobal as u8 => decode_and_wrap::<StoreSequenceGlobal>(bytes),
+        x if x == InstructionCode::StoreSequenceGlobal as u8 => {
+            decode_and_wrap::<StoreSequenceGlobal>(bytes)
+        }
         x if x == InstructionCode::Ref as u8 => decode_and_wrap::<Ref>(bytes),
         x if x == InstructionCode::RefGlobal as u8 => decode_and_wrap::<RefGlobal>(bytes),
         x if x == InstructionCode::LoadByRef as u8 => decode_and_wrap::<LoadByRef>(bytes),
-        x if x == InstructionCode::LoadSequenceByRef as u8 => decode_and_wrap::<LoadSequenceByRef>(bytes),
-        x if x == InstructionCode::LoadByIndexByRef as u8 => decode_and_wrap::<LoadByIndexByRef>(bytes),
-        x if x == InstructionCode::LoadSequenceByIndexByRef as u8 => decode_and_wrap::<LoadSequenceByIndexByRef>(bytes),
+        x if x == InstructionCode::LoadSequenceByRef as u8 => {
+            decode_and_wrap::<LoadSequenceByRef>(bytes)
+        }
+        x if x == InstructionCode::LoadByIndexByRef as u8 => {
+            decode_and_wrap::<LoadByIndexByRef>(bytes)
+        }
+        x if x == InstructionCode::LoadSequenceByIndexByRef as u8 => {
+            decode_and_wrap::<LoadSequenceByIndexByRef>(bytes)
+        }
         x if x == InstructionCode::StoreByRef as u8 => decode_and_wrap::<StoreByRef>(bytes),
-        x if x == InstructionCode::StoreSequenceByRef as u8 => decode_and_wrap::<StoreSequenceByRef>(bytes),
-        x if x == InstructionCode::StoreByIndexByRef as u8 => decode_and_wrap::<StoreByIndexByRef>(bytes),
-        x if x == InstructionCode::StoreSequenceByIndexByRef as u8 => decode_and_wrap::<StoreSequenceByIndexByRef>(bytes),
+        x if x == InstructionCode::StoreSequenceByRef as u8 => {
+            decode_and_wrap::<StoreSequenceByRef>(bytes)
+        }
+        x if x == InstructionCode::StoreByIndexByRef as u8 => {
+            decode_and_wrap::<StoreByIndexByRef>(bytes)
+        }
+        x if x == InstructionCode::StoreSequenceByIndexByRef as u8 => {
+            decode_and_wrap::<StoreSequenceByIndexByRef>(bytes)
+        }
         x if x == InstructionCode::Add as u8 => decode_and_wrap::<Add>(bytes),
         x if x == InstructionCode::Sub as u8 => decode_and_wrap::<Sub>(bytes),
         x if x == InstructionCode::Mul as u8 => decode_and_wrap::<Mul>(bytes),
@@ -78,9 +104,6 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Instruction, usize), Decoding
         x if x == InstructionCode::Ge as u8 => decode_and_wrap::<Ge>(bytes),
         x if x == InstructionCode::Gt as u8 => decode_and_wrap::<Gt>(bytes),
         x if x == InstructionCode::Cast as u8 => decode_and_wrap::<Cast>(bytes),
-        x if x == InstructionCode::ConditionalSelect as u8 => {
-            decode_and_wrap::<ConditionalSelect>(bytes)
-        }
         x if x == InstructionCode::If as u8 => decode_and_wrap::<If>(bytes),
         x if x == InstructionCode::Else as u8 => decode_and_wrap::<Else>(bytes),
         x if x == InstructionCode::EndIf as u8 => decode_and_wrap::<EndIf>(bytes),
@@ -88,12 +111,10 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Instruction, usize), Decoding
         x if x == InstructionCode::LoopEnd as u8 => decode_and_wrap::<LoopEnd>(bytes),
         x if x == InstructionCode::Call as u8 => decode_and_wrap::<Call>(bytes),
         x if x == InstructionCode::Return as u8 => decode_and_wrap::<Return>(bytes),
+        x if x == InstructionCode::CallBuiltin as u8 => decode_and_wrap::<CallBuiltin>(bytes),
         x if x == InstructionCode::Assert as u8 => decode_and_wrap::<Assert>(bytes),
         x if x == InstructionCode::Log as u8 => decode_and_wrap::<Dbg>(bytes),
         x if x == InstructionCode::Exit as u8 => decode_and_wrap::<Exit>(bytes),
-        x if x == InstructionCode::MerkleInit as u8 => decode_and_wrap::<MerkleInit>(bytes),
-        x if x == InstructionCode::MerkleGet as u8 => decode_and_wrap::<MerkleGet>(bytes),
-        x if x == InstructionCode::MerkleSet as u8 => decode_and_wrap::<MerkleSet>(bytes),
         x => Err(DecodingError::UnknownInstructionCode(x)),
     }
 }
@@ -101,5 +122,6 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Instruction, usize), Decoding
 fn decode_and_wrap<I: InstructionInfo>(
     bytes: &[u8],
 ) -> Result<(Instruction, usize), DecodingError> {
-    I::decode(bytes).map(|(i, l)| (i.wrap(), l))
+    let (instruction, len) = I::decode(bytes)?;
+    Ok((instruction.wrap(), len))
 }

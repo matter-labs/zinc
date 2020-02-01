@@ -2,9 +2,15 @@
 //! The semantic analyzer tuple value element.
 //!
 
+mod error;
+
+pub use self::error::Error;
+
 use std::fmt;
 
+use crate::semantic::FieldAccessResult;
 use crate::semantic::Type;
+use crate::semantic::Value;
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Tuple {
@@ -22,8 +28,30 @@ impl Tuple {
         }
     }
 
+    pub fn slice(&self, index: usize) -> Result<FieldAccessResult, Error> {
+        let mut offset = 0;
+        let total_size = self.r#type().size();
+
+        if index >= self.element_types.len() {
+            return Err(Error::FieldDoesNotExist(index, self.r#type().to_string()));
+        }
+
+        let mut tuple_index = 0;
+        while tuple_index < index {
+            offset += self.element_types[tuple_index].size();
+            tuple_index += 1;
+        }
+
+        Ok(FieldAccessResult::new(
+            offset,
+            self.element_types[tuple_index].size(),
+            total_size,
+            Some(Value::new(self.element_types[tuple_index].to_owned())),
+        ))
+    }
+
     pub fn r#type(&self) -> Type {
-        Type::new_tuple(self.element_types.clone())
+        Type::new_tuple(self.element_types.to_owned())
     }
 
     pub fn push(&mut self, r#type: Type) {

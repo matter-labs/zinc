@@ -1,7 +1,8 @@
 use crate::instructions::utils::decode_simple_instruction;
 use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
+use serde_derive::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, Default, Clone)]
+#[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
 pub struct Sub;
 
 impl InstructionInfo for Sub {

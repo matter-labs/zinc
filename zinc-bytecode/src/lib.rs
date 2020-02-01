@@ -1,10 +1,15 @@
+pub mod builtins;
+pub mod data;
 mod decode;
 pub mod instructions;
+pub mod program;
 pub mod vlq;
 
 pub use decode::*;
 pub use instructions::*;
+pub use program::*;
 
+use serde_derive::{Deserialize, Serialize};
 use std::fmt;
 
 pub trait InstructionInfo: PartialEq + fmt::Debug + Sized {
@@ -32,6 +37,7 @@ pub enum InstructionCode {
     // Evalution Stack
     PushConst,
     Pop,
+    Slice,
 
     // Data Stack
     Load,
@@ -93,29 +99,27 @@ pub enum InstructionCode {
     If,
     Else,
     EndIf,
-    ConditionalSelect,
     LoopBegin,
     LoopEnd,
     Call,
     Return,
 
+    CallBuiltin,
+
     Assert,
     Log,
 
     Exit,
-
-    MerkleInit,
-    MerkleGet,
-    MerkleSet,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Instruction {
     NoOperation(NoOperation),
 
     // Stack
     PushConst(PushConst),
     Pop(Pop),
+    Slice(Slice),
 
     // Storage
     Load(Load),
@@ -177,21 +181,18 @@ pub enum Instruction {
     If(If),
     Else(Else),
     EndIf(EndIf),
-    ConditionalSelect(ConditionalSelect),
     LoopBegin(LoopBegin),
     LoopEnd(LoopEnd),
     Call(Call),
     Return(Return),
+
+    CallBuiltin(CallBuiltin),
 
     // Condition utils
     Assert(Assert),
     Log(Dbg),
 
     Exit(Exit),
-
-    MerkleInit(MerkleInit),
-    MerkleGet(MerkleGet),
-    MerkleSet(MerkleSet),
 }
 
 /// Useful macro to avoid duplicating `match` constructions.
@@ -211,6 +212,7 @@ macro_rules! dispatch_instruction {
 
             Instruction::PushConst($pattern) => $expression,
             Instruction::Pop($pattern) => $expression,
+            Instruction::Slice($pattern) => $expression,
 
             Instruction::Load($pattern) => $expression,
             Instruction::LoadSequence($pattern) => $expression,
@@ -267,20 +269,17 @@ macro_rules! dispatch_instruction {
             Instruction::If($pattern) => $expression,
             Instruction::Else($pattern) => $expression,
             Instruction::EndIf($pattern) => $expression,
-            Instruction::ConditionalSelect($pattern) => $expression,
             Instruction::LoopBegin($pattern) => $expression,
             Instruction::LoopEnd($pattern) => $expression,
             Instruction::Call($pattern) => $expression,
             Instruction::Return($pattern) => $expression,
 
+            Instruction::CallBuiltin($pattern) => $expression,
+
             Instruction::Assert($pattern) => $expression,
             Instruction::Log($pattern) => $expression,
 
             Instruction::Exit($pattern) => $expression,
-
-            Instruction::MerkleInit($pattern) => $expression,
-            Instruction::MerkleGet($pattern) => $expression,
-            Instruction::MerkleSet($pattern) => $expression,
         }
     };
 }

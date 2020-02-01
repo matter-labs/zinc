@@ -1,7 +1,8 @@
-use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo, utils};
+use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
+use serde_derive::{Deserialize, Serialize};
 
 /// Takes `index` from evaluation stack, loads several values from data stack from `address + index` onto evaluation stack.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct LoadSequenceByIndex {
     pub address: usize,
     pub array_len: usize,
@@ -10,13 +11,20 @@ pub struct LoadSequenceByIndex {
 
 impl LoadSequenceByIndex {
     pub fn new(address: usize, array_len: usize, value_len: usize) -> Self {
-        Self { address, array_len, value_len }
+        Self {
+            address,
+            array_len,
+            value_len,
+        }
     }
 }
 
 impl InstructionInfo for LoadSequenceByIndex {
     fn to_assembly(&self) -> String {
-        format!("load_array_by_index {} {} {}", self.address, self.array_len, self.value_len)
+        format!(
+            "load_array_by_index {} {} {}",
+            self.address, self.array_len, self.value_len
+        )
     }
 
     fn code() -> InstructionCode {
@@ -24,16 +32,16 @@ impl InstructionInfo for LoadSequenceByIndex {
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_usize(Self::code(), &[self.address, self.array_len, self.value_len])
+        utils::encode_with_args(
+            Self::code(),
+            &[self.address, self.array_len, self.value_len],
+        )
     }
 
     fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
-        let (args, len) = utils::decode_with_usize(Self::code(), bytes, 3)?;
+        let (args, len) = utils::decode_with_usize_args(Self::code(), bytes, 3)?;
 
-        Ok((
-            Self::new(args[0], args[1], args[2]),
-            len,
-        ))
+        Ok((Self::new(args[0], args[1], args[2]), len))
     }
 
     fn inputs_count(&self) -> usize {

@@ -23,6 +23,7 @@ pub use self::expression::BlockExpressionBuilder;
 pub use self::expression::ConditionalExpression;
 pub use self::expression::ConditionalExpressionBuilder;
 pub use self::expression::Expression;
+pub use self::expression::ExpressionAuxiliary;
 pub use self::expression::ExpressionBuilder;
 pub use self::expression::ExpressionElement;
 pub use self::expression::ExpressionObject;

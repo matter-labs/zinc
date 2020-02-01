@@ -24,17 +24,18 @@ impl Parser {
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
     ) -> Result<(ImplementationLocalStatement, Option<Token>), Error> {
-        match match initial.take() {
-            Some(token) => token,
-            None => stream.borrow_mut().next()?,
-        } {
-            token @ Token {
+        match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::Const),
                 ..
             } => ConstStatementParser::default()
                 .parse(stream, Some(token))
                 .map(|(statement, next)| (ImplementationLocalStatement::Const(statement), next)),
-            token @ Token {
+            token
+            @
+            Token {
                 lexeme: Lexeme::Keyword(Keyword::Fn),
                 ..
             } => FnStatementParser::default()

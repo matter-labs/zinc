@@ -25,7 +25,7 @@ static STATIC: field = 5;
 
 const CONST: field = 42;
 
-fn main() -> field {
+fn main(input: (), witness: ()) -> field {
     let var: field = 69;
 
     STATIC + CONST + var
@@ -33,27 +33,28 @@ fn main() -> field {
 "#;
 
     let expected = Ok(vec![
-        Instruction::Call(Call::new(4, 0)),
+        Instruction::Call(Call::new(5, 0)),
         Instruction::Exit(Exit::new(1)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(5),
             false,
-            crate::BITLENGTH_FIELD,
+            crate::BITLENGTH_BYTE,
         )),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::StoreGlobal(StoreGlobal::new(0)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(69),
             false,
-            crate::BITLENGTH_FIELD,
+            crate::BITLENGTH_BYTE,
         )),
-        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD as u8)),
+        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::Store(Store::new(0)),
+        Instruction::LoadGlobal(LoadGlobal::new(0)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(42),
             false,
             crate::BITLENGTH_FIELD,
         )),
-        Instruction::LoadGlobal(LoadGlobal::new(0)),
         Instruction::Add(Add),
         Instruction::Load(Load::new(0)),
         Instruction::Add(Add),

@@ -4,18 +4,18 @@
 
 #![cfg(test)]
 
-use crate::lexical::Error;
-use crate::lexical::Identifier;
-use crate::lexical::IntegerLiteral;
-use crate::lexical::IntegerParserError;
-use crate::lexical::Keyword;
-use crate::lexical::Lexeme;
-use crate::lexical::Literal;
-use crate::lexical::Location;
-use crate::lexical::Symbol;
-use crate::lexical::SymbolParserError;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::error::Error;
+use crate::lexical::stream::integer::Error as IntegerParserError;
+use crate::lexical::stream::symbol::Error as SymbolParserError;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::identifier::Identifier;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::lexeme::literal::integer::Integer;
+use crate::lexical::token::lexeme::literal::Literal;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::location::Location;
+use crate::lexical::token::Token;
 
 static PANIC_INPUT_ENDS_WITH_EOF: &str = "The input must end with an EOF lexeme";
 
@@ -54,9 +54,7 @@ let mut c: u8 = 2 + 2;
             location: Location::new(5, 15),
         },
         Token {
-            lexeme: Lexeme::Literal(Literal::Integer(IntegerLiteral::new_decimal(
-                "2".to_owned(),
-            ))),
+            lexeme: Lexeme::Literal(Literal::Integer(Integer::new_decimal("2".to_owned()))),
             location: Location::new(5, 17),
         },
         Token {
@@ -64,9 +62,7 @@ let mut c: u8 = 2 + 2;
             location: Location::new(5, 19),
         },
         Token {
-            lexeme: Lexeme::Literal(Literal::Integer(IntegerLiteral::new_decimal(
-                "2".to_owned(),
-            ))),
+            lexeme: Lexeme::Literal(Literal::Integer(Integer::new_decimal("2".to_owned()))),
             location: Location::new(5, 21),
         },
         Token {
@@ -135,7 +131,7 @@ fn err_invalid_symbol() {
 fn err_invalid_integer_literal() {
     let input = "0xCRAP";
 
-    let expected: Result<Token, Error> = Err(Error::InvalidIntegerLiteral(
+    let expected: Result<Token, Error> = Err(Error::InvalidInteger(
         Location::new(1, 1),
         IntegerParserError::InvalidHexadecimalCharacter('R', 4, "0xCR".to_owned()),
     ));

@@ -5,10 +5,8 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
-
 use crate::semantic::Error as SemanticError;
 use crate::semantic::Type;
-
 use crate::Error;
 
 #[test]
@@ -28,7 +26,7 @@ fn main() {
             Location::new(7, 24),
             "another".to_owned(),
             "x".to_owned(),
-            Type::new_integer_unsigned(8).to_string(),
+            Type::new_integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
             Type::new_boolean().to_string(),
         ),
     ));

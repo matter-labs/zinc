@@ -26,10 +26,7 @@ impl Parser {
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
     ) -> Result<(Expression, Option<Token>), Error> {
-        match match initial.take() {
-            Some(token) => token,
-            None => stream.borrow_mut().next()?,
-        } {
+        match crate::syntax::take_or_next(initial.take(), stream.clone())? {
             Token {
                 lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
                 location,
@@ -60,7 +57,7 @@ impl Parser {
                 let (expression, next) = Self::default().parse(stream, None)?;
                 self.builder.extend_with_expression(expression);
                 self.builder
-                    .push_operator(location, ExpressionOperator::Borrow);
+                    .push_operator(location, ExpressionOperator::Reference);
                 Ok((self.builder.finish(), next))
             }
             Token {
@@ -97,6 +94,7 @@ mod tests {
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Expression;
+    use crate::syntax::ExpressionAuxiliary;
     use crate::syntax::ExpressionElement;
     use crate::syntax::ExpressionObject;
     use crate::syntax::ExpressionOperand;
@@ -131,6 +129,10 @@ mod tests {
                     ExpressionElement::new(
                         Location::new(1, 6),
                         ExpressionObject::Operator(ExpressionOperator::Index),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 10),
+                        ExpressionObject::Auxiliary(ExpressionAuxiliary::PlaceEnd),
                     ),
                 ],
             ),

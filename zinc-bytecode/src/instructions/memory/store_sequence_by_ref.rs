@@ -1,7 +1,8 @@
 use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
+use serde_derive::{Deserialize, Serialize};
 
 /// Stores value from evaluation stack in data stack.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct StoreSequenceByRef {
     pub len: usize,
 }
@@ -22,11 +23,11 @@ impl InstructionInfo for StoreSequenceByRef {
     }
 
     fn encode(&self) -> Vec<u8> {
-        utils::encode_with_usize(Self::code(), &[self.len])
+        utils::encode_with_args(Self::code(), &[self.len])
     }
 
     fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
-        let (args, len) = utils::decode_with_usize(Self::code(), bytes, 1)?;
+        let (args, len) = utils::decode_with_usize_args(Self::code(), bytes, 1)?;
 
         Ok((Self::new(args[0]), len))
     }

@@ -19,15 +19,15 @@ use crate::syntax::TypeParser;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    KeywordMutOrIdentifierOrIgnoring,
-    IdentifierOrIgnoring,
+    KeywordMutOrIdentifierOrWildcard,
+    IdentifierOrWildcard,
     Colon,
     Type,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::KeywordMutOrIdentifierOrIgnoring
+        State::KeywordMutOrIdentifierOrWildcard
     }
 }
 
@@ -46,67 +46,64 @@ impl Parser {
     ) -> Result<(BindingPattern, Option<Token>), Error> {
         loop {
             match self.state {
-                State::KeywordMutOrIdentifierOrIgnoring => match match initial.take() {
-                    Some(token) => token,
-                    None => stream.borrow_mut().next()?,
-                } {
-                    Token {
-                        lexeme: Lexeme::Keyword(Keyword::Mut),
-                        location,
-                    } => {
-                        self.builder.set_location(location);
-                        self.builder.set_mutable();
-                        self.state = State::IdentifierOrIgnoring;
-                    }
-                    token => {
-                        self.builder.set_location(token.location);
-                        self.next = Some(token);
-                        self.state = State::IdentifierOrIgnoring;
-                    }
-                },
-                State::IdentifierOrIgnoring => match match self.next.take() {
-                    Some(token) => token,
-                    None => stream.borrow_mut().next()?,
-                } {
-                    Token {
-                        lexeme: Lexeme::Identifier(identifier),
-                        location,
-                    } => {
-                        self.builder
-                            .set_binding(Identifier::new(location, identifier.name));
-                        self.state = State::Colon;
-                    }
-                    Token {
-                        lexeme: Lexeme::Symbol(Symbol::Underscore),
-                        ..
-                    } => {
-                        self.builder.set_ignoring();
-                        self.state = State::Colon;
-                    }
-                    Token { lexeme, location } => {
-                        return Err(Error::Syntax(SyntaxError::Expected(
+                State::KeywordMutOrIdentifierOrWildcard => {
+                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                        Token {
+                            lexeme: Lexeme::Keyword(Keyword::Mut),
                             location,
-                            vec!["{identifier}", "_"],
-                            lexeme,
-                        )))
+                        } => {
+                            self.builder.set_location(location);
+                            self.builder.set_mutable();
+                            self.state = State::IdentifierOrWildcard;
+                        }
+                        token => {
+                            self.builder.set_location(token.location);
+                            self.next = Some(token);
+                            self.state = State::IdentifierOrWildcard;
+                        }
                     }
-                },
-                State::Colon => match match self.next.take() {
-                    Some(token) => token,
-                    None => stream.borrow_mut().next()?,
-                } {
-                    Token {
-                        lexeme: Lexeme::Symbol(Symbol::Colon),
-                        ..
-                    } => self.state = State::Type,
-                    Token { lexeme, location } => {
-                        return Err(Error::Syntax(SyntaxError::Expected(
+                }
+                State::IdentifierOrWildcard => {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                        Token {
+                            lexeme: Lexeme::Identifier(identifier),
                             location,
-                            vec![":"],
-                            lexeme,
-                        )))
+                        } => {
+                            self.builder
+                                .set_binding(Identifier::new(location, identifier.name));
+                            self.state = State::Colon;
+                        }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::Underscore),
+                            ..
+                        } => {
+                            self.builder.set_wildcard();
+                            self.state = State::Colon;
+                        }
+                        Token { lexeme, location } => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                vec!["{identifier}", "_"],
+                                lexeme,
+                            )))
+                        }
                     }
-                },
+                }
+                State::Colon => {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::Colon),
+                            ..
+                        } => self.state = State::Type,
+                        Token { lexeme, location } => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                vec![":"],
+                                lexeme,
+                            )))
+                        }
+                    }
+                }
                 State::Type => {
                     let (r#type, next) = TypeParser::default().parse(stream, self.next.take())?;
                     self.builder.set_type(r#type);
@@ -180,13 +177,13 @@ mod tests {
     }
 
     #[test]
-    fn ok_ignoring() {
+    fn ok_wildcard() {
         let input = "_: u8";
 
         let expected = Ok((
             BindingPattern::new(
                 Location::new(1, 1),
-                BindingPatternVariant::Ignoring,
+                BindingPatternVariant::Wildcard,
                 Type::new(Location::new(1, 4), TypeVariant::new_integer_unsigned(8)),
             ),
             None,

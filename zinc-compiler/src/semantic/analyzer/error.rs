@@ -5,12 +5,12 @@
 use failure::Fail;
 
 use crate::lexical::Location;
-use crate::semantic::ArrayError;
+use crate::semantic::ArrayValueError;
 use crate::semantic::ElementError;
 use crate::semantic::IntegerConstantError;
-use crate::semantic::Place;
 use crate::semantic::ScopeError;
-use crate::semantic::StructureError;
+use crate::semantic::StandardLibraryFunctionError;
+use crate::semantic::StructureValueError;
 
 #[derive(Debug, Fail, PartialEq)]
 #[allow(clippy::large_enum_variant)]
@@ -22,18 +22,21 @@ pub enum Error {
 
     #[fail(display = "{} constant type inference: {}", _0, _1)]
     InferenceConstant(Location, IntegerConstantError),
-    #[fail(display = "{} match pattern type inference: {}", _0, _1)]
-    InferencePatternMatch(Location, IntegerConstantError),
 
     #[fail(display = "{} array literal: {}", _0, _1)]
-    LiteralArray(Location, ArrayError),
+    LiteralArray(Location, ArrayValueError),
     #[fail(display = "{} structure literal: {}", _0, _1)]
-    LiteralStructure(Location, StructureError),
+    LiteralStructure(Location, StructureValueError),
 
     #[fail(display = "{} match expression must be exhausted", _0)]
     MatchNotExhausted(Location),
     #[fail(display = "{} match branch is unreachable", _0)]
     MatchBranchUnreachable(Location),
+    #[fail(
+        display = "{} match path pattern path must be resolved to an evaluable, but got '{}'",
+        _0, _1
+    )]
+    MatchBranchPatternPathExpectedEvaluable(Location, String),
     #[fail(
         display = "{} match pattern type '{}' does not match the scrutinee type '{}'",
         _0, _1, _2
@@ -45,15 +48,13 @@ pub enum Error {
     )]
     MatchBranchExpressionInvalidType(Location, String, String),
 
-    #[fail(display = "{} assigning to an invalid item '{}'", _0, _1)]
-    AssignmentToInvalidItem(Location, String),
     #[fail(
-        display = "{} assigning a value of type '{}' to a memory place '{}' of type '{}'",
-        _0, _1, _2, _3
+        display = "{} assigning a value of type '{}' to a variable of type '{}'",
+        _0, _1, _2
     )]
-    AssignmentTypesMismatch(Location, String, Place, String),
-    #[fail(display = "{} assigning to an immutable memory place '{}'", _0, _1)]
-    AssignmentToImmutableMemory(Location, Place),
+    AssignmentTypesMismatch(Location, String, String),
+    #[fail(display = "{} assigning to an immutable path '{}'", _0, _1)]
+    AssignmentToImmutableMemory(Location, String),
 
     #[fail(
         display = "{} loop expected a boolean expression in the while condition, but got '{}'",
@@ -61,15 +62,10 @@ pub enum Error {
     )]
     LoopWhileExpectedBooleanCondition(Location, String),
     #[fail(
-        display = "{} loop expected an integer constant as the range start, but got '{}'",
+        display = "{} loop expected a range expression as bounds, but got '{}'",
         _0, _1
     )]
-    LoopRangeStartExpectedIntegerConstant(Location, String),
-    #[fail(
-        display = "{} loop expected an integer constant as the range end, but got '{}'",
-        _0, _1
-    )]
-    LoopRangeEndExpectedIntegerConstant(Location, String),
+    LoopBoundsExpectedConstantRangeExpression(Location, String),
 
     #[fail(
         display = "{} conditional expected a boolean condition expression, but got '{}'",
@@ -99,8 +95,18 @@ pub enum Error {
         _0, _1, _2, _3
     )]
     FunctionReturnTypeMismatch(Location, String, String, String),
-    #[fail(display = "{} instruction function '{}' is unknown", _0, _1)]
-    FunctionNotInstruction(Location, String),
+    #[fail(display = "{} built-in function '{}' is unknown", _0, _1)]
+    FunctionInstructionUnknown(Location, String),
+    #[fail(display = "{} built-in function '{}' must be called with '!'", _0, _1)]
+    FunctionInstructionSpecifierMissing(Location, &'static str),
+    #[fail(
+        display = "{} function '{}' expected a constant unsigned length argument, but got '{}'",
+        _0, _1, _2
+    )]
+    FunctionExpectedConstantLengthArgument(Location, &'static str, String),
+
+    #[fail(display = "{} {}", _0, _1)]
+    FunctionStandardLibrary(Location, StandardLibraryFunctionError),
     #[fail(display = "function 'main' is missing")]
     FunctionMainMissing,
 
@@ -108,16 +114,16 @@ pub enum Error {
     ModuleNotFound(Location, String),
 
     #[fail(
-        display = "{} use statement expected a place expression, but got '{}'",
+        display = "{} use statement expected a path expression, but got '{}'",
         _0, _1
     )]
-    UseStatementExpectedPlace(Location, String),
+    UseExpectedPath(Location, String),
 
     #[fail(
         display = "{} impl statement expected a structure or enumeration, but got '{}'",
         _0, _1
     )]
-    ImplStatementExpectedStructOrEnum(Location, String),
+    ImplStatementExpectedStructureOrEnumeration(Location, String),
 
     #[fail(display = "{} the type alias does not point to type, but '{}'", _0, _1)]
     TypeAliasDoesNotPointToType(Location, String),
@@ -136,4 +142,12 @@ pub enum Error {
         _0, _1
     )]
     InstructionDebugExpectedString(Location, String),
+    #[fail(
+        display = "{} instruction 'assert' expected a boolean, but got '{}'",
+        _0, _1
+    )]
+    InstructionAssertExpectedBoolean(Location, String),
+
+    #[fail(display = "references are not implemented yet")]
+    ReferencesNotImplemented,
 }

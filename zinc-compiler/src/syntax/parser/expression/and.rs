@@ -54,10 +54,7 @@ impl Parser {
                     self.state = State::ComparisonOperator;
                 }
                 State::ComparisonOperator => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::DoubleEquals),
                             location,

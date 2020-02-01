@@ -45,10 +45,7 @@ impl Parser {
         loop {
             match self.state {
                 State::BracketCurlyLeft => {
-                    match match initial.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             location,
@@ -66,10 +63,7 @@ impl Parser {
                     }
                 }
                 State::StatementOrBracketCurlyRight => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
@@ -79,6 +73,7 @@ impl Parser {
                                 FunctionLocalStatementParser::default()
                                     .parse(stream.clone(), Some(token))?;
                             self.next = next;
+                            log::trace!("Block statement: {:?}", statement);
                             match statement {
                                 FunctionLocalStatement::Expression(expression) => {
                                     if is_unterminated {
@@ -96,10 +91,7 @@ impl Parser {
                     }
                 }
                 State::BracketCurlyRight => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream)? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..

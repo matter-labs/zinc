@@ -64,5 +64,5 @@ being designed, but probably, only immutable references will be allowed shortly.
 ## Loops and recursion
 
 Zinc is a Turing-incomplete language, as it does not allow recursion and
-variable loop indexes. Each loop range must be bounded with constant literals
+variable loop indexes. Every loop range must be bounded with constant literals
 or expressions.

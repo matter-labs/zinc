@@ -5,10 +5,8 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
-
 use crate::semantic::Error as SemanticError;
 use crate::semantic::Type;
-
 use crate::Error;
 
 #[test]
@@ -26,7 +24,7 @@ fn main() {
     let expected = Err(Error::Semantic(
         SemanticError::MatchBranchExpressionInvalidType(
             Location::new(6, 14),
-            Type::new_integer_unsigned(8).to_string(),
+            Type::new_integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
             Type::new_boolean().to_string(),
         ),
     ));

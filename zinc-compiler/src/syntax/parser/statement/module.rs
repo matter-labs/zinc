@@ -28,10 +28,7 @@ impl Parser {
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
     ) -> Result<(ModStatement, Option<Token>), Error> {
-        match match initial.take() {
-            Some(token) => token,
-            None => stream.borrow_mut().next()?,
-        } {
+        match crate::syntax::take_or_next(initial.take(), stream.clone())? {
             Token {
                 lexeme: Lexeme::Keyword(Keyword::Mod),
                 location,
@@ -47,10 +44,7 @@ impl Parser {
             }
         }
 
-        match match self.next.take() {
-            Some(token) => token,
-            None => stream.borrow_mut().next()?,
-        } {
+        match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
             Token {
                 lexeme: Lexeme::Identifier(identifier),
                 location,
@@ -67,10 +61,7 @@ impl Parser {
             }
         }
 
-        match match self.next.take() {
-            Some(token) => token,
-            None => stream.borrow_mut().next()?,
-        } {
+        match crate::syntax::take_or_next(self.next.take(), stream)? {
             Token {
                 lexeme: Lexeme::Symbol(Symbol::Semicolon),
                 ..

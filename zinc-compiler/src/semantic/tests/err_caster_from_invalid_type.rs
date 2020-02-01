@@ -5,13 +5,11 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
-
 use crate::semantic::CasterError;
 use crate::semantic::ElementError;
 use crate::semantic::Error as SemanticError;
 use crate::semantic::Type;
 use crate::semantic::ValueError;
-
 use crate::Error;
 
 #[test]
@@ -27,7 +25,7 @@ fn main() {
         Location::new(4, 24),
         ElementError::Value(ValueError::Casting(CasterError::FromInvalidType(
             Type::new_field().to_string(),
-            Type::new_integer_unsigned(8).to_string(),
+            Type::new_integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
         ))),
     )));
 

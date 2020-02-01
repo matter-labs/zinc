@@ -6,12 +6,12 @@ use std::convert::TryFrom;
 
 use failure::Fail;
 
-use crate::lexical::BooleanLiteral;
-use crate::lexical::Identifier;
-use crate::lexical::IdentifierError;
-use crate::lexical::Lexeme;
-use crate::lexical::Literal;
-use crate::lexical::Symbol;
+use crate::lexical::token::lexeme::identifier::Error as IdentifierError;
+use crate::lexical::token::lexeme::identifier::Identifier;
+use crate::lexical::token::lexeme::literal::boolean::Boolean;
+use crate::lexical::token::lexeme::literal::Literal;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
 
 pub enum State {
     Start,
@@ -56,7 +56,7 @@ pub fn parse(input: &str) -> Result<(usize, Lexeme), Error> {
         Ok(identifier) => Lexeme::Identifier(identifier),
         Err(IdentifierError::IsEmpty) => return Err(Error::EmptyIdentifier),
         Err(IdentifierError::IsUnderscore) => Lexeme::Symbol(Symbol::Underscore),
-        Err(IdentifierError::IsKeyword(keyword)) => match BooleanLiteral::try_from(keyword) {
+        Err(IdentifierError::IsKeyword(keyword)) => match Boolean::try_from(keyword) {
             Ok(boolean) => Lexeme::Literal(Literal::Boolean(boolean)),
             Err(keyword) => Lexeme::Keyword(keyword),
         },
@@ -68,12 +68,12 @@ pub fn parse(input: &str) -> Result<(usize, Lexeme), Error> {
 mod tests {
     use super::parse;
     use super::Error;
-    use crate::lexical::BooleanLiteral;
-    use crate::lexical::Identifier;
-    use crate::lexical::Keyword;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Literal;
-    use crate::lexical::Symbol;
+    use crate::lexical::token::lexeme::identifier::Identifier;
+    use crate::lexical::token::lexeme::keyword::Keyword;
+    use crate::lexical::token::lexeme::literal::boolean::Boolean;
+    use crate::lexical::token::lexeme::literal::Literal;
+    use crate::lexical::token::lexeme::symbol::Symbol;
+    use crate::lexical::token::lexeme::Lexeme;
 
     #[test]
     fn ok_identifier() {
@@ -151,7 +151,7 @@ mod tests {
         let input = "true";
         let expected = Ok((
             input.len(),
-            Lexeme::Literal(Literal::Boolean(BooleanLiteral::True)),
+            Lexeme::Literal(Literal::Boolean(Boolean::True)),
         ));
         let result = parse(input);
         assert_eq!(expected, result);

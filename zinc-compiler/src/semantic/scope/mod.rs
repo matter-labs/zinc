@@ -15,11 +15,11 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::str;
 
+use zinc_bytecode::builtins::BuiltinIdentifier;
+
 use crate::semantic::Constant;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::Place;
-use crate::semantic::PlaceDescriptor;
-use crate::semantic::PlaceResolutionTime;
+use crate::semantic::Path;
 use crate::semantic::Type;
 use crate::semantic::Type as TypeItem;
 
@@ -114,58 +114,34 @@ impl Scope {
         Ok(())
     }
 
-    pub fn resolve_place(
-        mut scope: Rc<RefCell<Scope>>,
-        place: &Place,
-    ) -> Result<Item, SemanticError> {
-        let mut result = Err(SemanticError::Scope(
-            place.location,
-            Error::ItemUndeclared(place.to_string()),
-        ));
-        for identifier in place.path.iter() {
-            result = Ok(
-                match Self::resolve_item(scope.clone(), &identifier.name)
-                    .map_err(|error| SemanticError::Scope(identifier.location, error))?
-                {
-                    Item::Module(module) => {
-                        scope = module.clone();
-                        Item::Module(module)
-                    }
-                    Item::Type(Type::Enumeration {
-                        identifier,
-                        bitlength,
-                        scope: enum_scope,
-                    }) => {
-                        scope = enum_scope.clone();
-                        Item::Type(Type::Enumeration {
-                            identifier,
-                            bitlength,
-                            scope: enum_scope,
-                        })
-                    }
-                    Item::Type(Type::Structure {
-                        identifier,
-                        fields,
-                        scope: struct_scope,
-                    }) => {
-                        scope = struct_scope.clone();
-                        Item::Type(Type::Structure {
-                            identifier,
-                            fields,
-                            scope: struct_scope,
-                        })
-                    }
-                    Item::Variable(variable) => match place.resolution_time {
-                        PlaceResolutionTime::Static => {
-                            Self::static_address(variable, place).map(Item::Variable)?
-                        }
-                        PlaceResolutionTime::Dynamic => unimplemented!(),
-                    },
-                    item => item,
-                },
-            );
+    pub fn resolve_path(scope: Rc<RefCell<Scope>>, path: &Path) -> Result<Item, SemanticError> {
+        let mut current_scope = scope;
+
+        for (index, identifier) in path.elements.iter().enumerate() {
+            let item = Self::resolve_item(current_scope.clone(), &identifier.name)
+                .map_err(|error| SemanticError::Scope(identifier.location, error))?;
+
+            if index == path.elements.len() - 1 {
+                return Ok(item);
+            }
+
+            match item {
+                Item::Module(ref scope) => current_scope = scope.to_owned(),
+                Item::Type(Type::Enumeration { ref scope, .. }) => current_scope = scope.to_owned(),
+                Item::Type(Type::Structure { ref scope, .. }) => current_scope = scope.to_owned(),
+                _ => {
+                    return Err(SemanticError::Scope(
+                        identifier.location,
+                        Error::ItemIsNotNamespace(identifier.name.to_owned()),
+                    ))
+                }
+            }
         }
-        result
+
+        Err(SemanticError::Scope(
+            path.location,
+            Error::ItemUndeclared(path.to_string()),
+        ))
     }
 
     pub fn resolve_item(scope: Rc<RefCell<Scope>>, identifier: &str) -> Result<Item, Error> {
@@ -193,106 +169,70 @@ impl Scope {
         Rc::new(RefCell::new(Scope::new(Some(parent))))
     }
 
-    fn static_address(
-        mut variable: VariableItem,
-        place: &Place,
-    ) -> Result<VariableItem, SemanticError> {
-        for descriptor in place.descriptors.iter() {
-            match (descriptor, &variable.r#type) {
-                (
-                    PlaceDescriptor::ArrayIndexConstant(constant),
-                    Type::Array {
-                        r#type: array_element_type,
-                        size: array_size,
-                    },
-                ) => {
-                    let array_size = *array_size;
-                    let array_index = constant
-                        .to_usize()
-                        .map_err(|error| SemanticError::InferenceConstant(place.location, error))?;
-                    if array_index >= array_size {
-                        return Err(SemanticError::Scope(
-                            place.location,
-                            Error::ArrayIndexOutOfRange(array_index, variable.r#type.to_string()),
-                        ));
-                    }
-                    variable.address += array_index * array_element_type.size();
-                    variable.r#type = *array_element_type.to_owned();
-                }
-                (PlaceDescriptor::TupleField(tuple_field), Type::Tuple { types: tuple_types }) => {
-                    let tuple_field = *tuple_field;
-                    if tuple_field >= tuple_types.len() {
-                        return Err(SemanticError::Scope(
-                            place.location,
-                            Error::TupleFieldDoesNotExist(tuple_field, variable.r#type.to_string()),
-                        ));
-                    }
-                    for _tuple_field_index in 0..tuple_field {
-                        variable.address += tuple_types[tuple_field].size();
-                    }
-                    variable.r#type = tuple_types[tuple_field].to_owned();
-                }
-                (
-                    PlaceDescriptor::StructureField(structure_field),
-                    Type::Structure { fields, .. },
-                ) => {
-                    let mut found_type = None;
-                    for (field_name, field_type) in fields.iter() {
-                        if field_name == structure_field {
-                            found_type = Some(field_type);
-                            break;
-                        }
-                        variable.address += field_type.size();
-                    }
-                    match found_type.take() {
-                        Some(found_type) => variable.r#type = found_type.to_owned(),
-                        None => {
-                            return Err(SemanticError::Scope(
-                                place.location,
-                                Error::StructureFieldDoesNotExist(
-                                    structure_field.to_owned(),
-                                    variable.r#type.to_string(),
-                                ),
-                            ))
-                        }
-                    }
-                }
-                (descriptor, inner_type) => {
-                    return Err(SemanticError::Scope(
-                        place.location,
-                        Error::InvalidDescriptor(inner_type.to_string(), descriptor.to_owned()),
-                    ))
-                }
-            }
-        }
-
-        Ok(variable)
-    }
-
     fn default_items() -> HashMap<String, Item> {
-        let mut functions = HashMap::with_capacity(2);
-
-        functions.insert(
-            "dbg".to_owned(),
-            Item::Type(Type::new_function(
-                "dbg".to_owned(),
-                vec![("format".to_owned(), Type::String)],
-                Type::Unit,
-            )),
+        let mut std_crypto_scope = Scope::default();
+        std_crypto_scope.items.insert(
+            "sha256".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::CryptoSha256)),
+        );
+        std_crypto_scope.items.insert(
+            "pedersen".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::CryptoPedersen)),
         );
 
-        functions.insert(
-            "assert".to_owned(),
-            Item::Type(Type::new_function(
-                "assert".to_owned(),
-                vec![
-                    ("condition".to_owned(), Type::Boolean),
-                    ("message".to_owned(), Type::String),
-                ],
-                Type::Unit,
-            )),
+        let mut std_convert_scope = Scope::default();
+        std_convert_scope.items.insert(
+            "to_bits".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::ToBits)),
+        );
+        std_convert_scope.items.insert(
+            "from_bits_unsigned".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::UnsignedFromBits)),
+        );
+        std_convert_scope.items.insert(
+            "from_bits_signed".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::SignedFromBits)),
+        );
+        std_convert_scope.items.insert(
+            "from_bits_field".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::FieldFromBits)),
         );
 
-        functions
+        let mut std_array_scope = Scope::default();
+        std_array_scope.items.insert(
+            "reverse".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::ArrayReverse)),
+        );
+        std_array_scope.items.insert(
+            "truncate".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::ArrayTruncate)),
+        );
+        std_array_scope.items.insert(
+            "pad".to_owned(),
+            Item::Type(Type::new_std_function(BuiltinIdentifier::ArrayPad)),
+        );
+
+        let mut std_scope = Scope::default();
+        std_scope.items.insert(
+            "crypto".to_owned(),
+            Item::Module(Rc::new(RefCell::new(std_crypto_scope))),
+        );
+        std_scope.items.insert(
+            "convert".to_owned(),
+            Item::Module(Rc::new(RefCell::new(std_convert_scope))),
+        );
+        std_scope.items.insert(
+            "array".to_owned(),
+            Item::Module(Rc::new(RefCell::new(std_array_scope))),
+        );
+
+        let mut items = HashMap::with_capacity(2);
+        items.insert("dbg".to_owned(), Item::Type(Type::new_dbg_function()));
+        items.insert("assert".to_owned(), Item::Type(Type::new_assert_function()));
+        items.insert(
+            "std".to_owned(),
+            Item::Module(Rc::new(RefCell::new(std_scope))),
+        );
+        items
     }
 }

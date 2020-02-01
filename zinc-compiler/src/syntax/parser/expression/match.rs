@@ -50,10 +50,7 @@ impl Parser {
         loop {
             match self.state {
                 State::MatchKeyword => {
-                    match match initial.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Match),
                             location,
@@ -78,10 +75,7 @@ impl Parser {
                     self.state = State::BracketCurlyLeft;
                 }
                 State::BracketCurlyLeft => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
@@ -96,27 +90,22 @@ impl Parser {
                     }
                 }
                 State::BracketCurlyRightOrBranchPattern => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
                         } => return Ok(self.builder.finish()),
                         token => {
-                            let pattern =
+                            let (pattern, next) =
                                 MatchPatternParser::default().parse(stream.clone(), Some(token))?;
+                            self.next = next;
                             self.builder.push_branch_pattern(pattern);
                             self.state = State::Select;
                         }
                     }
                 }
                 State::Select => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::EqualsGreater),
                             ..
@@ -138,10 +127,7 @@ impl Parser {
                     self.state = State::CommaOrBracketCurlyRight;
                 }
                 State::CommaOrBracketCurlyRight => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
@@ -300,7 +286,7 @@ mod tests {
                     ),
                 ),
                 (
-                    MatchPattern::new(Location::new(5, 9), MatchPatternVariant::new_ignoring()),
+                    MatchPattern::new(Location::new(5, 9), MatchPatternVariant::new_wildcard()),
                     Expression::new(
                         Location::new(5, 14),
                         vec![ExpressionElement::new(

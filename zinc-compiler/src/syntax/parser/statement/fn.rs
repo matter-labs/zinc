@@ -53,10 +53,7 @@ impl Parser {
         loop {
             match self.state {
                 State::KeywordFn => {
-                    match match initial.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Fn),
                             location,
@@ -74,10 +71,7 @@ impl Parser {
                     }
                 }
                 State::Identifier => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
@@ -96,10 +90,7 @@ impl Parser {
                     }
                 }
                 State::ParenthesisLeft => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                             ..
@@ -121,10 +112,7 @@ impl Parser {
                     self.state = State::ParenthesisRight;
                 }
                 State::ParenthesisRight => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                             ..
@@ -139,10 +127,7 @@ impl Parser {
                     }
                 }
                 State::ArrowOrBody => {
-                    match match self.next.take() {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::MinusGreater),
                             ..

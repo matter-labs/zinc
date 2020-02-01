@@ -1,0 +1,29 @@
+/*
+    The merkle tree root hash validator.
+*/
+
+mod lib;
+
+use std::crypto;
+
+struct PublicInput {
+    root_hash: lib::Digest,
+}
+
+fn main(
+    address: [bool; 1],
+    balance: field,
+    merkle_path: [lib::Digest; 1]
+) -> PublicInput {
+    let leaf_hash = lib::balance_hash(balance);
+
+    let root_hash = lib::restore_root_hash(
+        leaf_hash,
+        address,
+        merkle_path,
+    );
+
+    struct PublicInput {
+        root_hash: root_hash,
+    }
+}

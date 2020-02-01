@@ -6,7 +6,7 @@ use std::str;
 
 use failure::Fail;
 
-use crate::lexical::IntegerLiteral;
+use crate::lexical::token::lexeme::literal::integer::Integer;
 
 pub enum State {
     Start,
@@ -35,7 +35,7 @@ pub enum Error {
     EmptyHexadecimalLiteral,
 }
 
-pub fn parse(input: &str) -> Result<(usize, IntegerLiteral), Error> {
+pub fn parse(input: &str) -> Result<(usize, Integer), Error> {
     let mut state = State::Start;
     let mut size = 0;
     let mut value = String::with_capacity(40);
@@ -67,7 +67,7 @@ pub fn parse(input: &str) -> Result<(usize, IntegerLiteral), Error> {
                         input[..=size].to_owned(),
                     ));
                 } else {
-                    return Ok((size, IntegerLiteral::new_decimal(value)));
+                    return Ok((size, Integer::new_decimal(value)));
                 }
             }
             State::Decimal => {
@@ -83,7 +83,7 @@ pub fn parse(input: &str) -> Result<(usize, IntegerLiteral), Error> {
                 } else if character == '_' {
                     size += 1;
                 } else {
-                    return Ok((size, IntegerLiteral::new_decimal(value)));
+                    return Ok((size, Integer::new_decimal(value)));
                 }
             }
             State::Hexadecimal => {
@@ -99,7 +99,7 @@ pub fn parse(input: &str) -> Result<(usize, IntegerLiteral), Error> {
                 } else if character == '_' {
                     size += 1;
                 } else {
-                    return Ok((size, IntegerLiteral::new_hexadecimal(value)));
+                    return Ok((size, Integer::new_hexadecimal(value)));
                 }
             }
         }
@@ -107,11 +107,11 @@ pub fn parse(input: &str) -> Result<(usize, IntegerLiteral), Error> {
 
     match state {
         State::Start => Err(Error::UnexpectedEnd),
-        State::ZeroOrHexadecimal => Ok((size, IntegerLiteral::new_decimal(value))),
-        State::Decimal => Ok((size, IntegerLiteral::new_decimal(value))),
+        State::ZeroOrHexadecimal => Ok((size, Integer::new_decimal(value))),
+        State::Decimal => Ok((size, Integer::new_decimal(value))),
         State::Hexadecimal => {
             if !value.is_empty() {
-                Ok((size, IntegerLiteral::new_hexadecimal(value)))
+                Ok((size, Integer::new_hexadecimal(value)))
             } else {
                 Err(Error::EmptyHexadecimalLiteral)
             }
@@ -123,12 +123,12 @@ pub fn parse(input: &str) -> Result<(usize, IntegerLiteral), Error> {
 mod tests {
     use super::parse;
     use super::Error;
-    use crate::lexical::IntegerLiteral;
+    use crate::lexical::token::lexeme::literal::integer::Integer;
 
     #[test]
     fn ok_decimal_zero() {
         let input = "0";
-        let expected = Ok((1, IntegerLiteral::new_decimal("0".to_owned())));
+        let expected = Ok((1, Integer::new_decimal("0".to_owned())));
         let result = parse(input);
         assert_eq!(expected, result);
     }
@@ -136,7 +136,7 @@ mod tests {
     #[test]
     fn ok_decimal() {
         let input = "666";
-        let expected = Ok((3, IntegerLiteral::new_decimal("666".to_owned())));
+        let expected = Ok((3, Integer::new_decimal("666".to_owned())));
         let result = parse(input);
         assert_eq!(expected, result);
     }
@@ -144,10 +144,7 @@ mod tests {
     #[test]
     fn ok_hexadecimal_lowercase() {
         let input = "0xdead_666_beef";
-        let expected = Ok((
-            15,
-            IntegerLiteral::new_hexadecimal("dead666beef".to_owned()),
-        ));
+        let expected = Ok((15, Integer::new_hexadecimal("dead666beef".to_owned())));
         let result = parse(input);
         assert_eq!(expected, result);
     }
@@ -155,10 +152,7 @@ mod tests {
     #[test]
     fn ok_hexadecimal_uppercase() {
         let input = "0xDEAD_666_BEEF";
-        let expected = Ok((
-            15,
-            IntegerLiteral::new_hexadecimal("dead666beef".to_owned()),
-        ));
+        let expected = Ok((15, Integer::new_hexadecimal("dead666beef".to_owned())));
         let result = parse(input);
         assert_eq!(expected, result);
     }
@@ -166,10 +160,7 @@ mod tests {
     #[test]
     fn ok_hexadecimal_mixed_case() {
         let input = "0xdEaD_666_bEeF";
-        let expected = Ok((
-            15,
-            IntegerLiteral::new_hexadecimal("dead666beef".to_owned()),
-        ));
+        let expected = Ok((15, Integer::new_hexadecimal("dead666beef".to_owned())));
         let result = parse(input);
         assert_eq!(expected, result);
     }

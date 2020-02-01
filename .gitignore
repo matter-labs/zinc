@@ -1,7 +1,7 @@
 # IDE
 /.idea/
 /.vscode/
-/.cargo
+/.cargo/
 
 # Rust build
 /target/
@@ -10,4 +10,4 @@
 /zinc-book/build/*
 
 # Zinc build
-/examples/build/*
+/test/build/*

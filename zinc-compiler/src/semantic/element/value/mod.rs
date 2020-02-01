@@ -15,12 +15,15 @@ pub use self::integer::Error as IntegerError;
 pub use self::integer::Integer;
 pub use self::structure::Error as StructureError;
 pub use self::structure::Structure;
+pub use self::tuple::Error as TupleError;
 pub use self::tuple::Tuple;
 
 use std::fmt;
 
 use crate::semantic::Caster;
 use crate::semantic::Constant;
+use crate::semantic::FieldAccessResult;
+use crate::semantic::IndexAccessResult;
 use crate::semantic::Type;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -134,7 +137,10 @@ impl Value {
             (Self::Boolean, value_2) => Err(Error::OperatorEqualsSecondOperandExpectedBoolean(
                 value_2.r#type().to_string(),
             )),
-            (Self::Integer(_), Self::Integer(_)) => Ok(Self::Boolean),
+            (Self::Integer(integer_1), Self::Integer(integer_2)) => integer_1
+                .equals(integer_2)
+                .map(|_| Self::Boolean)
+                .map_err(Error::Integer),
             (Self::Integer(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedInteger(
                 value_2.r#type().to_string(),
             )),
@@ -154,7 +160,10 @@ impl Value {
             (Self::Boolean, value_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedBoolean(
                 value_2.r#type().to_string(),
             )),
-            (Self::Integer(_), Self::Integer(_)) => Ok(Self::Boolean),
+            (Self::Integer(integer_1), Self::Integer(integer_2)) => integer_1
+                .not_equals(integer_2)
+                .map(|_| Self::Boolean)
+                .map_err(Error::Integer),
             (Self::Integer(_), value_2) => Err(
                 Error::OperatorNotEqualsSecondOperandExpectedInteger(value_2.r#type().to_string()),
             ),
@@ -351,6 +360,58 @@ impl Value {
             Self::Boolean => Ok(Self::Boolean),
             value => Err(Error::OperatorNotExpectedBoolean(
                 value.r#type().to_string(),
+            )),
+        }
+    }
+
+    pub fn index_value(&self, other: &Self) -> Result<IndexAccessResult, Error> {
+        match self {
+            Value::Array(array) => match other {
+                Value::Integer(_) => Ok(array.slice_single()),
+                value => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange(
+                    value.to_string(),
+                )),
+            },
+            value => Err(Error::OperatorIndexFirstOperandExpectedArray(
+                value.to_string(),
+            )),
+        }
+    }
+
+    pub fn index_constant(&self, other: &Constant) -> Result<IndexAccessResult, Error> {
+        match self {
+            Value::Array(array) => match other {
+                Constant::Integer(_) => Ok(array.slice_single()),
+                Constant::Range(range) => array
+                    .slice_range(&range.start, &range.end)
+                    .map_err(Error::Array),
+                Constant::RangeInclusive(range) => array
+                    .slice_range_inclusive(&range.start, &range.end)
+                    .map_err(Error::Array),
+                constant => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange(
+                    constant.to_string(),
+                )),
+            },
+            value => Err(Error::OperatorIndexFirstOperandExpectedArray(
+                value.to_string(),
+            )),
+        }
+    }
+
+    pub fn field_tuple(&self, field_index: usize) -> Result<FieldAccessResult, Error> {
+        match self {
+            Value::Tuple(tuple) => tuple.slice(field_index).map_err(Error::Tuple),
+            value => Err(Error::OperatorFieldFirstOperandExpectedTuple(
+                value.to_string(),
+            )),
+        }
+    }
+
+    pub fn field_structure(&self, field_name: &str) -> Result<FieldAccessResult, Error> {
+        match self {
+            Value::Structure(structure) => structure.slice(field_name).map_err(Error::Structure),
+            value => Err(Error::OperatorFieldFirstOperandExpectedStructure(
+                value.to_string(),
             )),
         }
     }

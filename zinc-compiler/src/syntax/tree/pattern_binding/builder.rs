@@ -13,7 +13,7 @@ pub struct Builder {
     location: Option<Location>,
     binding: Option<Identifier>,
     is_mutable: bool,
-    ignoring: bool,
+    wildcard: bool,
     r#type: Option<Type>,
 }
 
@@ -30,8 +30,8 @@ impl Builder {
         self.is_mutable = true;
     }
 
-    pub fn set_ignoring(&mut self) {
-        self.ignoring = true;
+    pub fn set_wildcard(&mut self) {
+        self.wildcard = true;
     }
 
     pub fn set_type(&mut self, value: Type) {
@@ -47,8 +47,8 @@ impl Builder {
             )
         });
 
-        let variant = if self.ignoring {
-            BindingPatternVariant::Ignoring
+        let variant = if self.wildcard {
+            BindingPatternVariant::Wildcard
         } else if let Some(identifier) = self.binding.take() {
             if self.is_mutable {
                 BindingPatternVariant::MutableBinding(identifier)
@@ -59,7 +59,7 @@ impl Builder {
             panic!(
                 "{}{}",
                 crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                "binding | ignoring"
+                "binding | wildcard"
             );
         };
 

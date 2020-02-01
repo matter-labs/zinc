@@ -26,7 +26,11 @@ fn main() {
         Instruction::Call(Call::new(3, 0)),
         Instruction::Exit(Exit::new(0)),
         Instruction::Return(Return::new(0)),
-        Instruction::PushConst(PushConst::new(BigInt::from(42), false, 8)),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(42),
+            false,
+            crate::BITLENGTH_BYTE,
+        )),
         Instruction::Call(Call::new(2, 1)),
         Instruction::Return(Return::new(0)),
     ]);

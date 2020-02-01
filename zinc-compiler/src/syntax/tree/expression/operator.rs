@@ -41,7 +41,7 @@ pub enum Operator {
     Negation,
 
     // unary reference
-    Borrow,
+    Reference,
     Dereference,
 
     // access
@@ -51,5 +51,4 @@ pub enum Operator {
 
     // call
     Call,
-    Instruction,
 }

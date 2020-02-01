@@ -8,7 +8,14 @@ pub use self::error::Error;
 
 use std::fmt;
 
+use num_bigint::BigInt;
+use num_traits::One;
+use num_traits::Signed;
+use num_traits::ToPrimitive;
+
+use crate::semantic::IndexAccessResult;
 use crate::semantic::Type;
+use crate::semantic::Value;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Array {
@@ -31,14 +38,101 @@ impl Array {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::new_array(self.r#type.clone(), self.size)
+        Type::new_array(self.r#type.to_owned(), self.size)
+    }
+
+    pub fn slice_single(&self) -> IndexAccessResult {
+        IndexAccessResult::new(
+            0,
+            self.r#type.size(),
+            self.r#type().size(),
+            Some(Value::new(self.r#type.to_owned())),
+        )
+    }
+
+    pub fn slice_range(&self, start: &BigInt, end: &BigInt) -> Result<IndexAccessResult, Error> {
+        if start.is_negative() {
+            return Err(Error::SliceStartOutOfRange(start.to_string()));
+        }
+        if end > &BigInt::from(self.size) {
+            return Err(Error::SliceEndOutOfRange(
+                end.to_string(),
+                self.size.to_string(),
+            ));
+        }
+        if end < start {
+            return Err(Error::SliceEndLesserThanStart(
+                end.to_string(),
+                start.to_string(),
+            ));
+        }
+        let start = start
+            .to_usize()
+            .ok_or_else(|| Error::SliceStartOutOfRange(start.to_string()))?;
+        let length = (end - start)
+            .to_usize()
+            .ok_or_else(|| Error::SliceEndLesserThanStart(end.to_string(), start.to_string()))?;
+        Ok(IndexAccessResult::new(
+            self.r#type.size() * start,
+            self.r#type.size() * length,
+            self.r#type().size(),
+            Some(Value::new(Type::new_array(self.r#type.to_owned(), length))),
+        ))
+    }
+
+    pub fn slice_range_inclusive(
+        &self,
+        start: &BigInt,
+        end: &BigInt,
+    ) -> Result<IndexAccessResult, Error> {
+        if start.is_negative() {
+            return Err(Error::SliceStartOutOfRange(start.to_string()));
+        }
+        if end >= &BigInt::from(self.size) {
+            return Err(Error::SliceEndOutOfRange(
+                end.to_string(),
+                self.size.to_string(),
+            ));
+        }
+        if end < start {
+            return Err(Error::SliceEndLesserThanStart(
+                end.to_string(),
+                start.to_string(),
+            ));
+        }
+        let start = start
+            .to_usize()
+            .ok_or_else(|| Error::SliceStartOutOfRange(start.to_string()))?;
+        let length = (end - start + BigInt::one())
+            .to_usize()
+            .ok_or_else(|| Error::SliceEndLesserThanStart(end.to_string(), start.to_string()))?;
+        Ok(IndexAccessResult::new(
+            self.r#type.size() * start,
+            self.r#type.size() * length,
+            self.r#type().size(),
+            Some(Value::new(Type::new_array(self.r#type.to_owned(), length))),
+        ))
+    }
+
+    pub fn push(&mut self, r#type: Type) -> Result<(), Error> {
+        if self.size == 0 {
+            self.r#type = r#type;
+        } else if r#type != self.r#type {
+            return Err(Error::PushingInvalidType(
+                r#type.to_string(),
+                self.r#type.to_string(),
+            ));
+        }
+        self.size += 1;
+
+        Ok(())
     }
 
     pub fn extend(&mut self, r#type: Type, count: usize) -> Result<(), Error> {
         if self.size == 0 {
             self.r#type = r#type;
         } else if r#type != self.r#type {
-            return Err(Error::InvalidType(
+            return Err(Error::PushingInvalidType(
                 r#type.to_string(),
                 self.r#type.to_string(),
             ));
