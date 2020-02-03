@@ -886,7 +886,7 @@ where
 
         let mut new_array = Vec::from(array);
 
-        let value = match index.value {
+        match index.value {
             None => unimplemented!("Variable indices are not supported"),
             Some(f) => {
                 let bi = fr_to_bigint(&f);
