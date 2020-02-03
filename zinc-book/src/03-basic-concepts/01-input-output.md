@@ -1,9 +1,24 @@
 # Input and output
 
-The arguments of the `main` function are the secret witness data, and the result
-of the function is the public data. The prover must provide secret witness data
-in order to generate proofs. The verifier must provide the same public input to
-verify the satisfiability of the proof.
+In terms of zero-knowledge circuits, the information that we are trying to prove
+valid is called **public input**. And the secret piece of information that may
+be known only by prover is called **witness**.
+
+In the Zinc framework, the program's **result** becomes **public input**.
+That means that whatever the `main` function returns should be known by verifier.
+All other runtime values including **arguments** represent circuit's **witness**.
+
+So when verifier checks the program's **result** and the **proof**
+it is safe to state that:
+
+> There is some set of **arguments** known to **prover**, which,
+> being provided into **program** yields the same **output**.
+
+
+The prover must provide program's arguments to generate the result and proof.
+
+Verifier will use the proof to check that the result has been obtained by
+executing the program.
 
 The following example illustrates a circuit proving knowledge of some
 `sha256` hash preimage:

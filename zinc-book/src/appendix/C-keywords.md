@@ -4,10 +4,15 @@
 ```rust,no_run,noplaypen
 let
 mut
+const
+static
 type
 struct
 enum
 fn
+use
+mod
+impl
 ```
 
 #### Controls
@@ -43,4 +48,6 @@ as
 ```rust,no_run,noplaypen
 pub
 ref
+extern
+return
 ```

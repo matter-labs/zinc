@@ -7,7 +7,7 @@ Most of the functions described here are special, as they accept arrays of
 arbitrary size. Since there are only fixed-size arrays in Zinc now, it would
 be challenging to create a function for arrays of every possible size. It is
 not possible to write such a function yourself using the language type
-system, but `std` makes an exception to simpilify development for now.
+system, but `std` makes an exception to simplify development for now.
 
 ## Definitions
 
@@ -16,7 +16,7 @@ system, but `std` makes an exception to simpilify development for now.
 - `i{N}` - a signed integer of bitlength `N`
 - `field` - a field element of bitlength `254`
 
-## Crypto module
+## `crypto` module
 
 ### `std::crypto::sha256`
 
@@ -38,7 +38,7 @@ Arguments:
 
 Returns: elliptic curve point coordinates `(field, field)`
 
-## Convert module
+## `convert` module
 
 ### `std::convert::to_bits`
 
@@ -76,7 +76,7 @@ Arguments:
 
 Returns: `field`
 
-## Array module
+## `array` module
 
 ### `std::array::reverse`
 

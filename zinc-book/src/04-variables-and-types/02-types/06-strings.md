@@ -1,9 +1,4 @@
-# Other types
-
-Other types do not belong to any type class but provide some features which
-may be changed in the future. One such type is the string.
-
-## String
+# Strings
 
 For now, strings have very limited implementation and usability.
 

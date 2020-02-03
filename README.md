@@ -21,8 +21,8 @@ zargo build
 
 # fill the input template JSON usually located at ./build/input.json with values
 
-# execute the circuit to check it without input data
-zargo exec
+# runs the circuit to check it without input data
+zargo run
 
 # generate the prover parameters
 zargo setup
@@ -84,7 +84,7 @@ zargo verify
 
 - [ ] `Result<>`, ? operator
 - [ ] simple references (more like aliases)
-- [ ] move()/copy()
+- [ ] move() / copy()
 
 ### Later
 

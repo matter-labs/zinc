@@ -1,32 +1,20 @@
 # First circuit
 
-## Cargo installation
-
-To install Zinc into your system, you must first install the Rust package manager `cargo`.
-
-On Linux or Mac OS, this simple command will work:
-
-`curl https://sh.rustup.rs -sSf | sh`
-
-If you are using Windows, download the [installer](https://win.rustup.rs/).
-
-For more information on `cargo` and its installation, see
-[the Cargo book](https://doc.rust-lang.org/cargo/getting-started/installation.html).
-
 ## Zinc installation
 
-Once you have `cargo` installed into your system, you can download the Zinc
-binaries from its repository:
+To use the Zinc framework, do the following:
 
-`cargo install zinc`
+1. Download its [binaries](https://google.com) for your OS and architecture.
+2. Add the folder with the binaries to `PATH`
+3. Use the binaries via your favorite terminal
 
-This command will install the following binaries into your `PATH`:
+The Zinc framework consists of three tools:
 
 - `zargo` circuit manager
 - `znc` Zinc compiler
 - `zinc` Zinc virtual machine
 
-`zargo` is able to use the compiler and virtual machine through its interface,
+`zargo` can use the compiler and virtual machine through its interface,
 so you will only need `zargo` to work with your circuits.
 
 For more information on `zargo`, check out this [chapter](../09-zargo-circuit-manager/00-overview.md).
@@ -63,7 +51,7 @@ Now, you need to compile the circuit into Zinc bytecode:
 `zargo build`
 
 The command above will write the bytecode to the `build` directory located in
-the project root. There are also `witness.json` file in the
+the project root. There is also a file called `witness.json` in the
 `build` directory, which is used to provide the secret witness data to the circuit.
 
 ## Trusted setup
@@ -89,7 +77,8 @@ the following command:
 zargo prove > proof.txt
 ```
 
-This will also write program's output to `build/pubdata.json` which is later used by verifier.
+This will also write the program's output to `build/pubdata.json` which is later
+used by the verifier.
 
 ## Verifying a proof
 

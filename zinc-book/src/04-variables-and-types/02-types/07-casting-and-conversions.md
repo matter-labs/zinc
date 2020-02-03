@@ -8,8 +8,8 @@ types in places where they are highly obvious.
 ## Explicit
 
 Type conversions can be only performed on the integer and enumeration types with
-the casting operator. [Chapter 6](../../06-operators/00-overview.md) explains
-the operator behavior in detail.
+the casting operator. [This chapter](../../05-operators/04-casting.md) explains
+the operator's behavior in detail.
 
 ## Implicit
 
@@ -21,8 +21,8 @@ let a: field = 42 as u32;
 ```
 
 1. `42` is inferred as a value of type `u8`.
-2. `42` is casted from `u8` to `u32`.
-3. The expression `42 as u32` result is casted to `field`.
+2. `42` is cast from `u8` to `u32`.
+3. The expression `42 as u32` result is cast to `field`.
 4. The field value is assigned to the variable `a`.
 
 The second case of implicit casting is the negation operator, which always
@@ -34,7 +34,7 @@ let positive = 100; // u8
 let negative = -positive; // i8
 ```
 
-[Chapter 6](../../06-operators/00-overview.md) describes the negation operator
+[This chapter](../../05-operators/01-arithmetic.md) describes the negation operator
 with more detail.
 
 ## Inference
@@ -43,7 +43,7 @@ For now, Zinc infers types in two cases: integer literals and `let` bindings.
 
 Integer literals are always inferred as values of the minimal possible size.
 That is, `255` is a `u8` value, whereas `256` is a `u16` value. Signed integers
-must be implicitly casted using the negation operator.
+must be implicitly cast using the negation operator.
 
 The `let` statement can infer types in case its type is not specified.
 
