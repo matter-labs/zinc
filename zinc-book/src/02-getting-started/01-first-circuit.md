@@ -1,26 +1,14 @@
 # First circuit
 
-## Cargo installation
-
-To install Zinc into your system, you must first install the Rust package manager `cargo`.
-
-On Linux or Mac OS, this simple command will work:
-
-`curl https://sh.rustup.rs -sSf | sh`
-
-If you are using Windows, download the [installer](https://win.rustup.rs/).
-
-For more information on `cargo` and its installation, see
-[the Cargo book](https://doc.rust-lang.org/cargo/getting-started/installation.html).
-
 ## Zinc installation
 
-Once you have `cargo` installed into your system, you can download the Zinc
-binaries from its repository:
+To use the Zinc framework, do the following:
 
-`cargo install zinc`
+1. Download its [binaries](https://google.com) for your OS and architecture.
+2. Add the folder with the binaries to `PATH`
+3. Use the binaries via your favorite terminal
 
-This command will install the following binaries into your `PATH`:
+The Zinc framework consists of three tools:
 
 - `zargo` circuit manager
 - `znc` Zinc compiler

@@ -24,6 +24,7 @@ fn main(preimage: [bool; 256]) -> ([bool; 256], (field, field)) {
 }
 ```
 
+
 ## Built-in functions
 
 There are several built-in functions, which can be called directly from
