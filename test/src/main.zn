@@ -11,9 +11,9 @@ struct PublicInput {
 }
 
 fn main(
-    address: [bool; 1],
+    address: [bool; 10],
     balance: field,
-    merkle_path: [lib::Digest; 1]
+    merkle_path: [lib::Digest; 10]
 ) -> PublicInput {
     let leaf_hash = lib::balance_hash(balance);
 
