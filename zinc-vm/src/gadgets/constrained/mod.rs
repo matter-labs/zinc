@@ -857,9 +857,7 @@ where
         array: &[Primitive<E>],
         index: Primitive<E>,
     ) -> Result<Primitive<E>, RuntimeError> {
-        // TODO: This is very unsafe.
-        // TODO: This is very unsafe.
-        // TODO: This is very unsafe.
+        // TODO: Enable linear scan
 
         match index.value {
             None => unimplemented!("Variable indices are not supported"),
@@ -884,9 +882,7 @@ where
         index: Primitive<E>,
         value: Primitive<E>,
     ) -> Result<Vec<Primitive<E>>, RuntimeError> {
-        // TODO: This is very unsafe.
-        // TODO: This is very unsafe.
-        // TODO: This is very unsafe.
+        // TODO: Enable linear scan
 
         let mut new_array = Vec::from(array);
 
