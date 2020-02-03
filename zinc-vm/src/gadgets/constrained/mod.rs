@@ -11,8 +11,8 @@ use num_bigint::{BigInt, ToBigInt};
 use crate::core::RuntimeError;
 use crate::gadgets::utils::fr_to_bigint;
 use crate::gadgets::{utils, Gadget, Primitive, ScalarType};
-use std::mem;
 use num_traits::ToPrimitive;
+use std::mem;
 
 impl<E: Engine> Debug for Primitive<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
@@ -278,7 +278,10 @@ where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    pub fn variable_none(&mut self, data_type: Option<ScalarType>) -> Result<Primitive<E>, RuntimeError> {
+    pub fn variable_none(
+        &mut self,
+        data_type: Option<ScalarType>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let variable = cs
@@ -296,7 +299,11 @@ where
         }
     }
 
-    pub fn variable_bigint(&mut self, value: &BigInt, data_type: Option<ScalarType>) -> Result<Primitive<E>, RuntimeError> {
+    pub fn variable_bigint(
+        &mut self,
+        value: &BigInt,
+        data_type: Option<ScalarType>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let value = utils::bigint_to_fr::<E>(value)
             .ok_or_else(|| RuntimeError::InternalError("bigint_to_fr".into()))?;
 
@@ -865,15 +872,15 @@ where
                 let bi = fr_to_bigint(&f);
                 let i = bi.to_usize().ok_or(RuntimeError::IndexOutOfBounds)?;
                 if i >= array.len() {
-                    return Err(RuntimeError::IndexOutOfBounds)
+                    return Err(RuntimeError::IndexOutOfBounds);
                 }
                 Ok(array[i].clone())
-            },
+            }
         }
 
-//        let bits = self.bits(index, array.len())?;
-//
-//        self.recursive_select(array, bits.as_slice())
+        //        let bits = self.bits(index, array.len())?;
+        //
+        //        self.recursive_select(array, bits.as_slice())
     }
 
     pub fn array_set(
@@ -892,25 +899,25 @@ where
                 let bi = fr_to_bigint(&f);
                 let i = bi.to_usize().ok_or(RuntimeError::IndexOutOfBounds)?;
                 if i >= array.len() {
-                    return Err(RuntimeError::IndexOutOfBounds)
+                    return Err(RuntimeError::IndexOutOfBounds);
                 }
                 new_array[i] = value;
-            },
+            }
         };
 
         Ok(new_array)
 
-//        let mut new_array = Vec::new();
-//
-//        for (i, p) in array.iter().enumerate() {
-//            let curr_index = self.constant_bigint(&i.into())?;
-//
-//            let cond = self.eq(curr_index, index.clone())?;
-//            let value = self.conditional_select(cond, value.clone(), p.clone())?;
-//            new_array.push(value);
-//        }
-//
-//        Ok(new_array)
+        //        let mut new_array = Vec::new();
+        //
+        //        for (i, p) in array.iter().enumerate() {
+        //            let curr_index = self.constant_bigint(&i.into())?;
+        //
+        //            let cond = self.eq(curr_index, index.clone())?;
+        //            let value = self.conditional_select(cond, value.clone(), p.clone())?;
+        //            new_array.push(value);
+        //        }
+        //
+        //        Ok(new_array)
     }
 
     pub fn execute<G: Gadget<E>>(

@@ -10,9 +10,9 @@ use crate::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use num_bigint::{BigInt, ToBigInt};
 use std::marker::PhantomData;
+use zinc_bytecode::data::types::{DataType, PrimitiveType};
 use zinc_bytecode::program::Program;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
-use zinc_bytecode::data::types::{DataType, PrimitiveType};
 
 pub trait VMInstruction<E, CS>: InstructionInfo
 where
@@ -186,38 +186,34 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
 fn data_type_into_scalar_types(dtype: &DataType) -> Vec<Option<ScalarType>> {
     fn internal(types: &mut Vec<Option<ScalarType>>, dtype: &DataType) {
         match dtype {
-            DataType::Unit => {},
-            DataType::Primitive(t) => {
-                match t {
-                    PrimitiveType::Field => {
-                        types.push(None);
-                    },
-                    PrimitiveType::Integer(int) => {
-                        types.push(Some(ScalarType {
-                            signed: int.is_signed,
-                            length: int.bit_length,
-                        }))
-                    },
+            DataType::Unit => {}
+            DataType::Primitive(t) => match t {
+                PrimitiveType::Field => {
+                    types.push(None);
                 }
+                PrimitiveType::Integer(int) => types.push(Some(ScalarType {
+                    signed: int.is_signed,
+                    length: int.bit_length,
+                })),
             },
             DataType::Enum => {
                 types.push(None);
-            },
+            }
             DataType::Struct(fields) => {
                 for (_, t) in fields {
                     internal(types, t);
                 }
-            },
+            }
             DataType::Tuple(fields) => {
                 for t in fields {
                     internal(types, t);
                 }
-            },
+            }
             DataType::Array(t, size) => {
                 for _ in 0..*size {
                     internal(types, t.as_ref());
                 }
-            },
+            }
         }
     }
 

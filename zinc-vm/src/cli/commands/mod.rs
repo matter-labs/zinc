@@ -15,7 +15,8 @@ pub struct Arguments {
     #[structopt(
         short = "v",
         parse(from_occurrences),
-        help = "Shows verbose logs, use multiple times for more verbosity")]
+        help = "Shows verbose logs, use multiple times for more verbosity"
+    )]
     pub verbose: usize,
 
     #[structopt(subcommand)]

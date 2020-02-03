@@ -56,7 +56,7 @@ fn main() -> Result<(), Error> {
             0 => LevelFilter::Warn,
             1 => LevelFilter::Info,
             2 => LevelFilter::Debug,
-            _ => LevelFilter::Trace
+            _ => LevelFilter::Trace,
         })
         .init();
 
