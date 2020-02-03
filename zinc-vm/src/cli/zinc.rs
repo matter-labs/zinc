@@ -52,10 +52,11 @@ fn main() -> Result<(), Error> {
 
     env_logger::Builder::from_default_env()
         .format_timestamp(None)
-        .filter_level(if args.verbose {
-            LevelFilter::Info
-        } else {
-            LevelFilter::Warn
+        .filter_level(match args.verbose {
+            0 => LevelFilter::Warn,
+            1 => LevelFilter::Info,
+            2 => LevelFilter::Debug,
+            _ => LevelFilter::Trace
         })
         .init();
 

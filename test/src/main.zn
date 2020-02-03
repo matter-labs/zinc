@@ -7,13 +7,15 @@ mod lib;
 use std::crypto;
 
 struct PublicInput {
+    address: [bool; 10],
+    balance: field,
     root_hash: lib::Digest,
 }
 
 fn main(
-    address: [bool; 1],
+    address: [bool; 10],
     balance: field,
-    merkle_path: [lib::Digest; 1]
+    merkle_path: [lib::Digest; 10]
 ) -> PublicInput {
     let leaf_hash = lib::balance_hash(balance);
 
@@ -24,6 +26,8 @@ fn main(
     );
 
     struct PublicInput {
+        address: address,
+        balance: balance,
         root_hash: root_hash,
     }
 }

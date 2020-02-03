@@ -16,8 +16,12 @@ pub struct Command {
     #[structopt(short = "q", long = "quiet", help = "No output printed to stdout")]
     quiet: bool,
 
-    #[structopt(short = "v", long = "verbose", help = "Use verbose output")]
-    verbose: bool,
+    #[structopt(
+        short = "v",
+        parse(from_occurrences),
+        help = "Shows verbose logs, use multiple times for more verbosity")
+    ]
+    pub verbose: usize,
 
     #[structopt(
         long = "circuit",
@@ -55,6 +59,7 @@ impl Command {
     pub fn execute(self) -> Result<(), Error> {
         let mut virtual_machine_process =
             process::Command::new(crate::constants::ZINC_VIRTUAL_MACHINE_BINARY_NAME)
+                .args(vec!["-v"; self.verbose])
                 .arg("setup")
                 .arg("--circuit")
                 .arg(self.circuit)

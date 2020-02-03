@@ -12,8 +12,11 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "zinc", about = "Zinc Virtual Machine")]
 pub struct Arguments {
-    #[structopt(short = "v", long = "verbose", about = "Shows verbose logs")]
-    pub verbose: bool,
+    #[structopt(
+        short = "v",
+        parse(from_occurrences),
+        help = "Shows verbose logs, use multiple times for more verbosity")]
+    pub verbose: usize,
 
     #[structopt(subcommand)]
     pub command: Command,
