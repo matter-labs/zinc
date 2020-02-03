@@ -7,6 +7,8 @@ mod lib;
 use std::crypto;
 
 struct PublicInput {
+    address: [bool; 10],
+    balance: field,
     root_hash: lib::Digest,
 }
 
@@ -24,6 +26,8 @@ fn main(
     );
 
     struct PublicInput {
+        address: address,
+        balance: balance,
         root_hash: root_hash,
     }
 }
