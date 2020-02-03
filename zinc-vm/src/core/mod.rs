@@ -71,10 +71,11 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         &mut self.cs.cs
     }
 
-    pub fn run(
+    pub fn run<CB: FnMut(&CS) -> ()>(
         &mut self,
         program: &Program,
         inputs: Option<&[BigInt]>,
+        mut instruction_callback: CB,
     ) -> Result<Vec<Option<BigInt>>, RuntimeError> {
         let one = self
             .operations()
@@ -96,7 +97,8 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             );
             self.state.instruction_counter += 1;
             dispatch_instruction!(instruction => instruction.execute(self))?;
-            log::info!("{}", self.state_to_string());
+            log::trace!("{}", self.state_to_string());
+            instruction_callback(&self.cs.cs);
             self.cs.cs.pop_namespace();
             step += 1;
         }
