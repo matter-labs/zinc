@@ -1,25 +1,24 @@
-/*
-    The merkle tree root hash validator.
-*/
+//
+// The merkle tree root hash validator.
+//
 
-mod lib;
-
-use std::crypto;
+mod merkle; // defined a module
 
 struct PublicInput {
     address: [bool; 10],
     balance: field,
-    root_hash: lib::Digest,
+    root_hash: merkle::Sha256Digest,
 }
 
 fn main(
     address: [bool; 10],
     balance: field,
-    merkle_path: [lib::Digest; 10]
+    merkle_path: [merkle::Sha256Digest; 10]
 ) -> PublicInput {
-    let leaf_hash = lib::balance_hash(balance);
+    let leaf_hash = merkle::balance_hash(balance); // call a function from `merkle`
 
-    let root_hash = lib::restore_root_hash(
+    // call a function from `merkle`
+    let root_hash = merkle::restore_root_hash(
         leaf_hash,
         address,
         merkle_path,
