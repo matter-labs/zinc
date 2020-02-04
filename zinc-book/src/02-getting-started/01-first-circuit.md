@@ -37,7 +37,7 @@ folder with an entry point module `main.zn`.
 Let's replace the `main.zn` contents with the following code:
 
 ```rust,no_run,noplaypen
-use std::sha256;
+use std::crypto::sha256;
 
 fn main(preimage: [bool; 256]) -> [bool; 256] {
     sha256(preimage)
@@ -77,7 +77,7 @@ the following command:
 zargo prove > proof.txt
 ```
 
-This will also write the program's output to `build/pubdata.json` which is later
+This will also write the program's output to `build/public-data.json` which is later
 used by the verifier.
 
 ## Verifying a proof
