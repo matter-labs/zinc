@@ -1,12 +1,15 @@
 mod internal;
+pub mod location;
 mod state;
 
 pub use crate::errors::RuntimeError;
 pub use internal::*;
 pub use state::*;
 
+use crate::core::location::CodeLocation;
 use crate::gadgets::{Gadgets, Primitive, ScalarType};
 use crate::Engine;
+use colored::Colorize;
 use franklin_crypto::bellman::ConstraintSystem;
 use num_bigint::{BigInt, ToBigInt};
 use std::marker::PhantomData;
@@ -49,6 +52,7 @@ pub struct VirtualMachine<E: Engine, CS: ConstraintSystem<E>> {
     state: State<E>,
     cs: CounterNamespace<E, CS>,
     outputs: Vec<Primitive<E>>,
+    pub(crate) location: CodeLocation,
 }
 
 impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
@@ -64,6 +68,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             },
             cs: CounterNamespace::new(cs),
             outputs: vec![],
+            location: CodeLocation::new(),
         }
     }
 
@@ -96,7 +101,17 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
                 dispatch_instruction!(instruction => instruction.to_assembly())
             );
             self.state.instruction_counter += 1;
-            dispatch_instruction!(instruction => instruction.execute(self))?;
+            let result = dispatch_instruction!(instruction => instruction.execute(self));
+            if let Err(err) = result {
+                println!(
+                    "{} {:?}\n\tat {}",
+                    "Error".bold().red(),
+                    err,
+                    self.location.to_string().blue()
+                );
+                return Err(err);
+            }
+
             log::trace!("{}", self.state_to_string());
             instruction_callback(&self.cs.cs);
             self.cs.cs.pop_namespace();
