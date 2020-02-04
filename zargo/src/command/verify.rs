@@ -13,14 +13,12 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Verifies the zero-knowledge proof")]
 pub struct Command {
-    //    #[structopt(short = "q", long = "quiet", help = "No output printed to stdout")]
-    //    quiet: bool,
     #[structopt(
         short = "v",
         parse(from_occurrences),
         help = "Shows verbose logs, use multiple times for more verbosity"
     )]
-    pub verbose: usize,
+    verbose: usize,
 
     #[structopt(
         short = "k",
