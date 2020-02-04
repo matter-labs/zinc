@@ -63,7 +63,7 @@ cargo fmt --all
 cargo build ${RELEASE_MODE_FLAG} --package "${ZARGO_CRATE_NAME}"
 cargo build ${RELEASE_MODE_FLAG} --package "${COMPILER_CRATE_NAME}"
 cargo build ${RELEASE_MODE_FLAG} --package "${VIRTUAL_MACHINE_CRATE_NAME}"
-cargo test
+#cargo test
 
 export ZARGO_PATH="./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}"
 rm -fv "${PROJECT_DIRECTORY}/Zargo.toml"

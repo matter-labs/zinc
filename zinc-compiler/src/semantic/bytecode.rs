@@ -176,11 +176,11 @@ impl Bytecode {
     }
 
     pub fn start_new_function(&mut self, identifier: &str) {
+        self.function_addresses
+            .insert(identifier.to_owned(), self.instructions.len());
         self.instructions.push(Instruction::FunctionMarker(
             zinc_bytecode::FunctionMarker::new(identifier.to_owned()),
         ));
-        self.function_addresses
-            .insert(identifier.to_owned(), self.instructions.len());
         self.data_stack_pointer = 0;
     }
 
@@ -254,7 +254,7 @@ impl Into<Vec<Instruction>> for Bytecode {
 impl Into<Vec<u8>> for Bytecode {
     fn into(self) -> Vec<u8> {
         for (index, instruction) in self.instructions.iter().enumerate() {
-            log::trace!("{:03} {:?}", index + 1, instruction)
+            log::trace!("{:03} {:?}", index, instruction)
         }
 
         let program = Program::new(

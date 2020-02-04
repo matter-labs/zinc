@@ -34,11 +34,14 @@ pub fn run<E: Engine>(program: &Program, inputs: &[BigInt]) -> Result<Vec<BigInt
     let mut vm = VirtualMachine::new(cs, true);
 
     let mut num_constraints = 0;
-    let result = vm.run(program, Some(inputs), |cs| {
-        let num = cs.constraints.len() - num_constraints;
-        num_constraints += num;
-        log::debug!("Constraints: {}", num);
-    },
+    let result = vm.run(
+        program,
+        Some(inputs),
+        |cs| {
+            let num = cs.constraints.len() - num_constraints;
+            num_constraints += num;
+            log::debug!("Constraints: {}", num);
+        },
         |cs| {
             if !cs.is_satisfied() {
                 log::error!("Unsatisfied: {:?}", cs.which_is_unsatisfied());
@@ -54,7 +57,8 @@ pub fn run<E: Engine>(program: &Program, inputs: &[BigInt]) -> Result<Vec<BigInt
             }
 
             Ok(())
-        })?;
+        },
+    )?;
 
     let cs = vm.constraint_system();
     if !cs.is_satisfied() {

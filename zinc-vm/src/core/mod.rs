@@ -81,11 +81,11 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         program: &Program,
         inputs: Option<&[BigInt]>,
         mut instruction_callback: CB,
-        mut check_cs: F
+        mut check_cs: F,
     ) -> Result<Vec<Option<BigInt>>, RuntimeError>
     where
         CB: FnMut(&CS) -> (),
-        F: FnMut(&CS) -> Result<(), RuntimeError>
+        F: FnMut(&CS) -> Result<(), RuntimeError>,
     {
         let one = self
             .operations()
