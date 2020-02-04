@@ -845,7 +845,6 @@ impl Analyzer {
                         }
                     }
                     StandardLibraryFunctionType::ArrayPad(function) => {
-                        dbg!(&argument_elements[1]);
                         match argument_elements.get(1) {
                             Some(Element::Constant(Constant::Integer(
                                 integer @ IntegerConstant { .. },
