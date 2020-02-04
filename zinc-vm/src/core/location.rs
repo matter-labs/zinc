@@ -14,7 +14,7 @@ impl CodeLocation {
             file: None,
             function: None,
             line: None,
-            column: None
+            column: None,
         }
     }
 }
@@ -34,13 +34,17 @@ impl fmt::Display for CodeLocation {
         write!(f, ":{}", line);
 
         match self.column {
-            Some(column) => { write!(f, ":{}", column); },
-            None => {},
+            Some(column) => {
+                write!(f, ":{}", column);
+            }
+            None => {}
         };
 
         match &self.function {
-            Some(function) => { write!(f, " (at {})", function); },
-            None => {},
+            Some(function) => {
+                write!(f, " (at {})", function);
+            }
+            None => {}
         };
 
         Ok(())

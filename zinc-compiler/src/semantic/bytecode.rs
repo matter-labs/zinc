@@ -26,7 +26,7 @@ pub struct Bytecode {
     address_stack: Vec<usize>,
 
     current_file: String,
-    current_line: usize,
+    current_location: Location,
 }
 
 impl Bytecode {
@@ -52,7 +52,7 @@ impl Bytecode {
             address_stack,
 
             current_file: String::new(),
-            current_line: 0,
+            current_location: Location::default(),
         }
     }
 
@@ -78,12 +78,19 @@ impl Bytecode {
     }
 
     pub fn push_instruction(&mut self, instruction: Instruction, location: Location) {
-        if location.line > self.current_line {
-            self.current_line = location.line;
-            self.instructions
-                .push(Instruction::LineMarker(zinc_bytecode::LineMarker::new(
-                    self.current_line,
-                )));
+        if self.current_location != location {
+            if self.current_location.line != location.line {
+                self.instructions
+                    .push(Instruction::LineMarker(zinc_bytecode::LineMarker::new(
+                        location.line,
+                    )));
+            }
+            if self.current_location.column != location.column {
+                self.instructions.push(Instruction::ColumnMarker(
+                    zinc_bytecode::ColumnMarker::new(location.column),
+                ));
+            }
+            self.current_location = location;
         }
         self.instructions.push(instruction)
     }

@@ -14,7 +14,7 @@ where
             file: Some(self.file.clone()),
             function: None,
             line: None,
-            column: None
+            column: None,
         };
 
         Ok(())

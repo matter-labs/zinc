@@ -137,7 +137,9 @@ fn main_inner() -> Result<(), Error> {
         }
 
         let module_name = source_file_stem.to_string_lossy().to_string();
-        bytecode.borrow_mut().start_new_file(&module_name);
+        bytecode
+            .borrow_mut()
+            .start_new_file(&format!("src/{}.zn", module_name));
         let module = LibraryAnalyzer::new(bytecode.clone())
             .compile(path_to_syntax_tree(source_file_path)?)
             .map_err(Error::Compiler)?;
@@ -145,7 +147,7 @@ fn main_inner() -> Result<(), Error> {
         modules.insert(module_name, module);
     }
 
-    bytecode.borrow_mut().start_new_file("main");
+    bytecode.borrow_mut().start_new_file("src/main.zn");
     match binary_path.take() {
         Some(binary_path) => BinaryAnalyzer::new(bytecode.clone())
             .compile(path_to_syntax_tree(binary_path)?, modules)
