@@ -48,14 +48,6 @@ pub fn run<E: Engine>(program: &Program, inputs: &[BigInt]) -> Result<Vec<BigInt
                 return Err(RuntimeError::UnsatisfiedConstraint);
             }
 
-            let unconstrained = cs.find_unconstrained();
-            if !unconstrained.is_empty() {
-                log::error!("Unconstrained: {}", unconstrained);
-                return Err(RuntimeError::InternalError(
-                    "Generated unconstrained variables".into(),
-                ));
-            }
-
             Ok(())
         },
     )?;
