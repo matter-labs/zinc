@@ -1,10 +1,12 @@
 pub mod utils;
 
 mod builtins;
+mod debug;
 mod flow;
 mod memory;
 
 pub use builtins::*;
+pub use debug::*;
 pub use flow::*;
 pub use memory::*;
 
