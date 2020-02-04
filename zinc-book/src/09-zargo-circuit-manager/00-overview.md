@@ -28,9 +28,9 @@ Builds the circuit. The build consists of:
 
 Removes the build directory.
 
-### `exec`
+### `run`
 
-Executes the circuit on the Zinc VM, writes the circuit result to a JSON file.
+Runs the circuit on the Zinc VM, writes the circuit result to a JSON file.
 
 ### `setup`
 
@@ -58,13 +58,13 @@ cd zircuit/
 # build the circuit
 zargo build
 
-# fill the input template JSON usually located at ./build/input.json with values
-
-# execute the circuit and write the result to a JSON file
-zargo exec
+# run the circuit and print the result
+zargo run
 
 # generate the prover parameters
 zargo setup
+
+# edit the 'build/witness.json' and 'build/public-data.json' files
 
 # generate the proof
 zargo prove
@@ -75,7 +75,7 @@ zargo verify
 
 ## Manifest file
 
-Every Zinc circuit is described with a manifest file `Zargo.toml` with the
+A Zinc circuit is described with the manifest file `Zargo.toml` with the
 following structure:
 
 ```toml
