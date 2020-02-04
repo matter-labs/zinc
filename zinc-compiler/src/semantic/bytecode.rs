@@ -169,15 +169,15 @@ impl Bytecode {
     }
 
     pub fn start_new_file(&mut self, name: &str) {
-        self.instructions.push(Instruction::FileMarker(
-            zinc_bytecode::instructions::FileMarker::new(name.to_owned()),
-        ));
         self.current_file = name.to_owned();
     }
 
     pub fn start_new_function(&mut self, identifier: &str) {
         self.function_addresses
             .insert(identifier.to_owned(), self.instructions.len());
+        self.instructions.push(Instruction::FileMarker(
+            zinc_bytecode::instructions::FileMarker::new(self.current_file.clone()),
+        ));
         self.instructions.push(Instruction::FunctionMarker(
             zinc_bytecode::FunctionMarker::new(identifier.to_owned()),
         ));
