@@ -46,7 +46,7 @@ export VIRTUAL_MACHINE_CRATE_NAME='zinc-vm'
 export VIRTUAL_MACHINE_CRATE_NAME_LOG='zinc_vm'
 export VIRTUAL_MACHINE_BINARY_NAME='zinc'
 
-export PROJECT_DIRECTORY='./test/'
+export PROJECT_DIRECTORY='./error-location/'
 export PROJECT_BUILD_DIRECTORY="${PROJECT_DIRECTORY}/build/"
 
 export RUST_LOG="
