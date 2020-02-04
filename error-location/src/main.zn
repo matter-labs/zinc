@@ -1,7 +1,0 @@
-//!
-//! The 'error-location' main module.
-//!
-
-fn main(a: u8, b: u8) -> u8 {
-    a + b - 2
-}
