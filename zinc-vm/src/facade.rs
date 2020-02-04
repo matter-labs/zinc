@@ -4,7 +4,6 @@ use bellman::groth16;
 use bellman::pairing::bn256::Bn256;
 use franklin_crypto::bellman::groth16::{Parameters, Proof, VerifyingKey};
 use franklin_crypto::bellman::{Circuit, ConstraintSystem, SynthesisError};
-use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::BigInt;
 use rand::ThreadRng;
 
@@ -14,6 +13,7 @@ use crate::core::VirtualMachine;
 pub use crate::errors::RuntimeError;
 use crate::gadgets::utils::bigint_to_fr;
 use crate::Engine;
+use crate::debug_constraint_system::DebugConstraintSystem;
 
 struct VMCircuit<'a> {
     program: &'a Program,
@@ -30,7 +30,7 @@ impl<E: Engine> Circuit<E> for VMCircuit<'_> {
 }
 
 pub fn run<E: Engine>(program: &Program, inputs: &[BigInt]) -> Result<Vec<BigInt>, RuntimeError> {
-    let cs = TestConstraintSystem::<Bn256>::new();
+    let cs = DebugConstraintSystem::<Bn256>::default();
     let mut vm = VirtualMachine::new(cs, true);
 
     let mut num_constraints = 0;
@@ -38,13 +38,12 @@ pub fn run<E: Engine>(program: &Program, inputs: &[BigInt]) -> Result<Vec<BigInt
         program,
         Some(inputs),
         |cs| {
-            let num = cs.constraints.len() - num_constraints;
+            let num = cs.num_constraints() - num_constraints;
             num_constraints += num;
             log::debug!("Constraints: {}", num);
         },
         |cs| {
             if !cs.is_satisfied() {
-                log::error!("Unsatisfied: {:?}", cs.which_is_unsatisfied());
                 return Err(RuntimeError::UnsatisfiedConstraint);
             }
 
@@ -54,19 +53,16 @@ pub fn run<E: Engine>(program: &Program, inputs: &[BigInt]) -> Result<Vec<BigInt
 
     let cs = vm.constraint_system();
     if !cs.is_satisfied() {
-        log::error!("Unsatisfied: {:?}", cs.which_is_unsatisfied());
-        return Err(RuntimeError::InternalError(
-            "Generated unsatisfied constraint system".into(),
-        ));
+        return Err(RuntimeError::UnsatisfiedConstraint);
     }
 
-    let unconstrained = cs.find_unconstrained();
-    if !unconstrained.is_empty() {
-        log::error!("Unconstrained: {}", unconstrained);
-        return Err(RuntimeError::InternalError(
-            "Generated unconstrained variables".into(),
-        ));
-    }
+//    let unconstrained = cs.find_unconstrained();
+//    if !unconstrained.is_empty() {
+//        log::error!("Unconstrained: {}", unconstrained);
+//        return Err(RuntimeError::InternalError(
+//            "Generated unconstrained variables".into(),
+//        ));
+//    }
 
     // TODO: Remove unwrap
     Ok(result.into_iter().map(|v| v.unwrap()).collect())
