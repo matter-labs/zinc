@@ -2,24 +2,23 @@ use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
-pub struct LocationMarker {
-    pub file: String,
-    pub line: usize,
+pub struct FunctionMarker {
+    pub function: String,
 }
 
-impl LocationMarker {
-    pub fn new(file: String, line: usize) -> Self {
-        Self { file, line }
+impl FunctionMarker {
+    pub fn new(function: String) -> Self {
+        Self { function }
     }
 }
 
-impl InstructionInfo for LocationMarker {
+impl InstructionInfo for FunctionMarker {
     fn to_assembly(&self) -> String {
-        format!("location {}:{}", self.file, self.line)
+        format!("marker: function = \"{}\"", self.function)
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::LocationMarker
+        InstructionCode::FunctionMarker
     }
 
     fn encode(&self) -> Vec<u8> {
@@ -39,6 +38,6 @@ impl InstructionInfo for LocationMarker {
     }
 
     fn wrap(&self) -> Instruction {
-        Instruction::LocationMarker((*self).clone())
+        Instruction::FunctionMarker((*self).clone())
     }
 }

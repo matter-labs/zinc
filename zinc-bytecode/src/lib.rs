@@ -9,7 +9,7 @@ pub use decode::*;
 pub use instructions::*;
 pub use program::*;
 
-use crate::instructions::LocationMarker;
+use crate::instructions::FileMarker;
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
 
@@ -112,7 +112,9 @@ pub enum InstructionCode {
 
     Exit,
 
-    LocationMarker,
+    FileMarker,
+    FunctionMarker,
+    LineMarker,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -197,7 +199,9 @@ pub enum Instruction {
 
     Exit(Exit),
 
-    LocationMarker(LocationMarker),
+    FileMarker(FileMarker),
+    FunctionMarker(FunctionMarker),
+    LineMarker(LineMarker),
 }
 
 /// Useful macro to avoid duplicating `match` constructions.
@@ -285,7 +289,9 @@ macro_rules! dispatch_instruction {
             Instruction::Log($pattern) => $expression,
 
             Instruction::Exit($pattern) => $expression,
-            Instruction::LocationMarker($pattern) => $expression,
+            Instruction::FileMarker($pattern) => $expression,
+            Instruction::FunctionMarker($pattern) => $expression,
+            Instruction::LineMarker($pattern) => $expression,
         }
     };
 }
