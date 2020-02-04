@@ -1,4 +1,5 @@
 mod core;
+pub mod debug_constraint_system;
 mod errors;
 mod gadgets;
 mod instructions;

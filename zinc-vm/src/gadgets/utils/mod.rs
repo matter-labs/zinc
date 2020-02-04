@@ -5,6 +5,7 @@ mod fr_bigint;
 pub use bigint::*;
 pub use fr_bigint::*;
 
+#[allow(dead_code)]
 pub fn tree_height(size: usize) -> usize {
     let mut height = 0;
     let mut n = size;

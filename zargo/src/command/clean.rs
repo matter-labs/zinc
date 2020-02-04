@@ -16,10 +16,13 @@ use crate::manifest::Manifest;
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Cleans up the circuit project")]
 pub struct Command {
-    #[structopt(short = "q", long = "quiet", help = "No output printed to stdout")]
-    quiet: bool,
-    #[structopt(short = "v", long = "verbose", help = "Use verbose output")]
-    verbose: bool,
+    #[structopt(
+        short = "v",
+        parse(from_occurrences),
+        help = "Shows verbose logs, use multiple times for more verbosity"
+    )]
+    verbose: usize,
+
     #[structopt(
         long = "manifest-path",
         help = "Path to Zargo.toml",
@@ -49,11 +52,11 @@ impl Command {
             project_path.pop();
         }
 
-        let manifest = Manifest::new(&self.manifest_path).map_err(|error| {
+        let _manifest = Manifest::new(&self.manifest_path).map_err(|error| {
             Error::ManifestFile(self.manifest_path.as_os_str().to_owned(), error)
         })?;
 
-        let mut build_directory_path = project_path.clone();
+        let mut build_directory_path = project_path;
         build_directory_path.push(crate::constants::CIRCUIT_BUILD_DIRECTORY);
         if build_directory_path.exists() {
             fs::remove_dir_all(&build_directory_path).map_err(|error| {
@@ -61,13 +64,6 @@ impl Command {
             })?;
         }
 
-        if !self.quiet {
-            log::info!(
-                "The '{}' circuit directory '{}' has been cleaned up",
-                manifest.circuit.name,
-                project_path.to_string_lossy()
-            );
-        }
         Ok(())
     }
 }

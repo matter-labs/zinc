@@ -4,7 +4,6 @@
 
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::env;
 use std::ffi::OsString;
 use std::fs::File;
 use std::io::Read;
@@ -14,6 +13,7 @@ use std::process;
 use std::rc::Rc;
 
 use failure::Fail;
+use log::LevelFilter;
 use structopt::StructOpt;
 
 use zinc_compiler::BinaryAnalyzer;
@@ -32,6 +32,12 @@ const EXIT_CODE_FAILURE: i32 = 1;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "znc", about = "The Zinc compiler")]
 struct Arguments {
+    #[structopt(
+        short = "v",
+        parse(from_occurrences),
+        help = "Shows verbose logs, use multiple times for more verbosity"
+    )]
+    verbose: usize,
     #[structopt(
         long = "input-json",
         parse(from_os_str),
@@ -96,9 +102,10 @@ enum OutputError {
 }
 
 fn main() {
-    init_logger();
+    let args: Arguments = Arguments::from_args();
+    init_logger(args.verbose);
 
-    process::exit(match main_inner() {
+    process::exit(match main_inner(args) {
         Ok(()) => EXIT_CODE_SUCCESS,
         Err(error) => {
             log::error!("{}", error);
@@ -107,9 +114,7 @@ fn main() {
     })
 }
 
-fn main_inner() -> Result<(), Error> {
-    let args: Arguments = Arguments::from_args();
-
+fn main_inner(args: Arguments) -> Result<(), Error> {
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));
 
     let mut modules = HashMap::<String, Rc<RefCell<Scope>>>::new();
@@ -137,6 +142,9 @@ fn main_inner() -> Result<(), Error> {
         }
 
         let module_name = source_file_stem.to_string_lossy().to_string();
+        bytecode
+            .borrow_mut()
+            .start_new_file(&format!("src/{}.zn", module_name));
         let module = LibraryAnalyzer::new(bytecode.clone())
             .compile(path_to_syntax_tree(source_file_path)?)
             .map_err(Error::Compiler)?;
@@ -144,6 +152,7 @@ fn main_inner() -> Result<(), Error> {
         modules.insert(module_name, module);
     }
 
+    bytecode.borrow_mut().start_new_file("src/main.zn");
     match binary_path.take() {
         Some(binary_path) => BinaryAnalyzer::new(bytecode.clone())
             .compile(path_to_syntax_tree(binary_path)?, modules)
@@ -201,11 +210,14 @@ fn path_to_syntax_tree(path: PathBuf) -> Result<SyntaxTree, Error> {
     Parser::default().parse(input).map_err(Error::Compiler)
 }
 
-fn init_logger() {
-    if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "info");
-    }
+fn init_logger(verbosity: usize) {
     env_logger::Builder::from_default_env()
         .format_timestamp(None)
+        .filter_level(match verbosity {
+            0 => LevelFilter::Warn,
+            1 => LevelFilter::Info,
+            2 => LevelFilter::Debug,
+            _ => LevelFilter::Trace,
+        })
         .init();
 }

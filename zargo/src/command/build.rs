@@ -19,10 +19,13 @@ use crate::manifest::Manifest;
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Builds the circuit at the given path")]
 pub struct Command {
-    #[structopt(short = "q", long = "quiet", help = "No output printed to stdout")]
-    quiet: bool,
-    #[structopt(short = "v", long = "verbose", help = "Use verbose output")]
-    verbose: bool,
+    #[structopt(
+        short = "v",
+        parse(from_occurrences),
+        help = "Shows verbose logs, use multiple times for more verbosity"
+    )]
+    verbose: usize,
+
     #[structopt(
         long = "manifest-path",
         help = "Path to Zargo.toml",
@@ -70,7 +73,7 @@ impl Command {
             project_path.pop();
         }
 
-        let manifest = Manifest::new(&self.manifest_path).map_err(|error| {
+        let _manifest = Manifest::new(&self.manifest_path).map_err(|error| {
             Error::ManifestFile(self.manifest_path.as_os_str().to_owned(), error)
         })?;
 
@@ -120,11 +123,12 @@ impl Command {
         build_output_template_path
             .push(crate::constants::CIRCUIT_RESULT_TEMPLATE_DEFAULT_FILE_NAME);
 
-        let mut build_binary_path = build_directory_path.clone();
+        let mut build_binary_path = build_directory_path;
         build_binary_path.push(crate::constants::CIRCUIT_BINARY_DEFAULT_FILE_NAME);
 
         let mut compiler_process =
             process::Command::new(crate::constants::ZINC_COMPILER_BINARY_NAME)
+                .args(vec!["-v"; self.verbose])
                 .arg("--input-json")
                 .arg(&build_input_template_path)
                 .arg("--output-json")
@@ -141,13 +145,6 @@ impl Command {
             return Err(Error::CompilerProcessFailure(compiler_process_status));
         }
 
-        if !self.quiet {
-            log::info!(
-                "The '{}' circuit has been built to '{}'",
-                manifest.circuit.name,
-                build_directory_path.to_string_lossy()
-            );
-        }
         Ok(())
     }
 }

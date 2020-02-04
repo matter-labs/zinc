@@ -17,15 +17,19 @@ use crate::templates;
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Creates a new circuit project directory")]
 pub struct Command {
-    #[structopt(short = "q", long = "quiet", help = "No output printed to stdout")]
-    quiet: bool,
-    #[structopt(short = "v", long = "verbose", help = "Use verbose output")]
-    verbose: bool,
+    #[structopt(
+        short = "v",
+        parse(from_occurrences),
+        help = "Shows verbose logs, use multiple times for more verbosity"
+    )]
+    verbose: usize,
+
     #[structopt(
         long = "name",
         help = "Set the outputing circuit name, defaults to the directory name"
     )]
     name: Option<String>,
+
     #[structopt(parse(from_os_str))]
     path: PathBuf,
 }
@@ -106,13 +110,11 @@ impl Command {
                 )
             })?;
 
-        if !self.quiet {
-            log::info!(
-                "An empty circuit '{}' has been created at '{}'",
-                circuit_name,
-                self.path.to_string_lossy()
-            );
-        }
+        log::info!(
+            "     Created circuit `{}` at {}",
+            circuit_name,
+            self.path.to_string_lossy()
+        );
         Ok(())
     }
 }
