@@ -109,7 +109,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             let result = dispatch_instruction!(instruction => instruction.execute(self));
             if let Err(err) = result.and(check_cs(&self.cs.cs)) {
                 let msg = if let RuntimeError::UnsatisfiedConstraint = err {
-                    String::from("invalid value (overflow, assertion, etc)")
+                    String::from("value overflow or constraint violation")
                 } else {
                     format!("{:?}", err)
                 };
