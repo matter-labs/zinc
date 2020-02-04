@@ -19,7 +19,7 @@ impl<E: Engine> Default for DebugConstraintSystem<E> {
             inputs: Vec::new(),
             witness: Vec::new(),
             satisfied: true,
-            constraints_num: 0
+            constraints_num: 0,
         };
 
         cs.inputs.push(E::Fr::one());
@@ -96,7 +96,8 @@ impl<E: Engine> ConstraintSystem<E> for DebugConstraintSystem<E> {
     where
         NR: Into<String>,
         N: FnOnce() -> NR,
-    {}
+    {
+    }
 
     fn pop_namespace(&mut self) {}
 
@@ -105,18 +106,13 @@ impl<E: Engine> ConstraintSystem<E> for DebugConstraintSystem<E> {
     }
 }
 
-fn eval_lc<E: Engine>(
-    terms: &[(Variable, E::Fr)],
-    inputs: &[E::Fr],
-    witness: &[E::Fr]
-) -> E::Fr
-{
+fn eval_lc<E: Engine>(terms: &[(Variable, E::Fr)], inputs: &[E::Fr], witness: &[E::Fr]) -> E::Fr {
     let mut acc = E::Fr::zero();
 
     for &(var, ref coeff) in terms {
         let mut tmp = match var.get_unchecked() {
             Index::Input(index) => inputs[index],
-            Index::Aux(index) => witness[index]
+            Index::Aux(index) => witness[index],
         };
 
         tmp.mul_assign(&coeff);
