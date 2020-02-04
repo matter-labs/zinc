@@ -14,6 +14,7 @@ where
             file: Some(self.file.clone()),
             function: None,
             line: None,
+            column: None
         };
 
         Ok(())
@@ -38,6 +39,17 @@ where
 {
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         vm.location.line = Some(self.line);
+        Ok(())
+    }
+}
+
+impl<E, CS> VMInstruction<E, CS> for ColumnMarker
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
+{
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
+        vm.location.column = Some(self.column);
         Ok(())
     }
 }

@@ -115,6 +115,7 @@ pub enum InstructionCode {
     FileMarker,
     FunctionMarker,
     LineMarker,
+    ColumnMarker,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -202,6 +203,7 @@ pub enum Instruction {
     FileMarker(FileMarker),
     FunctionMarker(FunctionMarker),
     LineMarker(LineMarker),
+    ColumnMarker(ColumnMarker),
 }
 
 /// Useful macro to avoid duplicating `match` constructions.
@@ -292,6 +294,7 @@ macro_rules! dispatch_instruction {
             Instruction::FileMarker($pattern) => $expression,
             Instruction::FunctionMarker($pattern) => $expression,
             Instruction::LineMarker($pattern) => $expression,
+            Instruction::ColumnMarker($pattern) => $expression,
         }
     };
 }

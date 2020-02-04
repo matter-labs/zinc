@@ -5,6 +5,7 @@ pub struct CodeLocation {
     pub file: Option<String>,
     pub function: Option<String>,
     pub line: Option<usize>,
+    pub column: Option<usize>,
 }
 
 impl CodeLocation {
@@ -13,6 +14,7 @@ impl CodeLocation {
             file: None,
             function: None,
             line: None,
+            column: None
         }
     }
 }
@@ -23,17 +25,24 @@ impl fmt::Display for CodeLocation {
             Some(file) => file.as_str(),
             None => "<unknown file>",
         };
+        write!(f, "{}", file);
 
         let line = match self.line {
             Some(line) => line.to_string(),
             None => "<unknown line>".into(),
         };
+        write!(f, ":{}", line);
 
-        let function = match &self.function {
-            Some(function) => format!(" (at {})", function),
-            None => String::new(),
+        match self.column {
+            Some(column) => { write!(f, ":{}", column); },
+            None => {},
         };
 
-        write!(f, "{}:{}{}", file, line, function)
+        match &self.function {
+            Some(function) => { write!(f, " (at {})", function); },
+            None => {},
+        };
+
+        Ok(())
     }
 }
