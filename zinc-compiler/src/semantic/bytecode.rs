@@ -12,6 +12,7 @@ use zinc_bytecode::data::values::Value as TemplateValue;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::Program;
 
+use crate::lexical::Location;
 use crate::semantic::Type;
 
 #[derive(Debug, Default, PartialEq)]
@@ -23,6 +24,9 @@ pub struct Bytecode {
     data_stack_pointer: usize,
     function_addresses: HashMap<String, usize>,
     address_stack: Vec<usize>,
+
+    current_file: String,
+    current_line: usize,
 }
 
 impl Bytecode {
@@ -46,6 +50,9 @@ impl Bytecode {
             data_stack_pointer: 0,
             function_addresses,
             address_stack,
+
+            current_file: String::new(),
+            current_line: 0,
         }
     }
 
@@ -70,7 +77,14 @@ impl Bytecode {
         self.output_type = r#type;
     }
 
-    pub fn push_instruction(&mut self, instruction: Instruction) {
+    pub fn push_instruction(&mut self, instruction: Instruction, location: Location) {
+        if location.line > self.current_line {
+            self.current_line = location.line;
+            self.instructions
+                .push(Instruction::LineMarker(zinc_bytecode::LineMarker::new(
+                    self.current_line,
+                )));
+        }
         self.instructions.push(instruction)
     }
 
@@ -80,30 +94,34 @@ impl Bytecode {
         data_size: usize,
         array_size: Option<usize>,
         is_global: bool,
+        location: Location,
     ) {
-        self.instructions.push(match data_size {
-            0 => return,
-            1 => match array_size {
-                Some(array_size) => {
-                    Instruction::StoreByIndex(zinc_bytecode::StoreByIndex::new(address, array_size))
-                }
-                None if is_global => {
-                    Instruction::StoreGlobal(zinc_bytecode::StoreGlobal::new(address))
-                }
-                None => Instruction::Store(zinc_bytecode::Store::new(address)),
+        self.push_instruction(
+            match data_size {
+                0 => return,
+                1 => match array_size {
+                    Some(array_size) => Instruction::StoreByIndex(
+                        zinc_bytecode::StoreByIndex::new(address, array_size),
+                    ),
+                    None if is_global => {
+                        Instruction::StoreGlobal(zinc_bytecode::StoreGlobal::new(address))
+                    }
+                    None => Instruction::Store(zinc_bytecode::Store::new(address)),
+                },
+                data_size => match array_size {
+                    Some(array_size) => Instruction::StoreSequenceByIndex(
+                        zinc_bytecode::StoreSequenceByIndex::new(address, array_size, data_size),
+                    ),
+                    None if is_global => Instruction::StoreSequenceGlobal(
+                        zinc_bytecode::StoreSequenceGlobal::new(address, data_size),
+                    ),
+                    None => Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
+                        address, data_size,
+                    )),
+                },
             },
-            data_size => match array_size {
-                Some(array_size) => Instruction::StoreSequenceByIndex(
-                    zinc_bytecode::StoreSequenceByIndex::new(address, array_size, data_size),
-                ),
-                None if is_global => Instruction::StoreSequenceGlobal(
-                    zinc_bytecode::StoreSequenceGlobal::new(address, data_size),
-                ),
-                None => Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
-                    address, data_size,
-                )),
-            },
-        });
+            location,
+        );
     }
 
     pub fn push_instruction_load(
@@ -112,39 +130,55 @@ impl Bytecode {
         data_size: usize,
         array_size: Option<usize>,
         is_global: bool,
+        location: Location,
     ) {
-        self.instructions.push(match data_size {
-            0 => return,
-            1 => match array_size {
-                Some(array_size) if is_global => Instruction::LoadByIndexGlobal(
-                    zinc_bytecode::LoadByIndexGlobal::new(address, array_size),
-                ),
-                Some(array_size) => {
-                    Instruction::LoadByIndex(zinc_bytecode::LoadByIndex::new(address, array_size))
-                }
-                None if is_global => {
-                    Instruction::LoadGlobal(zinc_bytecode::LoadGlobal::new(address))
-                }
-                None => Instruction::Load(zinc_bytecode::Load::new(address)),
+        self.push_instruction(
+            match data_size {
+                0 => return,
+                1 => match array_size {
+                    Some(array_size) if is_global => Instruction::LoadByIndexGlobal(
+                        zinc_bytecode::LoadByIndexGlobal::new(address, array_size),
+                    ),
+                    Some(array_size) => Instruction::LoadByIndex(zinc_bytecode::LoadByIndex::new(
+                        address, array_size,
+                    )),
+                    None if is_global => {
+                        Instruction::LoadGlobal(zinc_bytecode::LoadGlobal::new(address))
+                    }
+                    None => Instruction::Load(zinc_bytecode::Load::new(address)),
+                },
+                data_size => match array_size {
+                    Some(array_size) if is_global => Instruction::LoadSequenceByIndexGlobal(
+                        zinc_bytecode::LoadSequenceByIndexGlobal::new(
+                            address, array_size, data_size,
+                        ),
+                    ),
+                    Some(array_size) => Instruction::LoadSequenceByIndex(
+                        zinc_bytecode::LoadSequenceByIndex::new(address, array_size, data_size),
+                    ),
+                    None if is_global => Instruction::LoadSequenceGlobal(
+                        zinc_bytecode::LoadSequenceGlobal::new(address, data_size),
+                    ),
+                    None => Instruction::LoadSequence(zinc_bytecode::LoadSequence::new(
+                        address, data_size,
+                    )),
+                },
             },
-            data_size => match array_size {
-                Some(array_size) if is_global => Instruction::LoadSequenceByIndexGlobal(
-                    zinc_bytecode::LoadSequenceByIndexGlobal::new(address, array_size, data_size),
-                ),
-                Some(array_size) => Instruction::LoadSequenceByIndex(
-                    zinc_bytecode::LoadSequenceByIndex::new(address, array_size, data_size),
-                ),
-                None if is_global => Instruction::LoadSequenceGlobal(
-                    zinc_bytecode::LoadSequenceGlobal::new(address, data_size),
-                ),
-                None => {
-                    Instruction::LoadSequence(zinc_bytecode::LoadSequence::new(address, data_size))
-                }
-            },
-        });
+            location,
+        );
+    }
+
+    pub fn start_new_file(&mut self, name: &str) {
+        self.instructions.push(Instruction::FileMarker(
+            zinc_bytecode::instructions::FileMarker::new(name.to_owned()),
+        ));
+        self.current_file = name.to_owned();
     }
 
     pub fn start_new_function(&mut self, identifier: &str) {
+        self.instructions.push(Instruction::FunctionMarker(
+            zinc_bytecode::FunctionMarker::new(identifier.to_owned()),
+        ));
         self.function_addresses
             .insert(identifier.to_owned(), self.instructions.len());
         self.data_stack_pointer = 0;
