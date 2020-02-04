@@ -27,6 +27,7 @@ pub enum RuntimeError {
     TypeError,
     ExpectedConstant,
     ExpectedUsize,
+    UnsatisfiedConstraint,
 }
 
 impl From<SynthesisError> for RuntimeError {

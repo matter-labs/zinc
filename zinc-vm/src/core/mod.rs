@@ -76,12 +76,17 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         &mut self.cs.cs
     }
 
-    pub fn run<CB: FnMut(&CS) -> ()>(
+    pub fn run<CB, F>(
         &mut self,
         program: &Program,
         inputs: Option<&[BigInt]>,
         mut instruction_callback: CB,
-    ) -> Result<Vec<Option<BigInt>>, RuntimeError> {
+        mut check_cs: F
+    ) -> Result<Vec<Option<BigInt>>, RuntimeError>
+    where
+        CB: FnMut(&CS) -> (),
+        F: FnMut(&CS) -> Result<(), RuntimeError>
+    {
         let one = self
             .operations()
             .constant_bigint_typed(&1.into(), ScalarType::BOOLEAN)?;
@@ -102,7 +107,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             );
             self.state.instruction_counter += 1;
             let result = dispatch_instruction!(instruction => instruction.execute(self));
-            if let Err(err) = result {
+            if let Err(err) = result.and(check_cs(&self.cs.cs)) {
                 println!(
                     "{} {:?}\n\tat {}",
                     "Error".bold().red(),

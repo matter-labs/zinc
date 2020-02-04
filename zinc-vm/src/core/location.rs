@@ -29,6 +29,11 @@ impl fmt::Display for CodeLocation {
             None => "<unknown line>".into(),
         };
 
-        write!(f, "{}:{}", file, line)
+        let function = match &self.function {
+            Some(function) => format!(" (at {})", function),
+            None => String::new(),
+        };
+
+        write!(f, "{}:{}{}", file, line, function)
     }
 }

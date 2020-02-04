@@ -24,7 +24,7 @@ struct VMCircuit<'a> {
 impl<E: Engine> Circuit<E> for VMCircuit<'_> {
     fn synthesize<CS: ConstraintSystem<E>>(self, cs: &mut CS) -> Result<(), SynthesisError> {
         let mut vm = VirtualMachine::new(cs, false);
-        *self.result = Some(vm.run(self.program, self.inputs, |_| {}));
+        *self.result = Some(vm.run(self.program, self.inputs, |_| {}, |_| Ok(())));
         Ok(())
     }
 }
@@ -38,7 +38,23 @@ pub fn run<E: Engine>(program: &Program, inputs: &[BigInt]) -> Result<Vec<BigInt
         let num = cs.constraints.len() - num_constraints;
         num_constraints += num;
         log::debug!("Constraints: {}", num);
-    })?;
+    },
+        |cs| {
+            if !cs.is_satisfied() {
+                log::error!("Unsatisfied: {:?}", cs.which_is_unsatisfied());
+                return Err(RuntimeError::UnsatisfiedConstraint);
+            }
+
+            let unconstrained = cs.find_unconstrained();
+            if !unconstrained.is_empty() {
+                log::error!("Unconstrained: {}", unconstrained);
+                return Err(RuntimeError::InternalError(
+                    "Generated unconstrained variables".into(),
+                ));
+            }
+
+            Ok(())
+        })?;
 
     let cs = vm.constraint_system();
     if !cs.is_satisfied() {
