@@ -161,6 +161,7 @@ where
         self.conditional_select(lt0, neg, value)
     }
 
+    #[allow(dead_code)]
     fn bits(
         &mut self,
         index: Primitive<E>,
@@ -196,6 +197,7 @@ where
         Ok(bits)
     }
 
+    #[allow(dead_code)]
     fn recursive_select(
         &mut self,
         array: &[Primitive<E>],

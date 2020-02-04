@@ -25,27 +25,21 @@ impl fmt::Display for CodeLocation {
             Some(file) => file.as_str(),
             None => "<unknown file>",
         };
-        write!(f, "{}", file);
+        write!(f, "{}", file)?;
 
         let line = match self.line {
             Some(line) => line.to_string(),
             None => "<unknown line>".into(),
         };
-        write!(f, ":{}", line);
+        write!(f, ":{}", line)?;
 
-        match self.column {
-            Some(column) => {
-                write!(f, ":{}", column);
-            }
-            None => {}
-        };
+        if let Some(column) = self.column {
+            write!(f, ":{}", column)?;
+        }
 
-        match &self.function {
-            Some(function) => {
-                write!(f, " (at {})", function);
-            }
-            None => {}
-        };
+        if let Some(function) = &self.function {
+            write!(f, " (at {})", function)?;
+        }
 
         Ok(())
     }
