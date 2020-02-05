@@ -1,6 +1,7 @@
 mod pop;
 mod push_const;
 mod slice;
+mod swap;
 
 mod load;
 mod load_by_index;
@@ -36,6 +37,7 @@ mod ref_local;
 pub use pop::Pop;
 pub use push_const::PushConst;
 pub use slice::Slice;
+pub use swap::Swap;
 
 pub use load::Load;
 pub use load_by_index::LoadByIndex;
