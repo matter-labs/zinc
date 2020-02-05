@@ -59,10 +59,7 @@ impl Parser {
                     self.state = State::CastingOperator;
                 }
                 State::CastingOperator => {
-                    match match self.next.take() {
-                        Some(next) => next,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::As),
                             location,

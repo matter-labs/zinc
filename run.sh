@@ -48,14 +48,14 @@ export VIRTUAL_MACHINE_CRATE_NAME='zinc-vm'
 export VIRTUAL_MACHINE_CRATE_NAME_LOG='zinc_vm'
 export VIRTUAL_MACHINE_BINARY_NAME='zinc'
 
-export PROJECT_DIRECTORY='./test/'
+export PROJECT_DIRECTORY='./debug/'
 export PROJECT_BUILD_DIRECTORY="${PROJECT_DIRECTORY}/build/"
 
 cargo fmt --all
 cargo build ${RELEASE_MODE_FLAG} --package "${ZARGO_CRATE_NAME}"
 cargo build ${RELEASE_MODE_FLAG} --package "${COMPILER_CRATE_NAME}"
 cargo build ${RELEASE_MODE_FLAG} --package "${VIRTUAL_MACHINE_CRATE_NAME}"
-cargo test
+#cargo test
 
 export ZARGO_PATH="./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}"
 rm -fv "${PROJECT_DIRECTORY}/Zargo.toml"
@@ -65,10 +65,10 @@ rm -fv "${PROJECT_DIRECTORY}/Zargo.toml"
     --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
 "${ZARGO_PATH}" build ${LOG_LEVEL} \
     --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
-#"${ZARGO_PATH}" run ${LOG_LEVEL} \
-#    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
-#    --input "${PROJECT_BUILD_DIRECTORY}/witness.json" \
-#    --output "${PROJECT_BUILD_DIRECTORY}/public-data.json"
+"${ZARGO_PATH}" run ${LOG_LEVEL} \
+    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
+    --input "${PROJECT_BUILD_DIRECTORY}/witness.json" \
+    --output "${PROJECT_BUILD_DIRECTORY}/public-data.json"
 #"${ZARGO_PATH}" setup ${LOG_LEVEL} \
 #    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
 #    --proving-key "${PROJECT_BUILD_DIRECTORY}/proving-key" \

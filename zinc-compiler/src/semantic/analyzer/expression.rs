@@ -1316,16 +1316,18 @@ impl Analyzer {
     }
 
     fn structure_expression(&mut self, structure: StructureExpression) -> Result<Element, Error> {
-        let path_location = structure.path.location;
+        let identifier_location = structure.identifier.location;
         let (structure_identifier, structure_fields) =
-            match self.expression(structure.path, TranslationHint::TypeExpression)? {
-                Element::Type(Type::Structure {
+            match Scope::resolve_item(self.scope(), &structure.identifier.name)
+                .map_err(|error| Error::Scope(identifier_location, error))?
+            {
+                ScopeItem::Type(Type::Structure {
                     identifier, fields, ..
                 }) => (identifier, fields),
-                element => {
+                item => {
                     return Err(Error::TypeAliasDoesNotPointToStructure(
-                        path_location,
-                        element.to_string(),
+                        identifier_location,
+                        item.to_string(),
                     ))
                 }
             };

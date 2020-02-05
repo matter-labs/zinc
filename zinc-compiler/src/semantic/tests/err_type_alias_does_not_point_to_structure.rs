@@ -16,7 +16,7 @@ fn test() {
 type X = field;
 
 fn main() {
-    let data = struct X;
+    let data = X;
 }
 "#;
 

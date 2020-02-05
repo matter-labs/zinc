@@ -1,0 +1,8 @@
+//
+// The merkle tree root hash validator.
+//
+
+fn main() -> i8 {
+    let value = 6 as i8;
+    (value) - (3 as i8)
+}

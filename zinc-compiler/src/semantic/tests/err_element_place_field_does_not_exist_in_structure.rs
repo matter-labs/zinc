@@ -20,7 +20,7 @@ struct Data {
 }
 
 fn main() {
-    let data = struct Data {
+    let data = Data {
         a: 0,
     };
     let value = data.b;
