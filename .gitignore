@@ -11,3 +11,6 @@
 
 # Zinc build
 build/
+
+# Builds
+*.tar.gz
