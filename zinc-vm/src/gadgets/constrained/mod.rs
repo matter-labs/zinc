@@ -729,9 +729,18 @@ where
 
     pub fn le(
         &mut self,
-        left: Primitive<E>,
-        right: Primitive<E>,
+        mut left: Primitive<E>,
+        mut right: Primitive<E>,
     ) -> Result<Primitive<E>, RuntimeError> {
+        if let (Some(lt), Some(rt)) = (&mut left.data_type, &mut right.data_type) {
+            if !lt.signed {
+                lt.signed = true;
+                lt.length += 1;
+                rt.signed = true;
+                rt.length += 1;
+            }
+        }
+
         let diff = self.sub(right, left)?;
 
         let mut cs = self.cs_namespace();
