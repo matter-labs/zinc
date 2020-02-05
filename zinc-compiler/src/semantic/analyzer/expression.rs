@@ -104,6 +104,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::PlaceExpression,
                         TranslationHint::ValueExpression,
+                        false,
                     )?;
                     let place = operand_1
                         .assign(&operand_2)
@@ -141,6 +142,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
+                        false,
                     )?;
                     self.bytecode.borrow_mut().push_instruction(
                         Instruction::Pop(zinc_bytecode::Pop::new(2)),
@@ -156,6 +158,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
+                        false,
                     )?;
                     self.bytecode.borrow_mut().push_instruction(
                         Instruction::Pop(zinc_bytecode::Pop::new(2)),
@@ -171,6 +174,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
+                        false,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -185,6 +189,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
+                        false,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -199,6 +204,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
+                        false,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -213,6 +219,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
+                        false,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -227,6 +234,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
+                        false,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -241,6 +249,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
+                        true,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -255,6 +264,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
+                        true,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -269,6 +279,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
+                        true,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -283,6 +294,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
+                        true,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -297,6 +309,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
+                        false,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -311,6 +324,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
+                        true,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -325,6 +339,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
+                        false,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -339,6 +354,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
+                        true,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -353,6 +369,7 @@ impl Analyzer {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::ValueExpression,
+                        true,
                     )?;
                     self.bytecode
                         .borrow_mut()
@@ -367,6 +384,7 @@ impl Analyzer {
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
                         TranslationHint::TypeExpression,
+                        false,
                     )?;
 
                     if let Some((is_signed, bitlength)) = operand_1
@@ -411,6 +429,7 @@ impl Analyzer {
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::PlaceExpression,
                         TranslationHint::ValueExpression,
+                        false,
                     )?;
 
                     let is_place_indexed = match operand_1 {
@@ -535,6 +554,7 @@ impl Analyzer {
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::PlaceExpression,
                         TranslationHint::CompoundTypeMember,
+                        false,
                     )?;
 
                     let is_place_indexed = match operand_1 {
@@ -604,6 +624,7 @@ impl Analyzer {
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::PathExpression,
                         TranslationHint::CompoundTypeMember,
+                        false,
                     )?;
 
                     operand_1
@@ -630,6 +651,7 @@ impl Analyzer {
         let (operand_1, operand_2) = self.evaluate_binary_operands(
             TranslationHint::TypeExpression,
             TranslationHint::ValueExpression,
+            false,
         )?;
 
         let function = match operand_1 {
@@ -1525,6 +1547,7 @@ impl Analyzer {
         &mut self,
         translation_hint_1: TranslationHint,
         translation_hint_2: TranslationHint,
+        swap_on_single_load: bool,
     ) -> Result<(Element, Element), Error> {
         self.swap_top();
 
