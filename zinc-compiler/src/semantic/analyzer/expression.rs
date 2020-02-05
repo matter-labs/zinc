@@ -12,6 +12,7 @@ use num_traits::Zero;
 
 use zinc_bytecode::Instruction;
 
+use crate::lexical::Location;
 use crate::semantic::Array;
 use crate::semantic::Bytecode;
 use crate::semantic::Constant;
@@ -59,6 +60,9 @@ pub struct Analyzer {
 
     is_next_call_instruction: bool,
     operands: Vec<StackElement>,
+
+    loads: usize,
+    pushes: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -82,6 +86,9 @@ impl Analyzer {
 
             is_next_call_instruction: false,
             operands: Vec::with_capacity(Self::STACK_OPERAND_INITIAL_CAPACITY),
+
+            loads: 0,
+            pushes: 0,
         }
     }
 
@@ -927,6 +934,7 @@ impl Analyzer {
         self.bytecode
             .borrow_mut()
             .push_instruction(constant.to_instruction(), location);
+        self.pushes += 1;
         Ok(Element::Constant(constant))
     }
 
@@ -938,6 +946,7 @@ impl Analyzer {
         self.bytecode
             .borrow_mut()
             .push_instruction(integer.to_instruction(), location);
+        self.pushes += 1;
         Ok(Element::Constant(Constant::Integer(integer)))
     }
 
@@ -1425,6 +1434,7 @@ impl Analyzer {
                         false,
                         location,
                     );
+                    self.loads += 1;
                     Ok(Element::Value(value))
                 }
                 ScopeItem::Constant(constant) => {
@@ -1443,6 +1453,7 @@ impl Analyzer {
                         true,
                         location,
                     );
+                    self.loads += 1;
                     Ok(Element::Constant(r#static.data))
                 }
                 ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
@@ -1494,6 +1505,7 @@ impl Analyzer {
                     place.is_global,
                     place.location,
                 );
+                self.loads += 1;
                 Ok(Element::Value(Value::new(place.r#type.to_owned())))
             }
             _ => Ok(Element::Place(place.to_owned())),
@@ -1551,13 +1563,22 @@ impl Analyzer {
     ) -> Result<(Element, Element), Error> {
         self.swap_top();
 
-        dbg!(
-            &self.operands[self.operands.len() - 1],
-            &self.operands[self.operands.len() - 2]
-        );
+        let loads_before = self.loads;
         let operand_1 = self.evaluate_operand(translation_hint_1)?;
+        let loaded_first = self.loads - loads_before == 1;
+
+        let loads_before = self.loads;
+        let pushes_before = self.pushes;
         let operand_2 = self.evaluate_operand(translation_hint_2)?;
-        dbg!(&operand_1, &operand_2);
+        let pushed_second = self.pushes - pushes_before == 1;
+        let loaded_second = self.loads - loads_before == 1;
+
+        if swap_on_single_load && loaded_first && !loaded_second && !pushed_second {
+            self.bytecode.borrow_mut().push_instruction(
+                Instruction::Swap(zinc_bytecode::Swap::default()),
+                Location::default(),
+            );
+        }
 
         Ok((operand_1, operand_2))
     }

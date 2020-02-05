@@ -1,4 +1,78 @@
-fn main() -> i8 {
-    let data: i8 = 6;
-    data / (3 as i8)
+struct Test {
+    sub_const_const: u8,
+    sub_const_var: u8,
+    sub_var_const: u8,
+    sub_var_var: u8,
+
+    div_const_const: u8,
+    div_const_var: u8,
+    div_var_const: u8,
+    div_var_var: u8,
+
+    rem_const_const: u8,
+    rem_const_var: u8,
+    rem_var_const: u8,
+    rem_var_var: u8,
+
+    ge_const_const: bool,
+    ge_const_var: bool,
+    ge_var_const: bool,
+    ge_var_var: bool,
+
+    gt_const_const: bool,
+    gt_const_var: bool,
+    gt_var_const: bool,
+    gt_var_var: bool,
+
+    le_const_const: bool,
+    le_const_var: bool,
+    le_var_const: bool,
+    le_var_var: bool,
+
+    lt_const_const: bool,
+    lt_const_var: bool,
+    lt_var_const: bool,
+    lt_var_var: bool,
+}
+
+fn main() -> Test {
+    let big: u8 = 64;
+    let small: u8 = 16;
+
+    struct Test {
+        sub_const_const: 64 as i8 as u8 - 16 as i8 as u8,
+        sub_const_var: 64 as i8 as u8 - small as i8 as u8,
+        sub_var_const: big as i8 as u8 - 16 as i8 as u8,
+        sub_var_var: big as i8 as u8 - small as i8 as u8,
+
+        div_const_const: 64 as i8 as u8 / 16 as i8 as u8,
+        div_const_var: 64 as i8 as u8 / small as i8 as u8,
+        div_var_const: big as i8 as u8 / 16 as i8 as u8,
+        div_var_var: big as i8 as u8 / small as i8 as u8,
+
+        rem_const_const: 64 as i8 as u8 % 16 as i8 as u8,
+        rem_const_var: 64 as i8 as u8 % small as i8 as u8,
+        rem_var_const: big as i8 as u8 % 16 as i8 as u8,
+        rem_var_var: big as i8 as u8 % small as i8 as u8,
+
+        ge_const_const: 64 as i8 as u8 >= 16 as i8 as u8,
+        ge_const_var: 64 as i8 as u8 >= big as i8 as u8,
+        ge_var_const: small as i8 as u8 >= 16 as i8 as u8,
+        ge_var_var: big as i8 as u8 >= small as i8 as u8,
+
+        gt_const_const: 64 as i8 as u8 > 16 as i8 as u8,
+        gt_const_var: 64 as i8 as u8 > small as i8 as u8,
+        gt_var_const: big as i8 as u8 > 16 as i8 as u8,
+        gt_var_var: big as i8 as u8 > small as i8 as u8,
+
+        le_const_const: 16 as i8 as u8 <= 64 as i8 as u8,
+        le_const_var: 16 as i8 as u8 <= small as i8 as u8,
+        le_var_const: big as i8 as u8 <= 64 as i8 as u8,
+        le_var_var: small as i8 as u8 <= big as i8 as u8,
+
+        lt_const_const: 16 as i8 as u8 < 64 as i8 as u8,
+        lt_const_var: 16 as i8 as u8 < big as i8 as u8,
+        lt_var_const: small as i8 as u8 < 64 as i8 as u8,
+        lt_var_var: small as i8 as u8 < big as i8 as u8,
+    }
 }

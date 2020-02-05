@@ -78,20 +78,20 @@ impl Bytecode {
     }
 
     pub fn push_instruction(&mut self, instruction: Instruction, location: Location) {
-        //        if self.current_location != location {
-        //            if self.current_location.line != location.line {
-        //                self.instructions
-        //                    .push(Instruction::LineMarker(zinc_bytecode::LineMarker::new(
-        //                        location.line,
-        //                    )));
-        //            }
-        //            if self.current_location.column != location.column {
-        //                self.instructions.push(Instruction::ColumnMarker(
-        //                    zinc_bytecode::ColumnMarker::new(location.column),
-        //                ));
-        //            }
-        //            self.current_location = location;
-        //        }
+        if self.current_location != location {
+            if self.current_location.line != location.line {
+                self.instructions
+                    .push(Instruction::LineMarker(zinc_bytecode::LineMarker::new(
+                        location.line,
+                    )));
+            }
+            if self.current_location.column != location.column {
+                self.instructions.push(Instruction::ColumnMarker(
+                    zinc_bytecode::ColumnMarker::new(location.column),
+                ));
+            }
+            self.current_location = location;
+        }
         self.instructions.push(instruction)
     }
 
