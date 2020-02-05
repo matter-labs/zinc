@@ -48,7 +48,7 @@ export VIRTUAL_MACHINE_CRATE_NAME='zinc-vm'
 export VIRTUAL_MACHINE_CRATE_NAME_LOG='zinc_vm'
 export VIRTUAL_MACHINE_BINARY_NAME='zinc'
 
-export PROJECT_DIRECTORY='./test/'
+export PROJECT_DIRECTORY='./debug/'
 export PROJECT_BUILD_DIRECTORY="${PROJECT_DIRECTORY}/build/"
 
 cargo fmt --all
