@@ -12,7 +12,7 @@ use crate::semantic::Type;
 
 #[derive(Debug, Default, Clone)]
 pub struct FromBitsSignedStandardLibraryFunction {
-    pub identifier: &'static str,
+    identifier: &'static str,
 }
 
 impl FromBitsSignedStandardLibraryFunction {
@@ -20,6 +20,10 @@ impl FromBitsSignedStandardLibraryFunction {
         Self {
             identifier: "from_bits_signed",
         }
+    }
+
+    pub fn identifier(&self) -> &'static str {
+        self.identifier
     }
 
     pub fn builtin_identifier(&self) -> BuiltinIdentifier {

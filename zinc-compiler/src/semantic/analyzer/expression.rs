@@ -838,7 +838,7 @@ impl Analyzer {
                             argument => {
                                 return Err(Error::FunctionExpectedConstantLengthArgument(
                                     element.location,
-                                    function.identifier,
+                                    function.identifier(),
                                     format!("{:?}", argument),
                                 ))
                             }
@@ -859,7 +859,7 @@ impl Analyzer {
                             argument => {
                                 return Err(Error::FunctionExpectedConstantLengthArgument(
                                     element.location,
-                                    function.identifier,
+                                    function.identifier(),
                                     format!("{:?}", argument),
                                 ))
                             }

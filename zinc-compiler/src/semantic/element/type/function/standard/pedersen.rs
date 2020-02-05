@@ -12,7 +12,7 @@ use crate::semantic::Type;
 
 #[derive(Debug, Default, Clone)]
 pub struct PedersenStandardLibraryFunction {
-    pub identifier: &'static str,
+    identifier: &'static str,
     pub return_type: Box<Type>,
 }
 
@@ -22,6 +22,10 @@ impl PedersenStandardLibraryFunction {
             identifier: "pedersen",
             return_type: Box::new(Type::new_tuple(vec![Type::new_field(), Type::new_field()])),
         }
+    }
+
+    pub fn identifier(&self) -> &'static str {
+        self.identifier
     }
 
     pub fn builtin_identifier(&self) -> BuiltinIdentifier {
