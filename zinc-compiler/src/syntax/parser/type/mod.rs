@@ -3,12 +3,14 @@
 //!
 
 mod array;
+mod path;
 mod tuple;
 
 use std::cell::RefCell;
 use std::rc::Rc;
 
 use self::array::Parser as ArrayTypeParser;
+use self::path::Parser as PathTypeParser;
 use self::tuple::Parser as TupleTypeParser;
 use crate::error::Error;
 use crate::lexical::Keyword;
@@ -17,7 +19,6 @@ use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
-use crate::syntax::PathOperandParser;
 use crate::syntax::Type;
 use crate::syntax::TypeBuilder;
 
@@ -58,7 +59,7 @@ impl Parser {
                 ..
             } => {
                 let location = token.location;
-                let (expression, next) = PathOperandParser::default().parse(stream, Some(token))?;
+                let (expression, next) = PathTypeParser::default().parse(stream, Some(token))?;
                 self.builder.set_location(location);
                 self.builder.set_path_expression(expression);
                 Ok((self.builder.finish(), next))

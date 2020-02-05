@@ -11,21 +11,22 @@ use crate::lexical::Location;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
+use crate::syntax::Error as SyntaxError;
 use crate::syntax::Expression;
-use crate::syntax::ExpressionAuxiliary;
 use crate::syntax::ExpressionBuilder;
+use crate::syntax::ExpressionOperand;
 use crate::syntax::ExpressionOperator;
-use crate::syntax::TerminalOperandParser;
+use crate::syntax::Identifier;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    Terminal,
-    DoubleColonOrExclamationMarkOrEnd,
+    Identifier,
+    DoubleColonOrEnd,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::Terminal
+        State::Identifier
     }
 }
 
@@ -45,37 +46,38 @@ impl Parser {
     ) -> Result<(Expression, Option<Token>), Error> {
         loop {
             match self.state {
-                State::Terminal => {
+                State::Identifier => {
                     match crate::syntax::take_or_next(initial.take(), stream.clone())? {
-                        token => {
-                            let (expression, next) = TerminalOperandParser::default()
-                                .parse(stream.clone(), Some(token))?;
-                            self.next = next;
-                            self.builder.set_location_if_unset(expression.location);
-                            self.builder.extend_with_expression(expression);
+                        Token {
+                            lexeme: Lexeme::Identifier(identifier),
+                            location,
+                        } => {
+                            let identifier = Identifier::new(location, identifier.name);
+                            self.builder.set_location_if_unset(location);
+                            self.builder
+                                .push_operand(location, ExpressionOperand::Identifier(identifier));
                             if let Some((location, operator)) = self.operator.take() {
                                 self.builder.push_operator(location, operator);
                             }
-                            self.state = State::DoubleColonOrExclamationMarkOrEnd;
+                            self.state = State::DoubleColonOrEnd;
+                        }
+                        Token { lexeme, location } => {
+                            return Err(Error::Syntax(SyntaxError::Expected(
+                                location,
+                                vec!["{identifier}"],
+                                lexeme,
+                            )));
                         }
                     }
                 }
-                State::DoubleColonOrExclamationMarkOrEnd => {
+                State::DoubleColonOrEnd => {
                     match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::DoubleColon),
                             location,
                         } => {
                             self.operator = Some((location, ExpressionOperator::Path));
-                            self.state = State::Terminal;
-                        }
-                        Token {
-                            lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
-                            location,
-                        } => {
-                            self.builder
-                                .push_auxiliary(location, ExpressionAuxiliary::Instruction);
-                            return Ok((self.builder.finish(), None));
+                            self.state = State::Identifier;
                         }
                         token => return Ok((self.builder.finish(), Some(token))),
                     }

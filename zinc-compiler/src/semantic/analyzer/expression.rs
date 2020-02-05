@@ -430,8 +430,6 @@ impl Analyzer {
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.push_operand(StackElement::Evaluated(result));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Reference) => unimplemented!(),
-                ExpressionObject::Operator(ExpressionOperator::Dereference) => unimplemented!(),
                 ExpressionObject::Operator(ExpressionOperator::Index) => {
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::PlaceExpression,
@@ -857,7 +855,9 @@ impl Analyzer {
                             Some(Element::Constant(Constant::Integer(
                                 integer @ IntegerConstant { .. },
                             ))) if !integer.is_signed => {
-                                let new_length = integer.to_usize().unwrap();
+                                let new_length = integer.to_usize().map_err(|error| {
+                                    Error::InferenceConstant(Location::default(), error)
+                                })?;
                                 function
                                     .validate(arguments.as_slice(), new_length)
                                     .map_err(|error| {
@@ -878,7 +878,9 @@ impl Analyzer {
                             Some(Element::Constant(Constant::Integer(
                                 integer @ IntegerConstant { .. },
                             ))) if !integer.is_signed => {
-                                let new_length = integer.to_usize().unwrap();
+                                let new_length = integer.to_usize().map_err(|error| {
+                                    Error::InferenceConstant(Location::default(), error)
+                                })?;
                                 function
                                     .validate(arguments.as_slice(), new_length)
                                     .map_err(|error| {

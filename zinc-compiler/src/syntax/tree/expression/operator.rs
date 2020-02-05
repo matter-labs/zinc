@@ -40,10 +40,6 @@ pub enum Operator {
     // unary arithmetic
     Negation,
 
-    // unary reference
-    Reference,
-    Dereference,
-
     // access
     Index,
     Field,

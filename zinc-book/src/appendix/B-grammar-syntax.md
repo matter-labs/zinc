@@ -72,7 +72,7 @@ block_expression = '{', { function_local_statement }, [ expression ], '}' ;
 
 conditional_expression = 'if', expression, block_expression, [ 'else', conditional_expression | block_expression ] ;
 
-match_expression = 'match', expression, '{', { pattern_match, '=>', expression, ',' }, '}' ;
+match_expression = 'match', identifier, '{', { pattern_match, '=>', expression, ',' }, '}' ;
 
 array_expression =
     '[', [ expression, { ',', expression } ] ']'

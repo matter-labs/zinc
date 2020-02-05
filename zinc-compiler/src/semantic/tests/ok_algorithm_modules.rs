@@ -27,7 +27,7 @@ use zinc_bytecode::Sub;
 use crate::Bytecode;
 use crate::Scope;
 
-static PANIC_COMPILE_DEPENDENCY: &str = "Dependencies are compiled successfullt";
+static PANIC_COMPILE_DEPENDENCY: &str = "Dependencies are always compiled successfully";
 
 #[test]
 fn test() {
@@ -58,7 +58,7 @@ static STATIC: field = 5;
 
 const CONST: field = 42;
 
-fn main(input: (), witness: ()) -> field {
+fn main() -> field {
     let var: field = 69;
 
     module_3::factor(module_2::diff(module_1::sum(STATIC, CONST), var), 5 as field)
