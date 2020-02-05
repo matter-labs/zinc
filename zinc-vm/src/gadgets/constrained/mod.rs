@@ -155,6 +155,12 @@ where
     }
 
     fn abs(&mut self, value: Primitive<E>) -> Result<Primitive<E>, RuntimeError> {
+        if let Some(dt) = value.data_type {
+            if !dt.signed {
+                return Ok(value);
+            }
+        }
+
         let zero = self.zero_typed(value.data_type)?;
         let neg = Gadgets::neg(self, value.clone())?;
         let lt0 = Gadgets::lt(self, value.clone(), zero)?;
@@ -582,7 +588,14 @@ where
 
         if let Some(mut data_type) = element.data_type {
             data_type.signed = true;
-            self.value_with_arguments_type_check(neg_value, neg_variable, &[element])
+            self.value_with_type_check(
+                neg_value,
+                neg_variable,
+                ScalarType {
+                    signed: true,
+                    length: data_type.length,
+                },
+            )
         } else {
             Ok(Primitive::new(neg_value, neg_variable))
         }
@@ -697,9 +710,18 @@ where
 
     pub fn lt(
         &mut self,
-        left: Primitive<E>,
-        right: Primitive<E>,
+        mut left: Primitive<E>,
+        mut right: Primitive<E>,
     ) -> Result<Primitive<E>, RuntimeError> {
+        if let (Some(lt), Some(rt)) = (&mut left.data_type, &mut right.data_type) {
+            if !lt.signed {
+                lt.signed = true;
+                lt.length += 1;
+                rt.signed = true;
+                rt.length += 1;
+            }
+        }
+
         let one = self.one_typed(right.data_type)?;
         let right_minus_one = self.sub(right, one)?;
         self.le(left, right_minus_one)
@@ -707,9 +729,18 @@ where
 
     pub fn le(
         &mut self,
-        left: Primitive<E>,
-        right: Primitive<E>,
+        mut left: Primitive<E>,
+        mut right: Primitive<E>,
     ) -> Result<Primitive<E>, RuntimeError> {
+        if let (Some(lt), Some(rt)) = (&mut left.data_type, &mut right.data_type) {
+            if !lt.signed {
+                lt.signed = true;
+                lt.length += 1;
+                rt.signed = true;
+                rt.length += 1;
+            }
+        }
+
         let diff = self.sub(right, left)?;
 
         let mut cs = self.cs_namespace();
@@ -785,8 +816,7 @@ where
         left: Primitive<E>,
         right: Primitive<E>,
     ) -> Result<Primitive<E>, RuntimeError> {
-        let not_ge = self.lt(left, right)?;
-        self.not(not_ge)
+        self.le(right, left)
     }
 
     pub fn gt(
@@ -794,8 +824,7 @@ where
         left: Primitive<E>,
         right: Primitive<E>,
     ) -> Result<Primitive<E>, RuntimeError> {
-        let not_gt = self.le(left, right)?;
-        self.not(not_gt)
+        self.lt(right, left)
     }
 
     pub fn conditional_select(

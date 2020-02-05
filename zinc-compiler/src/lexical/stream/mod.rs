@@ -38,7 +38,7 @@ impl TokenStream {
 
     pub fn next(&mut self) -> Result<Token, Error> {
         let token = self.advance()?;
-        log::trace!("{:?}", token);
+        log::debug!("{:?}", token);
         Ok(token)
     }
 

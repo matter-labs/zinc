@@ -175,6 +175,10 @@ impl Bytecode {
         );
     }
 
+    pub fn instructions_len(&self) -> usize {
+        self.instructions.len()
+    }
+
     pub fn start_new_file(&mut self, name: &str) {
         self.current_file = name.to_owned();
     }
@@ -261,7 +265,7 @@ impl Into<Vec<Instruction>> for Bytecode {
 impl Into<Vec<u8>> for Bytecode {
     fn into(self) -> Vec<u8> {
         for (index, instruction) in self.instructions.iter().enumerate() {
-            log::trace!("{:03} {:?}", index, instruction)
+            log::debug!("{:03} {:?}", index, instruction)
         }
 
         let program = Program::new(

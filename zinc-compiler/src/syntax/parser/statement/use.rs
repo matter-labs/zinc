@@ -46,7 +46,7 @@ impl Parser {
         let (path, mut next) = PathOperandParser::default().parse(stream.clone(), None)?;
         self.builder.set_path(path);
 
-        match crate::syntax::take_or_next(next.take(), stream.clone())? {
+        match crate::syntax::take_or_next(next.take(), stream)? {
             Token {
                 lexeme: Lexeme::Symbol(Symbol::Semicolon),
                 ..

@@ -73,7 +73,7 @@ impl Parser {
                                 FunctionLocalStatementParser::default()
                                     .parse(stream.clone(), Some(token))?;
                             self.next = next;
-                            log::trace!("Block statement: {:?}", statement);
+                            log::debug!("Block statement: {:?}", statement);
                             match statement {
                                 FunctionLocalStatement::Expression(expression) => {
                                     if is_unterminated {

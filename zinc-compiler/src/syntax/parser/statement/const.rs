@@ -131,7 +131,7 @@ impl Parser {
                     self.state = State::Semicolon;
                 }
                 State::Semicolon => {
-                    return match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    return match crate::syntax::take_or_next(self.next.take(), stream)? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Semicolon),
                             ..
