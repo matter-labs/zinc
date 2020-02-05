@@ -12,7 +12,7 @@ use crate::semantic::Type;
 
 #[derive(Debug, Default, Clone)]
 pub struct Sha256StandardLibraryFunction {
-    pub identifier: &'static str,
+    identifier: &'static str,
     pub return_type: Box<Type>,
 }
 
@@ -25,6 +25,10 @@ impl Sha256StandardLibraryFunction {
                 crate::SHA256_HASH_SIZE_BITS,
             )),
         }
+    }
+
+    pub fn identifier(&self) -> &'static str {
+        self.identifier
     }
 
     pub fn builtin_identifier(&self) -> BuiltinIdentifier {

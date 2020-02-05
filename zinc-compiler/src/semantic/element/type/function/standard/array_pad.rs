@@ -12,14 +12,16 @@ use crate::semantic::Type;
 
 #[derive(Debug, Default, Clone)]
 pub struct ArrayPadStandardLibraryFunction {
-    pub identifier: &'static str,
+    identifier: &'static str,
 }
 
 impl ArrayPadStandardLibraryFunction {
     pub fn new() -> Self {
-        Self {
-            identifier: "array_pad",
-        }
+        Self { identifier: "pad" }
+    }
+
+    pub fn identifier(&self) -> &'static str {
+        self.identifier
     }
 
     pub fn builtin_identifier(&self) -> BuiltinIdentifier {

@@ -49,6 +49,15 @@ impl Function {
     ) -> Self {
         Self::UserDefined(UserDefinedFunction::new(identifier, arguments, return_type))
     }
+
+    pub fn identifier(&self) -> String {
+        match self {
+            Function::DebugInstruction(inner) => inner.identifier.to_owned(),
+            Function::AssertInstruction(inner) => inner.identifier.to_owned(),
+            Function::StandardLibrary(inner) => inner.identifier().to_owned(),
+            Function::UserDefined(inner) => inner.identifier.to_owned(),
+        }
+    }
 }
 
 impl fmt::Display for Function {

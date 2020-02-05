@@ -11,7 +11,7 @@ use crate::semantic::Type;
 
 #[derive(Debug, Default, Clone)]
 pub struct ToBitsStandardLibraryFunction {
-    pub identifier: &'static str,
+    identifier: &'static str,
 }
 
 impl ToBitsStandardLibraryFunction {
@@ -19,6 +19,10 @@ impl ToBitsStandardLibraryFunction {
         Self {
             identifier: "to_bits",
         }
+    }
+
+    pub fn identifier(&self) -> &'static str {
+        self.identifier
     }
 
     pub fn builtin_identifier(&self) -> BuiltinIdentifier {

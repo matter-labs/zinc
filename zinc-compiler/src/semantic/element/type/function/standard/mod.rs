@@ -70,15 +70,15 @@ impl StandardLibraryFunction {
 
     pub fn identifier(&self) -> &'static str {
         match self {
-            Self::Sha256(inner) => inner.identifier,
-            Self::Pedersen(inner) => inner.identifier,
-            Self::ToBits(inner) => inner.identifier,
-            Self::FromBitsUnsigned(inner) => inner.identifier,
-            Self::FromBitsSigned(inner) => inner.identifier,
-            Self::FromBitsField(inner) => inner.identifier,
-            Self::ArrayReverse(inner) => inner.identifier,
-            Self::ArrayTruncate(inner) => inner.identifier,
-            Self::ArrayPad(inner) => inner.identifier,
+            Self::Sha256(inner) => inner.identifier(),
+            Self::Pedersen(inner) => inner.identifier(),
+            Self::ToBits(inner) => inner.identifier(),
+            Self::FromBitsUnsigned(inner) => inner.identifier(),
+            Self::FromBitsSigned(inner) => inner.identifier(),
+            Self::FromBitsField(inner) => inner.identifier(),
+            Self::ArrayReverse(inner) => inner.identifier(),
+            Self::ArrayTruncate(inner) => inner.identifier(),
+            Self::ArrayPad(inner) => inner.identifier(),
         }
     }
 
