@@ -39,6 +39,7 @@ pub enum InstructionCode {
     PushConst,
     Pop,
     Slice,
+    Swap,
 
     // Data Stack
     Load,
@@ -126,6 +127,7 @@ pub enum Instruction {
     PushConst(PushConst),
     Pop(Pop),
     Slice(Slice),
+    Swap(Swap),
 
     // Storage
     Load(Load),
@@ -224,6 +226,7 @@ macro_rules! dispatch_instruction {
             Instruction::PushConst($pattern) => $expression,
             Instruction::Pop($pattern) => $expression,
             Instruction::Slice($pattern) => $expression,
+            Instruction::Swap($pattern) => $expression,
 
             Instruction::Load($pattern) => $expression,
             Instruction::LoadSequence($pattern) => $expression,

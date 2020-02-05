@@ -221,6 +221,7 @@ where
             let value = self.pop()?.value()?;
             self.outputs.push(value);
         }
+        self.outputs.reverse();
 
         self.state.instruction_counter = std::usize::MAX;
         Ok(())
