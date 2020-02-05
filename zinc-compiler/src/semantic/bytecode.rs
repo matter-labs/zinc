@@ -78,20 +78,20 @@ impl Bytecode {
     }
 
     pub fn push_instruction(&mut self, instruction: Instruction, location: Location) {
-        if self.current_location != location {
-            if self.current_location.line != location.line {
-                self.instructions
-                    .push(Instruction::LineMarker(zinc_bytecode::LineMarker::new(
-                        location.line,
-                    )));
-            }
-            if self.current_location.column != location.column {
-                self.instructions.push(Instruction::ColumnMarker(
-                    zinc_bytecode::ColumnMarker::new(location.column),
-                ));
-            }
-            self.current_location = location;
-        }
+        //        if self.current_location != location {
+        //            if self.current_location.line != location.line {
+        //                self.instructions
+        //                    .push(Instruction::LineMarker(zinc_bytecode::LineMarker::new(
+        //                        location.line,
+        //                    )));
+        //            }
+        //            if self.current_location.column != location.column {
+        //                self.instructions.push(Instruction::ColumnMarker(
+        //                    zinc_bytecode::ColumnMarker::new(location.column),
+        //                ));
+        //            }
+        //            self.current_location = location;
+        //        }
         self.instructions.push(instruction)
     }
 
@@ -173,6 +173,10 @@ impl Bytecode {
             },
             location,
         );
+    }
+
+    pub fn instructions_len(&self) -> usize {
+        self.instructions.len()
     }
 
     pub fn start_new_file(&mut self, name: &str) {
@@ -261,7 +265,7 @@ impl Into<Vec<Instruction>> for Bytecode {
 impl Into<Vec<u8>> for Bytecode {
     fn into(self) -> Vec<u8> {
         for (index, instruction) in self.instructions.iter().enumerate() {
-            log::trace!("{:03} {:?}", index, instruction)
+            log::debug!("{:03} {:?}", index, instruction)
         }
 
         let program = Program::new(

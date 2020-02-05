@@ -1527,8 +1527,15 @@ impl Analyzer {
         translation_hint_2: TranslationHint,
     ) -> Result<(Element, Element), Error> {
         self.swap_top();
+
+        dbg!(
+            &self.operands[self.operands.len() - 1],
+            &self.operands[self.operands.len() - 2]
+        );
         let operand_1 = self.evaluate_operand(translation_hint_1)?;
         let operand_2 = self.evaluate_operand(translation_hint_2)?;
+        dbg!(&operand_1, &operand_2);
+
         Ok((operand_1, operand_2))
     }
 

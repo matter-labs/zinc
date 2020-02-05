@@ -67,15 +67,15 @@ rm -fv "${PROJECT_DIRECTORY}/Zargo.toml"
     --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
     --input "${PROJECT_BUILD_DIRECTORY}/witness.json" \
     --output "${PROJECT_BUILD_DIRECTORY}/public-data.json"
-"${ZARGO_PATH}" setup ${LOG_LEVEL} \
-    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
-    --proving-key "${PROJECT_BUILD_DIRECTORY}/proving-key" \
-    --verifying-key "${PROJECT_BUILD_DIRECTORY}/verifying-key.txt"
-"${ZARGO_PATH}" prove ${LOG_LEVEL} \
-    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
-    --proving-key "${PROJECT_BUILD_DIRECTORY}/proving-key" \
-    --witness "${PROJECT_BUILD_DIRECTORY}/witness.json" \
-    --pubdata "${PROJECT_BUILD_DIRECTORY}/public-data.json" > "${PROJECT_BUILD_DIRECTORY}/proof.txt"
-"${ZARGO_PATH}" verify ${LOG_LEVEL} \
-    --verifying-key "${PROJECT_BUILD_DIRECTORY}/verifying-key.txt" \
-    --public-data "${PROJECT_BUILD_DIRECTORY}/public-data.json" < "${PROJECT_BUILD_DIRECTORY}/proof.txt"
+#"${ZARGO_PATH}" setup ${LOG_LEVEL} \
+#    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
+#    --proving-key "${PROJECT_BUILD_DIRECTORY}/proving-key" \
+#    --verifying-key "${PROJECT_BUILD_DIRECTORY}/verifying-key.txt"
+#"${ZARGO_PATH}" prove ${LOG_LEVEL} \
+#    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
+#    --proving-key "${PROJECT_BUILD_DIRECTORY}/proving-key" \
+#    --witness "${PROJECT_BUILD_DIRECTORY}/witness.json" \
+#    --pubdata "${PROJECT_BUILD_DIRECTORY}/public-data.json" > "${PROJECT_BUILD_DIRECTORY}/proof.txt"
+#"${ZARGO_PATH}" verify ${LOG_LEVEL} \
+#    --verifying-key "${PROJECT_BUILD_DIRECTORY}/verifying-key.txt" \
+#    --public-data "${PROJECT_BUILD_DIRECTORY}/public-data.json" < "${PROJECT_BUILD_DIRECTORY}/proof.txt"
