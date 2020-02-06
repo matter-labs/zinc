@@ -10,7 +10,7 @@ use num_bigint::{BigInt, ToBigInt};
 
 use crate::core::RuntimeError;
 use crate::gadgets::utils::fr_to_bigint;
-use crate::gadgets::{utils, Gadget, Primitive, ScalarType};
+use crate::gadgets::{utils, Gadget, Primitive, PrimitiveType};
 use num_traits::ToPrimitive;
 use std::mem;
 
@@ -42,7 +42,7 @@ impl<E: Engine> Primitive<E> {
         }
     }
 
-    fn new_with_type(value: Option<E::Fr>, variable: Variable, data_type: ScalarType) -> Self {
+    fn new_with_type(value: Option<E::Fr>, variable: Variable, data_type: PrimitiveType) -> Self {
         Self {
             value,
             variable,
@@ -117,7 +117,7 @@ where
         self.cs.namespace(|| s)
     }
 
-    fn zero_typed(&mut self, data_type: Option<ScalarType>) -> Result<Primitive<E>, RuntimeError> {
+    fn zero_typed(&mut self, data_type: Option<PrimitiveType>) -> Result<Primitive<E>, RuntimeError> {
         let value = E::Fr::zero();
         let mut cs = self.cs_namespace();
         let variable = cs
@@ -142,7 +142,7 @@ where
         Primitive::new(Some(E::Fr::one()), CS::one())
     }
 
-    fn one_typed(&mut self, data_type: Option<ScalarType>) -> Result<Primitive<E>, RuntimeError> {
+    fn one_typed(&mut self, data_type: Option<PrimitiveType>) -> Result<Primitive<E>, RuntimeError> {
         match data_type {
             None => Ok(Self::one()),
             Some(data_type) => self.value_with_type_check(Some(E::Fr::one()), CS::one(), data_type),
@@ -231,7 +231,7 @@ where
         &mut self,
         value: Option<E::Fr>,
         variable: Variable,
-        data_type: ScalarType,
+        data_type: PrimitiveType,
     ) -> Result<Primitive<E>, RuntimeError> {
         let untyped = Primitive::new(value, variable);
 
@@ -282,7 +282,7 @@ where
 {
     pub fn variable_none(
         &mut self,
-        data_type: Option<ScalarType>,
+        data_type: Option<PrimitiveType>,
     ) -> Result<Primitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
@@ -304,7 +304,7 @@ where
     pub fn variable_bigint(
         &mut self,
         value: &BigInt,
-        data_type: Option<ScalarType>,
+        data_type: Option<PrimitiveType>,
     ) -> Result<Primitive<E>, RuntimeError> {
         let value = utils::bigint_to_fr::<E>(value)
             .ok_or_else(|| RuntimeError::InternalError("bigint_to_fr".into()))?;
@@ -346,7 +346,7 @@ where
     pub fn constant_bigint_typed(
         &mut self,
         value: &BigInt,
-        data_type: ScalarType,
+        data_type: PrimitiveType,
     ) -> Result<Primitive<E>, RuntimeError> {
         let p = self.constant_bigint(value)?;
         self.value_with_type_check(p.value, p.variable, data_type)
@@ -375,7 +375,7 @@ where
     pub fn set_type(
         &mut self,
         value: Primitive<E>,
-        data_type: ScalarType,
+        data_type: PrimitiveType,
     ) -> Result<Primitive<E>, RuntimeError> {
         self.value_with_type_check(value.value, value.variable, data_type)
     }
@@ -741,7 +741,7 @@ where
         self.value_with_type_check(
             lt.get_value_field::<E>(),
             lt.get_variable(),
-            ScalarType::BOOLEAN,
+            PrimitiveType::BOOLEAN,
         )
     }
 
@@ -767,7 +767,7 @@ where
         self.value_with_type_check(
             eq.get_value_field::<E>(),
             eq.get_variable(),
-            ScalarType::BOOLEAN,
+            PrimitiveType::BOOLEAN,
         )
     }
 

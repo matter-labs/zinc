@@ -1,21 +1,22 @@
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
-pub struct BinaryInteger {
+pub struct IntegerType {
     pub is_signed: bool,
     pub bit_length: usize,
 }
 
 #[derive(Serialize, Deserialize)]
-pub enum PrimitiveType {
+pub enum ScalarType {
     Field,
-    Integer(BinaryInteger),
+    Boolean,
+    Integer(IntegerType),
 }
 
 #[derive(Serialize, Deserialize)]
 pub enum DataType {
     Unit,
-    Primitive(PrimitiveType),
+    Scalar(ScalarType),
     // Enum is always a field
     Enum,
     Struct(Vec<(String, DataType)>),

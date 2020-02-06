@@ -5,15 +5,15 @@
 mod merkle; // defined a module
 
 struct PublicInput {
-    address: [bool; 10],
+    address: [bool; 1],
     balance: field,
     root_hash: merkle::Sha256Digest,
 }
 
 fn main(
-    address: [bool; 10],
+    address: [bool; 1],
     balance: field,
-    merkle_path: [merkle::Sha256Digest; 10]
+    merkle_path: [merkle::Sha256Digest; 1]
 ) -> PublicInput {
     let leaf_hash = merkle::balance_hash(balance); // call a function from `merkle`
 

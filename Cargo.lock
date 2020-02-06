@@ -1072,6 +1072,7 @@ dependencies = [
  "bincode",
  "enum-primitive-derive",
  "env_logger",
+ "failure",
  "log",
  "num-bigint",
  "num-integer",

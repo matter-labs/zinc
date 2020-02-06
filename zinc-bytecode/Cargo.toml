@@ -11,7 +11,7 @@ edition = "2018"
 log = "0.4"
 env_logger = "0.7"
 structopt = "0.3"
-#failure = "0.1"
+failure = "0.1"
 num-traits = "^0.1"
 num-bigint = { version = "0.2.3", features = ["serde"] }
 num-integer = "0.1.41"

@@ -16,13 +16,13 @@ use franklin_crypto::bellman::Variable;
 use num_traits::ToPrimitive;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct ScalarType {
+pub struct PrimitiveType {
     pub signed: bool,
     pub length: usize,
 }
 
-impl ScalarType {
-    pub const BOOLEAN: Self = ScalarType {
+impl PrimitiveType {
+    pub const BOOLEAN: Self = PrimitiveType {
         signed: false,
         length: 1,
     };
@@ -33,11 +33,11 @@ impl ScalarType {
 pub struct Primitive<E: Engine> {
     value: Option<E::Fr>,
     variable: Variable,
-    data_type: Option<ScalarType>,
+    data_type: Option<PrimitiveType>,
 }
 
 impl<E: Engine> Primitive<E> {
-    pub fn get_data_type(&self) -> Option<ScalarType> {
+    pub fn get_data_type(&self) -> Option<PrimitiveType> {
         self.data_type
     }
 

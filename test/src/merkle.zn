@@ -25,8 +25,8 @@ fn merkle_node_hash(left: Sha256Digest, right: Sha256Digest) -> Sha256Digest {
 
 fn restore_root_hash(
     leaf_hash: Sha256Digest,
-    address: [bool; 10],
-    merkle_path: [Sha256Digest; 10],
+    address: [bool; 1],
+    merkle_path: [Sha256Digest; 1],
 ) -> Sha256Digest
 {
     let mut current = leaf_hash;

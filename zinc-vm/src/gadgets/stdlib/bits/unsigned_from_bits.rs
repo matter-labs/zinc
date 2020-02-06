@@ -1,4 +1,4 @@
-use crate::gadgets::{Gadget, Primitive, ScalarType};
+use crate::gadgets::{Gadget, Primitive, PrimitiveType};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
@@ -25,7 +25,7 @@ impl<E: Engine> Gadget<E> for UnsignedFromBits {
                 0,
                 "Scalar bit length should be multiple of 8"
             );
-            let data_type = ScalarType {
+            let data_type = PrimitiveType {
                 signed: false,
                 length: input.len(),
             };

@@ -7,13 +7,13 @@ pub use internal::*;
 pub use state::*;
 
 use crate::core::location::CodeLocation;
-use crate::gadgets::{Gadgets, Primitive, ScalarType};
+use crate::gadgets::{Gadgets, Primitive, PrimitiveType};
 use crate::Engine;
 use colored::Colorize;
 use franklin_crypto::bellman::ConstraintSystem;
 use num_bigint::{BigInt, ToBigInt};
 use std::marker::PhantomData;
-use zinc_bytecode::data::types::{DataType, PrimitiveType};
+use zinc_bytecode::data::types::{DataType, ScalarType};
 use zinc_bytecode::program::Program;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 
@@ -89,7 +89,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
     {
         let one = self
             .operations()
-            .constant_bigint_typed(&1.into(), ScalarType::BOOLEAN)?;
+            .constant_bigint_typed(&1.into(), PrimitiveType::BOOLEAN)?;
         self.condition_push(one)?;
 
         self.init_root_frame(&program.input, inputs)?;
@@ -209,18 +209,19 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
     }
 }
 
-fn data_type_into_scalar_types(dtype: &DataType) -> Vec<Option<ScalarType>> {
-    fn internal(types: &mut Vec<Option<ScalarType>>, dtype: &DataType) {
+fn data_type_into_scalar_types(dtype: &DataType) -> Vec<Option<PrimitiveType>> {
+    fn internal(types: &mut Vec<Option<PrimitiveType>>, dtype: &DataType) {
         match dtype {
             DataType::Unit => {}
-            DataType::Primitive(t) => match t {
-                PrimitiveType::Field => {
+            DataType::Scalar(t) => match t {
+                ScalarType::Field => {
                     types.push(None);
                 }
-                PrimitiveType::Integer(int) => types.push(Some(ScalarType {
+                ScalarType::Integer(int) => types.push(Some(PrimitiveType {
                     signed: int.is_signed,
                     length: int.bit_length,
                 })),
+                ScalarType::Boolean => types.push(Some(PrimitiveType::BOOLEAN))
             },
             DataType::Enum => {
                 types.push(None);
