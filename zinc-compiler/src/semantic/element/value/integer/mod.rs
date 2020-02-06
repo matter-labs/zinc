@@ -65,6 +65,10 @@ impl Integer {
             ));
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldGreaterEquals);
+        }
+
         Ok(())
     }
 
@@ -74,6 +78,10 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
+        }
+
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldLesserEquals);
         }
 
         Ok(())
@@ -87,6 +95,10 @@ impl Integer {
             ));
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldGreater);
+        }
+
         Ok(())
     }
 
@@ -96,6 +108,10 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
+        }
+
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldLesser);
         }
 
         Ok(())
@@ -142,6 +158,10 @@ impl Integer {
             ));
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldDivision);
+        }
+
         Ok(())
     }
 
@@ -151,6 +171,10 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
+        }
+
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldRemainder);
         }
 
         Ok(())
@@ -164,7 +188,7 @@ impl Integer {
 
     pub fn negate(&self) -> Result<(), Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::FieldNegation);
+            return Err(Error::ForbiddenFieldNegation);
         }
 
         Ok(())

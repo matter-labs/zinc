@@ -41,6 +41,18 @@ pub enum Error {
     #[fail(display = "'%' operator operand types mismatch: '{}' and '{}'", _0, _1)]
     TypesMismatchRemainder(String, String),
 
-    #[fail(display = "field cannot be negated")]
-    FieldNegation,
+    #[fail(display = "'>=' operator is forbidden for field elements")]
+    ForbiddenFieldGreaterEquals,
+    #[fail(display = "'<=' operator is forbidden for field elements")]
+    ForbiddenFieldLesserEquals,
+    #[fail(display = "'>' operator is forbidden for field elements")]
+    ForbiddenFieldGreater,
+    #[fail(display = "'<' operator is forbidden for field elements")]
+    ForbiddenFieldLesser,
+    #[fail(display = "'/' operator is forbidden for field elements")]
+    ForbiddenFieldDivision,
+    #[fail(display = "'%' operator is forbidden for field elements")]
+    ForbiddenFieldRemainder,
+    #[fail(display = "unary '-' operator is forbidden for field elements")]
+    ForbiddenFieldNegation,
 }

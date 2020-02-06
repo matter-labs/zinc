@@ -1,0 +1,12 @@
+//!
+//! The 'casual' main module.
+//!
+
+fn main(witness: u8) -> u8 {
+    let mut r = 0;
+    for i in 1..=10 while i <= witness {
+        r = r + i;
+    }
+    dbg!("", witness, r);
+    r
+}

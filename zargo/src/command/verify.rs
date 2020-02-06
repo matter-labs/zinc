@@ -21,9 +21,9 @@ pub struct Command {
     verbose: usize,
 
     #[structopt(
-    long = "circuit",
-    help = "Path to the circuit binary file",
-    default_value = "./build/default.znb"
+        long = "circuit",
+        help = "Path to the circuit binary file",
+        default_value = "./build/default.znb"
     )]
     circuit: PathBuf,
 

@@ -65,8 +65,8 @@ struct Arguments {
 enum Error {
     #[fail(display = "Source input: {}", _0)]
     SourceInput(InputError),
-    #[fail(display = "Compiler: {}", _0)]
-    Compiler(zinc_compiler::Error),
+    #[fail(display = "Compiler: {}:{}", _0, _1)]
+    Compiler(String, zinc_compiler::Error),
     #[fail(display = "Input template output: {}", _0)]
     InputTemplateOutput(OutputError),
     #[fail(display = "Output template output: {}", _0)]
@@ -74,7 +74,7 @@ enum Error {
     #[fail(display = "Bytecode output: {}", _0)]
     BytecodeOutput(OutputError),
     #[fail(display = "The 'main.zn' source file is missing")]
-    MainSourceFileNotFound,
+    EntrySourceFileNotFound,
 }
 
 #[derive(Debug, Fail)]
@@ -142,22 +142,22 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
         }
 
         let module_name = source_file_stem.to_string_lossy().to_string();
-        bytecode
-            .borrow_mut()
-            .start_new_file(&format!("src/{}.zn", module_name));
+        let module_file_path = format!("src/{}.zn", module_name);
+        bytecode.borrow_mut().start_new_file(&module_file_path);
         let module = LibraryAnalyzer::new(bytecode.clone())
-            .compile(path_to_syntax_tree(source_file_path)?)
-            .map_err(Error::Compiler)?;
+            .compile(path_to_syntax_tree(source_file_path, &module_file_path)?)
+            .map_err(|error| Error::Compiler(module_name.clone(), error))?;
 
         modules.insert(module_name, module);
     }
 
-    bytecode.borrow_mut().start_new_file("src/main.zn");
+    let entry_file_path = "src/main.zn";
+    bytecode.borrow_mut().start_new_file(entry_file_path);
     match binary_path.take() {
         Some(binary_path) => BinaryAnalyzer::new(bytecode.clone())
-            .compile(path_to_syntax_tree(binary_path)?, modules)
-            .map_err(Error::Compiler)?,
-        None => return Err(Error::MainSourceFileNotFound),
+            .compile(path_to_syntax_tree(binary_path, entry_file_path)?, modules)
+            .map_err(|error| Error::Compiler(entry_file_path.to_owned(), error))?,
+        None => return Err(Error::EntrySourceFileNotFound),
     }
 
     File::create(&args.input_json)
@@ -192,7 +192,7 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
     Ok(())
 }
 
-fn path_to_syntax_tree(path: PathBuf) -> Result<SyntaxTree, Error> {
+fn path_to_syntax_tree(path: PathBuf, module_name: &str) -> Result<SyntaxTree, Error> {
     log::info!("Compiling   {:?}", path);
     let mut file = File::open(path)
         .map_err(InputError::Opening)
@@ -207,7 +207,9 @@ fn path_to_syntax_tree(path: PathBuf) -> Result<SyntaxTree, Error> {
         .map_err(InputError::Reading)
         .map_err(Error::SourceInput)?;
 
-    Parser::default().parse(input).map_err(Error::Compiler)
+    Parser::default()
+        .parse(input)
+        .map_err(|error| Error::Compiler(module_name.to_owned(), error))
 }
 
 fn init_logger(verbosity: usize) {

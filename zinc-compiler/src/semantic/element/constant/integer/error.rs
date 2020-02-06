@@ -51,9 +51,6 @@ pub enum Error {
     #[fail(display = "'%' operator operand types mismatch: '{}' and '{}'", _0, _1)]
     TypesMismatchRemainder(String, String),
 
-    #[fail(display = "integer bitlength is too big for negation: {}", _0)]
-    NegationBitlengthTooBig(usize),
-
     #[fail(display = "'/' operator division by zero")]
     DivisionZero,
     #[fail(display = "'%' operator division by zero")]
@@ -63,4 +60,19 @@ pub enum Error {
     LiteralTooLargeForIndex(String, usize),
     #[fail(display = "literal '{}' is larger than {} bits", _0, _1)]
     IntegerTooLargeForField(String, usize),
+
+    #[fail(display = "'>=' operator is forbidden for field elements")]
+    ForbiddenFieldGreaterEquals,
+    #[fail(display = "'<=' operator is forbidden for field elements")]
+    ForbiddenFieldLesserEquals,
+    #[fail(display = "'>' operator is forbidden for field elements")]
+    ForbiddenFieldGreater,
+    #[fail(display = "'<' operator is forbidden for field elements")]
+    ForbiddenFieldLesser,
+    #[fail(display = "'/' operator is forbidden for field elements")]
+    ForbiddenFieldDivision,
+    #[fail(display = "'%' operator is forbidden for field elements")]
+    ForbiddenFieldRemainder,
+    #[fail(display = "unary '-' operator is forbidden for field elements")]
+    ForbiddenFieldNegation,
 }

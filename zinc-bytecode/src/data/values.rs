@@ -3,22 +3,22 @@ use num_traits::Num;
 use serde_derive::{Deserialize, Serialize};
 use serde_json as json;
 
-use crate::data::types::{DataType, ScalarType, IntegerType};
+use crate::data::types::{DataType, IntegerType, ScalarType};
 use failure::Fail;
 use std::collections::HashSet;
 use std::fmt;
 
 fn serialize_bigint_into_string<S>(bigint: &BigInt, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
+where
+    S: serde::Serializer,
 {
     let s = bigint.to_string();
     serializer.serialize_str(&s)
 }
 
 fn deserialize_bigint_from_string<'de, D>(deserializer: D) -> Result<BigInt, D::Error>
-    where
-        D: serde::Deserializer<'de>,
+where
+    D: serde::Deserializer<'de>,
 {
     use serde::de::{Deserialize, Error};
 
@@ -141,21 +141,11 @@ impl Value {
             Value::Struct(fields) => {
                 let mut object = json::Map::<String, serde_json::Value>::new();
                 for field in fields.iter() {
-                    object.insert(
-                        field.field.clone(),
-                        field.value.to_json(),
-                    );
+                    object.insert(field.field.clone(), field.value.to_json());
                 }
                 json::Value::Object(object)
             }
-            Value::Array(values) => {
-                json::Value::Array(
-                    values
-                        .iter()
-                        .map(Self::to_json)
-                        .collect()
-                )
-            }
+            Value::Array(values) => json::Value::Array(values.iter().map(Self::to_json).collect()),
         }
     }
 
@@ -179,10 +169,14 @@ impl Value {
         Err(JsonValueErrorType::TypeError {
             expected: "\"unit\"".into(),
             actual: value.to_string(),
-        }.into())
+        }
+        .into())
     }
 
-    fn scalar_from_json(value: &json::Value, scalar_type: &ScalarType) -> Result<Self, JsonValueError> {
+    fn scalar_from_json(
+        value: &json::Value,
+        scalar_type: &ScalarType,
+    ) -> Result<Self, JsonValueError> {
         match scalar_type {
             ScalarType::Field => Self::field_from_json(value),
             ScalarType::Boolean => Self::boolean_from_json(value),
@@ -204,7 +198,8 @@ impl Value {
             BigInt::from_str_radix(value_string, 10)
         };
 
-        let bigint = bigint_result.map_err(|_| JsonValueErrorType::InvalidNumberFormat(value_string.into()))?;
+        let bigint = bigint_result
+            .map_err(|_| JsonValueErrorType::InvalidNumberFormat(value_string.into()))?;
 
         // TODO: overflow check.
 
@@ -224,12 +219,18 @@ impl Value {
         Ok(Value::Scalar(value_num.into()))
     }
 
-    fn integer_from_json(value: &json::Value, _itype: &IntegerType) -> Result<Self, JsonValueError> {
+    fn integer_from_json(
+        value: &json::Value,
+        _itype: &IntegerType,
+    ) -> Result<Self, JsonValueError> {
         // TODO: overflow check.
         Self::field_from_json(value)
     }
 
-    fn struct_from_json(value: &json::Value, field_types: &[(String, DataType)]) -> Result<Self, JsonValueError> {
+    fn struct_from_json(
+        value: &json::Value,
+        field_types: &[(String, DataType)],
+    ) -> Result<Self, JsonValueError> {
         let object = value
             .as_object()
             .ok_or_else(|| JsonValueErrorType::type_error("structure", value))?;
@@ -243,8 +244,7 @@ impl Value {
                 .get(name)
                 .ok_or_else(|| JsonValueErrorType::MissingField(name.clone()))?;
 
-            let typed_value = Self::from_typed_json(json_value, dtype)
-                .in_struct(name.as_str())?;
+            let typed_value = Self::from_typed_json(json_value, dtype).in_struct(name.as_str())?;
 
             field_values.push(StructField {
                 field: name.clone(),
@@ -269,8 +269,9 @@ impl Value {
         if array.len() != types.len() {
             return Err(JsonValueErrorType::UnexpectedSize {
                 expected: types.len(),
-                actual: array.len()
-            }.into())
+                actual: array.len(),
+            }
+            .into());
         }
 
         let mut values = Vec::with_capacity(types.len());
@@ -282,7 +283,11 @@ impl Value {
         Ok(Value::Array(values))
     }
 
-    fn array_from_json(value: &json::Value, dtype: &DataType, size: usize) -> Result<Self, JsonValueError> {
+    fn array_from_json(
+        value: &json::Value,
+        dtype: &DataType,
+        size: usize,
+    ) -> Result<Self, JsonValueError> {
         let array = value
             .as_array()
             .ok_or_else(|| JsonValueErrorType::type_error("array", value))?;
@@ -290,8 +295,9 @@ impl Value {
         if array.len() != size {
             return Err(JsonValueErrorType::UnexpectedSize {
                 expected: size,
-                actual: array.len()
-            }.into())
+                actual: array.len(),
+            }
+            .into());
         }
 
         let mut values = Vec::with_capacity(size);
@@ -303,8 +309,6 @@ impl Value {
 
         Ok(Value::Array(values))
     }
-
-
 }
 
 #[derive(Debug, Fail)]
@@ -361,7 +365,10 @@ pub enum JsonValueErrorType {
     #[fail(display = "type mismatch: expected {}, got {}", expected, actual)]
     TypeError { expected: String, actual: String },
 
-    #[fail(display = "failed to parse number: expected decimal or hexadecimal string, got \"{}\"", _0)]
+    #[fail(
+        display = "failed to parse number: expected decimal or hexadecimal string, got \"{}\"",
+        _0
+    )]
     InvalidNumberFormat(String),
 
     #[fail(display = "value for field \"{}\" is missing", _0)]
@@ -370,7 +377,10 @@ pub enum JsonValueErrorType {
     #[fail(display = "unexpected field \"{}\"", _0)]
     UnexpectedField(String),
 
-    #[fail(display = "expected array/tuple of size {}, got {} elements", expected, actual)]
+    #[fail(
+        display = "expected array/tuple of size {}, got {} elements",
+        expected, actual
+    )]
     UnexpectedSize { expected: usize, actual: usize },
 }
 
