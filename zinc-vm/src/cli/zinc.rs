@@ -5,27 +5,32 @@ use log::LevelFilter;
 use std::fmt::Debug;
 use std::io;
 use structopt::StructOpt;
-use zinc_bytecode::DecodingError;
 use zinc_vm::{RuntimeError, VerificationError};
+use failure::Fail;
+use zinc_bytecode::data::values::JsonValueError;
+use std::process::exit;
 
-#[derive(Debug)]
+#[derive(Debug, Fail)]
 pub enum Error {
+    #[fail(display = "io error: {:#?}", _0)]
     IO(io::Error),
-    Decoding(DecodingError),
+
+    #[fail(display = "runtime error: {:#?}", _0)]
     Runtime(RuntimeError),
+
+    #[fail(display = "failed to verify")]
     Verification(VerificationError),
-    Json(serde_json::Error),
+
+    #[fail(display = "failed to parse json: {}", _0)]
+    JsonDecoding(serde_json::Error),
+
+    #[fail(display = "invalid json structure: {}", _0)]
+    JsonValue(JsonValueError)
 }
 
 impl From<io::Error> for Error {
     fn from(error: io::Error) -> Self {
         Error::IO(error)
-    }
-}
-
-impl From<DecodingError> for Error {
-    fn from(error: DecodingError) -> Self {
-        Error::Decoding(error)
     }
 }
 
@@ -43,11 +48,17 @@ impl From<VerificationError> for Error {
 
 impl From<serde_json::Error> for Error {
     fn from(error: serde_json::Error) -> Self {
-        Error::Json(error)
+        Error::JsonDecoding(error)
     }
 }
 
-fn main() -> Result<(), Error> {
+impl From<JsonValueError> for Error {
+    fn from(error: JsonValueError) -> Self {
+        Error::JsonValue(error)
+    }
+}
+
+fn main() {
     let args = Arguments::from_args();
 
     env_logger::Builder::from_default_env()
@@ -60,12 +71,15 @@ fn main() -> Result<(), Error> {
         })
         .init();
 
-    match args.command {
+    let result = match args.command {
         Command::Run(command) => command.execute(),
         Command::Setup(command) => command.execute(),
         Command::Prove(command) => command.execute(),
         Command::Verify(command) => command.execute(),
-    }?;
+    };
 
-    Ok(())
+    if let Err(error) = result {
+        println!("{}", error);
+        exit(1);
+    }
 }

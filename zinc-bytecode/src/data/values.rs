@@ -6,6 +6,7 @@ use serde_json as json;
 use crate::data::types::{DataType, ScalarType, IntegerType};
 use failure::Fail;
 use std::collections::HashSet;
+use std::fmt;
 
 fn serialize_bigint_into_string<S>(bigint: &BigInt, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -307,10 +308,18 @@ impl Value {
 }
 
 #[derive(Debug, Fail)]
-#[fail(display = "{}", error)]
 pub struct JsonValueError {
     path: Vec<String>,
     error: JsonValueErrorType,
+}
+
+impl fmt::Display for JsonValueError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        let mut path = self.path.clone();
+        path.reverse();
+        let p = path.as_slice().join(&String::from("."));
+        write!(f, "{} at {}", self.error, p)
+    }
 }
 
 trait JsonErrorContext {
@@ -352,7 +361,7 @@ pub enum JsonValueErrorType {
     #[fail(display = "type mismatch: expected {}, got {}", expected, actual)]
     TypeError { expected: String, actual: String },
 
-    #[fail(display = "failed to parse number: expected decimal or hexadecimal string, got {}", _0)]
+    #[fail(display = "failed to parse number: expected decimal or hexadecimal string, got \"{}\"", _0)]
     InvalidNumberFormat(String),
 
     #[fail(display = "value for field \"{}\" is missing", _0)]

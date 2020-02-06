@@ -26,7 +26,7 @@ impl RunCommand {
 
         let input_text = fs::read_to_string(&self.input_path)?;
         let json = serde_json::from_str(&input_text)?;
-        let input_values: Value = Value::from_typed_json(&json, &program.input).expect("hello");
+        let input_values: Value = Value::from_typed_json(&json, &program.input)?;
         let input = input_values.to_flat_values();
 
         let output_values = zinc_vm::run::<Bn256>(&program, &input)?;

@@ -1105,6 +1105,7 @@ dependencies = [
  "clap",
  "colored",
  "env_logger",
+ "failure",
  "ff_ce",
  "franklin-crypto",
  "hex 0.4.0",

@@ -35,7 +35,7 @@ impl ProveCommand {
         // Read witness
         let witness_json = fs::read_to_string(&self.witness_path)?;
         let witness_value = serde_json::from_str(&witness_json)?;
-        let witness_struct = Value::from_typed_json(&witness_value, &program.input).expect("hello");
+        let witness_struct = Value::from_typed_json(&witness_value, &program.input)?;
         let witness = witness_struct.to_flat_values();
 
         let (pubdata, proof) = zinc_vm::prove::<Bn256>(&program, &params, witness.as_slice())?;
