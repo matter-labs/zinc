@@ -1,0 +1,165 @@
+//!
+//! The '%' operator tests.
+//!
+
+struct ResultU8 {
+    rem_zero_value: u8,
+    rem_value_value: u8,
+    rem_max: u8,
+}
+
+impl ResultU8 {
+    fn test() -> Self {
+        Self {
+            rem_zero_value: 0 % 5,
+            rem_value_value: 5 % 3,
+            rem_max: 255 % 4,
+        }
+    }
+}
+
+struct ResultI8 {
+    rem_zero_value: i8,
+    rem_value_value: i8,
+    rem_max: i8,
+    rem_min: i8,
+}
+
+impl ResultI8 {
+    fn test() -> Self {
+        Self {
+            rem_zero_value: 0 as i8 % 8 as i8,
+            rem_value_value: 13 as i8 % 8 as i8,
+            rem_max: 127 as i8 % 13 as i8,
+            rem_min: -128 % 13 as i8,
+        }
+    }
+}
+
+struct ResultU64 {
+    rem_zero_value: u64,
+    rem_value_value: u64,
+    rem_max: u64,
+}
+
+impl ResultU64 {
+    fn test() -> Self {
+        Self {
+            rem_zero_value: 0 as u64 % 34 as u64,
+            rem_value_value: 34 as u64 % 21 as u64,
+            rem_max: 0xFFFF_FFFF_FFFF_FFFF % 34 as u64,
+        }
+    }
+}
+
+struct ResultI64 {
+    rem_zero_value: i64,
+    rem_value_value: i64,
+    rem_max: i64,
+    rem_min: i64,
+}
+
+impl ResultI64 {
+    fn test() -> Self {
+        Self {
+            rem_zero_value: 0 as i64 % 89 as i64,
+            rem_value_value: 89 as i64 % 55 as i64,
+            rem_max: 0x7FFF_FFFF_FFFF_FFFF as i64 % 89 as i64,
+            rem_min: -0x8000_0000_0000_0000 % 89 as i64,
+        }
+    }
+}
+
+struct ResultU248 {
+    rem_zero_value: u248,
+    rem_value_value: u248,
+    rem_max: u248,
+}
+
+impl ResultU248 {
+    fn test() -> Self {
+        Self {
+            rem_zero_value: 0 as u248 % 233 as u248,
+            rem_value_value: 233 as u248 % 144 as u248,
+            rem_max: 0xFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF % 233 as u248,
+        }
+    }
+}
+
+struct ResultI248 {
+    rem_zero_value: i248,
+    rem_value_value: i248,
+    rem_max: i248,
+    rem_min: i248,
+}
+
+impl ResultI248 {
+    fn test() -> Self {
+        Self {
+            rem_zero_value: 0 as i248 % 610 as i248,
+            rem_value_value: 610 as i248 % 377 as i248,
+            rem_max: 0x7F_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF as i248 % 610 as i248,
+            rem_min: -0x80_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000 % 610 as i248,
+        }
+    }
+}
+
+struct ResultField {
+    rem_zero_value: field,
+    rem_value_value: field,
+}
+
+impl ResultField {
+    fn test() -> Self {
+        Self {
+            rem_zero_value: 0 as field, // TODO: % 987 as field,
+            rem_value_value: 987 as field, // TODO: % 610 as field,
+        }
+    }
+}
+
+struct ResultMix {
+    rem_const_const: u8,
+    rem_const_value: u8,
+    rem_value_const: u8,
+    rem_value_value: u8,
+}
+
+impl ResultMix {
+    fn test() -> Self {
+        let bigger = 52;
+        let smaller = 16;
+        Self {
+            rem_const_const: 52 % 16,
+            rem_const_value: 52 % smaller,
+            rem_value_const: bigger % 16,
+            rem_value_value: bigger % smaller,
+        }
+    }
+}
+
+struct Result {
+    result_u8: ResultU8,
+    result_i8: ResultI8,
+    result_u64: ResultU64,
+    result_i64: ResultI64,
+    result_u248: ResultU248,
+    result_i248: ResultI248,
+    result_field: ResultField,
+    result_mix: ResultMix,
+}
+
+impl Result {
+    fn test() -> Self {
+        Self {
+            result_u8: ResultU8::test(),
+            result_i8: ResultI8::test(),
+            result_u64: ResultU64::test(),
+            result_i64: ResultI64::test(),
+            result_u248: ResultU248::test(),
+            result_i248: ResultI248::test(),
+            result_field: ResultField::test(),
+            result_mix: ResultMix::test(),
+        }
+    }
+}

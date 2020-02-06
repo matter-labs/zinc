@@ -172,7 +172,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
     }
 
     fn get_outputs(&mut self) -> Result<Vec<Option<BigInt>>, RuntimeError> {
-        let outputs_fr: Vec<_> = self.outputs.iter().rev().map(|f| (*f).clone()).collect();
+        let outputs_fr: Vec<_> = self.outputs.iter().map(|f| (*f).clone()).collect();
 
         let mut outputs_bigint = Vec::with_capacity(outputs_fr.len());
         for o in outputs_fr.into_iter() {

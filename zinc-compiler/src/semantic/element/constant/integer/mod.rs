@@ -300,7 +300,7 @@ impl Integer {
     fn minimal_bitlength(value: &BigInt) -> Result<usize, Error> {
         let mut bitlength = crate::BITLENGTH_BYTE;
         let mut exponent = BigInt::from(1 << crate::BITLENGTH_BYTE);
-        while value.ge(&exponent) {
+        while value.gt(&exponent) {
             if bitlength == crate::BITLENGTH_MAX_INT {
                 exponent <<= crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
                 bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;

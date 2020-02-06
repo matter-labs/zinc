@@ -27,7 +27,7 @@ where
             values.push(value);
         }
 
-        for value in values.into_iter().rev() {
+        for value in values.into_iter() {
             vm.push(Cell::Value(value))?;
         }
 

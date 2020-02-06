@@ -2,6 +2,26 @@
 //! The 'integrational' main module.
 //!
 
-fn main() -> bool {
-    true
+mod addition;
+mod subtraction;
+mod multiplication;
+mod division;
+mod remainder;
+
+struct Result {
+    addition: addition::Result,
+    subtraction: subtraction::Result,
+    multiplication: multiplication::Result,
+    division: division::Result,
+    remainder: remainder::Result,
+}
+
+fn main() -> Result {
+    Result {
+        addition: addition::Result::test(),
+        subtraction: subtraction::Result::test(),
+        multiplication: multiplication::Result::test(),
+        division: division::Result::test(),
+        remainder: remainder::Result::test(),
+    }
 }

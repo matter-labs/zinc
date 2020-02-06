@@ -124,7 +124,7 @@ where
 
         self.state.instruction_counter = frame.return_address;
 
-        for p in outputs.into_iter() {
+        for p in outputs.into_iter().rev() {
             self.push(p)?;
         }
 

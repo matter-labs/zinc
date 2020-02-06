@@ -22,7 +22,7 @@ pub struct Bytecode {
     instructions: Vec<Instruction>,
 
     data_stack_pointer: usize,
-    function_addresses: HashMap<String, usize>,
+    function_addresses: HashMap<usize, usize>,
     address_stack: Vec<usize>,
 
     current_file: String,
@@ -58,6 +58,7 @@ impl Bytecode {
 
     pub fn set_main_function(
         &mut self,
+        unique_id: usize,
         function_address: usize,
         input_size: usize,
         output_size: usize,
@@ -65,8 +66,7 @@ impl Bytecode {
         self.instructions[0] =
             Instruction::Call(zinc_bytecode::Call::new(function_address, input_size));
         self.instructions[1] = Instruction::Exit(zinc_bytecode::Exit::new(output_size));
-        self.function_addresses
-            .insert("main".to_owned(), function_address);
+        self.function_addresses.insert(unique_id, function_address);
     }
 
     pub fn set_input_fields(&mut self, fields: Vec<(String, Type)>) {
@@ -183,9 +183,9 @@ impl Bytecode {
         self.current_file = name.to_owned();
     }
 
-    pub fn start_new_function(&mut self, identifier: &str) {
+    pub fn start_new_function(&mut self, identifier: &str, unique_id: usize) {
         self.function_addresses
-            .insert(identifier.to_owned(), self.instructions.len());
+            .insert(unique_id, self.instructions.len());
         self.instructions.push(Instruction::FileMarker(
             zinc_bytecode::instructions::FileMarker::new(self.current_file.clone()),
         ));
@@ -195,8 +195,8 @@ impl Bytecode {
         self.data_stack_pointer = 0;
     }
 
-    pub fn function_address(&self, identifier: &str) -> Option<usize> {
-        self.function_addresses.get(identifier).copied()
+    pub fn function_address(&self, unique_id: usize) -> Option<usize> {
+        self.function_addresses.get(&unique_id).copied()
     }
 
     pub fn allocate_data_stack_space(&mut self, size: usize) -> usize {

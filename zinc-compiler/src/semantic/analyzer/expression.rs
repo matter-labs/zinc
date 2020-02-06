@@ -705,7 +705,7 @@ impl Analyzer {
                 let function_address = self
                     .bytecode
                     .borrow_mut()
-                    .function_address(function.identifier.as_str())
+                    .function_address(function.unique_id)
                     .expect(crate::semantic::PANIC_FUNCTION_ADDRESS_ALWAYS_EXISTS);
                 let function_input_size = function
                     .arguments
@@ -1568,16 +1568,16 @@ impl Analyzer {
         self.swap_top();
 
         let loads_before = self.loads;
+        let pushes_before = self.pushes;
         let operand_1 = self.evaluate_operand(translation_hint_1)?;
-        let loaded_first = self.loads - loads_before == 1;
+        let added_first = self.pushes - pushes_before == 1 || self.loads - loads_before == 1;
 
         let loads_before = self.loads;
         let pushes_before = self.pushes;
         let operand_2 = self.evaluate_operand(translation_hint_2)?;
-        let pushed_second = self.pushes - pushes_before == 1;
-        let loaded_second = self.loads - loads_before == 1;
+        let added_second = self.pushes - pushes_before == 1 || self.loads - loads_before == 1;
 
-        if swap_on_single_load && loaded_first && !loaded_second && !pushed_second {
+        if swap_on_single_load && added_first && !added_second {
             self.bytecode.borrow_mut().push_instruction(
                 Instruction::Swap(zinc_bytecode::Swap::default()),
                 Location::default(),
