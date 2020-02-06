@@ -2,6 +2,7 @@ use crate::data::types::DataType;
 use num_bigint::BigInt;
 use num_traits::Num;
 use serde_derive::{Deserialize, Serialize};
+use serde_json as json;
 
 fn serialize_bigint_into_string<S>(bigint: &BigInt, serializer: S) -> Result<S::Ok, S::Error>
 where
@@ -123,6 +124,31 @@ impl Value {
                 }
                 Some(offset)
             }
+        }
+    }
+
+    pub fn to_json(&self) -> json::Value {
+        match self {
+            Value::Unit => json::Value::String("unit".into()),
+            Value::Scalar(value) => json::Value::String(value.to_str_radix(10)),
+            Value::Struct(fields) => {
+                let mut object = json::Map::<String, serde_json::Value>::new();
+                for field in fields.iter() {
+                    object.insert(
+                        field.field.clone(),
+                        field.value.to_json(),
+                    );
+                }
+                json::Value::Object(object)
+            },
+            Value::Array(values) => {
+                json::Value::Array(
+                    values
+                        .iter()
+                        .map(Self::to_json)
+                        .collect()
+                )
+            },
         }
     }
 }

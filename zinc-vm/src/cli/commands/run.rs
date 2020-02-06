@@ -35,7 +35,10 @@ impl RunCommand {
         let output_json = serde_json::to_string_pretty(&output)? + "\n";
         fs::write(&self.output_path, &output_json)?;
 
-        print!("{}", &output_json);
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&output.to_json()).expect("to_json")
+        );
 
         Ok(())
     }
