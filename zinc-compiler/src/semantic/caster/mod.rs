@@ -28,7 +28,7 @@ impl Caster {
         match (from, to) {
             (Type::IntegerUnsigned { bitlength: b1 }, Type::IntegerUnsigned { bitlength: b2 }) => {
                 let (b1, b2) = (*b1, *b2);
-                if b1 >= crate::BITLENGTH_MAX_INT || b1 > b2 {
+                if b1 > crate::BITLENGTH_MAX_INT || b1 > b2 {
                     Err(Error::ToLesserBitlength(b1, b2))
                 } else {
                     Ok(())
@@ -36,7 +36,7 @@ impl Caster {
             }
             (Type::IntegerUnsigned { bitlength: b1 }, Type::IntegerSigned { bitlength: b2 }) => {
                 let (b1, b2) = (*b1, *b2);
-                if b1 >= crate::BITLENGTH_MAX_INT || b1 > b2 {
+                if b1 > crate::BITLENGTH_MAX_INT || b1 > b2 {
                     Err(Error::ToLesserBitlength(b1, b2))
                 } else {
                     Ok(())
@@ -48,7 +48,7 @@ impl Caster {
             }
             (Type::IntegerSigned { bitlength: b1 }, Type::IntegerSigned { bitlength: b2 }) => {
                 let (b1, b2) = (*b1, *b2);
-                if b1 >= crate::BITLENGTH_MAX_INT || b1 > b2 {
+                if b1 > crate::BITLENGTH_MAX_INT || b1 > b2 {
                     Err(Error::ToLesserBitlength(b1, b2))
                 } else {
                     Ok(())
@@ -56,7 +56,7 @@ impl Caster {
             }
             (Type::IntegerSigned { bitlength: b1 }, Type::IntegerUnsigned { bitlength: b2 }) => {
                 let (b1, b2) = (*b1, *b2);
-                if b1 >= crate::BITLENGTH_MAX_INT || b1 > b2 {
+                if b1 > crate::BITLENGTH_MAX_INT || b1 > b2 {
                     Err(Error::ToLesserBitlength(b1, b2))
                 } else {
                     Ok(())

@@ -11,14 +11,21 @@ pub struct UserDefinedFunction {
     pub identifier: String,
     pub arguments: Vec<(String, Type)>,
     pub return_type: Box<Type>,
+    pub unique_id: usize,
 }
+
+static mut UNIQUE_ID: usize = 0;
 
 impl UserDefinedFunction {
     pub fn new(identifier: String, arguments: Vec<(String, Type)>, return_type: Type) -> Self {
+        unsafe {
+            UNIQUE_ID += 1;
+        }
         Self {
             identifier,
             arguments,
             return_type: Box::new(return_type),
+            unique_id: unsafe { UNIQUE_ID },
         }
     }
 }

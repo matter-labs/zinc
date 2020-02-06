@@ -205,6 +205,7 @@ mod err_scope_item_undeclared_enum_variant;
 mod err_type_alias_does_not_point_to_structure;
 mod err_type_alias_does_not_point_to_type;
 mod err_use_expected_path;
+
 //mod ok_algorithm_factorial;
 //mod ok_algorithm_fibonacci;
 //mod ok_algorithm_modules;

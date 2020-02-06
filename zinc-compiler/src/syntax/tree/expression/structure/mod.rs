@@ -1,5 +1,5 @@
 //!
-//! The structure expression.
+//! The structure or identifier expression.
 //!
 
 mod builder;
@@ -13,19 +13,22 @@ use crate::syntax::Identifier;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
     pub location: Location,
-    pub path: syntax::Expression,
+    pub identifier: Identifier,
+    pub is_struct: bool,
     pub fields: Vec<(Identifier, syntax::Expression)>,
 }
 
 impl Expression {
     pub fn new(
         location: Location,
-        path: syntax::Expression,
+        identifier: Identifier,
+        is_struct: bool,
         fields: Vec<(Identifier, syntax::Expression)>,
     ) -> Self {
         Self {
             location,
-            path,
+            identifier,
+            is_struct,
             fields,
         }
     }

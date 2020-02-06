@@ -25,8 +25,8 @@ struct Test {
 }
 
 fn main() {
-    let test = struct Test {
-        inner: struct Inner {
+    let test = Test {
+        inner: Inner {
             value: 3,
         },
     };

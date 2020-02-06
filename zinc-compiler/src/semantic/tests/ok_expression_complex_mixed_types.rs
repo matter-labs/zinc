@@ -26,7 +26,7 @@ struct Data { value: u8 }
 fn main() {
     let array = [[1, 2], [3, 4]];
     let tuple = ((1, 2), (3, 4));
-    let structure = struct Data { value: 34 };
+    let structure = Data { value: 34 };
 
     let result = array[1][1] + tuple.1.1 + structure.value;
 }

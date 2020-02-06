@@ -124,7 +124,7 @@ where
 
         self.state.instruction_counter = frame.return_address;
 
-        for p in outputs.into_iter() {
+        for p in outputs.into_iter().rev() {
             self.push(p)?;
         }
 
@@ -221,6 +221,7 @@ where
             let value = self.pop()?.value()?;
             self.outputs.push(value);
         }
+        self.outputs.reverse();
 
         self.state.instruction_counter = std::usize::MAX;
         Ok(())

@@ -10,7 +10,10 @@
 /zinc-book/build/*
 
 # Zinc build
-build/
+/zinc-examples/*/build/
+/zinc-examples/*/data/
+/zinc-tests/*/build/
+/zinc-tests/*/data/
 
 # Builds
 *.tar.gz

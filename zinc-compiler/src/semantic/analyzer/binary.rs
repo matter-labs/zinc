@@ -56,28 +56,32 @@ impl Analyzer {
                 .map_err(CompilerError::Semantic)?;
         }
 
-        // replace the placeholders inserted above with an actual 'main' function call
-        let main_function_address = self
-            .bytecode
-            .borrow_mut()
-            .function_address("main")
-            .ok_or(Error::FunctionMainMissing)
-            .map_err(CompilerError::Semantic)?;
-
-        if let Ok(ScopeItem::Type(Type::Function(FunctionType::UserDefined(
+        if let ScopeItem::Type(Type::Function(FunctionType::UserDefined(
             UserDefinedFunctionType {
                 arguments,
                 return_type,
+                unique_id,
                 ..
             },
-        )))) = Scope::resolve_item(self.scope(), "main")
+        ))) = Scope::resolve_item(self.scope(), "main")
+            .map_err(|_| Error::FunctionMainMissing)
+            .map_err(CompilerError::Semantic)?
         {
+            // replace the placeholders inserted above with an actual 'main' function call
+            let main_function_address = self
+                .bytecode
+                .borrow_mut()
+                .function_address(unique_id)
+                .ok_or(Error::FunctionMainMissing)
+                .map_err(CompilerError::Semantic)?;
+
             let input_size = arguments.iter().map(|(_name, r#type)| r#type.size()).sum();
             let output_size = return_type.size();
 
             self.bytecode.borrow_mut().set_input_fields(arguments);
             self.bytecode.borrow_mut().set_output_type(*return_type);
             self.bytecode.borrow_mut().set_main_function(
+                unique_id,
                 main_function_address,
                 input_size,
                 output_size,

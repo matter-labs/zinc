@@ -19,6 +19,7 @@ use crate::semantic::Constant;
 use crate::semantic::Element;
 use crate::semantic::Error;
 use crate::semantic::ExpressionAnalyzer;
+use crate::semantic::FunctionType;
 use crate::semantic::IntegerConstant;
 use crate::semantic::IntegerConstantError;
 use crate::semantic::Scope;
@@ -27,6 +28,7 @@ use crate::semantic::ScopeStaticItem;
 use crate::semantic::ScopeVariableItem;
 use crate::semantic::TranslationHint;
 use crate::semantic::Type;
+use crate::semantic::UserDefinedFunctionType;
 use crate::syntax::BindingPatternVariant;
 use crate::syntax::ConstStatement;
 use crate::syntax::EnumStatement;
@@ -265,8 +267,10 @@ impl Analyzer {
             ));
         }
         let return_type = Type::from_type_variant(&statement.return_type.variant, self.scope())?;
-        let r#type =
-            Type::new_user_defined_function(identifier.clone(), argument_bindings, return_type);
+        let function_type =
+            UserDefinedFunctionType::new(identifier.clone(), argument_bindings, return_type);
+        let function_type_unique_id = function_type.unique_id;
+        let r#type = Type::Function(FunctionType::UserDefined(function_type));
 
         self.scope()
             .borrow_mut()
@@ -274,7 +278,9 @@ impl Analyzer {
             .map_err(|error| Error::Scope(location, error))?;
 
         // record the function address in the bytecode
-        self.bytecode.borrow_mut().start_new_function(&identifier);
+        self.bytecode
+            .borrow_mut()
+            .start_new_function(&identifier, function_type_unique_id);
 
         // start a new scope and declare the function arguments there
         self.push_scope();

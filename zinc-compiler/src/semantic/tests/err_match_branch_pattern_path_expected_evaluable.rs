@@ -25,8 +25,9 @@ type X = field;
     let binary = r#"
 mod module_1;
 
-fn main(input: (), witness: ()) -> u8 {
-    match 42 {
+fn main() -> u8 {
+    let value = 42;
+    match value {
         module_1::X => 1,
         _ => 0,
     }
@@ -35,7 +36,7 @@ fn main(input: (), witness: ()) -> u8 {
 
     let expected = Err(Error::Semantic(
         SemanticError::MatchBranchPatternPathExpectedEvaluable(
-            Location::new(6, 9),
+            Location::new(7, 9),
             "field".to_owned(),
         ),
     ));

@@ -147,12 +147,22 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             None => {
                 for t in types {
                     let variable = self.operations().variable_none(t)?;
+                    if t.is_none() {
+                        // Add constraint so circuit doesn't fail if argument is not used.
+                        // TODO: Refactor this.
+                        self.operations().neg(variable.clone())?;
+                    }
                     self.push(Cell::Value(variable))?;
                 }
             }
             Some(values) => {
                 for (value, dtype) in values.iter().zip(types) {
                     let variable = self.operations().variable_bigint(value, dtype)?;
+                    if dtype.is_none() {
+                        // Add constraint so circuit doesn't fail if argument is not used.
+                        // TODO: Refactor this.
+                        self.operations().neg(variable.clone())?;
+                    }
                     self.push(Cell::Value(variable))?;
                 }
             }
@@ -162,7 +172,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
     }
 
     fn get_outputs(&mut self) -> Result<Vec<Option<BigInt>>, RuntimeError> {
-        let outputs_fr: Vec<_> = self.outputs.iter().rev().map(|f| (*f).clone()).collect();
+        let outputs_fr: Vec<_> = self.outputs.iter().map(|f| (*f).clone()).collect();
 
         let mut outputs_bigint = Vec::with_capacity(outputs_fr.len());
         for o in outputs_fr.into_iter() {

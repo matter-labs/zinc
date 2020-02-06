@@ -24,7 +24,7 @@ fn main(
         merkle_path,
     );
 
-    struct PublicInput {
+    PublicInput {
         address: address,
         balance: balance,
         root_hash: root_hash,

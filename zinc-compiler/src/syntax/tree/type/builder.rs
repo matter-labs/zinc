@@ -19,7 +19,6 @@ pub struct Builder {
     tuple_element_types: Vec<TypeVariant>,
     tuple_has_comma: bool,
     path_expression: Option<Expression>,
-    reference_inner: Option<Type>,
 }
 
 impl Builder {
@@ -57,10 +56,6 @@ impl Builder {
         self.path_expression = Some(value);
     }
 
-    pub fn set_reference_inner(&mut self, value: Type) {
-        self.reference_inner = Some(value);
-    }
-
     pub fn finish(mut self) -> Type {
         let location = self.location.take().unwrap_or_else(|| {
             panic!(
@@ -93,8 +88,6 @@ impl Builder {
                     )
                 }),
             )
-        } else if let Some(reference_inner) = self.reference_inner.take() {
-            TypeVariant::new_reference(reference_inner.variant)
         } else if !self.tuple_element_types.is_empty() {
             if !self.tuple_has_comma {
                 self.tuple_element_types

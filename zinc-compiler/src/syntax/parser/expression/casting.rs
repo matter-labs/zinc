@@ -49,28 +49,6 @@ impl Parser {
                     .push_operator(location, ExpressionOperator::Negation);
                 Ok((self.builder.finish(), next))
             }
-            Token {
-                lexeme: Lexeme::Symbol(Symbol::Ampersand),
-                location,
-            } => {
-                self.builder.set_location(location);
-                let (expression, next) = Self::default().parse(stream, None)?;
-                self.builder.extend_with_expression(expression);
-                self.builder
-                    .push_operator(location, ExpressionOperator::Reference);
-                Ok((self.builder.finish(), next))
-            }
-            Token {
-                lexeme: Lexeme::Symbol(Symbol::Asterisk),
-                location,
-            } => {
-                self.builder.set_location(location);
-                let (expression, next) = Self::default().parse(stream, None)?;
-                self.builder.extend_with_expression(expression);
-                self.builder
-                    .push_operator(location, ExpressionOperator::Dereference);
-                Ok((self.builder.finish(), next))
-            }
             token => {
                 self.builder.set_location(token.location);
                 let (expression, next) =
