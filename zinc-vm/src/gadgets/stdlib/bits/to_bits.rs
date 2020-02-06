@@ -1,4 +1,4 @@
-use crate::gadgets::{Gadget, Primitive, ScalarType};
+use crate::gadgets::{Gadget, Primitive, PrimitiveType};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
@@ -29,7 +29,7 @@ impl<E: Engine> Gadget<E> for ToBits {
                     .get_variable()
                     .expect("into_bits_le_fixed must allocate")
                     .get_variable(),
-                data_type: Some(ScalarType::BOOLEAN),
+                data_type: Some(PrimitiveType::BOOLEAN),
             })
             .collect();
 

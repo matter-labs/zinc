@@ -34,14 +34,15 @@ impl ProveCommand {
 
         // Read witness
         let witness_json = fs::read_to_string(&self.witness_path)?;
-        let witness_struct: Value = serde_json::from_str(&witness_json)?;
+        let witness_value = serde_json::from_str(&witness_json)?;
+        let witness_struct = Value::from_typed_json(&witness_value, &program.input).expect("hello");
         let witness = witness_struct.to_flat_values();
 
         let (pubdata, proof) = zinc_vm::prove::<Bn256>(&program, &params, witness.as_slice())?;
 
         // Write pubdata
         let pubdata_struct = Value::from_flat_values(&program.output, &pubdata).unwrap();
-        let pubdata_json = serde_json::to_string_pretty(&pubdata_struct)? + "\n";
+        let pubdata_json = serde_json::to_string_pretty(&pubdata_struct.to_json())? + "\n";
         fs::write(&self.pubdata_path, &pubdata_json)?;
 
         // Write proof to stdout

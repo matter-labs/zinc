@@ -1072,12 +1072,14 @@ dependencies = [
  "bincode",
  "enum-primitive-derive",
  "env_logger",
+ "failure",
  "log",
  "num-bigint",
  "num-integer",
  "num-traits 0.1.43",
  "serde",
  "serde_derive",
+ "serde_json",
  "structopt",
 ]
 

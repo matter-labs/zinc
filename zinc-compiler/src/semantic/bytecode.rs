@@ -5,9 +5,9 @@
 use std::collections::HashMap;
 use std::ops::Deref;
 
-use zinc_bytecode::data::types::BinaryInteger;
+use zinc_bytecode::data::types::IntegerType;
 use zinc_bytecode::data::types::DataType;
-use zinc_bytecode::data::types::PrimitiveType;
+use zinc_bytecode::data::types::ScalarType;
 use zinc_bytecode::data::values::Value as TemplateValue;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::Program;
@@ -225,7 +225,7 @@ impl Bytecode {
     pub fn input_template_bytes(&self) -> Vec<u8> {
         let input_type = self.input_types_as_struct();
         let input_template_value = TemplateValue::default_from_type(&input_type);
-        match serde_json::to_string_pretty(&input_template_value) {
+        match serde_json::to_string_pretty(&input_template_value.to_json()) {
             Ok(json) => json.into_bytes(),
             Err(error) => panic!(
                 crate::semantic::PANIC_JSON_TEMPLATE_SERIALIZATION.to_owned()
@@ -237,7 +237,7 @@ impl Bytecode {
     pub fn output_template_bytes(&self) -> Vec<u8> {
         let output_bytecode_type = (&self.output_type).into();
         let output_value_template = TemplateValue::default_from_type(&output_bytecode_type);
-        match serde_json::to_string_pretty(&output_value_template) {
+        match serde_json::to_string_pretty(&output_value_template.to_json()) {
             Ok(json) => json.into_bytes(),
             Err(error) => panic!(
                 crate::semantic::PANIC_JSON_TEMPLATE_SERIALIZATION.to_owned()
@@ -282,25 +282,25 @@ impl Into<DataType> for &Type {
     fn into(self) -> DataType {
         match self {
             Type::Unit => DataType::Unit,
-            Type::Boolean => DataType::Primitive(PrimitiveType::Integer(BinaryInteger {
+            Type::Boolean => DataType::Scalar(ScalarType::Integer(IntegerType {
                 is_signed: false,
                 bit_length: crate::BITLENGTH_BOOLEAN,
             })),
             Type::IntegerUnsigned { bitlength } => {
-                DataType::Primitive(PrimitiveType::Integer(BinaryInteger {
+                DataType::Scalar(ScalarType::Integer(IntegerType {
                     is_signed: false,
                     bit_length: *bitlength,
                 }))
             }
             Type::IntegerSigned { bitlength } => {
-                DataType::Primitive(PrimitiveType::Integer(BinaryInteger {
+                DataType::Scalar(ScalarType::Integer(IntegerType {
                     is_signed: true,
                     bit_length: *bitlength,
                 }))
             }
-            Type::Field => DataType::Primitive(PrimitiveType::Field),
+            Type::Field => DataType::Scalar(ScalarType::Field),
             Type::Enumeration { bitlength, .. } => {
-                DataType::Primitive(PrimitiveType::Integer(BinaryInteger {
+                DataType::Scalar(ScalarType::Integer(IntegerType {
                     is_signed: false,
                     bit_length: *bitlength,
                 }))
