@@ -21,6 +21,13 @@ pub struct Command {
     verbose: usize,
 
     #[structopt(
+    long = "circuit",
+    help = "Path to the circuit binary file",
+    default_value = "./build/default.znb"
+    )]
+    circuit: PathBuf,
+
+    #[structopt(
         short = "k",
         long = "verifying-key",
         help = "Path to the verifying key file",
@@ -52,6 +59,8 @@ impl Command {
             process::Command::new(crate::constants::ZINC_VIRTUAL_MACHINE_BINARY_NAME)
                 .args(vec!["-v"; self.verbose])
                 .arg("verify")
+                .arg("--circuit")
+                .arg(self.circuit)
                 .arg("--verifying-key")
                 .arg(self.verifying_key)
                 .arg("--public-data")

@@ -591,7 +591,7 @@ where
             self.value_with_type_check(
                 neg_value,
                 neg_variable,
-                ScalarType {
+                PrimitiveType {
                     signed: true,
                     length: data_type.length,
                 },
