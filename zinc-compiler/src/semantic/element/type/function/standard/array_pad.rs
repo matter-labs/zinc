@@ -93,6 +93,14 @@ impl ArrayPadStandardLibraryFunction {
             }
         }
 
+        if inputs.get(3).is_some() {
+            return Err(StandardLibraryFunctionError::ArgumentCount(
+                self.identifier,
+                self.arguments_count(),
+                inputs.len(),
+            ));
+        }
+
         if new_length < input_array_size {
             return Err(StandardLibraryFunctionError::PadInvalidLength(
                 input_array_size,

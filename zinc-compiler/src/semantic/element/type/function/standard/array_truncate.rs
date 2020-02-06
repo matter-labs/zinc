@@ -77,6 +77,14 @@ impl ArrayTruncateStandardLibraryFunction {
             }
         }
 
+        if inputs.get(2).is_some() {
+            return Err(StandardLibraryFunctionError::ArgumentCount(
+                self.identifier,
+                self.arguments_count(),
+                inputs.len(),
+            ));
+        }
+
         if new_length > input_array_size {
             return Err(StandardLibraryFunctionError::TruncateInvalidLength(
                 input_array_size,
