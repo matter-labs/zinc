@@ -1,0 +1,7 @@
+//!
+//! The 'integrational' main module.
+//!
+
+fn main() -> bool {
+    true
+}
