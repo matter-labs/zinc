@@ -16,16 +16,16 @@ fn test() {
 type X = field;
 
 fn main() {
-    let data = struct X;
+    let data = X {};
 }
 "#;
 
     let expected = Err(Error::Semantic(
         SemanticError::TypeAliasDoesNotPointToStructure(
-            Location::new(5, 23),
+            Location::new(5, 16),
             Path::new(
-                Location::new(5, 23),
-                MemberString::new(Location::new(5, 23), "field".to_owned()),
+                Location::new(5, 16),
+                MemberString::new(Location::new(5, 16), "field".to_owned()),
             )
             .to_string(),
         ),

@@ -10,7 +10,8 @@ use crate::syntax::StructureExpression;
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
-    path_expression: Option<Expression>,
+    identifier: Option<Identifier>,
+    is_struct: bool,
     fields: Vec<(Identifier, Option<Expression>)>,
 }
 
@@ -19,8 +20,12 @@ impl Builder {
         self.location = Some(value);
     }
 
-    pub fn set_path_expression(&mut self, value: Expression) {
-        self.path_expression = Some(value);
+    pub fn set_identifier(&mut self, value: Identifier) {
+        self.identifier = Some(value);
+    }
+
+    pub fn set_struct(&mut self) {
+        self.is_struct = true;
     }
 
     pub fn push_field_identifier(&mut self, value: Identifier) {
@@ -49,13 +54,14 @@ impl Builder {
                     "location"
                 )
             }),
-            self.path_expression.take().unwrap_or_else(|| {
+            self.identifier.take().unwrap_or_else(|| {
                 panic!(
                     "{}{}",
                     crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
                     "path expression"
                 )
             }),
+            self.is_struct,
             self.fields
                 .into_iter()
                 .map(|(identifier, expression)| {

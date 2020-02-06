@@ -31,8 +31,8 @@ implementation_local_statement =
 let_statement = 'let', [ 'mut' ], identifier, [ ':', type ], '=', expression ;
 loop_statement = 'for', identifier, 'in', expression, [ 'while', expression ], block_expression ;
 type_statement = 'type', identifier, '=', type ;
-struct_statement = 'struct', field_list ;
-enum_statement = 'enum', variant_list ;
+struct_statement = 'struct', '{', field_list, '}' ;
+enum_statement = 'enum', '{', variant_list, '}' ;
 fn_statement = 'fn', identifier, '(', field_list, ')', [ '->', type ], block_expression ;
 mod_statement = 'mod', identifier ;
 use_statement = 'use', path_expression ;
@@ -72,7 +72,7 @@ block_expression = '{', { function_local_statement }, [ expression ], '}' ;
 
 conditional_expression = 'if', expression, block_expression, [ 'else', conditional_expression | block_expression ] ;
 
-match_expression = 'match', expression, '{', { pattern_match, '=>', expression, ',' }, '}' ;
+match_expression = 'match', identifier, '{', { pattern_match, '=>', expression, ',' }, '}' ;
 
 array_expression =
     '[', [ expression, { ',', expression } ] ']'
@@ -85,7 +85,7 @@ tuple_expression =
   | '(', expression, ',', [ expression, { ',', expression } ], ')'
 ;
 
-struct_expression = 'struct', path_expression, [ '{', field_list, '}' ] ;
+struct_expression = identifier, '{', field_list, '}';
 
 (* Parts *)
 type =

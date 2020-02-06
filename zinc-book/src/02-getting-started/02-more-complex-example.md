@@ -221,7 +221,7 @@ fn main(
         merkle_path,
     );
 
-    struct PublicInput {
+    PublicInput {
         root_hash: root_hash,
     }
 }
@@ -252,7 +252,7 @@ fn main(
         merkle_path,
     );
 
-    struct PublicInput {
+    PublicInput {
         root_hash: root_hash,
     }
 }
@@ -282,7 +282,7 @@ fn main(
         merkle_path,
     );
 
-    struct PublicInput {
+    PublicInput {
         root_hash: root_hash,
     }
 }

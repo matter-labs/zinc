@@ -12,14 +12,18 @@ use crate::semantic::Type;
 
 #[derive(Debug, Default, Clone)]
 pub struct ArrayTruncateStandardLibraryFunction {
-    pub identifier: &'static str,
+    identifier: &'static str,
 }
 
 impl ArrayTruncateStandardLibraryFunction {
     pub fn new() -> Self {
         Self {
-            identifier: "array_truncate",
+            identifier: "truncate",
         }
+    }
+
+    pub fn identifier(&self) -> &'static str {
+        self.identifier
     }
 
     pub fn builtin_identifier(&self) -> BuiltinIdentifier {

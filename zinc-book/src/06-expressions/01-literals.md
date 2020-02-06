@@ -44,11 +44,7 @@ struct Data {
     value: field,
 }
 
-let data = struct Data {
+let data = Data {
     value: 0,
 };
 ```
-
-If you are familiar with Rust, the constructions above will be highly familiar
-to you. But there is a slight difference between Rust and Zinc structure literals,
-as Zinc requires a `struct` keyword before the structure type name.

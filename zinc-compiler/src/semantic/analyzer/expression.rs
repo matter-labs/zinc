@@ -430,8 +430,6 @@ impl Analyzer {
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.push_operand(StackElement::Evaluated(result));
                 }
-                ExpressionObject::Operator(ExpressionOperator::Reference) => unimplemented!(),
-                ExpressionObject::Operator(ExpressionOperator::Dereference) => unimplemented!(),
                 ExpressionObject::Operator(ExpressionOperator::Index) => {
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::PlaceExpression,
@@ -857,7 +855,9 @@ impl Analyzer {
                             Some(Element::Constant(Constant::Integer(
                                 integer @ IntegerConstant { .. },
                             ))) if !integer.is_signed => {
-                                let new_length = integer.to_usize().unwrap();
+                                let new_length = integer.to_usize().map_err(|error| {
+                                    Error::InferenceConstant(Location::default(), error)
+                                })?;
                                 function
                                     .validate(arguments.as_slice(), new_length)
                                     .map_err(|error| {
@@ -867,7 +867,7 @@ impl Analyzer {
                             argument => {
                                 return Err(Error::FunctionExpectedConstantLengthArgument(
                                     element.location,
-                                    function.identifier,
+                                    function.identifier(),
                                     format!("{:?}", argument),
                                 ))
                             }
@@ -878,7 +878,9 @@ impl Analyzer {
                             Some(Element::Constant(Constant::Integer(
                                 integer @ IntegerConstant { .. },
                             ))) if !integer.is_signed => {
-                                let new_length = integer.to_usize().unwrap();
+                                let new_length = integer.to_usize().map_err(|error| {
+                                    Error::InferenceConstant(Location::default(), error)
+                                })?;
                                 function
                                     .validate(arguments.as_slice(), new_length)
                                     .map_err(|error| {
@@ -888,7 +890,7 @@ impl Analyzer {
                             argument => {
                                 return Err(Error::FunctionExpectedConstantLengthArgument(
                                     element.location,
-                                    function.identifier,
+                                    function.identifier(),
                                     format!("{:?}", argument),
                                 ))
                             }
@@ -1347,16 +1349,18 @@ impl Analyzer {
     }
 
     fn structure_expression(&mut self, structure: StructureExpression) -> Result<Element, Error> {
-        let path_location = structure.path.location;
+        let identifier_location = structure.identifier.location;
         let (structure_identifier, structure_fields) =
-            match self.expression(structure.path, TranslationHint::TypeExpression)? {
-                Element::Type(Type::Structure {
+            match Scope::resolve_item(self.scope(), &structure.identifier.name)
+                .map_err(|error| Error::Scope(identifier_location, error))?
+            {
+                ScopeItem::Type(Type::Structure {
                     identifier, fields, ..
                 }) => (identifier, fields),
-                element => {
+                item => {
                     return Err(Error::TypeAliasDoesNotPointToStructure(
-                        path_location,
-                        element.to_string(),
+                        identifier_location,
+                        item.to_string(),
                     ))
                 }
             };
