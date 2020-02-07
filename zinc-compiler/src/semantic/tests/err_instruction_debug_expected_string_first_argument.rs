@@ -12,15 +12,16 @@ use crate::Error;
 fn test() {
     let input = r#"
 fn main() {
-    let result = 42;
-    result = 69;
+    dbg!(42);
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::AssignmentToImmutableMemory(
-        Location::new(4, 5),
-        "result".to_string(),
-    )));
+    let expected = Err(Error::Semantic(
+        SemanticError::InstructionDebugExpectedStringAsFirstArgument(
+            Location::new(3, 9),
+            "42: u8".to_string(),
+        ),
+    ));
 
     let result = super::get_binary_result(input);
 

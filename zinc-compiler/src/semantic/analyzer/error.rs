@@ -15,9 +15,9 @@ use crate::semantic::StructureValueError;
 #[derive(Debug, Fail, PartialEq)]
 #[allow(clippy::large_enum_variant)]
 pub enum Error {
-    #[fail(display = "{}: element: {}", _0, _1)]
+    #[fail(display = "{}: {}", _0, _1)]
     Element(Location, ElementError),
-    #[fail(display = "{}: scope: {}", _0, _1)]
+    #[fail(display = "{}: {}", _0, _1)]
     Scope(Location, ScopeError),
 
     #[fail(display = "{}: constant type inference: {}", _0, _1)]
@@ -49,11 +49,11 @@ pub enum Error {
     MatchBranchExpressionInvalidType(Location, String, String),
 
     #[fail(
-        display = "{}: assigning a value of type '{}' to a variable of type '{}'",
+        display = "{}: cannot assign a value of type '{}' to a variable of type '{}'",
         _0, _1, _2
     )]
     AssignmentTypesMismatch(Location, String, String),
-    #[fail(display = "{}: assigning to an immutable path '{}'", _0, _1)]
+    #[fail(display = "{}: cannot assign to an immutable variable '{}'", _0, _1)]
     AssignmentToImmutableMemory(Location, String),
 
     #[fail(
@@ -114,24 +114,24 @@ pub enum Error {
     ModuleNotFound(Location, String),
 
     #[fail(
-        display = "{}: use statement expected a path expression, but got '{}'",
+        display = "{}: use statement expected a path to an item, but got '{}'",
         _0, _1
     )]
     UseExpectedPath(Location, String),
 
     #[fail(
-        display = "{}: impl statement expected a structure or enumeration, but got '{}'",
+        display = "{}: only structures and enumerations can have implementations '{}'",
         _0, _1
     )]
     ImplStatementExpectedStructureOrEnumeration(Location, String),
 
     #[fail(
-        display = "{}: the type alias does not point to type, but '{}'",
+        display = "{}: the type alias does not point to type, but to '{}'",
         _0, _1
     )]
     TypeAliasDoesNotPointToType(Location, String),
     #[fail(
-        display = "{}: the type alias does not point to structure, but '{}'",
+        display = "{}: the type alias does not point to structure, but to '{}'",
         _0, _1
     )]
     TypeAliasDoesNotPointToStructure(Location, String),
@@ -141,16 +141,18 @@ pub enum Error {
     )]
     ConstantExpressionHasNonConstantElement(Location, String),
     #[fail(
-        display = "{}: instruction 'dbg' expected a string, but got '{}'",
+        display = "{}: instruction 'dbg' expected a string as the first argument, but got '{}'",
         _0, _1
     )]
-    InstructionDebugExpectedString(Location, String),
+    InstructionDebugExpectedStringAsFirstArgument(Location, String),
     #[fail(
-        display = "{}: instruction 'assert' expected a boolean, but got '{}'",
+        display = "{}: instruction 'assert' expected a boolean as the first argument, but got '{}'",
         _0, _1
     )]
-    InstructionAssertExpectedBoolean(Location, String),
-
-    #[fail(display = "references are not implemented yet")]
-    ReferencesNotImplemented,
+    InstructionAssertExpectedBooleanAsFirstArgument(Location, String),
+    #[fail(
+        display = "{}: instruction 'assert' expected a string as the second argument, but got '{}'",
+        _0, _1
+    )]
+    InstructionAssertExpectedStringAsSecondArgument(Location, String),
 }

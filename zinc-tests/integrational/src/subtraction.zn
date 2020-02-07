@@ -129,7 +129,7 @@ impl ResultField {
             sub_zero_zero: 0 as field - 0 as field,
             sub_value_zero: 987 as field - 0 as field,
             sub_value_value: 987 as field - 610 as field,
-            sub_max: 21888242871839275222246405745257275088548364400416034343698204186575808495616 as field - 0 as field,
+            sub_max: 21888242871839275222246405745257275088548364400416034343698204186575808495616 - 0 as field,
         }
     }
 }

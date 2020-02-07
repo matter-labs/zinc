@@ -323,7 +323,6 @@ impl Type {
                 }
                 Self::new_tuple(types)
             }
-            TypeVariant::Reference { .. } => return Err(Error::ReferencesNotImplemented),
             TypeVariant::Alias { path } => {
                 let location = path.location;
                 match ExpressionAnalyzer::new_without_bytecode(scope)

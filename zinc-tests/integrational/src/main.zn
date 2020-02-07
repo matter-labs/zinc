@@ -7,6 +7,12 @@ mod subtraction;
 mod multiplication;
 mod division;
 mod remainder;
+mod equals;
+mod not_equals;
+mod greater_equals;
+mod greater;
+mod lesser_equals;
+mod lesser;
 
 struct Result {
     addition: addition::Result,
@@ -14,6 +20,12 @@ struct Result {
     multiplication: multiplication::Result,
     division: division::Result,
     remainder: remainder::Result,
+    equals: equals::Result,
+    not_equals: not_equals::Result,
+    greater_equals: greater_equals::Result,
+    greater: greater::Result,
+    lesser_equals: lesser_equals::Result,
+    lesser: lesser::Result,
 }
 
 fn main() -> Result {
@@ -23,5 +35,11 @@ fn main() -> Result {
         multiplication: multiplication::Result::test(),
         division: division::Result::test(),
         remainder: remainder::Result::test(),
+        equals: equals::Result::test(),
+        not_equals: not_equals::Result::test(),
+        greater_equals: greater_equals::Result::test(),
+        greater: greater::Result::test(),
+        lesser_equals: lesser_equals::Result::test(),
+        lesser: lesser::Result::test(),
     }
 }

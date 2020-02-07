@@ -10,6 +10,7 @@ use std::rc::Rc;
 use num_bigint::BigInt;
 use num_traits::Zero;
 
+use zinc_bytecode::data::types::DataType;
 use zinc_bytecode::Instruction;
 
 use crate::lexical::Location;
@@ -752,27 +753,35 @@ impl Analyzer {
                 let string = match argument_elements.get(0) {
                     Some(Element::Constant(Constant::String(string))) => string.to_owned(),
                     Some(argument) => {
-                        return Err(Error::InstructionDebugExpectedString(
+                        return Err(Error::InstructionDebugExpectedStringAsFirstArgument(
                             element.location,
                             argument.to_string(),
                         ))
                     }
                     None => {
-                        return Err(Error::InstructionDebugExpectedString(
+                        return Err(Error::InstructionDebugExpectedStringAsFirstArgument(
                             element.location,
                             "None".to_owned(),
                         ))
                     }
                 };
 
-                let debug_input_size = argument_elements
+                let debug_input_types: Vec<Type> = argument_elements
                     .into_iter()
                     .skip(1)
-                    .map(|argument| match argument {
-                        Element::Constant(constant) => constant.r#type().size(),
-                        Element::Value(value) => value.r#type().size(),
-                        _ => 0,
+                    .filter_map(|argument| match argument {
+                        Element::Constant(constant) => Some(constant.r#type()),
+                        Element::Value(value) => Some(value.r#type()),
+                        _ => None,
                     })
+                    .collect();
+                let bytecode_input_types: Vec<DataType> = debug_input_types
+                    .iter()
+                    .map(|r#type| r#type.into())
+                    .collect();
+                let debug_input_size = debug_input_types
+                    .into_iter()
+                    .map(|r#type| r#type.size())
                     .sum();
 
                 self.bytecode.borrow_mut().push_instruction(
@@ -794,18 +803,29 @@ impl Analyzer {
                     Some(Element::Constant(Constant::Boolean(_))) => {}
                     Some(Element::Value(Value::Boolean)) => {}
                     Some(argument) => {
-                        return Err(Error::InstructionAssertExpectedBoolean(
+                        return Err(Error::InstructionAssertExpectedBooleanAsFirstArgument(
                             element.location,
                             argument.to_string(),
                         ))
                     }
                     None => {
-                        return Err(Error::InstructionAssertExpectedBoolean(
+                        return Err(Error::InstructionAssertExpectedBooleanAsFirstArgument(
                             element.location,
                             "None".to_owned(),
                         ))
                     }
                 }
+
+                let string = match argument_elements.get(1) {
+                    Some(Element::Constant(Constant::String(string))) => Some(string.to_owned()),
+                    Some(argument) => {
+                        return Err(Error::InstructionAssertExpectedStringAsSecondArgument(
+                            element.location,
+                            argument.to_string(),
+                        ))
+                    }
+                    None => None,
+                };
 
                 self.bytecode
                     .borrow_mut()
@@ -1350,7 +1370,7 @@ impl Analyzer {
 
     fn structure_expression(&mut self, structure: StructureExpression) -> Result<Element, Error> {
         let identifier_location = structure.identifier.location;
-        let (structure_identifier, structure_fields) =
+        let (structure_identifier, expected_fields) =
             match Scope::resolve_item(self.scope(), &structure.identifier.name)
                 .map_err(|error| Error::Scope(identifier_location, error))?
             {
@@ -1369,16 +1389,20 @@ impl Analyzer {
             structure_identifier.clone(),
             Vec::with_capacity(structure.fields.len()),
         );
-        for (identifier, expression) in structure.fields.into_iter() {
+        for (index, (identifier, expression)) in structure.fields.into_iter().enumerate() {
             let location = identifier.location;
             let element = self.expression(expression, TranslationHint::ValueExpression)?;
             let element_type = Type::from_element(&element, self.scope())?;
-            let field = structure_fields
-                .iter()
-                .find(|(field_name, _field_type)| field_name == &identifier.name);
 
-            match field {
-                Some((_field_name, field_type)) => {
+            if result.contains_key(&identifier.name) {
+                return Err(Error::LiteralStructure(
+                    location,
+                    StructureValueError::FieldAlreadyExists(identifier.name, structure_identifier),
+                ));
+            }
+
+            match expected_fields.get(index) {
+                Some((field_name, field_type)) => {
                     if field_type != &element_type {
                         return Err(Error::LiteralStructure(
                             location,
@@ -1386,6 +1410,15 @@ impl Analyzer {
                                 identifier.name,
                                 field_type.to_string(),
                                 element_type.to_string(),
+                            ),
+                        ));
+                    }
+                    if field_name != &identifier.name {
+                        return Err(Error::LiteralStructure(
+                            location,
+                            StructureValueError::FieldDoesNotExist(
+                                identifier.name,
+                                structure_identifier,
                             ),
                         ));
                     }
@@ -1402,7 +1435,7 @@ impl Analyzer {
             }
 
             result
-                .push(identifier.name, element_type)
+                .push(identifier.name.clone(), element_type)
                 .map_err(|error| Error::LiteralStructure(location, error))?;
         }
 
@@ -1469,25 +1502,30 @@ impl Analyzer {
             },
 
             TranslationHint::PathExpression => Ok(Element::Path(path.to_owned())),
-            TranslationHint::PlaceExpression => match Scope::resolve_path(self.scope(), path)? {
-                ScopeItem::Variable(variable) => Ok(Element::Place(Place::new(
-                    location,
-                    variable.r#type,
-                    variable.address,
-                    variable.is_mutable,
-                    false,
-                ))),
-                ScopeItem::Static(r#static) => Ok(Element::Place(Place::new(
-                    location,
-                    r#static.data.r#type(),
-                    r#static.address,
-                    false,
-                    true,
-                ))),
-                ScopeItem::Constant(constant) => Ok(Element::Constant(constant)),
-                ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
-                ScopeItem::Module(_) => Ok(Element::Module(path_last.name.to_owned())),
-            },
+            TranslationHint::PlaceExpression => {
+                let identifier = path.last().name.to_owned();
+                match Scope::resolve_path(self.scope(), path)? {
+                    ScopeItem::Variable(variable) => Ok(Element::Place(Place::new(
+                        location,
+                        identifier,
+                        variable.r#type,
+                        variable.address,
+                        variable.is_mutable,
+                        false,
+                    ))),
+                    ScopeItem::Static(r#static) => Ok(Element::Place(Place::new(
+                        location,
+                        identifier,
+                        r#static.data.r#type(),
+                        r#static.address,
+                        false,
+                        true,
+                    ))),
+                    ScopeItem::Constant(constant) => Ok(Element::Constant(constant)),
+                    ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
+                    ScopeItem::Module(_) => Ok(Element::Module(path_last.name.to_owned())),
+                }
+            }
             TranslationHint::CompoundTypeMember => Ok(Element::MemberString(MemberString::new(
                 location,
                 path_last.name.to_owned(),

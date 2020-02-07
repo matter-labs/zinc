@@ -27,6 +27,7 @@ use crate::semantic::Value;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Place {
     pub location: Location,
+    pub identifier: String,
     pub r#type: Type,
     pub address: usize,
     pub total_size: usize,
@@ -38,6 +39,7 @@ pub struct Place {
 impl Place {
     pub fn new(
         location: Location,
+        identifier: String,
         r#type: Type,
         address: usize,
         is_mutable: bool,
@@ -46,6 +48,7 @@ impl Place {
         let total_size = r#type.size();
         Self {
             location,
+            identifier,
             r#type,
             address,
             total_size,
@@ -214,6 +217,6 @@ impl Place {
 
 impl fmt::Display for Place {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "0")
+        write!(f, "{}", self.identifier)
     }
 }

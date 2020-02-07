@@ -52,13 +52,16 @@ impl TokenStream {
     }
 
     ///
-    /// Advances the iterator until there is `distance` elements
-    /// in the look-ahead queue.
+    /// Advances the iterator until there is `distance` elements in the look-ahead queue.
     /// Is used where there is a need to resolve an ambiguity like
-    /// ```rust
-    /// if identifier {
     /// ```
-    /// where identifier can be both a variable or structure literal type name.
+    /// let identifier = true;
+    /// if identifier {
+    ///     // value: 42, a structure literal field
+    ///     let value = 42; // a statement within the block
+    /// }
+    /// ```
+    /// where `identifier` can be both a variable or structure literal type name.
     ///
     pub fn look_ahead(&mut self, distance: usize) -> Result<&Token, Error> {
         while self.look_ahead.len() < distance {

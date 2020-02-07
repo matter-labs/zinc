@@ -145,7 +145,7 @@ impl ResultField {
             add_zero_value: 0 as field + 610 as field,
             add_value_zero: 610 as field + 0 as field,
             add_value_value: 610 as field + 987 as field,
-            add_max: 21888242871839275222246405745257275088548364400416034343698204186575808495616 as field + 0 as field,
+            add_max: 21888242871839275222246405745257275088548364400416034343698204186575808495616 + 0 as field,
         }
     }
 }

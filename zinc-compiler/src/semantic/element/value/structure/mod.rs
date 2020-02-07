@@ -58,6 +58,10 @@ impl Structure {
         Ok(())
     }
 
+    pub fn contains_key(&mut self, key: &str) -> bool {
+        self.fields.iter().any(|field| field.0 == key)
+    }
+
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
         self.identifier == other.identifier
     }

@@ -17,7 +17,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(
-        SemanticError::InstructionAssertExpectedBoolean(Location::new(3, 12), "42: u8".to_string()),
+        SemanticError::InstructionAssertExpectedBooleanAsFirstArgument(
+            Location::new(3, 12),
+            "42: u8".to_string(),
+        ),
     ));
 
     let result = super::get_binary_result(input);
