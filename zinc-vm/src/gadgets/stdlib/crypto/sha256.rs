@@ -54,3 +54,68 @@ impl<E: Engine> Gadget<E> for Sha256 {
         output
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::debug_constraint_system::DebugConstraintSystem;
+    use pairing::bn256::Bn256;
+    use franklin_crypto::circuit::sha256::sha256;
+    use franklin_crypto::bellman::ConstraintSystem;
+    use franklin_crypto::circuit::boolean::{AllocatedBit, Boolean};
+
+    #[test]
+    fn test_sha256_endiannes() {
+        let preimage = hex::decode("1d0bf151b6362dea55be4e78b03e01d24b80c52d798b4a7285061e52927b6b").unwrap();
+        let expected_digest = hex::decode("c905b353e318a4b0e509bb6a0dd2afa55aa292ec0073119f529bdf244edcd17e").unwrap();
+
+        let mut cs = DebugConstraintSystem::<Bn256>::default();
+
+        const IS_PREIMAGE_BE: bool = true;
+        const IS_DIGEST_BE: bool = true;
+
+        let preimage_bits: Vec<Boolean> = preimage
+            .iter()
+            .map(|byte| {
+                let mut bits = Vec::with_capacity(8);
+                for i in 0..8 {
+                    bits.push((*byte >> i) & 1 == 1)
+                }
+                if IS_PREIMAGE_BE {
+                    bits.reverse();
+                }
+                bits
+            })
+            .flatten()
+            .enumerate()
+            .map(|(i, bit)| {
+                let allocated_bit = AllocatedBit::alloc(
+                    cs.namespace(|| format!("{}", i)),
+                    Some(bit))
+                    .expect("alloc bit");
+                Boolean::from(allocated_bit)
+            })
+            .collect();
+
+        let digest_bits = sha256(cs.namespace(|| "sha256"), &preimage_bits).unwrap();
+
+        let digest_bytes: Vec<_> = digest_bits
+            .chunks(8)
+            .map(|bits| {
+                let mut byte = 0 as u8;
+                let bits = if IS_DIGEST_BE {
+                    Vec::from(bits)
+                } else {
+                    let mut tmp = Vec::from(bits);
+                    tmp.reverse();
+                    tmp
+                };
+                for bit in bits {
+                    byte = byte * 2 + if bit.get_value().expect("value") { 1 } else { 0 };
+                }
+                byte
+            })
+            .collect();
+
+        assert_eq!(expected_digest, digest_bytes);
+    }
+}

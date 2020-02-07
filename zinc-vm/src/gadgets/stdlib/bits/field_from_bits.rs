@@ -25,7 +25,7 @@ impl<E: Engine> Gadget<E> for FieldFromBits {
         }
 
         let mut bits = Vec::with_capacity(E::Fr::NUM_BITS as usize);
-        for (i, value) in input.iter().enumerate() {
+        for (i, value) in input.iter().rev().enumerate() {
             let bit = value.value.map(|fr| -> bool { !fr.is_zero() });
             let allocated_bit =
                 AllocatedBit::alloc(cs.namespace(|| format!("AllocatedBit {}", i)), bit)?;

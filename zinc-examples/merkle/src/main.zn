@@ -2,16 +2,16 @@
 // The merkle tree root hash validator.
 //
 
-mod merkle; // defined a module
+mod merkle;
 
 struct PublicInput {
-    address: [bool; 1],
+    address: field,
     balance: field,
     root_hash: merkle::Sha256Digest,
 }
 
 fn main(
-    address: [bool; 1],
+    address: field,
     balance: field,
     merkle_path: [merkle::Sha256Digest; 1]
 ) -> PublicInput {
