@@ -150,21 +150,20 @@ impl ResultField {
     }
 }
 
-struct ResultMix {
+struct ResultWitness {
     add_const_const: u8,
     add_const_value: u8,
     add_value_const: u8,
     add_value_value: u8,
 }
 
-impl ResultMix {
-    fn test() -> Self {
-        let value = 42;
+impl ResultWitness {
+    fn test(witness: u8) -> Self {
         Self {
             add_const_const: 42 + 42,
-            add_const_value: 42 + value,
-            add_value_const: value + 42,
-            add_value_value: value + value,
+            add_const_value: 42 + witness,
+            add_value_const: witness + 42,
+            add_value_value: witness + witness,
         }
     }
 }
@@ -177,11 +176,11 @@ struct Result {
     result_u248: ResultU248,
     result_i248: ResultI248,
     result_field: ResultField,
-    result_mix: ResultMix,
+    result_witness: ResultWitness,
 }
 
 impl Result {
-    fn test() -> Self {
+    fn test(witness: u8) -> Self {
         Self {
             result_u8: ResultU8::test(),
             result_i8: ResultI8::test(),
@@ -190,7 +189,7 @@ impl Result {
             result_u248: ResultU248::test(),
             result_i248: ResultI248::test(),
             result_field: ResultField::test(),
-            result_mix: ResultMix::test(),
+            result_witness: ResultWitness::test(witness),
         }
     }
 }

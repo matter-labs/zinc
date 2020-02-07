@@ -146,7 +146,7 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
         bytecode.borrow_mut().start_new_file(&module_file_path);
         let module = LibraryAnalyzer::new(bytecode.clone())
             .compile(path_to_syntax_tree(source_file_path, &module_file_path)?)
-            .map_err(|error| Error::Compiler(module_name.clone(), error))?;
+            .map_err(|error| Error::Compiler(module_file_path, error))?;
 
         modules.insert(module_name, module);
     }

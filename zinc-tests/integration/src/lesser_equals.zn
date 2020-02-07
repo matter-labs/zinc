@@ -130,21 +130,20 @@ impl ResultI248 {
     }
 }
 
-struct ResultMix {
+struct ResultWitness {
     lesser_equals_const_const: bool,
     lesser_equals_const_value: bool,
     lesser_equals_value_const: bool,
     lesser_equals_value_value: bool,
 }
 
-impl ResultMix {
-    fn test() -> Self {
-        let value = 42;
+impl ResultWitness {
+    fn test(witness: u8) -> Self {
         Self {
             lesser_equals_const_const: 42 <= 42,
-            lesser_equals_const_value: 42 <= value,
-            lesser_equals_value_const: value <= 42,
-            lesser_equals_value_value: value <= value,
+            lesser_equals_const_value: 42 <= witness,
+            lesser_equals_value_const: witness <= 42,
+            lesser_equals_value_value: witness <= witness,
         }
     }
 }
@@ -156,11 +155,11 @@ struct Result {
     result_i64: ResultI64,
     result_u248: ResultU248,
     result_i248: ResultI248,
-    result_mix: ResultMix,
+    result_witness: ResultWitness,
 }
 
 impl Result {
-    fn test() -> Self {
+    fn test(witness: u8) -> Self {
         Self {
             result_u8: ResultU8::test(),
             result_i8: ResultI8::test(),
@@ -168,7 +167,7 @@ impl Result {
             result_i64: ResultI64::test(),
             result_u248: ResultU248::test(),
             result_i248: ResultI248::test(),
-            result_mix: ResultMix::test(),
+            result_witness: ResultWitness::test(witness),
         }
     }
 }
