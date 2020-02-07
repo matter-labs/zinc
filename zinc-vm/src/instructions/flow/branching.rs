@@ -56,9 +56,9 @@ mod tests {
 
         for (a, b) in data.iter() {
             VMTestRunner::new()
-                .add(PushConst::new_untyped((*a).into()))
+                .add(PushConst::new((*a).into(), true, 8))
                 .add(Store::new(0))
-                .add(PushConst::new_untyped((*b).into()))
+                .add(PushConst::new((*b).into(), true, 8))
                 .add(Store::new(1))
                 .add(Load::new(1))
                 .add(Load::new(0))

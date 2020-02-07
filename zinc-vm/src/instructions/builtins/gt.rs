@@ -30,14 +30,14 @@ mod test {
     #[test]
     fn test_gt() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new_untyped(2.into()))
-            .add(PushConst::new_untyped(1.into()))
+            .add(PushConst::new(2.into(), true, 8))
+            .add(PushConst::new(1.into(), true, 8))
             .add(Gt)
-            .add(PushConst::new_untyped(2.into()))
-            .add(PushConst::new_untyped(2.into()))
+            .add(PushConst::new(2.into(), true, 8))
+            .add(PushConst::new(2.into(), true, 8))
             .add(Gt)
-            .add(PushConst::new_untyped(1.into()))
-            .add(PushConst::new_untyped(2.into()))
+            .add(PushConst::new(1.into(), true, 8))
+            .add(PushConst::new(2.into(), true, 8))
             .add(Gt)
             .test(&[0, 0, 1])
     }

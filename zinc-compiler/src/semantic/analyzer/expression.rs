@@ -775,7 +775,7 @@ impl Analyzer {
                         _ => None,
                     })
                     .collect();
-                let bytecode_input_types: Vec<DataType> = debug_input_types
+                let _bytecode_input_types: Vec<DataType> = debug_input_types
                     .iter()
                     .map(|r#type| r#type.into())
                     .collect();
@@ -816,7 +816,7 @@ impl Analyzer {
                     }
                 }
 
-                let string = match argument_elements.get(1) {
+                let _string = match argument_elements.get(1) {
                     Some(Element::Constant(Constant::String(string))) => Some(string.to_owned()),
                     Some(argument) => {
                         return Err(Error::InstructionAssertExpectedStringAsSecondArgument(
