@@ -34,7 +34,7 @@ impl ToBitsStandardLibraryFunction {
     }
 
     pub fn validate(&self, inputs: &[Type]) -> Result<Type, StandardLibraryFunctionError> {
-        match inputs.get(0) {
+        let result = match inputs.get(0) {
             Some(Type::Boolean) => Ok(Type::new_array(
                 Type::new_boolean(),
                 crate::BITLENGTH_BOOLEAN,
@@ -56,7 +56,17 @@ impl ToBitsStandardLibraryFunction {
                 self.arguments_count(),
                 inputs.len(),
             )),
+        };
+
+        if inputs.get(1).is_some() {
+            return Err(StandardLibraryFunctionError::ArgumentCount(
+                self.identifier,
+                self.arguments_count(),
+                inputs.len(),
+            ));
         }
+
+        result
     }
 }
 

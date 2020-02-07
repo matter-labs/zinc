@@ -117,7 +117,10 @@ where
         self.cs.namespace(|| s)
     }
 
-    fn zero_typed(&mut self, data_type: Option<PrimitiveType>) -> Result<Primitive<E>, RuntimeError> {
+    fn zero_typed(
+        &mut self,
+        data_type: Option<PrimitiveType>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let value = E::Fr::zero();
         let mut cs = self.cs_namespace();
         let variable = cs
@@ -142,7 +145,10 @@ where
         Primitive::new(Some(E::Fr::one()), CS::one())
     }
 
-    fn one_typed(&mut self, data_type: Option<PrimitiveType>) -> Result<Primitive<E>, RuntimeError> {
+    fn one_typed(
+        &mut self,
+        data_type: Option<PrimitiveType>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         match data_type {
             None => Ok(Self::one()),
             Some(data_type) => self.value_with_type_check(Some(E::Fr::one()), CS::one(), data_type),

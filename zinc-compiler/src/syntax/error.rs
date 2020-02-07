@@ -9,6 +9,6 @@ use crate::lexical::Location;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
-    #[fail(display = "{} expected either of: {:?} (got '{}')", _0, _1, _2)]
+    #[fail(display = "{}: expected either of: {:?} (got '{}')", _0, _1, _2)]
     Expected(Location, Vec<&'static str>, Lexeme),
 }

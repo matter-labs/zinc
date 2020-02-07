@@ -35,7 +35,7 @@ impl ArrayReverseStandardLibraryFunction {
     }
 
     pub fn validate(&self, inputs: &[Type]) -> Result<Type, StandardLibraryFunctionError> {
-        match inputs.get(0) {
+        let result = match inputs.get(0) {
             Some(Type::Array { r#type, size }) if r#type.is_scalar() => {
                 Ok(Type::new_array(r#type.deref().to_owned(), *size))
             }
@@ -49,7 +49,17 @@ impl ArrayReverseStandardLibraryFunction {
                 self.arguments_count(),
                 inputs.len(),
             )),
+        };
+
+        if inputs.get(1).is_some() {
+            return Err(StandardLibraryFunctionError::ArgumentCount(
+                self.identifier,
+                self.arguments_count(),
+                inputs.len(),
+            ));
         }
+
+        result
     }
 }
 

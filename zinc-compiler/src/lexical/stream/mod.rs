@@ -8,6 +8,8 @@ pub mod string;
 pub mod symbol;
 pub mod word;
 
+use std::collections::VecDeque;
+
 use crate::lexical::error::Error;
 use crate::lexical::token::lexeme::identifier::Identifier;
 use crate::lexical::token::lexeme::literal::string::String as StringLiteral;
@@ -25,21 +27,45 @@ pub struct TokenStream {
     input: String,
     offset: usize,
     location: Location,
+    look_ahead: VecDeque<Token>,
 }
 
 impl TokenStream {
+    const DEQUE_LOOK_AHEAD_INITIAL_CAPACITY: usize = 16;
+
     pub fn new(input: String) -> Self {
         Self {
             input,
             offset: 0,
-            location: Location::new(1, 1),
+            location: Location::new_beginning(),
+            look_ahead: VecDeque::with_capacity(Self::DEQUE_LOOK_AHEAD_INITIAL_CAPACITY),
         }
     }
 
     pub fn next(&mut self) -> Result<Token, Error> {
-        let token = self.advance()?;
+        let token = match self.look_ahead.pop_front() {
+            Some(token) => token,
+            None => self.advance()?,
+        };
         log::debug!("{:?}", token);
         Ok(token)
+    }
+
+    ///
+    /// Advances the iterator until there is `distance` elements
+    /// in the look-ahead queue.
+    /// Is used where there is a need to resolve an ambiguity like
+    /// ```rust
+    /// if identifier {
+    /// ```
+    /// where identifier can be both a variable or structure literal type name.
+    ///
+    pub fn look_ahead(&mut self, distance: usize) -> Result<&Token, Error> {
+        while self.look_ahead.len() < distance {
+            let token = self.advance()?;
+            self.look_ahead.push_back(token);
+        }
+        Ok(&self.look_ahead[self.look_ahead.len() - 1])
     }
 
     ///

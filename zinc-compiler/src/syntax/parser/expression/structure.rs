@@ -69,10 +69,20 @@ impl Parser {
                 }
                 State::BracketCurlyLeftOrEnd => {
                     match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                        token
+                        @
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
                         } => {
+                            match stream.borrow_mut().look_ahead(2)? {
+                                Token {
+                                    lexeme: Lexeme::Symbol(Symbol::Colon),
+                                    ..
+                                } => {}
+                                _ => return Ok((self.builder.finish(), Some(token))),
+                            }
+
                             self.builder.set_struct();
                             self.state = State::IdentifierOrBracketCurlyRight;
                         }
@@ -269,30 +279,6 @@ Test {
                         ),
                     ),
                 ],
-            ),
-            None,
-        ));
-
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
-
-        assert_eq!(expected, result);
-    }
-
-    #[test]
-    fn ok_struct_empty() {
-        let input = r#"
-Test {}
-"#;
-
-        let expected = Ok((
-            StructureExpression::new(
-                Location::new(2, 1),
-                Identifier::new(Location::new(2, 1), "Test".to_owned()),
-                true,
-                vec![],
             ),
             None,
         ));

@@ -1,14 +1,14 @@
 mod commands;
 
 use crate::commands::{Arguments, Command};
+use failure::Fail;
 use log::LevelFilter;
 use std::fmt::Debug;
 use std::io;
-use structopt::StructOpt;
-use zinc_vm::{RuntimeError, VerificationError};
-use failure::Fail;
-use zinc_bytecode::data::values::JsonValueError;
 use std::process::exit;
+use structopt::StructOpt;
+use zinc_bytecode::data::values::JsonValueError;
+use zinc_vm::{RuntimeError, VerificationError};
 
 #[derive(Debug, Fail)]
 pub enum Error {
@@ -25,7 +25,7 @@ pub enum Error {
     JsonDecoding(serde_json::Error),
 
     #[fail(display = "invalid json structure: {}", _0)]
-    JsonValue(JsonValueError)
+    JsonValue(JsonValueError),
 }
 
 impl From<io::Error> for Error {

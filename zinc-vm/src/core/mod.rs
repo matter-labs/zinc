@@ -231,7 +231,7 @@ fn data_type_into_scalar_types(dtype: &DataType) -> Vec<Option<PrimitiveType>> {
                     signed: int.is_signed,
                     length: int.bit_length,
                 })),
-                ScalarType::Boolean => types.push(Some(PrimitiveType::BOOLEAN))
+                ScalarType::Boolean => types.push(Some(PrimitiveType::BOOLEAN)),
             },
             DataType::Enum => {
                 types.push(None);

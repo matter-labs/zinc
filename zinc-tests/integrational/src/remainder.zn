@@ -104,20 +104,6 @@ impl ResultI248 {
     }
 }
 
-struct ResultField {
-    rem_zero_value: field,
-    rem_value_value: field,
-}
-
-impl ResultField {
-    fn test() -> Self {
-        Self {
-            rem_zero_value: 0 as field, // TODO: % 987 as field,
-            rem_value_value: 987 as field, // TODO: % 610 as field,
-        }
-    }
-}
-
 struct ResultMix {
     rem_const_const: u8,
     rem_const_value: u8,
@@ -145,7 +131,6 @@ struct Result {
     result_i64: ResultI64,
     result_u248: ResultU248,
     result_i248: ResultI248,
-    result_field: ResultField,
     result_mix: ResultMix,
 }
 
@@ -158,7 +143,6 @@ impl Result {
             result_i64: ResultI64::test(),
             result_u248: ResultU248::test(),
             result_i248: ResultI248::test(),
-            result_field: ResultField::test(),
             result_mix: ResultMix::test(),
         }
     }

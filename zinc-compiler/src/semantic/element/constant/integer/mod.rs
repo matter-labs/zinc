@@ -123,6 +123,10 @@ impl Integer {
             ));
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldGreaterEquals);
+        }
+
         let result = self.value >= other.value;
         Ok(result)
     }
@@ -133,6 +137,10 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
+        }
+
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldLesserEquals);
         }
 
         let result = self.value <= other.value;
@@ -147,6 +155,10 @@ impl Integer {
             ));
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldGreater);
+        }
+
         let result = self.value > other.value;
         Ok(result)
     }
@@ -157,6 +169,10 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
+        }
+
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldLesser);
         }
 
         let result = self.value < other.value;
@@ -219,6 +235,10 @@ impl Integer {
             ));
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldDivision);
+        }
+
         if other.value.is_zero() {
             return Err(Error::DivisionZero);
         }
@@ -237,6 +257,10 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
+        }
+
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldRemainder);
         }
 
         if other.value.is_zero() {
@@ -258,7 +282,7 @@ impl Integer {
 
     pub fn negate(&self) -> Result<Self, Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::NegationBitlengthTooBig(self.bitlength));
+            return Err(Error::ForbiddenFieldNegation);
         }
 
         let result = -self.value.to_owned();

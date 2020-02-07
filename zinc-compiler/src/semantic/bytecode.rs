@@ -5,8 +5,8 @@
 use std::collections::HashMap;
 use std::ops::Deref;
 
-use zinc_bytecode::data::types::IntegerType;
 use zinc_bytecode::data::types::DataType;
+use zinc_bytecode::data::types::IntegerType;
 use zinc_bytecode::data::types::ScalarType;
 use zinc_bytecode::data::values::Value as TemplateValue;
 use zinc_bytecode::Instruction;

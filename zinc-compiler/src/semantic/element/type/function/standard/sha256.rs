@@ -40,7 +40,7 @@ impl Sha256StandardLibraryFunction {
     }
 
     pub fn validate(&self, inputs: &[Type]) -> Result<Type, StandardLibraryFunctionError> {
-        match inputs.get(0) {
+        let result = match inputs.get(0) {
             Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
                 (Type::Boolean, _) => Ok(self.return_type.deref().to_owned()),
                 (r#type, size) => Err(StandardLibraryFunctionError::ArgumentType(
@@ -59,7 +59,17 @@ impl Sha256StandardLibraryFunction {
                 self.arguments_count(),
                 inputs.len(),
             )),
+        };
+
+        if inputs.get(1).is_some() {
+            return Err(StandardLibraryFunctionError::ArgumentCount(
+                self.identifier,
+                self.arguments_count(),
+                inputs.len(),
+            ));
         }
+
+        result
     }
 }
 

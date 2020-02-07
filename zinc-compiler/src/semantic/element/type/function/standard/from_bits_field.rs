@@ -35,7 +35,7 @@ impl FromBitsFieldStandardLibraryFunction {
     }
 
     pub fn validate(&self, inputs: &[Type]) -> Result<Type, StandardLibraryFunctionError> {
-        match inputs.get(0) {
+        let result = match inputs.get(0) {
             Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
                 (Type::Boolean, crate::BITLENGTH_FIELD) => Ok(Type::new_field()),
                 (r#type, size) => Err(StandardLibraryFunctionError::ArgumentType(
@@ -54,7 +54,17 @@ impl FromBitsFieldStandardLibraryFunction {
                 self.arguments_count(),
                 inputs.len(),
             )),
+        };
+
+        if inputs.get(1).is_some() {
+            return Err(StandardLibraryFunctionError::ArgumentCount(
+                self.identifier,
+                self.arguments_count(),
+                inputs.len(),
+            ));
         }
+
+        result
     }
 }
 
