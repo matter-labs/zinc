@@ -151,19 +151,20 @@ impl ResultField {
 }
 
 struct ResultWitness {
-    mul_const_const: u8,
-    mul_const_value: u8,
-    mul_value_const: u8,
-    mul_value_value: u8,
+    mul_const_const: u16,
+    mul_const_value: u16,
+    mul_value_const: u16,
+    mul_value_value: u16,
 }
 
 impl ResultWitness {
     fn test(witness: u8) -> Self {
+        let casted_witness = witness as u16;
         Self {
-            mul_const_const: 15 * 15,
-            mul_const_value: 15 * witness,
-            mul_value_const: witness * 15,
-            mul_value_value: witness * witness,
+            mul_const_const: 42 as u16 * 42 as u16,
+            mul_const_value: 42 as u16 * casted_witness,
+            mul_value_const: casted_witness * 42 as u16,
+            mul_value_value: casted_witness * casted_witness,
         }
     }
 }
