@@ -31,6 +31,7 @@ pub use self::r#type::StandardLibraryFunction as StandardLibraryFunctionType;
 pub use self::r#type::StandardLibraryFunctionError;
 pub use self::r#type::Type;
 pub use self::r#type::UserDefinedFunction as UserDefinedFunctionType;
+pub use self::r#type::UNIQUE_ID;
 pub use self::value::Array;
 pub use self::value::ArrayError as ArrayValueError;
 pub use self::value::Error as ValueError;

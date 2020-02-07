@@ -68,7 +68,7 @@ fn main(
         or: or::Result::test(witness_bool),
         xor: xor::Result::test(witness_bool),
         and: and::Result::test(witness_bool),
-        not: and::Result::test(witness_bool),
+        not: not::Result::test(witness_bool),
 
         hash: hash::Result::test(),
     }

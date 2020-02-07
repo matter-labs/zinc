@@ -152,17 +152,15 @@ impl Type {
 
     pub fn new_structure(
         identifier: String,
+        unique_id: usize,
         fields: Vec<(String, Self)>,
         scope_parent: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
         let scope = Rc::new(RefCell::new(Scope::new(scope_parent)));
 
-        unsafe {
-            UNIQUE_ID += 1;
-        }
         let structure = Self::Structure {
             identifier,
-            unique_id: unsafe { UNIQUE_ID },
+            unique_id,
             fields,
             scope: scope.clone(),
         };
@@ -176,6 +174,7 @@ impl Type {
 
     pub fn new_enumeration(
         identifier: Identifier,
+        unique_id: usize,
         variants: Vec<Variant>,
         scope_parent: Option<Rc<RefCell<Scope>>>,
     ) -> Result<Self, Error> {
@@ -200,12 +199,9 @@ impl Type {
                 .map_err(|error| Error::Scope(location, error))?;
         }
 
-        unsafe {
-            UNIQUE_ID += 1;
-        }
         let enumeration = Self::Enumeration {
             identifier: identifier.name,
-            unique_id: unsafe { UNIQUE_ID },
+            unique_id,
             bitlength: minimal_bitlength,
             scope: scope.clone(),
         };
@@ -400,24 +396,24 @@ impl PartialEq<Type> for Type {
             (Self::Tuple { types: types_1 }, Self::Tuple { types: types_2 }) => types_1 == types_2,
             (
                 Self::Structure {
-                    identifier: identifier_1,
+                    unique_id: unique_id_1,
                     ..
                 },
                 Self::Structure {
-                    identifier: identifier_2,
+                    unique_id: unique_id_2,
                     ..
                 },
-            ) => identifier_1 == identifier_2,
+            ) => unique_id_1 == unique_id_2,
             (
                 Self::Enumeration {
-                    identifier: identifier_1,
+                    unique_id: unique_id_1,
                     ..
                 },
                 Self::Enumeration {
-                    identifier: identifier_2,
+                    unique_id: unique_id_2,
                     ..
                 },
-            ) => identifier_1 == identifier_2,
+            ) => unique_id_1 == unique_id_2,
             _ => false,
         }
     }

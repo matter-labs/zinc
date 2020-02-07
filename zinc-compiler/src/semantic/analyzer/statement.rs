@@ -29,6 +29,7 @@ use crate::semantic::ScopeVariableItem;
 use crate::semantic::TranslationHint;
 use crate::semantic::Type;
 use crate::semantic::UserDefinedFunctionType;
+use crate::semantic::UNIQUE_ID;
 use crate::syntax::BindingPatternVariant;
 use crate::syntax::ConstStatement;
 use crate::syntax::EnumStatement;
@@ -218,8 +219,13 @@ impl Analyzer {
                 Type::from_type_variant(&field.r#type.variant, self.scope())?,
             ));
         }
+
+        unsafe {
+            UNIQUE_ID += 1;
+        }
         let r#type = Type::new_structure(
             statement.identifier.name.clone(),
+            unsafe { UNIQUE_ID },
             fields,
             Some(self.scope()),
         );
@@ -235,8 +241,12 @@ impl Analyzer {
     fn enum_statement(&mut self, statement: EnumStatement) -> Result<(), Error> {
         let location = statement.location;
 
+        unsafe {
+            UNIQUE_ID += 1;
+        }
         let r#type = Type::new_enumeration(
             statement.identifier.clone(),
+            unsafe { UNIQUE_ID },
             statement.variants,
             Some(self.scope()),
         )?;

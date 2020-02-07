@@ -50,6 +50,7 @@ pub use self::element::Type;
 pub use self::element::UserDefinedFunctionType;
 pub use self::element::Value;
 pub use self::element::ValueError;
+pub use self::element::UNIQUE_ID;
 pub use self::scope::Error as ScopeError;
 pub use self::scope::Item as ScopeItem;
 pub use self::scope::Scope;
