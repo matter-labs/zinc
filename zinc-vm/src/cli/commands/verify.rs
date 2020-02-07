@@ -53,7 +53,7 @@ impl VerifyCommand {
         if verified {
             println!("{}", "✔  Verified".bold().green());
         } else {
-            println!("{}", "❌  Failed".bold().red());
+            println!("{}", "✘  Failed".bold().red());
             exit(1);
         }
 
