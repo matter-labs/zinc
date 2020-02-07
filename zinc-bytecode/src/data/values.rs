@@ -8,6 +8,7 @@ use failure::Fail;
 use std::collections::HashSet;
 use std::fmt;
 
+#[allow(dead_code)]
 fn serialize_bigint_into_string<S>(bigint: &BigInt, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
@@ -16,6 +17,7 @@ where
     serializer.serialize_str(&s)
 }
 
+#[allow(dead_code)]
 fn deserialize_bigint_from_string<'de, D>(deserializer: D) -> Result<BigInt, D::Error>
 where
     D: serde::Deserializer<'de>,
@@ -34,14 +36,32 @@ pub struct StructField {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ScalarValue {
+    Field(BigInt),
+    Bool(bool),
+    Integer(BigInt),
+}
+
+impl ScalarValue {
+    pub fn to_bigint(&self) -> BigInt {
+        match self {
+            ScalarValue::Field(value) | ScalarValue::Integer(value) => value.clone(),
+            ScalarValue::Bool(value) => {
+                if *value {
+                    BigInt::from(1)
+                } else {
+                    BigInt::from(0)
+                }
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Value {
     Unit,
-    Scalar(
-        #[serde(serialize_with = "serialize_bigint_into_string")]
-        #[serde(deserialize_with = "deserialize_bigint_from_string")]
-        BigInt,
-    ),
+    Scalar(ScalarValue),
     Struct(Vec<StructField>),
     Array(Vec<Value>),
 }
@@ -50,8 +70,12 @@ impl Value {
     pub fn default_from_type(data_type: &DataType) -> Self {
         match data_type {
             DataType::Unit => Value::Unit,
-            DataType::Enum => Value::Scalar(0.into()),
-            DataType::Scalar(_) => Value::Scalar(0.into()),
+            DataType::Enum => Value::Scalar(ScalarValue::Field(0.into())),
+            DataType::Scalar(scalar_type) => match scalar_type {
+                ScalarType::Field => Value::Scalar(ScalarValue::Field(0.into())),
+                ScalarType::Boolean => Value::Scalar(ScalarValue::Bool(false)),
+                ScalarType::Integer(_) => Value::Scalar(ScalarValue::Integer(0.into())),
+            },
             DataType::Struct(fields) => Value::Struct(
                 fields
                     .iter()
@@ -79,7 +103,7 @@ impl Value {
     fn to_flat_values_recursive(&self, flat_array: &mut Vec<BigInt>) {
         match self {
             Value::Unit => {}
-            Value::Scalar(value) => flat_array.push(value.clone()),
+            Value::Scalar(value) => flat_array.push(value.to_bigint()),
             Value::Struct(fields) => {
                 for StructField { value, .. } in fields.iter() {
                     value.to_flat_values_recursive(flat_array);
@@ -108,8 +132,15 @@ impl Value {
     fn fill_from_flat_values(&mut self, flat_values: &[BigInt]) -> Option<usize> {
         match self {
             Value::Unit => Some(0),
-            Value::Scalar(value) => {
-                *value = flat_values.first()?.clone();
+            Value::Scalar(scalar) => {
+                match scalar {
+                    ScalarValue::Field(value) | ScalarValue::Integer(value) => {
+                        *value = flat_values.first()?.clone();
+                    }
+                    ScalarValue::Bool(value) => {
+                        *value = flat_values.first()? != &BigInt::from(0);
+                    }
+                }
                 Some(1)
             }
             Value::Struct(fields) => {
@@ -137,13 +168,16 @@ impl Value {
     pub fn to_json(&self) -> json::Value {
         match self {
             Value::Unit => json::Value::String("unit".into()),
-            Value::Scalar(value) => {
-                if value <= &BigInt::from(std::u64::MAX) {
-                    json::Value::String(value.to_str_radix(10))
-                } else {
-                    json::Value::String(String::from("0x") + value.to_str_radix(16).as_str())
+            Value::Scalar(scalar) => match scalar {
+                ScalarValue::Field(value) | ScalarValue::Integer(value) => {
+                    if value <= &BigInt::from(std::u64::MAX) {
+                        json::Value::String(value.to_str_radix(10))
+                    } else {
+                        json::Value::String(String::from("0x") + value.to_str_radix(16).as_str())
+                    }
                 }
-            }
+                ScalarValue::Bool(value) => json::Value::Bool(*value),
+            },
             Value::Struct(fields) => {
                 let mut object = json::Map::<String, serde_json::Value>::new();
                 for field in fields.iter() {
@@ -209,7 +243,7 @@ impl Value {
 
         // TODO: overflow check.
 
-        Ok(Value::Scalar(bigint))
+        Ok(Value::Scalar(ScalarValue::Field(bigint)))
     }
 
     fn boolean_from_json(value: &json::Value) -> Result<Self, JsonValueError> {
@@ -220,9 +254,7 @@ impl Value {
                 actual: value.to_string(),
             })?;
 
-        let value_num = if value_bool { 1 } else { 0 };
-
-        Ok(Value::Scalar(value_num.into()))
+        Ok(Value::Scalar(ScalarValue::Bool(value_bool)))
     }
 
     fn integer_from_json(

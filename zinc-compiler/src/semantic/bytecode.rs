@@ -282,10 +282,7 @@ impl Into<DataType> for &Type {
     fn into(self) -> DataType {
         match self {
             Type::Unit => DataType::Unit,
-            Type::Boolean => DataType::Scalar(ScalarType::Integer(IntegerType {
-                is_signed: false,
-                bit_length: crate::BITLENGTH_BOOLEAN,
-            })),
+            Type::Boolean => DataType::Scalar(ScalarType::Boolean),
             Type::IntegerUnsigned { bitlength } => {
                 DataType::Scalar(ScalarType::Integer(IntegerType {
                     is_signed: false,
