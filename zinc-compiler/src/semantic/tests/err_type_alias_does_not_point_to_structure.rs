@@ -16,7 +16,9 @@ fn test() {
 type X = field;
 
 fn main() {
-    let data = X {};
+    let data = X {
+        value: 42,
+    };
 }
 "#;
 

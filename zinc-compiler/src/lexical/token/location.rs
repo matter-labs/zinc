@@ -14,6 +14,10 @@ impl Location {
     pub fn new(line: usize, column: usize) -> Self {
         Self { line, column }
     }
+
+    pub fn new_beginning() -> Self {
+        Self::new(1, 1)
+    }
 }
 
 impl fmt::Display for Location {
