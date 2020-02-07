@@ -7,6 +7,7 @@ mod subtraction;
 mod multiplication;
 mod division;
 mod remainder;
+mod negation;
 
 mod equals;
 mod not_equals;
@@ -28,6 +29,7 @@ struct Result {
     multiplication: multiplication::Result,
     division: division::Result,
     remainder: remainder::Result,
+    negation: negation::Result,
 
     equals: equals::Result,
     not_equals: not_equals::Result,
@@ -54,6 +56,7 @@ fn main(
         multiplication: multiplication::Result::test(witness_integer),
         division: division::Result::test(witness_integer),
         remainder: remainder::Result::test(witness_integer),
+        negation: negation::Result::test(witness_integer),
 
         equals: equals::Result::test(witness_integer),
         not_equals: not_equals::Result::test(witness_integer),
