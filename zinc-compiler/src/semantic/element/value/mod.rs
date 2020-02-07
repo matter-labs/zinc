@@ -47,8 +47,11 @@ impl Value {
             Type::Array { r#type, size } => Self::Array(Array::new(*r#type, size)),
             Type::Tuple { types } => Self::Tuple(Tuple::new(types)),
             Type::Structure {
-                identifier, fields, ..
-            } => Self::Structure(Structure::new(identifier, fields)),
+                identifier,
+                unique_id,
+                fields,
+                ..
+            } => Self::Structure(Structure::new(identifier, unique_id, fields)),
             Type::Enumeration { bitlength, .. } => Self::Integer(Integer::new(false, bitlength)),
             r#type => panic!(
                 "{}{}",

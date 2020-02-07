@@ -15,12 +15,17 @@ use crate::semantic::Value;
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Structure {
     identifier: String,
+    unique_id: usize,
     fields: Vec<(String, Type)>,
 }
 
 impl Structure {
-    pub fn new(identifier: String, fields: Vec<(String, Type)>) -> Self {
-        Self { identifier, fields }
+    pub fn new(identifier: String, unique_id: usize, fields: Vec<(String, Type)>) -> Self {
+        Self {
+            identifier,
+            unique_id,
+            fields,
+        }
     }
 
     pub fn slice(&self, field_name: &str) -> Result<FieldAccessResult, Error> {
@@ -63,7 +68,7 @@ impl Structure {
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        self.identifier == other.identifier
+        self.unique_id == other.unique_id
     }
 }
 

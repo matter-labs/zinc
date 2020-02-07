@@ -4,6 +4,7 @@
 
 use std::fmt;
 
+use crate::semantic::element::r#type::UNIQUE_ID;
 use crate::semantic::Type;
 
 #[derive(Debug, Clone)]
@@ -13,8 +14,6 @@ pub struct UserDefinedFunction {
     pub return_type: Box<Type>,
     pub unique_id: usize,
 }
-
-static mut UNIQUE_ID: usize = 0;
 
 impl UserDefinedFunction {
     pub fn new(identifier: String, arguments: Vec<(String, Type)>, return_type: Type) -> Self {

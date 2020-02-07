@@ -1370,13 +1370,16 @@ impl Analyzer {
 
     fn structure_expression(&mut self, structure: StructureExpression) -> Result<Element, Error> {
         let identifier_location = structure.identifier.location;
-        let (structure_identifier, expected_fields) =
+        let (structure_identifier, type_unique_id, expected_fields) =
             match Scope::resolve_item(self.scope(), &structure.identifier.name)
                 .map_err(|error| Error::Scope(identifier_location, error))?
             {
                 ScopeItem::Type(Type::Structure {
-                    identifier, fields, ..
-                }) => (identifier, fields),
+                    identifier,
+                    unique_id,
+                    fields,
+                    ..
+                }) => (identifier, unique_id, fields),
                 item => {
                     return Err(Error::TypeAliasDoesNotPointToStructure(
                         identifier_location,
@@ -1387,6 +1390,7 @@ impl Analyzer {
 
         let mut result = Structure::new(
             structure_identifier.clone(),
+            type_unique_id,
             Vec::with_capacity(structure.fields.len()),
         );
         for (index, (identifier, expression)) in structure.fields.into_iter().enumerate() {

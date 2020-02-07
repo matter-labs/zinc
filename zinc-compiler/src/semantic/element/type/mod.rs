@@ -61,16 +61,20 @@ pub enum Type {
     },
     Structure {
         identifier: String,
+        unique_id: usize,
         fields: Vec<(String, Self)>,
         scope: Rc<RefCell<Scope>>,
     },
     Enumeration {
         identifier: String,
+        unique_id: usize,
         bitlength: usize,
         scope: Rc<RefCell<Scope>>,
     },
     Function(Function),
 }
+
+pub static mut UNIQUE_ID: usize = 0;
 
 impl Default for Type {
     fn default() -> Self {
@@ -153,8 +157,12 @@ impl Type {
     ) -> Self {
         let scope = Rc::new(RefCell::new(Scope::new(scope_parent)));
 
+        unsafe {
+            UNIQUE_ID += 1;
+        }
         let structure = Self::Structure {
             identifier,
+            unique_id: unsafe { UNIQUE_ID },
             fields,
             scope: scope.clone(),
         };
@@ -192,8 +200,12 @@ impl Type {
                 .map_err(|error| Error::Scope(location, error))?;
         }
 
+        unsafe {
+            UNIQUE_ID += 1;
+        }
         let enumeration = Self::Enumeration {
             identifier: identifier.name,
+            unique_id: unsafe { UNIQUE_ID },
             bitlength: minimal_bitlength,
             scope: scope.clone(),
         };
