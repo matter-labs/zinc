@@ -345,10 +345,7 @@ impl Value {
 
     pub fn negate(&self) -> Result<Self, Error> {
         match self {
-            Self::Integer(integer) => integer
-                .negate()
-                .map(|_| Self::Integer(integer.to_owned()))
-                .map_err(Error::Integer),
+            Self::Integer(integer) => integer.negate().map(Self::Integer).map_err(Error::Integer),
             value => Err(Error::OperatorNegationExpectedInteger(
                 value.r#type().to_string(),
             )),
