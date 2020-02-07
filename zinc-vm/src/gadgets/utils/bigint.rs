@@ -1,5 +1,5 @@
 use num_bigint::BigInt;
-use num_traits::Signed;
+use num_traits::{Signed, Zero};
 use std::ops::Div;
 
 /// Euclidean division of BigInt.
@@ -8,7 +8,11 @@ use std::ops::Div;
 /// div_rem(9, -4) -> (-2, 1)
 /// div_rem(-9, 4) -> (-3, 3)
 /// div_rem(-9, -4) -> (3, 3)
-pub fn euclidean_div_rem(nominator: &BigInt, denominator: &BigInt) -> (BigInt, BigInt) {
+pub fn euclidean_div_rem(nominator: &BigInt, denominator: &BigInt) -> Option<(BigInt, BigInt)> {
+    if denominator.is_zero() {
+        return None;
+    }
+
     let mut div = nominator.div(denominator);
 
     if div.clone() * denominator.clone() > nominator.clone() {
@@ -21,7 +25,7 @@ pub fn euclidean_div_rem(nominator: &BigInt, denominator: &BigInt) -> (BigInt, B
 
     let rem = nominator - div.clone() * denominator;
 
-    (div, rem)
+    Some((div, rem))
 }
 
 #[cfg(test)]

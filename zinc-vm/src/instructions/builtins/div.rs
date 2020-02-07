@@ -15,7 +15,9 @@ where
         let right = vm.pop()?.value()?;
         let left = vm.pop()?.value()?;
 
-        let (div, _rem) = vm.operations().div_rem(left, right)?;
+        let condition = vm.condition_top()?;
+
+        let (div, _rem) = vm.operations().div_rem_conditional(left, right, condition)?;
 
         vm.push(Cell::Value(div))
     }

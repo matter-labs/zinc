@@ -494,7 +494,19 @@ where
         self.value_with_arguments_type_check(prod, prod_var, &[left, right])
     }
 
-    pub fn div_rem(
+    // Make condition
+    pub fn div_rem_conditional(
+        &mut self,
+        left: Primitive<E>,
+        right: Primitive<E>,
+        condition: Primitive<E>,
+    ) -> Result<(Primitive<E>, Primitive<E>), RuntimeError> {
+        let one = self.one_typed(right.data_type)?;
+        let denom = self.conditional_select(condition, right, one)?;
+        self.div_rem(left, denom)
+    }
+
+    fn div_rem(
         &mut self,
         left: Primitive<E>,
         right: Primitive<E>,
@@ -509,7 +521,8 @@ where
             let nom_bi = utils::fr_to_bigint(&nom);
             let denom_bi = utils::fr_to_bigint(&denom);
 
-            let (q, r) = utils::euclidean_div_rem(&nom_bi, &denom_bi);
+            let (q, r) = utils::euclidean_div_rem(&nom_bi, &denom_bi)
+                .ok_or(RuntimeError::ZeroDivisionError)?;
 
             quotient_value = utils::bigint_to_fr::<E>(&q);
             remainder_value = utils::bigint_to_fr::<E>(&r);
@@ -872,6 +885,12 @@ where
     }
 
     pub fn assert(&mut self, element: Primitive<E>) -> Result<(), RuntimeError> {
+        if let Some(value) = element.value {
+            if value.is_zero() {
+                return Err(RuntimeError::AssertionError);
+            }
+        }
+
         let inverse_value = element
             .value
             .map(|fr| fr.inverse().unwrap_or_else(E::Fr::zero));

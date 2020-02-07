@@ -15,7 +15,7 @@ fn balance_hash(balance: field) -> Sha256Digest {
 }
 
 fn merkle_node_hash(left: Sha256Digest, right: Sha256Digest) -> Sha256Digest {
-    let mut data = [false; 596];
+    let mut data = [false; 496];
 
     let left_bits = std::convert::to_bits(left);
     let right_bits = std::convert::to_bits(right);
