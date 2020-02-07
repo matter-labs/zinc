@@ -121,7 +121,7 @@ impl<E: Engine> DataStack<E> {
 
     fn revert(&mut self, delta: &DataStackDelta<E>) {
         for (address, d) in delta.iter() {
-            self.memory.insert(*address, d.old.clone());
+            self.memory[*address] = d.old.clone();
         }
     }
 
