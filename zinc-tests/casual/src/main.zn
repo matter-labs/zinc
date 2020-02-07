@@ -3,12 +3,10 @@
 //!
 
 fn main(witness: u8) -> u8 {
-    let should_work = -128 > -128;
-    witness
-//    let mut r = 0;
-//    for i in 1..=10 while i <= witness {
-//        r = r + i;
-//    }
-//    dbg!("", witness, r);
-//    r
+    let mut r = 0;
+    for i in 1..=10 while i <= witness {
+        r = r + i;
+    }
+    dbg!("", witness, r);
+    r
 }
