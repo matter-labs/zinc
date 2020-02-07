@@ -48,14 +48,14 @@ export VIRTUAL_MACHINE_CRATE_NAME='zinc-vm'
 export VIRTUAL_MACHINE_CRATE_NAME_LOG='zinc_vm'
 export VIRTUAL_MACHINE_BINARY_NAME='zinc'
 
-export PROJECT_DIRECTORY='./zinc-tests/integrational/'
+export PROJECT_DIRECTORY='./zinc-tests/integration/'
 export PROJECT_BUILD_DIRECTORY="${PROJECT_DIRECTORY}/build/"
 
 cargo fmt --all
 cargo build ${RELEASE_MODE_FLAG} --package "${ZARGO_CRATE_NAME}"
 cargo build ${RELEASE_MODE_FLAG} --package "${COMPILER_CRATE_NAME}"
 cargo build ${RELEASE_MODE_FLAG} --package "${VIRTUAL_MACHINE_CRATE_NAME}"
-cargo test
+#cargo test
 
 export ZARGO_PATH="./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}"
 rm -fv "${PROJECT_DIRECTORY}/Zargo.toml"

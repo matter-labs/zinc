@@ -6,7 +6,7 @@
 
 **Accepts**
 1. Namespace identifier (module, structure, enumeration)
-2. Identifier
+2. Item identifier (module, type, variable, constant etc.)
 
 **Returns** the second operand.
 

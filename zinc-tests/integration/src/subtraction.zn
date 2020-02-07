@@ -134,16 +134,15 @@ impl ResultField {
     }
 }
 
-struct ResultMix {
+struct ResultWitness {
     sub_const_const: u8,
     sub_const_value: u8,
     sub_value_const: u8,
     sub_value_value: u8,
 }
 
-impl ResultMix {
-    fn test() -> Self {
-        let bigger = 42;
+impl ResultWitness {
+    fn test(bigger: u8) -> Self {
         let smaller = 16;
         Self {
             sub_const_const: 42 - 16,
@@ -162,11 +161,11 @@ struct Result {
     result_u248: ResultU248,
     result_i248: ResultI248,
     result_field: ResultField,
-    result_mix: ResultMix,
+    result_witness: ResultWitness,
 }
 
 impl Result {
-    fn test() -> Self {
+    fn test(witness: u8) -> Self {
         Self {
             result_u8: ResultU8::test(),
             result_i8: ResultI8::test(),
@@ -175,7 +174,7 @@ impl Result {
             result_u248: ResultU248::test(),
             result_i248: ResultI248::test(),
             result_field: ResultField::test(),
-            result_mix: ResultMix::test(),
+            result_witness: ResultWitness::test(witness),
         }
     }
 }
