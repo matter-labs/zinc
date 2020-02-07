@@ -113,7 +113,7 @@ pub fn decode_instruction(bytes: &[u8]) -> Result<(Instruction, usize), Decoding
         x if x == InstructionCode::Return as u8 => decode_and_wrap::<Return>(bytes),
         x if x == InstructionCode::CallBuiltin as u8 => decode_and_wrap::<CallBuiltin>(bytes),
         x if x == InstructionCode::Assert as u8 => decode_and_wrap::<Assert>(bytes),
-        x if x == InstructionCode::Log as u8 => decode_and_wrap::<Dbg>(bytes),
+        x if x == InstructionCode::Dbg as u8 => decode_and_wrap::<Dbg>(bytes),
         x if x == InstructionCode::Exit as u8 => decode_and_wrap::<Exit>(bytes),
         x => Err(DecodingError::UnknownInstructionCode(x)),
     }

@@ -775,17 +775,13 @@ impl Analyzer {
                         _ => None,
                     })
                     .collect();
-                let _bytecode_input_types: Vec<DataType> = debug_input_types
+                let bytecode_input_types: Vec<DataType> = debug_input_types
                     .iter()
                     .map(|r#type| r#type.into())
                     .collect();
-                let debug_input_size = debug_input_types
-                    .into_iter()
-                    .map(|r#type| r#type.size())
-                    .sum();
 
                 self.bytecode.borrow_mut().push_instruction(
-                    Instruction::Log(zinc_bytecode::Dbg::new(string, debug_input_size)),
+                    Instruction::Dbg(zinc_bytecode::Dbg::new(string, bytecode_input_types)),
                     element.location,
                 );
 
