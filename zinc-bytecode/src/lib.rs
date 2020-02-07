@@ -16,8 +16,8 @@ use std::fmt;
 pub trait InstructionInfo: PartialEq + fmt::Debug + Sized {
     fn to_assembly(&self) -> String;
     fn code() -> InstructionCode;
-    fn encode(&self) -> Vec<u8>;
-    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError>;
+    fn encode(&self) -> Vec<u8> { unimplemented!() }
+    fn decode(_bytes: &[u8]) -> Result<(Self, usize), DecodingError> { unimplemented!() }
     fn inputs_count(&self) -> usize;
     fn outputs_count(&self) -> usize;
     fn wrap(&self) -> Instruction;
@@ -109,7 +109,7 @@ pub enum InstructionCode {
     CallBuiltin,
 
     Assert,
-    Log,
+    Dbg,
 
     Exit,
 
@@ -198,7 +198,7 @@ pub enum Instruction {
 
     // Condition utils
     Assert(Assert),
-    Log(Dbg),
+    Dbg(Dbg),
 
     Exit(Exit),
 
@@ -291,7 +291,7 @@ macro_rules! dispatch_instruction {
             Instruction::CallBuiltin($pattern) => $expression,
 
             Instruction::Assert($pattern) => $expression,
-            Instruction::Log($pattern) => $expression,
+            Instruction::Dbg($pattern) => $expression,
 
             Instruction::Exit($pattern) => $expression,
             Instruction::FileMarker($pattern) => $expression,
