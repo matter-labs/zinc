@@ -2,7 +2,8 @@
 //! The 'casual' main module.
 //!
 
-fn main() {
+fn main(flag: bool) -> bool {
     let bits = [false; 248];
     std::crypto::pedersen(bits);
+    !flag
 }
