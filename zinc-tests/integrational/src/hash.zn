@@ -1,0 +1,25 @@
+use std::convert;
+use std::crypto::sha256;
+use std::array::truncate;
+
+fn truncated_sha256(preimage: u248) -> u248 {
+    let preimage_bits = convert::to_bits(preimage);
+    let digest_bits = sha256(preimage_bits);
+    let truncated_bits = truncate(digest_bits, 248); 
+    
+    convert::from_bits_unsigned(truncated_bits)
+}
+
+struct Result {
+    digest: u248,
+}
+
+impl Result {
+    fn test() -> Self {
+        let preimage = 0x1d0bf151b6362dea55be4e78b03e01d24b80c52d798b4a7285061e52927b6b as u248;
+        let digest = truncated_sha256(preimage);
+        assert!(digest == 0xc905b353e318a4b0e509bb6a0dd2afa55aa292ec0073119f529bdf244edcd1 as u248);
+
+        Self { digest: digest }
+    }
+}

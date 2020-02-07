@@ -7,6 +7,7 @@ mod subtraction;
 mod multiplication;
 mod division;
 mod remainder;
+mod hash;
 
 struct Result {
     addition: addition::Result,
@@ -14,6 +15,7 @@ struct Result {
     multiplication: multiplication::Result,
     division: division::Result,
     remainder: remainder::Result,
+    hash: hash::Result,
 }
 
 fn main() -> Result {
@@ -23,5 +25,6 @@ fn main() -> Result {
         multiplication: multiplication::Result::test(),
         division: division::Result::test(),
         remainder: remainder::Result::test(),
+        hash: hash::Result::test(),
     }
 }
