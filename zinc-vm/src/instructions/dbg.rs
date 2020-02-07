@@ -17,6 +17,7 @@ where
         for _ in 0..self.nargs {
             args.push(vm.pop()?.value()?);
         }
+        args.reverse();
 
         if let Some(condition) = vm.condition_top()?.to_bigint() {
             if condition.is_positive() && vm.debugging {

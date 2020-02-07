@@ -39,6 +39,7 @@ impl<E: Engine> Gadget<E> for UnsignedFromBits {
                 AllocatedBit::alloc(cs.namespace(|| format!("AllocatedBit {}", i)), bit)?;
             bits.push(allocated_bit.into());
         }
+        bits.reverse();
 
         let num =
             AllocatedNum::pack_bits_to_element(cs.namespace(|| "pack_bits_to_element"), &bits)?;

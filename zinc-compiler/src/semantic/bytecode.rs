@@ -238,7 +238,7 @@ impl Bytecode {
         let output_bytecode_type = (&self.output_type).into();
         let output_value_template = TemplateValue::default_from_type(&output_bytecode_type);
         match serde_json::to_string_pretty(&output_value_template.to_json()) {
-            Ok(json) => json.into_bytes(),
+            Ok(json) => (json + "\n").into_bytes(),
             Err(error) => panic!(
                 crate::semantic::PANIC_JSON_TEMPLATE_SERIALIZATION.to_owned()
                     + error.to_string().as_str()

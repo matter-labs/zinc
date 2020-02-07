@@ -13,6 +13,7 @@ mod greater_equals;
 mod greater;
 mod lesser_equals;
 mod lesser;
+mod hash;
 
 struct Result {
     addition: addition::Result,
@@ -26,6 +27,7 @@ struct Result {
     greater: greater::Result,
     lesser_equals: lesser_equals::Result,
     lesser: lesser::Result,
+    hash: hash::Result,
 }
 
 fn main() -> Result {
@@ -41,5 +43,6 @@ fn main() -> Result {
         greater: greater::Result::test(),
         lesser_equals: lesser_equals::Result::test(),
         lesser: lesser::Result::test(),
+        hash: hash::Result::test(),
     }
 }

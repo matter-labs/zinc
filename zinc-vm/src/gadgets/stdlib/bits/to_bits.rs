@@ -16,10 +16,12 @@ impl<E: Engine> Gadget<E> for ToBits {
     ) -> Result<Self::Output, RuntimeError> {
         let num = input.as_allocated_num(cs.namespace(|| "as_allocated_num"))?;
 
-        let bits = match input.data_type {
+        let mut bits = match input.data_type {
             Some(t) => num.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), t.length),
             None => num.into_bits_le_strict(cs.namespace(|| "into_bits_le_strict")),
         }?;
+        // We use big-endian
+        bits.reverse();
 
         let scalars = bits
             .into_iter()

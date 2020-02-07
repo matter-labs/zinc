@@ -11,7 +11,7 @@ where
 {
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         for i in 0..self.len {
-            let value = vm.load(self.address + self.len - i - 1)?;
+            let value = vm.load(self.address + i)?;
             vm.push(value)?;
         }
 

@@ -23,6 +23,8 @@ where
             input.push(value);
         }
 
+        input.reverse();
+
         let output = match self.identifier {
             BuiltinIdentifier::CryptoSha256 => vm.operations().execute(Sha256, &input),
             BuiltinIdentifier::CryptoPedersen => vm.operations().execute(Pedersen, &input),
@@ -38,7 +40,7 @@ where
             // f => unimplemented!("Builtin function {} is not implemented.", f),
         }?;
 
-        for value in output {
+        for value in output.into_iter() {
             vm.push(Cell::Value(value))?
         }
 

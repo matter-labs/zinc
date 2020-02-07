@@ -137,7 +137,13 @@ impl Value {
     pub fn to_json(&self) -> json::Value {
         match self {
             Value::Unit => json::Value::String("unit".into()),
-            Value::Scalar(value) => json::Value::String(value.to_str_radix(10)),
+            Value::Scalar(value) => {
+                if value <= &BigInt::from(std::u64::MAX) {
+                    json::Value::String(value.to_str_radix(10))
+                } else {
+                    json::Value::String(String::from("0x") + value.to_str_radix(16).as_str())
+                }
+            }
             Value::Struct(fields) => {
                 let mut object = json::Map::<String, serde_json::Value>::new();
                 for field in fields.iter() {
