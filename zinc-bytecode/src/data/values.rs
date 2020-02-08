@@ -357,10 +357,14 @@ pub struct JsonValueError {
 
 impl fmt::Display for JsonValueError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        let mut path = self.path.clone();
-        path.reverse();
-        let p = path.as_slice().join(&String::from("."));
-        write!(f, "{} at {}", self.error, p)
+        if self.path.is_empty() {
+            write!(f, "{}", self.error)
+        } else {
+            let mut path = self.path.clone();
+            path.reverse();
+            let p = path.as_slice().join(&String::from("."));
+            write!(f, "{} at {}", self.error, p)
+        }
     }
 }
 
