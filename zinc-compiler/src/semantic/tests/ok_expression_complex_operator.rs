@@ -6,6 +6,7 @@
 
 use num_bigint::BigInt;
 
+use zinc_bytecode::Swap;
 use zinc_bytecode::Add;
 use zinc_bytecode::And;
 use zinc_bytecode::Call;
@@ -64,6 +65,7 @@ fn main() {
             false,
             crate::BITLENGTH_BYTE,
         )),
+        Instruction::Swap(Swap),
         Instruction::Sub(Sub),
         Instruction::Sub(Sub),
         Instruction::PushConst(PushConst::new(

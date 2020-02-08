@@ -2,7 +2,7 @@
 //! The 'casual' main module.
 //!
 
-fn main(flag: bool) -> bool {
-    let tmp = [false; 1000];
-    !flag
+fn main(witness: u32) -> u32 {
+    const d: u32 = 17;
+    witness / d
 }

@@ -78,20 +78,20 @@ impl Bytecode {
     }
 
     pub fn push_instruction(&mut self, instruction: Instruction, location: Location) {
-        if self.current_location != location {
-            if self.current_location.line != location.line {
-                self.instructions
-                    .push(Instruction::LineMarker(zinc_bytecode::LineMarker::new(
-                        location.line,
-                    )));
-            }
-            if self.current_location.column != location.column {
-                self.instructions.push(Instruction::ColumnMarker(
-                    zinc_bytecode::ColumnMarker::new(location.column),
-                ));
-            }
-            self.current_location = location;
-        }
+//        if self.current_location != location {
+//            if self.current_location.line != location.line {
+//                self.instructions
+//                    .push(Instruction::LineMarker(zinc_bytecode::LineMarker::new(
+//                        location.line,
+//                    )));
+//            }
+//            if self.current_location.column != location.column {
+//                self.instructions.push(Instruction::ColumnMarker(
+//                    zinc_bytecode::ColumnMarker::new(location.column),
+//                ));
+//            }
+//            self.current_location = location;
+//        }
         self.instructions.push(instruction)
     }
 
@@ -186,12 +186,12 @@ impl Bytecode {
     pub fn start_new_function(&mut self, identifier: &str, unique_id: usize) {
         self.function_addresses
             .insert(unique_id, self.instructions.len());
-        self.instructions.push(Instruction::FileMarker(
-            zinc_bytecode::instructions::FileMarker::new(self.current_file.clone()),
-        ));
-        self.instructions.push(Instruction::FunctionMarker(
-            zinc_bytecode::FunctionMarker::new(identifier.to_owned()),
-        ));
+//        self.instructions.push(Instruction::FileMarker(
+//            zinc_bytecode::instructions::FileMarker::new(self.current_file.clone()),
+//        ));
+//        self.instructions.push(Instruction::FunctionMarker(
+//            zinc_bytecode::FunctionMarker::new(identifier.to_owned()),
+//        ));
         self.data_stack_pointer = 0;
     }
 
