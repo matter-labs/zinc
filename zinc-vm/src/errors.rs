@@ -1,5 +1,5 @@
-use franklin_crypto::bellman::SynthesisError;
 use failure::Fail;
+use franklin_crypto::bellman::SynthesisError;
 use num_bigint::BigInt;
 
 #[derive(Debug, Fail)]
@@ -31,7 +31,6 @@ pub enum MalformedBytecode {
 
 #[derive(Debug, Fail)]
 pub enum RuntimeError {
-
     #[fail(display = "synthesis error: {}", _0)]
     SynthesisError(SynthesisError),
 
@@ -44,8 +43,15 @@ pub enum RuntimeError {
     #[fail(display = "assertion error: got false expression in `assert!`")]
     AssertionError,
 
-    #[fail(display = "index out of bounds: expected index in range {}..{}, got {}", lower_bound, upper_bound, actual)]
-    IndexOutOfBounds { lower_bound: usize, upper_bound: usize, actual: usize },
+    #[fail(
+        display = "index out of bounds: expected index in range {}..{}, got {}",
+        lower_bound, upper_bound, actual
+    )]
+    IndexOutOfBounds {
+        lower_bound: usize,
+        upper_bound: usize,
+        actual: usize,
+    },
 
     #[fail(display = "type error: expected {}, got {}", expected, actual)]
     TypeError { expected: String, actual: String },

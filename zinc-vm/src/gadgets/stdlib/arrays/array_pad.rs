@@ -1,8 +1,8 @@
+use crate::errors::MalformedBytecode;
 use crate::gadgets::{Gadget, Primitive};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
-use crate::errors::MalformedBytecode;
 
 pub struct ArrayPad;
 
@@ -23,7 +23,8 @@ impl<E: Engine> Gadget<E> for ArrayPad {
                 "ArrayPad: new length ({}) can't be less than old length ({})",
                 len,
                 array.len()
-            )).into());
+            ))
+            .into());
         }
 
         array.resize(len, value);
@@ -36,7 +37,8 @@ impl<E: Engine> Gadget<E> for ArrayPad {
             return Err(MalformedBytecode::InvalidArguments(format!(
                 "ArrayPad expected at least 2 arguments, got {}",
                 input.len()
-            )).into());
+            ))
+            .into());
         }
 
         Ok((input[0].clone(), input[1].clone(), Vec::from(&input[2..])))

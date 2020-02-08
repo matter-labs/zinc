@@ -1,3 +1,4 @@
+use crate::errors::MalformedBytecode;
 use crate::gadgets::{Gadget, Primitive};
 use crate::Engine;
 use crate::RuntimeError;
@@ -5,7 +6,6 @@ use bellman::ConstraintSystem;
 use ff::{Field, PrimeField};
 use franklin_crypto::circuit::boolean::AllocatedBit;
 use franklin_crypto::circuit::num::AllocatedNum;
-use crate::errors::MalformedBytecode;
 
 pub struct FieldFromBits;
 
@@ -22,7 +22,8 @@ impl<E: Engine> Gadget<E> for FieldFromBits {
             return Err(MalformedBytecode::InvalidArguments(format!(
                 "FieldFromBits expects exactly {} arguments",
                 E::Fr::NUM_BITS
-            )).into());
+            ))
+            .into());
         }
 
         let mut bits = Vec::with_capacity(E::Fr::NUM_BITS as usize);

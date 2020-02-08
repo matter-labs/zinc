@@ -33,11 +33,7 @@ impl TypeToString for Option<PrimitiveType> {
                 if t.length == 1 {
                     "bool".into()
                 } else {
-                    format!(
-                        "{}{}",
-                        if t.signed { "i" } else { "u" },
-                        t.length,
-                    )
+                    format!("{}{}", if t.signed { "i" } else { "u" }, t.length,)
                 }
             }
         }
@@ -71,7 +67,9 @@ impl<E: Engine> Primitive<E> {
     pub fn get_constant_usize(&self) -> Result<usize, RuntimeError> {
         let fr = self.get_constant()?;
         let bigint = fr_to_bigint(&fr);
-        bigint.to_usize().ok_or_else(|| RuntimeError::ExpectedUsize(bigint))
+        bigint
+            .to_usize()
+            .ok_or_else(|| RuntimeError::ExpectedUsize(bigint))
     }
 }
 

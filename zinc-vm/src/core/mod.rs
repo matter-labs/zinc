@@ -7,6 +7,7 @@ pub use internal::*;
 pub use state::*;
 
 use crate::core::location::CodeLocation;
+use crate::errors::MalformedBytecode;
 use crate::gadgets::{Gadgets, Primitive, PrimitiveType};
 use crate::Engine;
 use colored::Colorize;
@@ -16,7 +17,6 @@ use std::marker::PhantomData;
 use zinc_bytecode::data::types::{DataType, ScalarType};
 use zinc_bytecode::program::Program;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
-use crate::errors::MalformedBytecode;
 
 pub trait VMInstruction<E, CS>: InstructionInfo
 where
@@ -201,7 +201,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         self.state
             .conditions_stack
             .pop()
-            .ok_or(MalformedBytecode::StackUnderflow.into())
+            .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
     }
 
     pub fn condition_top(&mut self) -> Result<Primitive<E>, RuntimeError> {
@@ -209,14 +209,14 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             .conditions_stack
             .last()
             .map(|e| (*e).clone())
-            .ok_or(MalformedBytecode::StackUnderflow.into())
+            .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
     }
 
     fn top_frame(&mut self) -> Result<&mut FunctionFrame<E>, RuntimeError> {
         self.state
             .frames_stack
             .last_mut()
-            .ok_or(MalformedBytecode::StackUnderflow.into())
+            .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
     }
 }
 

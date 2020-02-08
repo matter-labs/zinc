@@ -24,7 +24,10 @@ pub enum Error {
     #[fail(display = "failed to parse json: {}", _0)]
     JsonDecoding(serde_json::Error),
 
-    #[fail(display = "invalid json structure: {}\nNote: remove the file ./data/witness.json so the compiler may recreate it", _0)]
+    #[fail(
+        display = "invalid json structure: {}\nNote: remove the file ./data/witness.json so the compiler may recreate it",
+        _0
+    )]
     JsonValue(JsonValueError),
 }
 

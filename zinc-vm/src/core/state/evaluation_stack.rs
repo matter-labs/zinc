@@ -1,9 +1,9 @@
 use crate::core::Cell;
+use crate::errors::MalformedBytecode;
 use crate::gadgets::{Gadgets, Primitive};
 use crate::Engine;
 use crate::RuntimeError;
 use franklin_crypto::bellman::ConstraintSystem;
-use crate::errors::MalformedBytecode;
 
 #[derive(Debug)]
 pub struct EvaluationStack<E: Engine> {
@@ -34,7 +34,7 @@ impl<E: Engine> EvaluationStack<E> {
                 RuntimeError::InternalError("Evaluation stack root frame missing".into())
             })?
             .pop()
-            .ok_or(MalformedBytecode::StackUnderflow.into())
+            .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
     }
 
     pub fn fork(&mut self) {

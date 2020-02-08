@@ -1,8 +1,8 @@
+use crate::errors::MalformedBytecode;
 use crate::gadgets::{Gadget, Primitive};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
-use crate::errors::MalformedBytecode;
 
 /// Truncate array.
 ///
@@ -26,7 +26,8 @@ impl<E: Engine> Gadget<E> for Truncate {
                 "Truncate: new length ({}) can't be greater than old length ({})",
                 len,
                 array.len()
-            )).into());
+            ))
+            .into());
         }
 
         array.truncate(len);
@@ -35,8 +36,9 @@ impl<E: Engine> Gadget<E> for Truncate {
     }
 
     fn input_from_vec(input: &[Primitive<E>]) -> Result<Self::Input, RuntimeError> {
-        let (new_len, array) = input.split_last()
-            .ok_or_else(|| MalformedBytecode::InvalidArguments("truncate expects at least one argument".into()))?;
+        let (new_len, array) = input.split_last().ok_or_else(|| {
+            MalformedBytecode::InvalidArguments("truncate expects at least one argument".into())
+        })?;
 
         Ok((new_len.clone(), Vec::from(array)))
     }

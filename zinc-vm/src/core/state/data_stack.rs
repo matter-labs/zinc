@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
 use crate::core::Cell;
+use crate::errors::MalformedBytecode;
 use crate::gadgets::{Gadgets, Primitive};
 use crate::Engine;
 use crate::RuntimeError;
 use franklin_crypto::bellman::ConstraintSystem;
-use crate::errors::MalformedBytecode;
 
 #[derive(Debug)]
 struct CellDelta<E: Engine> {
@@ -57,7 +57,8 @@ impl<E: Engine> DataStack<E> {
 
     pub fn get(&mut self, address: usize) -> Result<Cell<E>, RuntimeError> {
         if let Some(cell) = self.memory.get(address) {
-            cell.clone().ok_or(MalformedBytecode::UninitializedStorageAccess.into())
+            cell.clone()
+                .ok_or_else(|| MalformedBytecode::UninitializedStorageAccess.into())
         } else {
             Err(MalformedBytecode::UninitializedStorageAccess.into())
         }
@@ -96,7 +97,10 @@ impl<E: Engine> DataStack<E> {
 
     /// Create an alternative branch (same parent as current one).
     pub fn switch_branch(&mut self) -> Result<(), RuntimeError> {
-        let mut branch = self.branches.pop().ok_or(MalformedBytecode::UnexpectedElse)?;
+        let mut branch = self
+            .branches
+            .pop()
+            .ok_or(MalformedBytecode::UnexpectedElse)?;
         self.revert(&branch.active_delta());
         let new_branch = branch.switch().ok_or(MalformedBytecode::UnexpectedElse)?;
         self.branches.push(new_branch);
@@ -109,7 +113,10 @@ impl<E: Engine> DataStack<E> {
         condition: Primitive<E>,
         ops: &mut Gadgets<E, CS>,
     ) -> Result<(), RuntimeError> {
-        let mut branch = self.branches.pop().ok_or(MalformedBytecode::UnexpectedEndIf)?;
+        let mut branch = self
+            .branches
+            .pop()
+            .ok_or(MalformedBytecode::UnexpectedEndIf)?;
         self.revert(branch.active_delta());
 
         match branch {
