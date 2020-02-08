@@ -37,8 +37,6 @@ The inner types and the tuple type are inferred by the compiler.
 
 ## Structure
 
-The Zinc one starts with a `struct` keyword.
-
 ```rust,no_run,noplaypen
 struct Data {
     value: field,

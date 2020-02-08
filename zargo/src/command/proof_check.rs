@@ -1,5 +1,5 @@
 //!
-//! The `build` command.
+//! The `proof-check` command.
 //!
 
 use std::convert::TryFrom;
@@ -16,11 +16,13 @@ use crate::directory::source::Directory as SourceDirectory;
 use crate::directory::source::Error as SourceDirectoryError;
 use crate::executable::compiler::Compiler;
 use crate::executable::compiler::Error as CompilerError;
+use crate::executable::virtual_machine::Error as VirtualMachineError;
+use crate::executable::virtual_machine::VirtualMachine;
 use crate::manifest::Error as ManifestError;
 use crate::manifest::Manifest;
 
 #[derive(Debug, StructOpt)]
-#[structopt(about = "Builds the circuit at the given path")]
+#[structopt(about = "Runs a circuit and saves its output")]
 pub struct Command {
     #[structopt(
         short = "v",
@@ -45,31 +47,51 @@ pub struct Command {
 
     #[structopt(
         long = "witness",
-        help = "Path to the witness JSON file",
+        help = "Path to the witness file",
         default_value = "./data/witness.json"
     )]
     witness: PathBuf,
 
     #[structopt(
         long = "public-data",
-        help = "Path to the public data JSON file to write",
+        help = "Path to the public data file",
         default_value = "./data/public-data.json"
     )]
     public_data: PathBuf,
+
+    #[structopt(
+        long = "proving-key",
+        help = "Path to the proving key file",
+        default_value = "./data/proving-key"
+    )]
+    proving_key: PathBuf,
+
+    #[structopt(
+        long = "verifying-key",
+        help = "Path to the verifying key file",
+        default_value = "./data/verifying-key.txt"
+    )]
+    verifying_key: PathBuf,
 }
 
 #[derive(Debug, Fail)]
 pub enum Error {
     #[fail(display = "manifest file: {}", _0)]
     ManifestFile(ManifestError),
+    #[fail(display = "source directory: {}", _0)]
+    SourceDirectory(SourceDirectoryError),
     #[fail(display = "build directory: {}", _0)]
     BuildDirectory(BuildDirectoryError),
     #[fail(display = "data directory: {}", _0)]
     DataDirectory(DataDirectoryError),
-    #[fail(display = "source directory: {}", _0)]
-    SourceDirectory(SourceDirectoryError),
     #[fail(display = "compiler: {}", _0)]
     Compiler(CompilerError),
+    #[fail(display = "virtual machine 'run': {}", _0)]
+    VirtualMachineRun(VirtualMachineError),
+    #[fail(display = "virtual machine 'setup': {}", _0)]
+    VirtualMachineSetup(VirtualMachineError),
+    #[fail(display = "virtual machine 'prove & verify': {}", _0)]
+    VirtualMachineProveAndVerify(VirtualMachineError),
 }
 
 impl Command {
@@ -95,6 +117,32 @@ impl Command {
             &source_file_paths,
         )
         .map_err(Error::Compiler)?;
+
+        VirtualMachine::run(
+            self.verbosity,
+            &self.circuit,
+            &self.witness,
+            &self.public_data,
+        )
+        .map_err(Error::VirtualMachineRun)?;
+
+        VirtualMachine::setup(
+            self.verbosity,
+            &self.circuit,
+            &self.proving_key,
+            &self.verifying_key,
+        )
+        .map_err(Error::VirtualMachineSetup)?;
+
+        VirtualMachine::prove_and_verify(
+            self.verbosity,
+            &self.circuit,
+            &self.witness,
+            &self.public_data,
+            &self.proving_key,
+            &self.verifying_key,
+        )
+        .map_err(Error::VirtualMachineProveAndVerify)?;
 
         Ok(())
     }

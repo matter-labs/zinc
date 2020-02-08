@@ -1,5 +1,5 @@
 //!
-//! The Zargo command.
+//! The command.
 //!
 
 pub mod build;
@@ -7,6 +7,7 @@ pub mod clean;
 pub mod error;
 pub mod init;
 pub mod new;
+pub mod proof_check;
 pub mod prove;
 pub mod run;
 pub mod setup;
@@ -19,6 +20,7 @@ use self::clean::Command as CleanCommand;
 use self::error::Error;
 use self::init::Command as InitCommand;
 use self::new::Command as NewCommand;
+use self::proof_check::Command as ProofCheckCommand;
 use self::prove::Command as ProveCommand;
 use self::run::Command as RunCommand;
 use self::setup::Command as SetupCommand;
@@ -34,6 +36,7 @@ pub enum Command {
     Setup(SetupCommand),
     Prove(ProveCommand),
     Verify(VerifyCommand),
+    ProofCheck(ProofCheckCommand),
 }
 
 impl Command {
@@ -47,6 +50,7 @@ impl Command {
             Self::Setup(command) => command.execute()?,
             Self::Prove(command) => command.execute()?,
             Self::Verify(command) => command.execute()?,
+            Self::ProofCheck(command) => command.execute()?,
         }
         Ok(())
     }

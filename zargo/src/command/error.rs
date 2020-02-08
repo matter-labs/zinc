@@ -1,5 +1,5 @@
 //!
-//! The Zargo command error.
+//! The command error.
 //!
 
 use failure::Fail;
@@ -8,6 +8,7 @@ use crate::command::build::Error as BuildCommandError;
 use crate::command::clean::Error as CleanCommandError;
 use crate::command::init::Error as InitCommandError;
 use crate::command::new::Error as NewCommandError;
+use crate::command::proof_check::Error as ProofCheckCommandError;
 use crate::command::prove::Error as ProveCommandError;
 use crate::command::run::Error as RunCommandError;
 use crate::command::setup::Error as SetupCommandError;
@@ -31,6 +32,8 @@ pub enum Error {
     Prove(ProveCommandError),
     #[fail(display = "{}", _0)]
     Verify(VerifyCommandError),
+    #[fail(display = "{}", _0)]
+    ProofCheck(ProofCheckCommandError),
 }
 
 impl From<NewCommandError> for Error {
@@ -78,5 +81,11 @@ impl From<ProveCommandError> for Error {
 impl From<VerifyCommandError> for Error {
     fn from(inner: VerifyCommandError) -> Self {
         Self::Verify(inner)
+    }
+}
+
+impl From<ProofCheckCommandError> for Error {
+    fn from(inner: ProofCheckCommandError) -> Self {
+        Self::ProofCheck(inner)
     }
 }

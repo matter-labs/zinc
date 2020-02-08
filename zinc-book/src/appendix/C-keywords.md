@@ -50,4 +50,7 @@ pub
 ref
 extern
 return
+loop
+break
+continue
 ```

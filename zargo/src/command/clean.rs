@@ -1,16 +1,17 @@
 //!
-//! The Zargo `clean` command.
+//! The `clean` command.
 //!
 
 use std::convert::TryFrom;
-use std::ffi::OsString;
-use std::fs;
-use std::io;
 use std::path::PathBuf;
 
 use failure::Fail;
 use structopt::StructOpt;
 
+use crate::directory::build::Directory as BuildDirectory;
+use crate::directory::build::Error as BuildDirectoryError;
+use crate::directory::data::Directory as DataDirectory;
+use crate::directory::data::Error as DataDirectoryError;
 use crate::manifest::Error as ManifestError;
 use crate::manifest::Manifest;
 
@@ -22,7 +23,7 @@ pub struct Command {
         parse(from_occurrences),
         help = "Shows verbose logs, use multiple times for more verbosity"
     )]
-    verbose: usize,
+    verbosity: usize,
 
     #[structopt(
         long = "manifest-path",
@@ -34,30 +35,25 @@ pub struct Command {
 
 #[derive(Debug, Fail)]
 pub enum Error {
-    #[fail(display = "manifest file {:?} error: {}", _0, _1)]
-    ManifestFile(OsString, ManifestError),
-    #[fail(display = "build directory {:?} removing: {}", _0, _1)]
-    BuildDirectoryRemoving(OsString, io::Error),
+    #[fail(display = "manifest file: {}", _0)]
+    ManifestFile(ManifestError),
+    #[fail(display = "build directory: {}", _0)]
+    BuildDirectory(BuildDirectoryError),
+    #[fail(display = "data directory: {}", _0)]
+    DataDirectory(DataDirectoryError),
 }
 
 impl Command {
     pub fn execute(self) -> Result<(), Error> {
-        let _manifest = Manifest::try_from(&self.manifest_path).map_err(|error| {
-            Error::ManifestFile(self.manifest_path.as_os_str().to_owned(), error)
-        })?;
+        let _manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
-        let mut project_path = self.manifest_path;
-        if project_path.is_file() {
-            project_path.pop();
+        let mut circuit_path = self.manifest_path;
+        if circuit_path.is_file() {
+            circuit_path.pop();
         }
 
-        let mut build_directory_path = project_path;
-        build_directory_path.push(crate::constants::CIRCUIT_DIRECTORY_BUILD);
-        if build_directory_path.exists() {
-            fs::remove_dir_all(&build_directory_path).map_err(|error| {
-                Error::BuildDirectoryRemoving(build_directory_path.as_os_str().to_owned(), error)
-            })?;
-        }
+        BuildDirectory::remove(&circuit_path).map_err(Error::BuildDirectory)?;
+        DataDirectory::remove(&circuit_path).map_err(Error::DataDirectory)?;
 
         Ok(())
     }

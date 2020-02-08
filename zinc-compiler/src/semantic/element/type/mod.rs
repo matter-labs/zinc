@@ -204,11 +204,13 @@ impl Type {
 
     pub fn new_user_defined_function(
         identifier: String,
+        unique_id: usize,
         arguments: Vec<(String, Self)>,
         return_type: Self,
     ) -> Self {
         Self::Function(Function::new_user_defined(
             identifier,
+            unique_id,
             arguments,
             return_type,
         ))

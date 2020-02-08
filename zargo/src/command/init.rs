@@ -1,20 +1,19 @@
 //!
-//! The Zargo `init` command.
+//! The `init` command.
 //!
 
 use std::ffi::OsString;
-use std::fs;
-use std::fs::File;
-use std::io;
 use std::path::PathBuf;
 
 use failure::Fail;
-use std::io::Write;
 use structopt::StructOpt;
 
+use crate::directory::source::main::Error as MainFileError;
+use crate::directory::source::main::Main as MainFile;
+use crate::directory::source::Directory as SourceDirectory;
+use crate::directory::source::Error as SourceDirectoryError;
 use crate::manifest::Error as ManifestError;
 use crate::manifest::Manifest;
-use crate::templates;
 
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Initializes a new circuit in the specified directory")]
@@ -24,7 +23,7 @@ pub struct Command {
         parse(from_occurrences),
         help = "Shows verbose logs, use multiple times for more verbosity"
     )]
-    verbose: usize,
+    verbosity: usize,
 
     #[structopt(
         long = "name",
@@ -47,14 +46,12 @@ pub enum Error {
     DirectoryDoesNotExist(OsString),
     #[fail(display = "circuit at path {:?} is already initialized", _0)]
     CircuitAlreadyInitialized(OsString),
-    #[fail(display = "manifest file {:?}: {}", _0, _1)]
-    ManifestFile(OsString, ManifestError),
-    #[fail(display = "source directory {:?} creating: {}", _0, _1)]
-    CreatingSourceDirectory(OsString, io::Error),
-    #[fail(display = "source file {:?} creating: {}", _0, _1)]
-    CreatingSourceMainFile(OsString, io::Error),
-    #[fail(display = "source file {:?} template writing: {}", _0, _1)]
-    WritingSourceMainFileTemplate(OsString, io::Error),
+    #[fail(display = "manifest file: {}", _0)]
+    ManifestFile(ManifestError),
+    #[fail(display = "source directory: {}", _0)]
+    SourceDirectory(SourceDirectoryError),
+    #[fail(display = "main file: {}", _0)]
+    MainFile(MainFileError),
 }
 
 impl Command {
@@ -79,32 +76,17 @@ impl Command {
             return Err(Error::CircuitAlreadyInitialized(
                 self.path.as_os_str().to_owned(),
             ));
-        } else {
-            Manifest::new(&circuit_name)
-                .write_to(&self.path)
-                .map_err(|error| Error::ManifestFile(self.path.as_os_str().to_owned(), error))?;
         }
+        Manifest::new(&circuit_name)
+            .write_to(&self.path)
+            .map_err(Error::ManifestFile)?;
 
-        let mut source_directory_path = self.path.clone();
-        source_directory_path.push(PathBuf::from(crate::constants::CIRCUIT_DIRECTORY_SOURCE));
-        fs::create_dir_all(&source_directory_path).map_err(|error| {
-            Error::CreatingSourceDirectory(source_directory_path.as_os_str().to_owned(), error)
-        })?;
+        SourceDirectory::create(&self.path).map_err(Error::SourceDirectory)?;
 
-        let mut source_main_file_path = source_directory_path;
-        source_main_file_path.push(PathBuf::from(crate::constants::CIRCUIT_FILE_NAME_MAIN));
-        if !source_main_file_path.exists() {
-            let mut main_file = File::create(&source_main_file_path).map_err(|error| {
-                Error::CreatingSourceMainFile(source_main_file_path.as_os_str().to_owned(), error)
-            })?;
-            main_file
-                .write_all(templates::main_template(&circuit_name).as_bytes())
-                .map_err(|error| {
-                    Error::WritingSourceMainFileTemplate(
-                        source_main_file_path.as_os_str().to_owned(),
-                        error,
-                    )
-                })?;
+        if !MainFile::exists_at(&self.path) {
+            MainFile::new(&circuit_name)
+                .write_to(&self.path)
+                .map_err(Error::MainFile)?;
         }
 
         log::info!(

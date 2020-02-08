@@ -277,9 +277,17 @@ impl Analyzer {
             ));
         }
         let return_type = Type::from_type_variant(&statement.return_type.variant, self.scope())?;
-        let function_type =
-            UserDefinedFunctionType::new(identifier.clone(), argument_bindings, return_type);
-        let function_type_unique_id = function_type.unique_id;
+
+        let unique_id = unsafe {
+            UNIQUE_ID += 1;
+            UNIQUE_ID
+        };
+        let function_type = UserDefinedFunctionType::new(
+            identifier.clone(),
+            unique_id,
+            argument_bindings,
+            return_type,
+        );
         let r#type = Type::Function(FunctionType::UserDefined(function_type));
 
         self.scope()
@@ -290,7 +298,7 @@ impl Analyzer {
         // record the function address in the bytecode
         self.bytecode
             .borrow_mut()
-            .start_new_function(&identifier, function_type_unique_id);
+            .start_new_function(&identifier, unique_id);
 
         // start a new scope and declare the function arguments there
         self.push_scope();

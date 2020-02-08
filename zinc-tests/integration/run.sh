@@ -41,8 +41,7 @@ export ZARGO_PATH="../../target/${TARGET_DIRECTORY}/zargo"
 "${ZARGO_PATH}" clean ${LOG_LEVEL}
 "${ZARGO_PATH}" build ${LOG_LEVEL}
 
-echo '{ "witness_bool": true, "witness_integer": "42" }' > './build/witness.json'
+echo '{ "witness_bool": true, "witness_integer": "42" }' > './data/witness.json'
 
-"${ZARGO_PATH}" run ${LOG_LEVEL}
 "${ZARGO_PATH}" setup ${LOG_LEVEL}
 "${ZARGO_PATH}" prove | ${ZARGO_PATH} verify

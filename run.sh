@@ -37,8 +37,9 @@ case "${2}" in
         ;;
 esac
 
-export PROJECT_DIRECTORY='./zinc-tests/casual/'
-export PROJECT_BUILD_DIRECTORY="${PROJECT_DIRECTORY}/build/"
+export CIRCUIT_DIRECTORY='./zinc-examples/debug/'
+export CIRCUIT_BUILD_DIRECTORY="${CIRCUIT_DIRECTORY}/build/"
+export CIRCUIT_DATA_DIRECTORY="${CIRCUIT_DIRECTORY}/data/"
 
 cargo fmt --all
 cargo clippy
@@ -47,28 +48,12 @@ cargo test
 
 export ZARGO_PATH="./target/${TARGET_DIRECTORY}/zargo"
 
-rm -fv "${PROJECT_DIRECTORY}/Zargo.toml"
-"${ZARGO_PATH}" init ${LOG_LEVEL} "${PROJECT_DIRECTORY}"
 "${ZARGO_PATH}" clean ${LOG_LEVEL} \
-    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
-"${ZARGO_PATH}" build ${LOG_LEVEL} \
-    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml" \
-    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
-    --witness "${PROJECT_BUILD_DIRECTORY}/witness.json" \
-    --public-data "${PROJECT_BUILD_DIRECTORY}/public-data.json"
-#"${ZARGO_PATH}" run ${LOG_LEVEL} \
-#    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
-#    --witness "${PROJECT_BUILD_DIRECTORY}/witness.json" \
-#    --public-data "${PROJECT_BUILD_DIRECTORY}/public-data.json"
-#"${ZARGO_PATH}" setup ${LOG_LEVEL} \
-#    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
-#    --proving-key "${PROJECT_BUILD_DIRECTORY}/proving-key" \
-#    --verifying-key "${PROJECT_BUILD_DIRECTORY}/verifying-key.txt"
-#"${ZARGO_PATH}" prove ${LOG_LEVEL} \
-#    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
-#    --proving-key "${PROJECT_BUILD_DIRECTORY}/proving-key" \
-#    --witness "${PROJECT_BUILD_DIRECTORY}/witness.json" \
-#    --public-data "${PROJECT_BUILD_DIRECTORY}/public-data.json" > "${PROJECT_BUILD_DIRECTORY}/proof.txt"
-#"${ZARGO_PATH}" verify ${LOG_LEVEL} \
-#    --verifying-key "${PROJECT_BUILD_DIRECTORY}/verifying-key.txt" \
-#    --public-data "${PROJECT_BUILD_DIRECTORY}/public-data.json" < "${PROJECT_BUILD_DIRECTORY}/proof.txt"
+    --manifest-path "${CIRCUIT_DIRECTORY}/Zargo.toml"
+"${ZARGO_PATH}" proof-check ${LOG_LEVEL} \
+    --manifest-path "${CIRCUIT_DIRECTORY}/Zargo.toml" \
+    --circuit "${CIRCUIT_BUILD_DIRECTORY}/default.znb" \
+    --witness "${CIRCUIT_DATA_DIRECTORY}/witness.json" \
+    --public-data "${CIRCUIT_DATA_DIRECTORY}/public-data.json" \
+    --proving-key "${CIRCUIT_DATA_DIRECTORY}/proving-key" \
+    --verifying-key "${CIRCUIT_DATA_DIRECTORY}/verifying-key.txt"

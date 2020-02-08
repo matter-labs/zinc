@@ -37,7 +37,7 @@ struct Arguments {
         parse(from_occurrences),
         help = "Shows verbose logs, use multiple times for more verbosity"
     )]
-    verbose: usize,
+    verbosity: usize,
     #[structopt(
         long = "witness",
         parse(from_os_str),
@@ -114,7 +114,7 @@ fn main() {
 }
 
 fn main_inner(args: Arguments) -> Result<(), Error> {
-    init_logger(args.verbose);
+    init_logger(args.verbosity);
 
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));
 

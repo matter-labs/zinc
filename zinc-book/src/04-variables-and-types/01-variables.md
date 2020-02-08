@@ -25,9 +25,9 @@ change the immutable variable value. However, constants have some further
 restrictions: they cannot infer their type, can be declared only in the global
 scope, and obviously cannot be marked as mutable.
 
-In contrast to Rust, variables can only be declared in functions. If you need a
-global variable, you should declare a constant. This limitation is devised to
-prevent unwanted side effects, polluting the global namespace, and bad design.
+> In contrast to Rust, variables can only be declared in functions. If you need a
+> global variable, you should declare a constant. This limitation is devised to
+> prevent unwanted side effects, polluting the global namespace, and bad design.
 
 ```rust,no_run,noplaypen
 const VALUE: field = 0;

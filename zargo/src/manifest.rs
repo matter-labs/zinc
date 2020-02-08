@@ -64,9 +64,9 @@ impl Manifest {
         if path.is_dir() {
             path.push(PathBuf::from(FILE_NAME_DEFAULT));
         }
-        let mut zargo_file = File::create(&path).map_err(Error::Creating)?;
-        zargo_file
-            .write_all(self.template().as_bytes())
+
+        let mut file = File::create(&path).map_err(Error::Creating)?;
+        file.write_all(self.template().as_bytes())
             .map_err(Error::Writing)
     }
 

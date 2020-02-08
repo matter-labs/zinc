@@ -5,7 +5,11 @@ only such statement is the `for-while` loop.
 
 ## `for-while` loop
 
-`for {identifier} in {integer}..{integer} [while {expression}] { ... }`
+```rust,no_run,noplaypen
+for {identifier} in {range} [while {expression}] {
+    ...
+}
+```
 
 The `for` loop statement behaves just like in Rust, but it is merged with the
 `while` loop, so the optional `while` condition is checked before each iteration

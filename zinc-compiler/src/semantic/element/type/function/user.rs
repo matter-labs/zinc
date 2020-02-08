@@ -5,26 +5,27 @@
 use std::fmt;
 
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::r#type::UNIQUE_ID;
 
 #[derive(Debug, Clone)]
 pub struct Function {
     pub identifier: String,
+    pub unique_id: usize,
     pub arguments: Vec<(String, Type)>,
     pub return_type: Box<Type>,
-    pub unique_id: usize,
 }
 
 impl Function {
-    pub fn new(identifier: String, arguments: Vec<(String, Type)>, return_type: Type) -> Self {
-        unsafe {
-            UNIQUE_ID += 1;
-        }
+    pub fn new(
+        identifier: String,
+        unique_id: usize,
+        arguments: Vec<(String, Type)>,
+        return_type: Type,
+    ) -> Self {
         Self {
             identifier,
             arguments,
             return_type: Box::new(return_type),
-            unique_id: unsafe { UNIQUE_ID },
+            unique_id,
         }
     }
 }

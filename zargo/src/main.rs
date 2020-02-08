@@ -3,9 +3,9 @@
 //!
 
 mod command;
-mod constants;
+mod directory;
+mod executable;
 mod manifest;
-mod templates;
 
 use std::process;
 
@@ -26,7 +26,7 @@ struct Arguments {
         parse(from_occurrences),
         help = "Shows verbose logs, use multiple times for more verbosity"
     )]
-    verbose: usize,
+    verbosity: usize,
     #[structopt(subcommand)]
     command: Command,
 }
@@ -44,7 +44,8 @@ fn main() {
 }
 
 fn main_inner(args: Arguments) -> Result<(), CommandError> {
-    init_logger(args.verbose);
+    init_logger(args.verbosity);
+
     args.command.execute()
 }
 

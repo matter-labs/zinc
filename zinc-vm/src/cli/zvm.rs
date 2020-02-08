@@ -63,7 +63,7 @@ fn main() {
 
     env_logger::Builder::from_default_env()
         .format_timestamp(None)
-        .filter_level(match args.verbose {
+        .filter_level(match args.verbosity {
             0 => LevelFilter::Warn,
             1 => LevelFilter::Info,
             2 => LevelFilter::Debug,

@@ -14,7 +14,6 @@ it is safe to state that:
 > There is some set of **arguments** known to **prover**, which,
 > being provided into **program** yields the same **output**.
 
-
 The prover must provide program's arguments to generate the result and proof.
 
 Verifier will use the proof to check that the result has been obtained by
