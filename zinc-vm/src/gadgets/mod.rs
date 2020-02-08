@@ -21,6 +21,29 @@ pub struct PrimitiveType {
     pub length: usize,
 }
 
+pub trait TypeToString {
+    fn type_to_string(&self) -> String;
+}
+
+impl TypeToString for Option<PrimitiveType> {
+    fn type_to_string(&self) -> String {
+        match self {
+            None => "field".into(),
+            Some(t) => {
+                if t.length == 1 {
+                    "bool".into()
+                } else {
+                    format!(
+                        "{}{}",
+                        if t.signed { "i" } else { "u" },
+                        t.length,
+                    )
+                }
+            }
+        }
+    }
+}
+
 impl PrimitiveType {
     pub const BOOLEAN: Self = PrimitiveType {
         signed: false,
@@ -48,7 +71,7 @@ impl<E: Engine> Primitive<E> {
     pub fn get_constant_usize(&self) -> Result<usize, RuntimeError> {
         let fr = self.get_constant()?;
         let bigint = fr_to_bigint(&fr);
-        bigint.to_usize().ok_or(RuntimeError::ExpectedUsize)
+        bigint.to_usize().ok_or_else(|| RuntimeError::ExpectedUsize(bigint))
     }
 }
 

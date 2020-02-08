@@ -2,6 +2,7 @@ use crate::gadgets::{Gadget, Primitive};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
+use crate::errors::MalformedBytecode;
 
 pub struct ArrayPad;
 
@@ -18,11 +19,11 @@ impl<E: Engine> Gadget<E> for ArrayPad {
         let len = len_value.get_constant_usize()?;
 
         if len < array.len() {
-            return Err(RuntimeError::InvalidArguments(format!(
+            return Err(MalformedBytecode::InvalidArguments(format!(
                 "ArrayPad: new length ({}) can't be less than old length ({})",
                 len,
                 array.len()
-            )));
+            )).into());
         }
 
         array.resize(len, value);
@@ -32,10 +33,10 @@ impl<E: Engine> Gadget<E> for ArrayPad {
 
     fn input_from_vec(input: &[Primitive<E>]) -> Result<Self::Input, RuntimeError> {
         if input.len() < 2 {
-            return Err(RuntimeError::InvalidArguments(format!(
+            return Err(MalformedBytecode::InvalidArguments(format!(
                 "ArrayPad expected at least 2 arguments, got {}",
                 input.len()
-            )));
+            )).into());
         }
 
         Ok((input[0].clone(), input[1].clone(), Vec::from(&input[2..])))

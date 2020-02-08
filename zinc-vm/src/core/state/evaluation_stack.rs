@@ -3,6 +3,7 @@ use crate::gadgets::{Gadgets, Primitive};
 use crate::Engine;
 use crate::RuntimeError;
 use franklin_crypto::bellman::ConstraintSystem;
+use crate::errors::MalformedBytecode;
 
 #[derive(Debug)]
 pub struct EvaluationStack<E: Engine> {
@@ -33,7 +34,7 @@ impl<E: Engine> EvaluationStack<E> {
                 RuntimeError::InternalError("Evaluation stack root frame missing".into())
             })?
             .pop()
-            .ok_or(RuntimeError::StackUnderflow)
+            .ok_or(MalformedBytecode::StackUnderflow.into())
     }
 
     pub fn fork(&mut self) {
@@ -56,7 +57,7 @@ impl<E: Engine> EvaluationStack<E> {
         })?;
 
         if then_case.len() != else_case.len() {
-            return Err(RuntimeError::BranchStacksDoNotMatch);
+            return Err(MalformedBytecode::BranchStacksDoNotMatch.into());
         }
 
         for (t, e) in then_case.into_iter().zip(else_case.into_iter()) {
@@ -72,7 +73,7 @@ impl<E: Engine> EvaluationStack<E> {
     }
 
     pub fn revert(&mut self) -> Result<(), RuntimeError> {
-        self.stack.pop().ok_or(RuntimeError::StackUnderflow)?;
+        self.stack.pop().ok_or(MalformedBytecode::StackUnderflow)?;
         Ok(())
     }
 }

@@ -10,7 +10,7 @@ use num_bigint::{BigInt, ToBigInt};
 
 use crate::core::RuntimeError;
 use crate::gadgets::utils::fr_to_bigint;
-use crate::gadgets::{utils, Gadget, Primitive, PrimitiveType};
+use crate::gadgets::{utils, Gadget, Primitive, PrimitiveType, TypeToString};
 use num_traits::ToPrimitive;
 use std::mem;
 
@@ -276,7 +276,10 @@ where
 
         for value in operands {
             if value.data_type != data_type {
-                return Err(RuntimeError::TypeError);
+                return Err(RuntimeError::TypeError {
+                    expected: data_type.type_to_string(),
+                    actual: value.data_type.type_to_string(),
+                });
             }
         }
 
@@ -924,9 +927,13 @@ where
             None => unimplemented!("Variable indices are not supported"),
             Some(f) => {
                 let bi = fr_to_bigint(&f);
-                let i = bi.to_usize().ok_or(RuntimeError::IndexOutOfBounds)?;
+                let i = bi.to_usize().ok_or(RuntimeError::ExpectedUsize(bi))?;
                 if i >= array.len() {
-                    return Err(RuntimeError::IndexOutOfBounds);
+                    return Err(RuntimeError::IndexOutOfBounds {
+                        lower_bound: 0,
+                        upper_bound: array.len(),
+                        actual: i
+                    });
                 }
                 Ok(array[i].clone())
             }
@@ -951,9 +958,13 @@ where
             None => unimplemented!("Variable indices are not supported"),
             Some(f) => {
                 let bi = fr_to_bigint(&f);
-                let i = bi.to_usize().ok_or(RuntimeError::IndexOutOfBounds)?;
+                let i = bi.to_usize().ok_or(RuntimeError::ExpectedUsize(bi))?;
                 if i >= array.len() {
-                    return Err(RuntimeError::IndexOutOfBounds);
+                    return Err(RuntimeError::IndexOutOfBounds {
+                        lower_bound: 0,
+                        upper_bound: array.len(),
+                        actual: i
+                    });
                 }
                 new_array[i] = value;
             }
