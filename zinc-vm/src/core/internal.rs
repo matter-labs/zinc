@@ -3,6 +3,7 @@ use crate::gadgets::Gadgets;
 use crate::Engine;
 use crate::RuntimeError;
 use franklin_crypto::bellman::ConstraintSystem;
+use crate::errors::MalformedBytecode;
 
 /// This is an internal interface to virtual machine used by instructions.
 pub trait InternalVM<E: Engine> {
@@ -90,7 +91,7 @@ where
                 }
                 Ok(())
             }
-            _ => Err(RuntimeError::UnexpectedLoopEnd),
+            _ => Err(MalformedBytecode::UnexpectedLoopEnd.into()),
         }
     }
 
@@ -120,7 +121,7 @@ where
             .state
             .frames_stack
             .pop()
-            .ok_or(RuntimeError::StackUnderflow)?;
+            .ok_or(MalformedBytecode::StackUnderflow)?;
 
         self.state.instruction_counter = frame.return_address;
 
@@ -161,11 +162,11 @@ where
 
         let mut branch = match frame.blocks.pop() {
             Some(Block::Branch(branch)) => Ok(branch),
-            Some(_) | None => Err(RuntimeError::UnexpectedElse),
+            Some(_) | None => Err(RuntimeError::MalformedBytecode(MalformedBytecode::UnexpectedElse)),
         }?;
 
         if branch.is_full {
-            return Err(RuntimeError::UnexpectedElse);
+            return Err(MalformedBytecode::UnexpectedElse.into());
         } else {
             branch.is_full = true;
         }
@@ -197,7 +198,7 @@ where
 
         let branch = match frame.blocks.pop() {
             Some(Block::Branch(branch)) => Ok(branch),
-            Some(_) | None => Err(RuntimeError::UnexpectedEndIf),
+            Some(_) | None => Err(MalformedBytecode::UnexpectedEndIf),
         }?;
 
         if branch.is_full {

@@ -3,7 +3,6 @@
 //!
 
 fn main(flag: bool) -> bool {
-    let bits = [false; 248];
-    std::crypto::pedersen(bits);
+    let tmp = [false; 1000];
     !flag
 }
