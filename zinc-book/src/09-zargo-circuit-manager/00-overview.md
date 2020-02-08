@@ -28,9 +28,9 @@ Builds the circuit. The build consists of:
 
 Removes the build directory.
 
-### `exec`
+### `run`
 
-Executes the circuit on the Zinc VM, writes the circuit result to a JSON file.
+Build and runs the circuit on the Zinc VM, writes the result to the terminal.
 
 ### `setup`
 
@@ -46,25 +46,45 @@ and provided public data.
 Verifies the proof using the circuit bytecode, parameters generated with `setup`,
 proof generated with `prove`, and provided public data.
 
+### `proof-check`
+
+Executes the full cycle of proof verification, that is, performs
+`run` + `setup` + `prove` + `verify`. Mostly for testing purposes.
+
 ## Workflow example
+
+### Short
 
 ```bash
 # create a new circuit called 'zircuit'
 zargo new zircuit
 cd zircuit/
 
-# write some code in the circuit
+# write some code
+
+# run the full verification cycle
+zargo proof-check
+```
+
+### Long
+
+```bash
+# create a new circuit called 'zircuit'
+zargo new zircuit
+cd zircuit/
+
+# write some code
 
 # build the circuit
 zargo build
 
-# fill the input template JSON usually located at ./build/input.json with values
-
-# execute the circuit and write the result to a JSON file
-zargo exec
+# run the circuit and print the result
+zargo run
 
 # generate the prover parameters
 zargo setup
+
+# edit the 'build/witness.json' and 'build/public-data.json' files
 
 # generate the proof
 zargo prove
@@ -75,7 +95,7 @@ zargo verify
 
 ## Manifest file
 
-Every Zinc circuit is described with a manifest file `Zargo.toml` with the
+A Zinc circuit is described with the manifest file `Zargo.toml` with the
 following structure:
 
 ```toml

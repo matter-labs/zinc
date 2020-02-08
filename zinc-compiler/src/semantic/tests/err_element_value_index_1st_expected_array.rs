@@ -6,10 +6,10 @@
 
 use crate::lexical::Location;
 
-use crate::semantic::ElementError;
+use crate::semantic::element::error::Error as ElementError;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::Type;
-use crate::semantic::ValueError;
 
 use crate::Error;
 
@@ -24,7 +24,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 36),
         ElementError::Value(ValueError::OperatorIndexFirstOperandExpectedArray(
-            Type::new_tuple(vec![Type::new_boolean(); 3]).to_string(),
+            Type::tuple(vec![Type::boolean(); 3]).to_string(),
         )),
     )));
 

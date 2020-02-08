@@ -7,19 +7,23 @@ use std::ops::Deref;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
-use crate::semantic::StandardLibraryFunctionError;
-use crate::semantic::Type;
+use crate::semantic::element::r#type::function::standard::error::Error;
+use crate::semantic::element::r#type::Type;
 
 #[derive(Debug, Default, Clone)]
-pub struct FromBitsUnsignedStandardLibraryFunction {
-    pub identifier: &'static str,
+pub struct Function {
+    identifier: &'static str,
 }
 
-impl FromBitsUnsignedStandardLibraryFunction {
+impl Function {
     pub fn new() -> Self {
         Self {
             identifier: "from_bits_unsigned",
         }
+    }
+
+    pub fn identifier(&self) -> &'static str {
+        self.identifier
     }
 
     pub fn builtin_identifier(&self) -> BuiltinIdentifier {
@@ -30,37 +34,47 @@ impl FromBitsUnsignedStandardLibraryFunction {
         1
     }
 
-    pub fn validate(&self, inputs: &[Type]) -> Result<Type, StandardLibraryFunctionError> {
-        match inputs.get(0) {
+    pub fn validate(&self, inputs: &[Type]) -> Result<Type, Error> {
+        let result = match inputs.get(0) {
             Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
                 (Type::Boolean, size)
                     if crate::BITLENGTH_BYTE <= size
                         && size <= crate::BITLENGTH_MAX_INT
                         && size % crate::BITLENGTH_BYTE == 0 =>
                 {
-                    Ok(Type::new_integer_unsigned(size))
+                    Ok(Type::integer_unsigned(size))
                 }
-                (r#type, size) => Err(StandardLibraryFunctionError::ArgumentType(
+                (r#type, size) => Err(Error::ArgumentType(
                     self.identifier,
                     "[bool; {{N}}]".to_owned(),
                     format!("[{}; {}]", r#type, size),
                 )),
             },
-            Some(r#type) => Err(StandardLibraryFunctionError::ArgumentType(
+            Some(r#type) => Err(Error::ArgumentType(
                 self.identifier,
                 "[bool; {{N}}]".to_owned(),
                 r#type.to_string(),
             )),
-            None => Err(StandardLibraryFunctionError::ArgumentCount(
+            None => Err(Error::ArgumentCount(
                 self.identifier,
                 self.arguments_count(),
                 inputs.len(),
             )),
+        };
+
+        if inputs.get(1).is_some() {
+            return Err(Error::ArgumentCount(
+                self.identifier,
+                self.arguments_count(),
+                inputs.len(),
+            ));
         }
+
+        result
     }
 }
 
-impl fmt::Display for FromBitsUnsignedStandardLibraryFunction {
+impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,

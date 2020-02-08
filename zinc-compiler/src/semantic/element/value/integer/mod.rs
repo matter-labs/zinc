@@ -2,13 +2,13 @@
 //! The semantic analyzer integer value element.
 //!
 
-mod error;
-
-pub use self::error::Error;
+pub mod error;
 
 use std::fmt;
 
-use crate::semantic::Type;
+use crate::semantic::element::r#type::Type;
+
+use self::error::Error;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Integer {
@@ -27,7 +27,7 @@ impl Integer {
     pub fn r#type(&self) -> Type {
         match (self.is_signed, self.bitlength) {
             (false, crate::BITLENGTH_FIELD) => Type::Field,
-            (is_signed, bitlength) => Type::new_integer(is_signed, bitlength),
+            (is_signed, bitlength) => Type::integer(is_signed, bitlength),
         }
     }
 
@@ -65,6 +65,10 @@ impl Integer {
             ));
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldGreaterEquals);
+        }
+
         Ok(())
     }
 
@@ -74,6 +78,10 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
+        }
+
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldLesserEquals);
         }
 
         Ok(())
@@ -87,6 +95,10 @@ impl Integer {
             ));
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldGreater);
+        }
+
         Ok(())
     }
 
@@ -96,6 +108,10 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
+        }
+
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldLesser);
         }
 
         Ok(())
@@ -142,6 +158,10 @@ impl Integer {
             ));
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldDivision);
+        }
+
         Ok(())
     }
 
@@ -153,6 +173,10 @@ impl Integer {
             ));
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldRemainder);
+        }
+
         Ok(())
     }
 
@@ -162,12 +186,12 @@ impl Integer {
         Ok(())
     }
 
-    pub fn negate(&self) -> Result<(), Error> {
+    pub fn negate(&self) -> Result<Self, Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::FieldNegation);
+            return Err(Error::ForbiddenFieldNegation);
         }
 
-        Ok(())
+        Ok(Self::new(true, self.bitlength))
     }
 }
 

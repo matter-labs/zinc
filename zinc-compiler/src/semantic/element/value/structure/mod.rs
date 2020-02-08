@@ -2,34 +2,39 @@
 //! The semantic analyzer structure value element.
 //!
 
-mod error;
-
-pub use self::error::Error;
+pub mod error;
 
 use std::fmt;
 
-use crate::semantic::FieldAccessResult;
-use crate::semantic::Type;
-use crate::semantic::Value;
+use crate::semantic::element::access::AccessData;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::element::value::Value;
+
+use self::error::Error;
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Structure {
     identifier: String,
+    unique_id: usize,
     fields: Vec<(String, Type)>,
 }
 
 impl Structure {
-    pub fn new(identifier: String, fields: Vec<(String, Type)>) -> Self {
-        Self { identifier, fields }
+    pub fn new(identifier: String, unique_id: usize, fields: Vec<(String, Type)>) -> Self {
+        Self {
+            identifier,
+            unique_id,
+            fields,
+        }
     }
 
-    pub fn slice(&self, field_name: &str) -> Result<FieldAccessResult, Error> {
+    pub fn slice(&self, field_name: &str) -> Result<AccessData, Error> {
         let mut offset = 0;
         let total_size = self.r#type().size();
 
         for (name, r#type) in self.fields.iter() {
             if name == field_name {
-                return Ok(FieldAccessResult::new(
+                return Ok(AccessData::new(
                     offset,
                     r#type.size(),
                     total_size,
@@ -46,7 +51,12 @@ impl Structure {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::new_structure(self.identifier.to_owned(), self.fields.to_owned(), None)
+        Type::structure(
+            self.identifier.to_owned(),
+            self.unique_id,
+            self.fields.to_owned(),
+            None,
+        )
     }
 
     pub fn push(&mut self, key: String, r#type: Type) -> Result<(), Error> {
@@ -58,8 +68,12 @@ impl Structure {
         Ok(())
     }
 
+    pub fn contains_key(&mut self, key: &str) -> bool {
+        self.fields.iter().any(|field| field.0 == key)
+    }
+
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        self.identifier == other.identifier
+        self.unique_id == other.unique_id
     }
 }
 

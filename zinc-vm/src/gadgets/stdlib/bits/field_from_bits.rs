@@ -1,3 +1,4 @@
+use crate::errors::MalformedBytecode;
 use crate::gadgets::{Gadget, Primitive};
 use crate::Engine;
 use crate::RuntimeError;
@@ -18,14 +19,15 @@ impl<E: Engine> Gadget<E> for FieldFromBits {
         input: Self::Input,
     ) -> Result<Self::Output, RuntimeError> {
         if input.len() != E::Fr::NUM_BITS as usize {
-            return Err(RuntimeError::InvalidArguments(format!(
+            return Err(MalformedBytecode::InvalidArguments(format!(
                 "FieldFromBits expects exactly {} arguments",
                 E::Fr::NUM_BITS
-            )));
+            ))
+            .into());
         }
 
         let mut bits = Vec::with_capacity(E::Fr::NUM_BITS as usize);
-        for (i, value) in input.iter().enumerate() {
+        for (i, value) in input.iter().rev().enumerate() {
             let bit = value.value.map(|fr| -> bool { !fr.is_zero() });
             let allocated_bit =
                 AllocatedBit::alloc(cs.namespace(|| format!("AllocatedBit {}", i)), bit)?;

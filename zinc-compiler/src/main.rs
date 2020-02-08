@@ -4,7 +4,6 @@
 
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::env;
 use std::ffi::OsString;
 use std::fs::File;
 use std::io::Read;
@@ -14,6 +13,7 @@ use std::process;
 use std::rc::Rc;
 
 use failure::Fail;
+use log::LevelFilter;
 use structopt::StructOpt;
 
 use zinc_compiler::BinaryAnalyzer;
@@ -33,72 +33,78 @@ const EXIT_CODE_FAILURE: i32 = 1;
 #[structopt(name = "znc", about = "The Zinc compiler")]
 struct Arguments {
     #[structopt(
-        long = "input-json",
-        parse(from_os_str),
-        help = "The input JSON template output path"
+        short = "v",
+        parse(from_occurrences),
+        help = "Shows verbose logs, use multiple times for more verbosity"
     )]
-    input_json: PathBuf,
+    verbosity: usize,
     #[structopt(
-        long = "output-json",
+        long = "witness",
         parse(from_os_str),
-        help = "The output JSON template output path"
+        help = "The witness template output path"
     )]
-    output_json: PathBuf,
+    witness_template_path: PathBuf,
+    #[structopt(
+        long = "public-data",
+        parse(from_os_str),
+        help = "The public data template output path"
+    )]
+    public_data_template_path: PathBuf,
     #[structopt(
         short = "o",
         long = "output",
         parse(from_os_str),
         help = "The *.znb bytecode output path"
     )]
-    output: PathBuf,
+    bytecode_output_path: PathBuf,
     #[structopt(parse(from_os_str), help = "The *.zn source file names")]
-    sources: Vec<PathBuf>,
+    source_files: Vec<PathBuf>,
 }
 
 #[derive(Debug, Fail)]
 enum Error {
-    #[fail(display = "Source input: {}", _0)]
+    #[fail(display = "source input: {}", _0)]
     SourceInput(InputError),
-    #[fail(display = "Compiler: {}", _0)]
-    Compiler(zinc_compiler::Error),
-    #[fail(display = "Input template output: {}", _0)]
-    InputTemplateOutput(OutputError),
-    #[fail(display = "Output template output: {}", _0)]
-    OutputTemplateOutput(OutputError),
-    #[fail(display = "Bytecode output: {}", _0)]
+    #[fail(display = "compiler: {}:{}", _0, _1)]
+    Compiler(String, zinc_compiler::Error),
+    #[fail(display = "witness template output: {}", _0)]
+    WitnessTemplateOutput(OutputError),
+    #[fail(display = "public data template output: {}", _0)]
+    PublicDataTemplateOutput(OutputError),
+    #[fail(display = "bytecode output: {}", _0)]
     BytecodeOutput(OutputError),
-    #[fail(display = "The 'main.zn' source file is missing")]
-    MainSourceFileNotFound,
+    #[fail(display = "the 'main.zn' source file is missing")]
+    EntrySourceFileNotFound,
 }
 
 #[derive(Debug, Fail)]
 enum InputError {
-    #[fail(display = "File extension not found")]
+    #[fail(display = "file extension not found")]
     FileExtensionNotFound,
-    #[fail(display = "File extension is invalid")]
+    #[fail(display = "file extension is invalid")]
     FileExtensionInvalid(OsString),
-    #[fail(display = "File name not found")]
+    #[fail(display = "file name not found")]
     FileStemNotFound,
-    #[fail(display = "Opening: {}", _0)]
+    #[fail(display = "opening: {}", _0)]
     Opening(std::io::Error),
-    #[fail(display = "Metadata: {}", _0)]
+    #[fail(display = "metadata: {}", _0)]
     Metadata(std::io::Error),
-    #[fail(display = "Reading: {}", _0)]
+    #[fail(display = "reading: {}", _0)]
     Reading(std::io::Error),
 }
 
 #[derive(Debug, Fail)]
 enum OutputError {
-    #[fail(display = "Creating: {}", _0)]
+    #[fail(display = "creating: {}", _0)]
     Creating(std::io::Error),
-    #[fail(display = "Writing: {}", _0)]
+    #[fail(display = "writing: {}", _0)]
     Writing(std::io::Error),
 }
 
 fn main() {
-    init_logger();
+    let args: Arguments = Arguments::from_args();
 
-    process::exit(match main_inner() {
+    process::exit(match main_inner(args) {
         Ok(()) => EXIT_CODE_SUCCESS,
         Err(error) => {
             log::error!("{}", error);
@@ -107,15 +113,15 @@ fn main() {
     })
 }
 
-fn main_inner() -> Result<(), Error> {
-    let args: Arguments = Arguments::from_args();
+fn main_inner(args: Arguments) -> Result<(), Error> {
+    init_logger(args.verbosity);
 
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));
 
     let mut modules = HashMap::<String, Rc<RefCell<Scope>>>::new();
     let mut binary_path = None;
 
-    for source_file_path in args.sources.into_iter() {
+    for source_file_path in args.source_files.into_iter() {
         let source_file_extension = source_file_path
             .extension()
             .ok_or(InputError::FileExtensionNotFound)
@@ -137,53 +143,70 @@ fn main_inner() -> Result<(), Error> {
         }
 
         let module_name = source_file_stem.to_string_lossy().to_string();
+        let module_file_path = format!("src/{}.zn", module_name);
+        bytecode.borrow_mut().start_new_file(&module_file_path);
         let module = LibraryAnalyzer::new(bytecode.clone())
-            .compile(path_to_syntax_tree(source_file_path)?)
-            .map_err(Error::Compiler)?;
+            .compile(parse(source_file_path, &module_file_path)?)
+            .map_err(|error| Error::Compiler(module_file_path, error))?;
 
         modules.insert(module_name, module);
     }
 
+    let entry_file_path = "src/main.zn";
+    bytecode.borrow_mut().start_new_file(entry_file_path);
     match binary_path.take() {
         Some(binary_path) => BinaryAnalyzer::new(bytecode.clone())
-            .compile(path_to_syntax_tree(binary_path)?, modules)
-            .map_err(Error::Compiler)?,
-        None => return Err(Error::MainSourceFileNotFound),
+            .compile(parse(binary_path, entry_file_path)?, modules)
+            .map_err(|error| Error::Compiler(entry_file_path.to_owned(), error))?,
+        None => return Err(Error::EntrySourceFileNotFound),
     }
 
-    File::create(&args.input_json)
-        .map_err(OutputError::Creating)
-        .map_err(Error::InputTemplateOutput)?
-        .write_all(bytecode.borrow().input_template_bytes().as_slice())
-        .map_err(OutputError::Writing)
-        .map_err(Error::InputTemplateOutput)?;
-    log::info!("Input  JSON template written to {:?}", args.input_json);
+    if !args.witness_template_path.exists() {
+        File::create(&args.witness_template_path)
+            .map_err(OutputError::Creating)
+            .map_err(Error::WitnessTemplateOutput)?
+            .write_all(bytecode.borrow().input_template_bytes().as_slice())
+            .map_err(OutputError::Writing)
+            .map_err(Error::WitnessTemplateOutput)?;
+        log::info!(
+            "Witness template written to {:?}",
+            args.witness_template_path
+        );
+    } else {
+        log::warn!(
+            "Witness template {:?} already exists. Please, remove it manually so the compiler may recreate it",
+            args.witness_template_path
+        );
+    }
 
-    File::create(&args.output_json)
+    File::create(&args.public_data_template_path)
         .map_err(OutputError::Creating)
-        .map_err(Error::OutputTemplateOutput)?
+        .map_err(Error::PublicDataTemplateOutput)?
         .write_all(bytecode.borrow().output_template_bytes().as_slice())
         .map_err(OutputError::Writing)
-        .map_err(Error::OutputTemplateOutput)?;
-    log::info!("Output JSON template written to {:?}", args.output_json);
+        .map_err(Error::PublicDataTemplateOutput)?;
+    log::info!(
+        "Public data template written to {:?}",
+        args.public_data_template_path
+    );
 
     let bytecode: Vec<u8> = Rc::try_unwrap(bytecode)
         .expect(PANIC_LAST_SHARED_REFERENCE)
         .into_inner()
         .into();
 
-    File::create(&args.output)
+    File::create(&args.bytecode_output_path)
         .map_err(OutputError::Creating)
         .map_err(Error::BytecodeOutput)?
         .write_all(bytecode.as_slice())
         .map_err(OutputError::Writing)
         .map_err(Error::BytecodeOutput)?;
-    log::info!("Compiled to {:?}", args.output);
+    log::info!("Compiled to {:?}", args.bytecode_output_path);
 
     Ok(())
 }
 
-fn path_to_syntax_tree(path: PathBuf) -> Result<SyntaxTree, Error> {
+fn parse(path: PathBuf, module_name: &str) -> Result<SyntaxTree, Error> {
     log::info!("Compiling   {:?}", path);
     let mut file = File::open(path)
         .map_err(InputError::Opening)
@@ -198,14 +221,19 @@ fn path_to_syntax_tree(path: PathBuf) -> Result<SyntaxTree, Error> {
         .map_err(InputError::Reading)
         .map_err(Error::SourceInput)?;
 
-    Parser::default().parse(input).map_err(Error::Compiler)
+    Parser::default()
+        .parse(input)
+        .map_err(|error| Error::Compiler(module_name.to_owned(), error))
 }
 
-fn init_logger() {
-    if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "info");
-    }
+fn init_logger(verbosity: usize) {
     env_logger::Builder::from_default_env()
         .format_timestamp(None)
+        .filter_level(match verbosity {
+            0 => LevelFilter::Warn,
+            1 => LevelFilter::Info,
+            2 => LevelFilter::Debug,
+            _ => LevelFilter::Trace,
+        })
         .init();
 }

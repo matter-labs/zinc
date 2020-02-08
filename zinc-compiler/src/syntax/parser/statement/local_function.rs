@@ -117,7 +117,7 @@ mod tests {
                 true,
                 Some(Type::new(
                     Location::new(1, 12),
-                    TypeVariant::new_integer_unsigned(232),
+                    TypeVariant::integer_unsigned(232),
                 )),
                 Expression::new(
                     Location::new(1, 19),

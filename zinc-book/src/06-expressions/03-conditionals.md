@@ -37,3 +37,6 @@ For now, only the following match patterns are supported:
 - path (e.g. `MyEnum::ValueOne`)
 - variable binding (e.g. `value`)
 - wildcard (`_`)
+
+> Only simple types can be used as the `match` scrutinee for now,
+> this is, you cannot match an array, tuple or structure.

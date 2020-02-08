@@ -2,7 +2,8 @@
     "name": "zinc-syntax-highlighting",
     "displayName": "Zinc Syntax Highlighting",
     "description": "Zinc Syntax Highlighting",
-    "version": "0.0.1",
+    "version": "0.1.0",
+    "publisher": "hedgar2017",
     "engines": {
         "vscode": "^1.38.0"
     },

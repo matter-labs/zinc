@@ -5,8 +5,8 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
+use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::IntegerConstantError;
 use crate::Error;
 
 #[test]

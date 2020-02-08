@@ -10,7 +10,7 @@ use num_bigint::{BigInt, ToBigInt};
 
 use crate::core::RuntimeError;
 use crate::gadgets::utils::fr_to_bigint;
-use crate::gadgets::{utils, Gadget, Primitive, ScalarType};
+use crate::gadgets::{utils, Gadget, Primitive, PrimitiveType, TypeToString};
 use num_traits::ToPrimitive;
 use std::mem;
 
@@ -42,7 +42,7 @@ impl<E: Engine> Primitive<E> {
         }
     }
 
-    fn new_with_type(value: Option<E::Fr>, variable: Variable, data_type: ScalarType) -> Self {
+    fn new_with_type(value: Option<E::Fr>, variable: Variable, data_type: PrimitiveType) -> Self {
         Self {
             value,
             variable,
@@ -117,7 +117,10 @@ where
         self.cs.namespace(|| s)
     }
 
-    fn zero_typed(&mut self, data_type: Option<ScalarType>) -> Result<Primitive<E>, RuntimeError> {
+    fn zero_typed(
+        &mut self,
+        data_type: Option<PrimitiveType>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let value = E::Fr::zero();
         let mut cs = self.cs_namespace();
         let variable = cs
@@ -142,7 +145,10 @@ where
         Primitive::new(Some(E::Fr::one()), CS::one())
     }
 
-    fn one_typed(&mut self, data_type: Option<ScalarType>) -> Result<Primitive<E>, RuntimeError> {
+    fn one_typed(
+        &mut self,
+        data_type: Option<PrimitiveType>,
+    ) -> Result<Primitive<E>, RuntimeError> {
         match data_type {
             None => Ok(Self::one()),
             Some(data_type) => self.value_with_type_check(Some(E::Fr::one()), CS::one(), data_type),
@@ -155,12 +161,19 @@ where
     }
 
     fn abs(&mut self, value: Primitive<E>) -> Result<Primitive<E>, RuntimeError> {
+        if let Some(dt) = value.data_type {
+            if !dt.signed {
+                return Ok(value);
+            }
+        }
+
         let zero = self.zero_typed(value.data_type)?;
         let neg = Gadgets::neg(self, value.clone())?;
         let lt0 = Gadgets::lt(self, value.clone(), zero)?;
         self.conditional_select(lt0, neg, value)
     }
 
+    #[allow(dead_code)]
     fn bits(
         &mut self,
         index: Primitive<E>,
@@ -196,6 +209,7 @@ where
         Ok(bits)
     }
 
+    #[allow(dead_code)]
     fn recursive_select(
         &mut self,
         array: &[Primitive<E>],
@@ -229,7 +243,7 @@ where
         &mut self,
         value: Option<E::Fr>,
         variable: Variable,
-        data_type: ScalarType,
+        data_type: PrimitiveType,
     ) -> Result<Primitive<E>, RuntimeError> {
         let untyped = Primitive::new(value, variable);
 
@@ -262,7 +276,10 @@ where
 
         for value in operands {
             if value.data_type != data_type {
-                return Err(RuntimeError::TypeError);
+                return Err(RuntimeError::TypeError {
+                    expected: data_type.type_to_string(),
+                    actual: value.data_type.type_to_string(),
+                });
             }
         }
 
@@ -280,7 +297,7 @@ where
 {
     pub fn variable_none(
         &mut self,
-        data_type: Option<ScalarType>,
+        data_type: Option<PrimitiveType>,
     ) -> Result<Primitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
@@ -302,7 +319,7 @@ where
     pub fn variable_bigint(
         &mut self,
         value: &BigInt,
-        data_type: Option<ScalarType>,
+        data_type: Option<PrimitiveType>,
     ) -> Result<Primitive<E>, RuntimeError> {
         let value = utils::bigint_to_fr::<E>(value)
             .ok_or_else(|| RuntimeError::InternalError("bigint_to_fr".into()))?;
@@ -344,7 +361,7 @@ where
     pub fn constant_bigint_typed(
         &mut self,
         value: &BigInt,
-        data_type: ScalarType,
+        data_type: PrimitiveType,
     ) -> Result<Primitive<E>, RuntimeError> {
         let p = self.constant_bigint(value)?;
         self.value_with_type_check(p.value, p.variable, data_type)
@@ -373,7 +390,7 @@ where
     pub fn set_type(
         &mut self,
         value: Primitive<E>,
-        data_type: ScalarType,
+        data_type: PrimitiveType,
     ) -> Result<Primitive<E>, RuntimeError> {
         self.value_with_type_check(value.value, value.variable, data_type)
     }
@@ -480,7 +497,19 @@ where
         self.value_with_arguments_type_check(prod, prod_var, &[left, right])
     }
 
-    pub fn div_rem(
+    // Make condition
+    pub fn div_rem_conditional(
+        &mut self,
+        left: Primitive<E>,
+        right: Primitive<E>,
+        condition: Primitive<E>,
+    ) -> Result<(Primitive<E>, Primitive<E>), RuntimeError> {
+        let one = self.one_typed(right.data_type)?;
+        let denom = self.conditional_select(condition, right, one)?;
+        self.div_rem(left, denom)
+    }
+
+    fn div_rem(
         &mut self,
         left: Primitive<E>,
         right: Primitive<E>,
@@ -495,7 +524,8 @@ where
             let nom_bi = utils::fr_to_bigint(&nom);
             let denom_bi = utils::fr_to_bigint(&denom);
 
-            let (q, r) = utils::euclidean_div_rem(&nom_bi, &denom_bi);
+            let (q, r) = utils::euclidean_div_rem(&nom_bi, &denom_bi)
+                .ok_or(RuntimeError::ZeroDivisionError)?;
 
             quotient_value = utils::bigint_to_fr::<E>(&q);
             remainder_value = utils::bigint_to_fr::<E>(&r);
@@ -580,7 +610,14 @@ where
 
         if let Some(mut data_type) = element.data_type {
             data_type.signed = true;
-            self.value_with_arguments_type_check(neg_value, neg_variable, &[element])
+            self.value_with_type_check(
+                neg_value,
+                neg_variable,
+                PrimitiveType {
+                    signed: true,
+                    length: data_type.length,
+                },
+            )
         } else {
             Ok(Primitive::new(neg_value, neg_variable))
         }
@@ -695,9 +732,16 @@ where
 
     pub fn lt(
         &mut self,
-        left: Primitive<E>,
-        right: Primitive<E>,
+        mut left: Primitive<E>,
+        mut right: Primitive<E>,
     ) -> Result<Primitive<E>, RuntimeError> {
+        if let (Some(lt), Some(rt)) = (&mut left.data_type, &mut right.data_type) {
+            lt.signed = true;
+            lt.length += 1;
+            rt.signed = true;
+            rt.length += 1;
+        }
+
         let one = self.one_typed(right.data_type)?;
         let right_minus_one = self.sub(right, one)?;
         self.le(left, right_minus_one)
@@ -705,9 +749,18 @@ where
 
     pub fn le(
         &mut self,
-        left: Primitive<E>,
-        right: Primitive<E>,
+        mut left: Primitive<E>,
+        mut right: Primitive<E>,
     ) -> Result<Primitive<E>, RuntimeError> {
+        if let (Some(lt), Some(rt)) = (&mut left.data_type, &mut right.data_type) {
+            if !lt.signed {
+                lt.signed = true;
+                lt.length += 1;
+                rt.signed = true;
+                rt.length += 1;
+            }
+        }
+
         let diff = self.sub(right, left)?;
 
         let mut cs = self.cs_namespace();
@@ -739,7 +792,7 @@ where
         self.value_with_type_check(
             lt.get_value_field::<E>(),
             lt.get_variable(),
-            ScalarType::BOOLEAN,
+            PrimitiveType::BOOLEAN,
         )
     }
 
@@ -765,7 +818,7 @@ where
         self.value_with_type_check(
             eq.get_value_field::<E>(),
             eq.get_variable(),
-            ScalarType::BOOLEAN,
+            PrimitiveType::BOOLEAN,
         )
     }
 
@@ -783,8 +836,7 @@ where
         left: Primitive<E>,
         right: Primitive<E>,
     ) -> Result<Primitive<E>, RuntimeError> {
-        let not_ge = self.lt(left, right)?;
-        self.not(not_ge)
+        self.le(right, left)
     }
 
     pub fn gt(
@@ -792,8 +844,7 @@ where
         left: Primitive<E>,
         right: Primitive<E>,
     ) -> Result<Primitive<E>, RuntimeError> {
-        let not_gt = self.le(left, right)?;
-        self.not(not_gt)
+        self.lt(right, left)
     }
 
     pub fn conditional_select(
@@ -837,6 +888,12 @@ where
     }
 
     pub fn assert(&mut self, element: Primitive<E>) -> Result<(), RuntimeError> {
+        if let Some(value) = element.value {
+            if value.is_zero() {
+                return Err(RuntimeError::AssertionError);
+            }
+        }
+
         let inverse_value = element
             .value
             .map(|fr| fr.inverse().unwrap_or_else(E::Fr::zero));
@@ -870,9 +927,13 @@ where
             None => unimplemented!("Variable indices are not supported"),
             Some(f) => {
                 let bi = fr_to_bigint(&f);
-                let i = bi.to_usize().ok_or(RuntimeError::IndexOutOfBounds)?;
+                let i = bi.to_usize().ok_or(RuntimeError::ExpectedUsize(bi))?;
                 if i >= array.len() {
-                    return Err(RuntimeError::IndexOutOfBounds);
+                    return Err(RuntimeError::IndexOutOfBounds {
+                        lower_bound: 0,
+                        upper_bound: array.len(),
+                        actual: i,
+                    });
                 }
                 Ok(array[i].clone())
             }
@@ -897,9 +958,13 @@ where
             None => unimplemented!("Variable indices are not supported"),
             Some(f) => {
                 let bi = fr_to_bigint(&f);
-                let i = bi.to_usize().ok_or(RuntimeError::IndexOutOfBounds)?;
+                let i = bi.to_usize().ok_or(RuntimeError::ExpectedUsize(bi))?;
                 if i >= array.len() {
-                    return Err(RuntimeError::IndexOutOfBounds);
+                    return Err(RuntimeError::IndexOutOfBounds {
+                        lower_bound: 0,
+                        upper_bound: array.len(),
+                        actual: i,
+                    });
                 }
                 new_array[i] = value;
             }

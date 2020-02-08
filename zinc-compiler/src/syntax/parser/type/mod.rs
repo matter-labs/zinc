@@ -3,12 +3,14 @@
 //!
 
 mod array;
+mod path;
 mod tuple;
 
 use std::cell::RefCell;
 use std::rc::Rc;
 
 use self::array::Parser as ArrayTypeParser;
+use self::path::Parser as PathTypeParser;
 use self::tuple::Parser as TupleTypeParser;
 use crate::error::Error;
 use crate::lexical::Keyword;
@@ -17,7 +19,6 @@ use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
-use crate::syntax::PathOperandParser;
 use crate::syntax::Type;
 use crate::syntax::TypeBuilder;
 
@@ -58,7 +59,7 @@ impl Parser {
                 ..
             } => {
                 let location = token.location;
-                let (expression, next) = PathOperandParser::default().parse(stream, Some(token))?;
+                let (expression, next) = PathTypeParser::default().parse(stream, Some(token))?;
                 self.builder.set_location(location);
                 self.builder.set_path_expression(expression);
                 Ok((self.builder.finish(), next))
@@ -75,15 +76,6 @@ impl Parser {
                 lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                 ..
             } => Ok((TupleTypeParser::default().parse(stream, Some(token))?, None)),
-            Token {
-                lexeme: Lexeme::Symbol(Symbol::Ampersand),
-                location,
-            } => {
-                let (inner, next) = Self::default().parse(stream, None)?;
-                self.builder.set_location(location);
-                self.builder.set_reference_inner(inner);
-                Ok((self.builder.finish(), next))
-            }
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
                 location,
                 vec!["{type}", "{identifier}", "(", "["],
@@ -120,10 +112,7 @@ mod tests {
     fn ok_unit() {
         let input = "()";
 
-        let expected = Ok((
-            Type::new(Location::new(1, 1), TypeVariant::new_unit()),
-            None,
-        ));
+        let expected = Ok((Type::new(Location::new(1, 1), TypeVariant::unit()), None));
 
         let result = Parser::default().parse(
             Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
@@ -138,7 +127,7 @@ mod tests {
         let input = "u232";
 
         let expected = Ok((
-            Type::new(Location::new(1, 1), TypeVariant::new_integer_unsigned(232)),
+            Type::new(Location::new(1, 1), TypeVariant::integer_unsigned(232)),
             None,
         ));
 
@@ -154,10 +143,7 @@ mod tests {
     fn ok_field() {
         let input = "field";
 
-        let expected = Ok((
-            Type::new(Location::new(1, 1), TypeVariant::new_field()),
-            None,
-        ));
+        let expected = Ok((Type::new(Location::new(1, 1), TypeVariant::field()), None));
 
         let result = Parser::default().parse(
             Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
@@ -174,8 +160,8 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::new_array(
-                    TypeVariant::new_field(),
+                TypeVariant::array(
+                    TypeVariant::field(),
                     IntegerLiteral::new(
                         Location::new(1, 9),
                         lexical::IntegerLiteral::new_decimal("8".to_owned()),
@@ -200,9 +186,9 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::new_array(
-                    TypeVariant::new_array(
-                        TypeVariant::new_field(),
+                TypeVariant::array(
+                    TypeVariant::array(
+                        TypeVariant::field(),
                         IntegerLiteral::new(
                             Location::new(1, 10),
                             lexical::IntegerLiteral::new_decimal("8".to_owned()),
@@ -232,7 +218,7 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::new_tuple(vec![TypeVariant::Field]),
+                TypeVariant::tuple(vec![TypeVariant::Field]),
             ),
             None,
         ));
@@ -252,11 +238,11 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::new_tuple(vec![
+                TypeVariant::tuple(vec![
                     TypeVariant::Field,
                     TypeVariant::Unit,
-                    TypeVariant::new_array(
-                        TypeVariant::new_integer_unsigned(8),
+                    TypeVariant::array(
+                        TypeVariant::integer_unsigned(8),
                         IntegerLiteral::new(
                             Location::new(1, 18),
                             lexical::IntegerLiteral::new_decimal("4".to_owned()),
@@ -282,50 +268,10 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::new_tuple(vec![TypeVariant::new_tuple(vec![
+                TypeVariant::tuple(vec![TypeVariant::tuple(vec![
                     TypeVariant::Field,
                     TypeVariant::Field,
                 ])]),
-            ),
-            None,
-        ));
-
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
-
-        assert_eq!(expected, result);
-    }
-
-    #[test]
-    fn ok_reference() {
-        let input = "&field";
-
-        let expected = Ok((
-            Type::new(
-                Location::new(1, 1),
-                TypeVariant::new_reference(TypeVariant::new_field()),
-            ),
-            None,
-        ));
-
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
-
-        assert_eq!(expected, result);
-    }
-
-    #[test]
-    fn ok_double_reference() {
-        let input = "&(&field)";
-
-        let expected = Ok((
-            Type::new(
-                Location::new(1, 1),
-                TypeVariant::new_reference(TypeVariant::new_reference(TypeVariant::new_field())),
             ),
             None,
         ));
@@ -345,7 +291,7 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::new_alias(Expression::new(
+                TypeVariant::alias(Expression::new(
                     Location::new(1, 1),
                     vec![ExpressionElement::new(
                         Location::new(1, 1),

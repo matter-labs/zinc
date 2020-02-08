@@ -6,10 +6,10 @@
 
 use crate::lexical::Location;
 
-use crate::semantic::Constant;
-use crate::semantic::ElementError;
+use crate::semantic::element::constant::Constant;
+use crate::semantic::element::error::Error as ElementError;
+use crate::semantic::element::place::error::Error as PlaceError;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::PlaceError;
 
 use crate::Error;
 

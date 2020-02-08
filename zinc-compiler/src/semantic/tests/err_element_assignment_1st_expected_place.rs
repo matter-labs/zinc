@@ -8,11 +8,11 @@ use num_bigint::BigInt;
 
 use crate::lexical::Location;
 
-use crate::semantic::Constant;
-use crate::semantic::Element;
-use crate::semantic::ElementError;
+use crate::semantic::element::constant::integer::Integer as IntegerConstant;
+use crate::semantic::element::constant::Constant;
+use crate::semantic::element::error::Error as ElementError;
+use crate::semantic::element::Element;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::IntegerConstant;
 
 use crate::Error;
 

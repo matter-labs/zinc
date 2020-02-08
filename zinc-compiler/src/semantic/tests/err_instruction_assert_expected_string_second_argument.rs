@@ -12,12 +12,15 @@ use crate::Error;
 fn test() {
     let input = r#"
 fn main() {
-    dbg!(42);
+    assert!(true, 42);
 }
 "#;
 
     let expected = Err(Error::Semantic(
-        SemanticError::InstructionDebugExpectedString(Location::new(3, 9), "42: u8".to_string()),
+        SemanticError::InstructionAssertExpectedStringAsSecondArgument(
+            Location::new(3, 12),
+            "42: u8".to_string(),
+        ),
     ));
 
     let result = super::get_binary_result(input);

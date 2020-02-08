@@ -2,19 +2,19 @@
 //! The semantic analyzer scope item.
 //!
 
-mod r#static;
-mod variable;
-
-pub use self::r#static::Static;
-pub use self::variable::Variable;
+pub mod r#static;
+pub mod variable;
 
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
-use crate::semantic::Constant;
-use crate::semantic::Scope;
-use crate::semantic::Type;
+use crate::semantic::element::constant::Constant;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::scope::Scope;
+
+use self::r#static::Static;
+use self::variable::Variable;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Item {

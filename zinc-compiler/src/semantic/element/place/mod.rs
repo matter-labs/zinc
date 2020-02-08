@@ -2,9 +2,7 @@
 //! The semantic analyzer place element.
 //!
 
-mod error;
-
-pub use self::error::Error;
+pub mod error;
 
 use std::fmt;
 use std::ops::Deref;
@@ -15,18 +13,20 @@ use num_traits::Signed;
 use num_traits::ToPrimitive;
 
 use crate::lexical::Location;
-use crate::semantic::Constant;
-use crate::semantic::Element;
-use crate::semantic::FieldAccessResult;
-use crate::semantic::IndexAccessResult;
-use crate::semantic::RangeConstant;
-use crate::semantic::RangeInclusiveConstant;
-use crate::semantic::Type;
-use crate::semantic::Value;
+use crate::semantic::element::access::AccessData;
+use crate::semantic::element::constant::range::Range;
+use crate::semantic::element::constant::range_inclusive::RangeInclusive;
+use crate::semantic::element::constant::Constant;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::element::value::Value;
+use crate::semantic::element::Element;
+
+use self::error::Error;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Place {
     pub location: Location,
+    pub identifier: String,
     pub r#type: Type,
     pub address: usize,
     pub total_size: usize,
@@ -38,6 +38,7 @@ pub struct Place {
 impl Place {
     pub fn new(
         location: Location,
+        identifier: String,
         r#type: Type,
         address: usize,
         is_mutable: bool,
@@ -46,6 +47,7 @@ impl Place {
         let total_size = r#type.size();
         Self {
             location,
+            identifier,
             r#type,
             address,
             total_size,
@@ -55,7 +57,7 @@ impl Place {
         }
     }
 
-    pub fn index(&mut self, index_value: &Element) -> Result<IndexAccessResult, Error> {
+    pub fn index(&mut self, index_value: &Element) -> Result<AccessData, Error> {
         self.is_indexed = true;
 
         let (inner_type, array_size) = match self.r#type {
@@ -71,9 +73,9 @@ impl Place {
         match index_value {
             Element::Value(Value::Integer(..)) | Element::Constant(Constant::Integer(..)) => {
                 self.r#type = inner_type;
-                Ok(IndexAccessResult::new(0, inner_type_size, array_size, None))
+                Ok(AccessData::new(0, inner_type_size, array_size, None))
             }
-            Element::Constant(Constant::Range(RangeConstant { start, end, .. })) => {
+            Element::Constant(Constant::Range(Range { start, end, .. })) => {
                 if start.is_negative() {
                     return Err(Error::IndexSliceStartOutOfRange(start.to_string()));
                 }
@@ -95,19 +97,10 @@ impl Place {
                 let length = (end - start).to_usize().ok_or_else(|| {
                     Error::IndexSliceEndLesserThanStart(end.to_string(), start.to_string())
                 })?;
-                self.r#type = Type::new_array(inner_type, length);
-                Ok(IndexAccessResult::new(
-                    start,
-                    inner_type_size,
-                    array_size,
-                    None,
-                ))
+                self.r#type = Type::array(inner_type, length);
+                Ok(AccessData::new(start, inner_type_size, array_size, None))
             }
-            Element::Constant(Constant::RangeInclusive(RangeInclusiveConstant {
-                start,
-                end,
-                ..
-            })) => {
+            Element::Constant(Constant::RangeInclusive(RangeInclusive { start, end, .. })) => {
                 if start.is_negative() {
                     return Err(Error::IndexSliceStartOutOfRange(start.to_string()));
                 }
@@ -129,13 +122,8 @@ impl Place {
                 let length = (end - start + BigInt::one()).to_usize().ok_or_else(|| {
                     Error::IndexSliceEndLesserThanStart(end.to_string(), start.to_string())
                 })?;
-                self.r#type = Type::new_array(inner_type, length);
-                Ok(IndexAccessResult::new(
-                    start,
-                    inner_type_size,
-                    array_size,
-                    None,
-                ))
+                self.r#type = Type::array(inner_type, length);
+                Ok(AccessData::new(start, inner_type_size, array_size, None))
             }
             value => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange(
                 value.to_string(),
@@ -143,7 +131,7 @@ impl Place {
         }
     }
 
-    pub fn field_tuple(&mut self, field_index: usize) -> Result<FieldAccessResult, Error> {
+    pub fn field_tuple(&mut self, field_index: usize) -> Result<AccessData, Error> {
         self.is_indexed = true;
 
         let mut offset = 0;
@@ -163,7 +151,7 @@ impl Place {
                 }
                 self.r#type = types[tuple_index].to_owned();
 
-                Ok(FieldAccessResult::new(
+                Ok(AccessData::new(
                     offset,
                     self.r#type.size(),
                     total_size,
@@ -176,22 +164,18 @@ impl Place {
         }
     }
 
-    pub fn field_structure(&mut self, field_name: &str) -> Result<FieldAccessResult, Error> {
+    pub fn field_structure(&mut self, field_name: &str) -> Result<AccessData, Error> {
         self.is_indexed = true;
 
         let mut offset = 0;
         let total_size = self.r#type.size();
         match self.r#type {
-            Type::Structure {
-                ref identifier,
-                ref fields,
-                ..
-            } => {
-                for structure_field in fields.iter() {
+            Type::Structure(ref structure) => {
+                for structure_field in structure.fields.iter() {
                     if structure_field.0 == field_name {
                         self.r#type = structure_field.1.to_owned();
 
-                        return Ok(FieldAccessResult::new(
+                        return Ok(AccessData::new(
                             offset,
                             self.r#type.size(),
                             total_size,
@@ -202,7 +186,7 @@ impl Place {
                 }
                 Err(Error::FieldDoesNotExistInStructure(
                     field_name.to_owned(),
-                    identifier.to_string(),
+                    structure.identifier.to_owned(),
                 ))
             }
             ref r#type => Err(Error::OperatorFieldFirstOperandExpectedStructure(
@@ -214,6 +198,6 @@ impl Place {
 
 impl fmt::Display for Place {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "0")
+        write!(f, "{}", self.identifier)
     }
 }

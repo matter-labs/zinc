@@ -25,17 +25,18 @@ impl RunCommand {
         let program = Program::from_bytes(bytes.as_slice()).unwrap();
 
         let input_text = fs::read_to_string(&self.input_path)?;
-        let input_values: Value = serde_json::from_str(&input_text)?;
+        let json = serde_json::from_str(&input_text)?;
+        let input_values: Value = Value::from_typed_json(&json, &program.input)?;
         let input = input_values.to_flat_values();
 
         let output_values = zinc_vm::run::<Bn256>(&program, &input)?;
 
         // TODO: Remove unwrap
         let output = Value::from_flat_values(&program.output, &output_values).unwrap();
-        let output_json = serde_json::to_string_pretty(&output)? + "\n";
+        let output_json = serde_json::to_string_pretty(&output.to_json())? + "\n";
         fs::write(&self.output_path, &output_json)?;
 
-        print!("{}", &output_json);
+        print!("{}", output_json);
 
         Ok(())
     }

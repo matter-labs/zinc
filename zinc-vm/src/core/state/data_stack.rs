@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::core::Cell;
+use crate::errors::MalformedBytecode;
 use crate::gadgets::{Gadgets, Primitive};
 use crate::Engine;
 use crate::RuntimeError;
@@ -56,9 +57,10 @@ impl<E: Engine> DataStack<E> {
 
     pub fn get(&mut self, address: usize) -> Result<Cell<E>, RuntimeError> {
         if let Some(cell) = self.memory.get(address) {
-            cell.clone().ok_or(RuntimeError::UninitializedStorageAccess)
+            cell.clone()
+                .ok_or_else(|| MalformedBytecode::UninitializedStorageAccess.into())
         } else {
-            Err(RuntimeError::UninitializedStorageAccess)
+            Err(MalformedBytecode::UninitializedStorageAccess.into())
         }
     }
 
@@ -95,9 +97,12 @@ impl<E: Engine> DataStack<E> {
 
     /// Create an alternative branch (same parent as current one).
     pub fn switch_branch(&mut self) -> Result<(), RuntimeError> {
-        let mut branch = self.branches.pop().ok_or(RuntimeError::UnexpectedElse)?;
+        let mut branch = self
+            .branches
+            .pop()
+            .ok_or(MalformedBytecode::UnexpectedElse)?;
         self.revert(&branch.active_delta());
-        let new_branch = branch.switch().ok_or(RuntimeError::UnexpectedElse)?;
+        let new_branch = branch.switch().ok_or(MalformedBytecode::UnexpectedElse)?;
         self.branches.push(new_branch);
         Ok(())
     }
@@ -108,7 +113,10 @@ impl<E: Engine> DataStack<E> {
         condition: Primitive<E>,
         ops: &mut Gadgets<E, CS>,
     ) -> Result<(), RuntimeError> {
-        let mut branch = self.branches.pop().ok_or(RuntimeError::UnexpectedEndIf)?;
+        let mut branch = self
+            .branches
+            .pop()
+            .ok_or(MalformedBytecode::UnexpectedEndIf)?;
         self.revert(branch.active_delta());
 
         match branch {
@@ -121,7 +129,7 @@ impl<E: Engine> DataStack<E> {
 
     fn revert(&mut self, delta: &DataStackDelta<E>) {
         for (address, d) in delta.iter() {
-            self.memory.insert(*address, d.old.clone());
+            self.memory[*address] = d.old.clone();
         }
     }
 

@@ -2,9 +2,7 @@
 //! The semantic analyzer array element value.
 //!
 
-mod error;
-
-pub use self::error::Error;
+pub mod error;
 
 use std::fmt;
 
@@ -13,9 +11,11 @@ use num_traits::One;
 use num_traits::Signed;
 use num_traits::ToPrimitive;
 
-use crate::semantic::IndexAccessResult;
-use crate::semantic::Type;
-use crate::semantic::Value;
+use crate::semantic::element::access::AccessData;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::element::value::Value;
+
+use self::error::Error;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Array {
@@ -38,11 +38,11 @@ impl Array {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::new_array(self.r#type.to_owned(), self.size)
+        Type::array(self.r#type.to_owned(), self.size)
     }
 
-    pub fn slice_single(&self) -> IndexAccessResult {
-        IndexAccessResult::new(
+    pub fn slice_single(&self) -> AccessData {
+        AccessData::new(
             0,
             self.r#type.size(),
             self.r#type().size(),
@@ -50,7 +50,7 @@ impl Array {
         )
     }
 
-    pub fn slice_range(&self, start: &BigInt, end: &BigInt) -> Result<IndexAccessResult, Error> {
+    pub fn slice_range(&self, start: &BigInt, end: &BigInt) -> Result<AccessData, Error> {
         if start.is_negative() {
             return Err(Error::SliceStartOutOfRange(start.to_string()));
         }
@@ -72,19 +72,15 @@ impl Array {
         let length = (end - start)
             .to_usize()
             .ok_or_else(|| Error::SliceEndLesserThanStart(end.to_string(), start.to_string()))?;
-        Ok(IndexAccessResult::new(
+        Ok(AccessData::new(
             self.r#type.size() * start,
             self.r#type.size() * length,
             self.r#type().size(),
-            Some(Value::new(Type::new_array(self.r#type.to_owned(), length))),
+            Some(Value::new(Type::array(self.r#type.to_owned(), length))),
         ))
     }
 
-    pub fn slice_range_inclusive(
-        &self,
-        start: &BigInt,
-        end: &BigInt,
-    ) -> Result<IndexAccessResult, Error> {
+    pub fn slice_range_inclusive(&self, start: &BigInt, end: &BigInt) -> Result<AccessData, Error> {
         if start.is_negative() {
             return Err(Error::SliceStartOutOfRange(start.to_string()));
         }
@@ -106,11 +102,11 @@ impl Array {
         let length = (end - start + BigInt::one())
             .to_usize()
             .ok_or_else(|| Error::SliceEndLesserThanStart(end.to_string(), start.to_string()))?;
-        Ok(IndexAccessResult::new(
+        Ok(AccessData::new(
             self.r#type.size() * start,
             self.r#type.size() * length,
             self.r#type().size(),
-            Some(Value::new(Type::new_array(self.r#type.to_owned(), length))),
+            Some(Value::new(Type::array(self.r#type.to_owned(), length))),
         ))
     }
 

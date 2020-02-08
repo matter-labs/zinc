@@ -2,9 +2,7 @@
 //! The semantic analyzer constant integer element.
 //!
 
-mod error;
-
-pub use self::error::Error;
+pub mod error;
 
 use std::convert::TryFrom;
 use std::fmt;
@@ -18,10 +16,12 @@ use num_traits::Zero;
 use zinc_bytecode::Instruction;
 
 use crate::lexical;
-use crate::semantic::RangeConstant;
-use crate::semantic::RangeInclusiveConstant;
-use crate::semantic::Type;
+use crate::semantic::element::constant::Range;
+use crate::semantic::element::constant::RangeInclusive;
+use crate::semantic::element::r#type::Type;
 use crate::syntax::IntegerLiteral;
+
+use self::error::Error;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Integer {
@@ -52,14 +52,14 @@ impl Integer {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::new_numeric(self.is_signed, self.bitlength)
+        Type::scalar(self.is_signed, self.bitlength)
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
         self.is_signed == other.is_signed && self.bitlength == other.bitlength
     }
 
-    pub fn range_inclusive(&self, other: &Self) -> Result<RangeInclusiveConstant, Error> {
+    pub fn range_inclusive(&self, other: &Self) -> Result<RangeInclusive, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchRangeInclusive(
                 self.r#type().to_string(),
@@ -67,7 +67,7 @@ impl Integer {
             ));
         }
 
-        Ok(RangeInclusiveConstant::new(
+        Ok(RangeInclusive::new(
             self.value.to_owned(),
             other.value.to_owned(),
             self.is_signed,
@@ -75,7 +75,7 @@ impl Integer {
         ))
     }
 
-    pub fn range(&self, other: &Self) -> Result<RangeConstant, Error> {
+    pub fn range(&self, other: &Self) -> Result<Range, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchRange(
                 self.r#type().to_string(),
@@ -83,7 +83,7 @@ impl Integer {
             ));
         }
 
-        Ok(RangeConstant::new(
+        Ok(Range::new(
             self.value.to_owned(),
             other.value.to_owned(),
             self.is_signed,
@@ -123,6 +123,10 @@ impl Integer {
             ));
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldGreaterEquals);
+        }
+
         let result = self.value >= other.value;
         Ok(result)
     }
@@ -133,6 +137,10 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
+        }
+
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldLesserEquals);
         }
 
         let result = self.value <= other.value;
@@ -147,6 +155,10 @@ impl Integer {
             ));
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldGreater);
+        }
+
         let result = self.value > other.value;
         Ok(result)
     }
@@ -157,6 +169,10 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
+        }
+
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldLesser);
         }
 
         let result = self.value < other.value;
@@ -219,6 +235,10 @@ impl Integer {
             ));
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldDivision);
+        }
+
         if other.value.is_zero() {
             return Err(Error::DivisionZero);
         }
@@ -237,6 +257,10 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
+        }
+
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldRemainder);
         }
 
         if other.value.is_zero() {
@@ -258,7 +282,7 @@ impl Integer {
 
     pub fn negate(&self) -> Result<Self, Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::NegationBitlengthTooBig(self.bitlength));
+            return Err(Error::ForbiddenFieldNegation);
         }
 
         let result = -self.value.to_owned();
@@ -300,7 +324,7 @@ impl Integer {
     fn minimal_bitlength(value: &BigInt) -> Result<usize, Error> {
         let mut bitlength = crate::BITLENGTH_BYTE;
         let mut exponent = BigInt::from(1 << crate::BITLENGTH_BYTE);
-        while value.ge(&exponent) {
+        while value.gt(&exponent) {
             if bitlength == crate::BITLENGTH_MAX_INT {
                 exponent <<= crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
                 bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;

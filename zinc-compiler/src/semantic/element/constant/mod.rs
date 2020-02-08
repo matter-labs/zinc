@@ -2,16 +2,10 @@
 //! The semantic analyzer constant element.
 //!
 
-mod error;
-mod integer;
-mod range;
-mod range_inclusive;
-
-pub use self::error::Error;
-pub use self::integer::Error as IntegerError;
-pub use self::integer::Integer;
-pub use self::range::Range;
-pub use self::range_inclusive::RangeInclusive;
+pub mod error;
+pub mod integer;
+pub mod range;
+pub mod range_inclusive;
 
 use std::fmt;
 
@@ -21,9 +15,14 @@ use num_traits::Zero;
 
 use zinc_bytecode::Instruction;
 
-use crate::semantic::Caster;
-use crate::semantic::Type;
+use crate::semantic::caster::Caster;
+use crate::semantic::element::r#type::Type;
 use crate::syntax::BooleanLiteral;
+
+use self::error::Error;
+use self::integer::Integer;
+use self::range::Range;
+use self::range_inclusive::RangeInclusive;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Constant {
@@ -38,12 +37,12 @@ pub enum Constant {
 impl Constant {
     pub fn r#type(&self) -> Type {
         match self {
-            Self::Unit => Type::new_unit(),
-            Self::Boolean(_) => Type::new_boolean(),
+            Self::Unit => Type::unit(),
+            Self::Boolean(_) => Type::boolean(),
             Self::Integer(inner) => inner.r#type(),
             Self::Range(inner) => inner.r#type(),
             Self::RangeInclusive(inner) => inner.r#type(),
-            Self::String(_) => Type::new_string(),
+            Self::String(_) => Type::string(),
         }
     }
 

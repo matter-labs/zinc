@@ -121,7 +121,7 @@ mod tests {
                     Location::new(1, 1),
                     "a".to_owned(),
                 )),
-                Type::new(Location::new(1, 4), TypeVariant::new_integer_unsigned(232)),
+                Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
             )],
             Some(Token::new(Lexeme::Eof, Location::new(1, 8))),
         ));
@@ -145,7 +145,7 @@ mod tests {
                     Location::new(1, 1),
                     "a".to_owned(),
                 )),
-                Type::new(Location::new(1, 4), TypeVariant::new_integer_unsigned(232)),
+                Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
             )],
             Some(Token::new(Lexeme::Eof, Location::new(1, 9))),
         ));
@@ -170,7 +170,7 @@ mod tests {
                         Location::new(1, 1),
                         "a".to_owned(),
                     )),
-                    Type::new(Location::new(1, 4), TypeVariant::new_integer_unsigned(232)),
+                    Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
                 ),
                 BindingPattern::new(
                     Location::new(1, 10),
@@ -178,7 +178,7 @@ mod tests {
                         Location::new(1, 10),
                         "b".to_owned(),
                     )),
-                    Type::new(Location::new(1, 13), TypeVariant::new_integer_unsigned(8)),
+                    Type::new(Location::new(1, 13), TypeVariant::integer_unsigned(8)),
                 ),
                 BindingPattern::new(
                     Location::new(1, 17),
@@ -186,7 +186,7 @@ mod tests {
                         Location::new(1, 17),
                         "c".to_owned(),
                     )),
-                    Type::new(Location::new(1, 20), TypeVariant::new_field()),
+                    Type::new(Location::new(1, 20), TypeVariant::field()),
                 ),
             ],
             Some(Token::new(Lexeme::Eof, Location::new(1, 25))),

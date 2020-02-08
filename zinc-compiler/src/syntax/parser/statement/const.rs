@@ -131,21 +131,16 @@ impl Parser {
                     self.state = State::Semicolon;
                 }
                 State::Semicolon => {
-                    match match self.next {
-                        Some(token) => token,
-                        None => stream.borrow_mut().next()?,
-                    } {
+                    return match crate::syntax::take_or_next(self.next.take(), stream)? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Semicolon),
                             ..
-                        } => return Ok((self.builder.finish(), None)),
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec![";"],
-                                lexeme,
-                            )));
-                        }
+                        } => Ok((self.builder.finish(), None)),
+                        Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
+                            location,
+                            vec![";"],
+                            lexeme,
+                        ))),
                     }
                 }
             }
@@ -184,7 +179,7 @@ mod tests {
             ConstStatement::new(
                 Location::new(1, 1),
                 Identifier::new(Location::new(1, 7), "A".to_owned()),
-                Type::new(Location::new(1, 10), TypeVariant::new_integer_unsigned(64)),
+                Type::new(Location::new(1, 10), TypeVariant::integer_unsigned(64)),
                 Expression::new(
                     Location::new(1, 16),
                     vec![ExpressionElement::new(

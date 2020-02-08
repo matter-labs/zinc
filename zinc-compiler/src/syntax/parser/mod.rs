@@ -85,7 +85,7 @@ impl Parser {
                     let (statement, next) =
                         ModuleLocalStatementParser::default().parse(stream.clone(), Some(token))?;
                     self.next = next;
-                    log::trace!("Module statement: {:?}", statement);
+                    log::debug!("Module statement: {:?}", statement);
                     statements.push(statement);
                 }
             }

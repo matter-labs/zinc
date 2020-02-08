@@ -1,0 +1,53 @@
+//!
+//! The '||' operator tests.
+//!
+
+struct ResultBool {
+    or_false_false: bool,
+    or_false_true: bool,
+    or_true_false: bool,
+    or_true_true: bool,
+}
+
+impl ResultBool {
+    fn test() -> Self {
+        Self {
+            or_false_false: false || false,
+            or_false_true: false || true,
+            or_true_false: true || false,
+            or_true_true: true || true,
+        }
+    }
+}
+
+struct ResultWitness {
+    or_const_const: bool,
+    or_const_value: bool,
+    or_value_const: bool,
+    or_value_value: bool,
+}
+
+impl ResultWitness {
+    fn test(witness: bool) -> Self {
+        Self {
+            or_const_const: false || false,
+            or_const_value: false || witness,
+            or_value_const: witness || false,
+            or_value_value: witness || witness,
+        }
+    }
+}
+
+struct Result {
+    result_bool: ResultBool,
+    result_witness: ResultWitness,
+}
+
+impl Result {
+    fn test(witness: bool) -> Self {
+        Self {
+            result_bool: ResultBool::test(),
+            result_witness: ResultWitness::test(witness),
+        }
+    }
+}

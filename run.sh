@@ -5,22 +5,24 @@ set -ex
 # 'error' | 'warn' | 'info' | 'debug' | 'trace'
 case "${1}" in
     error)
-        export LOG_LEVEL="error"
+        export LOG_LEVEL=""
         ;;
     warn)
-        export LOG_LEVEL="warn"
+        export LOG_LEVEL=""
         ;;
     info)
-        export LOG_LEVEL="info"
+        export LOG_LEVEL="-v"
         ;;
     debug)
-        export LOG_LEVEL="debug"
+        export LOG_LEVEL="-vv"
+        export RUST_BACKTRACE=1
         ;;
     trace)
-        export LOG_LEVEL="trace"
+        export LOG_LEVEL="-vvv"
+        export RUST_BACKTRACE="full"
         ;;
     *)
-        export LOG_LEVEL="info"
+        export LOG_LEVEL="-v"
         ;;
 esac
 
@@ -35,55 +37,23 @@ case "${2}" in
         ;;
 esac
 
-export ZARGO_CRATE_NAME='zargo'
-export ZARGO_BINARY_NAME='zargo'
-
-export COMPILER_CRATE_NAME='zinc-compiler'
-export COMPILER_CRATE_NAME_LOG='zinc_compiler'
-export COMPILER_BINARY_NAME='znc'
-
-export VIRTUAL_MACHINE_CRATE_NAME='zinc-vm'
-export VIRTUAL_MACHINE_CRATE_NAME_LOG='zinc_vm'
-export VIRTUAL_MACHINE_BINARY_NAME='zinc'
-
-export PROJECT_DIRECTORY='./test/'
-export PROJECT_BUILD_DIRECTORY="${PROJECT_DIRECTORY}/build/"
-
-export RUST_LOG="
-${ZARGO_CRATE_NAME}=${LOG_LEVEL},\
-${ZARGO_BINARY_NAME}=${LOG_LEVEL},\
-${COMPILER_CRATE_NAME_LOG}=${LOG_LEVEL},\
-${COMPILER_BINARY_NAME}=${LOG_LEVEL},\
-${VIRTUAL_MACHINE_CRATE_NAME_LOG}=${LOG_LEVEL},\
-${VIRTUAL_MACHINE_BINARY_NAME}=${LOG_LEVEL},\
-"
-export RUST_BACKTRACE=1
+export CIRCUIT_DIRECTORY='./zinc-examples/debug/'
+export CIRCUIT_BUILD_DIRECTORY="${CIRCUIT_DIRECTORY}/build/"
+export CIRCUIT_DATA_DIRECTORY="${CIRCUIT_DIRECTORY}/data/"
 
 cargo fmt --all
-cargo build ${RELEASE_MODE_FLAG} --package "${ZARGO_CRATE_NAME}"
-cargo build ${RELEASE_MODE_FLAG} --package "${COMPILER_CRATE_NAME}"
-cargo build ${RELEASE_MODE_FLAG} --package "${VIRTUAL_MACHINE_CRATE_NAME}"
+cargo clippy
+cargo build ${RELEASE_MODE_FLAG}
 cargo test
 
-export ZARGO_PATH="./target/${TARGET_DIRECTORY}/${ZARGO_BINARY_NAME}"
-rm -fv "${PROJECT_DIRECTORY}/Zargo.toml"
+export ZARGO_PATH="./target/${TARGET_DIRECTORY}/zargo"
 
-"${ZARGO_PATH}" init "${PROJECT_DIRECTORY}"
-"${ZARGO_PATH}" build \
-    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
-"${ZARGO_PATH}" run \
-    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
-    --input "${PROJECT_BUILD_DIRECTORY}/witness.json" \
-    --output "${PROJECT_BUILD_DIRECTORY}/public-data.json"
-"${ZARGO_PATH}" setup \
-    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
-    --proving-key "${PROJECT_BUILD_DIRECTORY}/proving-key" \
-    --verifying-key "${PROJECT_BUILD_DIRECTORY}/verifying-key.txt"
-"${ZARGO_PATH}" prove \
-    --circuit "${PROJECT_BUILD_DIRECTORY}/default.znb" \
-    --proving-key "${PROJECT_BUILD_DIRECTORY}/proving-key" \
-    --witness "${PROJECT_BUILD_DIRECTORY}/witness.json" \
-    --pubdata "${PROJECT_BUILD_DIRECTORY}/public-data.json" > "${PROJECT_BUILD_DIRECTORY}/proof.txt"
-"${ZARGO_PATH}" verify \
-    --verifying-key "${PROJECT_BUILD_DIRECTORY}/verifying-key.txt" \
-    --public-data "${PROJECT_BUILD_DIRECTORY}/public-data.json" < "${PROJECT_BUILD_DIRECTORY}/proof.txt"
+"${ZARGO_PATH}" clean ${LOG_LEVEL} \
+    --manifest-path "${CIRCUIT_DIRECTORY}/Zargo.toml"
+"${ZARGO_PATH}" proof-check ${LOG_LEVEL} \
+    --manifest-path "${CIRCUIT_DIRECTORY}/Zargo.toml" \
+    --circuit "${CIRCUIT_BUILD_DIRECTORY}/default.znb" \
+    --witness "${CIRCUIT_DATA_DIRECTORY}/witness.json" \
+    --public-data "${CIRCUIT_DATA_DIRECTORY}/public-data.json" \
+    --proving-key "${CIRCUIT_DATA_DIRECTORY}/proving-key" \
+    --verifying-key "${CIRCUIT_DATA_DIRECTORY}/verifying-key.txt"

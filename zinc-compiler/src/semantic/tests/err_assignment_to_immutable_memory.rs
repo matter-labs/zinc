@@ -19,7 +19,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::AssignmentToImmutableMemory(
         Location::new(4, 5),
-        "0".to_string(),
+        "result".to_string(),
     )));
 
     let result = super::get_binary_result(input);

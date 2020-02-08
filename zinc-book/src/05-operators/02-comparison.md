@@ -25,8 +25,8 @@
 `<=` is a binary operator.
 
 **Accepts**
-1. Integer expression
-2. Integer expression
+1. Integer expression (anything but `field`)
+2. Integer expression of the same type
 
 **Returns** the boolean result.
 
@@ -35,8 +35,8 @@
 `>=` is a binary operator.
 
 **Accepts**
-1. Integer expression
-2. Integer expression
+1. Integer expression (anything but `field`)
+2. Integer expression of the same type
 
 **Returns** the boolean result.
 
@@ -45,8 +45,8 @@
 `<` is a binary operator.
 
 **Accepts**
-1. Integer expression
-2. Integer expression
+1. Integer expression (anything but `field`)
+2. Integer expression of the same type
 
 **Returns** the boolean result.
 
@@ -55,7 +55,7 @@
 `>` is a binary operator.
 
 **Accepts**
-1. Integer expression
-2. Integer expression
+1. Integer expression (anything but `field`)
+2. Integer expression of the same type
 
 **Returns** the boolean result.

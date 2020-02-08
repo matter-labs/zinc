@@ -2,13 +2,8 @@
 //! The semantic analyzer scope.
 //!
 
-mod error;
-mod item;
-
-pub use self::error::Error;
-pub use self::item::Item;
-pub use self::item::Static as StaticItem;
-pub use self::item::Variable as VariableItem;
+pub mod error;
+pub mod item;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -17,11 +12,16 @@ use std::str;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
-use crate::semantic::Constant;
+use crate::semantic::element::constant::Constant;
+use crate::semantic::element::path::Path;
+use crate::semantic::element::r#type::function::Function as FunctionType;
+use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::Path;
-use crate::semantic::Type;
-use crate::semantic::Type as TypeItem;
+
+use self::error::Error;
+use self::item::r#static::Static as StaticItem;
+use self::item::variable::Variable as VariableItem;
+use self::item::Item;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Scope {
@@ -94,7 +94,7 @@ impl Scope {
         Ok(())
     }
 
-    pub fn declare_type(&mut self, identifier: String, r#type: TypeItem) -> Result<(), Error> {
+    pub fn declare_type(&mut self, identifier: String, r#type: Type) -> Result<(), Error> {
         if self.is_item_declared(&identifier) {
             return Err(Error::ItemRedeclared(identifier));
         }
@@ -128,7 +128,9 @@ impl Scope {
             match item {
                 Item::Module(ref scope) => current_scope = scope.to_owned(),
                 Item::Type(Type::Enumeration { ref scope, .. }) => current_scope = scope.to_owned(),
-                Item::Type(Type::Structure { ref scope, .. }) => current_scope = scope.to_owned(),
+                Item::Type(Type::Structure(ref structure)) => {
+                    current_scope = structure.scope.to_owned()
+                }
                 _ => {
                     return Err(SemanticError::Scope(
                         identifier.location,
@@ -171,45 +173,55 @@ impl Scope {
 
     fn default_items() -> HashMap<String, Item> {
         let mut std_crypto_scope = Scope::default();
+        let std_crypto_sha256 = FunctionType::new_std(BuiltinIdentifier::CryptoSha256);
+        let std_crypto_pedersen = FunctionType::new_std(BuiltinIdentifier::CryptoPedersen);
         std_crypto_scope.items.insert(
-            "sha256".to_owned(),
-            Item::Type(Type::new_std_function(BuiltinIdentifier::CryptoSha256)),
+            std_crypto_sha256.identifier(),
+            Item::Type(Type::Function(std_crypto_sha256)),
         );
         std_crypto_scope.items.insert(
-            "pedersen".to_owned(),
-            Item::Type(Type::new_std_function(BuiltinIdentifier::CryptoPedersen)),
+            std_crypto_pedersen.identifier(),
+            Item::Type(Type::Function(std_crypto_pedersen)),
         );
 
         let mut std_convert_scope = Scope::default();
+        let std_convert_to_bits = FunctionType::new_std(BuiltinIdentifier::ToBits);
+        let std_convert_from_bits_unsigned =
+            FunctionType::new_std(BuiltinIdentifier::UnsignedFromBits);
+        let std_convert_from_bits_signed = FunctionType::new_std(BuiltinIdentifier::SignedFromBits);
+        let std_convert_from_bits_field = FunctionType::new_std(BuiltinIdentifier::FieldFromBits);
         std_convert_scope.items.insert(
-            "to_bits".to_owned(),
-            Item::Type(Type::new_std_function(BuiltinIdentifier::ToBits)),
+            std_convert_to_bits.identifier(),
+            Item::Type(Type::Function(std_convert_to_bits)),
         );
         std_convert_scope.items.insert(
-            "from_bits_unsigned".to_owned(),
-            Item::Type(Type::new_std_function(BuiltinIdentifier::UnsignedFromBits)),
+            std_convert_from_bits_unsigned.identifier(),
+            Item::Type(Type::Function(std_convert_from_bits_unsigned)),
         );
         std_convert_scope.items.insert(
-            "from_bits_signed".to_owned(),
-            Item::Type(Type::new_std_function(BuiltinIdentifier::SignedFromBits)),
+            std_convert_from_bits_signed.identifier(),
+            Item::Type(Type::Function(std_convert_from_bits_signed)),
         );
         std_convert_scope.items.insert(
-            "from_bits_field".to_owned(),
-            Item::Type(Type::new_std_function(BuiltinIdentifier::FieldFromBits)),
+            std_convert_from_bits_field.identifier(),
+            Item::Type(Type::Function(std_convert_from_bits_field)),
         );
 
         let mut std_array_scope = Scope::default();
+        let std_array_reverse = FunctionType::new_std(BuiltinIdentifier::ArrayReverse);
+        let std_array_truncate = FunctionType::new_std(BuiltinIdentifier::ArrayTruncate);
+        let std_array_pad = FunctionType::new_std(BuiltinIdentifier::ArrayPad);
         std_array_scope.items.insert(
-            "reverse".to_owned(),
-            Item::Type(Type::new_std_function(BuiltinIdentifier::ArrayReverse)),
+            std_array_reverse.identifier(),
+            Item::Type(Type::Function(std_array_reverse)),
         );
         std_array_scope.items.insert(
-            "truncate".to_owned(),
-            Item::Type(Type::new_std_function(BuiltinIdentifier::ArrayTruncate)),
+            std_array_truncate.identifier(),
+            Item::Type(Type::Function(std_array_truncate)),
         );
         std_array_scope.items.insert(
-            "pad".to_owned(),
-            Item::Type(Type::new_std_function(BuiltinIdentifier::ArrayPad)),
+            std_array_pad.identifier(),
+            Item::Type(Type::Function(std_array_pad)),
         );
 
         let mut std_scope = Scope::default();
@@ -226,9 +238,17 @@ impl Scope {
             Item::Module(Rc::new(RefCell::new(std_array_scope))),
         );
 
-        let mut items = HashMap::with_capacity(2);
-        items.insert("dbg".to_owned(), Item::Type(Type::new_dbg_function()));
-        items.insert("assert".to_owned(), Item::Type(Type::new_assert_function()));
+        let mut items = HashMap::with_capacity(3);
+        let builtin_function_dbg = FunctionType::new_dbg();
+        let builtin_function_assert = FunctionType::new_assert();
+        items.insert(
+            builtin_function_dbg.identifier(),
+            Item::Type(Type::Function(builtin_function_dbg)),
+        );
+        items.insert(
+            builtin_function_assert.identifier(),
+            Item::Type(Type::Function(builtin_function_assert)),
+        );
         items.insert(
             "std".to_owned(),
             Item::Module(Rc::new(RefCell::new(std_scope))),

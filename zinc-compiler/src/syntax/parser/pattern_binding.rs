@@ -139,7 +139,7 @@ mod tests {
                     Location::new(1, 1),
                     "value".to_owned(),
                 )),
-                Type::new(Location::new(1, 8), TypeVariant::new_integer_unsigned(8)),
+                Type::new(Location::new(1, 8), TypeVariant::integer_unsigned(8)),
             ),
             None,
         ));
@@ -163,7 +163,7 @@ mod tests {
                     Location::new(1, 5),
                     "value".to_owned(),
                 )),
-                Type::new(Location::new(1, 12), TypeVariant::new_integer_unsigned(8)),
+                Type::new(Location::new(1, 12), TypeVariant::integer_unsigned(8)),
             ),
             None,
         ));
@@ -184,7 +184,7 @@ mod tests {
             BindingPattern::new(
                 Location::new(1, 1),
                 BindingPatternVariant::Wildcard,
-                Type::new(Location::new(1, 4), TypeVariant::new_integer_unsigned(8)),
+                Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(8)),
             ),
             None,
         ));

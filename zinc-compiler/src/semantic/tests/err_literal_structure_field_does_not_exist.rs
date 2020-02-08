@@ -6,8 +6,8 @@
 
 use crate::lexical::Location;
 
+use crate::semantic::element::value::structure::error::Error as StructureValueError;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::StructureValueError;
 
 use crate::Error;
 
@@ -19,7 +19,7 @@ struct Data {
 }
 
 fn main() {
-    let result = struct Data {
+    let result = Data {
         b: 0,
     };
 }

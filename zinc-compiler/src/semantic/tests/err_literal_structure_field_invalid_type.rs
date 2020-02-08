@@ -6,9 +6,9 @@
 
 use crate::lexical::Location;
 
+use crate::semantic::element::r#type::Type;
+use crate::semantic::element::value::structure::error::Error as StructureValueError;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::StructureValueError;
-use crate::semantic::Type;
 
 use crate::Error;
 
@@ -20,7 +20,7 @@ struct Data {
 }
 
 fn main() {
-    let result = struct Data {
+    let result = Data {
         a: false,
     };
 }
@@ -30,8 +30,8 @@ fn main() {
         Location::new(8, 9),
         StructureValueError::FieldInvalidType(
             "a".to_owned(),
-            Type::new_integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            Type::new_boolean().to_string(),
+            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            Type::boolean().to_string(),
         ),
     )));
 

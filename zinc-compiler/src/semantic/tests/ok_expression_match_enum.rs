@@ -27,7 +27,7 @@ enum Language {
     RUST = 255,
 }
 
-fn main(input: (), witness: ()) -> u8 {
+fn main() -> u8 {
     let language = Language::ZINC;
     match language {
         Language::ZINC => 1,

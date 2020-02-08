@@ -10,14 +10,14 @@ use crate::commands::verify::VerifyCommand;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "zinc", about = "Zinc Virtual Machine")]
+#[structopt(name = "zvm", about = "Zinc Virtual Machine")]
 pub struct Arguments {
     #[structopt(
         short = "v",
         parse(from_occurrences),
         help = "Shows verbose logs, use multiple times for more verbosity"
     )]
-    pub verbose: usize,
+    pub verbosity: usize,
 
     #[structopt(subcommand)]
     pub command: Command,

@@ -14,19 +14,22 @@ use num_traits::Zero;
 
 use zinc_bytecode::Instruction;
 
-use crate::semantic::Bytecode;
-use crate::semantic::Constant;
-use crate::semantic::Element;
-use crate::semantic::Error;
-use crate::semantic::ExpressionAnalyzer;
-use crate::semantic::IntegerConstant;
-use crate::semantic::IntegerConstantError;
-use crate::semantic::Scope;
-use crate::semantic::ScopeItem;
-use crate::semantic::ScopeStaticItem;
-use crate::semantic::ScopeVariableItem;
-use crate::semantic::TranslationHint;
-use crate::semantic::Type;
+use crate::semantic::analyzer::error::Error;
+use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
+use crate::semantic::analyzer::translation_hint::TranslationHint;
+use crate::semantic::bytecode::Bytecode;
+use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
+use crate::semantic::element::constant::integer::Integer as IntegerConstant;
+use crate::semantic::element::constant::Constant;
+use crate::semantic::element::r#type::function::user::Function as UserDefinedFunctionType;
+use crate::semantic::element::r#type::function::Function as FunctionType;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::element::r#type::UNIQUE_ID;
+use crate::semantic::element::Element;
+use crate::semantic::scope::item::r#static::Static as ScopeStaticItem;
+use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
+use crate::semantic::scope::item::Item as ScopeItem;
+use crate::semantic::scope::Scope;
 use crate::syntax::BindingPatternVariant;
 use crate::syntax::ConstStatement;
 use crate::syntax::EnumStatement;
@@ -161,11 +164,10 @@ impl Analyzer {
             .cast(&Element::Type(static_type))
             .map_err(|error| Error::Element(type_location, error))?
         {
-            self.bytecode
-                .borrow_mut()
-                .push_instruction(Instruction::Cast(zinc_bytecode::Cast::new(
-                    is_signed, bitlength,
-                )));
+            self.bytecode.borrow_mut().push_instruction(
+                Instruction::Cast(zinc_bytecode::Cast::new(is_signed, bitlength)),
+                type_location,
+            );
         }
 
         let constant = match rvalue {
@@ -182,7 +184,7 @@ impl Analyzer {
         let address = self.bytecode.borrow_mut().allocate_data_stack_space(size);
         self.bytecode
             .borrow_mut()
-            .push_instruction_store(address, size, None, true);
+            .push_instruction_store(address, size, None, true, location);
         self.scope()
             .borrow_mut()
             .declare_static(
@@ -217,8 +219,13 @@ impl Analyzer {
                 Type::from_type_variant(&field.r#type.variant, self.scope())?,
             ));
         }
-        let r#type = Type::new_structure(
+
+        unsafe {
+            UNIQUE_ID += 1;
+        }
+        let r#type = Type::structure(
             statement.identifier.name.clone(),
+            unsafe { UNIQUE_ID },
             fields,
             Some(self.scope()),
         );
@@ -234,8 +241,12 @@ impl Analyzer {
     fn enum_statement(&mut self, statement: EnumStatement) -> Result<(), Error> {
         let location = statement.location;
 
-        let r#type = Type::new_enumeration(
+        unsafe {
+            UNIQUE_ID += 1;
+        }
+        let r#type = Type::enumeration(
             statement.identifier.clone(),
+            unsafe { UNIQUE_ID },
             statement.variants,
             Some(self.scope()),
         )?;
@@ -266,8 +277,18 @@ impl Analyzer {
             ));
         }
         let return_type = Type::from_type_variant(&statement.return_type.variant, self.scope())?;
-        let r#type =
-            Type::new_user_defined_function(identifier.clone(), argument_bindings, return_type);
+
+        let unique_id = unsafe {
+            UNIQUE_ID += 1;
+            UNIQUE_ID
+        };
+        let function_type = UserDefinedFunctionType::new(
+            identifier.clone(),
+            unique_id,
+            argument_bindings,
+            return_type,
+        );
+        let r#type = Type::Function(FunctionType::UserDefined(function_type));
 
         self.scope()
             .borrow_mut()
@@ -275,7 +296,9 @@ impl Analyzer {
             .map_err(|error| Error::Scope(location, error))?;
 
         // record the function address in the bytecode
-        self.bytecode.borrow_mut().start_new_function(&identifier);
+        self.bytecode
+            .borrow_mut()
+            .start_new_function(&identifier, unique_id);
 
         // start a new scope and declare the function arguments there
         self.push_scope();
@@ -316,11 +339,10 @@ impl Analyzer {
             ));
         }
 
-        self.bytecode
-            .borrow_mut()
-            .push_instruction(Instruction::Return(zinc_bytecode::Return::new(
-                expected_type.size(),
-            )));
+        self.bytecode.borrow_mut().push_instruction(
+            Instruction::Return(zinc_bytecode::Return::new(expected_type.size())),
+            statement.return_type.location,
+        );
 
         Ok(())
     }
@@ -373,7 +395,7 @@ impl Analyzer {
             match Scope::resolve_item(self.scope(), statement.identifier.name.as_str())
                 .map_err(|error| Error::Scope(identifier_location, error))?
             {
-                ScopeItem::Type(Type::Structure { scope, .. }) => scope,
+                ScopeItem::Type(Type::Structure(structure)) => structure.scope,
                 ScopeItem::Type(Type::Enumeration { scope, .. }) => scope,
                 item => {
                     return Err(Error::ImplStatementExpectedStructureOrEnumeration(
@@ -407,11 +429,10 @@ impl Analyzer {
                 .cast(&Element::Type(let_type.clone()))
                 .map_err(|error| Error::Element(type_location, error))?
             {
-                self.bytecode
-                    .borrow_mut()
-                    .push_instruction(Instruction::Cast(zinc_bytecode::Cast::new(
-                        is_signed, bitlength,
-                    )));
+                self.bytecode.borrow_mut().push_instruction(
+                    Instruction::Cast(zinc_bytecode::Cast::new(is_signed, bitlength)),
+                    type_location,
+                );
             }
             let_type
         } else {
@@ -422,7 +443,7 @@ impl Analyzer {
         let address = self.bytecode.borrow_mut().allocate_data_stack_space(size);
         self.bytecode
             .borrow_mut()
-            .push_instruction_store(address, size, None, false);
+            .push_instruction_store(address, size, None, false, location);
         self.scope()
             .borrow_mut()
             .declare_variable(
@@ -485,14 +506,18 @@ impl Analyzer {
             .allocate_data_stack_space(index_size);
         self.bytecode
             .borrow_mut()
-            .push_instruction(index.to_instruction());
-        self.bytecode
-            .borrow_mut()
-            .push_instruction_store(index_address, index_size, None, false);
+            .push_instruction(index.to_instruction(), bounds_expression_location);
+        self.bytecode.borrow_mut().push_instruction_store(
+            index_address,
+            index_size,
+            None,
+            false,
+            bounds_expression_location,
+        );
 
         // create the while allowed condition
         let while_allowed_address = match statement.while_condition {
-            Some(_) => {
+            Some(ref condition) => {
                 let while_allowed = Constant::Boolean(true);
                 let while_allowed_address = self
                     .bytecode
@@ -500,12 +525,11 @@ impl Analyzer {
                     .allocate_data_stack_space(while_allowed.r#type().size());
                 self.bytecode
                     .borrow_mut()
-                    .push_instruction(while_allowed.to_instruction());
-                self.bytecode
-                    .borrow_mut()
-                    .push_instruction(Instruction::Store(zinc_bytecode::Store::new(
-                        while_allowed_address,
-                    )));
+                    .push_instruction(while_allowed.to_instruction(), condition.location);
+                self.bytecode.borrow_mut().push_instruction(
+                    Instruction::Store(zinc_bytecode::Store::new(while_allowed_address)),
+                    condition.location,
+                );
                 Some(while_allowed_address)
             }
             None => None,
@@ -520,11 +544,10 @@ impl Analyzer {
                 ),
             )
         })?;
-        self.bytecode
-            .borrow_mut()
-            .push_instruction(Instruction::LoopBegin(zinc_bytecode::LoopBegin::new(
-                iterations_count,
-            )));
+        self.bytecode.borrow_mut().push_instruction(
+            Instruction::LoopBegin(zinc_bytecode::LoopBegin::new(iterations_count)),
+            bounds_expression_location,
+        );
 
         // declare the index variable
         self.push_scope();
@@ -532,11 +555,7 @@ impl Analyzer {
             .borrow_mut()
             .declare_variable(
                 statement.index_identifier.name,
-                ScopeVariableItem::new(
-                    Type::new_numeric(is_signed, bitlength),
-                    false,
-                    index_address,
-                ),
+                ScopeVariableItem::new(Type::scalar(is_signed, bitlength), false, index_address),
             )
             .map_err(|error| Error::Scope(location, error))?;
 
@@ -560,62 +579,70 @@ impl Analyzer {
 
             self.bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::Not(zinc_bytecode::Not));
+                .push_instruction(Instruction::Not(zinc_bytecode::Not), location);
             self.bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::If(zinc_bytecode::If));
+                .push_instruction(Instruction::If(zinc_bytecode::If), location);
             self.bytecode
                 .borrow_mut()
-                .push_instruction(Constant::Boolean(false).to_instruction());
+                .push_instruction(Constant::Boolean(false).to_instruction(), location);
             self.bytecode.borrow_mut().push_instruction_store(
                 while_allowed_address,
-                Type::new_boolean().size(),
+                Type::boolean().size(),
                 None,
                 false,
+                location,
             );
             self.bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::EndIf(zinc_bytecode::EndIf));
+                .push_instruction(Instruction::EndIf(zinc_bytecode::EndIf), location);
 
             self.bytecode.borrow_mut().push_instruction_load(
                 while_allowed_address,
-                Type::new_boolean().size(),
+                Type::boolean().size(),
                 None,
                 false,
+                location,
             );
             self.bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::If(zinc_bytecode::If));
+                .push_instruction(Instruction::If(zinc_bytecode::If), location);
 
             ExpressionAnalyzer::new(self.scope(), self.bytecode.clone())
                 .block_expression(statement.block)?;
 
             self.bytecode
                 .borrow_mut()
-                .push_instruction(Instruction::EndIf(zinc_bytecode::EndIf));
+                .push_instruction(Instruction::EndIf(zinc_bytecode::EndIf), location);
         } else {
             ExpressionAnalyzer::new(self.scope(), self.bytecode.clone())
                 .block_expression(statement.block)?;
         }
 
         // increment the loop counter
+        self.bytecode.borrow_mut().push_instruction(
+            IntegerConstant::new_one(is_signed, bitlength).to_instruction(),
+            location,
+        );
+        self.bytecode.borrow_mut().push_instruction(
+            Instruction::Load(zinc_bytecode::Load::new(index_address)),
+            location,
+        );
+        self.bytecode.borrow_mut().push_instruction(
+            if is_reverse {
+                Instruction::Sub(zinc_bytecode::Sub)
+            } else {
+                Instruction::Add(zinc_bytecode::Add)
+            },
+            location,
+        );
+        self.bytecode.borrow_mut().push_instruction(
+            Instruction::Store(zinc_bytecode::Store::new(index_address)),
+            location,
+        );
         self.bytecode
             .borrow_mut()
-            .push_instruction(IntegerConstant::new_one(is_signed, bitlength).to_instruction());
-        self.bytecode
-            .borrow_mut()
-            .push_instruction(Instruction::Load(zinc_bytecode::Load::new(index_address)));
-        self.bytecode.borrow_mut().push_instruction(if is_reverse {
-            Instruction::Sub(zinc_bytecode::Sub)
-        } else {
-            Instruction::Add(zinc_bytecode::Add)
-        });
-        self.bytecode
-            .borrow_mut()
-            .push_instruction(Instruction::Store(zinc_bytecode::Store::new(index_address)));
-        self.bytecode
-            .borrow_mut()
-            .push_instruction(Instruction::LoopEnd(zinc_bytecode::LoopEnd));
+            .push_instruction(Instruction::LoopEnd(zinc_bytecode::LoopEnd), location);
 
         self.pop_scope();
 

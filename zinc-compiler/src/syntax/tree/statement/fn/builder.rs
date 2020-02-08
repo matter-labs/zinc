@@ -59,7 +59,7 @@ impl Builder {
             }),
             self.argument_bindings,
             self.return_type
-                .unwrap_or_else(|| Type::new(location, TypeVariant::new_unit())),
+                .unwrap_or_else(|| Type::new(location, TypeVariant::unit())),
             self.body.take().unwrap_or_else(|| {
                 panic!("{}{}", crate::syntax::PANIC_BUILDER_REQUIRES_VALUE, "body")
             }),

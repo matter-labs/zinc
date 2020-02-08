@@ -15,7 +15,11 @@ where
         let right = vm.pop()?.value()?;
         let left = vm.pop()?.value()?;
 
-        let (div, _rem) = vm.operations().div_rem(left, right)?;
+        let condition = vm.condition_top()?;
+
+        let (div, _rem) = vm
+            .operations()
+            .div_rem_conditional(left, right, condition)?;
 
         vm.push(Cell::Value(div))
     }
@@ -30,17 +34,17 @@ mod test {
     #[test]
     fn test_div() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new_untyped((9).into()))
-            .add(PushConst::new_untyped((4).into()))
+            .add(PushConst::new((9).into(), true, 8))
+            .add(PushConst::new((4).into(), true, 8))
             .add(Div)
-            .add(PushConst::new_untyped((9).into()))
-            .add(PushConst::new_untyped((-4).into()))
+            .add(PushConst::new((9).into(), true, 8))
+            .add(PushConst::new((-4).into(), true, 8))
             .add(Div)
-            .add(PushConst::new_untyped((-9).into()))
-            .add(PushConst::new_untyped((4).into()))
+            .add(PushConst::new((-9).into(), true, 8))
+            .add(PushConst::new((4).into(), true, 8))
             .add(Div)
-            .add(PushConst::new_untyped((-9).into()))
-            .add(PushConst::new_untyped((-4).into()))
+            .add(PushConst::new((-9).into(), true, 8))
+            .add(PushConst::new((-4).into(), true, 8))
             .add(Div)
             .test(&[3, -3, -2, 2])
     }

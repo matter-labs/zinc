@@ -1,60 +1,30 @@
-use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
+use crate::data::types::DataType;
+use crate::{Instruction, InstructionCode, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
 pub struct Dbg {
-    pub string: String,
-    pub nargs: usize,
+    pub format: String,
+    pub arg_types: Vec<DataType>,
 }
 
 impl Dbg {
-    pub fn new(string: String, nargs: usize) -> Self {
-        Self { string, nargs }
+    pub fn new(format: String, arg_types: Vec<DataType>) -> Self {
+        Self { format, arg_types }
     }
 }
 
 impl InstructionInfo for Dbg {
     fn to_assembly(&self) -> String {
-        "debug".into()
+        "dbg".into()
     }
 
     fn code() -> InstructionCode {
-        InstructionCode::Log
-    }
-
-    fn encode(&self) -> Vec<u8> {
-        let mut bytes = vec![InstructionCode::Log as u8];
-        let mut utf8: Vec<u8> = self.string.bytes().clone().collect();
-        bytes.push(self.nargs as u8);
-        bytes.push(utf8.len() as u8);
-        bytes.append(utf8.as_mut());
-        bytes
-    }
-
-    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
-        if bytes.len() < 3 {
-            return Err(DecodingError::UnexpectedEOF);
-        }
-
-        if bytes[0] != Self::code() as u8 {
-            return Err(DecodingError::UnknownInstructionCode(bytes[0]));
-        }
-
-        let nargs = bytes[1] as usize;
-        let string_len = bytes[2] as usize;
-
-        if bytes.len() < 3 + string_len {
-            return Err(DecodingError::UnexpectedEOF);
-        }
-
-        let string = String::from_utf8(Vec::from(&bytes[3..3 + string_len]))
-            .map_err(|_| DecodingError::UTF8Error)?;
-
-        Ok((Self::new(string, nargs), 3 + string_len))
+        InstructionCode::Dbg
     }
 
     fn inputs_count(&self) -> usize {
-        self.nargs
+        0
     }
 
     fn outputs_count(&self) -> usize {
@@ -62,6 +32,6 @@ impl InstructionInfo for Dbg {
     }
 
     fn wrap(&self) -> Instruction {
-        Instruction::Log((*self).clone())
+        Instruction::Dbg((*self).clone())
     }
 }

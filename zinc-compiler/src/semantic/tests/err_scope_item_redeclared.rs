@@ -5,8 +5,8 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
+use crate::semantic::scope::error::Error as ScopeError;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::ScopeError;
 use crate::Error;
 
 #[test]

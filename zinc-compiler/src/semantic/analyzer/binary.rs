@@ -7,14 +7,14 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::error::Error as CompilerError;
-use crate::semantic::Bytecode;
-use crate::semantic::Error;
-use crate::semantic::FunctionType;
-use crate::semantic::Scope;
-use crate::semantic::ScopeItem;
-use crate::semantic::StatementAnalyzer;
-use crate::semantic::Type;
-use crate::semantic::UserDefinedFunctionType;
+use crate::semantic::analyzer::error::Error;
+use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
+use crate::semantic::bytecode::Bytecode;
+use crate::semantic::element::r#type::function::user::Function as UserDefinedFunctionType;
+use crate::semantic::element::r#type::function::Function as FunctionType;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::scope::item::Item as ScopeItem;
+use crate::semantic::scope::Scope;
 use crate::SyntaxTree;
 
 pub struct Analyzer {
@@ -56,28 +56,32 @@ impl Analyzer {
                 .map_err(CompilerError::Semantic)?;
         }
 
-        // replace the placeholders inserted above with an actual 'main' function call
-        let main_function_address = self
-            .bytecode
-            .borrow_mut()
-            .function_address("main")
-            .ok_or(Error::FunctionMainMissing)
-            .map_err(CompilerError::Semantic)?;
-
-        if let Ok(ScopeItem::Type(Type::Function(FunctionType::UserDefined(
+        if let ScopeItem::Type(Type::Function(FunctionType::UserDefined(
             UserDefinedFunctionType {
                 arguments,
                 return_type,
+                unique_id,
                 ..
             },
-        )))) = Scope::resolve_item(self.scope(), "main")
+        ))) = Scope::resolve_item(self.scope(), "main")
+            .map_err(|_| Error::FunctionMainMissing)
+            .map_err(CompilerError::Semantic)?
         {
+            // replace the placeholders inserted above with an actual 'main' function call
+            let main_function_address = self
+                .bytecode
+                .borrow_mut()
+                .function_address(unique_id)
+                .ok_or(Error::FunctionMainMissing)
+                .map_err(CompilerError::Semantic)?;
+
             let input_size = arguments.iter().map(|(_name, r#type)| r#type.size()).sum();
             let output_size = return_type.size();
 
             self.bytecode.borrow_mut().set_input_fields(arguments);
             self.bytecode.borrow_mut().set_output_type(*return_type);
             self.bytecode.borrow_mut().set_main_function(
+                unique_id,
                 main_function_address,
                 input_size,
                 output_size,

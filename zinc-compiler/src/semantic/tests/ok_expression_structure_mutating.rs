@@ -25,7 +25,7 @@ struct Test {
 }
 
 fn main() {
-    let mut test = struct Test {
+    let mut test = Test {
         x: 1,
         y: 2,
         z: 3,

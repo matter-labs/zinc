@@ -1,0 +1,196 @@
+//!
+//! The '*' operator tests.
+//!
+
+struct ResultU8 {
+    mul_zero_zero: u8,
+    mul_zero_value: u8,
+    mul_value_zero: u8,
+    mul_value_value: u8,
+    mul_max: u8,
+}
+
+impl ResultU8 {
+    fn test() -> Self {
+        Self {
+            mul_zero_zero: 0 * 0,
+            mul_zero_value: 0 * 5,
+            mul_value_zero: 5 * 0,
+            mul_value_value: 5 * 3,
+            mul_max: 255 * 1,
+        }
+    }
+}
+
+struct ResultI8 {
+    mul_zero_zero: i8,
+    mul_zero_value: i8,
+    mul_value_zero: i8,
+    mul_value_value: i8,
+    mul_max: i8,
+    mul_min: i8,
+}
+
+impl ResultI8 {
+    fn test() -> Self {
+        Self {
+            mul_zero_zero: 0 as i8 * 0 as i8,
+            mul_zero_value: 0 as i8 * 13 as i8,
+            mul_value_zero: 13 as i8 * 0 as i8,
+            mul_value_value: 13 as i8 * 8 as i8,
+            mul_max: 127 as i8 * 1 as i8,
+            mul_min: -128 * 1 as i8,
+        }
+    }
+}
+
+struct ResultU64 {
+    mul_zero_zero: u64,
+    mul_zero_value: u64,
+    mul_value_zero: u64,
+    mul_value_value: u64,
+    mul_max: u64,
+}
+
+impl ResultU64 {
+    fn test() -> Self {
+        Self {
+            mul_zero_zero: 0 as u64 * 0 as u64,
+            mul_zero_value: 0 as u64 * 34 as u64,
+            mul_value_zero: 34 as u64 * 0 as u64,
+            mul_value_value: 34 as u64 * 21 as u64,
+            mul_max: 0xFFFF_FFFF_FFFF_FFFF as u64 * 1 as u64,
+        }
+    }
+}
+
+struct ResultI64 {
+    mul_zero_zero: i64,
+    mul_zero_value: i64,
+    mul_value_zero: i64,
+    mul_value_value: i64,
+    mul_max: i64,
+    mul_min: i64,
+}
+
+impl ResultI64 {
+    fn test() -> Self {
+        Self {
+            mul_zero_zero: 0 as i64 * 0 as i64,
+            mul_zero_value: 0 as i64 * 89 as i64,
+            mul_value_zero: 89 as i64 * 0 as i64,
+            mul_value_value: 89 as i64 * 55 as i64,
+            mul_max: 0x7FFF_FFFF_FFFF_FFFF as i64 * 1 as i64,
+            mul_min: -0x8000_0000_0000_0000 * 1 as i64,
+        }
+    }
+}
+
+struct ResultU248 {
+    mul_zero_zero: u248,
+    mul_zero_value: u248,
+    mul_value_zero: u248,
+    mul_value_value: u248,
+    mul_max: u248,
+}
+
+impl ResultU248 {
+    fn test() -> Self {
+        Self {
+            mul_zero_zero: 0 as u248 * 0 as u248,
+            mul_zero_value: 0 as u248 * 144 as u248,
+            mul_value_zero: 144 as u248 * 0 as u248,
+            mul_value_value: 144 as u248 * 233 as u248,
+            mul_max: 0xFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF as u248 *
+                1 as u248,
+        }
+    }
+}
+
+struct ResultI248 {
+    mul_zero_zero: i248,
+    mul_zero_value: i248,
+    mul_value_zero: i248,
+    mul_value_value: i248,
+    mul_max: i248,
+    mul_min: i248,
+}
+
+impl ResultI248 {
+    fn test() -> Self {
+        Self {
+            mul_zero_zero: 0 as i248 * 0 as i248,
+            mul_zero_value: 0 as i248 * 377 as i248,
+            mul_value_zero: 377 as i248 * 0 as i248,
+            mul_value_value: 377 as i248 * 610 as i248,
+            mul_max: 0x7F_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF as i248
+                * 1 as i248,
+            mul_min: -0x80_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000 * 1 as i248,
+        }
+    }
+}
+
+struct ResultField {
+    mul_zero_zero: field,
+    mul_zero_value: field,
+    mul_value_zero: field,
+    mul_value_value: field,
+    mul_max: field,
+}
+
+impl ResultField {
+    fn test() -> Self {
+        Self {
+            mul_zero_zero: 0 as field * 0 as field,
+            mul_zero_value: 0 as field * 610 as field,
+            mul_value_zero: 610 as field * 0 as field,
+            mul_value_value: 610 as field * 987 as field,
+            mul_max: 21888242871839275222246405745257275088548364400416034343698204186575808495616 * 1 as field,
+        }
+    }
+}
+
+struct ResultWitness {
+    mul_const_const: u16,
+    mul_const_value: u16,
+    mul_value_const: u16,
+    mul_value_value: u16,
+}
+
+impl ResultWitness {
+    fn test(witness: u8) -> Self {
+        let casted_witness = witness as u16;
+        Self {
+            mul_const_const: 42 as u16 * 42 as u16,
+            mul_const_value: 42 as u16 * casted_witness,
+            mul_value_const: casted_witness * 42 as u16,
+            mul_value_value: casted_witness * casted_witness,
+        }
+    }
+}
+
+struct Result {
+    result_u8: ResultU8,
+    result_i8: ResultI8,
+    result_u64: ResultU64,
+    result_i64: ResultI64,
+    result_u248: ResultU248,
+    result_i248: ResultI248,
+    result_field: ResultField,
+    result_witness: ResultWitness,
+}
+
+impl Result {
+    fn test(witness: u8) -> Self {
+        Self {
+            result_u8: ResultU8::test(),
+            result_i8: ResultI8::test(),
+            result_u64: ResultU64::test(),
+            result_i64: ResultI64::test(),
+            result_u248: ResultU248::test(),
+            result_i248: ResultI248::test(),
+            result_field: ResultField::test(),
+            result_witness: ResultWitness::test(witness),
+        }
+    }
+}

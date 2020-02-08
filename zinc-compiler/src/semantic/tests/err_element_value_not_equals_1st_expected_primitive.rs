@@ -6,10 +6,10 @@
 
 use crate::lexical::Location;
 
-use crate::semantic::ElementError;
+use crate::semantic::element::error::Error as ElementError;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::Type;
-use crate::semantic::ValueError;
 
 use crate::Error;
 
@@ -27,7 +27,7 @@ fn main() {
         Location::new(5, 23),
         ElementError::Value(
             ValueError::OperatorNotEqualsFirstOperandExpectedPrimitiveType(
-                Type::new_array(Type::new_integer_unsigned(crate::BITLENGTH_BYTE), 3).to_string(),
+                Type::array(Type::integer_unsigned(crate::BITLENGTH_BYTE), 3).to_string(),
             ),
         ),
     )));

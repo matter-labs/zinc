@@ -1,16 +1,20 @@
 mod internal;
+pub mod location;
 mod state;
 
 pub use crate::errors::RuntimeError;
 pub use internal::*;
 pub use state::*;
 
-use crate::gadgets::{Gadgets, Primitive, ScalarType};
+use crate::core::location::CodeLocation;
+use crate::errors::MalformedBytecode;
+use crate::gadgets::{Gadgets, Primitive, PrimitiveType};
 use crate::Engine;
+use colored::Colorize;
 use franklin_crypto::bellman::ConstraintSystem;
 use num_bigint::{BigInt, ToBigInt};
 use std::marker::PhantomData;
-use zinc_bytecode::data::types::{DataType, PrimitiveType};
+use zinc_bytecode::data::types::{DataType, ScalarType};
 use zinc_bytecode::program::Program;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 
@@ -49,6 +53,7 @@ pub struct VirtualMachine<E: Engine, CS: ConstraintSystem<E>> {
     state: State<E>,
     cs: CounterNamespace<E, CS>,
     outputs: Vec<Primitive<E>>,
+    pub(crate) location: CodeLocation,
 }
 
 impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
@@ -64,6 +69,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             },
             cs: CounterNamespace::new(cs),
             outputs: vec![],
+            location: CodeLocation::new(),
         }
     }
 
@@ -71,15 +77,20 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         &mut self.cs.cs
     }
 
-    pub fn run<CB: FnMut(&CS) -> ()>(
+    pub fn run<CB, F>(
         &mut self,
         program: &Program,
         inputs: Option<&[BigInt]>,
         mut instruction_callback: CB,
-    ) -> Result<Vec<Option<BigInt>>, RuntimeError> {
+        mut check_cs: F,
+    ) -> Result<Vec<Option<BigInt>>, RuntimeError>
+    where
+        CB: FnMut(&CS) -> (),
+        F: FnMut(&CS) -> Result<(), RuntimeError>,
+    {
         let one = self
             .operations()
-            .constant_bigint_typed(&1.into(), ScalarType::BOOLEAN)?;
+            .constant_bigint_typed(&1.into(), PrimitiveType::BOOLEAN)?;
         self.condition_push(one)?;
 
         self.init_root_frame(&program.input, inputs)?;
@@ -96,7 +107,23 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
                 dispatch_instruction!(instruction => instruction.to_assembly())
             );
             self.state.instruction_counter += 1;
-            dispatch_instruction!(instruction => instruction.execute(self))?;
+            let result = dispatch_instruction!(instruction => instruction.execute(self));
+            if let Err(err) = result.and(check_cs(&self.cs.cs)) {
+                let msg = if let RuntimeError::UnsatisfiedConstraint = err {
+                    String::from("value overflow or constraint violation")
+                } else {
+                    format!("{:?}", err)
+                };
+
+                println!(
+                    "{} {:?}\n\tat {}",
+                    "Error".bold().red(),
+                    msg,
+                    self.location.to_string().blue()
+                );
+                return Err(err);
+            }
+
             log::trace!("{}", self.state_to_string());
             instruction_callback(&self.cs.cs);
             self.cs.cs.pop_namespace();
@@ -121,12 +148,22 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             None => {
                 for t in types {
                     let variable = self.operations().variable_none(t)?;
+                    if t.is_none() {
+                        // Add constraint so circuit doesn't fail if argument is not used.
+                        // TODO: Refactor this.
+                        self.operations().neg(variable.clone())?;
+                    }
                     self.push(Cell::Value(variable))?;
                 }
             }
             Some(values) => {
                 for (value, dtype) in values.iter().zip(types) {
                     let variable = self.operations().variable_bigint(value, dtype)?;
+                    if dtype.is_none() {
+                        // Add constraint so circuit doesn't fail if argument is not used.
+                        // TODO: Refactor this.
+                        self.operations().neg(variable.clone())?;
+                    }
                     self.push(Cell::Value(variable))?;
                 }
             }
@@ -136,7 +173,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
     }
 
     fn get_outputs(&mut self) -> Result<Vec<Option<BigInt>>, RuntimeError> {
-        let outputs_fr: Vec<_> = self.outputs.iter().rev().map(|f| (*f).clone()).collect();
+        let outputs_fr: Vec<_> = self.outputs.iter().map(|f| (*f).clone()).collect();
 
         let mut outputs_bigint = Vec::with_capacity(outputs_fr.len());
         for o in outputs_fr.into_iter() {
@@ -164,7 +201,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         self.state
             .conditions_stack
             .pop()
-            .ok_or(RuntimeError::StackUnderflow)
+            .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
     }
 
     pub fn condition_top(&mut self) -> Result<Primitive<E>, RuntimeError> {
@@ -172,29 +209,30 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             .conditions_stack
             .last()
             .map(|e| (*e).clone())
-            .ok_or(RuntimeError::StackUnderflow)
+            .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
     }
 
     fn top_frame(&mut self) -> Result<&mut FunctionFrame<E>, RuntimeError> {
         self.state
             .frames_stack
             .last_mut()
-            .ok_or(RuntimeError::StackUnderflow)
+            .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
     }
 }
 
-fn data_type_into_scalar_types(dtype: &DataType) -> Vec<Option<ScalarType>> {
-    fn internal(types: &mut Vec<Option<ScalarType>>, dtype: &DataType) {
+fn data_type_into_scalar_types(dtype: &DataType) -> Vec<Option<PrimitiveType>> {
+    fn internal(types: &mut Vec<Option<PrimitiveType>>, dtype: &DataType) {
         match dtype {
             DataType::Unit => {}
-            DataType::Primitive(t) => match t {
-                PrimitiveType::Field => {
+            DataType::Scalar(t) => match t {
+                ScalarType::Field => {
                     types.push(None);
                 }
-                PrimitiveType::Integer(int) => types.push(Some(ScalarType {
+                ScalarType::Integer(int) => types.push(Some(PrimitiveType {
                     signed: int.is_signed,
                     length: int.bit_length,
                 })),
+                ScalarType::Boolean => types.push(Some(PrimitiveType::BOOLEAN)),
             },
             DataType::Enum => {
                 types.push(None);

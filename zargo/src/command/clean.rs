@@ -1,25 +1,30 @@
 //!
-//! The Zargo `clean` command.
+//! The `clean` command.
 //!
 
-use std::ffi::OsString;
-use std::fs;
-use std::io;
+use std::convert::TryFrom;
 use std::path::PathBuf;
 
 use failure::Fail;
 use structopt::StructOpt;
 
+use crate::directory::build::Directory as BuildDirectory;
+use crate::directory::build::Error as BuildDirectoryError;
+use crate::directory::data::Directory as DataDirectory;
+use crate::directory::data::Error as DataDirectoryError;
 use crate::manifest::Error as ManifestError;
 use crate::manifest::Manifest;
 
 #[derive(Debug, StructOpt)]
 #[structopt(about = "Cleans up the circuit project")]
 pub struct Command {
-    #[structopt(short = "q", long = "quiet", help = "No output printed to stdout")]
-    quiet: bool,
-    #[structopt(short = "v", long = "verbose", help = "Use verbose output")]
-    verbose: bool,
+    #[structopt(
+        short = "v",
+        parse(from_occurrences),
+        help = "Shows verbose logs, use multiple times for more verbosity"
+    )]
+    verbosity: usize,
+
     #[structopt(
         long = "manifest-path",
         help = "Path to Zargo.toml",
@@ -30,44 +35,26 @@ pub struct Command {
 
 #[derive(Debug, Fail)]
 pub enum Error {
-    #[fail(display = "manifest file {:?} error: {}", _0, _1)]
-    ManifestFile(OsString, ManifestError),
-    #[fail(display = "build directory {:?} removing: {}", _0, _1)]
-    BuildDirectoryRemoving(OsString, io::Error),
+    #[fail(display = "manifest file: {}", _0)]
+    ManifestFile(ManifestError),
+    #[fail(display = "build directory: {}", _0)]
+    BuildDirectory(BuildDirectoryError),
+    #[fail(display = "data directory: {}", _0)]
+    DataDirectory(DataDirectoryError),
 }
 
 impl Command {
-    pub fn execute(mut self) -> Result<(), Error> {
-        let mut project_path = self.manifest_path.clone();
-        if !self
-            .manifest_path
-            .ends_with(crate::constants::CIRCUIT_MANIFEST_FILE_NAME)
-        {
-            self.manifest_path
-                .push(crate::constants::CIRCUIT_MANIFEST_FILE_NAME);
-        } else {
-            project_path.pop();
+    pub fn execute(self) -> Result<(), Error> {
+        let _manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
+
+        let mut circuit_path = self.manifest_path;
+        if circuit_path.is_file() {
+            circuit_path.pop();
         }
 
-        let manifest = Manifest::new(&self.manifest_path).map_err(|error| {
-            Error::ManifestFile(self.manifest_path.as_os_str().to_owned(), error)
-        })?;
+        BuildDirectory::remove(&circuit_path).map_err(Error::BuildDirectory)?;
+        DataDirectory::remove(&circuit_path).map_err(Error::DataDirectory)?;
 
-        let mut build_directory_path = project_path.clone();
-        build_directory_path.push(crate::constants::CIRCUIT_BUILD_DIRECTORY);
-        if build_directory_path.exists() {
-            fs::remove_dir_all(&build_directory_path).map_err(|error| {
-                Error::BuildDirectoryRemoving(build_directory_path.as_os_str().to_owned(), error)
-            })?;
-        }
-
-        if !self.quiet {
-            log::info!(
-                "The '{}' circuit directory '{}' has been cleaned up",
-                manifest.circuit.name,
-                project_path.to_string_lossy()
-            );
-        }
         Ok(())
     }
 }

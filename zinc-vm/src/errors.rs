@@ -1,36 +1,82 @@
+use failure::Fail;
 use franklin_crypto::bellman::SynthesisError;
+use num_bigint::BigInt;
 
-#[derive(Debug)]
-pub enum RuntimeError {
+#[derive(Debug, Fail)]
+pub enum MalformedBytecode {
+    #[fail(display = "invalid arguments to built-in function: {}", _0)]
     InvalidArguments(String),
-    StackUnderflow,
-    StackOverflow,
-    UnexpectedEndOfFile,
-    SynthesisError(SynthesisError),
-    InternalError(String),
-    IntegerOverflow,
+
+    #[fail(display = "unexpected `loop_end` instruction")]
     UnexpectedLoopEnd,
+
+    #[fail(display = "unexpected `return` instruction")]
     UnexpectedReturn,
-    UnexpectedFrameExit,
+
+    #[fail(display = "unexpected `else` instruction")]
     UnexpectedElse,
+
+    #[fail(display = "unexpected `end_if` instruction")]
     UnexpectedEndIf,
-    AssertionError,
-    FirstInstructionNotCall,
-    WrongInputsCount,
-    StackIndexOutOfRange,
+
+    #[fail(display = "stack underflow")]
+    StackUnderflow,
+
+    #[fail(display = "reading uninitialized memory")]
     UninitializedStorageAccess,
-    MissingArgument,
+
+    #[fail(display = "conditional branches produced results of different sizes")]
     BranchStacksDoNotMatch,
-    IndexOutOfBounds,
-    MergingNonValueTypes,
-    UnexpectedNonValueType,
-    TypeError,
+}
+
+#[derive(Debug, Fail)]
+pub enum RuntimeError {
+    #[fail(display = "synthesis error: {}", _0)]
+    SynthesisError(SynthesisError),
+
+    #[fail(display = "internal error in virtual machine: {}", _0)]
+    InternalError(String),
+
+    #[fail(display = "malformed bytecode: {}", _0)]
+    MalformedBytecode(MalformedBytecode),
+
+    #[fail(display = "assertion error: got false expression in `assert!`")]
+    AssertionError,
+
+    #[fail(
+        display = "index out of bounds: expected index in range {}..{}, got {}",
+        lower_bound, upper_bound, actual
+    )]
+    IndexOutOfBounds {
+        lower_bound: usize,
+        upper_bound: usize,
+        actual: usize,
+    },
+
+    #[fail(display = "type error: expected {}, got {}", expected, actual)]
+    TypeError { expected: String, actual: String },
+
+    #[fail(display = "constant value expected, got variable (witness)")]
     ExpectedConstant,
-    ExpectedUsize,
+
+    #[fail(display = "size is too large: {}", _0)]
+    ExpectedUsize(BigInt),
+
+    #[fail(display = "value overflow or constraint violation")]
+    UnsatisfiedConstraint,
+
+    #[fail(display = "division by zero")]
+    ZeroDivisionError,
 }
 
 impl From<SynthesisError> for RuntimeError {
     fn from(error: SynthesisError) -> Self {
         RuntimeError::SynthesisError(error)
+    }
+}
+
+impl From<MalformedBytecode> for RuntimeError {
+    fn from(error: MalformedBytecode) -> Self {
+        RuntimeError::MalformedBytecode(error)
     }
 }

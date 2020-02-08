@@ -40,8 +40,8 @@ fn main(/* ... */) {
 }
 ```
 
-If you are familiar with Rust, it can resemble the macro syntax found there, but
-actually, these functions have nothing to do with macros. Instead, they
-represent some special Zinc VM instructions.
+> If you are familiar with Rust, it can resemble the macro syntax found there, but
+> actually, these functions have nothing to do with macros. Instead, they
+> represent some special Zinc VM instructions.
 
 The exhaustive list of function signatures is provided in [Appendix D](../appendix/D-built-in-functions.md).

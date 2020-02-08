@@ -208,7 +208,7 @@ mod tests {
                             Location::new(1, 22),
                             ExpressionObject::Operand(ExpressionOperand::Type(Type::new(
                                 Location::new(1, 22),
-                                TypeVariant::new_field(),
+                                TypeVariant::field(),
                             ))),
                         ),
                         ExpressionElement::new(

@@ -16,13 +16,32 @@ use franklin_crypto::bellman::Variable;
 use num_traits::ToPrimitive;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct ScalarType {
+pub struct PrimitiveType {
     pub signed: bool,
     pub length: usize,
 }
 
-impl ScalarType {
-    pub const BOOLEAN: Self = ScalarType {
+pub trait TypeToString {
+    fn type_to_string(&self) -> String;
+}
+
+impl TypeToString for Option<PrimitiveType> {
+    fn type_to_string(&self) -> String {
+        match self {
+            None => "field".into(),
+            Some(t) => {
+                if t.length == 1 {
+                    "bool".into()
+                } else {
+                    format!("{}{}", if t.signed { "i" } else { "u" }, t.length,)
+                }
+            }
+        }
+    }
+}
+
+impl PrimitiveType {
+    pub const BOOLEAN: Self = PrimitiveType {
         signed: false,
         length: 1,
     };
@@ -33,11 +52,11 @@ impl ScalarType {
 pub struct Primitive<E: Engine> {
     value: Option<E::Fr>,
     variable: Variable,
-    data_type: Option<ScalarType>,
+    data_type: Option<PrimitiveType>,
 }
 
 impl<E: Engine> Primitive<E> {
-    pub fn get_data_type(&self) -> Option<ScalarType> {
+    pub fn get_data_type(&self) -> Option<PrimitiveType> {
         self.data_type
     }
 
@@ -48,7 +67,9 @@ impl<E: Engine> Primitive<E> {
     pub fn get_constant_usize(&self) -> Result<usize, RuntimeError> {
         let fr = self.get_constant()?;
         let bigint = fr_to_bigint(&fr);
-        bigint.to_usize().ok_or(RuntimeError::ExpectedUsize)
+        bigint
+            .to_usize()
+            .ok_or_else(|| RuntimeError::ExpectedUsize(bigint))
     }
 }
 

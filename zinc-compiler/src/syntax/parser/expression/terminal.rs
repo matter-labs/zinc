@@ -38,10 +38,7 @@ impl Parser {
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
     ) -> Result<(Expression, Option<Token>), Error> {
-        match match initial.take() {
-            Some(next) => next,
-            None => stream.borrow_mut().next()?,
-        } {
+        match crate::syntax::take_or_next(initial.take(), stream.clone())? {
             token
             @
             Token {
@@ -107,16 +104,26 @@ impl Parser {
             token
             @
             Token {
-                lexeme: Lexeme::Keyword(Keyword::Struct),
+                lexeme: Lexeme::Identifier(..),
                 ..
             } => {
                 self.builder.set_location(token.location);
                 let (expression, next) =
                     StructureExpressionParser::default().parse(stream, Some(token))?;
-                self.builder.push_operand(
-                    expression.location,
-                    ExpressionOperand::Structure(expression),
-                );
+                if expression.is_struct {
+                    self.builder.push_operand(
+                        expression.location,
+                        ExpressionOperand::Structure(expression),
+                    );
+                } else {
+                    let mut builder = IdentifierBuilder::default();
+                    builder.set_location(expression.identifier.location);
+                    builder.set_name(expression.identifier.name);
+                    self.builder.push_operand(
+                        expression.location,
+                        ExpressionOperand::Identifier(builder.finish()),
+                    );
+                }
                 Ok((self.builder.finish(), next))
             }
             Token {
@@ -152,32 +159,9 @@ impl Parser {
                 );
                 Ok((self.builder.finish(), None))
             }
-            Token {
-                lexeme: Lexeme::Identifier(identifier),
-                location,
-            } => {
-                self.builder.set_location(location);
-                let mut identifier_builder = IdentifierBuilder::default();
-                identifier_builder.set_location(location);
-                identifier_builder.set_name(identifier.name);
-                self.builder.push_operand(
-                    location,
-                    ExpressionOperand::Identifier(identifier_builder.finish()),
-                );
-                Ok((self.builder.finish(), None))
-            }
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
                 location,
-                vec![
-                    "(",
-                    "{",
-                    "[",
-                    "if",
-                    "match",
-                    "struct",
-                    "{literal}",
-                    "{identifier}",
-                ],
+                vec!["(", "{", "[", "if", "match", "{identifier}", "{literal}"],
                 lexeme,
             ))),
         }
@@ -191,7 +175,9 @@ mod tests {
 
     use super::Parser;
     use crate::lexical;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Expression;
     use crate::syntax::ExpressionElement;
@@ -298,7 +284,7 @@ mod tests {
                     ))),
                 )],
             ),
-            None,
+            Some(Token::new(Lexeme::Eof, Location::new(1, 6))),
         ));
 
         let result = Parser::default().parse(

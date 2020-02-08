@@ -221,7 +221,7 @@ fn main(
         merkle_path,
     );
 
-    struct PublicInput {
+    PublicInput {
         root_hash: root_hash,
     }
 }
@@ -252,7 +252,7 @@ fn main(
         merkle_path,
     );
 
-    struct PublicInput {
+    PublicInput {
         root_hash: root_hash,
     }
 }
@@ -282,7 +282,7 @@ fn main(
         merkle_path,
     );
 
-    struct PublicInput {
+    PublicInput {
         root_hash: root_hash,
     }
 }
@@ -342,7 +342,7 @@ that `std::crypto::sha256(data)`.
 
 ## Finalizing
 
-Congratulations, now you are an experienced Zinc developer!
+Congratulations, you are an experienced Zinc developer!
 Now, you may build the circuit, generate and verify a proof, like it was
 explained in the [previous chapter](./01-first-circuit.md),
 and move on to reading the rest of the book!

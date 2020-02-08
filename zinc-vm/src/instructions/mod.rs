@@ -9,4 +9,5 @@ pub mod assert;
 pub mod call_builtin;
 pub mod cast;
 pub mod dbg;
+pub mod markers;
 pub mod noop;

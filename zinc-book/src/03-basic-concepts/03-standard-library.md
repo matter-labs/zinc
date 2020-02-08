@@ -23,25 +23,3 @@ fn main(preimage: [bool; 256]) -> ([bool; 256], (field, field)) {
     (input_sha256, input_pedersen)
 }
 ```
-
-
-## Built-in functions
-
-There are several built-in functions, which can be called directly from
-anywhere in your code.
-
-The exhaustive list of function signatures is provided in [Appendix D](../appendix/D-built-in-functions.md).
-
-To call such a function, use the syntax, as in the following example:
-
-```rust,no_run,noplaypen
-fn main(/* ... */) {
-    let value: u8 = 42;
-    dbg!("{}", value);
-    assert!(value == 42);
-}
-```
-
-If you are familiar with Rust, it can resemble the macro syntax found there, but
-actually these functions have nothing to do with macros. Instead, they
-represent some special Zinc VM instructions.

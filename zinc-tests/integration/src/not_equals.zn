@@ -1,0 +1,195 @@
+//!
+//! The '!=' operator tests.
+//!
+
+struct ResultU8 {
+    not_equals_zero_zero: bool,
+    not_equals_zero_value: bool,
+    not_equals_value_zero: bool,
+    not_equals_value_value: bool,
+    not_equals_max: bool,
+}
+
+impl ResultU8 {
+    fn test() -> Self {
+        Self {
+            not_equals_zero_zero: 0 != 0,
+            not_equals_zero_value: 0 != 5,
+            not_equals_value_zero: 5 != 0,
+            not_equals_value_value: 5 != 5,
+            not_equals_max: 255 != 255,
+        }
+    }
+}
+
+struct ResultI8 {
+    not_equals_zero_zero: bool,
+    not_equals_zero_value: bool,
+    not_equals_value_zero: bool,
+    not_equals_value_value: bool,
+    not_equals_max: bool,
+    not_equals_min: bool,
+}
+
+impl ResultI8 {
+    fn test() -> Self {
+        Self {
+            not_equals_zero_zero: 0 as i8 != 0 as i8,
+            not_equals_zero_value: 0 as i8 != 13 as i8,
+            not_equals_value_zero: 13 as i8 != 0 as i8,
+            not_equals_value_value: 13 as i8 != 13 as i8,
+            not_equals_max: 127 != 127,
+            not_equals_min: -128 != -128,
+        }
+    }
+}
+
+struct ResultU64 {
+    not_equals_zero_zero: bool,
+    not_equals_zero_value: bool,
+    not_equals_value_zero: bool,
+    not_equals_value_value: bool,
+    not_equals_max: bool,
+}
+
+impl ResultU64 {
+    fn test() -> Self {
+        Self {
+            not_equals_zero_zero: 0 as u64 != 0 as u64,
+            not_equals_zero_value: 0 as u64 != 34 as u64,
+            not_equals_value_zero: 34 as u64 != 0 as u64,
+            not_equals_value_value: 34 as u64 != 34 as u64,
+            not_equals_max: 0xFFFF_FFFF_FFFF_FFFF as u64 != 0xFFFF_FFFF_FFFF_FFFF as u64,
+        }
+    }
+}
+
+struct ResultI64 {
+    not_equals_zero_zero: bool,
+    not_equals_zero_value: bool,
+    not_equals_value_zero: bool,
+    not_equals_value_value: bool,
+    not_equals_max: bool,
+    not_equals_min: bool,
+}
+
+impl ResultI64 {
+    fn test() -> Self {
+        Self {
+            not_equals_zero_zero: 0 as i64 != 0 as i64,
+            not_equals_zero_value: 0 as i64 != 89 as i64,
+            not_equals_value_zero: 89 as i64 != 0 as i64,
+            not_equals_value_value: 89 as i64 != 89 as i64,
+            not_equals_max: 0x7FFF_FFFF_FFFF_FFFF as i64 != 0x7FFF_FFFF_FFFF_FFFF as i64,
+            not_equals_min: -0x8000_0000_0000_0000 != -0x8000_0000_0000_0000,
+        }
+    }
+}
+
+struct ResultU248 {
+    not_equals_zero_zero: bool,
+    not_equals_zero_value: bool,
+    not_equals_value_zero: bool,
+    not_equals_value_value: bool,
+    not_equals_max: bool,
+}
+
+impl ResultU248 {
+    fn test() -> Self {
+        Self {
+            not_equals_zero_zero: 0 as u248 != 0 as u248,
+            not_equals_zero_value: 0 as u248 != 144 as u248,
+            not_equals_value_zero: 144 as u248 != 0 as u248,
+            not_equals_value_value: 144 as u248 != 144 as u248,
+            not_equals_max: 0xFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF as u248 !=
+                0xFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF as u248,
+        }
+    }
+}
+
+struct ResultI248 {
+    not_equals_zero_zero: bool,
+    not_equals_zero_value: bool,
+    not_equals_value_zero: bool,
+    not_equals_value_value: bool,
+    not_equals_max: bool,
+    not_equals_min: bool,
+}
+
+impl ResultI248 {
+    fn test() -> Self {
+        Self {
+            not_equals_zero_zero: 0 as i248 != 0 as i248,
+            not_equals_zero_value: 0 as i248 != 233 as i248,
+            not_equals_value_zero: 233 as i248 != 0 as i248,
+            not_equals_value_value: 233 as i248 != 233 as i248,
+            not_equals_max: 0x7F_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF as i248
+                != 0x7F_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF as i248,
+            not_equals_min: -0x80_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000 != -0x80_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000,
+        }
+    }
+}
+
+struct ResultField {
+    not_equals_zero_zero: bool,
+    not_equals_zero_value: bool,
+    not_equals_value_zero: bool,
+    not_equals_value_value: bool,
+    not_equals_max: bool,
+}
+
+impl ResultField {
+    fn test() -> Self {
+        Self {
+            not_equals_zero_zero: 0 as field != 0 as field,
+            not_equals_zero_value: 0 as field != 377 as field,
+            not_equals_value_zero: 377 as field != 0 as field,
+            not_equals_value_value: 377 as field != 377 as field,
+            not_equals_max: 21888242871839275222246405745257275088548364400416034343698204186575808495616 != 21888242871839275222246405745257275088548364400416034343698204186575808495616,
+        }
+    }
+}
+
+struct ResultWitness {
+    not_equals_const_const: bool,
+    not_equals_const_value: bool,
+    not_equals_value_const: bool,
+    not_equals_value_value: bool,
+}
+
+impl ResultWitness {
+    fn test(witness: u8) -> Self {
+        Self {
+            not_equals_const_const: 42 != 42,
+            not_equals_const_value: 42 != witness,
+            not_equals_value_const: witness != 42,
+            not_equals_value_value: witness != witness,
+        }
+    }
+}
+
+struct Result {
+    result_u8: ResultU8,
+    result_i8: ResultI8,
+    result_u64: ResultU64,
+    result_i64: ResultI64,
+    result_u248: ResultU248,
+    result_i248: ResultI248,
+    result_field: ResultField,
+    result_witness: ResultWitness,
+}
+
+impl Result {
+    fn test(witness: u8) -> Self {
+        Self {
+            result_u8: ResultU8::test(),
+            result_i8: ResultI8::test(),
+            result_u64: ResultU64::test(),
+            result_i64: ResultI64::test(),
+            result_u248: ResultU248::test(),
+            result_i248: ResultI248::test(),
+            result_field: ResultField::test(),
+            result_witness: ResultWitness::test(witness),
+        }
+    }
+}

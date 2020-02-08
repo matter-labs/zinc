@@ -1,0 +1,53 @@
+//!
+//! The '^^' operator tests.
+//!
+
+struct ResultBool {
+    xor_false_false: bool,
+    xor_false_true: bool,
+    xor_true_false: bool,
+    xor_true_true: bool,
+}
+
+impl ResultBool {
+    fn test() -> Self {
+        Self {
+            xor_false_false: false ^^ false,
+            xor_false_true: false ^^ true,
+            xor_true_false: true ^^ false,
+            xor_true_true: true ^^ true,
+        }
+    }
+}
+
+struct ResultWitness {
+    xor_const_const: bool,
+    xor_const_value: bool,
+    xor_value_const: bool,
+    xor_value_value: bool,
+}
+
+impl ResultWitness {
+    fn test(witness: bool) -> Self {
+        Self {
+            xor_const_const: false ^^ false,
+            xor_const_value: false ^^ witness,
+            xor_value_const: witness ^^ false,
+            xor_value_value: witness ^^ witness,
+        }
+    }
+}
+
+struct Result {
+    result_bool: ResultBool,
+    result_witness: ResultWitness,
+}
+
+impl Result {
+    fn test(witness: bool) -> Self {
+        Self {
+            result_bool: ResultBool::test(),
+            result_witness: ResultWitness::test(witness),
+        }
+    }
+}

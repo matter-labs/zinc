@@ -6,7 +6,6 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
@@ -14,14 +13,12 @@ use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
 use crate::syntax::ExpressionParser;
 use crate::syntax::Identifier;
-use crate::syntax::PathOperandParser;
 use crate::syntax::StructureExpression;
 use crate::syntax::StructureExpressionBuilder;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    KeywordStruct,
-    Path,
+    Identifier,
     BracketCurlyLeftOrEnd,
     IdentifierOrBracketCurlyRight,
     Colon,
@@ -31,7 +28,7 @@ pub enum State {
 
 impl Default for State {
     fn default() -> Self {
-        State::KeywordStruct
+        State::Identifier
     }
 }
 
@@ -50,36 +47,15 @@ impl Parser {
     ) -> Result<(StructureExpression, Option<Token>), Error> {
         loop {
             match self.state {
-                State::KeywordStruct => {
+                State::Identifier => {
                     match crate::syntax::take_or_next(initial.take(), stream.clone())? {
                         Token {
-                            lexeme: Lexeme::Keyword(Keyword::Struct),
+                            lexeme: Lexeme::Identifier(identifier),
                             location,
                         } => {
                             self.builder.set_location(location);
-                            self.state = State::Path;
-                        }
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["struct"],
-                                lexeme,
-                            )));
-                        }
-                    }
-                }
-                State::Path => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
-                        token
-                        @
-                        Token {
-                            lexeme: Lexeme::Identifier(_),
-                            ..
-                        } => {
-                            let (expression, next) =
-                                PathOperandParser::default().parse(stream.clone(), Some(token))?;
-                            self.next = next;
-                            self.builder.set_path_expression(expression);
+                            let identifier = Identifier::new(location, identifier.name);
+                            self.builder.set_identifier(identifier);
                             self.state = State::BracketCurlyLeftOrEnd;
                         }
                         Token { lexeme, location } => {
@@ -93,10 +69,23 @@ impl Parser {
                 }
                 State::BracketCurlyLeftOrEnd => {
                     match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                        token
+                        @
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
-                        } => self.state = State::IdentifierOrBracketCurlyRight,
+                        } => {
+                            match stream.borrow_mut().look_ahead(2)? {
+                                Token {
+                                    lexeme: Lexeme::Symbol(Symbol::Colon),
+                                    ..
+                                } => {}
+                                _ => return Ok((self.builder.finish(), Some(token))),
+                            }
+
+                            self.builder.set_struct();
+                            self.state = State::IdentifierOrBracketCurlyRight;
+                        }
                         token => return Ok((self.builder.finish(), Some(token))),
                     }
                 }
@@ -176,7 +165,9 @@ mod tests {
 
     use super::Parser;
     use crate::lexical;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Token;
     use crate::lexical::TokenStream;
     use crate::syntax::Expression;
     use crate::syntax::ExpressionElement;
@@ -187,35 +178,27 @@ mod tests {
     use crate::syntax::StructureExpression;
 
     #[test]
-    fn ok_single() {
+    fn ok_struct_single() {
         let input = r#"
-    struct Test {
-        a: 1,
-    }
+Test {
+    a: 1,
+}
 "#;
 
         let expected = Ok((
             StructureExpression::new(
-                Location::new(2, 5),
-                Expression::new(
-                    Location::new(2, 12),
-                    vec![ExpressionElement::new(
-                        Location::new(2, 12),
-                        ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-                            Location::new(2, 12),
-                            "Test".to_owned(),
-                        ))),
-                    )],
-                ),
+                Location::new(2, 1),
+                Identifier::new(Location::new(2, 1), "Test".to_owned()),
+                true,
                 vec![(
-                    Identifier::new(Location::new(3, 9), "a".to_owned()),
+                    Identifier::new(Location::new(3, 5), "a".to_owned()),
                     Expression::new(
-                        Location::new(3, 12),
+                        Location::new(3, 8),
                         vec![ExpressionElement::new(
-                            Location::new(3, 12),
+                            Location::new(3, 8),
                             ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                                 IntegerLiteral::new(
-                                    Location::new(3, 12),
+                                    Location::new(3, 8),
                                     lexical::IntegerLiteral::new_decimal("1".to_owned()),
                                 ),
                             )),
@@ -235,38 +218,30 @@ mod tests {
     }
 
     #[test]
-    fn ok_multiple() {
+    fn ok_struct_multiple() {
         let input = r#"
-    struct Test {
-        a: 1,
-        b: 2,
-        c: 3,
-    }
+Test {
+    a: 1,
+    b: 2,
+    c: 3,
+}
 "#;
 
         let expected = Ok((
             StructureExpression::new(
-                Location::new(2, 5),
-                Expression::new(
-                    Location::new(2, 12),
-                    vec![ExpressionElement::new(
-                        Location::new(2, 12),
-                        ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-                            Location::new(2, 12),
-                            "Test".to_owned(),
-                        ))),
-                    )],
-                ),
+                Location::new(2, 1),
+                Identifier::new(Location::new(2, 1), "Test".to_owned()),
+                true,
                 vec![
                     (
-                        Identifier::new(Location::new(3, 9), "a".to_owned()),
+                        Identifier::new(Location::new(3, 5), "a".to_owned()),
                         Expression::new(
-                            Location::new(3, 12),
+                            Location::new(3, 8),
                             vec![ExpressionElement::new(
-                                Location::new(3, 12),
+                                Location::new(3, 8),
                                 ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                                     IntegerLiteral::new(
-                                        Location::new(3, 12),
+                                        Location::new(3, 8),
                                         lexical::IntegerLiteral::new_decimal("1".to_owned()),
                                     ),
                                 )),
@@ -274,14 +249,14 @@ mod tests {
                         ),
                     ),
                     (
-                        Identifier::new(Location::new(4, 9), "b".to_owned()),
+                        Identifier::new(Location::new(4, 5), "b".to_owned()),
                         Expression::new(
-                            Location::new(4, 12),
+                            Location::new(4, 8),
                             vec![ExpressionElement::new(
-                                Location::new(4, 12),
+                                Location::new(4, 8),
                                 ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                                     IntegerLiteral::new(
-                                        Location::new(4, 12),
+                                        Location::new(4, 8),
                                         lexical::IntegerLiteral::new_decimal("2".to_owned()),
                                     ),
                                 )),
@@ -289,14 +264,14 @@ mod tests {
                         ),
                     ),
                     (
-                        Identifier::new(Location::new(5, 9), "c".to_owned()),
+                        Identifier::new(Location::new(5, 5), "c".to_owned()),
                         Expression::new(
-                            Location::new(5, 12),
+                            Location::new(5, 8),
                             vec![ExpressionElement::new(
-                                Location::new(5, 12),
+                                Location::new(5, 8),
                                 ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
                                     IntegerLiteral::new(
-                                        Location::new(5, 12),
+                                        Location::new(5, 8),
                                         lexical::IntegerLiteral::new_decimal("3".to_owned()),
                                     ),
                                 )),
@@ -317,27 +292,17 @@ mod tests {
     }
 
     #[test]
-    fn ok_empty() {
-        let input = r#"
-    struct Test {}
-"#;
+    fn ok_identifier() {
+        let input = r#"test"#;
 
         let expected = Ok((
             StructureExpression::new(
-                Location::new(2, 5),
-                Expression::new(
-                    Location::new(2, 12),
-                    vec![ExpressionElement::new(
-                        Location::new(2, 12),
-                        ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-                            Location::new(2, 12),
-                            "Test".to_owned(),
-                        ))),
-                    )],
-                ),
+                Location::new(1, 1),
+                Identifier::new(Location::new(1, 1), "test".to_owned()),
+                false,
                 vec![],
             ),
-            None,
+            Some(Token::new(Lexeme::Eof, Location::new(1, 5))),
         ));
 
         let result = Parser::default().parse(

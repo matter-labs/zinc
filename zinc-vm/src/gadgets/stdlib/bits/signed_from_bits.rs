@@ -1,5 +1,5 @@
 use crate::gadgets::utils::bigint_to_fr;
-use crate::gadgets::{Gadget, Primitive, ScalarType};
+use crate::gadgets::{Gadget, Primitive, PrimitiveType};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::{ConstraintSystem, SynthesisError};
@@ -27,7 +27,7 @@ impl<E: Engine> Gadget<E> for SignedFromBits {
                 0,
                 "Scalar bit length should be multiple of 8"
             );
-            let data_type = ScalarType {
+            let data_type = PrimitiveType {
                 signed: false,
                 length: input.len(),
             };
@@ -35,7 +35,7 @@ impl<E: Engine> Gadget<E> for SignedFromBits {
         };
 
         let mut bits = Vec::with_capacity(length);
-        for (i, value) in input.iter().enumerate() {
+        for (i, value) in input.iter().rev().enumerate() {
             let bit = value.value.map(|fr| -> bool { !fr.is_zero() });
             let allocated_bit =
                 AllocatedBit::alloc(cs.namespace(|| format!("AllocatedBit {}", i)), bit)?;

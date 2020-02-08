@@ -9,14 +9,19 @@ pub use decode::*;
 pub use instructions::*;
 pub use program::*;
 
+use crate::instructions::FileMarker;
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
 
 pub trait InstructionInfo: PartialEq + fmt::Debug + Sized {
     fn to_assembly(&self) -> String;
     fn code() -> InstructionCode;
-    fn encode(&self) -> Vec<u8>;
-    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError>;
+    fn encode(&self) -> Vec<u8> {
+        unimplemented!()
+    }
+    fn decode(_bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
+        unimplemented!()
+    }
     fn inputs_count(&self) -> usize;
     fn outputs_count(&self) -> usize;
     fn wrap(&self) -> Instruction;
@@ -38,6 +43,7 @@ pub enum InstructionCode {
     PushConst,
     Pop,
     Slice,
+    Swap,
 
     // Data Stack
     Load,
@@ -107,9 +113,14 @@ pub enum InstructionCode {
     CallBuiltin,
 
     Assert,
-    Log,
+    Dbg,
 
     Exit,
+
+    FileMarker,
+    FunctionMarker,
+    LineMarker,
+    ColumnMarker,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -120,6 +131,7 @@ pub enum Instruction {
     PushConst(PushConst),
     Pop(Pop),
     Slice(Slice),
+    Swap(Swap),
 
     // Storage
     Load(Load),
@@ -190,9 +202,14 @@ pub enum Instruction {
 
     // Condition utils
     Assert(Assert),
-    Log(Dbg),
+    Dbg(Dbg),
 
     Exit(Exit),
+
+    FileMarker(FileMarker),
+    FunctionMarker(FunctionMarker),
+    LineMarker(LineMarker),
+    ColumnMarker(ColumnMarker),
 }
 
 /// Useful macro to avoid duplicating `match` constructions.
@@ -213,6 +230,7 @@ macro_rules! dispatch_instruction {
             Instruction::PushConst($pattern) => $expression,
             Instruction::Pop($pattern) => $expression,
             Instruction::Slice($pattern) => $expression,
+            Instruction::Swap($pattern) => $expression,
 
             Instruction::Load($pattern) => $expression,
             Instruction::LoadSequence($pattern) => $expression,
@@ -277,9 +295,13 @@ macro_rules! dispatch_instruction {
             Instruction::CallBuiltin($pattern) => $expression,
 
             Instruction::Assert($pattern) => $expression,
-            Instruction::Log($pattern) => $expression,
+            Instruction::Dbg($pattern) => $expression,
 
             Instruction::Exit($pattern) => $expression,
+            Instruction::FileMarker($pattern) => $expression,
+            Instruction::FunctionMarker($pattern) => $expression,
+            Instruction::LineMarker($pattern) => $expression,
+            Instruction::ColumnMarker($pattern) => $expression,
         }
     };
 }

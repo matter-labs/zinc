@@ -6,10 +6,10 @@
 
 use crate::lexical::Location;
 
-use crate::semantic::ElementError;
+use crate::semantic::element::error::Error as ElementError;
+use crate::semantic::element::value::error::Error as ValueError;
+use crate::semantic::element::value::structure::error::Error as StructureValueError;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::StructureValueError;
-use crate::semantic::ValueError;
 
 use crate::Error;
 
@@ -21,7 +21,7 @@ struct Data {
 }
 
 fn main() {
-    let result = struct Data {
+    let result = Data {
         a: 0,
     }.b;
 }

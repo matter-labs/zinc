@@ -3,7 +3,7 @@ extern crate franklin_crypto;
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::gadgets::ScalarType;
+use crate::gadgets::PrimitiveType;
 use crate::Engine;
 use zinc_bytecode::instructions::Cast;
 
@@ -14,7 +14,7 @@ where
 {
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         let old_value = vm.pop()?.value()?;
-        let data_type = ScalarType {
+        let data_type = PrimitiveType {
             signed: self.signed,
             length: self.length,
         };

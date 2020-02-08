@@ -7,9 +7,9 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::error::Error as CompilerError;
-use crate::semantic::Bytecode;
-use crate::semantic::Scope;
-use crate::semantic::StatementAnalyzer;
+use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
+use crate::semantic::bytecode::Bytecode;
+use crate::semantic::scope::Scope;
 use crate::SyntaxTree;
 
 pub struct Analyzer {
