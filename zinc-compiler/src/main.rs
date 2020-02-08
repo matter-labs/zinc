@@ -161,16 +161,23 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
         None => return Err(Error::EntrySourceFileNotFound),
     }
 
-    File::create(&args.witness_template_path)
-        .map_err(OutputError::Creating)
-        .map_err(Error::WitnessTemplateOutput)?
-        .write_all(bytecode.borrow().input_template_bytes().as_slice())
-        .map_err(OutputError::Writing)
-        .map_err(Error::WitnessTemplateOutput)?;
-    log::info!(
-        "Witness template written to {:?}",
-        args.witness_template_path
-    );
+    if !args.witness_template_path.exists() {
+        File::create(&args.witness_template_path)
+            .map_err(OutputError::Creating)
+            .map_err(Error::WitnessTemplateOutput)?
+            .write_all(bytecode.borrow().input_template_bytes().as_slice())
+            .map_err(OutputError::Writing)
+            .map_err(Error::WitnessTemplateOutput)?;
+        log::info!(
+            "Witness template written to {:?}",
+            args.witness_template_path
+        );
+    } else {
+        log::warn!(
+            "Witness template {:?} already exists. Please, remove it manually so the compiler may recreate it",
+            args.witness_template_path
+        );
+    }
 
     File::create(&args.public_data_template_path)
         .map_err(OutputError::Creating)
