@@ -1067,7 +1067,7 @@ dependencies = [
 
 [[package]]
 name = "zinc-bytecode"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bincode",
  "enum-primitive-derive",
@@ -1099,7 +1099,7 @@ dependencies = [
 
 [[package]]
 name = "zinc-vm"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bellman_ce",
  "clap",
