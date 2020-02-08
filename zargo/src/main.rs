@@ -7,13 +7,13 @@ mod constants;
 mod manifest;
 mod templates;
 
-pub use self::command::Command;
-pub use self::command::Error as CommandError;
-
 use std::process;
 
 use log::LevelFilter;
 use structopt::StructOpt;
+
+use self::command::error::Error as CommandError;
+use self::command::Command;
 
 const EXIT_CODE_SUCCESS: i32 = 0;
 const EXIT_CODE_FAILURE: i32 = 1;
@@ -33,7 +33,6 @@ struct Arguments {
 
 fn main() {
     let args: Arguments = Arguments::from_args();
-    init_logger(args.verbose);
 
     process::exit(match main_inner(args) {
         Ok(()) => EXIT_CODE_SUCCESS,
@@ -45,6 +44,7 @@ fn main() {
 }
 
 fn main_inner(args: Arguments) -> Result<(), CommandError> {
+    init_logger(args.verbose);
     args.command.execute()
 }
 

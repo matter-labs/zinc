@@ -5,10 +5,10 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
-use crate::semantic::Element;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::element::value::Value;
+use crate::semantic::element::Element;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::Type;
-use crate::semantic::Value;
 use crate::Error;
 
 #[test]
@@ -23,10 +23,7 @@ fn main() {
     let expected = Err(Error::Semantic(
         SemanticError::ConstantExpressionHasNonConstantElement(
             Location::new(4, 26),
-            Element::Value(Value::new(Type::new_integer_unsigned(
-                crate::BITLENGTH_BYTE,
-            )))
-            .to_string(),
+            Element::Value(Value::new(Type::integer_unsigned(crate::BITLENGTH_BYTE))).to_string(),
         ),
     ));
 

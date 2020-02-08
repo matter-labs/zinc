@@ -7,14 +7,14 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::error::Error as CompilerError;
-use crate::semantic::Bytecode;
-use crate::semantic::Error;
-use crate::semantic::FunctionType;
-use crate::semantic::Scope;
-use crate::semantic::ScopeItem;
-use crate::semantic::StatementAnalyzer;
-use crate::semantic::Type;
-use crate::semantic::UserDefinedFunctionType;
+use crate::semantic::analyzer::error::Error;
+use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
+use crate::semantic::bytecode::Bytecode;
+use crate::semantic::element::r#type::function::user::Function as UserDefinedFunctionType;
+use crate::semantic::element::r#type::function::Function as FunctionType;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::scope::item::Item as ScopeItem;
+use crate::semantic::scope::Scope;
 use crate::SyntaxTree;
 
 pub struct Analyzer {

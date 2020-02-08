@@ -42,11 +42,11 @@ pub struct Command {
     witness: PathBuf,
 
     #[structopt(
-        long = "pubdata",
-        help = "Path to the pubdata JSON file to write",
+        long = "public-data",
+        help = "Path to the public data JSON file to write",
         default_value = "./build/public-data.json"
     )]
-    pubdata: PathBuf,
+    public_data: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -62,7 +62,7 @@ pub enum Error {
 impl Command {
     pub fn execute(self) -> Result<(), Error> {
         let mut virtual_machine_process =
-            process::Command::new(crate::constants::ZINC_VIRTUAL_MACHINE_BINARY_NAME)
+            process::Command::new(crate::constants::ZINC_BINARY_NAME_VIRTUAL_MACHINE)
                 .args(vec!["-v"; self.verbose])
                 .arg("prove")
                 .arg("--circuit")
@@ -71,8 +71,8 @@ impl Command {
                 .arg(self.proving_key)
                 .arg("--witness")
                 .arg(self.witness)
-                .arg("--pubdata")
-                .arg(self.pubdata)
+                .arg("--public-data")
+                .arg(self.public_data)
                 .spawn()
                 .map_err(Error::VirtualMachineProcessSpawning)?;
         let virtual_machine_process_status = virtual_machine_process

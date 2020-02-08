@@ -6,10 +6,10 @@
 
 use crate::lexical::Location;
 
-use crate::semantic::ElementError;
+use crate::semantic::element::error::Error as ElementError;
+use crate::semantic::element::place::error::Error as PlaceError;
+use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::PlaceError;
-use crate::semantic::Type;
 
 use crate::Error;
 
@@ -31,11 +31,12 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(10, 21),
         ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedTuple(
-            Type::new_structure(
+            Type::structure(
                 "Data".to_owned(),
+                1,
                 vec![(
                     "a".to_owned(),
-                    Type::new_integer_unsigned(crate::BITLENGTH_BYTE),
+                    Type::integer_unsigned(crate::BITLENGTH_BYTE),
                 )],
                 None,
             )
@@ -43,6 +44,9 @@ fn main() {
         )),
     )));
 
+    unsafe {
+        crate::semantic::element::r#type::UNIQUE_ID = 0;
+    }
     let result = super::get_binary_result(input);
 
     assert_eq!(expected, result);

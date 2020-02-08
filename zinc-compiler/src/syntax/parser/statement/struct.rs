@@ -151,7 +151,7 @@ mod tests {
                 vec![Field::new(
                     Location::new(3, 9),
                     Identifier::new(Location::new(3, 9), "a".to_owned()),
-                    Type::new(Location::new(3, 12), TypeVariant::new_integer_unsigned(232)),
+                    Type::new(Location::new(3, 12), TypeVariant::integer_unsigned(232)),
                 )],
             ),
             None,
@@ -183,17 +183,17 @@ mod tests {
                     Field::new(
                         Location::new(3, 9),
                         Identifier::new(Location::new(3, 9), "a".to_owned()),
-                        Type::new(Location::new(3, 12), TypeVariant::new_integer_unsigned(232)),
+                        Type::new(Location::new(3, 12), TypeVariant::integer_unsigned(232)),
                     ),
                     Field::new(
                         Location::new(4, 9),
                         Identifier::new(Location::new(4, 9), "b".to_owned()),
-                        Type::new(Location::new(4, 12), TypeVariant::new_integer_unsigned(232)),
+                        Type::new(Location::new(4, 12), TypeVariant::integer_unsigned(232)),
                     ),
                     Field::new(
                         Location::new(5, 9),
                         Identifier::new(Location::new(5, 9), "c".to_owned()),
-                        Type::new(Location::new(5, 12), TypeVariant::new_integer_unsigned(232)),
+                        Type::new(Location::new(5, 12), TypeVariant::integer_unsigned(232)),
                     ),
                 ],
             ),

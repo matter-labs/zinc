@@ -5,10 +5,10 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
-use crate::semantic::ArrayValueError;
-use crate::semantic::ElementError;
+use crate::semantic::element::error::Error as ElementError;
+use crate::semantic::element::value::array::error::Error as ArrayValueError;
+use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::ValueError;
 use crate::Error;
 
 #[test]

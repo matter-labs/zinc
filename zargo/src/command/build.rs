@@ -2,6 +2,7 @@
 //! The Zargo `build` command.
 //!
 
+use std::convert::TryFrom;
 use std::ffi::OsString;
 use std::fs;
 use std::fs::FileType;
@@ -32,6 +33,27 @@ pub struct Command {
         default_value = "./Zargo.toml"
     )]
     manifest_path: PathBuf,
+
+    #[structopt(
+        long = "circuit",
+        help = "Path to the circuit binary file",
+        default_value = "./build/default.znb"
+    )]
+    circuit: PathBuf,
+
+    #[structopt(
+        long = "witness",
+        help = "Path to the witness JSON file",
+        default_value = "./build/witness.json"
+    )]
+    witness: PathBuf,
+
+    #[structopt(
+        long = "public-data",
+        help = "Path to the public data JSON file to write",
+        default_value = "./build/public-data.json"
+    )]
+    public_data: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -61,24 +83,18 @@ pub enum Error {
 }
 
 impl Command {
-    pub fn execute(mut self) -> Result<(), Error> {
-        let mut project_path = self.manifest_path.clone();
-        if !self
-            .manifest_path
-            .ends_with(crate::constants::CIRCUIT_MANIFEST_FILE_NAME)
-        {
-            self.manifest_path
-                .push(crate::constants::CIRCUIT_MANIFEST_FILE_NAME);
-        } else {
-            project_path.pop();
-        }
-
-        let _manifest = Manifest::new(&self.manifest_path).map_err(|error| {
+    pub fn execute(self) -> Result<(), Error> {
+        let _manifest = Manifest::try_from(&self.manifest_path).map_err(|error| {
             Error::ManifestFile(self.manifest_path.as_os_str().to_owned(), error)
         })?;
 
+        let mut project_path = self.manifest_path.clone();
+        if project_path.is_file() {
+            project_path.pop();
+        }
+
         let mut source_directory_path = project_path.clone();
-        source_directory_path.push(PathBuf::from(crate::constants::CIRCUIT_SOURCE_DIRECTORY));
+        source_directory_path.push(PathBuf::from(crate::constants::CIRCUIT_DIRECTORY_SOURCE));
         let source_directory = fs::read_dir(&source_directory_path).map_err(|error| {
             Error::ReadingSourceDirectory(source_directory_path.as_os_str().to_owned(), error)
         })?;
@@ -100,7 +116,7 @@ impl Command {
             let source_file_extension = source_file_path.extension().ok_or_else(|| {
                 Error::GettingSourceFileExtension(source_file_path.as_os_str().to_owned())
             })?;
-            if source_file_extension != crate::constants::ZINC_SOURCE_FILE_EXTENSION {
+            if source_file_extension != crate::constants::ZINC_EXTENSION_SOURCE_FILE {
                 return Err(Error::InvalidSourceFileExtension(
                     source_file_path.as_os_str().to_owned(),
                     source_file_extension.to_owned(),
@@ -111,30 +127,20 @@ impl Command {
         }
 
         let mut build_directory_path = project_path;
-        build_directory_path.push(PathBuf::from(crate::constants::CIRCUIT_BUILD_DIRECTORY));
+        build_directory_path.push(PathBuf::from(crate::constants::CIRCUIT_DIRECTORY_BUILD));
         fs::create_dir_all(&build_directory_path).map_err(|error| {
             Error::CreatingBuildDirectory(build_directory_path.as_os_str().to_owned(), error)
         })?;
 
-        let mut build_input_template_path = build_directory_path.clone();
-        build_input_template_path.push(crate::constants::CIRCUIT_INPUT_TEMPLATE_DEFAULT_FILE_NAME);
-
-        let mut build_output_template_path = build_directory_path.clone();
-        build_output_template_path
-            .push(crate::constants::CIRCUIT_RESULT_TEMPLATE_DEFAULT_FILE_NAME);
-
-        let mut build_binary_path = build_directory_path;
-        build_binary_path.push(crate::constants::CIRCUIT_BINARY_DEFAULT_FILE_NAME);
-
         let mut compiler_process =
-            process::Command::new(crate::constants::ZINC_COMPILER_BINARY_NAME)
+            process::Command::new(crate::constants::ZINC_BINARY_NAME_COMPILER)
                 .args(vec!["-v"; self.verbose])
-                .arg("--input-json")
-                .arg(&build_input_template_path)
-                .arg("--output-json")
-                .arg(&build_output_template_path)
+                .arg("--witness")
+                .arg(&self.witness)
+                .arg("--public-data")
+                .arg(&self.public_data)
                 .arg("--output")
-                .arg(&build_binary_path)
+                .arg(&self.circuit)
                 .args(&source_file_paths)
                 .spawn()
                 .map_err(Error::CompilerProcessSpawning)?;

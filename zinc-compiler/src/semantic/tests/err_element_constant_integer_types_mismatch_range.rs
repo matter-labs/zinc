@@ -6,11 +6,11 @@
 
 use crate::lexical::Location;
 
-use crate::semantic::ConstantError;
-use crate::semantic::ElementError;
+use crate::semantic::element::constant::error::Error as ConstantError;
+use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
+use crate::semantic::element::error::Error as ElementError;
+use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::IntegerConstantError;
-use crate::semantic::Type;
 
 use crate::Error;
 
@@ -26,8 +26,8 @@ fn main() {
         Location::new(3, 15),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchRange(
-                Type::new_integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::new_integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
             ),
         )),
     )));

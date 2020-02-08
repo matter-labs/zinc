@@ -4,11 +4,11 @@
 
 use failure::Fail;
 
-use crate::semantic::ArrayValueError;
-use crate::semantic::CasterError;
-use crate::semantic::IntegerValueError;
-use crate::semantic::StructureValueError;
-use crate::semantic::TupleValueError;
+use crate::semantic::caster::error::Error as CasterError;
+use crate::semantic::element::value::array::error::Error as ArrayValueError;
+use crate::semantic::element::value::integer::error::Error as IntegerValueError;
+use crate::semantic::element::value::structure::error::Error as StructureValueError;
+use crate::semantic::element::value::tuple::error::Error as TupleValueError;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {

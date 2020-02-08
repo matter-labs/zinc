@@ -18,7 +18,7 @@ pub struct ProveCommand {
     #[structopt(short = "w", long = "witness", help = "File with witness values")]
     pub witness_path: PathBuf,
 
-    #[structopt(short = "p", long = "pubdata", help = "File with witness values")]
+    #[structopt(short = "p", long = "public-data", help = "File with witness values")]
     pub pubdata_path: PathBuf,
 }
 

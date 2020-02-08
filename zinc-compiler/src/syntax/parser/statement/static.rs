@@ -179,7 +179,7 @@ mod tests {
             StaticStatement::new(
                 Location::new(1, 1),
                 Identifier::new(Location::new(1, 8), "A".to_owned()),
-                Type::new(Location::new(1, 11), TypeVariant::new_integer_unsigned(64)),
+                Type::new(Location::new(1, 11), TypeVariant::integer_unsigned(64)),
                 Expression::new(
                     Location::new(1, 17),
                     vec![ExpressionElement::new(

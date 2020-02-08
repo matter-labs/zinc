@@ -17,11 +17,11 @@ pub enum Variant {
     },
     Field,
     Array {
-        type_variant: Box<Self>,
+        inner: Box<Self>,
         size: IntegerLiteral,
     },
     Tuple {
-        type_variants: Vec<Self>,
+        inners: Vec<Self>,
     },
     Alias {
         path: Expression,
@@ -29,46 +29,46 @@ pub enum Variant {
 }
 
 impl Variant {
-    pub fn new_unit() -> Self {
+    pub fn unit() -> Self {
         Self::Unit
     }
 
-    pub fn new_boolean() -> Self {
+    pub fn boolean() -> Self {
         Self::Boolean
     }
 
-    pub fn new_integer(is_signed: bool, bitlength: usize) -> Self {
+    pub fn integer(is_signed: bool, bitlength: usize) -> Self {
         if is_signed {
-            Self::new_integer_signed(bitlength)
+            Self::integer_signed(bitlength)
         } else {
-            Self::new_integer_unsigned(bitlength)
+            Self::integer_unsigned(bitlength)
         }
     }
 
-    pub fn new_integer_unsigned(bitlength: usize) -> Self {
+    pub fn integer_unsigned(bitlength: usize) -> Self {
         Self::IntegerUnsigned { bitlength }
     }
 
-    pub fn new_integer_signed(bitlength: usize) -> Self {
+    pub fn integer_signed(bitlength: usize) -> Self {
         Self::IntegerSigned { bitlength }
     }
 
-    pub fn new_field() -> Self {
+    pub fn field() -> Self {
         Self::Field
     }
 
-    pub fn new_array(type_variant: Self, size: IntegerLiteral) -> Self {
+    pub fn array(inner: Self, size: IntegerLiteral) -> Self {
         Self::Array {
-            type_variant: Box::new(type_variant),
+            inner: Box::new(inner),
             size,
         }
     }
 
-    pub fn new_tuple(type_variants: Vec<Self>) -> Self {
-        Self::Tuple { type_variants }
+    pub fn tuple(inners: Vec<Self>) -> Self {
+        Self::Tuple { inners }
     }
 
-    pub fn new_alias(path: Expression) -> Self {
+    pub fn alias(path: Expression) -> Self {
         Self::Alias { path }
     }
 }

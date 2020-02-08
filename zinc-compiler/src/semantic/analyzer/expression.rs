@@ -14,26 +14,26 @@ use zinc_bytecode::data::types::DataType;
 use zinc_bytecode::Instruction;
 
 use crate::lexical::Location;
-use crate::semantic::Array;
-use crate::semantic::Bytecode;
-use crate::semantic::Constant;
-use crate::semantic::Element;
-use crate::semantic::Error;
-use crate::semantic::FunctionType;
-use crate::semantic::IntegerConstant;
-use crate::semantic::Path;
-use crate::semantic::Place;
-use crate::semantic::Scope;
-use crate::semantic::ScopeItem;
-use crate::semantic::ScopeVariableItem;
-use crate::semantic::StandardLibraryFunctionType;
-use crate::semantic::StatementAnalyzer;
-use crate::semantic::Structure;
-use crate::semantic::StructureValueError;
-use crate::semantic::TranslationHint;
-use crate::semantic::Tuple;
-use crate::semantic::Type;
-use crate::semantic::Value;
+use crate::semantic::analyzer::error::Error;
+use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
+use crate::semantic::analyzer::translation_hint::TranslationHint;
+use crate::semantic::bytecode::Bytecode;
+use crate::semantic::element::constant::integer::Integer as IntegerConstant;
+use crate::semantic::element::constant::Constant;
+use crate::semantic::element::path::Path;
+use crate::semantic::element::place::Place;
+use crate::semantic::element::r#type::function::standard::Function as StandardLibraryFunctionType;
+use crate::semantic::element::r#type::function::Function as FunctionType;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::element::value::array::Array;
+use crate::semantic::element::value::structure::error::Error as StructureValueError;
+use crate::semantic::element::value::structure::Structure;
+use crate::semantic::element::value::tuple::Tuple;
+use crate::semantic::element::value::Value;
+use crate::semantic::element::Element;
+use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
+use crate::semantic::scope::item::Item as ScopeItem;
+use crate::semantic::scope::Scope;
 use crate::syntax;
 use crate::syntax::ArrayExpression;
 use crate::syntax::BlockExpression;
@@ -785,7 +785,7 @@ impl Analyzer {
                     element.location,
                 );
 
-                Type::new_unit()
+                Type::unit()
             }
             FunctionType::AssertInstruction(instruction) => {
                 if !self.is_next_call_instruction {
@@ -827,7 +827,7 @@ impl Analyzer {
                     .borrow_mut()
                     .push_instruction(Instruction::Assert(zinc_bytecode::Assert), element.location);
 
-                Type::new_unit()
+                Type::unit()
             }
             FunctionType::StandardLibrary(function) => {
                 if self.is_next_call_instruction {
@@ -1370,12 +1370,9 @@ impl Analyzer {
             match Scope::resolve_item(self.scope(), &structure.identifier.name)
                 .map_err(|error| Error::Scope(identifier_location, error))?
             {
-                ScopeItem::Type(Type::Structure {
-                    identifier,
-                    unique_id,
-                    fields,
-                    ..
-                }) => (identifier, unique_id, fields),
+                ScopeItem::Type(Type::Structure(structure)) => {
+                    (structure.identifier, structure.unique_id, structure.fields)
+                }
                 item => {
                     return Err(Error::TypeAliasDoesNotPointToStructure(
                         identifier_location,

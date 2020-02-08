@@ -6,7 +6,7 @@
 
 use crate::lexical::Location;
 
-use crate::semantic::ElementError;
+use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::Error as SemanticError;
 
 use crate::Error;

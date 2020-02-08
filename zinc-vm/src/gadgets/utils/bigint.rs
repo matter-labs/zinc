@@ -34,19 +34,19 @@ mod test {
 
     #[test]
     fn test_div_rem() {
-        let (d, r) = euclidean_div_rem(&BigInt::from(9), &BigInt::from(4));
+        let (d, r) = euclidean_div_rem(&BigInt::from(9), &BigInt::from(4)).unwrap();
         assert_eq!(d, BigInt::from(2));
         assert_eq!(r, BigInt::from(1));
 
-        let (d, r) = euclidean_div_rem(&BigInt::from(-9), &BigInt::from(-4));
+        let (d, r) = euclidean_div_rem(&BigInt::from(-9), &BigInt::from(-4)).unwrap();
         assert_eq!(d, BigInt::from(3));
         assert_eq!(r, BigInt::from(3));
 
-        let (d, r) = euclidean_div_rem(&BigInt::from(-9), &BigInt::from(4));
+        let (d, r) = euclidean_div_rem(&BigInt::from(-9), &BigInt::from(4)).unwrap();
         assert_eq!(d, BigInt::from(-3));
         assert_eq!(r, BigInt::from(3));
 
-        let (d, r) = euclidean_div_rem(&BigInt::from(9), &BigInt::from(-4));
+        let (d, r) = euclidean_div_rem(&BigInt::from(9), &BigInt::from(-4)).unwrap();
         assert_eq!(d, BigInt::from(-2));
         assert_eq!(r, BigInt::from(1));
     }

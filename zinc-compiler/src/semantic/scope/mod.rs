@@ -2,13 +2,8 @@
 //! The semantic analyzer scope.
 //!
 
-mod error;
-mod item;
-
-pub use self::error::Error;
-pub use self::item::Item;
-pub use self::item::Static as StaticItem;
-pub use self::item::Variable as VariableItem;
+pub mod error;
+pub mod item;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -17,12 +12,16 @@ use std::str;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
-use crate::semantic::Constant;
+use crate::semantic::element::constant::Constant;
+use crate::semantic::element::path::Path;
+use crate::semantic::element::r#type::function::Function as FunctionType;
+use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::FunctionType;
-use crate::semantic::Path;
-use crate::semantic::Type;
-use crate::semantic::Type as TypeItem;
+
+use self::error::Error;
+use self::item::r#static::Static as StaticItem;
+use self::item::variable::Variable as VariableItem;
+use self::item::Item;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Scope {
@@ -95,7 +94,7 @@ impl Scope {
         Ok(())
     }
 
-    pub fn declare_type(&mut self, identifier: String, r#type: TypeItem) -> Result<(), Error> {
+    pub fn declare_type(&mut self, identifier: String, r#type: Type) -> Result<(), Error> {
         if self.is_item_declared(&identifier) {
             return Err(Error::ItemRedeclared(identifier));
         }
@@ -129,7 +128,9 @@ impl Scope {
             match item {
                 Item::Module(ref scope) => current_scope = scope.to_owned(),
                 Item::Type(Type::Enumeration { ref scope, .. }) => current_scope = scope.to_owned(),
-                Item::Type(Type::Structure { ref scope, .. }) => current_scope = scope.to_owned(),
+                Item::Type(Type::Structure(ref structure)) => {
+                    current_scope = structure.scope.to_owned()
+                }
                 _ => {
                     return Err(SemanticError::Scope(
                         identifier.location,

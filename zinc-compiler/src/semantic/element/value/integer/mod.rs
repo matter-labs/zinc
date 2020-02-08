@@ -2,13 +2,13 @@
 //! The semantic analyzer integer value element.
 //!
 
-mod error;
-
-pub use self::error::Error;
+pub mod error;
 
 use std::fmt;
 
-use crate::semantic::Type;
+use crate::semantic::element::r#type::Type;
+
+use self::error::Error;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Integer {
@@ -27,7 +27,7 @@ impl Integer {
     pub fn r#type(&self) -> Type {
         match (self.is_signed, self.bitlength) {
             (false, crate::BITLENGTH_FIELD) => Type::Field,
-            (is_signed, bitlength) => Type::new_integer(is_signed, bitlength),
+            (is_signed, bitlength) => Type::integer(is_signed, bitlength),
         }
     }
 

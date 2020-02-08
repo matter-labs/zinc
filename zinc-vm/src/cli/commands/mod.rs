@@ -10,7 +10,7 @@ use crate::commands::verify::VerifyCommand;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "zinc", about = "Zinc Virtual Machine")]
+#[structopt(name = "zvm", about = "Zinc Virtual Machine")]
 pub struct Arguments {
     #[structopt(
         short = "v",

@@ -1,12 +1,15 @@
 [package]
 name = "zinc-vm"
 version = "0.1.0"
-authors = ["Alexander Movchan <am@matterlabs.dev>"]
+authors = [
+    "Alexander Movchan <am@matterlabs.dev>",
+    "hedgar2017 <hedgar2017@gmail.com>",
+]
 edition = "2018"
 
 [[bin]]
-name = "zinc"
-path = "src/cli/zinc.rs"
+name = "zvm"
+path = "src/cli/zvm.rs"
 
 [dependencies]
 log = "0.4"

@@ -2,35 +2,27 @@
 //! The Zargo command.
 //!
 
-mod build;
-mod clean;
-mod error;
-mod init;
-mod new;
-mod prove;
-mod run;
-mod setup;
-mod verify;
-
-pub use self::build::Command as BuildCommand;
-pub use self::build::Error as BuildCommandError;
-pub use self::clean::Command as CleanCommand;
-pub use self::clean::Error as CleanCommandError;
-pub use self::error::Error;
-pub use self::init::Command as InitCommand;
-pub use self::init::Error as InitCommandError;
-pub use self::new::Command as NewCommand;
-pub use self::new::Error as NewCommandError;
-pub use self::prove::Command as ProveCommand;
-pub use self::prove::Error as ProveCommandError;
-pub use self::run::Command as RunCommand;
-pub use self::run::Error as RunCommandError;
-pub use self::setup::Command as SetupCommand;
-pub use self::setup::Error as SetupCommandError;
-pub use self::verify::Command as VerifyCommand;
-pub use self::verify::Error as VerifyCommandError;
+pub mod build;
+pub mod clean;
+pub mod error;
+pub mod init;
+pub mod new;
+pub mod prove;
+pub mod run;
+pub mod setup;
+pub mod verify;
 
 use structopt::StructOpt;
+
+use self::build::Command as BuildCommand;
+use self::clean::Command as CleanCommand;
+use self::error::Error;
+use self::init::Command as InitCommand;
+use self::new::Command as NewCommand;
+use self::prove::Command as ProveCommand;
+use self::run::Command as RunCommand;
+use self::setup::Command as SetupCommand;
+use self::verify::Command as VerifyCommand;
 
 #[derive(Debug, StructOpt)]
 pub enum Command {

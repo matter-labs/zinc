@@ -7,15 +7,15 @@ use std::ops::Deref;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
-use crate::semantic::StandardLibraryFunctionError;
-use crate::semantic::Type;
+use crate::semantic::element::r#type::function::standard::error::Error;
+use crate::semantic::element::r#type::Type;
 
 #[derive(Debug, Default, Clone)]
-pub struct FromBitsSignedStandardLibraryFunction {
+pub struct Function {
     identifier: &'static str,
 }
 
-impl FromBitsSignedStandardLibraryFunction {
+impl Function {
     pub fn new() -> Self {
         Self {
             identifier: "from_bits_signed",
@@ -34,7 +34,7 @@ impl FromBitsSignedStandardLibraryFunction {
         1
     }
 
-    pub fn validate(&self, inputs: &[Type]) -> Result<Type, StandardLibraryFunctionError> {
+    pub fn validate(&self, inputs: &[Type]) -> Result<Type, Error> {
         let result = match inputs.get(0) {
             Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
                 (Type::Boolean, size)
@@ -42,20 +42,20 @@ impl FromBitsSignedStandardLibraryFunction {
                         && size <= crate::BITLENGTH_MAX_INT
                         && size % crate::BITLENGTH_BYTE == 0 =>
                 {
-                    Ok(Type::new_integer_signed(size))
+                    Ok(Type::integer_signed(size))
                 }
-                (r#type, size) => Err(StandardLibraryFunctionError::ArgumentType(
+                (r#type, size) => Err(Error::ArgumentType(
                     self.identifier,
                     "[bool; {{N}}]".to_owned(),
                     format!("[{}; {}]", r#type, size),
                 )),
             },
-            Some(r#type) => Err(StandardLibraryFunctionError::ArgumentType(
+            Some(r#type) => Err(Error::ArgumentType(
                 self.identifier,
                 "[bool; {{N}}]".to_owned(),
                 r#type.to_string(),
             )),
-            None => Err(StandardLibraryFunctionError::ArgumentCount(
+            None => Err(Error::ArgumentCount(
                 self.identifier,
                 self.arguments_count(),
                 inputs.len(),
@@ -63,7 +63,7 @@ impl FromBitsSignedStandardLibraryFunction {
         };
 
         if inputs.get(1).is_some() {
-            return Err(StandardLibraryFunctionError::ArgumentCount(
+            return Err(Error::ArgumentCount(
                 self.identifier,
                 self.arguments_count(),
                 inputs.len(),
@@ -74,7 +74,7 @@ impl FromBitsSignedStandardLibraryFunction {
     }
 }
 
-impl fmt::Display for FromBitsSignedStandardLibraryFunction {
+impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,

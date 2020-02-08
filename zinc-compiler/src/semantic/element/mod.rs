@@ -2,50 +2,25 @@
 //! The semantic analyzer element.
 //!
 
-mod access;
-mod constant;
-mod error;
-mod path;
-mod place;
-mod r#type;
-mod value;
-
-pub use self::access::FieldResult as FieldAccessResult;
-pub use self::access::IndexResult as IndexAccessResult;
-pub use self::constant::Constant;
-pub use self::constant::Error as ConstantError;
-pub use self::constant::Integer as IntegerConstant;
-pub use self::constant::IntegerError as IntegerConstantError;
-pub use self::constant::Range as RangeConstant;
-pub use self::constant::RangeInclusive as RangeInclusiveConstant;
-pub use self::error::Error;
-pub use self::path::Path;
-pub use self::place::Error as PlaceError;
-pub use self::place::Place;
-pub use self::r#type::AssertInstructionFunction as AssertInstructionFunctionType;
-pub use self::r#type::DebugInstructionFunction as DebugInstructionFunctionType;
-pub use self::r#type::Function as FunctionType;
-pub use self::r#type::Sha256StandardLibraryFunction as Sha256StandardLibraryFunctionType;
-pub use self::r#type::Sha256StandardLibraryFunction as PedersenStandardLibraryFunctionType;
-pub use self::r#type::StandardLibraryFunction as StandardLibraryFunctionType;
-pub use self::r#type::StandardLibraryFunctionError;
-pub use self::r#type::Type;
-pub use self::r#type::UserDefinedFunction as UserDefinedFunctionType;
-pub use self::r#type::UNIQUE_ID;
-pub use self::value::Array;
-pub use self::value::ArrayError as ArrayValueError;
-pub use self::value::Error as ValueError;
-pub use self::value::Integer as IntegerValue;
-pub use self::value::IntegerError as IntegerValueError;
-pub use self::value::Structure;
-pub use self::value::StructureError as StructureValueError;
-pub use self::value::Tuple;
-pub use self::value::TupleError as TupleValueError;
-pub use self::value::Value;
+pub mod access;
+pub mod constant;
+pub mod error;
+pub mod path;
+pub mod place;
+pub mod r#type;
+pub mod value;
 
 use std::fmt;
 
 use crate::syntax::MemberString;
+
+use self::access::AccessData;
+use self::constant::Constant;
+use self::error::Error;
+use self::path::Path;
+use self::place::Place;
+use self::r#type::Type;
+use self::value::Value;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Element {
@@ -578,7 +553,7 @@ impl Element {
         }
     }
 
-    pub fn index(&mut self, other: &Self) -> Result<IndexAccessResult, Error> {
+    pub fn index(&mut self, other: &Self) -> Result<AccessData, Error> {
         match self {
             Self::Place(place) => match other {
                 element @ Self::Value(_) => place.index(element).map_err(Error::Place),
@@ -600,7 +575,7 @@ impl Element {
         }
     }
 
-    pub fn field(&mut self, other: &Self) -> Result<FieldAccessResult, Error> {
+    pub fn field(&mut self, other: &Self) -> Result<AccessData, Error> {
         match self {
             Self::Place(place) => match other {
                 Self::MemberInteger(member) => place.field_tuple(*member).map_err(Error::Place),

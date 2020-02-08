@@ -39,71 +39,70 @@ struct Arguments {
     )]
     verbose: usize,
     #[structopt(
-        long = "input-json",
+        long = "witness",
         parse(from_os_str),
-        help = "The input JSON template output path"
+        help = "The witness template output path"
     )]
-    input_json: PathBuf,
+    witness_template_path: PathBuf,
     #[structopt(
-        long = "output-json",
+        long = "public-data",
         parse(from_os_str),
-        help = "The output JSON template output path"
+        help = "The public data template output path"
     )]
-    output_json: PathBuf,
+    public_data_template_path: PathBuf,
     #[structopt(
         short = "o",
         long = "output",
         parse(from_os_str),
         help = "The *.znb bytecode output path"
     )]
-    output: PathBuf,
+    bytecode_output_path: PathBuf,
     #[structopt(parse(from_os_str), help = "The *.zn source file names")]
-    sources: Vec<PathBuf>,
+    source_files: Vec<PathBuf>,
 }
 
 #[derive(Debug, Fail)]
 enum Error {
-    #[fail(display = "Source input: {}", _0)]
+    #[fail(display = "source input: {}", _0)]
     SourceInput(InputError),
-    #[fail(display = "Compiler: {}:{}", _0, _1)]
+    #[fail(display = "compiler: {}:{}", _0, _1)]
     Compiler(String, zinc_compiler::Error),
-    #[fail(display = "Input template output: {}", _0)]
-    InputTemplateOutput(OutputError),
-    #[fail(display = "Output template output: {}", _0)]
-    OutputTemplateOutput(OutputError),
-    #[fail(display = "Bytecode output: {}", _0)]
+    #[fail(display = "witness template output: {}", _0)]
+    WitnessTemplateOutput(OutputError),
+    #[fail(display = "public data template output: {}", _0)]
+    PublicDataTemplateOutput(OutputError),
+    #[fail(display = "bytecode output: {}", _0)]
     BytecodeOutput(OutputError),
-    #[fail(display = "The 'main.zn' source file is missing")]
+    #[fail(display = "the 'main.zn' source file is missing")]
     EntrySourceFileNotFound,
 }
 
 #[derive(Debug, Fail)]
 enum InputError {
-    #[fail(display = "File extension not found")]
+    #[fail(display = "file extension not found")]
     FileExtensionNotFound,
-    #[fail(display = "File extension is invalid")]
+    #[fail(display = "file extension is invalid")]
     FileExtensionInvalid(OsString),
-    #[fail(display = "File name not found")]
+    #[fail(display = "file name not found")]
     FileStemNotFound,
-    #[fail(display = "Opening: {}", _0)]
+    #[fail(display = "opening: {}", _0)]
     Opening(std::io::Error),
-    #[fail(display = "Metadata: {}", _0)]
+    #[fail(display = "metadata: {}", _0)]
     Metadata(std::io::Error),
-    #[fail(display = "Reading: {}", _0)]
+    #[fail(display = "reading: {}", _0)]
     Reading(std::io::Error),
 }
 
 #[derive(Debug, Fail)]
 enum OutputError {
-    #[fail(display = "Creating: {}", _0)]
+    #[fail(display = "creating: {}", _0)]
     Creating(std::io::Error),
-    #[fail(display = "Writing: {}", _0)]
+    #[fail(display = "writing: {}", _0)]
     Writing(std::io::Error),
 }
 
 fn main() {
     let args: Arguments = Arguments::from_args();
-    init_logger(args.verbose);
 
     process::exit(match main_inner(args) {
         Ok(()) => EXIT_CODE_SUCCESS,
@@ -115,12 +114,14 @@ fn main() {
 }
 
 fn main_inner(args: Arguments) -> Result<(), Error> {
+    init_logger(args.verbose);
+
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));
 
     let mut modules = HashMap::<String, Rc<RefCell<Scope>>>::new();
     let mut binary_path = None;
 
-    for source_file_path in args.sources.into_iter() {
+    for source_file_path in args.source_files.into_iter() {
         let source_file_extension = source_file_path
             .extension()
             .ok_or(InputError::FileExtensionNotFound)
@@ -145,7 +146,7 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
         let module_file_path = format!("src/{}.zn", module_name);
         bytecode.borrow_mut().start_new_file(&module_file_path);
         let module = LibraryAnalyzer::new(bytecode.clone())
-            .compile(path_to_syntax_tree(source_file_path, &module_file_path)?)
+            .compile(parse(source_file_path, &module_file_path)?)
             .map_err(|error| Error::Compiler(module_file_path, error))?;
 
         modules.insert(module_name, module);
@@ -155,44 +156,50 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
     bytecode.borrow_mut().start_new_file(entry_file_path);
     match binary_path.take() {
         Some(binary_path) => BinaryAnalyzer::new(bytecode.clone())
-            .compile(path_to_syntax_tree(binary_path, entry_file_path)?, modules)
+            .compile(parse(binary_path, entry_file_path)?, modules)
             .map_err(|error| Error::Compiler(entry_file_path.to_owned(), error))?,
         None => return Err(Error::EntrySourceFileNotFound),
     }
 
-    File::create(&args.input_json)
+    File::create(&args.witness_template_path)
         .map_err(OutputError::Creating)
-        .map_err(Error::InputTemplateOutput)?
+        .map_err(Error::WitnessTemplateOutput)?
         .write_all(bytecode.borrow().input_template_bytes().as_slice())
         .map_err(OutputError::Writing)
-        .map_err(Error::InputTemplateOutput)?;
-    log::info!("Input  JSON template written to {:?}", args.input_json);
+        .map_err(Error::WitnessTemplateOutput)?;
+    log::info!(
+        "Witness template written to {:?}",
+        args.witness_template_path
+    );
 
-    File::create(&args.output_json)
+    File::create(&args.public_data_template_path)
         .map_err(OutputError::Creating)
-        .map_err(Error::OutputTemplateOutput)?
+        .map_err(Error::PublicDataTemplateOutput)?
         .write_all(bytecode.borrow().output_template_bytes().as_slice())
         .map_err(OutputError::Writing)
-        .map_err(Error::OutputTemplateOutput)?;
-    log::info!("Output JSON template written to {:?}", args.output_json);
+        .map_err(Error::PublicDataTemplateOutput)?;
+    log::info!(
+        "Public data template written to {:?}",
+        args.public_data_template_path
+    );
 
     let bytecode: Vec<u8> = Rc::try_unwrap(bytecode)
         .expect(PANIC_LAST_SHARED_REFERENCE)
         .into_inner()
         .into();
 
-    File::create(&args.output)
+    File::create(&args.bytecode_output_path)
         .map_err(OutputError::Creating)
         .map_err(Error::BytecodeOutput)?
         .write_all(bytecode.as_slice())
         .map_err(OutputError::Writing)
         .map_err(Error::BytecodeOutput)?;
-    log::info!("Compiled to {:?}", args.output);
+    log::info!("Compiled to {:?}", args.bytecode_output_path);
 
     Ok(())
 }
 
-fn path_to_syntax_tree(path: PathBuf, module_name: &str) -> Result<SyntaxTree, Error> {
+fn parse(path: PathBuf, module_name: &str) -> Result<SyntaxTree, Error> {
     log::info!("Compiling   {:?}", path);
     let mut file = File::open(path)
         .map_err(InputError::Opening)

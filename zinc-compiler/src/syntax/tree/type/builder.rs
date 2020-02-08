@@ -57,6 +57,9 @@ impl Builder {
     }
 
     pub fn finish(mut self) -> Type {
+        static PANIC_BUILDER_TYPE_INVALID_KEYWORD: &str =
+            "The type builder has got an unexpected keyword: ";
+
         let location = self.location.take().unwrap_or_else(|| {
             panic!(
                 "{}{}",
@@ -66,19 +69,17 @@ impl Builder {
         });
 
         let variant = if let Some(path) = self.path_expression.take() {
-            TypeVariant::new_alias(path)
+            TypeVariant::alias(path)
         } else if let Some(keyword) = self.keyword.take() {
             match keyword {
-                Keyword::Bool => TypeVariant::new_boolean(),
-                Keyword::IntegerUnsigned { bitlength } => {
-                    TypeVariant::new_integer_unsigned(bitlength)
-                }
-                Keyword::IntegerSigned { bitlength } => TypeVariant::new_integer_signed(bitlength),
-                Keyword::Field => TypeVariant::new_field(),
-                _ => panic!(crate::syntax::PANIC_BUILDER_TYPE),
+                Keyword::Bool => TypeVariant::boolean(),
+                Keyword::IntegerUnsigned { bitlength } => TypeVariant::integer_unsigned(bitlength),
+                Keyword::IntegerSigned { bitlength } => TypeVariant::integer_signed(bitlength),
+                Keyword::Field => TypeVariant::field(),
+                keyword => panic!("{}{}", PANIC_BUILDER_TYPE_INVALID_KEYWORD, keyword),
             }
         } else if let Some(array_type) = self.array_type_variant.take() {
-            TypeVariant::new_array(
+            TypeVariant::array(
                 array_type,
                 self.array_size.take().unwrap_or_else(|| {
                     panic!(
@@ -88,18 +89,16 @@ impl Builder {
                     )
                 }),
             )
-        } else if !self.tuple_element_types.is_empty() {
+        } else if let Some(first) = self.tuple_element_types.first() {
             if !self.tuple_has_comma {
-                self.tuple_element_types
-                    .pop()
-                    .expect(crate::syntax::PANIC_BUILDER_TYPE)
+                first.to_owned()
             } else {
-                TypeVariant::new_tuple(self.tuple_element_types)
+                TypeVariant::tuple(self.tuple_element_types)
             }
         } else if self.is_unit {
-            TypeVariant::new_unit()
+            TypeVariant::unit()
         } else {
-            panic!(crate::syntax::PANIC_BUILDER_TYPE);
+            unreachable!();
         };
 
         Type::new(location, variant)

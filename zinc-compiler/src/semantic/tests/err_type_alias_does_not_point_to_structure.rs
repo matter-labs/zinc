@@ -5,8 +5,8 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
+use crate::semantic::element::path::Path;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::Path;
 use crate::syntax::MemberString;
 use crate::Error;
 

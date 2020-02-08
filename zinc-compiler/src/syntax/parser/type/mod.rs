@@ -112,10 +112,7 @@ mod tests {
     fn ok_unit() {
         let input = "()";
 
-        let expected = Ok((
-            Type::new(Location::new(1, 1), TypeVariant::new_unit()),
-            None,
-        ));
+        let expected = Ok((Type::new(Location::new(1, 1), TypeVariant::unit()), None));
 
         let result = Parser::default().parse(
             Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
@@ -130,7 +127,7 @@ mod tests {
         let input = "u232";
 
         let expected = Ok((
-            Type::new(Location::new(1, 1), TypeVariant::new_integer_unsigned(232)),
+            Type::new(Location::new(1, 1), TypeVariant::integer_unsigned(232)),
             None,
         ));
 
@@ -146,10 +143,7 @@ mod tests {
     fn ok_field() {
         let input = "field";
 
-        let expected = Ok((
-            Type::new(Location::new(1, 1), TypeVariant::new_field()),
-            None,
-        ));
+        let expected = Ok((Type::new(Location::new(1, 1), TypeVariant::field()), None));
 
         let result = Parser::default().parse(
             Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
@@ -166,8 +160,8 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::new_array(
-                    TypeVariant::new_field(),
+                TypeVariant::array(
+                    TypeVariant::field(),
                     IntegerLiteral::new(
                         Location::new(1, 9),
                         lexical::IntegerLiteral::new_decimal("8".to_owned()),
@@ -192,9 +186,9 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::new_array(
-                    TypeVariant::new_array(
-                        TypeVariant::new_field(),
+                TypeVariant::array(
+                    TypeVariant::array(
+                        TypeVariant::field(),
                         IntegerLiteral::new(
                             Location::new(1, 10),
                             lexical::IntegerLiteral::new_decimal("8".to_owned()),
@@ -224,7 +218,7 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::new_tuple(vec![TypeVariant::Field]),
+                TypeVariant::tuple(vec![TypeVariant::Field]),
             ),
             None,
         ));
@@ -244,11 +238,11 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::new_tuple(vec![
+                TypeVariant::tuple(vec![
                     TypeVariant::Field,
                     TypeVariant::Unit,
-                    TypeVariant::new_array(
-                        TypeVariant::new_integer_unsigned(8),
+                    TypeVariant::array(
+                        TypeVariant::integer_unsigned(8),
                         IntegerLiteral::new(
                             Location::new(1, 18),
                             lexical::IntegerLiteral::new_decimal("4".to_owned()),
@@ -274,7 +268,7 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::new_tuple(vec![TypeVariant::new_tuple(vec![
+                TypeVariant::tuple(vec![TypeVariant::tuple(vec![
                     TypeVariant::Field,
                     TypeVariant::Field,
                 ])]),
@@ -297,7 +291,7 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::new_alias(Expression::new(
+                TypeVariant::alias(Expression::new(
                     Location::new(1, 1),
                     vec![ExpressionElement::new(
                         Location::new(1, 1),

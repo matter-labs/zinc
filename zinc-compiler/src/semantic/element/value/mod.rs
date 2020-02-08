@@ -2,29 +2,24 @@
 //! The semantic analyzer value element.
 //!
 
-mod array;
-mod error;
-mod integer;
-mod structure;
-mod tuple;
-
-pub use self::array::Array;
-pub use self::array::Error as ArrayError;
-pub use self::error::Error;
-pub use self::integer::Error as IntegerError;
-pub use self::integer::Integer;
-pub use self::structure::Error as StructureError;
-pub use self::structure::Structure;
-pub use self::tuple::Error as TupleError;
-pub use self::tuple::Tuple;
+pub mod array;
+pub mod error;
+pub mod integer;
+pub mod structure;
+pub mod tuple;
 
 use std::fmt;
 
-use crate::semantic::Caster;
-use crate::semantic::Constant;
-use crate::semantic::FieldAccessResult;
-use crate::semantic::IndexAccessResult;
-use crate::semantic::Type;
+use crate::semantic::caster::Caster;
+use crate::semantic::element::access::AccessData;
+use crate::semantic::element::constant::Constant;
+use crate::semantic::element::r#type::Type;
+
+use self::array::Array;
+use self::error::Error;
+use self::integer::Integer;
+use self::structure::Structure;
+use self::tuple::Tuple;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
@@ -46,12 +41,11 @@ impl Value {
             Type::Field => Self::Integer(Integer::new(false, crate::BITLENGTH_FIELD)),
             Type::Array { r#type, size } => Self::Array(Array::new(*r#type, size)),
             Type::Tuple { types } => Self::Tuple(Tuple::new(types)),
-            Type::Structure {
-                identifier,
-                unique_id,
-                fields,
-                ..
-            } => Self::Structure(Structure::new(identifier, unique_id, fields)),
+            Type::Structure(structure) => Self::Structure(Structure::new(
+                structure.identifier,
+                structure.unique_id,
+                structure.fields,
+            )),
             Type::Enumeration { bitlength, .. } => Self::Integer(Integer::new(false, bitlength)),
             r#type => panic!(
                 "{}{}",
@@ -63,8 +57,8 @@ impl Value {
 
     pub fn r#type(&self) -> Type {
         match self {
-            Self::Unit => Type::new_unit(),
-            Self::Boolean => Type::new_boolean(),
+            Self::Unit => Type::unit(),
+            Self::Boolean => Type::boolean(),
             Self::Integer(integer) => integer.r#type(),
             Self::Array(array) => array.r#type(),
             Self::Tuple(tuple) => tuple.r#type(),
@@ -364,7 +358,7 @@ impl Value {
         }
     }
 
-    pub fn index_value(&self, other: &Self) -> Result<IndexAccessResult, Error> {
+    pub fn index_value(&self, other: &Self) -> Result<AccessData, Error> {
         match self {
             Value::Array(array) => match other {
                 Value::Integer(_) => Ok(array.slice_single()),
@@ -378,7 +372,7 @@ impl Value {
         }
     }
 
-    pub fn index_constant(&self, other: &Constant) -> Result<IndexAccessResult, Error> {
+    pub fn index_constant(&self, other: &Constant) -> Result<AccessData, Error> {
         match self {
             Value::Array(array) => match other {
                 Constant::Integer(_) => Ok(array.slice_single()),
@@ -398,7 +392,7 @@ impl Value {
         }
     }
 
-    pub fn field_tuple(&self, field_index: usize) -> Result<FieldAccessResult, Error> {
+    pub fn field_tuple(&self, field_index: usize) -> Result<AccessData, Error> {
         match self {
             Value::Tuple(tuple) => tuple.slice(field_index).map_err(Error::Tuple),
             value => Err(Error::OperatorFieldFirstOperandExpectedTuple(
@@ -407,7 +401,7 @@ impl Value {
         }
     }
 
-    pub fn field_structure(&self, field_name: &str) -> Result<FieldAccessResult, Error> {
+    pub fn field_structure(&self, field_name: &str) -> Result<AccessData, Error> {
         match self {
             Value::Structure(structure) => structure.slice(field_name).map_err(Error::Structure),
             value => Err(Error::OperatorFieldFirstOperandExpectedStructure(

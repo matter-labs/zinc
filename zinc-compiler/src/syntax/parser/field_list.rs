@@ -75,7 +75,7 @@ mod tests {
             vec![Field::new(
                 Location::new(1, 1),
                 Identifier::new(Location::new(1, 1), "a".to_owned()),
-                Type::new(Location::new(1, 4), TypeVariant::new_integer_unsigned(232)),
+                Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
             )],
             Some(Token::new(Lexeme::Eof, Location::new(1, 8))),
         ));
@@ -96,7 +96,7 @@ mod tests {
             vec![Field::new(
                 Location::new(1, 1),
                 Identifier::new(Location::new(1, 1), "a".to_owned()),
-                Type::new(Location::new(1, 4), TypeVariant::new_integer_unsigned(232)),
+                Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
             )],
             Some(Token::new(Lexeme::Eof, Location::new(1, 9))),
         ));

@@ -6,9 +6,9 @@
 
 use crate::lexical::Location;
 
-use crate::semantic::Constant;
-use crate::semantic::ConstantError;
-use crate::semantic::ElementError;
+use crate::semantic::element::constant::error::Error as ConstantError;
+use crate::semantic::element::constant::Constant;
+use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::Error as SemanticError;
 
 use crate::Error;

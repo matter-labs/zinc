@@ -13,7 +13,7 @@ use zinc_bytecode::Instruction;
 use zinc_bytecode::Program;
 
 use crate::lexical::Location;
-use crate::semantic::Type;
+use crate::semantic::element::r#type::Type;
 
 #[derive(Debug, Default, PartialEq)]
 pub struct Bytecode {
@@ -44,7 +44,7 @@ impl Bytecode {
 
         Self {
             input_fields: vec![],
-            output_type: Type::new_unit(),
+            output_type: Type::unit(),
             instructions,
 
             data_stack_pointer: 0,
@@ -313,9 +313,9 @@ impl Into<DataType> for &Type {
                 }
                 DataType::Tuple(data_types)
             }
-            Type::Structure { fields, .. } => {
+            Type::Structure(structure) => {
                 let mut new_fields: Vec<(String, DataType)> = Vec::new();
-                for (name, r#type) in fields.iter() {
+                for (name, r#type) in structure.fields.iter() {
                     new_fields.push((name.to_owned(), r#type.into()));
                 }
                 DataType::Struct(new_fields)

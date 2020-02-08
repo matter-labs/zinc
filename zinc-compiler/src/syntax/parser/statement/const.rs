@@ -179,7 +179,7 @@ mod tests {
             ConstStatement::new(
                 Location::new(1, 1),
                 Identifier::new(Location::new(1, 7), "A".to_owned()),
-                Type::new(Location::new(1, 10), TypeVariant::new_integer_unsigned(64)),
+                Type::new(Location::new(1, 10), TypeVariant::integer_unsigned(64)),
                 Expression::new(
                     Location::new(1, 16),
                     vec![ExpressionElement::new(

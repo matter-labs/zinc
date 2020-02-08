@@ -58,7 +58,7 @@ impl Builder {
                 builder.extend_with_expressions(self.elements);
                 builder.finish()
             }
-            (_size, true) => {
+            (_size, _has_comma) => {
                 let location = self.location.take().unwrap_or_else(|| {
                     panic!(
                         "{}{}",
@@ -77,7 +77,6 @@ impl Builder {
                     )],
                 )
             }
-            _ => panic!(crate::syntax::PANIC_BUILDER_TYPE),
         }
     }
 }

@@ -1,6 +1,6 @@
+use crate::data::types::DataType;
 use crate::{Instruction, InstructionCode, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
-use crate::data::types::DataType;
 
 #[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
 pub struct Dbg {

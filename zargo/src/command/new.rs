@@ -12,6 +12,8 @@ use failure::Fail;
 use std::io::Write;
 use structopt::StructOpt;
 
+use crate::manifest::Error as ManifestError;
+use crate::manifest::Manifest;
 use crate::templates;
 
 #[derive(Debug, StructOpt)]
@@ -45,10 +47,8 @@ pub enum Error {
     DirectoryAlreadyExists(OsString),
     #[fail(display = "root directory {:?} creating: {}", _0, _1)]
     CreatingRootDirectory(OsString, io::Error),
-    #[fail(display = "manifest file {:?} creating: {}", _0, _1)]
-    CreatingZargoManifestFile(OsString, io::Error),
-    #[fail(display = "manifest file {:?} template writing: {}", _0, _1)]
-    WritingZargoManifestFileTemplate(OsString, io::Error),
+    #[fail(display = "manifest file {:?}: {}", _0, _1)]
+    ManifestFile(OsString, ManifestError),
     #[fail(display = "source directory {:?} creating: {}", _0, _1)]
     CreatingSourceDirectory(OsString, io::Error),
     #[fail(display = "source file {:?} creating: {}", _0, _1)]
@@ -76,28 +76,18 @@ impl Command {
             Error::CreatingRootDirectory(self.path.as_os_str().to_owned(), error)
         })?;
 
-        let mut zargo_manifest_file_path = self.path.clone();
-        zargo_manifest_file_path.push(PathBuf::from(crate::constants::CIRCUIT_MANIFEST_FILE_NAME));
-        let mut zargo_file = File::create(&zargo_manifest_file_path).map_err(|error| {
-            Error::CreatingZargoManifestFile(zargo_manifest_file_path.as_os_str().to_owned(), error)
-        })?;
-        zargo_file
-            .write_all(templates::manifest_template(&circuit_name).as_bytes())
-            .map_err(|error| {
-                Error::WritingZargoManifestFileTemplate(
-                    zargo_manifest_file_path.as_os_str().to_owned(),
-                    error,
-                )
-            })?;
+        Manifest::new(&circuit_name)
+            .write_to(&self.path)
+            .map_err(|error| Error::ManifestFile(self.path.as_os_str().to_owned(), error))?;
 
         let mut source_directory_path = self.path.clone();
-        source_directory_path.push(PathBuf::from(crate::constants::CIRCUIT_SOURCE_DIRECTORY));
+        source_directory_path.push(PathBuf::from(crate::constants::CIRCUIT_DIRECTORY_SOURCE));
         fs::create_dir_all(&source_directory_path).map_err(|error| {
             Error::CreatingSourceDirectory(source_directory_path.as_os_str().to_owned(), error)
         })?;
 
         let mut source_main_file_path = source_directory_path;
-        source_main_file_path.push(PathBuf::from(crate::constants::CIRCUIT_MAIN_FILE_NAME));
+        source_main_file_path.push(PathBuf::from(crate::constants::CIRCUIT_FILE_NAME_MAIN));
         let mut main_file = File::create(&source_main_file_path).map_err(|error| {
             Error::CreatingSourceMainFile(source_main_file_path.as_os_str().to_owned(), error)
         })?;

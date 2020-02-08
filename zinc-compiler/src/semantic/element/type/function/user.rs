@@ -4,18 +4,18 @@
 
 use std::fmt;
 
+use crate::semantic::element::r#type::Type;
 use crate::semantic::element::r#type::UNIQUE_ID;
-use crate::semantic::Type;
 
 #[derive(Debug, Clone)]
-pub struct UserDefinedFunction {
+pub struct Function {
     pub identifier: String,
     pub arguments: Vec<(String, Type)>,
     pub return_type: Box<Type>,
     pub unique_id: usize,
 }
 
-impl UserDefinedFunction {
+impl Function {
     pub fn new(identifier: String, arguments: Vec<(String, Type)>, return_type: Type) -> Self {
         unsafe {
             UNIQUE_ID += 1;
@@ -29,7 +29,7 @@ impl UserDefinedFunction {
     }
 }
 
-impl fmt::Display for UserDefinedFunction {
+impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,

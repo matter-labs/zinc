@@ -7,15 +7,15 @@ use std::ops::Deref;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
-use crate::semantic::StandardLibraryFunctionError;
-use crate::semantic::Type;
+use crate::semantic::element::r#type::function::standard::error::Error;
+use crate::semantic::element::r#type::Type;
 
 #[derive(Debug, Default, Clone)]
-pub struct ArrayPadStandardLibraryFunction {
+pub struct Function {
     identifier: &'static str,
 }
 
-impl ArrayPadStandardLibraryFunction {
+impl Function {
     pub fn new() -> Self {
         Self { identifier: "pad" }
     }
@@ -32,24 +32,20 @@ impl ArrayPadStandardLibraryFunction {
         3
     }
 
-    pub fn validate(
-        &self,
-        inputs: &[Type],
-        new_length: usize,
-    ) -> Result<Type, StandardLibraryFunctionError> {
+    pub fn validate(&self, inputs: &[Type], new_length: usize) -> Result<Type, Error> {
         let (input_array_type, input_array_size) = match inputs.get(0) {
             Some(Type::Array { r#type, size }) if r#type.is_scalar() => {
                 (r#type.deref().to_owned(), *size)
             }
             Some(r#type) => {
-                return Err(StandardLibraryFunctionError::ArgumentType(
+                return Err(Error::ArgumentType(
                     self.identifier,
                     "[{scalar}; {N}]".to_owned(),
                     r#type.to_string(),
                 ))
             }
             None => {
-                return Err(StandardLibraryFunctionError::ArgumentCount(
+                return Err(Error::ArgumentCount(
                     self.identifier,
                     self.arguments_count(),
                     inputs.len(),
@@ -60,14 +56,14 @@ impl ArrayPadStandardLibraryFunction {
         match inputs.get(1) {
             Some(new_length) if new_length.is_scalar_unsigned() => {}
             Some(r#type) => {
-                return Err(StandardLibraryFunctionError::ArgumentType(
+                return Err(Error::ArgumentType(
                     self.identifier,
                     "{scalar}".to_owned(),
                     r#type.to_string(),
                 ))
             }
             None => {
-                return Err(StandardLibraryFunctionError::ArgumentCount(
+                return Err(Error::ArgumentCount(
                     self.identifier,
                     self.arguments_count(),
                     inputs.len(),
@@ -78,14 +74,14 @@ impl ArrayPadStandardLibraryFunction {
         match inputs.get(2) {
             Some(r#type) if r#type.is_scalar() && r#type == &input_array_type => {}
             Some(r#type) => {
-                return Err(StandardLibraryFunctionError::ArgumentType(
+                return Err(Error::ArgumentType(
                     self.identifier,
                     "{scalar}".to_owned(),
                     r#type.to_string(),
                 ))
             }
             None => {
-                return Err(StandardLibraryFunctionError::ArgumentCount(
+                return Err(Error::ArgumentCount(
                     self.identifier,
                     self.arguments_count(),
                     inputs.len(),
@@ -94,7 +90,7 @@ impl ArrayPadStandardLibraryFunction {
         }
 
         if inputs.get(3).is_some() {
-            return Err(StandardLibraryFunctionError::ArgumentCount(
+            return Err(Error::ArgumentCount(
                 self.identifier,
                 self.arguments_count(),
                 inputs.len(),
@@ -102,17 +98,14 @@ impl ArrayPadStandardLibraryFunction {
         }
 
         if new_length < input_array_size {
-            return Err(StandardLibraryFunctionError::PadInvalidLength(
-                input_array_size,
-                new_length,
-            ));
+            return Err(Error::PadInvalidLength(input_array_size, new_length));
         }
 
-        Ok(Type::new_array(input_array_type, new_length))
+        Ok(Type::array(input_array_type, new_length))
     }
 }
 
-impl fmt::Display for ArrayPadStandardLibraryFunction {
+impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,

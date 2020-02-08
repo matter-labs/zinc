@@ -2,7 +2,7 @@
 //! The semantic analyzer scope variable item.
 //!
 
-use crate::semantic::Type;
+use crate::semantic::element::r#type::Type;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Variable {

@@ -120,4 +120,3 @@ pub use self::tree::Variant;
 pub use self::tree::VariantBuilder;
 
 static PANIC_BUILDER_REQUIRES_VALUE: &str = "The builder requires a value: ";
-static PANIC_BUILDER_TYPE: &str = "The type building logic is verified";

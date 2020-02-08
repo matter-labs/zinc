@@ -14,22 +14,22 @@ use num_traits::Zero;
 
 use zinc_bytecode::Instruction;
 
-use crate::semantic::Bytecode;
-use crate::semantic::Constant;
-use crate::semantic::Element;
-use crate::semantic::Error;
-use crate::semantic::ExpressionAnalyzer;
-use crate::semantic::FunctionType;
-use crate::semantic::IntegerConstant;
-use crate::semantic::IntegerConstantError;
-use crate::semantic::Scope;
-use crate::semantic::ScopeItem;
-use crate::semantic::ScopeStaticItem;
-use crate::semantic::ScopeVariableItem;
-use crate::semantic::TranslationHint;
-use crate::semantic::Type;
-use crate::semantic::UserDefinedFunctionType;
-use crate::semantic::UNIQUE_ID;
+use crate::semantic::analyzer::error::Error;
+use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
+use crate::semantic::analyzer::translation_hint::TranslationHint;
+use crate::semantic::bytecode::Bytecode;
+use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
+use crate::semantic::element::constant::integer::Integer as IntegerConstant;
+use crate::semantic::element::constant::Constant;
+use crate::semantic::element::r#type::function::user::Function as UserDefinedFunctionType;
+use crate::semantic::element::r#type::function::Function as FunctionType;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::element::r#type::UNIQUE_ID;
+use crate::semantic::element::Element;
+use crate::semantic::scope::item::r#static::Static as ScopeStaticItem;
+use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
+use crate::semantic::scope::item::Item as ScopeItem;
+use crate::semantic::scope::Scope;
 use crate::syntax::BindingPatternVariant;
 use crate::syntax::ConstStatement;
 use crate::syntax::EnumStatement;
@@ -223,7 +223,7 @@ impl Analyzer {
         unsafe {
             UNIQUE_ID += 1;
         }
-        let r#type = Type::new_structure(
+        let r#type = Type::structure(
             statement.identifier.name.clone(),
             unsafe { UNIQUE_ID },
             fields,
@@ -244,7 +244,7 @@ impl Analyzer {
         unsafe {
             UNIQUE_ID += 1;
         }
-        let r#type = Type::new_enumeration(
+        let r#type = Type::enumeration(
             statement.identifier.clone(),
             unsafe { UNIQUE_ID },
             statement.variants,
@@ -387,7 +387,7 @@ impl Analyzer {
             match Scope::resolve_item(self.scope(), statement.identifier.name.as_str())
                 .map_err(|error| Error::Scope(identifier_location, error))?
             {
-                ScopeItem::Type(Type::Structure { scope, .. }) => scope,
+                ScopeItem::Type(Type::Structure(structure)) => structure.scope,
                 ScopeItem::Type(Type::Enumeration { scope, .. }) => scope,
                 item => {
                     return Err(Error::ImplStatementExpectedStructureOrEnumeration(
@@ -547,11 +547,7 @@ impl Analyzer {
             .borrow_mut()
             .declare_variable(
                 statement.index_identifier.name,
-                ScopeVariableItem::new(
-                    Type::new_numeric(is_signed, bitlength),
-                    false,
-                    index_address,
-                ),
+                ScopeVariableItem::new(Type::scalar(is_signed, bitlength), false, index_address),
             )
             .map_err(|error| Error::Scope(location, error))?;
 
@@ -584,7 +580,7 @@ impl Analyzer {
                 .push_instruction(Constant::Boolean(false).to_instruction(), location);
             self.bytecode.borrow_mut().push_instruction_store(
                 while_allowed_address,
-                Type::new_boolean().size(),
+                Type::boolean().size(),
                 None,
                 false,
                 location,
@@ -595,7 +591,7 @@ impl Analyzer {
 
             self.bytecode.borrow_mut().push_instruction_load(
                 while_allowed_address,
-                Type::new_boolean().size(),
+                Type::boolean().size(),
                 None,
                 false,
                 location,

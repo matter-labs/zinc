@@ -16,8 +16,12 @@ use std::fmt;
 pub trait InstructionInfo: PartialEq + fmt::Debug + Sized {
     fn to_assembly(&self) -> String;
     fn code() -> InstructionCode;
-    fn encode(&self) -> Vec<u8> { unimplemented!() }
-    fn decode(_bytes: &[u8]) -> Result<(Self, usize), DecodingError> { unimplemented!() }
+    fn encode(&self) -> Vec<u8> {
+        unimplemented!()
+    }
+    fn decode(_bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
+        unimplemented!()
+    }
     fn inputs_count(&self) -> usize;
     fn outputs_count(&self) -> usize;
     fn wrap(&self) -> Instruction;

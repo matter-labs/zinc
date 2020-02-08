@@ -4,14 +4,14 @@
 
 use failure::Fail;
 
-use crate::command::BuildCommandError;
-use crate::command::CleanCommandError;
-use crate::command::InitCommandError;
-use crate::command::NewCommandError;
-use crate::command::ProveCommandError;
-use crate::command::RunCommandError;
-use crate::command::SetupCommandError;
-use crate::command::VerifyCommandError;
+use crate::command::build::Error as BuildCommandError;
+use crate::command::clean::Error as CleanCommandError;
+use crate::command::init::Error as InitCommandError;
+use crate::command::new::Error as NewCommandError;
+use crate::command::prove::Error as ProveCommandError;
+use crate::command::run::Error as RunCommandError;
+use crate::command::setup::Error as SetupCommandError;
+use crate::command::verify::Error as VerifyCommandError;
 
 #[derive(Debug, Fail)]
 pub enum Error {

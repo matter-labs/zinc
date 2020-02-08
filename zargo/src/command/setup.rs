@@ -55,7 +55,7 @@ pub enum Error {
 impl Command {
     pub fn execute(self) -> Result<(), Error> {
         let mut virtual_machine_process =
-            process::Command::new(crate::constants::ZINC_VIRTUAL_MACHINE_BINARY_NAME)
+            process::Command::new(crate::constants::ZINC_BINARY_NAME_VIRTUAL_MACHINE)
                 .args(vec!["-v"; self.verbose])
                 .arg("setup")
                 .arg("--circuit")

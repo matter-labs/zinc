@@ -37,16 +37,13 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
     fn test_assert_fail() {
-        let res = VMTestRunner::new()
+        VMTestRunner::new()
             .add(PushConst::new(0.into(), false, 1))
             .add(Assert)
-            .test::<i32>(&[]);
-
-        match res {
-            Err(TestingError::Unsatisfied) => {}
-            _ => panic!("Expected unsatisfied CS"),
-        }
+            .test::<i32>(&[])
+            .expect("Expected unsatisfied CS")
     }
 
     #[test]

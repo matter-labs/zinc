@@ -5,10 +5,10 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
-use crate::semantic::ArrayValueError;
+use crate::semantic::element::value::array::error::Error as ArrayValueError;
 
+use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
-use crate::semantic::Type;
 
 use crate::Error;
 
@@ -23,8 +23,8 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::LiteralArray(
         Location::new(3, 21),
         ArrayValueError::PushingInvalidType(
-            Type::new_boolean().to_string(),
-            Type::new_integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            Type::boolean().to_string(),
+            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
         ),
     )));
 

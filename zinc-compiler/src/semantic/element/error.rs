@@ -4,9 +4,9 @@
 
 use failure::Fail;
 
-use crate::semantic::ConstantError;
-use crate::semantic::PlaceError;
-use crate::semantic::ValueError;
+use crate::semantic::element::constant::error::Error as ConstantError;
+use crate::semantic::element::place::error::Error as PlaceError;
+use crate::semantic::element::value::error::Error as ValueError;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {

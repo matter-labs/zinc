@@ -1,7 +1,10 @@
 [package]
 name = "zinc-compiler"
 version = "0.5.0"
-authors = ["hedgar2017 <hedgar2017@gmail.com>"]
+authors = [
+    "hedgar2017 <hedgar2017@gmail.com>",
+    "Alexander Movchan <am@matterlabs.dev>",
+]
 edition = "2018"
 description = "The Zinc compiler"
 

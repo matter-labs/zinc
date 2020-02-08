@@ -5,12 +5,12 @@
 use failure::Fail;
 
 use crate::lexical::Location;
-use crate::semantic::ArrayValueError;
-use crate::semantic::ElementError;
-use crate::semantic::IntegerConstantError;
-use crate::semantic::ScopeError;
-use crate::semantic::StandardLibraryFunctionError;
-use crate::semantic::StructureValueError;
+use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
+use crate::semantic::element::error::Error as ElementError;
+use crate::semantic::element::r#type::function::standard::error::Error as StandardFunctionError;
+use crate::semantic::element::value::array::error::Error as ArrayValueError;
+use crate::semantic::element::value::structure::error::Error as StructureValueError;
+use crate::semantic::scope::error::Error as ScopeError;
 
 #[derive(Debug, Fail, PartialEq)]
 #[allow(clippy::large_enum_variant)]
@@ -106,7 +106,7 @@ pub enum Error {
     FunctionExpectedConstantLengthArgument(Location, &'static str, String),
 
     #[fail(display = "{}: {}", _0, _1)]
-    FunctionStandardLibrary(Location, StandardLibraryFunctionError),
+    FunctionStandardLibrary(Location, StandardFunctionError),
     #[fail(display = "function 'main' is missing")]
     FunctionMainMissing,
 

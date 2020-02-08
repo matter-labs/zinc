@@ -2,6 +2,7 @@
 //! The Zargo `clean` command.
 //!
 
+use std::convert::TryFrom;
 use std::ffi::OsString;
 use std::fs;
 use std::io;
@@ -40,24 +41,18 @@ pub enum Error {
 }
 
 impl Command {
-    pub fn execute(mut self) -> Result<(), Error> {
-        let mut project_path = self.manifest_path.clone();
-        if !self
-            .manifest_path
-            .ends_with(crate::constants::CIRCUIT_MANIFEST_FILE_NAME)
-        {
-            self.manifest_path
-                .push(crate::constants::CIRCUIT_MANIFEST_FILE_NAME);
-        } else {
-            project_path.pop();
-        }
-
-        let _manifest = Manifest::new(&self.manifest_path).map_err(|error| {
+    pub fn execute(self) -> Result<(), Error> {
+        let _manifest = Manifest::try_from(&self.manifest_path).map_err(|error| {
             Error::ManifestFile(self.manifest_path.as_os_str().to_owned(), error)
         })?;
 
+        let mut project_path = self.manifest_path;
+        if project_path.is_file() {
+            project_path.pop();
+        }
+
         let mut build_directory_path = project_path;
-        build_directory_path.push(crate::constants::CIRCUIT_BUILD_DIRECTORY);
+        build_directory_path.push(crate::constants::CIRCUIT_DIRECTORY_BUILD);
         if build_directory_path.exists() {
             fs::remove_dir_all(&build_directory_path).map_err(|error| {
                 Error::BuildDirectoryRemoving(build_directory_path.as_os_str().to_owned(), error)

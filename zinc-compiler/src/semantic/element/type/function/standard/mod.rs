@@ -2,69 +2,60 @@
 //! The semantic analyzer standard library function type element.
 //!
 
-mod array_pad;
-mod array_reverse;
-mod array_truncate;
-mod error;
-mod from_bits_field;
-mod from_bits_signed;
-mod from_bits_unsigned;
-mod pedersen;
-mod sha256;
-mod to_bits;
-
-pub use self::array_pad::ArrayPadStandardLibraryFunction;
-pub use self::array_reverse::ArrayReverseStandardLibraryFunction;
-pub use self::array_truncate::ArrayTruncateStandardLibraryFunction;
-pub use self::error::Error;
-pub use self::from_bits_field::FromBitsFieldStandardLibraryFunction;
-pub use self::from_bits_signed::FromBitsSignedStandardLibraryFunction;
-pub use self::from_bits_unsigned::FromBitsUnsignedStandardLibraryFunction;
-pub use self::pedersen::PedersenStandardLibraryFunction;
-pub use self::sha256::Sha256StandardLibraryFunction;
-pub use self::to_bits::ToBitsStandardLibraryFunction;
+pub mod array_pad;
+pub mod array_reverse;
+pub mod array_truncate;
+pub mod error;
+pub mod from_bits_field;
+pub mod from_bits_signed;
+pub mod from_bits_unsigned;
+pub mod pedersen;
+pub mod sha256;
+pub mod to_bits;
 
 use std::fmt;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
+use self::array_pad::Function as ArrayPadFunction;
+use self::array_reverse::Function as ArrayReverseFunction;
+use self::array_truncate::Function as ArrayTruncateFunction;
+use self::from_bits_field::Function as FromBitsFieldFunction;
+use self::from_bits_signed::Function as FromBitsSignedFunction;
+use self::from_bits_unsigned::Function as FromBitsUnsignedFunction;
+use self::pedersen::Function as PedersenFunction;
+use self::sha256::Function as Sha256Function;
+use self::to_bits::Function as ToBitsFunction;
+
 #[derive(Debug, Clone)]
-pub enum StandardLibraryFunction {
-    Sha256(Sha256StandardLibraryFunction),
-    Pedersen(PedersenStandardLibraryFunction),
-    ToBits(ToBitsStandardLibraryFunction),
-    FromBitsUnsigned(FromBitsUnsignedStandardLibraryFunction),
-    FromBitsSigned(FromBitsSignedStandardLibraryFunction),
-    FromBitsField(FromBitsFieldStandardLibraryFunction),
-    ArrayReverse(ArrayReverseStandardLibraryFunction),
-    ArrayTruncate(ArrayTruncateStandardLibraryFunction),
-    ArrayPad(ArrayPadStandardLibraryFunction),
+pub enum Function {
+    Sha256(Sha256Function),
+    Pedersen(PedersenFunction),
+    ToBits(ToBitsFunction),
+    FromBitsUnsigned(FromBitsUnsignedFunction),
+    FromBitsSigned(FromBitsSignedFunction),
+    FromBitsField(FromBitsFieldFunction),
+    ArrayReverse(ArrayReverseFunction),
+    ArrayTruncate(ArrayTruncateFunction),
+    ArrayPad(ArrayPadFunction),
 }
 
-impl StandardLibraryFunction {
+impl Function {
     pub fn new(identifier: BuiltinIdentifier) -> Self {
         match identifier {
-            BuiltinIdentifier::CryptoSha256 => Self::Sha256(Sha256StandardLibraryFunction::new()),
-            BuiltinIdentifier::CryptoPedersen => {
-                Self::Pedersen(PedersenStandardLibraryFunction::new())
-            }
-            BuiltinIdentifier::ToBits => Self::ToBits(ToBitsStandardLibraryFunction::new()),
+            BuiltinIdentifier::CryptoSha256 => Self::Sha256(Sha256Function::new()),
+            BuiltinIdentifier::CryptoPedersen => Self::Pedersen(PedersenFunction::new()),
+            BuiltinIdentifier::ToBits => Self::ToBits(ToBitsFunction::new()),
             BuiltinIdentifier::UnsignedFromBits => {
-                Self::FromBitsUnsigned(FromBitsUnsignedStandardLibraryFunction::new())
+                Self::FromBitsUnsigned(FromBitsUnsignedFunction::new())
             }
             BuiltinIdentifier::SignedFromBits => {
-                Self::FromBitsSigned(FromBitsSignedStandardLibraryFunction::new())
+                Self::FromBitsSigned(FromBitsSignedFunction::new())
             }
-            BuiltinIdentifier::FieldFromBits => {
-                Self::FromBitsField(FromBitsFieldStandardLibraryFunction::new())
-            }
-            BuiltinIdentifier::ArrayReverse => {
-                Self::ArrayReverse(ArrayReverseStandardLibraryFunction::new())
-            }
-            BuiltinIdentifier::ArrayTruncate => {
-                Self::ArrayTruncate(ArrayTruncateStandardLibraryFunction::new())
-            }
-            BuiltinIdentifier::ArrayPad => Self::ArrayPad(ArrayPadStandardLibraryFunction::new()),
+            BuiltinIdentifier::FieldFromBits => Self::FromBitsField(FromBitsFieldFunction::new()),
+            BuiltinIdentifier::ArrayReverse => Self::ArrayReverse(ArrayReverseFunction::new()),
+            BuiltinIdentifier::ArrayTruncate => Self::ArrayTruncate(ArrayTruncateFunction::new()),
+            BuiltinIdentifier::ArrayPad => Self::ArrayPad(ArrayPadFunction::new()),
         }
     }
 
@@ -97,7 +88,7 @@ impl StandardLibraryFunction {
     }
 }
 
-impl fmt::Display for StandardLibraryFunction {
+impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Sha256(inner) => write!(f, "{}", inner),
