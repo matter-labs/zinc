@@ -30,14 +30,16 @@ impl<E: Engine> Circuit<E> for VMCircuit<'_> {
     }
 }
 
-pub fn run<E: Engine>(program: &Program, inputs: &[BigInt]) -> Result<Vec<BigInt>, RuntimeError> {
+pub fn run<E: Engine>(program: &Program, inputs: &Value) -> Result<Value, RuntimeError> {
     let cs = DebugConstraintSystem::<Bn256>::default();
     let mut vm = VirtualMachine::new(cs, true);
+
+    let inputs_flat = inputs.to_flat_values();
 
     let mut num_constraints = 0;
     let result = vm.run(
         program,
-        Some(inputs),
+        Some(&inputs_flat),
         |cs| {
             let num = cs.num_constraints() - num_constraints;
             num_constraints += num;
@@ -65,8 +67,20 @@ pub fn run<E: Engine>(program: &Program, inputs: &[BigInt]) -> Result<Vec<BigInt
     //        ));
     //    }
 
-    // TODO: Remove unwrap
-    Ok(result.into_iter().map(|v| v.unwrap()).collect())
+    let output_flat = result
+        .into_iter()
+        .map(|v| v.expect("`run` always computes witness"))
+        .collect::<Vec<_>>();
+
+    let value = Value::from_flat_values(&program.output, &output_flat)
+        .ok_or_else(|| {
+            TypeSizeError::Output {
+                expected: 0,
+                actual: 0,
+            }
+        })?;
+
+    Ok(value)
 }
 
 pub fn setup<E: Engine>(program: &Program) -> Result<Parameters<E>, RuntimeError> {
@@ -111,7 +125,11 @@ pub fn prove<E: Engine>(
         )),
         Some(res) => match res {
             Ok(values) => {
-                let output_flat: Vec<BigInt> = values.into_iter().map(|v| v.unwrap()).collect();
+                let output_flat: Vec<BigInt> = values
+                    .into_iter()
+                    .map(|v| v.expect("`prove` always computes witness"))
+                    .collect();
+
                 let value =
                     Value::from_flat_values(&program.output, &output_flat).ok_or_else(|| {
                         TypeSizeError::Output {

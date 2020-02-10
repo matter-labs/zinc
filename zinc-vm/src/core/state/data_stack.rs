@@ -6,7 +6,6 @@ use crate::gadgets::{Gadgets, Primitive};
 use crate::Engine;
 use crate::RuntimeError;
 use franklin_crypto::bellman::ConstraintSystem;
-use crate::errors::MalformedBytecode;
 
 #[derive(Debug)]
 struct CellDelta<E: Engine> {
