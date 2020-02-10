@@ -8,6 +8,7 @@ use self::run::RunCommand;
 use self::setup::SetupCommand;
 use crate::commands::verify::VerifyCommand;
 use structopt::StructOpt;
+use crate::{Error, IoToError};
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "zvm", about = "Zinc Virtual Machine")]
@@ -31,11 +32,18 @@ pub enum Command {
     Verify(VerifyCommand),
 }
 
-fn read_hex<R: std::io::Read>(reader: &mut R) -> std::io::Result<Vec<u8>> {
+fn read_proof<R: std::io::Read>(reader: &mut R) -> Result<Vec<u8>, Error> {
     let mut hex_bytes = Vec::new();
     reader
         .read_to_end(&mut hex_bytes)
-        .expect("failed to read from stdin");
-    let proof_hex = String::from_utf8(hex_bytes).expect("invalid utf-8");
-    Ok(hex::decode(proof_hex.trim()).expect("failed to decode hex proof"))
+        .error_with_path(|| "<stdin>")?;
+
+    let proof_hex: String = String::from_utf8_lossy(&hex_bytes).into();
+
+    let bytes = hex::decode(proof_hex.trim())
+        .map_err(|error| {
+            Error::DecodingProof(error)
+        })?;
+
+    Ok(bytes)
 }

@@ -77,7 +77,7 @@ impl Bytecode {
         self.output_type = r#type;
     }
 
-    pub fn push_instruction(&mut self, instruction: Instruction, location: Location) {
+    pub fn push_instruction(&mut self, instruction: Instruction, _location: Location) {
 //        if self.current_location != location {
 //            if self.current_location.line != location.line {
 //                self.instructions
@@ -183,7 +183,7 @@ impl Bytecode {
         self.current_file = name.to_owned();
     }
 
-    pub fn start_new_function(&mut self, identifier: &str, unique_id: usize) {
+    pub fn start_new_function(&mut self, _identifier: &str, unique_id: usize) {
         self.function_addresses
             .insert(unique_id, self.instructions.len());
 //        self.instructions.push(Instruction::FileMarker(
