@@ -183,7 +183,7 @@ impl Bytecode {
         self.current_file = name.to_owned();
     }
 
-    pub fn start_new_function(&mut self, _identifier: &str, unique_id: usize) {
+    pub fn start_new_function(&mut self, identifier: &str, unique_id: usize) {
         self.function_addresses
             .insert(unique_id, self.instructions.len());
         self.instructions.push(Instruction::FileMarker(

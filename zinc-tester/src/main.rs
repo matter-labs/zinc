@@ -42,7 +42,7 @@ fn main() {
     let json = serde_json::from_str(&json).unwrap();
     let input = Value::from_typed_json(&json, &program.input).unwrap();
 
-    let output = zinc_vm::run::<Bn256>(&program, &input).unwrap();
-
-    println!("{:?}", test_data);
+//    let output = zinc_vm::run::<Bn256>(&program, &input).unwrap();
+//
+//    println!("{:?}", test_data);
 }
