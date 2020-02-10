@@ -3,7 +3,7 @@
 //#     "input": {
 //#         "witness": "42"
 //#     },
-//#     "output": "42"
+//#     "output": "43"
 //# }
 //#
 fn main(witness: u8) -> u8 {

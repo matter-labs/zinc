@@ -1,7 +1,7 @@
-use std::io;
-use zinc_vm::{RuntimeError, VerificationError};
-use zinc_bytecode::data::values::JsonValueError;
 use failure::Fail;
+use std::io;
+use zinc_bytecode::data::values::JsonValueError;
+use zinc_vm::{RuntimeError, VerificationError};
 
 use hex::FromHexError;
 
@@ -20,8 +20,8 @@ pub enum Error {
     JsonDecoding(serde_json::Error),
 
     #[fail(
-    display = "invalid json structure: {}\nNote: remove the file ./data/witness.json so the compiler may recreate it",
-    _0
+        display = "invalid json structure: {}\nNote: remove the file ./data/witness.json so the compiler may recreate it",
+        _0
     )]
     JsonValue(JsonValueError),
 
@@ -29,7 +29,7 @@ pub enum Error {
     ProgramDecoding(String),
 
     #[fail(display = "failed to decode proof: {}", _0)]
-    DecodingProof(FromHexError)
+    DecodingProof(FromHexError),
 }
 
 impl From<RuntimeError> for Error {
@@ -56,7 +56,6 @@ impl From<JsonValueError> for Error {
     }
 }
 
-
 pub trait IoToError<T> {
     fn error_with_path<P, F>(self, path: F) -> Result<T, Error>
     where
@@ -65,12 +64,14 @@ pub trait IoToError<T> {
 }
 
 impl<T> IoToError<T> for Result<T, io::Error> {
-    fn error_with_path<P, F>(self, path_fn: F) -> Result<T, Error> where
+    fn error_with_path<P, F>(self, path_fn: F) -> Result<T, Error>
+    where
         P: Into<String>,
-        F: FnOnce() -> P {
+        F: FnOnce() -> P,
+    {
         self.map_err(|error| Error::IO {
             error,
-            path: path_fn().into()
+            path: path_fn().into(),
         })
     }
 }

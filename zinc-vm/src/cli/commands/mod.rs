@@ -7,8 +7,8 @@ use self::prove::ProveCommand;
 use self::run::RunCommand;
 use self::setup::SetupCommand;
 use crate::commands::verify::VerifyCommand;
-use structopt::StructOpt;
 use crate::{Error, IoToError};
+use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "zvm", about = "Zinc Virtual Machine")]
@@ -40,10 +40,7 @@ fn read_proof<R: std::io::Read>(reader: &mut R) -> Result<Vec<u8>, Error> {
 
     let proof_hex: String = String::from_utf8_lossy(&hex_bytes).into();
 
-    let bytes = hex::decode(proof_hex.trim())
-        .map_err(|error| {
-            Error::DecodingProof(error)
-        })?;
+    let bytes = hex::decode(proof_hex.trim()).map_err(|error| Error::DecodingProof(error))?;
 
     Ok(bytes)
 }

@@ -25,10 +25,9 @@ pub struct ProveCommand {
 impl ProveCommand {
     pub fn execute(&self) -> Result<(), Error> {
         // Read program
-        let bytes = fs::read(&self.circuit_path)
-            .error_with_path(|| self.circuit_path.to_string_lossy())?;
-        let program = Program::from_bytes(bytes.as_slice())
-            .map_err(Error::ProgramDecoding)?;
+        let bytes =
+            fs::read(&self.circuit_path).error_with_path(|| self.circuit_path.to_string_lossy())?;
+        let program = Program::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
         // Read verifying key
         let file = fs::File::open(&self.proving_key_path)

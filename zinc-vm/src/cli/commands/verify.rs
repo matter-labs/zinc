@@ -31,16 +31,14 @@ pub struct VerifyCommand {
 
 impl VerifyCommand {
     pub fn execute(&self) -> Result<(), Error> {
-        let proof = Proof::<Bn256>::read(std::io::stdin())
-            .error_with_path(|| "<stdin>")?;
+        let proof = Proof::<Bn256>::read(std::io::stdin()).error_with_path(|| "<stdin>")?;
 
-        let bytes = fs::read(&self.circuit_path)
-            .error_with_path(|| self.circuit_path.to_string_lossy())?;
-        let program = Program::from_bytes(bytes.as_slice())
-            .map_err(Error::ProgramDecoding)?;
+        let bytes =
+            fs::read(&self.circuit_path).error_with_path(|| self.circuit_path.to_string_lossy())?;
+        let program = Program::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
-        let key_file = fs::File::open(&self.key_path)
-            .error_with_path(|| self.key_path.to_string_lossy())?;
+        let key_file =
+            fs::File::open(&self.key_path).error_with_path(|| self.key_path.to_string_lossy())?;
         let key = VerifyingKey::<Bn256>::read(key_file)
             .error_with_path(|| self.key_path.to_string_lossy())?;
 

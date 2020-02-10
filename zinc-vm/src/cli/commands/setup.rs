@@ -20,15 +20,16 @@ pub struct SetupCommand {
 
 impl SetupCommand {
     pub fn execute(&self) -> Result<(), Error> {
-        let bytes = fs::read(&self.circuit_path)
-            .error_with_path(|| self.circuit_path.to_string_lossy())?;
+        let bytes =
+            fs::read(&self.circuit_path).error_with_path(|| self.circuit_path.to_string_lossy())?;
         let program = Program::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
         let params = zinc_vm::setup::<Bn256>(&program)?;
 
         let pkey_file = fs::File::create(&self.proving_key_path)
             .error_with_path(|| self.proving_key_path.to_string_lossy())?;
-        params.write(pkey_file)
+        params
+            .write(pkey_file)
             .error_with_path(|| self.proving_key_path.to_string_lossy())?;
 
         let vk_hex = {

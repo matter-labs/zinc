@@ -21,8 +21,8 @@ pub struct RunCommand {
 
 impl RunCommand {
     pub fn execute(&self) -> Result<(), Error> {
-        let bytes = fs::read(&self.circuit_path)
-            .error_with_path(|| self.circuit_path.to_string_lossy())?;
+        let bytes =
+            fs::read(&self.circuit_path).error_with_path(|| self.circuit_path.to_string_lossy())?;
         let program = Program::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
         let input_text = fs::read_to_string(&self.input_path)

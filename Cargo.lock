@@ -469,9 +469,9 @@ checksum = "805026a5d0141ffc30abb3be3173848ad46a1b1664fe632428479619a3644d77"
 
 [[package]]
 name = "hex"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "023b39be39e3a2da62a94feb433e91e8bcd37676fbc8bea371daf52b7a769a3e"
+checksum = "76cdda6bf525062a0c9e8f14ee2b37935c86b8efb6c8b69b3c83dfb518a914af"
 
 [[package]]
 name = "hmac"
@@ -1102,10 +1102,13 @@ name = "zinc-tester"
 version = "0.1.0"
 dependencies = [
  "env_logger",
+ "failure",
  "log",
+ "pairing_ce",
  "serde",
  "serde_derive",
  "serde_json",
+ "structopt",
  "zinc-bytecode",
  "zinc-compiler",
  "zinc-vm",
@@ -1122,7 +1125,7 @@ dependencies = [
  "failure",
  "ff_ce",
  "franklin-crypto",
- "hex 0.4.0",
+ "hex 0.4.1",
  "lazy_static",
  "log",
  "num-bigint",

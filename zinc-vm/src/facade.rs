@@ -14,8 +14,8 @@ use crate::debug_constraint_system::DebugConstraintSystem;
 pub use crate::errors::{MalformedBytecode, RuntimeError, TypeSizeError};
 use crate::gadgets::utils::bigint_to_fr;
 use crate::Engine;
-use zinc_bytecode::data::values::Value;
 use failure::Fail;
+use zinc_bytecode::data::values::Value;
 
 struct VMCircuit<'a> {
     program: &'a Program,
@@ -73,13 +73,12 @@ pub fn run<E: Engine>(program: &Program, inputs: &Value) -> Result<Value, Runtim
         .map(|v| v.expect("`run` always computes witness"))
         .collect::<Vec<_>>();
 
-    let value = Value::from_flat_values(&program.output, &output_flat)
-        .ok_or_else(|| {
-            TypeSizeError::Output {
-                expected: 0,
-                actual: 0,
-            }
-        })?;
+    let value = Value::from_flat_values(&program.output, &output_flat).ok_or_else(|| {
+        TypeSizeError::Output {
+            expected: 0,
+            actual: 0,
+        }
+    })?;
 
     Ok(value)
 }
