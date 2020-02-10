@@ -3,6 +3,7 @@
 //!
 
 fn main(witness: u8) -> u8 {
+    let a = 256;
     dbg!("x {}", witness);
     witness
 }
