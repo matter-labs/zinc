@@ -29,7 +29,7 @@ fn main() {
 "#;
 
     let expected = Ok(vec![
-        Instruction::Call(Call::new(8, 0)),
+        Instruction::Call(Call::new(18, 0)),
         Instruction::Exit(Exit::new(0)),
         Instruction::Load(Load::new(1)),
         Instruction::Load(Load::new(0)),

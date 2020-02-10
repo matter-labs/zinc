@@ -4,6 +4,7 @@
 
 pub mod error;
 
+use std::convert::TryFrom;
 use std::fmt;
 
 use num_bigint::BigInt;
@@ -46,7 +47,7 @@ impl Array {
             0,
             self.r#type.size(),
             self.r#type().size(),
-            Some(Value::new(self.r#type.to_owned())),
+            Some(Value::try_from(self.r#type.to_owned()).unwrap()),
         )
     }
 
@@ -76,7 +77,7 @@ impl Array {
             self.r#type.size() * start,
             self.r#type.size() * length,
             self.r#type().size(),
-            Some(Value::new(Type::array(self.r#type.to_owned(), length))),
+            Some(Value::try_from(Type::array(self.r#type.to_owned(), length)).unwrap()),
         ))
     }
 
@@ -106,7 +107,7 @@ impl Array {
             self.r#type.size() * start,
             self.r#type.size() * length,
             self.r#type().size(),
-            Some(Value::new(Type::array(self.r#type.to_owned(), length))),
+            Some(Value::try_from(Type::array(self.r#type.to_owned(), length)).unwrap()),
         ))
     }
 

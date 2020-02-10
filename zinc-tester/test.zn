@@ -1,0 +1,12 @@
+//#
+//# {
+//#     "input": {
+//#         "witness": "42"
+//#     },
+//#     "output": "42"
+//# }
+//#
+fn main(witness: u8) -> u8 {
+    dbg!("x {}", witness);
+    witness
+}

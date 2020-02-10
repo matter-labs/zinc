@@ -7,6 +7,7 @@ use failure::Fail;
 use crate::lexical::Location;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 use crate::semantic::element::error::Error as ElementError;
+use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionError;
 use crate::semantic::element::r#type::function::standard::error::Error as StandardFunctionError;
 use crate::semantic::element::value::array::error::Error as ArrayValueError;
 use crate::semantic::element::value::structure::error::Error as StructureValueError;
@@ -107,6 +108,8 @@ pub enum Error {
 
     #[fail(display = "{}: {}", _0, _1)]
     FunctionStandardLibrary(Location, StandardFunctionError),
+    #[fail(display = "{}: {}", _0, _1)]
+    FunctionBuiltIn(Location, BuiltInFunctionError),
     #[fail(display = "function 'main' is missing")]
     FunctionMainMissing,
 
@@ -140,19 +143,4 @@ pub enum Error {
         _0, _1
     )]
     ConstantExpressionHasNonConstantElement(Location, String),
-    #[fail(
-        display = "{}: instruction 'dbg' expected a string as the first argument, but got '{}'",
-        _0, _1
-    )]
-    InstructionDebugExpectedStringAsFirstArgument(Location, String),
-    #[fail(
-        display = "{}: instruction 'assert' expected a boolean as the first argument, but got '{}'",
-        _0, _1
-    )]
-    InstructionAssertExpectedBooleanAsFirstArgument(Location, String),
-    #[fail(
-        display = "{}: instruction 'assert' expected a string as the second argument, but got '{}'",
-        _0, _1
-    )]
-    InstructionAssertExpectedStringAsSecondArgument(Location, String),
 }

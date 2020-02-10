@@ -218,6 +218,9 @@ pub enum Error {
     )]
     OperatorFieldFirstOperandExpectedStructure(String),
 
+    #[fail(display = "it is impossible to create a value from type {}", _0)]
+    ConvertingFromType(String),
+
     #[fail(display = "{}", _0)]
     Integer(IntegerValueError),
     #[fail(display = "{}", _0)]

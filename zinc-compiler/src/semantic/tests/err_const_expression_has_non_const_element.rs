@@ -4,6 +4,8 @@
 
 #![cfg(test)]
 
+use std::convert::TryFrom;
+
 use crate::lexical::Location;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::Value;
@@ -23,7 +25,8 @@ fn main() {
     let expected = Err(Error::Semantic(
         SemanticError::ConstantExpressionHasNonConstantElement(
             Location::new(4, 26),
-            Element::Value(Value::new(Type::integer_unsigned(crate::BITLENGTH_BYTE))).to_string(),
+            Element::Value(Value::try_from(Type::integer_unsigned(crate::BITLENGTH_BYTE)).unwrap())
+                .to_string(),
         ),
     ));
 

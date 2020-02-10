@@ -4,6 +4,7 @@
 
 pub mod error;
 
+use std::convert::TryFrom;
 use std::fmt;
 
 use crate::semantic::element::access::AccessData;
@@ -38,7 +39,7 @@ impl Structure {
                     offset,
                     r#type.size(),
                     total_size,
-                    Some(Value::new(r#type.to_owned())),
+                    Some(Value::try_from(r#type.to_owned()).unwrap()),
                 ));
             }
             offset += r#type.size();

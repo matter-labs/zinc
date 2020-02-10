@@ -23,7 +23,7 @@ fn main() {
 "#;
 
     let expected = Ok(vec![
-        Instruction::Call(Call::new(3, 0)),
+        Instruction::Call(Call::new(7, 0)),
         Instruction::Exit(Exit::new(0)),
         Instruction::Return(Return::new(0)),
         Instruction::PushConst(PushConst::new(

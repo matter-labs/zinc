@@ -48,8 +48,6 @@ cargo test
 
 export ZARGO_PATH="./target/${TARGET_DIRECTORY}/zargo"
 
-"${ZARGO_PATH}" clean ${LOG_LEVEL} \
-    --manifest-path "${CIRCUIT_DIRECTORY}/Zargo.toml"
 "${ZARGO_PATH}" proof-check ${LOG_LEVEL} \
     --manifest-path "${CIRCUIT_DIRECTORY}/Zargo.toml" \
     --circuit "${CIRCUIT_BUILD_DIRECTORY}/default.znb" \

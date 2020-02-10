@@ -33,7 +33,7 @@ fn main() -> field {
 "#;
 
     let expected = Ok(vec![
-        Instruction::Call(Call::new(5, 0)),
+        Instruction::Call(Call::new(9, 0)),
         Instruction::Exit(Exit::new(1)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(5),

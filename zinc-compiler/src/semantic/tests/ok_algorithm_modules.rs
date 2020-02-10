@@ -66,7 +66,7 @@ fn main() -> field {
 "#;
 
     let expected = Ok(vec![
-        Instruction::Call(Call::new(17, 0)),
+        Instruction::Call(Call::new(45, 0)),
         Instruction::Exit(Exit::new(1)),
         Instruction::Load(Load::new(1)),
         Instruction::Load(Load::new(0)),
@@ -102,14 +102,14 @@ fn main() -> field {
         )),
         Instruction::Call(Call::new(2, 2)),
         Instruction::Load(Load::new(0)),
-        Instruction::Call(Call::new(6, 2)),
+        Instruction::Call(Call::new(14, 2)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(5),
             false,
             crate::BITLENGTH_BYTE,
         )),
         Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
-        Instruction::Call(Call::new(10, 2)),
+        Instruction::Call(Call::new(26, 2)),
         Instruction::Return(Return::new(1)),
     ]);
 

@@ -13,7 +13,7 @@ use crate::semantic::element::r#type::Type;
 #[derive(Debug, Default, Clone)]
 pub struct Function {
     identifier: &'static str,
-    pub return_type: Box<Type>,
+    return_type: Box<Type>,
 }
 
 impl Function {

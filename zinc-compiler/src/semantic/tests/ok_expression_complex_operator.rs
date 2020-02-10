@@ -6,7 +6,6 @@
 
 use num_bigint::BigInt;
 
-use zinc_bytecode::Swap;
 use zinc_bytecode::Add;
 use zinc_bytecode::And;
 use zinc_bytecode::Call;
@@ -19,6 +18,7 @@ use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 use zinc_bytecode::Store;
 use zinc_bytecode::Sub;
+use zinc_bytecode::Swap;
 use zinc_bytecode::Xor;
 
 #[test]

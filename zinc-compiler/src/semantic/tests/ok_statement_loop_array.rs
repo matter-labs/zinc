@@ -6,6 +6,9 @@
 
 use num_bigint::BigInt;
 
+use zinc_bytecode::data::types::DataType;
+use zinc_bytecode::data::types::IntegerType;
+use zinc_bytecode::data::types::ScalarType;
 use zinc_bytecode::Add;
 use zinc_bytecode::Call;
 use zinc_bytecode::Cast;
@@ -21,9 +24,6 @@ use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 use zinc_bytecode::Store;
 use zinc_bytecode::StoreSequence;
-use zinc_bytecode::data::types::DataType;
-use zinc_bytecode::data::types::IntegerType;
-use zinc_bytecode::data::types::ScalarType;
 
 #[test]
 fn test() {
@@ -87,9 +87,13 @@ fn main() {
         Instruction::Add(Add),
         Instruction::Mul(Mul),
         Instruction::LoadByIndex(LoadByIndex::new(0, 5)),
-        Instruction::Dbg(Dbg::new("{}".to_owned(), vec![
-            DataType::Scalar(ScalarType::Integer(IntegerType { is_signed: false, bit_length: crate::BITLENGTH_BYTE })),
-        ])),
+        Instruction::Dbg(Dbg::new(
+            "{}".to_owned(),
+            vec![DataType::Scalar(ScalarType::Integer(IntegerType {
+                is_signed: false,
+                bit_length: crate::BITLENGTH_BYTE,
+            }))],
+        )),
         Instruction::PushConst(PushConst::new(
             BigInt::from(1),
             false,

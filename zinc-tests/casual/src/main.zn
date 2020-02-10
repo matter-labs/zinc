@@ -2,7 +2,7 @@
 //! The 'casual' main module.
 //!
 
-fn main(witness: u32) -> u32 {
-    const d: u32 = 17;
-    witness / d
+fn main(witness: u8) -> u8 {
+    dbg!("x {}", witness);
+    witness
 }
