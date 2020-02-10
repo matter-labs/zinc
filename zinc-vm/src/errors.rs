@@ -3,6 +3,15 @@ use franklin_crypto::bellman::SynthesisError;
 use num_bigint::BigInt;
 
 #[derive(Debug, Fail)]
+pub enum TypeSizeError {
+    #[fail(display = "expected input value of size {}, got {}", expected, actual)]
+    Input { expected: usize, actual: usize },
+
+    #[fail(display = "expected output value of size {}, got {}", expected, actual)]
+    Output { expected: usize, actual: usize },
+}
+
+#[derive(Debug, Fail)]
 pub enum MalformedBytecode {
     #[fail(display = "invalid arguments to built-in function: {}", _0)]
     InvalidArguments(String),
@@ -67,6 +76,9 @@ pub enum RuntimeError {
 
     #[fail(display = "division by zero")]
     ZeroDivisionError,
+
+    #[fail(display = "type size mismatch: {}", _0)]
+    TypeSize(TypeSizeError),
 }
 
 impl From<SynthesisError> for RuntimeError {
@@ -78,5 +90,11 @@ impl From<SynthesisError> for RuntimeError {
 impl From<MalformedBytecode> for RuntimeError {
     fn from(error: MalformedBytecode) -> Self {
         RuntimeError::MalformedBytecode(error)
+    }
+}
+
+impl From<TypeSizeError> for RuntimeError {
+    fn from(error: TypeSizeError) -> Self {
+        RuntimeError::TypeSize(error)
     }
 }

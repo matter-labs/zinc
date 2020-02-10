@@ -11,9 +11,10 @@ use zinc_bytecode::program::Program;
 
 use crate::core::VirtualMachine;
 use crate::debug_constraint_system::DebugConstraintSystem;
-pub use crate::errors::RuntimeError;
+pub use crate::errors::{MalformedBytecode, RuntimeError, TypeSizeError};
 use crate::gadgets::utils::bigint_to_fr;
 use crate::Engine;
+use zinc_bytecode::data::values::Value;
 
 struct VMCircuit<'a> {
     program: &'a Program,
@@ -84,15 +85,17 @@ pub fn setup<E: Engine>(program: &Program) -> Result<Parameters<E>, RuntimeError
 pub fn prove<E: Engine>(
     program: &Program,
     params: &Parameters<E>,
-    witness: &[BigInt],
-) -> Result<(Vec<BigInt>, Proof<E>), RuntimeError> {
+    witness: &Value,
+) -> Result<(Value, Proof<E>), RuntimeError> {
     let rng = &mut rand::thread_rng();
+
+    let witness_flat = witness.to_flat_values();
 
     let (result, proof) = {
         let mut result = None;
         let circuit = VMCircuit {
             program,
-            inputs: Some(witness),
+            inputs: Some(&witness_flat),
             result: &mut result,
         };
 
@@ -107,7 +110,18 @@ pub fn prove<E: Engine>(
             "circuit hasn't generate outputs".into(),
         )),
         Some(res) => match res {
-            Ok(values) => Ok((values.into_iter().map(|v| v.unwrap()).collect(), proof)),
+            Ok(values) => {
+                let output_flat: Vec<BigInt> = values.into_iter().map(|v| v.unwrap()).collect();
+                let value =
+                    Value::from_flat_values(&program.output, &output_flat).ok_or_else(|| {
+                        TypeSizeError::Output {
+                            expected: 0,
+                            actual: 0,
+                        }
+                    })?;
+
+                Ok((value, proof))
+            }
             Err(err) => Err(err),
         },
     }
