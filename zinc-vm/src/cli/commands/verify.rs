@@ -46,9 +46,8 @@ impl VerifyCommand {
         let output_text = fs::read_to_string(&self.public_data_path)?;
         let output_value = serde_json::from_str(output_text.as_str())?;
         let output_struct = Value::from_typed_json(&output_value, &program.output)?;
-        let output = output_struct.to_flat_values();
 
-        let verified = zinc_vm::verify(&key, &proof, &output)?;
+        let verified = zinc_vm::verify(&key, &proof, &output_struct)?;
 
         if verified {
             println!("{}", "✔  Verified".bold().green());

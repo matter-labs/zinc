@@ -15,6 +15,7 @@ pub use crate::errors::{MalformedBytecode, RuntimeError, TypeSizeError};
 use crate::gadgets::utils::bigint_to_fr;
 use crate::Engine;
 use zinc_bytecode::data::values::Value;
+use failure::Fail;
 
 struct VMCircuit<'a> {
     program: &'a Program,
@@ -145,25 +146,30 @@ pub fn prove<E: Engine>(
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Fail)]
 pub enum VerificationError {
-    InputFormatError,
+    #[fail(display = "value overflow: value {} is not in the field", _0)]
+    ValueOverflow(BigInt),
+
+    #[fail(display = "failed to synthesize circuit: {}", _0)]
     SynthesisError(SynthesisError),
 }
 
 pub fn verify<E: Engine>(
     key: &VerifyingKey<E>,
     proof: &Proof<E>,
-    pub_inputs: &[BigInt],
+    public_input: &Value,
 ) -> Result<bool, VerificationError> {
-    let mut pub_inputs_fr = Vec::new();
-    for v in pub_inputs.iter() {
-        let fr = bigint_to_fr::<E>(v).ok_or(VerificationError::InputFormatError)?;
-        pub_inputs_fr.push(fr);
-    }
+    let public_input_flat = public_input
+        .to_flat_values()
+        .into_iter()
+        .map(|value| {
+            bigint_to_fr::<E>(&value).ok_or_else(|| VerificationError::ValueOverflow(value))
+        })
+        .collect::<Result<Vec<E::Fr>, VerificationError>>()?;
 
     let pvk = groth16::prepare_verifying_key(&key);
-    let success = groth16::verify_proof(&pvk, proof, pub_inputs_fr.as_slice())
+    let success = groth16::verify_proof(&pvk, proof, public_input_flat.as_slice())
         .map_err(VerificationError::SynthesisError)?;
 
     Ok(success)
