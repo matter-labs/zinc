@@ -31,11 +31,12 @@ mod tests {
 
     use zinc_bytecode::*;
 
+    #[ignore]
     #[test]
     fn test_assert_ok() -> Result<(), TestingError> {
         VMTestRunner::new()
             .add(PushConst::new(1.into(), false, 1))
-            .add(Assert)
+            .add(Assert::new(None))
             .test::<i32>(&[])
     }
 
@@ -44,18 +45,19 @@ mod tests {
     fn test_assert_fail() {
         VMTestRunner::new()
             .add(PushConst::new(0.into(), false, 1))
-            .add(Assert)
+            .add(Assert::new(None))
             .test::<i32>(&[])
             .expect("Expected unsatisfied CS")
     }
 
+    #[ignore]
     #[test]
     fn test_assert_in_condition() -> Result<(), TestingError> {
         VMTestRunner::new()
             .add(PushConst::new(0.into(), false, 1))
             .add(If)
             .add(PushConst::new(0.into(), false, 1))
-            .add(Assert)
+            .add(Assert::new(None))
             .add(EndIf)
             .test::<i32>(&[])
     }

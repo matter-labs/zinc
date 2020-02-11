@@ -57,12 +57,12 @@ fn main() {
         Instruction::Load(Load::new(0)),
         Instruction::Mul(Mul),
         Instruction::Store(Store::new(0)),
+        Instruction::Load(Load::new(1)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(1),
             false,
             crate::BITLENGTH_BYTE,
         )),
-        Instruction::Load(Load::new(1)),
         Instruction::Add(Add),
         Instruction::Store(Store::new(1)),
         Instruction::LoopEnd(LoopEnd),
@@ -74,7 +74,7 @@ fn main() {
         Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::Load(Load::new(0)),
         Instruction::Eq(Eq),
-        Instruction::Assert(Assert),
+        Instruction::Assert(Assert::new(None)),
         Instruction::Return(Return::new(0)),
     ]);
 

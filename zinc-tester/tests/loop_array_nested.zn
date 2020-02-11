@@ -1,3 +1,11 @@
+//# [ {
+//#     "case": "default", "ignore": true,
+//#     "input": {
+//#         "array": ["5", "7", "9", "11", "13"]
+//#     },
+//#     "expect": "365"
+//# } ]
+
 fn main(array: [u8; 5]) -> u32 {
     let mut sum: u32 = 0;
     for i in 0..5 {

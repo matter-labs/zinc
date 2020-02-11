@@ -1,0 +1,13 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {},
+//#     "expect": "17"
+//# } ]
+
+fn diff(a: u8, b: u8) -> u8 {
+    a - b
+}
+
+fn main() -> u8 {
+    diff(42, 25)
+}

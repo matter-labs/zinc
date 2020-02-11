@@ -283,7 +283,7 @@ impl Analyzer {
 
         // start a new scope and declare the function arguments there
         self.push_scope();
-        for argument_binding in statement.argument_bindings.into_iter().rev() {
+        for argument_binding in statement.argument_bindings.into_iter() {
             let (identifier, is_mutable) = match argument_binding.variant {
                 BindingPatternVariant::Binding(identifier) => (identifier, false),
                 BindingPatternVariant::MutableBinding(identifier) => (identifier, true),
@@ -600,13 +600,13 @@ impl Analyzer {
                 .block_expression(statement.block)?;
         }
 
-        // increment the loop counter
+        // increment or decrement the loop counter
         self.bytecode.borrow_mut().push_instruction(
-            IntegerConstant::new_one(is_signed, bitlength).to_instruction(),
+            Instruction::Load(zinc_bytecode::Load::new(index_address)),
             location,
         );
         self.bytecode.borrow_mut().push_instruction(
-            Instruction::Load(zinc_bytecode::Load::new(index_address)),
+            IntegerConstant::new_one(is_signed, bitlength).to_instruction(),
             location,
         );
         self.bytecode.borrow_mut().push_instruction(

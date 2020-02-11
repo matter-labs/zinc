@@ -1,0 +1,19 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {},
+//#     "expect": "67"
+//# } ]
+
+enum First {
+    A = 5,
+    B = 25,
+}
+
+enum Second {
+    A = 42,
+    B = 69,
+}
+
+fn main() -> u8 {
+    First::B + Second::A
+}

@@ -21,11 +21,9 @@ where
 
             let mut flat = Vec::with_capacity(size);
             for _ in 0..size {
-                let value = vm
-                    .pop()?
-                    .value()?
-                    .to_bigint()
-                    .ok_or_else(|| RuntimeError::SynthesisError(SynthesisError::AssignmentMissing))?;
+                let value = vm.pop()?.value()?.to_bigint().ok_or_else(|| {
+                    RuntimeError::SynthesisError(SynthesisError::AssignmentMissing)
+                })?;
                 flat.push(value);
             }
             flat.reverse();

@@ -771,12 +771,12 @@ impl Analyzer {
                         return_type
                     }
                     BuiltInFunctionType::Assert(function) => {
-                        let (return_type, annotation) = function
+                        let (return_type, message) = function
                             .validate(argument_elements.as_slice())
                             .map_err(|error| Error::FunctionBuiltIn(element.location, error))?;
 
                         self.bytecode.borrow_mut().push_instruction(
-                            Instruction::Assert(zinc_bytecode::Assert::new(annotation)),
+                            Instruction::Assert(zinc_bytecode::Assert::new(message)),
                             element.location,
                         );
 

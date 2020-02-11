@@ -1,0 +1,15 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {
+//#         "array": ["5", "7", "9", "11", "13"]
+//#     },
+//#     "expect": "45"
+//# } ]
+
+fn main(array: [u8; 5]) -> u8 {
+    let mut sum = 0;
+    for i in 0..5 {
+        sum = sum + array[i];
+    }
+    sum
+}

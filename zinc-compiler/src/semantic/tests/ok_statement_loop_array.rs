@@ -94,12 +94,12 @@ fn main() {
                 bit_length: crate::BITLENGTH_BYTE,
             }))],
         )),
+        Instruction::Load(Load::new(5)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(1),
             false,
             crate::BITLENGTH_BYTE,
         )),
-        Instruction::Load(Load::new(5)),
         Instruction::Add(Add),
         Instruction::Store(Store::new(5)),
         Instruction::LoopEnd(LoopEnd),

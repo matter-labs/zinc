@@ -887,7 +887,11 @@ where
         self.value_with_arguments_type_check(value, variable, &[if_true, if_false])
     }
 
-    pub fn assert(&mut self, element: Primitive<E>, message: Option<&str>) -> Result<(), RuntimeError> {
+    pub fn assert(
+        &mut self,
+        element: Primitive<E>,
+        message: Option<&str>,
+    ) -> Result<(), RuntimeError> {
         if let Some(value) = element.value {
             if value.is_zero() {
                 let s = message.unwrap_or("<no message>".into());

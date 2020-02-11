@@ -77,12 +77,12 @@ fn main() {
         Instruction::Add(Add),
         Instruction::Store(Store::new(0)),
         Instruction::EndIf(EndIf),
+        Instruction::Load(Load::new(1)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(1),
             false,
             crate::BITLENGTH_BYTE,
         )),
-        Instruction::Load(Load::new(1)),
         Instruction::Add(Add),
         Instruction::Store(Store::new(1)),
         Instruction::LoopEnd(LoopEnd),
