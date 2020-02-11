@@ -771,7 +771,7 @@ impl Analyzer {
                         return_type
                     }
                     BuiltInFunctionType::Assert(function) => {
-                        let (return_type, annotation) = function
+                        let (return_type, _annotation) = function
                             .validate(argument_elements.as_slice())
                             .map_err(|error| Error::FunctionBuiltIn(element.location, error))?;
 

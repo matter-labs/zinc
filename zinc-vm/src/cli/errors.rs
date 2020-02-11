@@ -28,8 +28,8 @@ pub enum Error {
     #[fail(display = "failed to decode program: {}", _0)]
     ProgramDecoding(String),
 
-    #[fail(display = "failed to decode proof: {}", _0)]
-    DecodingProof(FromHexError),
+    #[fail(display = "failed to decode {} hex-code: {}", context, error)]
+    HexDecoding { context: String, error: FromHexError },
 }
 
 impl From<RuntimeError> for Error {

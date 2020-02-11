@@ -1,7 +1,6 @@
 use crate::{Error, IoToError};
 use pairing::bn256::Bn256;
 use std::fs;
-use std::io::Write;
 use std::path::PathBuf;
 use structopt::StructOpt;
 use zinc_bytecode::program::Program;
@@ -38,7 +37,7 @@ impl SetupCommand {
             hex::encode(vk_bytes) + "\n"
         };
 
-        let _vkey_file = fs::write(&self.verifying_key_path, vk_hex)
+        fs::write(&self.verifying_key_path, vk_hex)
             .error_with_path(|| self.verifying_key_path.to_string_lossy())?;
 
         Ok(())

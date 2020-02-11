@@ -7,7 +7,6 @@ use self::prove::ProveCommand;
 use self::run::RunCommand;
 use self::setup::SetupCommand;
 use crate::commands::verify::VerifyCommand;
-use crate::{Error, IoToError};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -30,17 +29,4 @@ pub enum Command {
     Setup(SetupCommand),
     Prove(ProveCommand),
     Verify(VerifyCommand),
-}
-
-fn read_proof<R: std::io::Read>(reader: &mut R) -> Result<Vec<u8>, Error> {
-    let mut hex_bytes = Vec::new();
-    reader
-        .read_to_end(&mut hex_bytes)
-        .error_with_path(|| "<stdin>")?;
-
-    let proof_hex: String = String::from_utf8_lossy(&hex_bytes).into();
-
-    let bytes = hex::decode(proof_hex.trim()).map_err(|error| Error::DecodingProof(error))?;
-
-    Ok(bytes)
 }
