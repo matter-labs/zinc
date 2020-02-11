@@ -16,8 +16,11 @@ where
         let c = vm.condition_top()?;
         let not_c = vm.operations().not(c)?;
         let cond_value = vm.operations().or(value, not_c)?;
-        vm.operations().assert(cond_value)?;
-        Ok(())
+        let message = match &self.message {
+            Some(m) => Some(m.as_str()),
+            None => None,
+        };
+        vm.operations().assert(cond_value, message)
     }
 }
 

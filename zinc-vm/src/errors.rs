@@ -49,8 +49,8 @@ pub enum RuntimeError {
     #[fail(display = "malformed bytecode: {}", _0)]
     MalformedBytecode(MalformedBytecode),
 
-    #[fail(display = "assertion error: got false expression in `assert!`")]
-    AssertionError,
+    #[fail(display = "assertion error: {}", _0)]
+    AssertionError(String),
 
     #[fail(
         display = "index out of bounds: expected index in range {}..{}, got {}",

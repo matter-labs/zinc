@@ -185,7 +185,7 @@ where
         };
         let index_lt_length = self.lt(index.clone(), length)?;
 
-        self.assert(index_lt_length)?;
+        self.assert(index_lt_length, None)?;
 
         let mut cs = self.cs_namespace();
         let num = index.as_allocated_num(cs.namespace(|| "into_allocated_num"))?;
@@ -887,10 +887,11 @@ where
         self.value_with_arguments_type_check(value, variable, &[if_true, if_false])
     }
 
-    pub fn assert(&mut self, element: Primitive<E>) -> Result<(), RuntimeError> {
+    pub fn assert(&mut self, element: Primitive<E>, message: Option<&str>) -> Result<(), RuntimeError> {
         if let Some(value) = element.value {
             if value.is_zero() {
-                return Err(RuntimeError::AssertionError);
+                let s = message.unwrap_or("<no message>".into());
+                return Err(RuntimeError::AssertionError(s.into()));
             }
         }
 

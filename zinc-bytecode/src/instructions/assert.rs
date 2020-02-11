@@ -1,25 +1,27 @@
-use crate::instructions::utils::decode_simple_instruction;
-use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
+use crate::{Instruction, InstructionCode, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
-pub struct Assert;
+pub struct Assert {
+    pub message: Option<String>,
+}
+
+impl Assert {
+    pub fn new(message: Option<String>) -> Self {
+        Self { message }
+    }
+}
 
 impl InstructionInfo for Assert {
     fn to_assembly(&self) -> String {
-        "assert".into()
+        match &self.message {
+            None => format!("assert"),
+            Some(text) => format!("assert \"{}\"", text),
+        }
     }
 
     fn code() -> InstructionCode {
         InstructionCode::Assert
-    }
-
-    fn encode(&self) -> Vec<u8> {
-        vec![InstructionCode::Assert as u8]
-    }
-
-    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
-        decode_simple_instruction(bytes)
     }
 
     fn inputs_count(&self) -> usize {
