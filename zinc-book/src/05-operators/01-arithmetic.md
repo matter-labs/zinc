@@ -8,7 +8,7 @@ Both operands of a binary operator must always be of the same type, e.g.:
 - `i64` and `i64`
 - `field` and `field`
 
-> The operators `/`, `%`, `>=`, `>`, `<=`, `<` are temporary forbidden for the
+> The operators `/`, `%`, `>=`, `>`, `<=`, `<` are temporarily forbidden for the
 > type `field`, but will probably become available soon.
 
 #### Addition

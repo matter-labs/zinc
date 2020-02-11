@@ -26,7 +26,6 @@ use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::r#type::UNIQUE_ID;
 use crate::semantic::element::Element;
-use crate::semantic::scope::item::r#static::Static as ScopeStaticItem;
 use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
@@ -150,47 +149,29 @@ impl Analyzer {
     fn static_statement(&mut self, statement: StaticStatement) -> Result<(), Error> {
         let location = statement.location;
         let type_location = statement.r#type.location;
+        let expression_location = statement.expression.location;
 
         // compile the expression being assigned
-        let mut rvalue = ExpressionAnalyzer::new(self.scope(), self.bytecode.clone())
+        let mut rvalue = ExpressionAnalyzer::new_without_bytecode(self.scope())
             .expression(statement.expression, TranslationHint::ValueExpression)?;
 
-        let static_type = Type::from_type_variant(&statement.r#type.variant, self.scope())?;
+        let const_type = Type::from_type_variant(&statement.r#type.variant, self.scope())?;
         rvalue
-            .cast(&Element::Type(static_type.clone()))
+            .cast(&Element::Type(const_type))
             .map_err(|error| Error::Element(type_location, error))?;
-
-        if let Some((is_signed, bitlength)) = rvalue
-            .cast(&Element::Type(static_type))
-            .map_err(|error| Error::Element(type_location, error))?
-        {
-            self.bytecode.borrow_mut().push_instruction(
-                Instruction::Cast(zinc_bytecode::Cast::new(is_signed, bitlength)),
-                type_location,
-            );
-        }
-
         let constant = match rvalue {
             Element::Constant(constant) => constant,
             element => {
                 return Err(Error::ConstantExpressionHasNonConstantElement(
-                    location,
+                    expression_location,
                     element.to_string(),
                 ))
             }
         };
 
-        let size = constant.r#type().size();
-        let address = self.bytecode.borrow_mut().allocate_data_stack_space(size);
-        self.bytecode
-            .borrow_mut()
-            .push_instruction_store(address, size, None, true, location);
         self.scope()
             .borrow_mut()
-            .declare_static(
-                statement.identifier.name,
-                ScopeStaticItem::new(constant, address),
-            )
+            .declare_constant(statement.identifier.name, constant)
             .map_err(|error| Error::Scope(location, error))?;
 
         Ok(())

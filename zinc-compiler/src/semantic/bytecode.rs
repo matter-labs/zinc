@@ -307,14 +307,14 @@ impl Into<DataType> for &Type {
                 DataType::Array(Box::new(element_type), *size)
             }
             Type::Tuple { types } => {
-                let mut data_types = Vec::new();
+                let mut data_types = Vec::with_capacity(types.len());
                 for r#type in types.iter() {
                     data_types.push(r#type.into());
                 }
                 DataType::Tuple(data_types)
             }
             Type::Structure(structure) => {
-                let mut new_fields: Vec<(String, DataType)> = Vec::new();
+                let mut new_fields: Vec<(String, DataType)> = Vec::with_capacity(structure.fields.len());
                 for (name, r#type) in structure.fields.iter() {
                     new_fields.push((name.to_owned(), r#type.into()));
                 }

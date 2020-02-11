@@ -95,7 +95,11 @@ fn main_inner() -> Result<(), Error> {
                 }
                 Err(error) => {
                     if test_case.should_panic {
-                        println!("[INTEGRATION] {} {}", "PASSED".green(), case_name);
+                        println!(
+                            "[INTEGRATION] {} {} (panicked)",
+                            "PASSED".green(),
+                            case_name
+                        );
                     } else {
                         is_everything_ok = false;
                         println!("[INTEGRATION] {} {} ({})", "FAILED".red(), case_name, error);

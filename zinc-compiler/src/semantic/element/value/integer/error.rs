@@ -41,17 +41,17 @@ pub enum Error {
     #[fail(display = "'%' operator operand types mismatch: '{}' and '{}'", _0, _1)]
     TypesMismatchRemainder(String, String),
 
-    #[fail(display = "'>=' operator is temporary forbidden for field elements")]
+    #[fail(display = "'>=' operator is temporarily forbidden for field elements")]
     ForbiddenFieldGreaterEquals,
-    #[fail(display = "'<=' operator is temporary forbidden for field elements")]
+    #[fail(display = "'<=' operator is temporarily forbidden for field elements")]
     ForbiddenFieldLesserEquals,
-    #[fail(display = "'>' operator is temporary forbidden for field elements")]
+    #[fail(display = "'>' operator is temporarily forbidden for field elements")]
     ForbiddenFieldGreater,
-    #[fail(display = "'<' operator is temporary forbidden for field elements")]
+    #[fail(display = "'<' operator is temporarily forbidden for field elements")]
     ForbiddenFieldLesser,
-    #[fail(display = "'/' operator is temporary forbidden for field elements")]
+    #[fail(display = "'/' operator is temporarily forbidden for field elements")]
     ForbiddenFieldDivision,
-    #[fail(display = "'%' operator is temporary forbidden for field elements")]
+    #[fail(display = "'%' operator is temporarily forbidden for field elements")]
     ForbiddenFieldRemainder,
     #[fail(display = "unary '-' operator is forbidden for field elements")]
     ForbiddenFieldNegation,

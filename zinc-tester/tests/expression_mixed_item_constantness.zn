@@ -1,6 +1,8 @@
-//!
-//! The 'casual' main module.
-//!
+//# [ {
+//#     "case": "default",
+//#     "input": {},
+//#     "expect": "116"
+//# } ]
 
 static STATIC: field = 5;
 

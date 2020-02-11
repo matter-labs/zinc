@@ -12,11 +12,9 @@ use zinc_bytecode::Cast;
 use zinc_bytecode::Exit;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::Load;
-use zinc_bytecode::LoadGlobal;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 use zinc_bytecode::Store;
-use zinc_bytecode::StoreGlobal;
 
 #[test]
 fn test() {
@@ -33,15 +31,8 @@ fn main() -> field {
 "#;
 
     let expected = Ok(vec![
-        Instruction::Call(Call::new(9, 0)),
+        Instruction::Call(Call::new(2, 0)),
         Instruction::Exit(Exit::new(1)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(5),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
-        Instruction::StoreGlobal(StoreGlobal::new(0)),
         Instruction::PushConst(PushConst::new(
             BigInt::from(69),
             false,
@@ -49,7 +40,11 @@ fn main() -> field {
         )),
         Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
         Instruction::Store(Store::new(0)),
-        Instruction::LoadGlobal(LoadGlobal::new(0)),
+        Instruction::PushConst(PushConst::new(
+            BigInt::from(5),
+            false,
+            crate::BITLENGTH_FIELD,
+        )),
         Instruction::PushConst(PushConst::new(
             BigInt::from(42),
             false,

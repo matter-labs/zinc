@@ -1,0 +1,13 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {},
+//#     "expect": "50"
+//# } ]
+
+fn main() -> u8 {
+    let mut inner = 25;
+    {
+        inner = 50;
+    };
+    inner
+}

@@ -29,7 +29,10 @@ pub enum Error {
     ProgramDecoding(String),
 
     #[fail(display = "failed to decode {} hex-code: {}", context, error)]
-    HexDecoding { context: String, error: FromHexError },
+    HexDecoding {
+        context: String,
+        error: FromHexError,
+    },
 }
 
 impl From<RuntimeError> for Error {

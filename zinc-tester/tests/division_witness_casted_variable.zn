@@ -19,6 +19,6 @@
 //# } ]
 
 fn main(witness: u32) -> u32 {
-    let variable: u32 = 3;
-    witness / variable
+    let variable = 3;
+    witness / variable as u32
 }

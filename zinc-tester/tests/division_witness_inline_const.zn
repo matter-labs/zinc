@@ -18,7 +18,6 @@
 //#     "expect": "8"
 //# } ]
 
-fn main(witness: u32) -> u32 {
-    let variable: u32 = 3;
-    witness / variable
+fn main(witness: u8) -> u8 {
+    witness / 3
 }

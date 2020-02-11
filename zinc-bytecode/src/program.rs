@@ -2,7 +2,7 @@ use crate::data::types::DataType;
 use crate::Instruction;
 use serde_derive::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Program {
     pub input: DataType,
     pub output: DataType,
