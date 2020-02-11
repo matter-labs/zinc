@@ -31,7 +31,6 @@ mod tests {
 
     use zinc_bytecode::*;
 
-    #[ignore]
     #[test]
     fn test_assert_ok() -> Result<(), TestingError> {
         VMTestRunner::new()
@@ -41,16 +40,18 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn test_assert_fail() {
-        VMTestRunner::new()
+        let res = VMTestRunner::new()
             .add(PushConst::new(0.into(), false, 1))
             .add(Assert::new(None))
-            .test::<i32>(&[])
-            .expect("Expected unsatisfied CS")
+            .test::<i32>(&[]);
+
+        match res {
+            Err(TestingError::RuntimeError(RuntimeError::AssertionError(_))) => {}
+            _ => panic!("Expected assertion error"),
+        }
     }
 
-    #[ignore]
     #[test]
     fn test_assert_in_condition() -> Result<(), TestingError> {
         VMTestRunner::new()
