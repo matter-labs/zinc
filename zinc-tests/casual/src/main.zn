@@ -1,13 +1,16 @@
-//!
-//! The 'casual' main module.
-//!
+fn foo(a: [u8; 2]) {
+    dbg!("foo: {}", a);
+}
 
-static STATIC: field = 5;
+fn bar(a: u8, b: u8) {
+    dbg!("bar: {}, {}", a, b);
+}
 
-const CONST: field = 42;
+fn main(arr: [u8; 10]) -> () {
+    let array = [42, 69];
 
-fn main() -> field {
-    let var: field = 69;
+    dbg!("main: {}", array);
 
-    STATIC + CONST + var
+    foo(array);
+    bar(42, 69);
 }
