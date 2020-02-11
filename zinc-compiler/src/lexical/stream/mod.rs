@@ -23,17 +23,17 @@ use self::integer::Error as IntegerParserError;
 use self::string::Error as StringParserError;
 use self::symbol::Error as SymbolParserError;
 
-pub struct TokenStream {
-    input: String,
+pub struct TokenStream<'a> {
+    input: &'a str,
     offset: usize,
     location: Location,
     look_ahead: VecDeque<Token>,
 }
 
-impl TokenStream {
+impl<'a> TokenStream<'a> {
     const DEQUE_LOOK_AHEAD_INITIAL_CAPACITY: usize = 16;
 
-    pub fn new(input: String) -> Self {
+    pub fn new(input: &'a str) -> Self {
         Self {
             input,
             offset: 0,

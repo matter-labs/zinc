@@ -54,7 +54,7 @@ pub fn compile_entry(
     BinaryAnalyzer::new(bytecode).compile(syntax_tree, dependencies)
 }
 
-pub fn compile_test(code: String) -> Result<Bytecode, Error> {
+pub fn compile_test(code: &str) -> Result<Bytecode, Error> {
     let syntax_tree = Parser::default().parse(code)?;
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));
     BinaryAnalyzer::new(bytecode.clone()).compile(syntax_tree, HashMap::new())?;
@@ -73,5 +73,5 @@ pub fn parse(path: PathBuf) -> Result<SyntaxTree, Error> {
     file.read_to_string(&mut string)
         .map_err(|error| InputError::Reading(error.to_string()))?;
 
-    Parser::default().parse(string)
+    Parser::default().parse(&string)
 }

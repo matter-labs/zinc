@@ -250,9 +250,7 @@ static PANIC_ONLY_REFERENCE: &str = "The last shared reference is always unwrapp
 
 pub(self) fn get_binary_result(input: &str) -> Result<(), Error> {
     BinaryAnalyzer::default().compile(
-        Parser::default()
-            .parse(input.to_owned())
-            .expect(PANIC_SYNTAX_ERROR),
+        Parser::default().parse(input).expect(PANIC_SYNTAX_ERROR),
         HashMap::new(),
     )
 }
@@ -261,11 +259,8 @@ pub(self) fn get_dependency(
     input: &str,
     bytecode: Rc<RefCell<Bytecode>>,
 ) -> Result<Rc<RefCell<Scope>>, Error> {
-    LibraryAnalyzer::new(bytecode).compile(
-        Parser::default()
-            .parse(input.to_owned())
-            .expect(PANIC_SYNTAX_ERROR),
-    )
+    LibraryAnalyzer::new(bytecode)
+        .compile(Parser::default().parse(input).expect(PANIC_SYNTAX_ERROR))
 }
 
 pub(self) fn get_instructions(input: &str) -> Result<Vec<Instruction>, Error> {
@@ -282,9 +277,7 @@ pub(self) fn get_instructions_with_dependencies(
     dependencies: HashMap<String, Rc<RefCell<Scope>>>,
 ) -> Result<Vec<Instruction>, Error> {
     BinaryAnalyzer::new(bytecode.clone()).compile(
-        Parser::default()
-            .parse(input.to_owned())
-            .expect(PANIC_SYNTAX_ERROR),
+        Parser::default().parse(input).expect(PANIC_SYNTAX_ERROR),
         dependencies,
     )?;
     let instructions: Vec<Instruction> = Rc::try_unwrap(bytecode)
