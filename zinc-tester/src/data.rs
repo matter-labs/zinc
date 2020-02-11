@@ -13,6 +13,8 @@ pub struct TestCase {
     pub case: String,
     #[serde(default)]
     pub should_panic: bool,
+    #[serde(default)]
+    pub ignore: bool,
     pub input: JsonValue,
     pub expect: JsonValue,
 }

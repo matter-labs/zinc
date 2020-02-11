@@ -28,9 +28,12 @@ const EXIT_CODE_FAILURE: i32 = 1;
 
 fn main() {
     process::exit(match main_inner() {
-        Ok(()) => EXIT_CODE_SUCCESS,
+        Ok(()) => {
+            println!("[{}] OK", "INTEGRATION".green());
+            EXIT_CODE_SUCCESS
+        }
         Err(error) => {
-            eprintln!("{}", error);
+            eprintln!("[{}] {}", "INTEGRATION".red(), error);
             EXIT_CODE_FAILURE
         }
     })
@@ -39,6 +42,8 @@ fn main() {
 fn main_inner() -> Result<(), Error> {
     let test_directory = TestDirectory::new(&PathBuf::from("zinc-tester/tests/".to_owned()))
         .map_err(Error::TestDirectory)?;
+
+    let mut is_everything_ok = true;
 
     for test_file_path in test_directory.file_paths.into_iter() {
         let test_file = TestFile::try_from(&test_file_path).map_err(Error::TestFile)?;
@@ -58,28 +63,51 @@ fn main_inner() -> Result<(), Error> {
                 test_case.case
             );
 
+            if test_case.ignore {
+                println!("[INTEGRATION] {} {}", "IGNORE".yellow(), case_name);
+                continue;
+            }
+
             match zinc_vm::run::<Bn256>(&program_data.program, &program_data.input) {
                 Ok(output) => {
-                    if test_case.expect == output.to_json() {
+                    let output = output.to_json();
+                    if test_case.expect == output {
                         if !test_case.should_panic {
-                            println!("{} {}", "PASSED".green(), case_name);
+                            println!("[INTEGRATION] {} {}", "PASSED".green(), case_name);
                         } else {
-                            println!("{} {} (should have panicked)", "FAILED".red(), case_name,);
+                            is_everything_ok = false;
+                            println!(
+                                "[INTEGRATION] {} {} (should have panicked)",
+                                "FAILED".red(),
+                                case_name
+                            );
                         }
                     } else {
-                        println!("{} {} (expect != actual)", "FAILED".red(), case_name);
+                        is_everything_ok = false;
+                        println!(
+                            "[INTEGRATION] {} {} (expected {}, but got {})",
+                            "FAILED".red(),
+                            case_name,
+                            test_case.expect,
+                            output
+                        );
                     }
                 }
                 Err(error) => {
                     if test_case.should_panic {
-                        println!("{} {}", "PASSED".green(), case_name);
+                        println!("[INTEGRATION] {} {}", "PASSED".green(), case_name);
                     } else {
-                        println!("{} {} ({})", "FAILED".red(), case_name, error);
+                        is_everything_ok = false;
+                        println!("[INTEGRATION] {} {} ({})", "FAILED".red(), case_name, error);
                     }
                 }
             }
         }
     }
 
-    Ok(())
+    if is_everything_ok {
+        Ok(())
+    } else {
+        Err(Error::TestFailure)
+    }
 }

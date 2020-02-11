@@ -209,10 +209,7 @@ Test {
             None,
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
         assert_eq!(expected, result);
     }
@@ -283,10 +280,7 @@ Test {
             None,
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
         assert_eq!(expected, result);
     }
@@ -305,10 +299,7 @@ Test {
             Some(Token::new(Lexeme::Eof, Location::new(1, 5))),
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
         assert_eq!(expected, result);
     }

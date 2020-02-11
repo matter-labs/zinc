@@ -114,10 +114,7 @@ mod tests {
 
         let expected = Ok((Type::new(Location::new(1, 1), TypeVariant::unit()), None));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
         assert_eq!(expected, result);
     }
@@ -131,10 +128,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
         assert_eq!(expected, result);
     }
@@ -145,10 +139,7 @@ mod tests {
 
         let expected = Ok((Type::new(Location::new(1, 1), TypeVariant::field()), None));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
         assert_eq!(expected, result);
     }
@@ -171,10 +162,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
         assert_eq!(expected, result);
     }
@@ -203,10 +191,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
         assert_eq!(expected, result);
     }
@@ -223,10 +208,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
         assert_eq!(expected, result);
     }
@@ -253,10 +235,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
         assert_eq!(expected, result);
     }
@@ -276,10 +255,7 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
         assert_eq!(expected, result);
     }
@@ -305,10 +281,7 @@ mod tests {
             Some(Token::new(Lexeme::Eof, Location::new(1, 14))),
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
         assert_eq!(expected, result);
     }
@@ -323,10 +296,7 @@ mod tests {
             Lexeme::Symbol(Symbol::Comma),
         )));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
         assert_eq!(expected, result);
     }

@@ -21,4 +21,6 @@ pub enum Error {
     TestData(OsString, TestDataError),
     #[fail(display = "program data {}", _0)]
     ProgramData(ProgramDataError),
+    #[fail(display = "test failure")]
+    TestFailure,
 }

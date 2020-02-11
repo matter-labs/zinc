@@ -43,8 +43,9 @@ export CIRCUIT_DATA_DIRECTORY="${CIRCUIT_DIRECTORY}/data/"
 
 cargo fmt --all
 cargo clippy
-cargo build ${RELEASE_MODE_FLAG}
+cargo build --verbose ${RELEASE_MODE_FLAG}
 cargo test
+cargo run --verbose ${RELEASE_MODE_FLAG} --bin 'zinc-tester'
 
 export ZARGO_PATH="./target/${TARGET_DIRECTORY}/zargo"
 

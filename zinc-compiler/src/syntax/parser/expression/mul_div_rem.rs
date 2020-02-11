@@ -138,10 +138,7 @@ mod tests {
             Some(Token::new(Lexeme::Eof, Location::new(1, 12))),
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
         assert_eq!(expected, result);
     }
