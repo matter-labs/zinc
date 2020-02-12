@@ -246,7 +246,8 @@ use crate::Parser;
 use crate::Scope;
 
 static PANIC_SYNTAX_ERROR: &str = "Syntax errors must be eliminated at this point";
-static PANIC_ONLY_REFERENCE: &str = "The last shared reference is always unwrapped successfully";
+static PANIC_THE_ONLY_REFERENCE: &str =
+    "The last shared reference is always unwrapped successfully";
 
 pub(self) fn get_binary_result(input: &str) -> Result<(), Error> {
     BinaryAnalyzer::default().compile(
@@ -281,7 +282,7 @@ pub(self) fn get_instructions_with_dependencies(
         dependencies,
     )?;
     let instructions: Vec<Instruction> = Rc::try_unwrap(bytecode)
-        .expect(PANIC_ONLY_REFERENCE)
+        .expect(PANIC_THE_ONLY_REFERENCE)
         .into_inner()
         .into();
     Ok(instructions

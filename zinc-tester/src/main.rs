@@ -52,6 +52,10 @@ static PANIC_TEST_FILE_INVALID: &str = "All test files must be valid";
 static PANIC_TEST_DATA_CASE_INVALID: &str = "All test cases must be valid";
 static PANIC_TEST_FILE_STEM_GETTING: &str = "Every test file must have a stem";
 
+static PANIC_THE_ONLY_REFERENCE: &str =
+    "The last shared reference is always unwrapped successfully";
+static PANIC_SYNC: &str = "Synchronization is always successful";
+
 fn main_inner() -> Summary {
     println!(
         "[INTEGRATION] Started with {} worker threads",
@@ -86,7 +90,7 @@ fn main_inner() -> Summary {
                 {
                     Ok(program_data) => program_data,
                     Err(error) => {
-                        summary.lock().unwrap().invalid += 1;
+                        summary.lock().expect(PANIC_SYNC).invalid += 1;
                         println!(
                             "[INTEGRATION] {} {} ({})",
                             "INVALID".red(),
@@ -98,7 +102,7 @@ fn main_inner() -> Summary {
                 };
 
                 if test_case.ignore {
-                    summary.lock().unwrap().ignored += 1;
+                    summary.lock().expect(PANIC_SYNC).ignored += 1;
                     println!("[INTEGRATION] {} {}", "IGNORE".yellow(), case_name);
                     continue;
                 }
@@ -108,10 +112,10 @@ fn main_inner() -> Summary {
                         let output = output.to_json();
                         if test_case.expect == output {
                             if !test_case.should_panic {
-                                summary.lock().unwrap().passed += 1;
+                                summary.lock().expect(PANIC_SYNC).passed += 1;
                                 println!("[INTEGRATION] {} {}", "PASSED".green(), case_name);
                             } else {
-                                summary.lock().unwrap().failed += 1;
+                                summary.lock().expect(PANIC_SYNC).failed += 1;
                                 println!(
                                     "[INTEGRATION] {} {} (should have panicked)",
                                     "FAILED".bright_red(),
@@ -119,7 +123,7 @@ fn main_inner() -> Summary {
                                 );
                             }
                         } else {
-                            summary.lock().unwrap().failed += 1;
+                            summary.lock().expect(PANIC_SYNC).failed += 1;
                             println!(
                                 "[INTEGRATION] {} {} (expected {}, but got {})",
                                 "FAILED".bright_red(),
@@ -131,14 +135,14 @@ fn main_inner() -> Summary {
                     }
                     Err(error) => {
                         if test_case.should_panic {
-                            summary.lock().unwrap().passed += 1;
+                            summary.lock().expect(PANIC_SYNC).passed += 1;
                             println!(
                                 "[INTEGRATION] {} {} (panicked)",
                                 "PASSED".green(),
                                 case_name
                             );
                         } else {
-                            summary.lock().unwrap().failed += 1;
+                            summary.lock().expect(PANIC_SYNC).failed += 1;
                             println!(
                                 "[INTEGRATION] {} {} ({})",
                                 "FAILED".bright_red(),
@@ -153,12 +157,12 @@ fn main_inner() -> Summary {
         .collect::<Vec<()>>();
 
     Arc::try_unwrap(summary)
-        .unwrap_or_default()
+        .expect(PANIC_THE_ONLY_REFERENCE)
         .into_inner()
-        .unwrap()
+        .expect(PANIC_THE_ONLY_REFERENCE)
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 struct Summary {
     pub passed: usize,
     pub failed: usize,

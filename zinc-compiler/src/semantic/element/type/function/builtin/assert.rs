@@ -18,6 +18,7 @@ pub struct Function {
 impl Function {
     const ARGUMENT_INDEX_CONDITION: usize = 0;
     const ARGUMENT_INDEX_MESSAGE: usize = 1;
+    const ARGUMENT_COUNT: usize = 2;
 
     pub fn new() -> Self {
         Self {
@@ -91,6 +92,14 @@ impl Function {
             }
             None => None,
         };
+
+        if inputs.get(Self::ARGUMENT_COUNT).is_some() {
+            return Err(Error::ArgumentCount(
+                self.identifier,
+                Self::ARGUMENT_COUNT,
+                inputs.len(),
+            ));
+        }
 
         Ok((Type::unit(), string))
     }

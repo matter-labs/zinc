@@ -2,6 +2,7 @@
 //! The casual example used to test some cases.
 //!
 
-fn main(witness: u8) {
-    dbg!("Bool {}, int {}, tuple {}", true, 42, (255, -128));
+fn main(array: [field; 254], fill_value: field) -> [field; 256] {
+    dbg!("{} {}", array, fill_value);
+    std::array::pad(array, 256, fill_value)
 }

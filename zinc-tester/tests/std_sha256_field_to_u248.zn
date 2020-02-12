@@ -1,0 +1,21 @@
+//# [ {
+//#     "case": "default", "ignore": true,
+//#     "input": {
+//#         "preimage": "42"
+//#     },
+//#     "expect": "0x24ef4f01b129cde88a501b3fbd739cc2e1534134ab930c52ec2bd7523f02de"
+//# } ]
+
+use std::convert;
+use std::array::truncate;
+use std::array::pad;
+use std::crypto::sha256;
+
+fn main(preimage: field) -> u248 {
+    let preimage_bits = convert::to_bits(preimage);
+    let padded_preimage_bits = pad(preimage_bits, 256, false);
+    let digest_bits = sha256(padded_preimage_bits);
+    let truncated_bits = truncate(digest_bits, 248);
+
+    convert::from_bits_unsigned(truncated_bits)
+}
