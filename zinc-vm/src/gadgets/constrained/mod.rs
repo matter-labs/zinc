@@ -3,31 +3,40 @@ use std::marker::PhantomData;
 
 use crate::Engine;
 use bellman::{ConstraintSystem, Variable};
-use ff::{Field, PrimeField};
+use ff::Field;
 use franklin_crypto::bellman::{Namespace, SynthesisError};
 use franklin_crypto::circuit::num::AllocatedNum;
 use num_bigint::{BigInt, ToBigInt};
 
 use crate::core::RuntimeError;
+use crate::gadgets::tmp_lt::less_than;
 use crate::gadgets::utils::fr_to_bigint;
-use crate::gadgets::{utils, Gadget, Primitive, ScalarType, IntegerType};
+use crate::gadgets::{utils, Gadget, IntegerType, Primitive, ScalarType};
 use num_traits::ToPrimitive;
 use std::mem;
-use crate::gadgets::tmp_lt::less_than;
 
 impl<E: Engine> Debug for Primitive<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        let value_str = self.value
+        let value_str = self
+            .value
             .map(|f| fr_to_bigint(&f).to_string())
             .unwrap_or_else(|| "none".into());
 
-        write!(f, "Scalar {{ value: {}, type: {} }}", value_str, self.scalar_type)
+        write!(
+            f,
+            "Scalar {{ value: {}, type: {} }}",
+            value_str, self.scalar_type
+        )
     }
 }
 
 impl<E: Engine> Primitive<E> {
     fn new(value: Option<E::Fr>, variable: Variable, scalar_type: ScalarType) -> Self {
-        Self { value, variable, scalar_type }
+        Self {
+            value,
+            variable,
+            scalar_type,
+        }
     }
 
     pub fn as_allocated_num<CS: ConstraintSystem<E>>(
@@ -52,7 +61,8 @@ impl<E: Engine> Primitive<E> {
 
 impl<E: Engine> Display for Primitive<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        let value_str = self.value
+        let value_str = self
+            .value
             .map(|f| fr_to_bigint(&f).to_string())
             .unwrap_or_else(|| "none".into());
 
@@ -95,10 +105,7 @@ where
         self.cs.namespace(|| s)
     }
 
-    fn zero(
-        &mut self,
-        scalar_type: ScalarType,
-    ) -> Result<Primitive<E>, RuntimeError> {
+    fn zero(&mut self, scalar_type: ScalarType) -> Result<Primitive<E>, RuntimeError> {
         let value = E::Fr::zero();
         let mut cs = self.cs_namespace();
         let variable = cs
@@ -132,7 +139,7 @@ where
                 if !int_type.signed {
                     return Ok(value);
                 }
-            },
+            }
         }
 
         let zero = self.zero(value.scalar_type)?;
@@ -147,10 +154,7 @@ where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    pub fn variable_none(
-        &mut self,
-        scalar_type: ScalarType,
-    ) -> Result<Primitive<E>, RuntimeError> {
+    pub fn variable_none(&mut self, scalar_type: ScalarType) -> Result<Primitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
         let variable = cs
@@ -184,7 +188,11 @@ where
         Ok(Primitive::new(Some(value), variable, data_type))
     }
 
-    pub fn constant_bigint(&mut self, value: &BigInt, scalar_type: ScalarType) -> Result<Primitive<E>, RuntimeError> {
+    pub fn constant_bigint(
+        &mut self,
+        value: &BigInt,
+        scalar_type: ScalarType,
+    ) -> Result<Primitive<E>, RuntimeError> {
         let value = utils::bigint_to_fr::<E>(value)
             .ok_or_else(|| RuntimeError::InternalError("bigint_to_fr".into()))?;
 
@@ -435,18 +443,22 @@ where
 
         let new_type = match element.scalar_type {
             t @ ScalarType::Field => t,
-            t @ScalarType::Integer(IntegerType { signed: true, .. }) => t,
-            ScalarType::Integer(IntegerType { signed: false, length }) => IntegerType {
+            t @ ScalarType::Integer(IntegerType { signed: true, .. }) => t,
+            ScalarType::Integer(IntegerType {
+                signed: false,
+                length,
+            }) => IntegerType {
                 signed: true,
                 length: length + 1,
-            }.into(),
+            }
+            .into(),
         };
         Ok(Primitive::new(neg_value, neg_variable, new_type))
     }
 
     pub fn not(&mut self, element: Primitive<E>) -> Result<Primitive<E>, RuntimeError> {
         let one = Self::one(element.scalar_type);
-        self.sub(one, element.clone())
+        self.sub(one, element)
     }
 
     pub fn and(
@@ -549,8 +561,8 @@ where
 
     pub fn lt(
         &mut self,
-        mut left: Primitive<E>,
-        mut right: Primitive<E>,
+        left: Primitive<E>,
+        right: Primitive<E>,
     ) -> Result<Primitive<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
@@ -562,14 +574,14 @@ where
         Ok(Primitive::new(
             lt.get_value_field::<E>(),
             lt.get_variable().expect("must allocate").get_variable(),
-            IntegerType::BOOLEAN.into()
+            IntegerType::BOOLEAN.into(),
         ))
     }
 
     pub fn le(
         &mut self,
-        mut left: Primitive<E>,
-        mut right: Primitive<E>,
+        left: Primitive<E>,
+        right: Primitive<E>,
     ) -> Result<Primitive<E>, RuntimeError> {
         let gt = self.gt(left, right)?;
         self.not(gt)
@@ -594,7 +606,11 @@ where
 
         let eq = AllocatedNum::equals(cs, &l_num, &r_num).map_err(RuntimeError::SynthesisError)?;
 
-        Ok(Primitive::new(eq.get_value_field::<E>(), eq.get_variable(), IntegerType::BOOLEAN.into()))
+        Ok(Primitive::new(
+            eq.get_value_field::<E>(),
+            eq.get_variable(),
+            IntegerType::BOOLEAN.into(),
+        ))
     }
 
     pub fn ne(
@@ -669,7 +685,7 @@ where
     ) -> Result<(), RuntimeError> {
         if let Some(value) = element.value {
             if value.is_zero() {
-                let s = message.unwrap_or("<no message>".into());
+                let s = message.unwrap_or("<no message>");
                 return Err(RuntimeError::AssertionError(s.into()));
             }
         }
@@ -775,16 +791,17 @@ where
     }
 
     /// Asserts that value is in its type range if condition is true.
-    pub fn assert_type(&mut self, condition: Primitive<E>, scalar: Primitive<E>, scalar_type: ScalarType) -> Result<Primitive<E>, RuntimeError>{
+    pub fn assert_type(
+        &mut self,
+        condition: Primitive<E>,
+        scalar: Primitive<E>,
+        scalar_type: ScalarType,
+    ) -> Result<Primitive<E>, RuntimeError> {
         match scalar_type {
             ScalarType::Field => {
                 // Always safe to cast into field
-                Ok(Primitive::new(
-                    scalar.value,
-                    scalar.variable,
-                    scalar_type
-                ))
-            },
+                Ok(Primitive::new(scalar.value, scalar.variable, scalar_type))
+            }
             ScalarType::Integer(int_type) => {
                 let scalar_with_offset = if !int_type.signed {
                     scalar.clone()
@@ -796,26 +813,29 @@ where
 
                 let upper_bound_value = BigInt::from(1) << int_type.length;
                 let upper_bound = self.constant_bigint(&upper_bound_value, ScalarType::Field)?;
-                let lt = self.lt(scalar_with_offset.clone(), upper_bound.clone())?;
+                let lt = self.lt(scalar_with_offset, upper_bound)?;
                 let false_branch = self.not(condition.clone())?;
-                let required = self.or(lt.clone(), false_branch)?;
-
+                let required = self.or(lt, false_branch)?;
 
                 // Since we are not forcing type checks in false branch we will reset value.
                 let zero = self.zero(scalar.get_type())?;
                 let new_scalar = self.conditional_select(condition, scalar.clone(), zero)?;
 
                 match self.assert(required, None) {
-                    Ok(()) => Ok(Primitive::new(new_scalar.value, new_scalar.variable, scalar_type)),
-                    Err(RuntimeError::AssertionError(_)) => {
-                        Err(RuntimeError::ValueOverflow {
-                            value: fr_to_bigint(&scalar.value.expect("if assert failed, value is known")),
-                            scalar_type
-                        })
-                    },
-                    Err(e) => Err(e)
+                    Ok(()) => Ok(Primitive::new(
+                        new_scalar.value,
+                        new_scalar.variable,
+                        scalar_type,
+                    )),
+                    Err(RuntimeError::AssertionError(_)) => Err(RuntimeError::ValueOverflow {
+                        value: fr_to_bigint(
+                            &scalar.value.expect("if assert failed, value is known"),
+                        ),
+                        scalar_type,
+                    }),
+                    Err(e) => Err(e),
                 }
-            },
+            }
         }
     }
 }

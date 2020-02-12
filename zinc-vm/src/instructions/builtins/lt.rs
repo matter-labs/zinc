@@ -24,12 +24,11 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::instructions::testing_utils::{TestingError, VMTestRunner};
-    use zinc_bytecode::*;
     use crate::gadgets::utils::fr_to_bigint;
+    use crate::instructions::testing_utils::{TestingError, VMTestRunner};
+    use ff::Field;
     use pairing::bn256::Fr;
-    use ff::{Field, PrimeField};
-    use num_bigint::BigInt;
+    use zinc_bytecode::*;
 
     #[test]
     fn simple() -> Result<(), TestingError> {

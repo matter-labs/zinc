@@ -1,6 +1,6 @@
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::gadgets::{IntegerType};
+use crate::gadgets::IntegerType;
 use crate::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::instructions::PushConst;

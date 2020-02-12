@@ -60,7 +60,11 @@ impl<E: Engine> FunctionFrame<E> {
 impl<E: Engine> fmt::Display for State<E> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "{}", self.evaluation_stack)?;
-        writeln!(f, "Data Stack Offset: {}\n", self.frames_stack.last().unwrap().stack_frame_begin)?;
+        writeln!(
+            f,
+            "Data Stack Offset: {}\n",
+            self.frames_stack.last().unwrap().stack_frame_begin
+        )?;
         writeln!(f, "{}", self.data_stack)?;
 
         Ok(())

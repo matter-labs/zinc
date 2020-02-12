@@ -20,8 +20,8 @@ where
 
         for i in 0..self.slice_len {
             let index = vm
-                    .operations()
-                    .constant_bigint(&i.into(), offset.get_type())?;
+                .operations()
+                .constant_bigint(&i.into(), offset.get_type())?;
             let address = vm.operations().add(offset.clone(), index)?;
 
             let value = vm.operations().array_get(array.as_slice(), address)?;

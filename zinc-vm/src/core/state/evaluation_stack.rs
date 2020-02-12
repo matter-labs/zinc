@@ -79,7 +79,6 @@ impl<E: Engine> EvaluationStack<E> {
     }
 }
 
-
 impl<E: Engine> fmt::Display for EvaluationStack<E> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "Evaluation Stack:")?;

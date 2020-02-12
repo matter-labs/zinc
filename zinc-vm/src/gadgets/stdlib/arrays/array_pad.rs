@@ -21,7 +21,11 @@ impl<E: Engine> Gadget<E> for ArrayPad {
         _cs: CS,
         input: Self::Input,
     ) -> Result<Self::Output, RuntimeError> {
-        let Input { fill_value, len, mut array }  = input;
+        let Input {
+            fill_value,
+            len,
+            mut array,
+        } = input;
         let len = len.get_constant_usize()?;
 
         if len < array.len() {
@@ -47,13 +51,21 @@ impl<E: Engine> Gadget<E> for ArrayPad {
             .into());
         }
 
-        let (len, args) = input.split_last().ok_or(MalformedBytecode::InvalidArguments("pad expects at least 3 arguments".into()))?;
-        let (fill_value, args) = args.split_last().ok_or(MalformedBytecode::InvalidArguments("pad expects at least 3 arguments".into()))?;
+        let (len, args) = input
+            .split_last()
+            .ok_or_else(|| MalformedBytecode::InvalidArguments(
+                "pad expects at least 3 arguments".into(),
+            ))?;
+        let (fill_value, args) = args
+            .split_last()
+            .ok_or_else(|| MalformedBytecode::InvalidArguments(
+                "pad expects at least 3 arguments".into(),
+            ))?;
 
         Ok(Input {
             len: len.clone(),
             fill_value: fill_value.clone(),
-            array: args.into()
+            array: args.into(),
         })
     }
 

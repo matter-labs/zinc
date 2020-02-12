@@ -4,8 +4,8 @@ use std::io::Write;
 fn level_string(level: log::Level) -> colored::ColoredString {
     match level {
         log::Level::Error => "   error".bold().red(),
-        log::Level::Warn  => " warning".bold().yellow(),
-        log::Level::Info  => "    info".bold().blue(),
+        log::Level::Warn => " warning".bold().yellow(),
+        log::Level::Info => "    info".bold().blue(),
         log::Level::Debug => "   debug".bold().magenta(),
         log::Level::Trace => "   trace".bold(),
     }

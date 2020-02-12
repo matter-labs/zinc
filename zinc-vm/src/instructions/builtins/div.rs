@@ -3,9 +3,9 @@ extern crate franklin_crypto;
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
+use crate::gadgets::ScalarType;
 use crate::Engine;
 use zinc_bytecode::instructions::Div;
-use crate::gadgets::ScalarType;
 
 impl<E, CS> VMInstruction<E, CS> for Div
 where
@@ -18,15 +18,15 @@ where
 
         let condition = vm.condition_top()?;
 
-        let (unchecked_div, _rem) = vm
-            .operations()
-            .div_rem_conditional(left.clone(), right.clone(), condition)?;
+        let (unchecked_div, _rem) =
+            vm.operations()
+                .div_rem_conditional(left.clone(), right.clone(), condition)?;
 
         let condition = vm.condition_top()?;
         let div = vm.operations().assert_type(
             condition,
             unchecked_div,
-            ScalarType::expect_same(left.get_type(), right.get_type())?
+            ScalarType::expect_same(left.get_type(), right.get_type())?,
         )?;
 
         vm.push(Cell::Value(div))

@@ -1,7 +1,7 @@
 mod constrained;
+mod scalar;
 pub mod stdlib;
 pub mod utils;
-mod scalar;
 pub use scalar::*;
 mod tmp_lt;
 

@@ -3,9 +3,9 @@ extern crate franklin_crypto;
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
+use crate::gadgets::ScalarType;
 use crate::Engine;
 use zinc_bytecode::instructions::Sub;
-use crate::gadgets::ScalarType;
 
 impl<E, CS> VMInstruction<E, CS> for Sub
 where
@@ -21,7 +21,7 @@ where
         let diff = vm.operations().assert_type(
             condition,
             unchecked_diff,
-            ScalarType::expect_same(left.get_type(), right.get_type())?
+            ScalarType::expect_same(left.get_type(), right.get_type())?,
         )?;
 
         vm.push(Cell::Value(diff))

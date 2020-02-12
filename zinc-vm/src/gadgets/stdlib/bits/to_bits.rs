@@ -1,4 +1,4 @@
-use crate::gadgets::{Gadget, Primitive, ScalarType, IntegerType};
+use crate::gadgets::{Gadget, IntegerType, Primitive, ScalarType};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
@@ -17,7 +17,9 @@ impl<E: Engine> Gadget<E> for ToBits {
         let num = input.as_allocated_num(cs.namespace(|| "as_allocated_num"))?;
 
         let mut bits = match input.scalar_type {
-            ScalarType::Integer(t) => num.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), t.length),
+            ScalarType::Integer(t) => {
+                num.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), t.length)
+            }
             ScalarType::Field => num.into_bits_le_strict(cs.namespace(|| "into_bits_le_strict")),
         }?;
 

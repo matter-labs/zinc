@@ -6,6 +6,8 @@ use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::{BigInt, ToBigInt};
 use zinc_bytecode::data::types::DataType;
 use zinc_bytecode::{Call, Instruction, InstructionInfo, Program};
+use colored::Colorize;
+use failure::Fail;
 
 type TestVirtualMachine = VirtualMachine<Bn256, TestConstraintSystem<Bn256>>;
 
@@ -36,11 +38,15 @@ where
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Fail)]
 pub enum TestingError {
-    //    DecodingError(DecodingError),
+    #[fail(display = "{}", _0)]
     RuntimeError(RuntimeError),
+
+    #[fail(display = "unconstrained: {}", _0)]
     Unconstrained(String),
+
+    #[fail(display = "unsatisfied")]
     Unsatisfied,
 }
 
@@ -64,9 +70,17 @@ impl VMTestRunner {
         &mut self,
         expected_stack: &[T],
     ) -> Result<(), TestingError> {
-        self.test_constrained(expected_stack)?;
+        let result =  self.test_constrained(expected_stack);
 
-        Ok(())
+        if let Err(error) = &result {
+            println!(
+                "{}: {}",
+                "error".bold().red(),
+                error
+            )
+        }
+
+        result
     }
 
     fn test_constrained<T: Into<BigInt> + Copy>(

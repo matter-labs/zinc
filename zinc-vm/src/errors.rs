@@ -1,7 +1,7 @@
+use crate::gadgets::ScalarType;
 use failure::Fail;
 use franklin_crypto::bellman::SynthesisError;
 use num_bigint::BigInt;
-use crate::gadgets::ScalarType;
 
 #[derive(Debug, Fail)]
 pub enum TypeSizeError {
@@ -81,8 +81,14 @@ pub enum RuntimeError {
     #[fail(display = "type size mismatch: {}", _0)]
     TypeSize(TypeSizeError),
 
-    #[fail(display = "overflow: value {} is not in range of type {}", value, scalar_type)]
-    ValueOverflow { value: BigInt, scalar_type: ScalarType }
+    #[fail(
+        display = "overflow: value {} is not in range of type {}",
+        value, scalar_type
+    )]
+    ValueOverflow {
+        value: BigInt,
+        scalar_type: ScalarType,
+    },
 }
 
 impl From<SynthesisError> for RuntimeError {

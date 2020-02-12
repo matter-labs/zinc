@@ -1,4 +1,4 @@
-use crate::gadgets::{Gadget, Primitive, IntegerType};
+use crate::gadgets::{Gadget, IntegerType, Primitive};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;

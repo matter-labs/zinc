@@ -3,9 +3,9 @@ extern crate franklin_crypto;
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
+use crate::gadgets::ScalarType;
 use crate::Engine;
 use zinc_bytecode::instructions::Rem;
-use crate::gadgets::ScalarType;
 
 impl<E, CS> VMInstruction<E, CS> for Rem
 where
@@ -18,15 +18,15 @@ where
 
         let condition = vm.condition_top()?;
 
-        let (_div, unchecked_rem) = vm
-            .operations()
-            .div_rem_conditional(left.clone(), right.clone(), condition)?;
+        let (_div, unchecked_rem) =
+            vm.operations()
+                .div_rem_conditional(left.clone(), right.clone(), condition)?;
 
         let condition = vm.condition_top()?;
         let rem = vm.operations().assert_type(
             condition,
             unchecked_rem,
-            ScalarType::expect_same(left.get_type(), right.get_type())?
+            ScalarType::expect_same(left.get_type(), right.get_type())?,
         )?;
 
         vm.push(Cell::Value(rem))

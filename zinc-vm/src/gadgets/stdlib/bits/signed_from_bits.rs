@@ -1,5 +1,5 @@
 use crate::gadgets::utils::bigint_to_fr;
-use crate::gadgets::{Gadget, Primitive, ScalarType, IntegerType};
+use crate::gadgets::{Gadget, IntegerType, Primitive, ScalarType};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::{ConstraintSystem, SynthesisError};

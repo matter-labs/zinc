@@ -8,7 +8,7 @@ pub use state::*;
 
 use crate::core::location::CodeLocation;
 use crate::errors::MalformedBytecode;
-use crate::gadgets::{Gadgets, Primitive, ScalarType, IntegerType};
+use crate::gadgets::{Gadgets, IntegerType, Primitive, ScalarType};
 use crate::Engine;
 use colored::Colorize;
 use franklin_crypto::bellman::ConstraintSystem;
@@ -109,11 +109,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             self.state.instruction_counter += 1;
             let result = dispatch_instruction!(instruction => instruction.execute(self));
             if let Err(err) = result.and(check_cs(&self.cs.cs)) {
-                log::error!(
-                    "{}\nat {}",
-                    err,
-                    self.location.to_string().blue()
-                );
+                log::error!("{}\nat {}", err, self.location.to_string().blue());
                 return Err(err);
             }
 
@@ -217,11 +213,15 @@ fn data_type_into_scalar_types(dtype: &object_types::DataType) -> Vec<ScalarType
                 object_types::ScalarType::Field => {
                     types.push(ScalarType::Field);
                 }
-                object_types::ScalarType::Integer(int) => types.push(ScalarType::Integer(IntegerType {
-                    signed: int.is_signed,
-                    length: int.bit_length,
-                })),
-                object_types::ScalarType::Boolean => types.push(ScalarType::Integer(IntegerType::BOOLEAN)),
+                object_types::ScalarType::Integer(int) => {
+                    types.push(ScalarType::Integer(IntegerType {
+                        signed: int.is_signed,
+                        length: int.bit_length,
+                    }))
+                }
+                object_types::ScalarType::Boolean => {
+                    types.push(ScalarType::Integer(IntegerType::BOOLEAN))
+                }
             },
             object_types::DataType::Enum => {
                 types.push(ScalarType::Field);

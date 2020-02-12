@@ -1,5 +1,5 @@
-use std::fmt;
 use crate::RuntimeError;
+use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ScalarType {
@@ -34,7 +34,12 @@ impl fmt::Display for ScalarType {
                 if int_type == &IntegerType::BOOLEAN {
                     write!(f, "bool")
                 } else {
-                    write!(f, "{}{}", if int_type.signed { "i" } else { "u" }, int_type.length,)
+                    write!(
+                        f,
+                        "{}{}",
+                        if int_type.signed { "i" } else { "u" },
+                        int_type.length,
+                    )
                 }
             }
         }

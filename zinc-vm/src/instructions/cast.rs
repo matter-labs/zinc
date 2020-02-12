@@ -1,9 +1,9 @@
 extern crate franklin_crypto;
 
 use self::franklin_crypto::bellman::ConstraintSystem;
-use crate::core::{InternalVM, VMInstruction, Cell};
+use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::gadgets::{IntegerType};
+use crate::gadgets::IntegerType;
 use crate::Engine;
 use zinc_bytecode::instructions::Cast;
 
@@ -20,11 +20,9 @@ where
         };
 
         let condition = vm.condition_top()?;
-        let new_value = vm.operations().assert_type(
-            condition,
-            old_value,
-            int_type.into()
-        )?;
+        let new_value = vm
+            .operations()
+            .assert_type(condition, old_value, int_type.into())?;
 
         vm.push(Cell::Value(new_value))
     }
