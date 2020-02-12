@@ -23,7 +23,7 @@ use self::error::Error;
 use self::integer::Integer;
 use self::range::Range;
 use self::range_inclusive::RangeInclusive;
-use zinc_bytecode::scalar::{IntegerType};
+use zinc_bytecode::scalar::IntegerType;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Constant {

@@ -3,7 +3,6 @@ use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
 
-
 pub struct ToBits;
 
 impl<E: Engine> Gadget<E> for ToBits {

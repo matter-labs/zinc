@@ -840,14 +840,9 @@ where
 
                 let upper_bound_value = BigInt::from(1) << int_type.length;
                 let upper_bound = self.constant_bigint(&upper_bound_value, ScalarType::Field)?;
-                let lt = self.lt(scalar_with_offset.clone(), upper_bound.clone())?;
+                let lt = self.lt(scalar_with_offset.as_field(), upper_bound)?;
                 let false_branch = self.not(condition.clone())?;
-                let required = self.or(lt.clone(), false_branch)?;
-
-                println!(
-                    "{:?} < {:?} => {:?}",
-                    &scalar_with_offset.value, &upper_bound.value, &lt.value
-                );
+                let required = self.or(lt, false_branch)?;
 
                 // Since we are not forcing type checks in false branch we will reset value.
                 let zero = self.zero(scalar.get_type())?;

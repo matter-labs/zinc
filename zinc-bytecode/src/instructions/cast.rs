@@ -1,4 +1,3 @@
-
 use crate::scalar::{IntegerType, ScalarType};
 use crate::{Instruction, InstructionCode, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
