@@ -24,6 +24,7 @@ use zinc_bytecode::Sub;
 
 use crate::Bytecode;
 use crate::Scope;
+use zinc_bytecode::scalar::{IntegerType, ScalarType};
 
 static PANIC_COMPILE_DEPENDENCY: &str = "Dependencies are always compiled successfully";
 
@@ -78,32 +79,16 @@ fn main() -> field {
         Instruction::Load(Load::new(1)),
         Instruction::Mul(Mul),
         Instruction::Return(Return::new(1)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(69),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
+        Instruction::PushConst(PushConst::new(BigInt::from(69), IntegerType::U8.into())),
+        Instruction::Cast(Cast::new(ScalarType::Field)),
         Instruction::Store(Store::new(0)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(5),
-            false,
-            crate::BITLENGTH_FIELD,
-        )),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(42),
-            false,
-            crate::BITLENGTH_FIELD,
-        )),
+        Instruction::PushConst(PushConst::new(BigInt::from(5), ScalarType::Field)),
+        Instruction::PushConst(PushConst::new(BigInt::from(42), ScalarType::Field)),
         Instruction::Call(Call::new(2, 2)),
         Instruction::Load(Load::new(0)),
         Instruction::Call(Call::new(14, 2)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(5),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
+        Instruction::PushConst(PushConst::new(BigInt::from(5), IntegerType::U8.into())),
+        Instruction::Cast(Cast::new(ScalarType::Field)),
         Instruction::Call(Call::new(26, 2)),
         Instruction::Return(Return::new(1)),
     ]);
@@ -126,5 +111,5 @@ fn main() -> field {
 
     let result = super::get_instructions_with_dependencies(binary, bytecode, dependencies);
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }

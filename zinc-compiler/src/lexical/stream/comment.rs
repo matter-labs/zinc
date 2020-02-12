@@ -112,7 +112,7 @@ mod tests {
             Comment::new("mega ultra comment text".to_owned()),
         ));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -127,7 +127,7 @@ mod tests {
             Comment::new("\n    This is the mega ultra test application!\n".to_owned()),
         ));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -135,7 +135,7 @@ mod tests {
         let input = "//mega ultra comment text";
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -143,7 +143,7 @@ mod tests {
         let input = r#"/* This is the mega ultra test application!"#;
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -151,7 +151,7 @@ mod tests {
         let input = "not a comment text";
         let expected = Err(Error::NotAComment);
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -159,6 +159,6 @@ mod tests {
         let input = "/almost a comment text";
         let expected = Err(Error::NotAComment);
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 }

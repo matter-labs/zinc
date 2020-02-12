@@ -1,16 +1,18 @@
 use crate::instructions::testing_utils::{TestingError, VMTestRunner};
+use crate::RuntimeError;
 use zinc_bytecode::instructions::*;
+use zinc_bytecode::scalar::IntegerType;
 
 #[test]
 fn unsigned_overflow_fail() {
     let res = VMTestRunner::new()
-        .add(PushConst::new(255.into(), false, 8))
-        .add(PushConst::new(1.into(), false, 8))
+        .add(PushConst::new(255.into(), IntegerType::U8.into()))
+        .add(PushConst::new(1.into(), IntegerType::U8.into()))
         .add(Add)
         .test(&[256]);
 
     match res.err().expect("expected overflow error") {
-        TestingError::Unsatisfied => {}
+        TestingError::RuntimeError(RuntimeError::ValueOverflow { .. }) => {}
         err => panic!("expected overflow error, got {:?} instead", err),
     }
 }
@@ -18,13 +20,13 @@ fn unsigned_overflow_fail() {
 #[test]
 fn unsigned_underflow_fail() {
     let res = VMTestRunner::new()
-        .add(PushConst::new(254.into(), false, 8))
-        .add(PushConst::new(255.into(), false, 8))
+        .add(PushConst::new(254.into(), IntegerType::U8.into()))
+        .add(PushConst::new(255.into(), IntegerType::U8.into()))
         .add(Sub)
         .test(&[-1]);
 
     match res.err().expect("expected overflow error") {
-        TestingError::Unsatisfied => {}
+        TestingError::RuntimeError(RuntimeError::ValueOverflow { .. }) => {}
         err => panic!("expected overflow error, got {:?} instead", err),
     }
 }
@@ -32,13 +34,13 @@ fn unsigned_underflow_fail() {
 #[test]
 fn signed_overflow_fail() {
     let res = VMTestRunner::new()
-        .add(PushConst::new(127.into(), true, 8))
-        .add(PushConst::new(1.into(), true, 8))
+        .add(PushConst::new(127.into(), IntegerType::I8.into()))
+        .add(PushConst::new(1.into(), IntegerType::I8.into()))
         .add(Add)
         .test(&[128]);
 
     match res.err().expect("expected overflow error") {
-        TestingError::Unsatisfied => {}
+        TestingError::RuntimeError(RuntimeError::ValueOverflow { .. }) => {}
         err => panic!("expected overflow error, got {:?} instead", err),
     }
 }
@@ -46,13 +48,13 @@ fn signed_overflow_fail() {
 #[test]
 fn signed_underflow_fail() {
     let res = VMTestRunner::new()
-        .add(PushConst::new((-128).into(), true, 8))
-        .add(PushConst::new(1.into(), true, 8))
+        .add(PushConst::new((-128).into(), IntegerType::I8.into()))
+        .add(PushConst::new(1.into(), IntegerType::I8.into()))
         .add(Sub)
         .test(&[-129]);
 
     match res.err().expect("expected overflow error") {
-        TestingError::Unsatisfied => {}
+        TestingError::RuntimeError(RuntimeError::ValueOverflow { .. }) => {}
         err => panic!("expected overflow error, got {:?} instead", err),
     }
 }
@@ -60,8 +62,8 @@ fn signed_underflow_fail() {
 #[test]
 fn unsigned_overflow_ok() -> Result<(), TestingError> {
     VMTestRunner::new()
-        .add(PushConst::new(254.into(), false, 8))
-        .add(PushConst::new(1.into(), false, 8))
+        .add(PushConst::new(254.into(), IntegerType::U8.into()))
+        .add(PushConst::new(1.into(), IntegerType::U8.into()))
         .add(Add)
         .test(&[255])
 }
@@ -69,8 +71,8 @@ fn unsigned_overflow_ok() -> Result<(), TestingError> {
 #[test]
 fn unsigned_underflow_ok() -> Result<(), TestingError> {
     VMTestRunner::new()
-        .add(PushConst::new(255.into(), false, 8))
-        .add(PushConst::new(255.into(), false, 8))
+        .add(PushConst::new(255.into(), IntegerType::U8.into()))
+        .add(PushConst::new(255.into(), IntegerType::U8.into()))
         .add(Sub)
         .test(&[0])
 }
@@ -78,8 +80,8 @@ fn unsigned_underflow_ok() -> Result<(), TestingError> {
 #[test]
 fn signed_overflow_ok() -> Result<(), TestingError> {
     VMTestRunner::new()
-        .add(PushConst::new(126.into(), true, 8))
-        .add(PushConst::new(1.into(), true, 8))
+        .add(PushConst::new(126.into(), IntegerType::I8.into()))
+        .add(PushConst::new(1.into(), IntegerType::I8.into()))
         .add(Add)
         .test(&[127])
 }
@@ -87,8 +89,8 @@ fn signed_overflow_ok() -> Result<(), TestingError> {
 #[test]
 fn signed_underflow_ok() -> Result<(), TestingError> {
     VMTestRunner::new()
-        .add(PushConst::new((-127).into(), true, 8))
-        .add(PushConst::new(1.into(), true, 8))
+        .add(PushConst::new((-127).into(), IntegerType::I8.into()))
+        .add(PushConst::new(1.into(), IntegerType::I8.into()))
         .add(Sub)
         .test(&[-128])
 }

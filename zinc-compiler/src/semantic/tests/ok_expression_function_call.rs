@@ -6,6 +6,7 @@
 
 use num_bigint::BigInt;
 
+use zinc_bytecode::scalar::IntegerType;
 use zinc_bytecode::Add;
 use zinc_bytecode::Call;
 use zinc_bytecode::Exit;
@@ -37,16 +38,8 @@ fn main() {
         Instruction::Store(Store::new(2)),
         Instruction::Load(Load::new(2)),
         Instruction::Return(Return::new(1)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(42),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(25),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
+        Instruction::PushConst(PushConst::new(BigInt::from(42), IntegerType::U8.into())),
+        Instruction::PushConst(PushConst::new(BigInt::from(25), IntegerType::U8.into())),
         Instruction::Call(Call::new(2, 2)),
         Instruction::Store(Store::new(0)),
         Instruction::Return(Return::new(0)),
@@ -54,5 +47,5 @@ fn main() {
 
     let result = super::get_instructions(input);
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }

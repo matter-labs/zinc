@@ -44,6 +44,7 @@ use crate::syntax::StaticStatement;
 use crate::syntax::StructStatement;
 use crate::syntax::TypeStatement;
 use crate::syntax::UseStatement;
+use zinc_bytecode::scalar::{IntegerType, ScalarType};
 
 pub struct Analyzer {
     scope_stack: Vec<Rc<RefCell<Scope>>>,
@@ -410,8 +411,12 @@ impl Analyzer {
                 .cast(&Element::Type(let_type.clone()))
                 .map_err(|error| Error::Element(type_location, error))?
             {
+                let scalar_type = match (is_signed, bitlength) {
+                    (false, crate::BITLENGTH_FIELD) => ScalarType::Field,
+                    (signed, length) => IntegerType { signed, length }.into(),
+                };
                 self.bytecode.borrow_mut().push_instruction(
-                    Instruction::Cast(zinc_bytecode::Cast::new(is_signed, bitlength)),
+                    Instruction::Cast(zinc_bytecode::Cast::new(scalar_type)),
                     type_location,
                 );
             }

@@ -6,6 +6,7 @@
 
 use num_bigint::BigInt;
 
+use zinc_bytecode::scalar::IntegerType;
 use zinc_bytecode::Call;
 use zinc_bytecode::Else;
 use zinc_bytecode::EndIf;
@@ -40,47 +41,23 @@ fn main() -> u8 {
     let expected = Ok(vec![
         Instruction::Call(Call::new(2, 0)),
         Instruction::Exit(Exit::new(1)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(42),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
+        Instruction::PushConst(PushConst::new(BigInt::from(42), IntegerType::U8.into())),
         Instruction::Store(Store::new(0)),
         Instruction::Load(Load::new(0)),
         Instruction::Store(Store::new(1)),
         Instruction::Load(Load::new(1)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(42),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
+        Instruction::PushConst(PushConst::new(BigInt::from(42), IntegerType::U8.into())),
         Instruction::Eq(Eq),
         Instruction::If(If),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(1),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
+        Instruction::PushConst(PushConst::new(BigInt::from(1), IntegerType::U8.into())),
         Instruction::Else(Else),
         Instruction::Load(Load::new(1)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(255),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
+        Instruction::PushConst(PushConst::new(BigInt::from(255), IntegerType::U8.into())),
         Instruction::Eq(Eq),
         Instruction::If(If),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(1),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
+        Instruction::PushConst(PushConst::new(BigInt::from(1), IntegerType::U8.into())),
         Instruction::Else(Else),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(0),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
+        Instruction::PushConst(PushConst::new(BigInt::from(0), IntegerType::U8.into())),
         Instruction::EndIf(EndIf),
         Instruction::EndIf(EndIf),
         Instruction::Return(Return::new(1)),
@@ -88,5 +65,5 @@ fn main() -> u8 {
 
     let result = super::get_instructions(input);
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }

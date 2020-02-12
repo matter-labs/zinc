@@ -10,6 +10,7 @@ use crate::semantic::element::r#type::Type;
 
 use self::error::Error;
 
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Integer {
     pub is_signed: bool,

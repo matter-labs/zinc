@@ -3,7 +3,7 @@ extern crate franklin_crypto;
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::gadgets::ScalarType;
+use crate::gadgets::{ScalarType, ScalarTypeExpectation};
 use crate::Engine;
 use zinc_bytecode::instructions::Div;
 
@@ -37,22 +37,23 @@ where
 mod test {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
+    use zinc_bytecode::scalar::IntegerType;
     use zinc_bytecode::*;
 
     #[test]
     fn test_div() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new((9).into(), true, 8))
-            .add(PushConst::new((4).into(), true, 8))
+            .add(PushConst::new((9).into(), IntegerType::I8.into()))
+            .add(PushConst::new((4).into(), IntegerType::I8.into()))
             .add(Div)
-            .add(PushConst::new((9).into(), true, 8))
-            .add(PushConst::new((-4).into(), true, 8))
+            .add(PushConst::new((9).into(), IntegerType::I8.into()))
+            .add(PushConst::new((-4).into(), IntegerType::I8.into()))
             .add(Div)
-            .add(PushConst::new((-9).into(), true, 8))
-            .add(PushConst::new((4).into(), true, 8))
+            .add(PushConst::new((-9).into(), IntegerType::I8.into()))
+            .add(PushConst::new((4).into(), IntegerType::I8.into()))
             .add(Div)
-            .add(PushConst::new((-9).into(), true, 8))
-            .add(PushConst::new((-4).into(), true, 8))
+            .add(PushConst::new((-9).into(), IntegerType::I8.into()))
+            .add(PushConst::new((-4).into(), IntegerType::I8.into()))
             .add(Div)
             .test(&[3, -3, -2, 2])
     }

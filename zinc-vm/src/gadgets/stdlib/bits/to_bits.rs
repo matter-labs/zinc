@@ -3,6 +3,7 @@ use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
 
+
 pub struct ToBits;
 
 impl<E: Engine> Gadget<E> for ToBits {
@@ -20,6 +21,7 @@ impl<E: Engine> Gadget<E> for ToBits {
             ScalarType::Integer(t) => {
                 num.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), t.length)
             }
+            ScalarType::Boolean => num.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), 1),
             ScalarType::Field => num.into_bits_le_strict(cs.namespace(|| "into_bits_le_strict")),
         }?;
 

@@ -51,16 +51,12 @@ impl<E: Engine> Gadget<E> for ArrayPad {
             .into());
         }
 
-        let (len, args) = input
-            .split_last()
-            .ok_or_else(|| MalformedBytecode::InvalidArguments(
-                "pad expects at least 3 arguments".into(),
-            ))?;
-        let (fill_value, args) = args
-            .split_last()
-            .ok_or_else(|| MalformedBytecode::InvalidArguments(
-                "pad expects at least 3 arguments".into(),
-            ))?;
+        let (len, args) = input.split_last().ok_or_else(|| {
+            MalformedBytecode::InvalidArguments("pad expects at least 3 arguments".into())
+        })?;
+        let (fill_value, args) = args.split_last().ok_or_else(|| {
+            MalformedBytecode::InvalidArguments("pad expects at least 3 arguments".into())
+        })?;
 
         Ok(Input {
             len: len.clone(),

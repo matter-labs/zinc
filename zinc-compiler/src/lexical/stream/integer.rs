@@ -130,7 +130,7 @@ mod tests {
         let input = "0";
         let expected = Ok((1, Integer::new_decimal("0".to_owned())));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -138,7 +138,7 @@ mod tests {
         let input = "666";
         let expected = Ok((3, Integer::new_decimal("666".to_owned())));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -146,7 +146,7 @@ mod tests {
         let input = "0xdead_666_beef";
         let expected = Ok((15, Integer::new_hexadecimal("dead666beef".to_owned())));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -154,7 +154,7 @@ mod tests {
         let input = "0xDEAD_666_BEEF";
         let expected = Ok((15, Integer::new_hexadecimal("dead666beef".to_owned())));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -162,7 +162,7 @@ mod tests {
         let input = "0xdEaD_666_bEeF";
         let expected = Ok((15, Integer::new_hexadecimal("dead666beef".to_owned())));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -170,7 +170,7 @@ mod tests {
         let input = "";
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -178,7 +178,7 @@ mod tests {
         let input = "xyz";
         let expected = Err(Error::NotAnInteger);
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -186,7 +186,7 @@ mod tests {
         let input = "25x";
         let expected = Err(Error::InvalidDecimalCharacter('x', 3, "25x".to_owned()));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -198,7 +198,7 @@ mod tests {
             "0xABC_X".to_owned(),
         ));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -206,6 +206,6 @@ mod tests {
         let input = "0x";
         let expected = Err(Error::EmptyHexadecimalLiteral);
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 }

@@ -23,6 +23,7 @@ use self::error::Error;
 use self::integer::Integer;
 use self::range::Range;
 use self::range_inclusive::RangeInclusive;
+use zinc_bytecode::scalar::{IntegerType};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Constant {
@@ -393,8 +394,7 @@ impl Constant {
                 } else {
                     BigInt::zero()
                 },
-                false,
-                crate::BITLENGTH_BOOLEAN,
+                IntegerType::BOOLEAN.into(),
             )),
             Self::Integer(integer) => integer.to_instruction(),
             Self::Unit => unreachable!(),

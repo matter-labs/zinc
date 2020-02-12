@@ -40,6 +40,14 @@ impl<E: Engine> Primitive<E> {
             .to_usize()
             .ok_or_else(|| RuntimeError::ExpectedUsize(bigint))
     }
+
+    pub fn as_field(&self) -> Self {
+        Self {
+            value: self.value,
+            variable: self.variable,
+            scalar_type: ScalarType::Field,
+        }
+    }
 }
 
 pub trait Gadget<E: Engine> {

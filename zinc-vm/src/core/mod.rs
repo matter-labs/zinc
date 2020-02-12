@@ -209,20 +209,9 @@ fn data_type_into_scalar_types(dtype: &object_types::DataType) -> Vec<ScalarType
     fn internal(types: &mut Vec<ScalarType>, dtype: &object_types::DataType) {
         match dtype {
             object_types::DataType::Unit => {}
-            object_types::DataType::Scalar(t) => match t {
-                object_types::ScalarType::Field => {
-                    types.push(ScalarType::Field);
-                }
-                object_types::ScalarType::Integer(int) => {
-                    types.push(ScalarType::Integer(IntegerType {
-                        signed: int.is_signed,
-                        length: int.bit_length,
-                    }))
-                }
-                object_types::ScalarType::Boolean => {
-                    types.push(ScalarType::Integer(IntegerType::BOOLEAN))
-                }
-            },
+            object_types::DataType::Scalar(scalar_type) => {
+                types.push(*scalar_type);
+            }
             object_types::DataType::Enum => {
                 types.push(ScalarType::Field);
             }

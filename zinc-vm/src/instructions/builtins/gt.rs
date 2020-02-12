@@ -25,19 +25,20 @@ where
 mod test {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
+    use zinc_bytecode::scalar::IntegerType;
     use zinc_bytecode::*;
 
     #[test]
     fn test_gt() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new(2.into(), true, 8))
-            .add(PushConst::new(1.into(), true, 8))
+            .add(PushConst::new(2.into(), IntegerType::I8.into()))
+            .add(PushConst::new(1.into(), IntegerType::I8.into()))
             .add(Gt)
-            .add(PushConst::new(2.into(), true, 8))
-            .add(PushConst::new(2.into(), true, 8))
+            .add(PushConst::new(2.into(), IntegerType::I8.into()))
+            .add(PushConst::new(2.into(), IntegerType::I8.into()))
             .add(Gt)
-            .add(PushConst::new(1.into(), true, 8))
-            .add(PushConst::new(2.into(), true, 8))
+            .add(PushConst::new(1.into(), IntegerType::I8.into()))
+            .add(PushConst::new(2.into(), IntegerType::I8.into()))
             .add(Gt)
             .test(&[0, 0, 1])
     }

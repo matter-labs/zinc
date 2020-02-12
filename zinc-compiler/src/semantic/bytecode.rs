@@ -285,21 +285,21 @@ impl Into<DataType> for &Type {
             Type::Boolean => DataType::Scalar(ScalarType::Boolean),
             Type::IntegerUnsigned { bitlength } => {
                 DataType::Scalar(ScalarType::Integer(IntegerType {
-                    is_signed: false,
-                    bit_length: *bitlength,
+                    signed: false,
+                    length: *bitlength,
                 }))
             }
             Type::IntegerSigned { bitlength } => {
                 DataType::Scalar(ScalarType::Integer(IntegerType {
-                    is_signed: true,
-                    bit_length: *bitlength,
+                    signed: true,
+                    length: *bitlength,
                 }))
             }
             Type::Field => DataType::Scalar(ScalarType::Field),
             Type::Enumeration { bitlength, .. } => {
                 DataType::Scalar(ScalarType::Integer(IntegerType {
-                    is_signed: false,
-                    bit_length: *bitlength,
+                    signed: false,
+                    length: *bitlength,
                 }))
             }
             Type::Array { r#type, size } => {

@@ -182,7 +182,7 @@ mod tests {
         let input = "==";
         let expected = Ok((2, Symbol::DoubleEquals));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -190,7 +190,7 @@ mod tests {
         let input = "|";
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -198,6 +198,6 @@ mod tests {
         let input = "|5";
         let expected = Err(Error::InvalidCharacter('5', 2, "|5".to_owned()));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 }

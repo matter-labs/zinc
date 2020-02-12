@@ -22,6 +22,7 @@ use self::integer::Integer;
 use self::structure::Structure;
 use self::tuple::Tuple;
 
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Unit,

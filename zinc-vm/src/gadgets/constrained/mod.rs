@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 
 use crate::Engine;
 use bellman::{ConstraintSystem, Variable};
-use ff::Field;
+use ff::{Field, PrimeField};
 use franklin_crypto::bellman::{Namespace, SynthesisError};
 use franklin_crypto::circuit::num::AllocatedNum;
 use num_bigint::{BigInt, ToBigInt};
@@ -11,7 +11,7 @@ use num_bigint::{BigInt, ToBigInt};
 use crate::core::RuntimeError;
 use crate::gadgets::tmp_lt::less_than;
 use crate::gadgets::utils::fr_to_bigint;
-use crate::gadgets::{utils, Gadget, IntegerType, Primitive, ScalarType};
+use crate::gadgets::{utils, Gadget, IntegerType, Primitive, ScalarType, ScalarTypeExpectation};
 use num_traits::ToPrimitive;
 use std::mem;
 
@@ -134,7 +134,7 @@ where
 
     fn abs(&mut self, value: Primitive<E>) -> Result<Primitive<E>, RuntimeError> {
         match value.scalar_type {
-            ScalarType::Field => return Ok(value),
+            ScalarType::Field | ScalarType::Boolean => return Ok(value),
             ScalarType::Integer(int_type) => {
                 if !int_type.signed {
                     return Ok(value);
@@ -349,8 +349,8 @@ where
         left: Primitive<E>,
         right: Primitive<E>,
     ) -> Result<(Primitive<E>, Primitive<E>), RuntimeError> {
-        let nominator = left.clone();
-        let denominator = right.clone();
+        let nominator = left;
+        let denominator = right;
 
         let mut quotient_value: Option<E::Fr> = None;
         let mut remainder_value: Option<E::Fr> = None;
@@ -391,7 +391,6 @@ where
             );
 
             mem::drop(cs);
-            let _args = &[left, right];
             let quotient = Primitive::new(quotient_value, qutioent_var, ScalarType::Field);
             let remainder = Primitive::new(remainder_value, remainder_var, ScalarType::Field);
 
@@ -399,7 +398,7 @@ where
         };
 
         let abs_denominator = self.abs(denominator)?;
-        let lt = self.lt(remainder.clone(), abs_denominator)?;
+        let lt = self.lt(remainder.as_field(), abs_denominator.as_field())?;
         let zero = self.zero(remainder.scalar_type)?;
         let ge = self.ge(remainder.clone(), zero)?;
         let mut cs = self.cs_namespace();
@@ -443,6 +442,11 @@ where
 
         let new_type = match element.scalar_type {
             t @ ScalarType::Field => t,
+            _t @ ScalarType::Boolean => IntegerType {
+                signed: true,
+                length: 1,
+            }
+            .into(),
             t @ ScalarType::Integer(IntegerType { signed: true, .. }) => t,
             ScalarType::Integer(IntegerType {
                 signed: false,
@@ -564,6 +568,25 @@ where
         left: Primitive<E>,
         right: Primitive<E>,
     ) -> Result<Primitive<E>, RuntimeError> {
+        let (left, right) = match (left.get_type(), right.get_type()) {
+            (ScalarType::Integer(_), ScalarType::Integer(_)) => {
+                let offset_value = BigInt::from(1) << (E::Fr::CAPACITY as usize - 1);
+                let offset = self.constant_bigint(&offset_value, ScalarType::Field)?;
+                let new_left = self.add(left, offset.clone())?;
+                let new_right = self.add(right, offset)?;
+                (new_left, new_right)
+            }
+            (ScalarType::Field, ScalarType::Field) | (ScalarType::Boolean, ScalarType::Boolean) => {
+                (left, right)
+            }
+            _ => {
+                return Err(RuntimeError::TypeError {
+                    expected: left.get_type().to_string(),
+                    actual: right.get_type().to_string(),
+                })
+            }
+        };
+
         let mut cs = self.cs_namespace();
 
         let l = left.as_allocated_num(cs.namespace(|| "left num"))?;
@@ -802,6 +825,10 @@ where
                 // Always safe to cast into field
                 Ok(Primitive::new(scalar.value, scalar.variable, scalar_type))
             }
+            ScalarType::Boolean => {
+                let checked = self.assert_type(condition, scalar, IntegerType::BOOLEAN.into())?;
+                Ok(Primitive::new(checked.value, checked.variable, scalar_type))
+            }
             ScalarType::Integer(int_type) => {
                 let scalar_with_offset = if !int_type.signed {
                     scalar.clone()
@@ -813,9 +840,14 @@ where
 
                 let upper_bound_value = BigInt::from(1) << int_type.length;
                 let upper_bound = self.constant_bigint(&upper_bound_value, ScalarType::Field)?;
-                let lt = self.lt(scalar_with_offset, upper_bound)?;
+                let lt = self.lt(scalar_with_offset.clone(), upper_bound.clone())?;
                 let false_branch = self.not(condition.clone())?;
-                let required = self.or(lt, false_branch)?;
+                let required = self.or(lt.clone(), false_branch)?;
+
+                println!(
+                    "{:?} < {:?} => {:?}",
+                    &scalar_with_offset.value, &upper_bound.value, &lt.value
+                );
 
                 // Since we are not forcing type checks in false branch we will reset value.
                 let zero = self.zero(scalar.get_type())?;

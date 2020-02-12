@@ -26,7 +26,7 @@ fn err_expected() {
         Lexeme::Keyword(Keyword::Bool),
     )));
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -41,5 +41,5 @@ fn err_expected_not_eof() {
         Lexeme::Eof,
     )));
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }
