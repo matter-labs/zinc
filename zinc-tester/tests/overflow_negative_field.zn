@@ -1,0 +1,12 @@
+//# [ {
+//#     "case": "default",
+//#     "should_panic": true,
+//#     "input": {
+//#         "witness": "0"
+//#     },
+//#     "expect": null
+//# } ]
+
+fn main(witness: field) -> field {
+    witness - 10 as field
+}

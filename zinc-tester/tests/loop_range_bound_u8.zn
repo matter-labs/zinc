@@ -1,0 +1,13 @@
+//# [ {
+//#     "case": "default", "ignore": true,
+//#     "input": {},
+//#     "expect": "255"
+//# } ]
+
+fn main() -> u8 {
+    let mut sum = 0;
+    for i in 0..=255 {
+        sum = sum + 1;
+    }
+    sum
+}

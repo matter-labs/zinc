@@ -8,7 +8,7 @@
 
 fn main(array: [u8; 10]) -> u8 {
     let mut sum = 0;
-    for i in 9..=5 {
+    for i in 5..10 {
         sum = sum + array[i];
     }
     sum

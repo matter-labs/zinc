@@ -1,17 +1,19 @@
 //# [ {
 //#     "case": "default",
-//#     "input": {},
-//#     "expect": "42"
+//#     "input": {
+//#         "witness": "25"
+//#     },
+//#     "expect": "33"
 //# } ]
 
 struct Data {
     value: u8,
 }
 
-fn main() -> u8 {
+fn main(witness: u8) -> u8 {
     let array = [[1, 2], [3, 4]];
     let tuple = ((1, 2), (3, 4));
-    let structure = Data { value: 34 };
+    let structure = Data { value: witness };
 
     array[1][1] + tuple.1.1 + structure.value
 }

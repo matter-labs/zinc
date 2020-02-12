@@ -1,7 +1,9 @@
 //# [ {
 //#     "case": "default",
-//#     "input": {},
-//#     "expect": "537"
+//#     "input": {
+//#         "witness": "333"
+//#     },
+//#     "expect": "870"
 //# } ]
 
 enum First {
@@ -14,6 +16,6 @@ enum Second {
     B = 314,
 }
 
-fn main() -> u16 {
-    First::B + Second::A
+fn main(witness: u16) -> u16 {
+    First::B + witness + Second::A
 }

@@ -1,14 +1,14 @@
 //# [ {
-//#     "case": "default",
+//#     "case": "default", "ignore": true,
 //#     "input": {
 //#         "array": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 //#     },
-//#     "expect": "40"
+//#     "expect": "15"
 //# } ]
 
 fn main(array: [u8; 10]) -> u8 {
     let mut sum = 0;
-    for i in 9..=5 {
+    for i in 4..=0 {
         sum = sum + array[i];
     }
     sum

@@ -3,13 +3,15 @@
 //#     "input": {
 //#         "array": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 //#     },
-//#     "expect": "55"
+//#     "expect": "3025"
 //# } ]
 
-fn main(array: [u8; 10]) -> u8 {
-    let mut sum = 0;
+fn main(array: [u8; 10]) -> u32 {
+    let mut sum: u32 = 0;
     for i in 0..10 {
-        sum = sum + array[i];
+        for j in 0..10 {
+            sum = sum + (array[i] * array[j]) as u32;
+        }
     }
     sum
 }

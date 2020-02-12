@@ -1,13 +1,15 @@
 //# [ {
 //#     "case": "default",
-//#     "input": {},
-//#     "expect": "50"
+//#     "input": {
+//#         "witness": "50"
+//#     },
+//#     "expect": "75"
 //# } ]
 
-fn main() -> u8 {
+fn main(witness: u8) -> u8 {
     let mut inner = 25;
     {
-        inner = 50;
+        inner = inner + witness;
     };
     inner
 }

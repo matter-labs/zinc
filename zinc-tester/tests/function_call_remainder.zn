@@ -1,0 +1,16 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {
+//#         "a": "42",
+//#         "b": "5"
+//#     },
+//#     "expect": "2"
+//# } ]
+
+fn remainder(a: u8, b: u8) -> u8 {
+    a % b
+}
+
+fn main(a: u8, b: u8) -> u8 {
+    remainder(a, b)
+}

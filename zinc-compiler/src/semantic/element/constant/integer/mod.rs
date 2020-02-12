@@ -313,7 +313,6 @@ impl Integer {
     pub fn minimal_bitlength_bigints(values: &[&BigInt], is_signed: bool) -> Result<usize, Error> {
         let mut max = 0;
         for value in values.iter() {
-
             let bitlength = Self::minimal_bitlength(value, is_signed)?;
             if bitlength > max {
                 max = bitlength;

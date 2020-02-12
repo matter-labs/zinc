@@ -1,14 +1,16 @@
 //# [ {
 //#     "case": "default",
-//#     "input": {},
+//#     "input": {
+//#         "witness": "4"
+//#     },
 //#     "expect": "16"
 //# } ]
 
-fn main() -> u8 {
+fn main(witness: u8) -> u8 {
     1 + {
         2 + {
             3 + {
-                4
+                witness
             } + 3
         } + 2
     } + 1

@@ -29,7 +29,7 @@ fn main() {
     };
 
     if let Err(error) = result {
-        println!("{}", error);
+        log::error!("{}", error);
         exit(1);
     }
 }

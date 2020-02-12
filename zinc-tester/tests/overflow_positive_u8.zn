@@ -1,0 +1,12 @@
+//# [ {
+//#     "case": "default",
+//#     "should_panic": true,
+//#     "input": {
+//#         "witness": "255"
+//#     },
+//#     "expect": null
+//# } ]
+
+fn main(witness: u8) -> u8 {
+    witness + 1
+}

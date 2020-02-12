@@ -39,7 +39,7 @@ where
                     let json = serde_json::to_string(&value.to_json()).expect("valid json");
                     buffer = buffer.replacen("{}", &json, 1);
                 }
-                eprintln!("{}", buffer);
+                log::debug!("{}", buffer);
             }
         }
 
