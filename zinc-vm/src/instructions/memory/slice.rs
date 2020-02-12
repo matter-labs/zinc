@@ -19,12 +19,9 @@ where
         array.reverse();
 
         for i in 0..self.slice_len {
-            let index = match offset.get_data_type() {
-                None => vm.operations().constant_bigint(&i.into())?,
-                Some(data_type) => vm
+            let index = vm
                     .operations()
-                    .constant_bigint_typed(&i.into(), data_type)?,
-            };
+                    .constant_bigint(&i.into(), offset.get_type())?;
             let address = vm.operations().add(offset.clone(), index)?;
 
             let value = vm.operations().array_get(array.as_slice(), address)?;

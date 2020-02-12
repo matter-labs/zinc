@@ -6,8 +6,14 @@ use bellman::ConstraintSystem;
 
 pub struct ArrayPad;
 
+pub struct Input<E: Engine> {
+    len: Primitive<E>,
+    fill_value: Primitive<E>,
+    array: Vec<Primitive<E>>,
+}
+
 impl<E: Engine> Gadget<E> for ArrayPad {
-    type Input = (Primitive<E>, Primitive<E>, Vec<Primitive<E>>);
+    type Input = Input<E>;
     type Output = Vec<Primitive<E>>;
 
     fn synthesize<CS: ConstraintSystem<E>>(
@@ -15,8 +21,8 @@ impl<E: Engine> Gadget<E> for ArrayPad {
         _cs: CS,
         input: Self::Input,
     ) -> Result<Self::Output, RuntimeError> {
-        let (value, len_value, mut array) = input;
-        let len = len_value.get_constant_usize()?;
+        let Input { fill_value, len, mut array }  = input;
+        let len = len.get_constant_usize()?;
 
         if len < array.len() {
             return Err(MalformedBytecode::InvalidArguments(format!(
@@ -27,7 +33,7 @@ impl<E: Engine> Gadget<E> for ArrayPad {
             .into());
         }
 
-        array.resize(len, value);
+        array.resize(len, fill_value);
 
         Ok(array)
     }
@@ -41,7 +47,14 @@ impl<E: Engine> Gadget<E> for ArrayPad {
             .into());
         }
 
-        Ok((input[0].clone(), input[1].clone(), Vec::from(&input[2..])))
+        let (len, args) = input.split_last().ok_or(MalformedBytecode::InvalidArguments("pad expects at least 3 arguments".into()))?;
+        let (fill_value, args) = args.split_last().ok_or(MalformedBytecode::InvalidArguments("pad expects at least 3 arguments".into()))?;
+
+        Ok(Input {
+            len: len.clone(),
+            fill_value: fill_value.clone(),
+            array: args.into()
+        })
     }
 
     fn output_into_vec(output: Self::Output) -> Vec<Primitive<E>> {

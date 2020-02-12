@@ -26,7 +26,7 @@ where
         let index = vm.pop()?.value()?;
 
         for (i, value) in values.into_iter().enumerate() {
-            let offset = vm.operations().constant_bigint(&i.into())?;
+            let offset = vm.operations().constant_bigint(&i.into(), index.get_type())?;
             let address = vm.operations().add(index.clone(), offset)?;
             array = vm
                 .operations()

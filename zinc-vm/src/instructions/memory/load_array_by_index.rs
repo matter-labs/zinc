@@ -20,10 +20,9 @@ where
 
         let mut values = Vec::with_capacity(self.value_len);
         for i in 0..self.value_len {
-            let offset = match index.get_data_type() {
-                None => vm.operations().constant_bigint(&i.into()),
-                Some(t) => vm.operations().constant_bigint_typed(&i.into(), t),
-            }?;
+            let offset = vm
+                .operations().
+                constant_bigint(&i.into(), index.get_type())?;
             let address = vm.operations().add(index.clone(), offset)?;
 
             let value = vm.operations().array_get(array.as_slice(), address)?;

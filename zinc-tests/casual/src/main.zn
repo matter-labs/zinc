@@ -1,9 +1,9 @@
-fn main(array: [u8; 5]) -> u32 {
-    let mut sum: u32 = 0;
-    for i in 0..5 {
-        for j in 4..=0 {
-            sum = sum + (array[i] * array[j]) as u32;
-        }
-    }
-    sum
+//# [ {
+//#     "case": "default",
+//#     "input": {},
+//#     "expect": "81"
+//# } ]
+
+fn main() -> u8 {
+    19 * 3 - 8 / 3 + (16 / (5 - 3) + 5) * (8 / 2 / 2)
 }

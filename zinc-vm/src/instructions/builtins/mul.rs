@@ -5,6 +5,7 @@ use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
 use zinc_bytecode::instructions::Mul;
+use crate::gadgets::ScalarType;
 
 impl<E, CS> VMInstruction<E, CS> for Mul
 where
@@ -15,7 +16,13 @@ where
         let right = vm.pop()?.value()?;
         let left = vm.pop()?.value()?;
 
-        let prod = vm.operations().mul(left, right)?;
+        let unchecked_prod = vm.operations().mul(left.clone(), right.clone())?;
+        let condition = vm.condition_top()?;
+        let prod = vm.operations().assert_type(
+            condition,
+            unchecked_prod,
+            ScalarType::expect_same(left.get_type(), right.get_type())?
+        )?;
 
         vm.push(Cell::Value(prod))
     }

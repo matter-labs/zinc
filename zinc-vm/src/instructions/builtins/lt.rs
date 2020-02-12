@@ -26,9 +26,13 @@ mod test {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
     use zinc_bytecode::*;
+    use crate::gadgets::utils::fr_to_bigint;
+    use pairing::bn256::Fr;
+    use ff::{Field, PrimeField};
+    use num_bigint::BigInt;
 
     #[test]
-    fn test_lt() -> Result<(), TestingError> {
+    fn simple() -> Result<(), TestingError> {
         VMTestRunner::new()
             .add(PushConst::new(2.into(), true, 8))
             .add(PushConst::new(1.into(), true, 8))
@@ -40,5 +44,24 @@ mod test {
             .add(PushConst::new(2.into(), true, 8))
             .add(Lt)
             .test(&[1, 0, 0])
+    }
+
+    #[test]
+    fn edge_cases() -> Result<(), TestingError> {
+        let mut max_fr = Fr::zero();
+        max_fr.sub_assign(&Fr::one());
+        let max = fr_to_bigint(&max_fr);
+
+        VMTestRunner::new()
+            .add(PushConst::new(max.clone(), true, 8))
+            .add(PushConst::new(0.into(), true, 8))
+            .add(Lt)
+            .add(PushConst::new(0.into(), true, 8))
+            .add(PushConst::new(max.clone(), true, 8))
+            .add(Lt)
+            .add(PushConst::new(1.into(), true, 8))
+            .add(PushConst::new(max.clone(), true, 8))
+            .add(Lt)
+            .test(&[1, 1, 0])
     }
 }

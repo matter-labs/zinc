@@ -1,4 +1,4 @@
-use crate::gadgets::{Gadget, Primitive, PrimitiveType};
+use crate::gadgets::{Gadget, Primitive, ScalarType, IntegerType};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
@@ -16,10 +16,11 @@ impl<E: Engine> Gadget<E> for ToBits {
     ) -> Result<Self::Output, RuntimeError> {
         let num = input.as_allocated_num(cs.namespace(|| "as_allocated_num"))?;
 
-        let mut bits = match input.data_type {
-            Some(t) => num.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), t.length),
-            None => num.into_bits_le_strict(cs.namespace(|| "into_bits_le_strict")),
+        let mut bits = match input.scalar_type {
+            ScalarType::Integer(t) => num.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), t.length),
+            ScalarType::Field => num.into_bits_le_strict(cs.namespace(|| "into_bits_le_strict")),
         }?;
+
         // We use big-endian
         bits.reverse();
 
@@ -31,7 +32,7 @@ impl<E: Engine> Gadget<E> for ToBits {
                     .get_variable()
                     .expect("into_bits_le_fixed must allocate")
                     .get_variable(),
-                data_type: Some(PrimitiveType::BOOLEAN),
+                scalar_type: IntegerType::BOOLEAN.into(),
             })
             .collect();
 

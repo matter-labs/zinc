@@ -5,6 +5,7 @@ use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
 use zinc_bytecode::instructions::Sub;
+use crate::gadgets::ScalarType;
 
 impl<E, CS> VMInstruction<E, CS> for Sub
 where
@@ -15,7 +16,13 @@ where
         let right = vm.pop()?.value()?;
         let left = vm.pop()?.value()?;
 
-        let diff = vm.operations().sub(left, right)?;
+        let unchecked_diff = vm.operations().sub(left.clone(), right.clone())?;
+        let condition = vm.condition_top()?;
+        let diff = vm.operations().assert_type(
+            condition,
+            unchecked_diff,
+            ScalarType::expect_same(left.get_type(), right.get_type())?
+        )?;
 
         vm.push(Cell::Value(diff))
     }

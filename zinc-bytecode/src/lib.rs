@@ -1,3 +1,5 @@
+pub mod logger;
+
 pub mod builtins;
 pub mod data;
 mod decode;

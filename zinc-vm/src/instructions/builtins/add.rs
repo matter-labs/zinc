@@ -5,6 +5,7 @@ use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
 use zinc_bytecode::instructions::Add;
+use crate::gadgets::ScalarType;
 
 impl<E, CS> VMInstruction<E, CS> for Add
 where
@@ -15,7 +16,13 @@ where
         let right = vm.pop()?.value()?;
         let left = vm.pop()?.value()?;
 
-        let sum = vm.operations().add(left, right)?;
+        let unchecked_sum = vm.operations().add(left.clone(), right.clone())?;
+        let condition = vm.condition_top()?;
+        let sum = vm.operations().assert_type(
+            condition,
+            unchecked_sum,
+            ScalarType::expect_same(left.get_type(), right.get_type())?
+        )?;
 
         vm.push(Cell::Value(sum))
     }
