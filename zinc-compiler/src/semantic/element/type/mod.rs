@@ -164,7 +164,7 @@ impl Type {
             variants_bigint.push((variant.identifier, value.value));
         }
         let bigints: Vec<&BigInt> = variants_bigint.iter().map(|variant| &variant.1).collect();
-        let minimal_bitlength = IntegerConstant::minimal_bitlength_bigints(bigints.as_slice())
+        let minimal_bitlength = IntegerConstant::minimal_bitlength_bigints(bigints.as_slice(), false)
             .map_err(|error| Error::InferenceConstant(identifier.location, error))?;
 
         for (identifier, value) in variants_bigint.into_iter() {

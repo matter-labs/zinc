@@ -310,10 +310,11 @@ impl Integer {
         Ok(max)
     }
 
-    pub fn minimal_bitlength_bigints(values: &[&BigInt]) -> Result<usize, Error> {
+    pub fn minimal_bitlength_bigints(values: &[&BigInt], is_signed: bool) -> Result<usize, Error> {
         let mut max = 0;
         for value in values.iter() {
-            let bitlength = Self::minimal_bitlength(value)?;
+
+            let bitlength = Self::minimal_bitlength(value, is_signed)?;
             if bitlength > max {
                 max = bitlength;
             }
@@ -321,10 +322,15 @@ impl Integer {
         Ok(max)
     }
 
-    fn minimal_bitlength(value: &BigInt) -> Result<usize, Error> {
+    fn minimal_bitlength(value: &BigInt, is_signed: bool) -> Result<usize, Error> {
         let mut bitlength = crate::BITLENGTH_BYTE;
         let mut exponent = BigInt::from(1 << crate::BITLENGTH_BYTE);
-        while value >= &exponent {
+
+        while if is_signed {
+            value >= &(exponent.clone() / BigInt::from(2) - BigInt::one())
+        } else {
+            value >= &exponent
+        } {
             if bitlength == crate::BITLENGTH_MAX_INT {
                 exponent <<= crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
                 bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
@@ -377,7 +383,7 @@ impl TryFrom<&IntegerLiteral> for Integer {
 
         let value = BigInt::from_str_radix(&string, base)
             .expect(crate::semantic::PANIC_VALIDATED_DURING_LEXICAL_ANALYSIS);
-        let bitlength = Self::minimal_bitlength(&value)?;
+        let bitlength = Self::minimal_bitlength(&value, false)?;
 
         Ok(Self::new(value, false, bitlength))
     }
