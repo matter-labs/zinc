@@ -1,6 +1,5 @@
 //# [ {
-//#     "case": "default",
-//#     "should_panic": true,
+//#     "case": "default", "should_panic": true,
 //#     "input": {
 //#         "witness": "452312848583266388373324160190187140051835877600158453279131187530910662655"
 //#     },

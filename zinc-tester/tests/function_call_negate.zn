@@ -1,0 +1,21 @@
+//# [ {
+//#     "case": "positive_to_negative",
+//#     "input": {
+//#         "a": "42"
+//#     },
+//#     "expect": "-42"
+//# }, {
+//#     "case": "negative_to_positive",
+//#     "input": {
+//#         "a": "-42"
+//#     },
+//#     "expect": "42"
+//# } ]
+
+fn negate(a: i8) -> i8 {
+    -a
+}
+
+fn main(a: i8) -> i8 {
+    negate(a)
+}

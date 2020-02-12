@@ -10,6 +10,8 @@ Using `assert!()` you can check whether some condition is true
 and make the circuit exit with an error if otherwise:
 
 ```rust,no_run,noplaypen
+const BAD_VALUE: u8 = 42;
+
 fn wrong(a: u8, b: u8) -> u8 {
     let c = a + b - BAD_VALUE;
     assert!(a + b == c, "always fails");
@@ -21,9 +23,14 @@ fn wrong(a: u8, b: u8) -> u8 {
 
 This function prints data to the terminal and is used only for debugging purposes.
 
+The first argument is the format string, where each `{}` placeholder is replaced
+with a corresponding value from the next arguments. The number of placeholders
+must be equal to the number of the arguments not including the format string.
+
 ```rust,no_run,noplaypen
+// a = 5, b = 3
 fn print_sum(a: u8, b: u8) {
-    dbg!("{} + {} == {}", a, b, a + b);
+    dbg!("{} + {} = {}", a, b, a + b); // prints '5 + 3 = 8'
 }
 ```
 

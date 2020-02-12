@@ -1,3 +1,0 @@
-fn main(witness: u8) -> u8 {
-    witness
-}

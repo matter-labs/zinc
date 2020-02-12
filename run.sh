@@ -37,7 +37,7 @@ case "${2}" in
         ;;
 esac
 
-export CIRCUIT_DIRECTORY='./zinc-tests/casual/'
+export CIRCUIT_DIRECTORY='./zinc-examples/casual/'
 export CIRCUIT_BUILD_DIRECTORY="${CIRCUIT_DIRECTORY}/build/"
 export CIRCUIT_DATA_DIRECTORY="${CIRCUIT_DIRECTORY}/data/"
 

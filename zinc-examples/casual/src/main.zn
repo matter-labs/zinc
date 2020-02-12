@@ -1,3 +1,7 @@
+//!
+//! The casual example used to test some cases.
+//!
+
 fn main(witness: u8) {
     dbg!("Bool {}, int {}, tuple {}", true, 42, (255, -128));
 }

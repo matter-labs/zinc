@@ -1,6 +1,5 @@
 //# [ {
-//#     "case": "default",
-//#     "should_panic": true,
+//#     "case": "default", "should_panic": true,
 //#     "input": {
 //#         "witness": "65535"
 //#     },
