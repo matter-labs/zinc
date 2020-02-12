@@ -894,7 +894,7 @@ where
     ) -> Result<(), RuntimeError> {
         if let Some(value) = element.value {
             if value.is_zero() {
-                let s = message.unwrap_or("<no message>".into());
+                let s = message.unwrap_or("<no message>");
                 return Err(RuntimeError::AssertionError(s.into()));
             }
         }

@@ -4,7 +4,6 @@
 
 pub mod error;
 
-use std::convert::TryFrom;
 use std::fmt;
 
 use num_bigint::BigInt;
@@ -14,7 +13,6 @@ use num_traits::ToPrimitive;
 
 use crate::semantic::element::access::AccessData;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::value::Value;
 
 use self::error::Error;
 
@@ -47,7 +45,7 @@ impl Array {
             0,
             self.r#type.size(),
             self.r#type().size(),
-            Some(Value::try_from(self.r#type.to_owned()).unwrap()),
+            self.r#type.to_owned(),
         )
     }
 
@@ -77,7 +75,7 @@ impl Array {
             self.r#type.size() * start,
             self.r#type.size() * length,
             self.r#type().size(),
-            Some(Value::try_from(Type::array(self.r#type.to_owned(), length)).unwrap()),
+            Type::array(self.r#type.to_owned(), length),
         ))
     }
 
@@ -107,7 +105,7 @@ impl Array {
             self.r#type.size() * start,
             self.r#type.size() * length,
             self.r#type().size(),
-            Some(Value::try_from(Type::array(self.r#type.to_owned(), length)).unwrap()),
+            Type::array(self.r#type.to_owned(), length),
         ))
     }
 

@@ -1,8 +1,10 @@
 [workspace]
 members = [
     "zargo",
+
     "zinc-compiler",
     "zinc-bytecode",
     "zinc-vm",
+
     "zinc-tester",
 ]

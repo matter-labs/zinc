@@ -16,6 +16,9 @@ pub struct Function {
 }
 
 impl Function {
+    const ARGUMENT_INDEX_CONDITION: usize = 0;
+    const ARGUMENT_INDEX_MESSAGE: usize = 1;
+
     pub fn new() -> Self {
         Self {
             identifier: "assert",
@@ -27,17 +30,14 @@ impl Function {
     }
 
     pub fn validate(&self, inputs: &[Element]) -> Result<(Type, Option<String>), Error> {
-        let mut argument_iter = 0usize..;
-
-        let next_argument_index = argument_iter.next().unwrap();
-        match inputs.get(next_argument_index) {
+        match inputs.get(Self::ARGUMENT_INDEX_CONDITION) {
             Some(Element::Constant(Constant::Boolean(_))) => {}
             Some(Element::Value(Value::Boolean)) => {}
             Some(Element::Constant(constant)) => {
                 return Err(Error::ArgumentType(
                     self.identifier,
                     Type::boolean().to_string(),
-                    next_argument_index + 1,
+                    Self::ARGUMENT_INDEX_CONDITION + 1,
                     constant.r#type().to_string(),
                 ))
             }
@@ -45,48 +45,47 @@ impl Function {
                 return Err(Error::ArgumentType(
                     self.identifier,
                     Type::boolean().to_string(),
-                    next_argument_index + 1,
+                    Self::ARGUMENT_INDEX_CONDITION + 1,
                     value.r#type().to_string(),
                 ))
             }
             Some(element) => {
                 return Err(Error::ArgumentNotEvaluable(
                     self.identifier,
-                    next_argument_index + 1,
+                    Self::ARGUMENT_INDEX_CONDITION + 1,
                     element.to_string(),
                 ))
             }
             None => {
                 return Err(Error::ArgumentCount(
                     self.identifier,
-                    next_argument_index + 1,
+                    Self::ARGUMENT_INDEX_CONDITION + 1,
                     inputs.len(),
                 ))
             }
         }
 
-        let next_argument_index = argument_iter.next().unwrap();
-        let string = match inputs.get(next_argument_index) {
+        let string = match inputs.get(Self::ARGUMENT_INDEX_MESSAGE) {
             Some(Element::Constant(Constant::String(string))) => Some(string.to_owned()),
             Some(Element::Constant(constant)) => {
                 return Err(Error::ArgumentType(
                     self.identifier,
                     Type::string().to_string(),
-                    next_argument_index + 1,
+                    Self::ARGUMENT_INDEX_MESSAGE + 1,
                     constant.r#type().to_string(),
                 ))
             }
             Some(Element::Value(value)) => {
                 return Err(Error::ArgumentConstantness(
                     self.identifier,
-                    next_argument_index + 1,
+                    Self::ARGUMENT_INDEX_MESSAGE + 1,
                     value.to_string(),
                 ))
             }
             Some(element) => {
                 return Err(Error::ArgumentNotEvaluable(
                     self.identifier,
-                    next_argument_index + 1,
+                    Self::ARGUMENT_INDEX_MESSAGE + 1,
                     element.to_string(),
                 ))
             }

@@ -34,8 +34,7 @@ impl Structure {
         };
         scope
             .borrow_mut()
-            .declare_type("Self".to_owned(), Type::Structure(structure.clone()))
-            .expect(crate::semantic::PANIC_SELF_ALIAS_DECLARATION);
+            .declare_self(Type::Structure(structure.clone()));
 
         structure
     }

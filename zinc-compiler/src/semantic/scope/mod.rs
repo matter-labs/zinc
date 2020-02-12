@@ -114,6 +114,10 @@ impl Scope {
         Ok(())
     }
 
+    pub fn declare_self(&mut self, r#type: Type) {
+        self.items.insert("Self".to_owned(), Item::Type(r#type));
+    }
+
     pub fn resolve_path(scope: Rc<RefCell<Scope>>, path: &Path) -> Result<Item, SemanticError> {
         let mut current_scope = scope;
 

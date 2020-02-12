@@ -321,10 +321,10 @@ impl Into<DataType> for &Type {
                 }
                 DataType::Struct(new_fields)
             }
-            Type::String => unimplemented!(),
-            Type::Range { .. } => unimplemented!(),
-            Type::RangeInclusive { .. } => unimplemented!(),
-            Type::Function(_) => unimplemented!(),
+            Type::String => unreachable!(),
+            Type::Range { .. } => unreachable!(),
+            Type::RangeInclusive { .. } => unreachable!(),
+            Type::Function(_) => unreachable!(),
         }
     }
 }

@@ -183,10 +183,7 @@ impl Type {
             bitlength: minimal_bitlength,
             scope: scope.clone(),
         };
-        scope
-            .borrow_mut()
-            .declare_type("Self".to_owned(), enumeration.clone())
-            .expect(crate::semantic::PANIC_SELF_ALIAS_DECLARATION);
+        scope.borrow_mut().declare_self(enumeration.clone());
 
         Ok(enumeration)
     }

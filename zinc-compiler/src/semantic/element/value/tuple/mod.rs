@@ -4,12 +4,10 @@
 
 pub mod error;
 
-use std::convert::TryFrom;
 use std::fmt;
 
 use crate::semantic::element::access::AccessData;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::value::Value;
 
 use self::error::Error;
 
@@ -47,7 +45,7 @@ impl Tuple {
             offset,
             self.element_types[tuple_index].size(),
             total_size,
-            Some(Value::try_from(self.element_types[tuple_index].to_owned()).unwrap()),
+            self.element_types[tuple_index].to_owned(),
         ))
     }
 

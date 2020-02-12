@@ -549,11 +549,11 @@ impl Analyzer {
                                 )),
                                 element.location,
                             );
-                            self.push_operand(StackElement::Evaluated(Element::Value(
-                                result.sliced_value.expect(
-                                    crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_SLICED_VALUE,
-                                ),
-                            )));
+
+                            let value = Value::try_from(result.sliced_type)
+                                .map_err(ElementError::Value)
+                                .map_err(|error| Error::Element(element.location, error))?;
+                            self.push_operand(StackElement::Evaluated(Element::Value(value)));
                         }
                         _ => {}
                     }
@@ -616,11 +616,11 @@ impl Analyzer {
                                 )),
                                 element.location,
                             );
-                            self.push_operand(StackElement::Evaluated(Element::Value(
-                                result.sliced_value.expect(
-                                    crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_SLICED_VALUE,
-                                ),
-                            )));
+
+                            let value = Value::try_from(result.sliced_type)
+                                .map_err(ElementError::Value)
+                                .map_err(|error| Error::Element(element.location, error))?;
+                            self.push_operand(StackElement::Evaluated(Element::Value(value)));
                         }
                         _ => {}
                     }

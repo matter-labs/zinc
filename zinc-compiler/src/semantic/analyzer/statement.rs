@@ -360,7 +360,7 @@ impl Analyzer {
         let last_member_string = path
             .elements
             .last()
-            .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_THE_LAST_PATH_ELEMENT);
+            .expect(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
         self.scope()
             .borrow_mut()
             .declare_item(last_member_string.name.to_owned(), item)

@@ -15,6 +15,9 @@ pub struct Function {
 }
 
 impl Function {
+    const ARGUMENT_INDEX_FORMAT_STRING: usize = 0;
+    const ARGUMENT_INDEX_VALUES: usize = 1;
+
     pub fn new() -> Self {
         Self { identifier: "dbg" }
     }
@@ -24,29 +27,26 @@ impl Function {
     }
 
     pub fn validate(&self, inputs: &[Element]) -> Result<(Type, String, Vec<Type>), Error> {
-        let mut argument_iter = 0usize..;
-
-        let next_argument_index = argument_iter.next().unwrap();
-        let format_string = match inputs.get(next_argument_index) {
+        let format_string = match inputs.get(Self::ARGUMENT_INDEX_FORMAT_STRING) {
             Some(Element::Constant(Constant::String(string))) => string.to_owned(),
             Some(Element::Value(value)) => {
                 return Err(Error::ArgumentConstantness(
                     self.identifier,
-                    next_argument_index + 1,
+                    Self::ARGUMENT_INDEX_FORMAT_STRING + 1,
                     value.to_string(),
                 ))
             }
             Some(element) => {
                 return Err(Error::ArgumentNotEvaluable(
                     self.identifier,
-                    next_argument_index + 1,
+                    Self::ARGUMENT_INDEX_FORMAT_STRING + 1,
                     element.to_string(),
                 ))
             }
             None => {
                 return Err(Error::ArgumentCount(
                     self.identifier,
-                    next_argument_index + 1,
+                    Self::ARGUMENT_INDEX_FORMAT_STRING + 1,
                     inputs.len(),
                 ))
             }
@@ -61,10 +61,9 @@ impl Function {
             ));
         }
 
-        let next_argument_index = argument_iter.next().unwrap();
         let argument_types: Vec<Type> = inputs
             .iter()
-            .skip(next_argument_index)
+            .skip(Self::ARGUMENT_INDEX_VALUES)
             .filter_map(|argument| match argument {
                 Element::Constant(constant) => Some(constant.r#type()),
                 Element::Value(value) => Some(value.r#type()),

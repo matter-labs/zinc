@@ -15,7 +15,7 @@ impl Assert {
 impl InstructionInfo for Assert {
     fn to_assembly(&self) -> String {
         match &self.message {
-            None => format!("assert"),
+            None => "assert".to_owned(),
             Some(text) => format!("assert \"{}\"", text),
         }
     }

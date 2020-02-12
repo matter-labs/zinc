@@ -24,13 +24,8 @@ static PANIC_THERE_MUST_ALWAYS_BE_AN_OPERAND: &str =
     "Operand stack balance is kept by the evaluation logic";
 static PANIC_THERE_MUST_ALWAYS_BE_A_CALL_STACK_POINTER: &str =
     "Call stack balance is kept by the evaluation logic";
-static PANIC_THERE_MUST_ALWAYS_BE_THE_LAST_PATH_ELEMENT: &str =
-    "Path last element existence is ensured by the evaluation logic";
-static PANIC_THERE_MUST_ALWAYS_BE_A_SLICED_VALUE: &str =
-    "Sliced value existence is ensured by the evaluation logic";
 
 static PANIC_FUNCTION_ADDRESS_ALWAYS_EXISTS: &str =
     "Function address exists because the function type has been resolved above";
-static PANIC_SELF_ALIAS_DECLARATION: &str = "'Self' alias declaration is always valid";
 static PANIC_JSON_TEMPLATE_SERIALIZATION: &str =
     "JSON templates serialization must be always successful: ";
