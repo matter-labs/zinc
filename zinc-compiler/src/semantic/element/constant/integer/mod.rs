@@ -40,9 +40,30 @@ impl Integer {
         }
     }
 
+    pub fn new_zero(is_signed: bool, bitlength: usize) -> Self {
+        Self {
+            value: BigInt::zero(),
+            is_signed,
+            bitlength,
+        }
+    }
+
     pub fn new_one(is_signed: bool, bitlength: usize) -> Self {
         Self {
             value: BigInt::one(),
+            is_signed,
+            bitlength,
+        }
+    }
+
+    pub fn new_max(is_signed: bool, bitlength: usize) -> Self {
+        let value = match (is_signed, bitlength) {
+            (false, bitlength) => (BigInt::one() << bitlength) - 1,
+            (true, bitlength) => BigInt::one() << (bitlength - 1),
+        };
+
+        Self {
+            value,
             is_signed,
             bitlength,
         }

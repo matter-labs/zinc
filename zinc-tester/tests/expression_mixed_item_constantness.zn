@@ -1,7 +1,7 @@
 //# [ {
 //#     "case": "default",
 //#     "input": {
-//#         "witness": "0xA9"
+//#         "witness": "25"
 //#     },
 //#     "expect": "141"
 //# } ]

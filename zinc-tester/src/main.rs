@@ -48,8 +48,6 @@ fn main() {
 }
 
 static PANIC_TEST_DIRECTORY_INVALID: &str = "The test files directory must be valid";
-static PANIC_TEST_FILE_INVALID: &str = "All test files must be valid";
-static PANIC_TEST_DATA_CASE_INVALID: &str = "All test cases must be valid";
 static PANIC_TEST_FILE_STEM_GETTING: &str = "Every test file must have a stem";
 
 static PANIC_THE_ONLY_REFERENCE: &str =
@@ -72,9 +70,9 @@ fn main_inner() -> Summary {
         .map(move |test_file_path| {
             let summary = summary_inner.clone();
 
-            let test_file = TestFile::try_from(&test_file_path).expect(PANIC_TEST_FILE_INVALID);
+            let test_file = TestFile::try_from(&test_file_path).expect(&format!("Test file {:?} is invalid", test_file_path));
             let test_data =
-                TestData::from_str(test_file.code.as_str()).expect(PANIC_TEST_DATA_CASE_INVALID);
+                TestData::from_str(test_file.code.as_str()).expect(&format!("Test file {:?} case data is invalid", test_file_path));
 
             for test_case in test_data.cases.into_iter() {
                 let case_name = format!(
