@@ -1,12 +1,12 @@
 //# [ {
 //#     "case": "default",
 //#     "input": {},
-//#     "expect": "65536"
+//#     "expect": "10"
 //# } ]
 
 fn main() -> u64 {
     let mut sum: u64 = 0;
-    for i in 0 as u16..=65535 {
+    for i in 65526..=65535 {
         sum = sum + 1 as u64;
     }
     sum

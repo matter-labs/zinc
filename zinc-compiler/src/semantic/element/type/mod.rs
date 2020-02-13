@@ -389,10 +389,14 @@ impl PartialEq<Type> for Type {
                     bitlength: bitlength_1,
                     ..
                 },
-                Self::IntegerUnsigned { bitlength: bitlength_2 },
+                Self::IntegerUnsigned {
+                    bitlength: bitlength_2,
+                },
             ) => bitlength_1 == bitlength_2,
             (
-                Self::IntegerUnsigned { bitlength: bitlength_1 },
+                Self::IntegerUnsigned {
+                    bitlength: bitlength_1,
+                },
                 Self::Enumeration {
                     bitlength: bitlength_2,
                     ..

@@ -2,27 +2,10 @@
 //! The casual example used to test some cases.
 //!
 
-const LENGTH: u8 = 10;
-
-enum Direction {
-    None = 0,
-    Ascending = 1,
-    Descending = 2,
-}
-
-fn main(mut array: [u8; 10], direction: Direction) -> [u8; 10] {
-    for i in 0..LENGTH {
-        for j in 0..LENGTH {
-            if match direction {
-                Direction::Ascending => array[i] < array[j],
-                Direction::Descending => array[i] > array[j],
-                _ => false,
-            } {
-                let temp = array[j];
-                array[j] = array[i];
-                array[i] = temp;
-            }
-        }
+fn main() -> u64 {
+    let mut sum: u64 = 0;
+    for i in -2147483648..=-2147483639 {
+        sum = sum + 1 as u64;
     }
-    array
+    sum
 }

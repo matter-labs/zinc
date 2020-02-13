@@ -56,10 +56,23 @@ impl Integer {
         }
     }
 
+    pub fn new_min(is_signed: bool, bitlength: usize) -> Self {
+        let value = match (is_signed, bitlength) {
+            (false, _bitlength) => BigInt::zero(),
+            (true, bitlength) => -(BigInt::one() << (bitlength - 1)),
+        };
+
+        Self {
+            value,
+            is_signed,
+            bitlength,
+        }
+    }
+
     pub fn new_max(is_signed: bool, bitlength: usize) -> Self {
         let value = match (is_signed, bitlength) {
-            (false, bitlength) => (BigInt::one() << bitlength) - 1,
-            (true, bitlength) => BigInt::one() << (bitlength - 1),
+            (false, bitlength) => (BigInt::one() << bitlength) - BigInt::one(),
+            (true, bitlength) => (BigInt::one() << (bitlength - 1)) - BigInt::one(),
         };
 
         Self {
@@ -307,9 +320,8 @@ impl Integer {
             return Err(Error::ForbiddenFieldNegation);
         }
 
-        let result = -self.value.to_owned();
         Ok(Self {
-            value: result,
+            value: -self.value.to_owned(),
             is_signed: true,
             bitlength: self.bitlength,
         })

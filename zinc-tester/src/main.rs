@@ -70,9 +70,10 @@ fn main_inner() -> Summary {
         .map(move |test_file_path| {
             let summary = summary_inner.clone();
 
-            let test_file = TestFile::try_from(&test_file_path).expect(&format!("Test file {:?} is invalid", test_file_path));
-            let test_data =
-                TestData::from_str(test_file.code.as_str()).expect(&format!("Test file {:?} case data is invalid", test_file_path));
+            let test_file = TestFile::try_from(&test_file_path)
+                .unwrap_or_else(|_| panic!("Test file {:?} is invalid", test_file_path));
+            let test_data = TestData::from_str(test_file.code.as_str())
+                .unwrap_or_else(|_| panic!("Test file {:?} case data is invalid", test_file_path));
 
             for test_case in test_data.cases.into_iter() {
                 let case_name = format!(

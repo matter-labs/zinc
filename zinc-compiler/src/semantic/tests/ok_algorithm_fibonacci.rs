@@ -11,12 +11,15 @@ use zinc_bytecode::Add;
 use zinc_bytecode::Assert;
 use zinc_bytecode::Call;
 use zinc_bytecode::Cast;
+use zinc_bytecode::EndIf;
 use zinc_bytecode::Eq;
 use zinc_bytecode::Exit;
+use zinc_bytecode::If;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::Load;
 use zinc_bytecode::LoopBegin;
 use zinc_bytecode::LoopEnd;
+use zinc_bytecode::Lt;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 use zinc_bytecode::Store;
@@ -62,9 +65,14 @@ fn main() {
         Instruction::Load(Load::new(2)),
         Instruction::Store(Store::new(1)),
         Instruction::Load(Load::new(3)),
+        Instruction::PushConst(PushConst::new(BigInt::from(255), IntegerType::U8.into())),
+        Instruction::Lt(Lt),
+        Instruction::If(If),
+        Instruction::Load(Load::new(3)),
         Instruction::PushConst(PushConst::new(BigInt::from(1), IntegerType::U8.into())),
         Instruction::Add(Add),
         Instruction::Store(Store::new(3)),
+        Instruction::EndIf(EndIf),
         Instruction::LoopEnd(LoopEnd),
         Instruction::PushConst(PushConst::new(BigInt::from(89), IntegerType::U8.into())),
         Instruction::Cast(Cast::new(ScalarType::Field)),
