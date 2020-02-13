@@ -15,3 +15,6 @@
 
 # Builds
 *.tar.gz
+
+# Mac
+.DS_Store
