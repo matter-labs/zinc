@@ -6,11 +6,11 @@ const LEVEL_NAME_LENGTH: usize = 10;
 #[allow(dead_code)]
 fn level_string(level: log::Level) -> colored::ColoredString {
     match level {
-        log::Level::Error => "   error".bold().red(),
-        log::Level::Warn => " warning".bold().yellow(),
-        log::Level::Info => "    info".bold().blue(),
-        log::Level::Debug => "   debug".bold().magenta(),
-        log::Level::Trace => "   trace".bold(),
+        log::Level::Error => "   ERROR".bold().red(),
+        log::Level::Warn => " WARNING".bold().yellow(),
+        log::Level::Info => "    INFO".bold().blue(),
+        log::Level::Debug => "   DEBUG".bold().magenta(),
+        log::Level::Trace => "   TRACE".bold(),
     }
 }
 
@@ -35,7 +35,7 @@ pub fn init_logger(app_name: &'static str, verbosity: usize) {
 
             writeln!(
                 buf,
-                "[{} {}] {}",
+                "[{} {:>5}] {}",
                 level_string(record.level()),
                 app_name,
                 record.args().to_string().replace("\n", &padding)
