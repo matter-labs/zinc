@@ -1,0 +1,10 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {
+//#         "f": "0",
+//#         "byte": "0"
+//#     },
+//#     "expect": "unit"
+//# } ]
+
+fn main(f: field, byte: u8) {}
