@@ -4,7 +4,7 @@
 //#         "value": "-32768"
 //#     },
 //#     "expect": [
-//#         true, fakse, false, false, false, false, false, false
+//#         true, false, false, false, false, false, false, false,
 //#         false, false, false, false, false, false, false, false 
 //#     ]
 //# }, {

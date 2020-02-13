@@ -3,7 +3,7 @@
 //#     "input": {
 //#         "witness": "25"
 //#     },
-//#     "expect": "285"
+//#     "expect": "141"
 //# } ]
 
 static STATIC: field = 5;
