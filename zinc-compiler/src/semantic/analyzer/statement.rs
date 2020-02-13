@@ -606,26 +606,51 @@ impl Analyzer {
         }
 
         // increment or decrement the loop counter
-        self.bytecode.borrow_mut().push_instruction(
-            Instruction::Load(zinc_bytecode::Load::new(index_address)),
-            location,
-        );
-        self.bytecode.borrow_mut().push_instruction(
-            IntegerConstant::new_one(is_signed, bitlength).to_instruction(),
-            location,
-        );
-        self.bytecode.borrow_mut().push_instruction(
-            if is_reverse {
-                Instruction::Sub(zinc_bytecode::Sub)
-            } else {
-                Instruction::Add(zinc_bytecode::Add)
-            },
-            location,
-        );
-        self.bytecode.borrow_mut().push_instruction(
-            Instruction::Store(zinc_bytecode::Store::new(index_address)),
-            location,
-        );
+        if is_reverse {
+            self.bytecode.borrow_mut().push_instruction(Instruction::Load(zinc_bytecode::Load::new(index_address)), location);
+            self.bytecode.borrow_mut().push_instruction(
+                IntegerConstant::new_zero(is_signed, bitlength).to_instruction(),
+                location,
+            );
+            self.bytecode.borrow_mut().push_instruction(Instruction::Gt(zinc_bytecode::Gt), location);
+            self.bytecode.borrow_mut().push_instruction(Instruction::If(zinc_bytecode::If), location);
+            self.bytecode.borrow_mut().push_instruction(
+                Instruction::Load(zinc_bytecode::Load::new(index_address)),
+                location,
+            );
+            self.bytecode.borrow_mut().push_instruction(
+                IntegerConstant::new_one(is_signed, bitlength).to_instruction(),
+                location,
+            );
+            self.bytecode.borrow_mut().push_instruction(Instruction::Sub(zinc_bytecode::Sub), location);
+            self.bytecode.borrow_mut().push_instruction(
+                Instruction::Store(zinc_bytecode::Store::new(index_address)),
+                location,
+            );
+            self.bytecode.borrow_mut().push_instruction(Instruction::EndIf(zinc_bytecode::EndIf), location);
+        } else {
+            self.bytecode.borrow_mut().push_instruction(Instruction::Load(zinc_bytecode::Load::new(index_address)), location);
+            self.bytecode.borrow_mut().push_instruction(
+                IntegerConstant::new_max(is_signed, bitlength).to_instruction(),
+                location,
+            );
+            self.bytecode.borrow_mut().push_instruction(Instruction::Lt(zinc_bytecode::Lt), location);
+            self.bytecode.borrow_mut().push_instruction(Instruction::If(zinc_bytecode::If), location);
+            self.bytecode.borrow_mut().push_instruction(
+                Instruction::Load(zinc_bytecode::Load::new(index_address)),
+                location,
+            );
+            self.bytecode.borrow_mut().push_instruction(
+                IntegerConstant::new_one(is_signed, bitlength).to_instruction(),
+                location,
+            );
+            self.bytecode.borrow_mut().push_instruction(Instruction::Add(zinc_bytecode::Add), location);
+            self.bytecode.borrow_mut().push_instruction(
+                Instruction::Store(zinc_bytecode::Store::new(index_address)),
+                location,
+            );
+            self.bytecode.borrow_mut().push_instruction(Instruction::EndIf(zinc_bytecode::EndIf), location);
+        };
         self.bytecode
             .borrow_mut()
             .push_instruction(Instruction::LoopEnd(zinc_bytecode::LoopEnd), location);

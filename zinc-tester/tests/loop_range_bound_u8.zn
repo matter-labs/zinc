@@ -4,10 +4,10 @@
 //#     "expect": "256"
 //# } ]
 
-fn main() -> u8 {
-    let mut sum = 0;
+fn main() -> u64 {
+    let mut sum: u64 = 0;
     for i in 0..=255 {
-        sum = sum + 1;
+        sum = sum + 1 as u64;
     }
     sum
 }

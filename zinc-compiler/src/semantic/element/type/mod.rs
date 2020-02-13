@@ -376,14 +376,28 @@ impl PartialEq<Type> for Type {
             }
             (
                 Self::Enumeration {
-                    unique_id: unique_id_1,
+                    bitlength: bitlength_1,
                     ..
                 },
                 Self::Enumeration {
-                    unique_id: unique_id_2,
+                    bitlength: bitlength_2,
                     ..
                 },
-            ) => unique_id_1 == unique_id_2,
+            ) => bitlength_1 == bitlength_2,
+            (
+                Self::Enumeration {
+                    bitlength: bitlength_1,
+                    ..
+                },
+                Self::IntegerUnsigned { bitlength: bitlength_2 },
+            ) => bitlength_1 == bitlength_2,
+            (
+                Self::IntegerUnsigned { bitlength: bitlength_1 },
+                Self::Enumeration {
+                    bitlength: bitlength_2,
+                    ..
+                },
+            ) => bitlength_1 == bitlength_2,
             _ => false,
         }
     }
