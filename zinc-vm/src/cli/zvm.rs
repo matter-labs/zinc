@@ -10,7 +10,7 @@ pub use errors::*;
 fn main() {
     let args = Arguments::from_args();
 
-    zinc_bytecode::logger::init_logger(args.verbosity);
+    zinc_bytecode::logger::init_logger("zvm", args.verbosity);
 
     let result = match args.command {
         Command::Run(command) => command.execute(),
