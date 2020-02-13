@@ -1,6 +1,6 @@
 [package]
 name = "zinc-bytecode"
-version = "0.1.1"
+version = "0.1.2"
 authors = [
     "Alexander Movchan <am@matterlabs.dev>",
     "hedgar2017 <hedgar2017@gmail.com>",
