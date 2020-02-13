@@ -23,7 +23,7 @@ system, but `std` makes an exception to simplify development for now.
 Computes the `sha256` hash of a given bit array.
 
 Arguments:
-- preimage bit array `[bool; N]`
+- preimage bit array `[bool; 8*N]` (the size must be multiple of 8)
 
 Returns: 256-bit hash `[bool; 256]`
 

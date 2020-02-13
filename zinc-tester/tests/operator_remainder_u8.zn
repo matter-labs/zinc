@@ -27,7 +27,7 @@
 //#     },
 //#     "expect": "0"
 //# }, {
-//#     "case": "ordinar_max_remainder",
+//#     "case": "ordinar_remainder_max",
 //#     "input": {
 //#         "a": "48",
 //#         "b": "7"
@@ -44,9 +44,9 @@
 //#     "case": "to_max",
 //#     "input": {
 //#         "a": "255",
-//#         "b": "16"
+//#         "b": "128"
 //#     },
-//#     "expect": "15"
+//#     "expect": "127"
 //# }, {
 //#     "case": "to_min",
 //#     "input": {

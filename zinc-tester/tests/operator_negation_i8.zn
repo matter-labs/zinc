@@ -5,7 +5,13 @@
 //#     },
 //#     "expect": "0"
 //# }, {
-//#     "case": "ordinar",
+//#     "case": "ordinar_negative",
+//#     "input": {
+//#         "a": "-42"
+//#     },
+//#     "expect": "42"
+//# }, {
+//#     "case": "ordinar_positive",
 //#     "input": {
 //#         "a": "42"
 //#     },

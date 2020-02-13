@@ -8,7 +8,7 @@
 //# }, {
 //#     "case": "ordinar_false_lesser",
 //#     "input": {
-//#         "a": "25",
+//#         "a": "-25",
 //#         "b": "45"
 //#     },
 //#     "expect": false
@@ -16,25 +16,39 @@
 //#     "case": "ordinar_true_bigger",
 //#     "input": {
 //#         "a": "42",
-//#         "b": "25"
+//#         "b": "-25"
 //#     },
 //#     "expect": true
 //# }, {
-//#     "case": "ordinar_false",
+//#     "case": "ordinar_false_negative",
+//#     "input": {
+//#         "a": "-42",
+//#         "b": "-42"
+//#     },
+//#     "expect": false
+//# }, {
+//#     "case": "ordinar_false_positive",
 //#     "input": {
 //#         "a": "42",
 //#         "b": "42"
 //#     },
 //#     "expect": false
 //# }, {
+//#     "case": "min_min",
+//#     "input": {
+//#         "a": "-128",
+//#         "b": "-128"
+//#     },
+//#     "expect": false
+//# }, {
 //#     "case": "max_max",
 //#     "input": {
-//#         "a": "255",
-//#         "b": "255"
+//#         "a": "127",
+//#         "b": "127"
 //#     },
 //#     "expect": false
 //# } ]
 
-fn main(a: u8, b: u8) -> bool {
+fn main(a: i8, b: i8) -> bool {
     a > b
 }

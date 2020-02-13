@@ -16,6 +16,9 @@ pub struct Function {
 }
 
 impl Function {
+    const ARGUMENT_INDEX_BITS: usize = 0;
+    const ARGUMENT_COUNT: usize = 1;
+
     pub fn new() -> Self {
         Self {
             identifier: "from_bits_signed",
@@ -30,12 +33,8 @@ impl Function {
         BuiltinIdentifier::SignedFromBits
     }
 
-    pub fn arguments_count(&self) -> usize {
-        1
-    }
-
     pub fn validate(&self, inputs: &[Type]) -> Result<Type, Error> {
-        let result = match inputs.get(0) {
+        let result = match inputs.get(Self::ARGUMENT_INDEX_BITS) {
             Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
                 (Type::Boolean, size)
                     if crate::BITLENGTH_BYTE <= size
@@ -57,15 +56,15 @@ impl Function {
             )),
             None => Err(Error::ArgumentCount(
                 self.identifier,
-                self.arguments_count(),
+                Self::ARGUMENT_COUNT,
                 inputs.len(),
             )),
         };
 
-        if inputs.get(1).is_some() {
+        if inputs.get(Self::ARGUMENT_COUNT).is_some() {
             return Err(Error::ArgumentCount(
                 self.identifier,
-                self.arguments_count(),
+                Self::ARGUMENT_COUNT,
                 inputs.len(),
             ));
         }

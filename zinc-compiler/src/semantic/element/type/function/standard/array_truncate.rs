@@ -16,6 +16,10 @@ pub struct Function {
 }
 
 impl Function {
+    const ARGUMENT_INDEX_ARRAY: usize = 0;
+    const ARGUMENT_INDEX_NEW_LENGTH: usize = 1;
+    const ARGUMENT_COUNT: usize = 2;
+
     pub fn new() -> Self {
         Self {
             identifier: "truncate",
@@ -30,12 +34,8 @@ impl Function {
         BuiltinIdentifier::ArrayTruncate
     }
 
-    pub fn arguments_count(&self) -> usize {
-        2
-    }
-
     pub fn validate(&self, inputs: &[Type], new_length: usize) -> Result<Type, Error> {
-        let (input_array_type, input_array_size) = match inputs.get(0) {
+        let (input_array_type, input_array_size) = match inputs.get(Self::ARGUMENT_INDEX_ARRAY) {
             Some(Type::Array { r#type, size }) if r#type.is_scalar() => {
                 (r#type.deref().to_owned(), *size)
             }
@@ -49,13 +49,13 @@ impl Function {
             None => {
                 return Err(Error::ArgumentCount(
                     self.identifier,
-                    self.arguments_count(),
+                    Self::ARGUMENT_COUNT,
                     inputs.len(),
                 ))
             }
         };
 
-        match inputs.get(1) {
+        match inputs.get(Self::ARGUMENT_INDEX_NEW_LENGTH) {
             Some(new_length) if new_length.is_scalar_unsigned() => {}
             Some(r#type) => {
                 return Err(Error::ArgumentType(
@@ -67,16 +67,16 @@ impl Function {
             None => {
                 return Err(Error::ArgumentCount(
                     self.identifier,
-                    self.arguments_count(),
+                    Self::ARGUMENT_COUNT,
                     inputs.len(),
                 ))
             }
         }
 
-        if inputs.get(2).is_some() {
+        if inputs.get(Self::ARGUMENT_COUNT).is_some() {
             return Err(Error::ArgumentCount(
                 self.identifier,
-                self.arguments_count(),
+                Self::ARGUMENT_COUNT,
                 inputs.len(),
             ));
         }

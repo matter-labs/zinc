@@ -15,6 +15,9 @@ pub struct Function {
 }
 
 impl Function {
+    const ARGUMENT_INDEX_VALUE: usize = 0;
+    const ARGUMENT_COUNT: usize = 1;
+
     pub fn new() -> Self {
         Self {
             identifier: "to_bits",
@@ -29,12 +32,8 @@ impl Function {
         BuiltinIdentifier::ToBits
     }
 
-    pub fn arguments_count(&self) -> usize {
-        1
-    }
-
     pub fn validate(&self, inputs: &[Type]) -> Result<Type, Error> {
-        let result = match inputs.get(0) {
+        let result = match inputs.get(Self::ARGUMENT_INDEX_VALUE) {
             Some(Type::Boolean) => Ok(Type::array(Type::boolean(), crate::BITLENGTH_BOOLEAN)),
             Some(Type::IntegerUnsigned { bitlength }) => {
                 Ok(Type::array(Type::boolean(), *bitlength))
@@ -48,15 +47,15 @@ impl Function {
             )),
             None => Err(Error::ArgumentCount(
                 self.identifier,
-                self.arguments_count(),
+                Self::ARGUMENT_COUNT,
                 inputs.len(),
             )),
         };
 
-        if inputs.get(1).is_some() {
+        if inputs.get(Self::ARGUMENT_COUNT).is_some() {
             return Err(Error::ArgumentCount(
                 self.identifier,
-                self.arguments_count(),
+                Self::ARGUMENT_COUNT,
                 inputs.len(),
             ));
         }

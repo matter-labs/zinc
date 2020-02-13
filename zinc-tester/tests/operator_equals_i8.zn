@@ -1,0 +1,54 @@
+//# [ {
+//#     "case": "zero_zero",
+//#     "input": {
+//#         "a": "0",
+//#         "b": "0"
+//#     },
+//#     "expect": true
+//# }, {
+//#     "case": "ordinar_false_lesser",
+//#     "input": {
+//#         "a": "-25",
+//#         "b": "45"
+//#     },
+//#     "expect": false
+//# }, {
+//#     "case": "ordinar_false_bigger",
+//#     "input": {
+//#         "a": "42",
+//#         "b": "-25"
+//#     },
+//#     "expect": false
+//# }, {
+//#     "case": "ordinar_true_negative",
+//#     "input": {
+//#         "a": "-42",
+//#         "b": "-42"
+//#     },
+//#     "expect": true
+//# }, {
+//#     "case": "ordinar_true_positive",
+//#     "input": {
+//#         "a": "42",
+//#         "b": "42"
+//#     },
+//#     "expect": true
+//# }, {
+//#     "case": "min_min",
+//#     "input": {
+//#         "a": "-128",
+//#         "b": "-128"
+//#     },
+//#     "expect": true
+//# }, {
+//#     "case": "max_max",
+//#     "input": {
+//#         "a": "127",
+//#         "b": "127"
+//#     },
+//#     "expect": true
+//# } ]
+
+fn main(a: i8, b: i8) -> bool {
+    a == b
+}

@@ -44,6 +44,11 @@ false
 as
 ```
 
+#### Special
+```rust,no_run,noplaypen
+Self
+```
+
 ## Reserved
 ```rust,no_run,noplaypen
 pub
