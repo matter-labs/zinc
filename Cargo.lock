@@ -1093,6 +1093,7 @@ dependencies = [
  "serde_derive",
  "structopt",
  "toml",
+ "zinc-bytecode",
 ]
 
 [[package]]

@@ -12,7 +12,6 @@ use std::process;
 use std::rc::Rc;
 
 use failure::Fail;
-use log::LevelFilter;
 use structopt::StructOpt;
 
 use zinc_compiler::Bytecode;
@@ -102,7 +101,7 @@ fn main() {
 }
 
 fn main_inner(args: Arguments) -> Result<(), Error> {
-    init_logger(args.verbosity);
+    zinc_bytecode::logger::init_logger("znc", args.verbosity);
 
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));
 
@@ -189,16 +188,4 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
     log::info!("Compiled to {:?}", args.bytecode_output_path);
 
     Ok(())
-}
-
-fn init_logger(verbosity: usize) {
-    env_logger::Builder::from_default_env()
-        .format_timestamp(None)
-        .filter_level(match verbosity {
-            0 => LevelFilter::Warn,
-            1 => LevelFilter::Info,
-            2 => LevelFilter::Debug,
-            _ => LevelFilter::Trace,
-        })
-        .init();
 }
