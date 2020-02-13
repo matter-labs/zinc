@@ -1,9 +1,9 @@
 //# [ {
-//#     "case": "default", "should_panic": true,
+//#     "case": "default", 
 //#     "input": {
 //#         "witness": "0"
 //#     },
-//#     "expect": null
+//#     "expect": "21888242871839275222246405745257275088548364400416034343698204186575808495607"
 //# } ]
 
 fn main(witness: field) -> field {

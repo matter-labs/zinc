@@ -31,7 +31,7 @@ impl<E: Engine> Debug for Primitive<E> {
 }
 
 impl<E: Engine> Primitive<E> {
-    fn new(value: Option<E::Fr>, variable: Variable, scalar_type: ScalarType) -> Self {
+    pub fn new(value: Option<E::Fr>, variable: Variable, scalar_type: ScalarType) -> Self {
         Self {
             value,
             variable,

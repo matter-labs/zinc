@@ -4,8 +4,8 @@
 //#         "value": "-32768"
 //#     },
 //#     "expect": [
-//#         true, true, true, true, true, true, true, true,
-//#         true, true, true, true, true, true, true, true
+//#         true, fakse, false, false, false, false, false, false
+//#         false, false, false, false, false, false, false, false 
 //#     ]
 //# }, {
 //#     "case": "max",

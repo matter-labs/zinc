@@ -36,7 +36,7 @@ impl<E: Engine> Gadget<E> for Truncate {
     }
 
     fn input_from_vec(input: &[Primitive<E>]) -> Result<Self::Input, RuntimeError> {
-        let (new_len, array) = input.split_first().ok_or_else(|| {
+        let (new_len, array) = input.split_last().ok_or_else(|| {
             MalformedBytecode::InvalidArguments("truncate expects at least one argument".into())
         })?;
 
