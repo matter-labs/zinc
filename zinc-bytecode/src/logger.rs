@@ -1,5 +1,5 @@
-use std::io::Write;
 use colored::Colorize;
+use std::io::Write;
 
 const LEVEL_NAME_LENGTH: usize = 10;
 

@@ -1,0 +1,53 @@
+//# [ {
+//#     "case": "min",
+//#     "input": {
+//#         "value": [
+//#             false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false
+//#         ]
+//#     },
+//#     "expect": "0"
+//# }, {
+//#     "case": "max",
+//#     "input": {
+//#         "value": [
+//#             true,  true,  false, false, false, false, false, true,
+//#             true,  false, false, true,  false, false, false, true,  false, false, true,  true,  true,  false, false, true,
+//#             true,  true,  false, false, true,  false, true,  true,  true,  false, false, false, false, true,  false, false,
+//#             true,  true,  false, false, false, true,  true,  false, true,  false, false, false, false, false, false, false,
+//#             true,  false, true,  false, false, true,  true,  false, true,  true,  true,  false, false, false, false, true,
+//#             false, true,  false, false, false, false, false, true,  false, false, false, true,  false, true,  true,  false,
+//#             true,  true,  false, true,  true,  false, true,  false, false, false, false, false, false, true,  true,  false,
+//#             false, false, false, false, false, true,  false, true,  false, true,  true,  false, false, false, false, true,
+//#             false, true,  true,  true,  false, true,  false, false, true,  false, true,  false, false, false, false, false,
+//#             true,  true,  false, false, true,  true,  true,  true,  true,  false, true,  false, false, false, false, true,
+//#             false, false, true,  false, false, false, false, true,  true,  true,  true,  false, false, true,  true,  false,
+//#             true,  true,  true,  false, false, true,  false, true,  true,  true,  false, false, false, false, true,  false,
+//#             false, true,  false, false, false, true,  false, true,  false, false, false, false, true,  true,  true,  true,
+//#             true,  false, false, false, false, true,  true,  true,  true,  true,  false, true,  false, true,  true,  false,
+//#             false, true,  false, false, true,  true,  true,  true,  true,  true,  false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false
+//#         ]
+//#     },
+//#     "expect": "0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000000"
+//# } ]
+
+fn main(value: [bool; 254]) -> field {
+    std::convert::from_bits_field(value)
+}

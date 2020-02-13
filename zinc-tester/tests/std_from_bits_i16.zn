@@ -1,0 +1,32 @@
+//# [ {
+//#     "case": "min",
+//#     "input": {
+//#         "value": [
+//#             true, true, true, true, true, true, true, true,
+//#             true, true, true, true, true, true, true, true
+//#         ]
+//#     },
+//#     "expect": "-32768"
+//# }, {
+//#     "case": "zero",
+//#     "input": {
+//#         "value": [
+//#             false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false
+//#         ]
+//#     },
+//#     "expect": "0"
+//# }, {
+//#     "case": "max",
+//#     "input": {
+//#         "value": [
+//#             false, true, true, true, true, true, true, true,
+//#             true, true, true, true, true, true, true, true
+//#         ]
+//#     },
+//#     "expect": "32767"
+//# } ]
+
+fn main(value: [bool; 16]) -> i16 {
+    std::convert::from_bits_signed(value)
+}

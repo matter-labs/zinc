@@ -18,23 +18,20 @@ where
         let unchecked_neg = vm.operations().neg(value.clone())?;
 
         match value.get_type() {
-            scalar_type @ ScalarType::Field |
-            scalar_type @ ScalarType::Boolean => {
+            scalar_type @ ScalarType::Field | scalar_type @ ScalarType::Boolean => {
                 Err(RuntimeError::TypeError {
                     expected: "integer type".to_string(),
-                    actual: scalar_type.to_string()
+                    actual: scalar_type.to_string(),
                 })
-            },
+            }
             ScalarType::Integer(mut int_type) => {
                 let condition = vm.condition_top()?;
                 int_type.signed = true;
-                let neg = vm.operations().assert_type(
-                    condition,
-                    unchecked_neg,
-                    int_type.into(),
-                )?;
+                let neg = vm
+                    .operations()
+                    .assert_type(condition, unchecked_neg, int_type.into())?;
                 vm.push(Cell::Value(neg))
-            },
+            }
         }
     }
 }

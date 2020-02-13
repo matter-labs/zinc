@@ -9,12 +9,7 @@
 //#     ]
 //# } ]
 
-use std::convert;
-use std::array::truncate;
-use std::array::pad;
-use std::crypto::pedersen;
-
 fn main(preimage: field) -> (field, field) {
-    let preimage_bits = convert::to_bits(preimage);
-    pedersen(preimage_bits)
+    let preimage_bits = std::convert::to_bits(preimage);
+    std::crypto::pedersen(preimage_bits)
 }
