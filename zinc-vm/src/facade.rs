@@ -93,7 +93,11 @@ pub fn setup<E: Engine>(program: &Program) -> Result<Parameters<E>, RuntimeError
     };
 
     let params = groth16::generate_random_parameters::<E, VMCircuit, ThreadRng>(circuit, rng)?;
-    Ok(params)
+
+    match result.expect("vm should return either output or error") {
+        Ok(_) => Ok(params),
+        Err(error) => Err(error),
+    }
 }
 
 pub fn prove<E: Engine>(
