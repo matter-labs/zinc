@@ -2,11 +2,11 @@
 //! The Zinc tester binary.
 //!
 
+mod arguments;
 mod data;
 mod directory;
 mod file;
 mod program;
-mod arguments;
 
 use std::convert::TryFrom;
 use std::fmt;
@@ -17,9 +17,9 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use colored::Colorize;
-use structopt::StructOpt;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
+use structopt::StructOpt;
 
 use pairing::bn256::Bn256;
 
@@ -34,14 +34,19 @@ const EXIT_CODE_FAILURE: i32 = 1;
 fn main() {
     process::exit(match main_inner() {
         summary if summary.failed == 0 && summary.invalid == 0 => {
-            println!("[{}] {} ({})", "INTEGRATION".green(), "OK".green(), summary);
+            println!(
+                "[{}] {} ({})",
+                "INTEGRATION".green(),
+                "PASSED".green(),
+                summary
+            );
             EXIT_CODE_SUCCESS
         }
         summary => {
             println!(
                 "[{}] {} ({})",
                 "INTEGRATION".bright_red(),
-                "FAIL".bright_red(),
+                "FAILED".bright_red(),
                 summary
             );
             EXIT_CODE_FAILURE

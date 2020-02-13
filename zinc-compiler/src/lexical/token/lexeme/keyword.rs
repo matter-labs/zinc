@@ -44,6 +44,9 @@ pub enum Keyword {
 
     // operators
     As,
+
+    // special
+    AliasSelf,
 }
 
 impl Keyword {
@@ -101,6 +104,8 @@ impl TryFrom<&str> for Keyword {
             "false" => return Ok(Self::False),
 
             "as" => return Ok(Self::As),
+
+            "Self" => return Ok(Self::AliasSelf),
 
             _ => {}
         }
@@ -195,6 +200,8 @@ impl fmt::Display for Keyword {
             Self::False => write!(f, "false"),
 
             Self::As => write!(f, "as"),
+
+            Self::AliasSelf => write!(f, "Self"),
         }
     }
 }

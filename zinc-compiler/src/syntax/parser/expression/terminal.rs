@@ -159,6 +159,18 @@ impl Parser {
                 );
                 Ok((self.builder.finish(), None))
             }
+            Token {
+                lexeme: Lexeme::Keyword(keyword @ Keyword::AliasSelf),
+                location,
+            } => {
+                self.builder.set_location(location);
+                let mut builder = IdentifierBuilder::default();
+                builder.set_location(location);
+                builder.set_name(keyword.to_string());
+                self.builder
+                    .push_operand(location, ExpressionOperand::Identifier(builder.finish()));
+                Ok((self.builder.finish(), None))
+            }
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
                 location,
                 vec!["(", "{", "[", "if", "match", "{identifier}", "{literal}"],

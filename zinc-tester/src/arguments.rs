@@ -1,7 +1,10 @@
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "zinc-tester", about = "integration test runner for zinc framework")]
+#[structopt(
+    name = "zinc-tester",
+    about = "integration test runner for zinc framework"
+)]
 pub struct Arguments {
     #[structopt(
         short = "v",
