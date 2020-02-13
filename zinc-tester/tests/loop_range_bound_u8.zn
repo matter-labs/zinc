@@ -1,7 +1,7 @@
 //# [ {
 //#     "case": "default", "ignore": true,
 //#     "input": {},
-//#     "expect": "255"
+//#     "expect": "256"
 //# } ]
 
 fn main() -> u8 {

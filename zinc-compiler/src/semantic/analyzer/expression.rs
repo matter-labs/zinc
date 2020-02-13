@@ -1273,7 +1273,10 @@ impl Analyzer {
             return Err(Error::MatchNotExhausted(location));
         }
 
-        Ok(scrutinee_result)
+        Ok(match branch_results.pop() {
+            Some(result) => result,
+            None => Element::Constant(Constant::Unit),
+        })
     }
 
     fn array_expression(&mut self, array: ArrayExpression) -> Result<Element, Error> {

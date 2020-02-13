@@ -521,7 +521,7 @@ impl Analyzer {
                 location,
                 IntegerConstantError::LiteralTooLargeForIndex(
                     iterations_count.to_string(),
-                    crate::BITLENGTH_BYTE,
+                    crate::BITLENGTH_INDEX,
                 ),
             )
         })?;

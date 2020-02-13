@@ -1,0 +1,13 @@
+//# [ {
+//#     "case": "default", "ignore": true,
+//#     "input": {},
+//#     "expect": "10"
+//# } ]
+
+fn main() -> u32 {
+    let mut sum: u32 = 0;
+    for i in 4294967285..=4294967295 {
+        sum = sum + 1 as u32;
+    }
+    sum
+}

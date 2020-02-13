@@ -1,0 +1,13 @@
+//# [ {
+//#     "case": "default", "ignore": true,
+//#     "input": {},
+//#     "expect": "10"
+//# } ]
+
+fn main() -> u64 {
+    let mut sum: u64 = 0;
+    for i in 18446744073709551605..18446744073709551615 {
+        sum = sum + 1 as u64;
+    }
+    sum
+}

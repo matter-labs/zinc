@@ -1,0 +1,27 @@
+//# [ {
+//#     "case": "min",
+//#     "input": {
+//#         "value": "0"
+//#     },
+//#     "expect": [
+//#         false, false, false, false, false, false, false, false,
+//#         false, false, false, false, false, false, false, false,
+//#         false, false, false, false, false, false, false, false,
+//#         false, false, false, false, false, false, false, false
+//#     ]
+//# }, {
+//#     "case": "max",
+//#     "input": {
+//#         "value": "4294967295"
+//#     },
+//#     "expect": [
+//#         true, true, true, true, true, true, true, true,
+//#         true, true, true, true, true, true, true, true,
+//#         true, true, true, true, true, true, true, true,
+//#         true, true, true, true, true, true, true, true
+//#     ]
+//# } ]
+
+fn main(value: u32) -> [bool; 32] {
+    std::convert::to_bits(value)
+}

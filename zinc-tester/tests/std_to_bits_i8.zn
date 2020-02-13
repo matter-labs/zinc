@@ -1,0 +1,21 @@
+//# [ {
+//#     "case": "min", "ignore": true,
+//#     "input": {
+//#         "value": "-128"
+//#     },
+//#     "expect": [
+//#         true, true, true, true, true, true, true, true
+//#     ]
+//# }, {
+//#     "case": "max",
+//#     "input": {
+//#         "value": "127"
+//#     },
+//#     "expect": [
+//#         false, true, true, true, true, true, true, true
+//#     ]
+//# } ]
+
+fn main(value: i8) -> [bool; 8] {
+    std::convert::to_bits(value)
+}
