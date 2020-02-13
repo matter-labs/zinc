@@ -10,7 +10,6 @@ use num_bigint::{BigInt, ToBigInt};
 
 use crate::core::RuntimeError;
 use crate::gadgets::tmp_lt::less_than;
-use crate::gadgets::utils::fr_to_bigint;
 use crate::gadgets::{utils, Gadget, IntegerType, Primitive, ScalarType, ScalarTypeExpectation};
 use num_traits::ToPrimitive;
 use std::mem;
@@ -19,7 +18,7 @@ impl<E: Engine> Debug for Primitive<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         let value_str = self
             .value
-            .map(|f| fr_to_bigint(&f).to_string())
+            .map(|f| utils::fr_to_bigint(&f, self.is_signed()).to_string())
             .unwrap_or_else(|| "none".into());
 
         write!(
@@ -63,7 +62,7 @@ impl<E: Engine> Display for Primitive<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         let value_str = self
             .value
-            .map(|f| fr_to_bigint(&f).to_string())
+            .map(|f| utils::fr_to_bigint(&f, self.is_signed()).to_string())
             .unwrap_or_else(|| "none".into());
 
         write!(f, "{} as {}", value_str, self.scalar_type)
@@ -72,7 +71,8 @@ impl<E: Engine> Display for Primitive<E> {
 
 impl<E: Engine> ToBigInt for Primitive<E> {
     fn to_bigint(&self) -> Option<BigInt> {
-        self.value.map(|fr| -> BigInt { utils::fr_to_bigint(&fr) })
+        self.value
+            .map(|fr| -> BigInt { utils::fr_to_bigint(&fr, self.is_signed()) })
     }
 }
 
@@ -356,8 +356,8 @@ where
         let mut remainder_value: Option<E::Fr> = None;
 
         if let (Some(nom), Some(denom)) = (nominator.value, denominator.value) {
-            let nom_bi = utils::fr_to_bigint(&nom);
-            let denom_bi = utils::fr_to_bigint(&denom);
+            let nom_bi = utils::fr_to_bigint(&nom, nominator.is_signed());
+            let denom_bi = utils::fr_to_bigint(&denom, denominator.is_signed());
 
             let (q, r) = utils::euclidean_div_rem(&nom_bi, &denom_bi)
                 .ok_or(RuntimeError::ZeroDivisionError)?;
@@ -745,7 +745,7 @@ where
         match index.value {
             None => unimplemented!("Variable indices are not supported"),
             Some(f) => {
-                let bi = fr_to_bigint(&f);
+                let bi = utils::fr_to_bigint(&f, index.is_signed());
                 let i = bi.to_usize().ok_or(RuntimeError::ExpectedUsize(bi))?;
                 if i >= array.len() {
                     return Err(RuntimeError::IndexOutOfBounds {
@@ -776,7 +776,7 @@ where
         match index.value {
             None => unimplemented!("Variable indices are not supported"),
             Some(f) => {
-                let bi = fr_to_bigint(&f);
+                let bi = utils::fr_to_bigint(&f, index.is_signed());
                 let i = bi.to_usize().ok_or(RuntimeError::ExpectedUsize(bi))?;
                 if i >= array.len() {
                     return Err(RuntimeError::IndexOutOfBounds {
@@ -855,8 +855,9 @@ where
                         scalar_type,
                     )),
                     Err(RuntimeError::AssertionError(_)) => Err(RuntimeError::ValueOverflow {
-                        value: fr_to_bigint(
+                        value: utils::fr_to_bigint(
                             &scalar.value.expect("if assert failed, value is known"),
+                            scalar_type.is_signed(),
                         ),
                         scalar_type,
                     }),

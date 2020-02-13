@@ -4,7 +4,15 @@ use num_bigint::{BigInt, Sign};
 use num_traits::Signed;
 use std::ops::{Div, Neg};
 
-pub fn fr_to_bigint<Fr: PrimeField>(fr: &Fr) -> BigInt {
+pub fn fr_to_bigint<Fr: PrimeField>(fr: &Fr, signed: bool) -> BigInt {
+    if signed {
+        fr_to_bigint_signed(fr)
+    } else {
+        fr_to_bigint_unsigned(fr)
+    }
+}
+
+pub fn fr_to_bigint_signed<Fr: PrimeField>(fr: &Fr) -> BigInt {
     let mut buffer = Vec::<u8>::new();
     Fr::char()
         .write_be(&mut buffer)
@@ -22,6 +30,14 @@ pub fn fr_to_bigint<Fr: PrimeField>(fr: &Fr) -> BigInt {
     } else {
         value - modulus
     }
+}
+
+pub fn fr_to_bigint_unsigned<Fr: PrimeField>(fr: &Fr) -> BigInt {
+    let mut buffer = Vec::<u8>::new();
+    fr.into_repr()
+        .write_be(&mut buffer)
+        .expect("failed to write into Vec<u8>");
+    BigInt::from_bytes_be(Sign::Plus, &buffer)
 }
 
 pub fn bigint_to_fr<E: Engine>(bigint: &BigInt) -> Option<E::Fr> {
@@ -47,7 +63,7 @@ mod test {
 
         for v in values.iter() {
             let fr = Fr::from_str(&v.to_string()).unwrap();
-            let bigint = fr_to_bigint(&fr);
+            let bigint = fr_to_bigint(&fr, true);
             assert_eq!(bigint.to_i32(), Some(*v));
         }
     }
@@ -70,7 +86,7 @@ mod test {
         for &v in values.iter() {
             let expected = BigInt::from(v);
             let fr = bigint_to_fr::<Bn256>(&expected).expect("bigint_to_fr");
-            let actual = fr_to_bigint(&fr);
+            let actual = fr_to_bigint(&fr, true);
             assert_eq!(actual, expected);
         }
     }

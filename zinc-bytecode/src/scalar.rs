@@ -14,6 +14,15 @@ pub struct IntegerType {
     pub length: usize,
 }
 
+impl ScalarType {
+    pub fn is_signed(&self) -> bool {
+        match self {
+            ScalarType::Integer(IntegerType { signed: true, .. }) => true,
+            _ => false,
+        }
+    }
+}
+
 impl IntegerType {
     pub const BOOLEAN: Self = IntegerType {
         signed: false,

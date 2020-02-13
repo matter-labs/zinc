@@ -50,7 +50,7 @@ mod test {
     fn edge_cases() -> Result<(), TestingError> {
         let mut max_fr = Fr::zero();
         max_fr.sub_assign(&Fr::one());
-        let max = fr_to_bigint(&max_fr);
+        let max = fr_to_bigint(&max_fr, false);
 
         VMTestRunner::new()
             .add(PushConst::new(max.clone(), ScalarType::Field))

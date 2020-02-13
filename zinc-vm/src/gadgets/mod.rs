@@ -12,7 +12,6 @@ pub use constrained::*;
 
 use crate::core::RuntimeError;
 use crate::gadgets::utils::dummy_constraint_system::DummyConstraintSystem;
-use crate::gadgets::utils::fr_to_bigint;
 use franklin_crypto::bellman::Variable;
 use num_traits::ToPrimitive;
 
@@ -35,7 +34,7 @@ impl<E: Engine> Primitive<E> {
 
     pub fn get_constant_usize(&self) -> Result<usize, RuntimeError> {
         let fr = self.get_constant()?;
-        let bigint = fr_to_bigint(&fr);
+        let bigint = utils::fr_to_bigint(&fr, false);
         bigint
             .to_usize()
             .ok_or_else(|| RuntimeError::ExpectedUsize(bigint))
@@ -47,6 +46,10 @@ impl<E: Engine> Primitive<E> {
             variable: self.variable,
             scalar_type: ScalarType::Field,
         }
+    }
+
+    pub fn is_signed(&self) -> bool {
+        self.scalar_type.is_signed()
     }
 }
 
