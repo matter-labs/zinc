@@ -1,40 +1,30 @@
-use crate::instructions::utils;
-use crate::{DecodingError, Instruction, InstructionCode, InstructionInfo};
+use crate::scalar::{IntegerType, ScalarType};
+use crate::{Instruction, InstructionCode, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Cast {
-    pub signed: bool,
-    pub length: usize,
+    pub scalar_type: ScalarType,
 }
 
 impl Cast {
-    pub fn new(signed: bool, length: usize) -> Self {
-        Self { signed, length }
+    pub fn new(scalar_type: ScalarType) -> Self {
+        Self { scalar_type }
+    }
+
+    #[deprecated(note = "this is temporary fix")]
+    pub fn new_integer(signed: bool, length: usize) -> Self {
+        Self::new(IntegerType { signed, length }.into())
     }
 }
 
 impl InstructionInfo for Cast {
     fn to_assembly(&self) -> String {
-        format!("cast {} {}", self.signed, self.length)
+        format!("cast {}", self.scalar_type)
     }
 
     fn code() -> InstructionCode {
         InstructionCode::Cast
-    }
-
-    fn encode(&self) -> Vec<u8> {
-        utils::encode_with_args(Self::code(), &[self.signed as usize, self.length])
-    }
-
-    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
-        let (args, len) = utils::decode_with_usize_args(Self::code(), bytes, 2)?;
-        let signed = match args[0] {
-            0 => Ok(false),
-            1 => Ok(true),
-            _ => Err(DecodingError::ConstantTooLong),
-        }?;
-        Ok((Self::new(signed, args[1]), len))
     }
 
     fn inputs_count(&self) -> usize {

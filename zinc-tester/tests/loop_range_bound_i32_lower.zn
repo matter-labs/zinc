@@ -1,5 +1,5 @@
 //# [ {
-//#     "case": "default", "ignore": true,
+//#     "case": "default",
 //#     "input": {},
 //#     "expect": "10"
 //# } ]

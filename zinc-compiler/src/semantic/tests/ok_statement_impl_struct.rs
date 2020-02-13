@@ -37,16 +37,12 @@ fn main() {
     let expected = Ok(vec![
         Instruction::Call(Call::new(12, 0)),
         Instruction::Exit(Exit::new(0)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(42),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
+        Instruction::PushConst(PushConst::new(BigInt::from(42), IntegerType::U8.into())),
         Instruction::Dbg(Dbg::new(
             "{}".to_owned(),
             vec![DataType::Scalar(ScalarType::Integer(IntegerType {
-                is_signed: false,
-                bit_length: crate::BITLENGTH_BYTE,
+                signed: false,
+                length: crate::BITLENGTH_BYTE,
             }))],
         )),
         Instruction::Return(Return::new(0)),
@@ -56,5 +52,5 @@ fn main() {
 
     let result = super::get_instructions(input);
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }

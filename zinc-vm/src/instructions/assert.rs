@@ -29,12 +29,13 @@ mod tests {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
 
+    use zinc_bytecode::scalar::IntegerType;
     use zinc_bytecode::*;
 
     #[test]
     fn test_assert_ok() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new(1.into(), false, 1))
+            .add(PushConst::new(1.into(), IntegerType::BOOLEAN.into()))
             .add(Assert::new(None))
             .test::<i32>(&[])
     }
@@ -42,7 +43,7 @@ mod tests {
     #[test]
     fn test_assert_fail() {
         let res = VMTestRunner::new()
-            .add(PushConst::new(0.into(), false, 1))
+            .add(PushConst::new(0.into(), IntegerType::BOOLEAN.into()))
             .add(Assert::new(None))
             .test::<i32>(&[]);
 
@@ -55,9 +56,9 @@ mod tests {
     #[test]
     fn test_assert_in_condition() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new(0.into(), false, 1))
+            .add(PushConst::new(0.into(), IntegerType::BOOLEAN.into()))
             .add(If)
-            .add(PushConst::new(0.into(), false, 1))
+            .add(PushConst::new(0.into(), IntegerType::BOOLEAN.into()))
             .add(Assert::new(None))
             .add(EndIf)
             .test::<i32>(&[])

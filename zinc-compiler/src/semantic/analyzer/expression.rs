@@ -56,6 +56,7 @@ use crate::syntax::MemberString;
 use crate::syntax::StringLiteral;
 use crate::syntax::StructureExpression;
 use crate::syntax::TupleExpression;
+use zinc_bytecode::scalar::{IntegerType, ScalarType};
 
 pub struct Analyzer {
     scope_stack: Vec<Rc<RefCell<Scope>>>,
@@ -401,8 +402,12 @@ impl Analyzer {
                         .cast(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?
                     {
+                        let scalar_type = match (is_signed, bitlength) {
+                            (false, crate::BITLENGTH_FIELD) => ScalarType::Field,
+                            (signed, length) => IntegerType { signed, length }.into(),
+                        };
                         self.bytecode.borrow_mut().push_instruction(
-                            Instruction::Cast(zinc_bytecode::Cast::new(is_signed, bitlength)),
+                            Instruction::Cast(zinc_bytecode::Cast::new(scalar_type)),
                             element.location,
                         );
                     }
@@ -457,17 +462,13 @@ impl Analyzer {
                                 self.bytecode.borrow_mut().push_instruction(
                                     Instruction::PushConst(zinc_bytecode::PushConst::new(
                                         BigInt::from(result.offset),
-                                        false,
-                                        crate::BITLENGTH_FIELD,
+                                        ScalarType::Field,
                                     )),
                                     element.location,
                                 );
                             } else {
                                 self.bytecode.borrow_mut().push_instruction(
-                                    Instruction::Cast(zinc_bytecode::Cast::new(
-                                        false,
-                                        crate::BITLENGTH_FIELD,
-                                    )),
+                                    Instruction::Cast(zinc_bytecode::Cast::new(ScalarType::Field)),
                                     element.location,
                                 );
                             }
@@ -475,8 +476,7 @@ impl Analyzer {
                                 self.bytecode.borrow_mut().push_instruction(
                                     Instruction::PushConst(zinc_bytecode::PushConst::new(
                                         BigInt::zero(),
-                                        false,
-                                        crate::BITLENGTH_FIELD,
+                                        ScalarType::Field,
                                     )),
                                     element.location,
                                 );
@@ -484,8 +484,7 @@ impl Analyzer {
                             self.bytecode.borrow_mut().push_instruction(
                                 Instruction::PushConst(zinc_bytecode::PushConst::new(
                                     BigInt::from(result.element_size),
-                                    false,
-                                    crate::BITLENGTH_FIELD,
+                                    ScalarType::Field,
                                 )),
                                 element.location,
                             );
@@ -514,8 +513,7 @@ impl Analyzer {
                                     self.bytecode.borrow_mut().push_instruction(
                                         Instruction::PushConst(zinc_bytecode::PushConst::new(
                                             BigInt::from(result.offset),
-                                            false,
-                                            crate::BITLENGTH_FIELD,
+                                            ScalarType::Field,
                                         )),
                                         element.location,
                                     );
@@ -523,16 +521,14 @@ impl Analyzer {
                                 _ => {
                                     self.bytecode.borrow_mut().push_instruction(
                                         Instruction::Cast(zinc_bytecode::Cast::new(
-                                            false,
-                                            crate::BITLENGTH_FIELD,
+                                            ScalarType::Field,
                                         )),
                                         element.location,
                                     );
                                     self.bytecode.borrow_mut().push_instruction(
                                         Instruction::PushConst(zinc_bytecode::PushConst::new(
                                             BigInt::from(result.element_size),
-                                            false,
-                                            crate::BITLENGTH_FIELD,
+                                            ScalarType::Field,
                                         )),
                                         element.location,
                                     );
@@ -580,8 +576,7 @@ impl Analyzer {
                                 self.bytecode.borrow_mut().push_instruction(
                                     Instruction::PushConst(zinc_bytecode::PushConst::new(
                                         BigInt::zero(),
-                                        false,
-                                        crate::BITLENGTH_FIELD,
+                                        ScalarType::Field,
                                     )),
                                     element.location,
                                 );
@@ -589,8 +584,7 @@ impl Analyzer {
                             self.bytecode.borrow_mut().push_instruction(
                                 Instruction::PushConst(zinc_bytecode::PushConst::new(
                                     BigInt::from(result.offset),
-                                    false,
-                                    crate::BITLENGTH_FIELD,
+                                    ScalarType::Field,
                                 )),
                                 element.location,
                             );
@@ -604,8 +598,7 @@ impl Analyzer {
                             self.bytecode.borrow_mut().push_instruction(
                                 Instruction::PushConst(zinc_bytecode::PushConst::new(
                                     BigInt::from(result.offset),
-                                    false,
-                                    crate::BITLENGTH_FIELD,
+                                    ScalarType::Field,
                                 )),
                                 element.location,
                             );

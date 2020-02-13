@@ -1,5 +1,5 @@
 //# [ {
-//#     "case": "min", "ignore": true,
+//#     "case": "min",
 //#     "input": {
 //#         "value": "-2147483648"
 //#     },

@@ -85,7 +85,7 @@ let mut c: u8 = 2 + 2;
         }
     }
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -96,7 +96,7 @@ fn err_unexpected_end() {
 
     let result = TokenStream::new(input).next();
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -110,7 +110,7 @@ fn err_unknown_character() {
 
     let result = TokenStream::new(input).next();
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -124,7 +124,7 @@ fn err_invalid_symbol() {
 
     let result = TokenStream::new(input).next();
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -138,5 +138,5 @@ fn err_invalid_integer_literal() {
 
     let result = TokenStream::new(input).next();
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }

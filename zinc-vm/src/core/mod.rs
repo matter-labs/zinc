@@ -8,13 +8,13 @@ pub use state::*;
 
 use crate::core::location::CodeLocation;
 use crate::errors::MalformedBytecode;
-use crate::gadgets::{Gadgets, Primitive, PrimitiveType};
+use crate::gadgets::{Gadgets, IntegerType, Primitive, ScalarType};
 use crate::Engine;
 use colored::Colorize;
 use franklin_crypto::bellman::ConstraintSystem;
 use num_bigint::{BigInt, ToBigInt};
 use std::marker::PhantomData;
-use zinc_bytecode::data::types::{DataType, ScalarType};
+use zinc_bytecode::data::types as object_types;
 use zinc_bytecode::program::Program;
 use zinc_bytecode::{dispatch_instruction, Instruction, InstructionInfo};
 
@@ -90,7 +90,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
     {
         let one = self
             .operations()
-            .constant_bigint_typed(&1.into(), PrimitiveType::BOOLEAN)?;
+            .constant_bigint(&1.into(), IntegerType::BOOLEAN.into())?;
         self.condition_push(one)?;
 
         self.init_root_frame(&program.input, inputs)?;
@@ -109,16 +109,11 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             self.state.instruction_counter += 1;
             let result = dispatch_instruction!(instruction => instruction.execute(self));
             if let Err(err) = result.and(check_cs(&self.cs.cs)) {
-                log::error!(
-                    "{} {}\n\tat {}",
-                    "Error".bold().red(),
-                    err,
-                    self.location.to_string().blue()
-                );
+                log::error!("{}\nat {}", err, self.location.to_string().blue());
                 return Err(err);
             }
 
-            log::trace!("{}", self.state_to_string());
+            log::trace!("{}", self.state);
             instruction_callback(&self.cs.cs);
             self.cs.cs.pop_namespace();
             step += 1;
@@ -129,7 +124,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
 
     fn init_root_frame(
         &mut self,
-        input_type: &DataType,
+        input_type: &object_types::DataType,
         inputs: Option<&[BigInt]>,
     ) -> Result<(), RuntimeError> {
         self.state
@@ -142,7 +137,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             None => {
                 for t in types {
                     let variable = self.operations().variable_none(t)?;
-                    if t.is_none() {
+                    if let ScalarType::Field = t {
                         // Add constraint so circuit doesn't fail if argument is not used.
                         // TODO: Refactor this.
                         self.operations().neg(variable.clone())?;
@@ -153,7 +148,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
             Some(values) => {
                 for (value, dtype) in values.iter().zip(types) {
                     let variable = self.operations().variable_bigint(value, dtype)?;
-                    if dtype.is_none() {
+                    if let ScalarType::Field = dtype {
                         // Add constraint so circuit doesn't fail if argument is not used.
                         // TODO: Refactor this.
                         self.operations().neg(variable.clone())?;
@@ -176,10 +171,6 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         }
 
         Ok(outputs_bigint)
-    }
-
-    fn state_to_string(&self) -> String {
-        format!("{:#?}", self.state)
     }
 
     pub fn operations(&mut self) -> Gadgets<E, bellman::Namespace<E, CS::Root>> {
@@ -214,34 +205,27 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
     }
 }
 
-fn data_type_into_scalar_types(dtype: &DataType) -> Vec<Option<PrimitiveType>> {
-    fn internal(types: &mut Vec<Option<PrimitiveType>>, dtype: &DataType) {
+fn data_type_into_scalar_types(dtype: &object_types::DataType) -> Vec<ScalarType> {
+    fn internal(types: &mut Vec<ScalarType>, dtype: &object_types::DataType) {
         match dtype {
-            DataType::Unit => {}
-            DataType::Scalar(t) => match t {
-                ScalarType::Field => {
-                    types.push(None);
-                }
-                ScalarType::Integer(int) => types.push(Some(PrimitiveType {
-                    signed: int.is_signed,
-                    length: int.bit_length,
-                })),
-                ScalarType::Boolean => types.push(Some(PrimitiveType::BOOLEAN)),
-            },
-            DataType::Enum => {
-                types.push(None);
+            object_types::DataType::Unit => {}
+            object_types::DataType::Scalar(scalar_type) => {
+                types.push(*scalar_type);
             }
-            DataType::Struct(fields) => {
+            object_types::DataType::Enum => {
+                types.push(ScalarType::Field);
+            }
+            object_types::DataType::Struct(fields) => {
                 for (_, t) in fields {
                     internal(types, t);
                 }
             }
-            DataType::Tuple(fields) => {
+            object_types::DataType::Tuple(fields) => {
                 for t in fields {
                     internal(types, t);
                 }
             }
-            DataType::Array(t, size) => {
+            object_types::DataType::Array(t, size) => {
                 for _ in 0..*size {
                     internal(types, t.as_ref());
                 }

@@ -22,6 +22,7 @@ use crate::semantic::element::r#type::Type;
 use crate::syntax::IntegerLiteral;
 
 use self::error::Error;
+use zinc_bytecode::scalar::{IntegerType, ScalarType};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Integer {
@@ -347,10 +348,13 @@ impl Integer {
     }
 
     pub fn to_instruction(&self) -> Instruction {
+        let scalar_type = match (self.is_signed, self.bitlength) {
+            (false, crate::BITLENGTH_FIELD) => ScalarType::Field,
+            (signed, length) => IntegerType { signed, length }.into(),
+        };
         Instruction::PushConst(zinc_bytecode::PushConst::new(
             self.value.to_owned(),
-            self.is_signed,
-            self.bitlength,
+            scalar_type,
         ))
     }
 }

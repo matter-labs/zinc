@@ -1100,6 +1100,7 @@ name = "zinc-bytecode"
 version = "0.1.1"
 dependencies = [
  "bincode",
+ "colored",
  "enum-primitive-derive",
  "env_logger",
  "failure",

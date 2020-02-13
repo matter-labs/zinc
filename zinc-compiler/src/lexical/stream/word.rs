@@ -83,7 +83,7 @@ mod tests {
             Lexeme::Identifier(Identifier::new(input.to_owned())),
         ));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -94,7 +94,7 @@ mod tests {
             Lexeme::Identifier(Identifier::new(input.to_owned())),
         ));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -105,7 +105,7 @@ mod tests {
             Lexeme::Identifier(Identifier::new(input.to_owned())),
         ));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -116,7 +116,7 @@ mod tests {
             Lexeme::Identifier(Identifier::new(input.to_owned())),
         ));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -124,7 +124,7 @@ mod tests {
         let input = "match";
         let expected = Ok((input.len(), Lexeme::Keyword(Keyword::Match)));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -132,7 +132,7 @@ mod tests {
         let input = "i8";
         let expected = Ok((input.len(), Lexeme::Keyword(Keyword::new_integer_signed(8))));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -143,7 +143,7 @@ mod tests {
             Lexeme::Keyword(Keyword::new_integer_unsigned(248)),
         ));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -154,7 +154,7 @@ mod tests {
             Lexeme::Literal(Literal::Boolean(Boolean::True)),
         ));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -162,7 +162,7 @@ mod tests {
         let input = "_";
         let expected = Ok((input.len(), Lexeme::Symbol(Symbol::Underscore)));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -170,6 +170,6 @@ mod tests {
         let input = "";
         let expected = Err(Error::EmptyIdentifier);
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 }

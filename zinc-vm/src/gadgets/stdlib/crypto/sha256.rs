@@ -1,4 +1,4 @@
-use crate::gadgets::{Gadget, Primitive, PrimitiveType};
+use crate::gadgets::{Gadget, IntegerType, Primitive};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
@@ -39,7 +39,7 @@ impl<E: Engine> Gadget<E> for Sha256 {
                     .get_variable()
                     .expect("sha256 must allocate")
                     .get_variable(),
-                data_type: Some(PrimitiveType::BOOLEAN),
+                scalar_type: IntegerType::BOOLEAN.into(),
             })
             .collect();
 

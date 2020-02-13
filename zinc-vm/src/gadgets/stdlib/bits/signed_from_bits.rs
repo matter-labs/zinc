@@ -1,5 +1,5 @@
 use crate::gadgets::utils::bigint_to_fr;
-use crate::gadgets::{Gadget, Primitive, PrimitiveType};
+use crate::gadgets::{Gadget, IntegerType, Primitive, ScalarType};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::{ConstraintSystem, SynthesisError};
@@ -20,18 +20,18 @@ impl<E: Engine> Gadget<E> for SignedFromBits {
         input: Self::Input,
     ) -> Result<Self::Output, RuntimeError> {
         let (data_type, length) = if input.len() == (E::Fr::NUM_BITS as usize) {
-            (None, E::Fr::NUM_BITS as usize)
+            (ScalarType::Field, E::Fr::NUM_BITS as usize)
         } else {
             assert_eq!(
                 input.len() % 8,
                 0,
                 "Scalar bit length should be multiple of 8"
             );
-            let data_type = PrimitiveType {
+            let data_type = ScalarType::Integer(IntegerType {
                 signed: false,
                 length: input.len(),
-            };
-            (Some(data_type), input.len())
+            });
+            (data_type, input.len())
         };
 
         let mut bits = Vec::with_capacity(length);
@@ -70,7 +70,7 @@ impl<E: Engine> Gadget<E> for SignedFromBits {
         Ok(Primitive {
             value,
             variable,
-            data_type,
+            scalar_type: data_type,
         })
     }
 

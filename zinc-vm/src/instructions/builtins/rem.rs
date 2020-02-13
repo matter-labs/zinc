@@ -3,6 +3,7 @@ extern crate franklin_crypto;
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
+use crate::gadgets::{ScalarType, ScalarTypeExpectation};
 use crate::Engine;
 use zinc_bytecode::instructions::Rem;
 
@@ -17,9 +18,16 @@ where
 
         let condition = vm.condition_top()?;
 
-        let (_div, rem) = vm
-            .operations()
-            .div_rem_conditional(left, right, condition)?;
+        let (_div, unchecked_rem) =
+            vm.operations()
+                .div_rem_conditional(left.clone(), right.clone(), condition)?;
+
+        let condition = vm.condition_top()?;
+        let rem = vm.operations().assert_type(
+            condition,
+            unchecked_rem,
+            ScalarType::expect_same(left.get_type(), right.get_type())?,
+        )?;
 
         vm.push(Cell::Value(rem))
     }
@@ -29,6 +37,7 @@ where
 mod test {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
+    use zinc_bytecode::scalar::IntegerType;
     use zinc_bytecode::*;
 
     #[test]
@@ -36,17 +45,17 @@ mod test {
         let _ = env_logger::builder().is_test(true).try_init();
 
         VMTestRunner::new()
-            .add(PushConst::new(9.into(), true, 8))
-            .add(PushConst::new(4.into(), true, 8))
+            .add(PushConst::new(9.into(), IntegerType::I8.into()))
+            .add(PushConst::new(4.into(), IntegerType::I8.into()))
             .add(Rem)
-            .add(PushConst::new(9.into(), true, 8))
-            .add(PushConst::new((-4).into(), true, 8))
+            .add(PushConst::new(9.into(), IntegerType::I8.into()))
+            .add(PushConst::new((-4).into(), IntegerType::I8.into()))
             .add(Rem)
-            .add(PushConst::new((-9).into(), true, 8))
-            .add(PushConst::new(4.into(), true, 8))
+            .add(PushConst::new((-9).into(), IntegerType::I8.into()))
+            .add(PushConst::new(4.into(), IntegerType::I8.into()))
             .add(Rem)
-            .add(PushConst::new((-9).into(), true, 8))
-            .add(PushConst::new((-4).into(), true, 8))
+            .add(PushConst::new((-9).into(), IntegerType::I8.into()))
+            .add(PushConst::new((-4).into(), IntegerType::I8.into()))
             .add(Rem)
             .test(&[3, 3, 1, 1])
     }

@@ -1,6 +1,8 @@
 use crate::core::{InternalVM, RuntimeError, VirtualMachine};
 use crate::Engine;
 use bellman::pairing::bn256::Bn256;
+use colored::Colorize;
+use failure::Fail;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::{BigInt, ToBigInt};
@@ -36,11 +38,15 @@ where
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Fail)]
 pub enum TestingError {
-    //    DecodingError(DecodingError),
+    #[fail(display = "{}", _0)]
     RuntimeError(RuntimeError),
+
+    #[fail(display = "unconstrained: {}", _0)]
     Unconstrained(String),
+
+    #[fail(display = "unsatisfied")]
     Unsatisfied,
 }
 
@@ -64,9 +70,13 @@ impl VMTestRunner {
         &mut self,
         expected_stack: &[T],
     ) -> Result<(), TestingError> {
-        self.test_constrained(expected_stack)?;
+        let result = self.test_constrained(expected_stack);
 
-        Ok(())
+        if let Err(error) = &result {
+            println!("{}: {}", "error".bold().red(), error)
+        }
+
+        result
     }
 
     fn test_constrained<T: Into<BigInt> + Copy>(

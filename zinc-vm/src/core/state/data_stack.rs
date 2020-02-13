@@ -6,6 +6,7 @@ use crate::gadgets::{Gadgets, Primitive};
 use crate::Engine;
 use crate::RuntimeError;
 use franklin_crypto::bellman::ConstraintSystem;
+use std::fmt;
 
 #[derive(Debug)]
 struct CellDelta<E: Engine> {
@@ -195,7 +196,7 @@ mod tests {
     use num_bigint::{BigInt, ToBigInt};
     use pairing::bn256::Bn256;
 
-    use crate::gadgets::Gadgets;
+    use crate::gadgets::{Gadgets, ScalarType};
 
     use super::*;
     use franklin_crypto::circuit::test::TestConstraintSystem;
@@ -210,7 +211,7 @@ mod tests {
         let mut ds = DataStack::new();
         let mut cs = TestConstraintSystem::<Bn256>::new();
         let mut op = Gadgets::new(&mut cs);
-        let value = op.constant_bigint(&42.into()).unwrap();
+        let value = op.constant_bigint(&42.into(), ScalarType::Field).unwrap();
         ds.set(4, Cell::Value(value)).unwrap();
 
         assert_cell_eq(ds.get(4).unwrap(), 42.into());
@@ -221,18 +222,18 @@ mod tests {
         let mut ds = DataStack::new();
         let mut cs = TestConstraintSystem::<Bn256>::new();
         let mut ops = Gadgets::new(&mut cs);
-        let value = ops.constant_bigint(&42.into()).unwrap();
+        let value = ops.constant_bigint(&42.into(), ScalarType::Field).unwrap();
         ds.set(4, Cell::Value(value)).unwrap();
 
         ds.fork();
 
         assert_cell_eq(ds.get(4).unwrap(), 42.into());
 
-        let value2 = ops.constant_bigint(&13.into()).unwrap();
+        let value2 = ops.constant_bigint(&13.into(), ScalarType::Field).unwrap();
         ds.set(4, Cell::Value(value2)).unwrap();
         assert_cell_eq(ds.get(4).unwrap(), 13.into());
 
-        let condition = ops.constant_bigint(&1.into()).unwrap();
+        let condition = ops.constant_bigint(&1.into(), ScalarType::Field).unwrap();
         ds.merge(condition, &mut ops).unwrap();
         assert_cell_eq(ds.get(4).unwrap(), 13.into());
     }
@@ -242,19 +243,34 @@ mod tests {
         let mut ds = DataStack::new();
         let mut cs = TestConstraintSystem::<Bn256>::new();
         let mut ops = Gadgets::new(&mut cs);
-        let value = ops.constant_bigint(&42.into()).unwrap();
+        let value = ops.constant_bigint(&42.into(), ScalarType::Field).unwrap();
         ds.set(4, Cell::Value(value)).unwrap();
 
         ds.fork();
 
         assert_cell_eq(ds.get(4).unwrap(), 42.into());
 
-        let value2 = ops.constant_bigint(&13.into()).unwrap();
+        let value2 = ops.constant_bigint(&13.into(), ScalarType::Field).unwrap();
         ds.set(4, Cell::Value(value2)).unwrap();
         assert_cell_eq(ds.get(4).unwrap(), 13.into());
 
-        let condition = ops.constant_bigint(&0.into()).unwrap();
+        let condition = ops.constant_bigint(&0.into(), ScalarType::Field).unwrap();
         ds.merge(condition, &mut ops).unwrap();
         assert_cell_eq(ds.get(4).unwrap(), 42.into());
+    }
+}
+
+impl<E: Engine> fmt::Display for DataStack<E> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "Data Stack:")?;
+
+        for (address, opt_cell) in self.memory.iter().enumerate() {
+            match opt_cell {
+                None => writeln!(f, "\t{:4}: <empty>", address)?,
+                Some(Cell::Value(value)) => writeln!(f, "\t{:4}: {}", address, value)?,
+            }
+        }
+
+        Ok(())
     }
 }

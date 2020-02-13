@@ -86,6 +86,7 @@ impl<E: Engine> ConstraintSystem<E> for DebugConstraintSystem<E> {
         };
 
         if value_ab != value_c {
+            dbg!(value_a, value_b, value_c);
             self.satisfied = false;
         }
 

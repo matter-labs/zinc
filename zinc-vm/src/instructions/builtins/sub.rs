@@ -3,6 +3,7 @@ extern crate franklin_crypto;
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
+use crate::gadgets::{ScalarType, ScalarTypeExpectation};
 use crate::Engine;
 use zinc_bytecode::instructions::Sub;
 
@@ -15,7 +16,13 @@ where
         let right = vm.pop()?.value()?;
         let left = vm.pop()?.value()?;
 
-        let diff = vm.operations().sub(left, right)?;
+        let unchecked_diff = vm.operations().sub(left.clone(), right.clone())?;
+        let condition = vm.condition_top()?;
+        let diff = vm.operations().assert_type(
+            condition,
+            unchecked_diff,
+            ScalarType::expect_same(left.get_type(), right.get_type())?,
+        )?;
 
         vm.push(Cell::Value(diff))
     }

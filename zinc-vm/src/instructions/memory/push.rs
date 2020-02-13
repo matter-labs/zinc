@@ -1,6 +1,5 @@
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::gadgets::PrimitiveType;
 use crate::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::instructions::PushConst;
@@ -11,13 +10,9 @@ where
     CS: ConstraintSystem<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
-        let data_type = PrimitiveType {
-            signed: self.is_signed,
-            length: self.bit_length,
-        };
         let value = vm
             .operations()
-            .constant_bigint_typed(&self.value, data_type)?;
+            .constant_bigint(&self.value, self.scalar_type)?;
         vm.push(Cell::Value(value))
     }
 }

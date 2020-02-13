@@ -40,6 +40,7 @@ where
 mod tests {
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
     use std::cmp;
+    use zinc_bytecode::scalar::IntegerType;
     use zinc_bytecode::*;
 
     #[test]
@@ -56,9 +57,9 @@ mod tests {
 
         for (a, b) in data.iter() {
             VMTestRunner::new()
-                .add(PushConst::new((*a).into(), true, 8))
+                .add(PushConst::new((*a).into(), IntegerType::I8.into()))
                 .add(Store::new(0))
-                .add(PushConst::new((*b).into(), true, 8))
+                .add(PushConst::new((*b).into(), IntegerType::I8.into()))
                 .add(Store::new(1))
                 .add(Load::new(1))
                 .add(Load::new(0))
@@ -93,7 +94,7 @@ mod tests {
             VMTestRunner::new()
                 .add(PushConst::new_untyped(0.into()))
                 .add(Store::new(0))
-                .add(PushConst::new((*c).into(), false, 1))
+                .add(PushConst::new((*c).into(), IntegerType::BOOLEAN.into()))
                 .add(If)
                 .add(PushConst::new_untyped(1.into()))
                 .add(Load::new(0))
