@@ -1139,6 +1139,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
+ "structopt",
  "zinc-bytecode",
  "zinc-compiler",
  "zinc-vm",

@@ -6,6 +6,7 @@ mod data;
 mod directory;
 mod file;
 mod program;
+mod arguments;
 
 use std::convert::TryFrom;
 use std::fmt;
@@ -16,6 +17,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use colored::Colorize;
+use structopt::StructOpt;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::ParallelIterator;
 
@@ -55,6 +57,8 @@ static PANIC_THE_ONLY_REFERENCE: &str =
 static PANIC_SYNC: &str = "Synchronization is always successful";
 
 fn main_inner() -> Summary {
+    let args = arguments::Arguments::from_args();
+
     println!(
         "[INTEGRATION] Started with {} worker threads",
         rayon::current_num_threads()
@@ -112,7 +116,9 @@ fn main_inner() -> Summary {
                         if test_case.expect == output {
                             if !test_case.should_panic {
                                 summary.lock().expect(PANIC_SYNC).passed += 1;
-                                println!("[INTEGRATION] {} {}", "PASSED".green(), case_name);
+                                if !args.quiet {
+                                    println!("[INTEGRATION] {} {}", "PASSED".green(), case_name);
+                                }
                             } else {
                                 summary.lock().expect(PANIC_SYNC).failed += 1;
                                 println!(
@@ -135,11 +141,13 @@ fn main_inner() -> Summary {
                     Err(error) => {
                         if test_case.should_panic {
                             summary.lock().expect(PANIC_SYNC).passed += 1;
-                            println!(
-                                "[INTEGRATION] {} {} (panicked)",
-                                "PASSED".green(),
-                                case_name
-                            );
+                            if !args.quiet {
+                                println!(
+                                    "[INTEGRATION] {} {} (panicked)",
+                                    "PASSED".green(),
+                                    case_name
+                                );
+                            }
                         } else {
                             summary.lock().expect(PANIC_SYNC).failed += 1;
                             println!(
