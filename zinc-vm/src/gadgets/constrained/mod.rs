@@ -743,7 +743,7 @@ where
         // TODO: Enable linear scan
 
         match index.value {
-            None => unimplemented!("Variable indices are not supported"),
+            None => return Err(RuntimeError::Unimplemented("runtime-variable array indices are not supported".into())),
             Some(f) => {
                 let bi = utils::fr_to_bigint(&f, index.is_signed());
                 let i = bi.to_usize().ok_or(RuntimeError::ExpectedUsize(bi))?;
@@ -774,7 +774,7 @@ where
         let mut new_array = Vec::from(array);
 
         match index.value {
-            None => unimplemented!("Variable indices are not supported"),
+            None => return Err(RuntimeError::Unimplemented("runtime-variable array indices are not supported".into())),
             Some(f) => {
                 let bi = utils::fr_to_bigint(&f, index.is_signed());
                 let i = bi.to_usize().ok_or(RuntimeError::ExpectedUsize(bi))?;

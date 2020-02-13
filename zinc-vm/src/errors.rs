@@ -89,6 +89,9 @@ pub enum RuntimeError {
         value: BigInt,
         scalar_type: ScalarType,
     },
+
+    #[fail(display = "feature is not implemented: {}", _0)]
+    Unimplemented(String),
 }
 
 impl From<SynthesisError> for RuntimeError {
