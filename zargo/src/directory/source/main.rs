@@ -67,10 +67,10 @@ impl Main {
 //! The '{}' main module.
 //!
 
-fn main(witness: u8) -> bool {{
-    dbg!("Zello, World {{}}!", witness);
+fn main(witness: u8) -> u8 {{
+    dbg!("Zello, World!");
 
-    true
+    witness
 }}
 "#,
             self.circuit_name

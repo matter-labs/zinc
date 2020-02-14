@@ -22,7 +22,9 @@ use crate::manifest::Error as ManifestError;
 use crate::manifest::Manifest;
 
 #[derive(Debug, StructOpt)]
-#[structopt(about = "Runs a circuit and saves its output")]
+#[structopt(
+    about = "Runs the full circuit building, running, trusted setup, proving & verifying sequence"
+)]
 pub struct Command {
     #[structopt(
         short = "v",
