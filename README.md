@@ -19,7 +19,7 @@ cd zircuit/
 # build the circuit
 zargo build
 
-# fill the input template JSON usually located at ./build/input.json with values
+# fill the input template JSON usually located at ./data/input.json with values
 
 # runs the circuit to check it without input data
 zargo run
@@ -28,10 +28,10 @@ zargo run
 zargo setup
 
 # generate the proof
-zargo prove
+zargo prove > './data/proof.txt'
 
 # verify the proof
-zargo verify
+zargo verify < './data/proof.txt'
 ```
 
 **OR**
@@ -49,61 +49,40 @@ zargo proof-check
 
 ## Roadmap
 
-### Version 0.1
+### Version 0.1.2
 
 - [x] primitive types 
-- [x] input and witness (exported as JSON output)
+- [x] witness and public data types exported as JSON
 - [x] var declarations
 - [x] operators on primitive types
-- [x] `require()`
+- [x] `assert!()`
 - [x] comments
-- [x] `debug!()`
-- [x] interpreter
-
-### Version 0.2
-
+- [x] `dbg!()`
 - [x] syntax highlighting for Visual Studio Code
 - [x] mutability
 - [x] conditionals
 - [x] `for` loops (without `while`)
-
-### Version 0.3
-
 - [x] standard library (from bellman)
-
-### Version 0.4
-
 - [x] `for` loops with `while`
 - [x] arrays
 - [x] tuples
 - [x] type aliases
 - [x] structures
-- [x] code generation of all of the above
-
-### Version 0.5
-
 - [x] functions
 - [x] modules and imports
 - [x] C-like `enum`
 - [x] `match`
-
-### Version 0.6
-
-- [ ] conditional optimization
-- [x] std lib
-- [ ] `Option<>`
-
-### Version 0.7
-
-- [ ] `Result<>`, ? operator
-- [ ] simple references (more like aliases)
-- [ ] move() / copy()
+- [x] standard library
 
 ### Later
 
+- [ ] conditional optimization
+- [ ] `Option<>`
+- [ ] `Result<>`, ? operator
+- [ ] move() / copy()
 - [ ] `unsafe_unchecked`
 - [ ] testing framework with coverage metrics
-- [ ] bytes and strings
+- [ ] strings?
 - [ ] interfaces?
 - [ ] `unsafe_rust`?
 - [ ] formal verification
