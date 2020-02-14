@@ -21,6 +21,11 @@ For more information on `zargo`, check out this [chapter](../09-zargo-circuit-ma
 
 Let's now move on to writing 'Hello, World!' in Zinc!
 
+## The Visual Studio Code extension
+
+There is a syntax highlighting extension for Zinc called `Zinc Syntax Highligthing`.
+The IDE should recommend installing it once you have opened a Zinc file!
+
 ## Creating the circuit
 
 Let's create our first circuit, which will be able to prove knowledge of
