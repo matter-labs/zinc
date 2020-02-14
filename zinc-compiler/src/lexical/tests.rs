@@ -74,7 +74,7 @@ let mut c: u8 = 2 + 2;
     .collect::<Vec<Token>>();
 
     let mut result = Vec::with_capacity(expected.len());
-    let mut stream = TokenStream::new(input.to_owned());
+    let mut stream = TokenStream::new(input);
     loop {
         match stream.next().expect(PANIC_LEXICAL_ERROR) {
             Token {
@@ -85,7 +85,7 @@ let mut c: u8 = 2 + 2;
         }
     }
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -94,9 +94,9 @@ fn err_unexpected_end() {
 
     let expected: Result<Token, Error> = Err(Error::UnexpectedEnd(Location::new(1, 1)));
 
-    let result = TokenStream::new(input.to_owned()).next();
+    let result = TokenStream::new(input).next();
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -108,9 +108,9 @@ fn err_unknown_character() {
         SymbolParserError::InvalidCharacter('#', 1, "#".to_owned()),
     ));
 
-    let result = TokenStream::new(input.to_owned()).next();
+    let result = TokenStream::new(input).next();
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -122,9 +122,9 @@ fn err_invalid_symbol() {
         SymbolParserError::InvalidCharacter('#', 2, "|#".to_owned()),
     ));
 
-    let result = TokenStream::new(input.to_owned()).next();
+    let result = TokenStream::new(input).next();
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }
 
 #[test]
@@ -136,7 +136,7 @@ fn err_invalid_integer_literal() {
         IntegerParserError::InvalidHexadecimalCharacter('R', 4, "0xCR".to_owned()),
     ));
 
-    let result = TokenStream::new(input.to_owned()).next();
+    let result = TokenStream::new(input).next();
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }

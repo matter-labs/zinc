@@ -16,7 +16,7 @@ use crate::syntax::SyntaxTree;
 fn err_expected() {
     let input = "bool";
 
-    let result: Result<SyntaxTree, Error> = Parser::default().parse(input.to_owned());
+    let result: Result<SyntaxTree, Error> = Parser::default().parse(input);
 
     let expected: Result<SyntaxTree, Error> = Err(Error::Syntax(SyntaxError::Expected(
         Location::new(1, 1),
@@ -26,14 +26,14 @@ fn err_expected() {
         Lexeme::Keyword(Keyword::Bool),
     )));
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }
 
 #[test]
 fn err_expected_not_eof() {
     let input = "fn";
 
-    let result: Result<SyntaxTree, Error> = Parser::default().parse(input.to_owned());
+    let result: Result<SyntaxTree, Error> = Parser::default().parse(input);
 
     let expected: Result<SyntaxTree, Error> = Err(Error::Syntax(SyntaxError::Expected(
         Location::new(1, 3),
@@ -41,5 +41,5 @@ fn err_expected_not_eof() {
         Lexeme::Eof,
     )));
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }

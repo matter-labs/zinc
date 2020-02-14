@@ -1,0 +1,21 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {
+//#         "witness": "16"
+//#     },
+//#     "expect": "83"
+//# } ]
+
+enum First {
+    A = 5,
+    B = 25,
+}
+
+enum Second {
+    A = 42,
+    B = 69,
+}
+
+fn main(witness: u8) -> u8 {
+    First::B + witness + Second::A
+}

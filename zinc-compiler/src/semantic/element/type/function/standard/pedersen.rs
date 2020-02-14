@@ -13,10 +13,13 @@ use crate::semantic::element::r#type::Type;
 #[derive(Debug, Default, Clone)]
 pub struct Function {
     identifier: &'static str,
-    pub return_type: Box<Type>,
+    return_type: Box<Type>,
 }
 
 impl Function {
+    const ARGUMENT_INDEX_PREIMAGE: usize = 0;
+    const ARGUMENT_COUNT: usize = 1;
+
     pub fn new() -> Self {
         Self {
             identifier: "pedersen",
@@ -32,12 +35,8 @@ impl Function {
         BuiltinIdentifier::CryptoPedersen
     }
 
-    pub fn arguments_count(&self) -> usize {
-        1
-    }
-
     pub fn validate(&self, inputs: &[Type]) -> Result<Type, Error> {
-        let result = match inputs.get(0) {
+        let result = match inputs.get(Self::ARGUMENT_INDEX_PREIMAGE) {
             Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
                 (Type::Boolean, _) => Ok(self.return_type.deref().to_owned()),
                 (r#type, size) => Err(Error::ArgumentType(
@@ -53,15 +52,15 @@ impl Function {
             )),
             None => Err(Error::ArgumentCount(
                 self.identifier,
-                self.arguments_count(),
+                Self::ARGUMENT_COUNT,
                 inputs.len(),
             )),
         };
 
-        if inputs.get(1).is_some() {
+        if inputs.get(Self::ARGUMENT_COUNT).is_some() {
             return Err(Error::ArgumentCount(
                 self.identifier,
-                self.arguments_count(),
+                Self::ARGUMENT_COUNT,
                 inputs.len(),
             ));
         }

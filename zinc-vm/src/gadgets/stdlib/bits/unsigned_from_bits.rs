@@ -1,4 +1,4 @@
-use crate::gadgets::{Gadget, Primitive, PrimitiveType};
+use crate::gadgets::{Gadget, IntegerType, Primitive, ScalarType};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
@@ -18,18 +18,13 @@ impl<E: Engine> Gadget<E> for UnsignedFromBits {
         input: Self::Input,
     ) -> Result<Self::Output, RuntimeError> {
         let (data_type, length) = if input.len() == (E::Fr::NUM_BITS as usize) {
-            (None, E::Fr::NUM_BITS as usize)
+            (ScalarType::Field, E::Fr::NUM_BITS as usize)
         } else {
-            assert_eq!(
-                input.len() % 8,
-                0,
-                "Scalar bit length should be multiple of 8"
-            );
-            let data_type = PrimitiveType {
+            let data_type = ScalarType::Integer(IntegerType {
                 signed: false,
                 length: input.len(),
-            };
-            (Some(data_type), input.len())
+            });
+            (data_type, input.len())
         };
 
         let mut bits = Vec::with_capacity(length);
@@ -47,7 +42,7 @@ impl<E: Engine> Gadget<E> for UnsignedFromBits {
         Ok(Primitive {
             value: num.get_value(),
             variable: num.get_variable(),
-            data_type,
+            scalar_type: data_type,
         })
     }
 

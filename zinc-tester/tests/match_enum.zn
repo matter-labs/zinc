@@ -1,0 +1,40 @@
+//# [ {
+//#     "case": "first",
+//#     "input": {
+//#         "language": "0"
+//#     },
+//#     "expect": "5"
+//# }, {
+//#     "case": "second",
+//#     "input": {
+//#         "language": "42"
+//#     },
+//#     "expect": "10"
+//# }, {
+//#     "case": "third",
+//#     "input": {
+//#         "language": "255"
+//#     },
+//#     "expect": "15"
+//# }, {
+//#     "case": "another",
+//#     "input": {
+//#         "language": "69"
+//#     },
+//#     "expect": "20"
+//# } ]
+
+enum Language {
+    JABBERWOCKY = 0,
+    ZINC = 42,
+    RUST = 255,
+}
+
+fn main(language: Language) -> u8 {
+    match language {
+        Language::JABBERWOCKY => 5,
+        Language::ZINC => 10,
+        Language::RUST => 15,
+        _ => 20,
+    }
+}

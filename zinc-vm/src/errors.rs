@@ -1,6 +1,16 @@
+use crate::gadgets::ScalarType;
 use failure::Fail;
 use franklin_crypto::bellman::SynthesisError;
 use num_bigint::BigInt;
+
+#[derive(Debug, Fail)]
+pub enum TypeSizeError {
+    #[fail(display = "expected input value of size {}, got {}", expected, actual)]
+    Input { expected: usize, actual: usize },
+
+    #[fail(display = "expected output value of size {}, got {}", expected, actual)]
+    Output { expected: usize, actual: usize },
+}
 
 #[derive(Debug, Fail)]
 pub enum MalformedBytecode {
@@ -40,8 +50,8 @@ pub enum RuntimeError {
     #[fail(display = "malformed bytecode: {}", _0)]
     MalformedBytecode(MalformedBytecode),
 
-    #[fail(display = "assertion error: got false expression in `assert!`")]
-    AssertionError,
+    #[fail(display = "assertion error: {}", _0)]
+    AssertionError(String),
 
     #[fail(
         display = "index out of bounds: expected index in range {}..{}, got {}",
@@ -67,6 +77,21 @@ pub enum RuntimeError {
 
     #[fail(display = "division by zero")]
     ZeroDivisionError,
+
+    #[fail(display = "type size mismatch: {}", _0)]
+    TypeSize(TypeSizeError),
+
+    #[fail(
+        display = "overflow: value {} is not in range of type {}",
+        value, scalar_type
+    )]
+    ValueOverflow {
+        value: BigInt,
+        scalar_type: ScalarType,
+    },
+
+    #[fail(display = "feature is not implemented: {}", _0)]
+    Unimplemented(String),
 }
 
 impl From<SynthesisError> for RuntimeError {
@@ -78,5 +103,11 @@ impl From<SynthesisError> for RuntimeError {
 impl From<MalformedBytecode> for RuntimeError {
     fn from(error: MalformedBytecode) -> Self {
         RuntimeError::MalformedBytecode(error)
+    }
+}
+
+impl From<TypeSizeError> for RuntimeError {
+    fn from(error: TypeSizeError) -> Self {
+        RuntimeError::TypeSize(error)
     }
 }

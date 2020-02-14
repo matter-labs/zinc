@@ -39,13 +39,13 @@ pub struct StructField {
 pub enum ScalarValue {
     Field(BigInt),
     Bool(bool),
-    Integer(BigInt),
+    Integer(BigInt, IntegerType),
 }
 
 impl ScalarValue {
     pub fn to_bigint(&self) -> BigInt {
         match self {
-            ScalarValue::Field(value) | ScalarValue::Integer(value) => value.clone(),
+            ScalarValue::Field(value) | ScalarValue::Integer(value, _) => value.clone(),
             ScalarValue::Bool(value) => {
                 if *value {
                     BigInt::from(1)
@@ -74,7 +74,9 @@ impl Value {
             DataType::Scalar(scalar_type) => match scalar_type {
                 ScalarType::Field => Value::Scalar(ScalarValue::Field(0.into())),
                 ScalarType::Boolean => Value::Scalar(ScalarValue::Bool(false)),
-                ScalarType::Integer(_) => Value::Scalar(ScalarValue::Integer(0.into())),
+                ScalarType::Integer(int_type) => {
+                    Value::Scalar(ScalarValue::Integer(0.into(), *int_type))
+                }
             },
             DataType::Struct(fields) => Value::Struct(
                 fields
@@ -134,7 +136,7 @@ impl Value {
             Value::Unit => Some(0),
             Value::Scalar(scalar) => {
                 match scalar {
-                    ScalarValue::Field(value) | ScalarValue::Integer(value) => {
+                    ScalarValue::Field(value) | ScalarValue::Integer(value, _) => {
                         *value = flat_values.first()?.clone();
                     }
                     ScalarValue::Bool(value) => {
@@ -169,8 +171,15 @@ impl Value {
         match self {
             Value::Unit => json::Value::String("unit".into()),
             Value::Scalar(scalar) => match scalar {
-                ScalarValue::Field(value) | ScalarValue::Integer(value) => {
+                ScalarValue::Field(value) => {
                     if value <= &BigInt::from(std::u64::MAX) {
+                        json::Value::String(value.to_str_radix(10))
+                    } else {
+                        json::Value::String(String::from("0x") + value.to_str_radix(16).as_str())
+                    }
+                }
+                ScalarValue::Integer(value, int_type) => {
+                    if value <= &BigInt::from(std::u64::MAX) || int_type.signed {
                         json::Value::String(value.to_str_radix(10))
                     } else {
                         json::Value::String(String::from("0x") + value.to_str_radix(16).as_str())

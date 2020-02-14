@@ -8,7 +8,6 @@ use std::fmt;
 
 use crate::semantic::element::access::AccessData;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::value::Value;
 
 use self::error::Error;
 
@@ -38,7 +37,7 @@ impl Structure {
                     offset,
                     r#type.size(),
                     total_size,
-                    Some(Value::new(r#type.to_owned())),
+                    r#type.to_owned(),
                 ));
             }
             offset += r#type.size();

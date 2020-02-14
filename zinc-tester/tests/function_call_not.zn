@@ -1,0 +1,21 @@
+//# [ {
+//#     "case": "false_to_true",
+//#     "input": {
+//#         "a": false
+//#     },
+//#     "expect": true
+//# }, {
+//#     "case": "true_to_false",
+//#     "input": {
+//#         "a": true
+//#     },
+//#     "expect": false
+//# } ]
+
+fn not(a: bool) -> bool {
+    !a
+}
+
+fn main(a: bool) -> bool {
+    not(a)
+}

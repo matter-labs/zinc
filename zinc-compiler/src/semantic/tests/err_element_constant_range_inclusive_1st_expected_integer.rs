@@ -32,5 +32,5 @@ fn main() {
 
     let result = super::get_binary_result(input);
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }

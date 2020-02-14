@@ -37,19 +37,18 @@ case "${2}" in
         ;;
 esac
 
-export CIRCUIT_DIRECTORY='./zinc-examples/debug/'
+export CIRCUIT_DIRECTORY='./zinc-examples/casual/'
 export CIRCUIT_BUILD_DIRECTORY="${CIRCUIT_DIRECTORY}/build/"
 export CIRCUIT_DATA_DIRECTORY="${CIRCUIT_DIRECTORY}/data/"
 
 cargo fmt --all
 cargo clippy
-cargo build ${RELEASE_MODE_FLAG}
+cargo build --verbose ${RELEASE_MODE_FLAG}
 cargo test
+cargo run --verbose ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- --quiet
 
 export ZARGO_PATH="./target/${TARGET_DIRECTORY}/zargo"
 
-"${ZARGO_PATH}" clean ${LOG_LEVEL} \
-    --manifest-path "${CIRCUIT_DIRECTORY}/Zargo.toml"
 "${ZARGO_PATH}" proof-check ${LOG_LEVEL} \
     --manifest-path "${CIRCUIT_DIRECTORY}/Zargo.toml" \
     --circuit "${CIRCUIT_BUILD_DIRECTORY}/default.znb" \

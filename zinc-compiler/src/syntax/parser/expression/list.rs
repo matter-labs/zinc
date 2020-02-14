@@ -111,12 +111,9 @@ mod tests {
             Some(Token::new(Lexeme::Eof, Location::new(1, 14))),
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -151,12 +148,9 @@ mod tests {
             Some(Token::new(Lexeme::Eof, Location::new(1, 15))),
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -221,12 +215,9 @@ mod tests {
             Some(Token::new(Lexeme::Eof, Location::new(1, 27))),
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -238,11 +229,8 @@ mod tests {
             Some(Token::new(Lexeme::Eof, Location::new(1, 1))),
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 }

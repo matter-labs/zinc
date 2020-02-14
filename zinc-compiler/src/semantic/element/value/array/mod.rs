@@ -13,7 +13,6 @@ use num_traits::ToPrimitive;
 
 use crate::semantic::element::access::AccessData;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::value::Value;
 
 use self::error::Error;
 
@@ -46,7 +45,7 @@ impl Array {
             0,
             self.r#type.size(),
             self.r#type().size(),
-            Some(Value::new(self.r#type.to_owned())),
+            self.r#type.to_owned(),
         )
     }
 
@@ -76,7 +75,7 @@ impl Array {
             self.r#type.size() * start,
             self.r#type.size() * length,
             self.r#type().size(),
-            Some(Value::new(Type::array(self.r#type.to_owned(), length))),
+            Type::array(self.r#type.to_owned(), length),
         ))
     }
 
@@ -106,7 +105,7 @@ impl Array {
             self.r#type.size() * start,
             self.r#type.size() * length,
             self.r#type().size(),
-            Some(Value::new(Type::array(self.r#type.to_owned(), length))),
+            Type::array(self.r#type.to_owned(), length),
         ))
     }
 

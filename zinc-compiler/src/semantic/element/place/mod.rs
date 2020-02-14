@@ -73,7 +73,12 @@ impl Place {
         match index_value {
             Element::Value(Value::Integer(..)) | Element::Constant(Constant::Integer(..)) => {
                 self.r#type = inner_type;
-                Ok(AccessData::new(0, inner_type_size, array_size, None))
+                Ok(AccessData::new(
+                    0,
+                    inner_type_size,
+                    array_size,
+                    self.r#type.to_owned(),
+                ))
             }
             Element::Constant(Constant::Range(Range { start, end, .. })) => {
                 if start.is_negative() {
@@ -98,7 +103,12 @@ impl Place {
                     Error::IndexSliceEndLesserThanStart(end.to_string(), start.to_string())
                 })?;
                 self.r#type = Type::array(inner_type, length);
-                Ok(AccessData::new(start, inner_type_size, array_size, None))
+                Ok(AccessData::new(
+                    start,
+                    inner_type_size,
+                    array_size,
+                    self.r#type.to_owned(),
+                ))
             }
             Element::Constant(Constant::RangeInclusive(RangeInclusive { start, end, .. })) => {
                 if start.is_negative() {
@@ -123,7 +133,12 @@ impl Place {
                     Error::IndexSliceEndLesserThanStart(end.to_string(), start.to_string())
                 })?;
                 self.r#type = Type::array(inner_type, length);
-                Ok(AccessData::new(start, inner_type_size, array_size, None))
+                Ok(AccessData::new(
+                    start,
+                    inner_type_size,
+                    array_size,
+                    self.r#type.to_owned(),
+                ))
             }
             value => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange(
                 value.to_string(),
@@ -155,7 +170,7 @@ impl Place {
                     offset,
                     self.r#type.size(),
                     total_size,
-                    None,
+                    self.r#type.to_owned(),
                 ))
             }
             ref r#type => Err(Error::OperatorFieldFirstOperandExpectedTuple(
@@ -179,7 +194,7 @@ impl Place {
                             offset,
                             self.r#type.size(),
                             total_size,
-                            None,
+                            self.r#type.to_owned(),
                         ));
                     }
                     offset += structure_field.1.size();

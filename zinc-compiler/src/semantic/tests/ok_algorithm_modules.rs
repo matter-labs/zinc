@@ -16,16 +16,15 @@ use zinc_bytecode::Cast;
 use zinc_bytecode::Exit;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::Load;
-use zinc_bytecode::LoadGlobal;
 use zinc_bytecode::Mul;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 use zinc_bytecode::Store;
-use zinc_bytecode::StoreGlobal;
 use zinc_bytecode::Sub;
 
 use crate::Bytecode;
 use crate::Scope;
+use zinc_bytecode::scalar::{IntegerType, ScalarType};
 
 static PANIC_COMPILE_DEPENDENCY: &str = "Dependencies are always compiled successfully";
 
@@ -66,50 +65,31 @@ fn main() -> field {
 "#;
 
     let expected = Ok(vec![
-        Instruction::Call(Call::new(17, 0)),
+        Instruction::Call(Call::new(38, 0)),
         Instruction::Exit(Exit::new(1)),
-        Instruction::Load(Load::new(1)),
         Instruction::Load(Load::new(0)),
+        Instruction::Load(Load::new(1)),
         Instruction::Add(Add),
         Instruction::Return(Return::new(1)),
-        Instruction::Load(Load::new(1)),
         Instruction::Load(Load::new(0)),
+        Instruction::Load(Load::new(1)),
         Instruction::Sub(Sub),
         Instruction::Return(Return::new(1)),
-        Instruction::Load(Load::new(1)),
         Instruction::Load(Load::new(0)),
+        Instruction::Load(Load::new(1)),
         Instruction::Mul(Mul),
         Instruction::Return(Return::new(1)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(5),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
-        Instruction::StoreGlobal(StoreGlobal::new(0)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(69),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
+        Instruction::PushConst(PushConst::new(BigInt::from(69), IntegerType::U8.into())),
+        Instruction::Cast(Cast::new(ScalarType::Field)),
         Instruction::Store(Store::new(0)),
-        Instruction::LoadGlobal(LoadGlobal::new(0)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(42),
-            false,
-            crate::BITLENGTH_FIELD,
-        )),
+        Instruction::PushConst(PushConst::new(BigInt::from(5), ScalarType::Field)),
+        Instruction::PushConst(PushConst::new(BigInt::from(42), ScalarType::Field)),
         Instruction::Call(Call::new(2, 2)),
         Instruction::Load(Load::new(0)),
-        Instruction::Call(Call::new(6, 2)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(5),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
-        Instruction::Call(Call::new(10, 2)),
+        Instruction::Call(Call::new(14, 2)),
+        Instruction::PushConst(PushConst::new(BigInt::from(5), IntegerType::U8.into())),
+        Instruction::Cast(Cast::new(ScalarType::Field)),
+        Instruction::Call(Call::new(26, 2)),
         Instruction::Return(Return::new(1)),
     ]);
 
@@ -131,5 +111,5 @@ fn main() -> field {
 
     let result = super::get_instructions_with_dependencies(binary, bytecode, dependencies);
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }

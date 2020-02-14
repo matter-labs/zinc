@@ -58,7 +58,9 @@ impl Builder {
 
     pub fn finish(mut self) -> Type {
         static PANIC_BUILDER_TYPE_INVALID_KEYWORD: &str =
-            "The type builder has got an unexpected keyword: ";
+            "The type builder has got an unexpected non-type keyword: ";
+        static PANIC_VALIDATED_BY_THE_TYPE_PARSER: &str =
+            "Unreachable as long as the type parser works correctly";
 
         let location = self.location.take().unwrap_or_else(|| {
             panic!(
@@ -89,16 +91,16 @@ impl Builder {
                     )
                 }),
             )
-        } else if let Some(first) = self.tuple_element_types.first() {
-            if !self.tuple_has_comma {
-                first.to_owned()
-            } else {
+        } else if !self.tuple_element_types.is_empty() {
+            if self.tuple_has_comma {
                 TypeVariant::tuple(self.tuple_element_types)
+            } else {
+                self.tuple_element_types.remove(0)
             }
         } else if self.is_unit {
             TypeVariant::unit()
         } else {
-            unreachable!();
+            panic!(PANIC_VALIDATED_BY_THE_TYPE_PARSER);
         };
 
         Type::new(location, variant)

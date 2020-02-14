@@ -13,10 +13,13 @@ use crate::semantic::element::r#type::Type;
 #[derive(Debug, Default, Clone)]
 pub struct Function {
     identifier: &'static str,
-    pub return_type: Box<Type>,
+    return_type: Box<Type>,
 }
 
 impl Function {
+    const ARGUMENT_INDEX_PREIMAGE: usize = 0;
+    const ARGUMENT_COUNT: usize = 1;
+
     pub fn new() -> Self {
         Self {
             identifier: "sha256",
@@ -32,36 +35,34 @@ impl Function {
         BuiltinIdentifier::CryptoSha256
     }
 
-    pub fn arguments_count(&self) -> usize {
-        1
-    }
-
     pub fn validate(&self, inputs: &[Type]) -> Result<Type, Error> {
-        let result = match inputs.get(0) {
+        let result = match inputs.get(Self::ARGUMENT_INDEX_PREIMAGE) {
             Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
-                (Type::Boolean, _) => Ok(self.return_type.deref().to_owned()),
+                (Type::Boolean, size) if size % crate::BITLENGTH_BYTE == 0 => {
+                    Ok(self.return_type.deref().to_owned())
+                }
                 (r#type, size) => Err(Error::ArgumentType(
                     self.identifier,
-                    "[bool; {N}]".to_owned(),
+                    "[bool; {8*N}]".to_owned(),
                     format!("[{}; {}]", r#type, size),
                 )),
             },
             Some(r#type) => Err(Error::ArgumentType(
                 self.identifier,
-                "[bool; {N}]".to_owned(),
+                "[bool; {8*N}]".to_owned(),
                 r#type.to_string(),
             )),
             None => Err(Error::ArgumentCount(
                 self.identifier,
-                self.arguments_count(),
+                Self::ARGUMENT_COUNT,
                 inputs.len(),
             )),
         };
 
-        if inputs.get(1).is_some() {
+        if inputs.get(Self::ARGUMENT_COUNT).is_some() {
             return Err(Error::ArgumentCount(
                 self.identifier,
-                self.arguments_count(),
+                Self::ARGUMENT_COUNT,
                 inputs.len(),
             ));
         }
@@ -74,7 +75,7 @@ impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "fn std::{}(preimage: [bool: N]) -> {}",
+            "fn std::{}(preimage: [bool: 8*N]) -> {}",
             self.identifier, self.return_type,
         )
     }

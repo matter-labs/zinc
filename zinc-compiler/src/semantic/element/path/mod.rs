@@ -28,7 +28,7 @@ impl Path {
     pub fn last(&self) -> &MemberString {
         self.elements
             .last()
-            .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_THE_LAST_PATH_ELEMENT)
+            .expect(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS)
     }
 }
 

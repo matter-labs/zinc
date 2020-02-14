@@ -69,7 +69,7 @@ mod tests {
         let input = "\"some string\"";
         let expected = Ok((13, "some string".to_owned()));
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -77,7 +77,7 @@ mod tests {
         let input = "\"some string";
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -85,6 +85,6 @@ mod tests {
         let input = "no double quote here";
         let expected = Err(Error::NotAString);
         let result = parse(input);
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 }

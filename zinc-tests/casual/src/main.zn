@@ -1,8 +1,0 @@
-//!
-//! The 'casual' main module.
-//!
-
-fn main(flag: bool) -> bool {
-    let tmp = [false; 1000];
-    !flag
-}

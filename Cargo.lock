@@ -52,9 +52,9 @@ checksum = "f8aac770f1885fd7e387acedd76065302551364496e46b3dd00860b2f8359b9d"
 
 [[package]]
 name = "backtrace"
-version = "0.3.43"
+version = "0.3.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f80256bc78f67e7df7e36d77366f636ed976895d91fe2ab9efa3973e8fe8c4f"
+checksum = "e4036b9bf40f3cf16aba72a3d65e8a520fc4bafcdc7079aea8f848c58c5b5536"
 dependencies = [
  "backtrace-sys",
  "cfg-if",
@@ -308,6 +308,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "either"
+version = "1.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb1f6b1ce1c140482ea30ddd3335fc0024ac7ee112895426e0a629a6c20adfe3"
+
+[[package]]
 name = "enum-primitive-derive"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -469,9 +475,9 @@ checksum = "805026a5d0141ffc30abb3be3173848ad46a1b1664fe632428479619a3644d77"
 
 [[package]]
 name = "hex"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "023b39be39e3a2da62a94feb433e91e8bcd37676fbc8bea371daf52b7a769a3e"
+checksum = "76cdda6bf525062a0c9e8f14ee2b37935c86b8efb6c8b69b3c83dfb518a914af"
 
 [[package]]
 name = "hmac"
@@ -521,9 +527,9 @@ dependencies = [
 
 [[package]]
 name = "memchr"
-version = "2.3.0"
+version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3197e20c7edb283f87c071ddfc7a2cca8f8e0b888c242959846a6fce03c72223"
+checksum = "53445de381a1f436797497c61d851644d0e8e88e6140f22872ad33a704933978"
 
 [[package]]
 name = "memoffset"
@@ -613,9 +619,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro-error"
-version = "0.4.8"
+version = "0.4.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "875077759af22fa20b610ad4471d8155b321c89c3f2785526c9839b099be4e0a"
+checksum = "052b3c9af39c7e5e94245f820530487d19eb285faedcb40e0c3275132293f242"
 dependencies = [
  "proc-macro-error-attr",
  "proc-macro2 1.0.8",
@@ -626,9 +632,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro-error-attr"
-version = "0.4.8"
+version = "0.4.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5717d9fa2664351a01ed73ba5ef6df09c01a521cb42cb65a061432a826f3c7a"
+checksum = "d175bef481c7902e63e3165627123fff3502f06ac043d3ef42d08c1246da9253"
 dependencies = [
  "proc-macro2 1.0.8",
  "quote 1.0.2",
@@ -712,6 +718,30 @@ name = "rand_core"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c33a3c44ca05fa6f1807d8e6743f3824e8509beca625669633be0acbdf509dc"
+
+[[package]]
+name = "rayon"
+version = "1.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "db6ce3297f9c85e16621bb8cca38a06779ffc31bb8184e1be4bed2be4678a098"
+dependencies = [
+ "crossbeam-deque",
+ "either",
+ "rayon-core",
+]
+
+[[package]]
+name = "rayon-core"
+version = "1.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08a89b46efaf957e52b18062fb2f4660f8b8a4dde1807ca002690868ef2c85a9"
+dependencies = [
+ "crossbeam-deque",
+ "crossbeam-queue",
+ "crossbeam-utils",
+ "lazy_static",
+ "num_cpus",
+]
 
 [[package]]
 name = "rdrand"
@@ -812,9 +842,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.47"
+version = "1.0.48"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15913895b61e0be854afd32fd4163fcd2a3df34142cf2cb961b310ce694cbf90"
+checksum = "9371ade75d4c2d6cb154141b9752cf3781ec9c05e0e5cf35060e1e70ee7b9c25"
 dependencies = [
  "itoa",
  "ryu",
@@ -1054,7 +1084,7 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
 name = "zargo"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "env_logger",
  "failure",
@@ -1063,13 +1093,15 @@ dependencies = [
  "serde_derive",
  "structopt",
  "toml",
+ "zinc-bytecode",
 ]
 
 [[package]]
 name = "zinc-bytecode"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "bincode",
+ "colored",
  "enum-primitive-derive",
  "env_logger",
  "failure",
@@ -1085,7 +1117,7 @@ dependencies = [
 
 [[package]]
 name = "zinc-compiler"
-version = "0.5.0"
+version = "0.1.2"
 dependencies = [
  "env_logger",
  "failure",
@@ -1098,8 +1130,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "zinc-tester"
+version = "0.1.2"
+dependencies = [
+ "colored",
+ "failure",
+ "pairing_ce",
+ "rayon",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "structopt",
+ "zinc-bytecode",
+ "zinc-compiler",
+ "zinc-vm",
+]
+
+[[package]]
 name = "zinc-vm"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "bellman_ce",
  "clap",
@@ -1108,7 +1157,7 @@ dependencies = [
  "failure",
  "ff_ce",
  "franklin-crypto",
- "hex 0.4.0",
+ "hex 0.4.1",
  "lazy_static",
  "log",
  "num-bigint",

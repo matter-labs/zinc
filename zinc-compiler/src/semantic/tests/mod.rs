@@ -184,9 +184,6 @@ mod err_impl_expected_structure_or_enumeration;
 mod err_inference_constant;
 mod err_inference_constant_loop_bounds;
 mod err_inference_constant_pattern_match;
-mod err_instruction_assert_expected_boolean_first_argument;
-mod err_instruction_assert_expected_string_second_argument;
-mod err_instruction_debug_expected_string_first_argument;
 mod err_literal_structure_field_does_not_exist;
 mod err_literal_structure_field_invalid_type;
 mod err_loop_bounds_expected_constant_range_expression;
@@ -204,37 +201,36 @@ mod err_scope_item_undeclared_enum_variant;
 mod err_type_alias_does_not_point_to_structure;
 mod err_type_alias_does_not_point_to_type;
 mod err_use_expected_path;
-
-//mod ok_algorithm_factorial;
-//mod ok_algorithm_fibonacci;
-//mod ok_algorithm_modules;
-//mod ok_expression_array_nested;
-//mod ok_expression_block_mutating;
-//mod ok_expression_block_pyramid;
-//mod ok_expression_complex_mixed_items;
-//mod ok_expression_complex_mixed_types;
-//mod ok_expression_complex_operator;
-//mod ok_expression_conditional_elseless;
-//mod ok_expression_conditional_nested;
-//mod ok_expression_enum_different_types;
-//mod ok_expression_enum_enough_bitlength;
-//mod ok_expression_function_call;
-//mod ok_expression_function_procedure;
-//mod ok_expression_match_enum;
-//mod ok_expression_match_mutating;
-//mod ok_expression_match_nested;
-//mod ok_expression_structure_mutating;
-//mod ok_expression_structure_nested;
-//mod ok_expression_tuple_aliased;
-//mod ok_expression_tuple_nested;
-//mod ok_statement_impl_enum;
-//mod ok_statement_impl_struct;
-//mod ok_statement_loop_array;
-//mod ok_statement_loop_inclusive;
-//mod ok_statement_loop_nested;
-//mod ok_statement_loop_reverted;
-//mod ok_statement_loop_scope_popping;
-//mod ok_statement_loop_with_while;
+mod ok_algorithm_factorial;
+mod ok_algorithm_fibonacci;
+mod ok_algorithm_modules;
+mod ok_expression_array_nested;
+mod ok_expression_block_mutating;
+mod ok_expression_block_pyramid;
+mod ok_expression_complex_mixed_items;
+mod ok_expression_complex_mixed_types;
+mod ok_expression_complex_operator;
+mod ok_expression_conditional_elseless;
+mod ok_expression_conditional_nested;
+mod ok_expression_enum_different_types;
+mod ok_expression_enum_enough_bitlength;
+mod ok_expression_function_call;
+mod ok_expression_function_procedure;
+mod ok_expression_match_enum;
+mod ok_expression_match_mutating;
+mod ok_expression_match_nested;
+mod ok_expression_structure_mutating;
+mod ok_expression_structure_nested;
+mod ok_expression_tuple_aliased;
+mod ok_expression_tuple_nested;
+mod ok_statement_impl_enum;
+mod ok_statement_impl_struct;
+mod ok_statement_loop_array;
+mod ok_statement_loop_inclusive;
+mod ok_statement_loop_nested;
+mod ok_statement_loop_reverted;
+mod ok_statement_loop_scope_popping;
+mod ok_statement_loop_with_while;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -250,13 +246,12 @@ use crate::Parser;
 use crate::Scope;
 
 static PANIC_SYNTAX_ERROR: &str = "Syntax errors must be eliminated at this point";
-static PANIC_ONLY_REFERENCE: &str = "The last shared reference is always unwrapped successfully";
+static PANIC_THE_ONLY_REFERENCE: &str =
+    "The last shared reference is always unwrapped successfully";
 
 pub(self) fn get_binary_result(input: &str) -> Result<(), Error> {
     BinaryAnalyzer::default().compile(
-        Parser::default()
-            .parse(input.to_owned())
-            .expect(PANIC_SYNTAX_ERROR),
+        Parser::default().parse(input).expect(PANIC_SYNTAX_ERROR),
         HashMap::new(),
     )
 }
@@ -265,11 +260,8 @@ pub(self) fn get_dependency(
     input: &str,
     bytecode: Rc<RefCell<Bytecode>>,
 ) -> Result<Rc<RefCell<Scope>>, Error> {
-    LibraryAnalyzer::new(bytecode).compile(
-        Parser::default()
-            .parse(input.to_owned())
-            .expect(PANIC_SYNTAX_ERROR),
-    )
+    LibraryAnalyzer::new(bytecode)
+        .compile(Parser::default().parse(input).expect(PANIC_SYNTAX_ERROR))
 }
 
 pub(self) fn get_instructions(input: &str) -> Result<Vec<Instruction>, Error> {
@@ -286,13 +278,21 @@ pub(self) fn get_instructions_with_dependencies(
     dependencies: HashMap<String, Rc<RefCell<Scope>>>,
 ) -> Result<Vec<Instruction>, Error> {
     BinaryAnalyzer::new(bytecode.clone()).compile(
-        Parser::default()
-            .parse(input.to_owned())
-            .expect(PANIC_SYNTAX_ERROR),
+        Parser::default().parse(input).expect(PANIC_SYNTAX_ERROR),
         dependencies,
     )?;
-    Ok(Rc::try_unwrap(bytecode)
-        .expect(PANIC_ONLY_REFERENCE)
+    let instructions: Vec<Instruction> = Rc::try_unwrap(bytecode)
+        .expect(PANIC_THE_ONLY_REFERENCE)
         .into_inner()
-        .into())
+        .into();
+    Ok(instructions
+        .into_iter()
+        .filter_map(|instruction| match instruction {
+            Instruction::FileMarker(_) => None,
+            Instruction::FunctionMarker(_) => None,
+            Instruction::LineMarker(_) => None,
+            Instruction::ColumnMarker(_) => None,
+            instruction => Some(instruction),
+        })
+        .collect::<Vec<Instruction>>())
 }

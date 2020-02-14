@@ -1,0 +1,13 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {},
+//#     "expect": "120"
+//# } ]
+
+fn main() -> field {
+    let mut fact: field = 1;
+    for i in 1..6 {
+        fact = fact * i as field;
+    }
+    fact
+}

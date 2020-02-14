@@ -26,7 +26,6 @@ use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::r#type::UNIQUE_ID;
 use crate::semantic::element::Element;
-use crate::semantic::scope::item::r#static::Static as ScopeStaticItem;
 use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
@@ -45,6 +44,7 @@ use crate::syntax::StaticStatement;
 use crate::syntax::StructStatement;
 use crate::syntax::TypeStatement;
 use crate::syntax::UseStatement;
+use zinc_bytecode::scalar::{IntegerType, ScalarType};
 
 pub struct Analyzer {
     scope_stack: Vec<Rc<RefCell<Scope>>>,
@@ -150,47 +150,29 @@ impl Analyzer {
     fn static_statement(&mut self, statement: StaticStatement) -> Result<(), Error> {
         let location = statement.location;
         let type_location = statement.r#type.location;
+        let expression_location = statement.expression.location;
 
         // compile the expression being assigned
-        let mut rvalue = ExpressionAnalyzer::new(self.scope(), self.bytecode.clone())
+        let mut rvalue = ExpressionAnalyzer::new_without_bytecode(self.scope())
             .expression(statement.expression, TranslationHint::ValueExpression)?;
 
-        let static_type = Type::from_type_variant(&statement.r#type.variant, self.scope())?;
+        let const_type = Type::from_type_variant(&statement.r#type.variant, self.scope())?;
         rvalue
-            .cast(&Element::Type(static_type.clone()))
+            .cast(&Element::Type(const_type))
             .map_err(|error| Error::Element(type_location, error))?;
-
-        if let Some((is_signed, bitlength)) = rvalue
-            .cast(&Element::Type(static_type))
-            .map_err(|error| Error::Element(type_location, error))?
-        {
-            self.bytecode.borrow_mut().push_instruction(
-                Instruction::Cast(zinc_bytecode::Cast::new(is_signed, bitlength)),
-                type_location,
-            );
-        }
-
         let constant = match rvalue {
             Element::Constant(constant) => constant,
             element => {
                 return Err(Error::ConstantExpressionHasNonConstantElement(
-                    location,
+                    expression_location,
                     element.to_string(),
                 ))
             }
         };
 
-        let size = constant.r#type().size();
-        let address = self.bytecode.borrow_mut().allocate_data_stack_space(size);
-        self.bytecode
-            .borrow_mut()
-            .push_instruction_store(address, size, None, true, location);
         self.scope()
             .borrow_mut()
-            .declare_static(
-                statement.identifier.name,
-                ScopeStaticItem::new(constant, address),
-            )
+            .declare_constant(statement.identifier.name, constant)
             .map_err(|error| Error::Scope(location, error))?;
 
         Ok(())
@@ -302,7 +284,7 @@ impl Analyzer {
 
         // start a new scope and declare the function arguments there
         self.push_scope();
-        for argument_binding in statement.argument_bindings.into_iter().rev() {
+        for argument_binding in statement.argument_bindings.into_iter() {
             let (identifier, is_mutable) = match argument_binding.variant {
                 BindingPatternVariant::Binding(identifier) => (identifier, false),
                 BindingPatternVariant::MutableBinding(identifier) => (identifier, true),
@@ -379,7 +361,7 @@ impl Analyzer {
         let last_member_string = path
             .elements
             .last()
-            .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_THE_LAST_PATH_ELEMENT);
+            .expect(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
         self.scope()
             .borrow_mut()
             .declare_item(last_member_string.name.to_owned(), item)
@@ -429,8 +411,12 @@ impl Analyzer {
                 .cast(&Element::Type(let_type.clone()))
                 .map_err(|error| Error::Element(type_location, error))?
             {
+                let scalar_type = match (is_signed, bitlength) {
+                    (false, crate::BITLENGTH_FIELD) => ScalarType::Field,
+                    (signed, length) => IntegerType { signed, length }.into(),
+                };
                 self.bytecode.borrow_mut().push_instruction(
-                    Instruction::Cast(zinc_bytecode::Cast::new(is_signed, bitlength)),
+                    Instruction::Cast(zinc_bytecode::Cast::new(scalar_type)),
                     type_location,
                 );
             }
@@ -540,7 +526,7 @@ impl Analyzer {
                 location,
                 IntegerConstantError::LiteralTooLargeForIndex(
                     iterations_count.to_string(),
-                    crate::BITLENGTH_BYTE,
+                    crate::BITLENGTH_INDEX,
                 ),
             )
         })?;
@@ -619,27 +605,74 @@ impl Analyzer {
                 .block_expression(statement.block)?;
         }
 
-        // increment the loop counter
-        self.bytecode.borrow_mut().push_instruction(
-            IntegerConstant::new_one(is_signed, bitlength).to_instruction(),
-            location,
-        );
-        self.bytecode.borrow_mut().push_instruction(
-            Instruction::Load(zinc_bytecode::Load::new(index_address)),
-            location,
-        );
-        self.bytecode.borrow_mut().push_instruction(
-            if is_reverse {
-                Instruction::Sub(zinc_bytecode::Sub)
-            } else {
-                Instruction::Add(zinc_bytecode::Add)
-            },
-            location,
-        );
-        self.bytecode.borrow_mut().push_instruction(
-            Instruction::Store(zinc_bytecode::Store::new(index_address)),
-            location,
-        );
+        // increment or decrement the loop counter
+        if is_reverse {
+            self.bytecode.borrow_mut().push_instruction(
+                Instruction::Load(zinc_bytecode::Load::new(index_address)),
+                location,
+            );
+            self.bytecode.borrow_mut().push_instruction(
+                IntegerConstant::new_min(is_signed, bitlength).to_instruction(),
+                location,
+            );
+            self.bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::Gt(zinc_bytecode::Gt), location);
+            self.bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::If(zinc_bytecode::If), location);
+            self.bytecode.borrow_mut().push_instruction(
+                Instruction::Load(zinc_bytecode::Load::new(index_address)),
+                location,
+            );
+            self.bytecode.borrow_mut().push_instruction(
+                IntegerConstant::new_one(is_signed, bitlength).to_instruction(),
+                location,
+            );
+            self.bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::Sub(zinc_bytecode::Sub), location);
+            self.bytecode.borrow_mut().push_instruction(
+                Instruction::Store(zinc_bytecode::Store::new(index_address)),
+                location,
+            );
+            self.bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::EndIf(zinc_bytecode::EndIf), location);
+        } else {
+            self.bytecode.borrow_mut().push_instruction(
+                Instruction::Load(zinc_bytecode::Load::new(index_address)),
+                location,
+            );
+            self.bytecode.borrow_mut().push_instruction(
+                IntegerConstant::new_max(is_signed, bitlength).to_instruction(),
+                location,
+            );
+            self.bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::Lt(zinc_bytecode::Lt), location);
+            self.bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::If(zinc_bytecode::If), location);
+            self.bytecode.borrow_mut().push_instruction(
+                Instruction::Load(zinc_bytecode::Load::new(index_address)),
+                location,
+            );
+            self.bytecode.borrow_mut().push_instruction(
+                IntegerConstant::new_one(is_signed, bitlength).to_instruction(),
+                location,
+            );
+            self.bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::Add(zinc_bytecode::Add), location);
+            self.bytecode.borrow_mut().push_instruction(
+                Instruction::Store(zinc_bytecode::Store::new(index_address)),
+                location,
+            );
+            self.bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::EndIf(zinc_bytecode::EndIf), location);
+        };
         self.bytecode
             .borrow_mut()
             .push_instruction(Instruction::LoopEnd(zinc_bytecode::LoopEnd), location);

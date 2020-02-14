@@ -12,8 +12,9 @@
 # Zinc build
 /zinc-examples/*/build/
 /zinc-examples/*/data/
-/zinc-tests/*/build/
-/zinc-tests/*/data/
 
 # Builds
 *.tar.gz
+
+# Mac
+.DS_Store

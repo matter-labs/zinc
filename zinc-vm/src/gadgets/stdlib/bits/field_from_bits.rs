@@ -1,5 +1,5 @@
 use crate::errors::MalformedBytecode;
-use crate::gadgets::{Gadget, Primitive};
+use crate::gadgets::{Gadget, Primitive, ScalarType};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
@@ -40,7 +40,7 @@ impl<E: Engine> Gadget<E> for FieldFromBits {
         Ok(Primitive {
             value: num.get_value(),
             variable: num.get_variable(),
-            data_type: None,
+            scalar_type: ScalarType::Field,
         })
     }
 

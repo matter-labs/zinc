@@ -1,4 +1,4 @@
-use crate::Error;
+use crate::{Error, IoToError};
 use franklin_crypto::bellman::groth16::Parameters;
 use pairing::bn256::Bn256;
 use std::fs;
@@ -25,29 +25,33 @@ pub struct ProveCommand {
 impl ProveCommand {
     pub fn execute(&self) -> Result<(), Error> {
         // Read program
-        let bytes = fs::read(&self.circuit_path)?;
-        let program = Program::from_bytes(bytes.as_slice()).unwrap();
+        let bytes =
+            fs::read(&self.circuit_path).error_with_path(|| self.circuit_path.to_string_lossy())?;
+        let program = Program::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
         // Read verifying key
-        let file = fs::File::open(&self.proving_key_path)?;
-        let params = Parameters::<Bn256>::read(file, true)?;
+        let file = fs::File::open(&self.proving_key_path)
+            .error_with_path(|| self.proving_key_path.to_string_lossy())?;
+        let params = Parameters::<Bn256>::read(file, true)
+            .error_with_path(|| self.proving_key_path.to_string_lossy())?;
 
         // Read witness
-        let witness_json = fs::read_to_string(&self.witness_path)?;
+        let witness_json = fs::read_to_string(&self.witness_path)
+            .error_with_path(|| self.witness_path.to_string_lossy())?;
         let witness_value = serde_json::from_str(&witness_json)?;
         let witness_struct = Value::from_typed_json(&witness_value, &program.input)?;
-        let witness = witness_struct.to_flat_values();
 
-        let (pubdata, proof) = zinc_vm::prove::<Bn256>(&program, &params, witness.as_slice())?;
+        let (pubdata, proof) = zinc_vm::prove::<Bn256>(&program, &params, &witness_struct)?;
 
         // Write pubdata
-        let pubdata_struct = Value::from_flat_values(&program.output, &pubdata).unwrap();
-        let pubdata_json = serde_json::to_string_pretty(&pubdata_struct.to_json())? + "\n";
-        fs::write(&self.pubdata_path, &pubdata_json)?;
+        let pubdata_json = serde_json::to_string_pretty(&pubdata.to_json())? + "\n";
+        fs::write(&self.pubdata_path, &pubdata_json)
+            .error_with_path(|| self.pubdata_path.to_string_lossy())?;
 
         // Write proof to stdout
         let mut proof_bytes = Vec::new();
-        proof.write(&mut proof_bytes)?;
+        proof.write(&mut proof_bytes).expect("writing to vec");
+
         let proof_hex = hex::encode(proof_bytes);
         println!("{}", proof_hex);
 

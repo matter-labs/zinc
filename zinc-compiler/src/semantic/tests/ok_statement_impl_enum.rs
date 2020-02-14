@@ -6,6 +6,9 @@
 
 use num_bigint::BigInt;
 
+use zinc_bytecode::data::types::DataType;
+use zinc_bytecode::data::types::IntegerType;
+use zinc_bytecode::data::types::ScalarType;
 use zinc_bytecode::Call;
 use zinc_bytecode::Dbg;
 use zinc_bytecode::Exit;
@@ -30,36 +33,36 @@ impl Data {
 
 fn main() {
     Data::test();
-    dbg!("{}", Data::VALUE, Data::ANOTHER);
+    dbg!("{} {}", Data::VALUE, Data::ANOTHER);
 }
 "#;
 
     let expected = Ok(vec![
-        Instruction::Call(Call::new(5, 0)),
+        Instruction::Call(Call::new(12, 0)),
         Instruction::Exit(Exit::new(0)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(42),
-            false,
-            crate::BITLENGTH_BYTE,
+        Instruction::PushConst(PushConst::new(BigInt::from(42), IntegerType::U8.into())),
+        Instruction::Dbg(Dbg::new(
+            "{}".to_owned(),
+            vec![DataType::Scalar(ScalarType::Integer(IntegerType {
+                signed: false,
+                length: crate::BITLENGTH_BYTE,
+            }))],
         )),
-        Instruction::Log(Dbg::new("{}".to_owned(), 1)),
         Instruction::Return(Return::new(0)),
         Instruction::Call(Call::new(2, 0)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(42),
-            false,
-            crate::BITLENGTH_BYTE,
+        Instruction::PushConst(PushConst::new(BigInt::from(42), IntegerType::U8.into())),
+        Instruction::PushConst(PushConst::new(BigInt::from(25), IntegerType::U8.into())),
+        Instruction::Dbg(Dbg::new(
+            "{} {}".to_owned(),
+            vec![
+                DataType::Scalar(ScalarType::Integer(IntegerType::U8)),
+                DataType::Scalar(ScalarType::Integer(IntegerType::U8)),
+            ],
         )),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(25),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::Log(Dbg::new("{}".to_owned(), 2)),
         Instruction::Return(Return::new(0)),
     ]);
 
     let result = super::get_instructions(input);
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }

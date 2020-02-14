@@ -159,6 +159,18 @@ impl Parser {
                 );
                 Ok((self.builder.finish(), None))
             }
+            Token {
+                lexeme: Lexeme::Keyword(keyword @ Keyword::AliasSelf),
+                location,
+            } => {
+                self.builder.set_location(location);
+                let mut builder = IdentifierBuilder::default();
+                builder.set_location(location);
+                builder.set_name(keyword.to_string());
+                self.builder
+                    .push_operand(location, ExpressionOperand::Identifier(builder.finish()));
+                Ok((self.builder.finish(), None))
+            }
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
                 location,
                 vec!["(", "{", "[", "if", "match", "{identifier}", "{literal}"],
@@ -205,12 +217,9 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -233,12 +242,9 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -261,12 +267,9 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -287,12 +290,9 @@ mod tests {
             Some(Token::new(Lexeme::Eof, Location::new(1, 6))),
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -330,11 +330,8 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 }

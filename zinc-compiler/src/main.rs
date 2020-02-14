@@ -6,25 +6,18 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ffi::OsString;
 use std::fs::File;
-use std::io::Read;
 use std::io::Write;
 use std::path::PathBuf;
 use std::process;
 use std::rc::Rc;
 
 use failure::Fail;
-use log::LevelFilter;
 use structopt::StructOpt;
 
-use zinc_compiler::BinaryAnalyzer;
 use zinc_compiler::Bytecode;
-use zinc_compiler::LibraryAnalyzer;
-use zinc_compiler::Parser;
 use zinc_compiler::Scope;
-use zinc_compiler::SyntaxTree;
 
 static ZINC_SOURCE_FILE_EXTENSION: &str = "zn";
-static PANIC_LAST_SHARED_REFERENCE: &str = "There are no other references at this point";
 
 const EXIT_CODE_SUCCESS: i32 = 0;
 const EXIT_CODE_FAILURE: i32 = 1;
@@ -63,8 +56,8 @@ struct Arguments {
 
 #[derive(Debug, Fail)]
 enum Error {
-    #[fail(display = "source input: {}", _0)]
-    SourceInput(InputError),
+    #[fail(display = "source file: {}", _0)]
+    SourceFile(FileError),
     #[fail(display = "compiler: {}:{}", _0, _1)]
     Compiler(String, zinc_compiler::Error),
     #[fail(display = "witness template output: {}", _0)]
@@ -78,19 +71,13 @@ enum Error {
 }
 
 #[derive(Debug, Fail)]
-enum InputError {
+enum FileError {
     #[fail(display = "file extension not found")]
-    FileExtensionNotFound,
+    ExtensionNotFound,
     #[fail(display = "file extension is invalid")]
-    FileExtensionInvalid(OsString),
+    ExtensionInvalid(OsString),
     #[fail(display = "file name not found")]
-    FileStemNotFound,
-    #[fail(display = "opening: {}", _0)]
-    Opening(std::io::Error),
-    #[fail(display = "metadata: {}", _0)]
-    Metadata(std::io::Error),
-    #[fail(display = "reading: {}", _0)]
-    Reading(std::io::Error),
+    StemNotFound,
 }
 
 #[derive(Debug, Fail)]
@@ -114,7 +101,7 @@ fn main() {
 }
 
 fn main_inner(args: Arguments) -> Result<(), Error> {
-    init_logger(args.verbosity);
+    zinc_bytecode::logger::init_logger("znc", args.verbosity);
 
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));
 
@@ -124,19 +111,19 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
     for source_file_path in args.source_files.into_iter() {
         let source_file_extension = source_file_path
             .extension()
-            .ok_or(InputError::FileExtensionNotFound)
-            .map_err(Error::SourceInput)?;
+            .ok_or(FileError::ExtensionNotFound)
+            .map_err(Error::SourceFile)?;
         if source_file_extension != ZINC_SOURCE_FILE_EXTENSION {
-            return Err(InputError::FileExtensionInvalid(
+            return Err(FileError::ExtensionInvalid(
                 source_file_extension.to_owned(),
             ))
-            .map_err(Error::SourceInput);
+            .map_err(Error::SourceFile);
         }
 
         let source_file_stem = source_file_path
             .file_stem()
-            .ok_or(InputError::FileStemNotFound)
-            .map_err(Error::SourceInput)?;
+            .ok_or(FileError::StemNotFound)
+            .map_err(Error::SourceFile)?;
         if source_file_stem == "main" {
             binary_path = Some(source_file_path);
             continue;
@@ -145,8 +132,8 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
         let module_name = source_file_stem.to_string_lossy().to_string();
         let module_file_path = format!("src/{}.zn", module_name);
         bytecode.borrow_mut().start_new_file(&module_file_path);
-        let module = LibraryAnalyzer::new(bytecode.clone())
-            .compile(parse(source_file_path, &module_file_path)?)
+        log::info!("Compiling {:?}", source_file_path);
+        let module = zinc_compiler::compile_module(source_file_path, bytecode.clone())
             .map_err(|error| Error::Compiler(module_file_path, error))?;
 
         modules.insert(module_name, module);
@@ -154,10 +141,12 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
 
     let entry_file_path = "src/main.zn";
     bytecode.borrow_mut().start_new_file(entry_file_path);
+    log::info!("Compiling {:?}", entry_file_path);
     match binary_path.take() {
-        Some(binary_path) => BinaryAnalyzer::new(bytecode.clone())
-            .compile(parse(binary_path, entry_file_path)?, modules)
-            .map_err(|error| Error::Compiler(entry_file_path.to_owned(), error))?,
+        Some(binary_path) => {
+            zinc_compiler::compile_entry(binary_path, bytecode.clone(), modules)
+                .map_err(|error| Error::Compiler(entry_file_path.to_owned(), error))?;
+        }
         None => return Err(Error::EntrySourceFileNotFound),
     }
 
@@ -170,11 +159,6 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
             .map_err(Error::WitnessTemplateOutput)?;
         log::info!(
             "Witness template written to {:?}",
-            args.witness_template_path
-        );
-    } else {
-        log::warn!(
-            "Witness template {:?} already exists. Please, remove it manually so the compiler may recreate it",
             args.witness_template_path
         );
     }
@@ -191,7 +175,7 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
     );
 
     let bytecode: Vec<u8> = Rc::try_unwrap(bytecode)
-        .expect(PANIC_LAST_SHARED_REFERENCE)
+        .expect(zinc_compiler::PANIC_LAST_SHARED_REFERENCE)
         .into_inner()
         .into();
 
@@ -204,36 +188,4 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
     log::info!("Compiled to {:?}", args.bytecode_output_path);
 
     Ok(())
-}
-
-fn parse(path: PathBuf, module_name: &str) -> Result<SyntaxTree, Error> {
-    log::info!("Compiling   {:?}", path);
-    let mut file = File::open(path)
-        .map_err(InputError::Opening)
-        .map_err(Error::SourceInput)?;
-    let size = file
-        .metadata()
-        .map_err(InputError::Metadata)
-        .map_err(Error::SourceInput)?
-        .len() as usize;
-    let mut input = String::with_capacity(size);
-    file.read_to_string(&mut input)
-        .map_err(InputError::Reading)
-        .map_err(Error::SourceInput)?;
-
-    Parser::default()
-        .parse(input)
-        .map_err(|error| Error::Compiler(module_name.to_owned(), error))
-}
-
-fn init_logger(verbosity: usize) {
-    env_logger::Builder::from_default_env()
-        .format_timestamp(None)
-        .filter_level(match verbosity {
-            0 => LevelFilter::Warn,
-            1 => LevelFilter::Info,
-            2 => LevelFilter::Debug,
-            _ => LevelFilter::Trace,
-        })
-        .init();
 }

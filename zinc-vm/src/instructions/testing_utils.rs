@@ -1,11 +1,13 @@
 use crate::core::{InternalVM, RuntimeError, VirtualMachine};
 use crate::Engine;
 use bellman::pairing::bn256::Bn256;
+use colored::Colorize;
+use failure::Fail;
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::test::TestConstraintSystem;
 use num_bigint::{BigInt, ToBigInt};
 use zinc_bytecode::data::types::DataType;
-use zinc_bytecode::{decode_all_instructions, Call, DecodingError, InstructionInfo, Program};
+use zinc_bytecode::{Call, Instruction, InstructionInfo, Program};
 
 type TestVirtualMachine = VirtualMachine<Bn256, TestConstraintSystem<Bn256>>;
 
@@ -36,27 +38,31 @@ where
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Fail)]
 pub enum TestingError {
-    DecodingError(DecodingError),
+    #[fail(display = "{}", _0)]
     RuntimeError(RuntimeError),
+
+    #[fail(display = "unconstrained: {}", _0)]
     Unconstrained(String),
+
+    #[fail(display = "unsatisfied")]
     Unsatisfied,
 }
 
 pub struct VMTestRunner {
-    bytecode: Vec<u8>,
+    instructions: Vec<Instruction>,
 }
 
 impl VMTestRunner {
     pub fn new() -> Self {
         Self {
-            bytecode: Call::new(1, 0).encode(),
+            instructions: vec![Call::new(1, 0).wrap()],
         }
     }
 
     pub fn add<I: InstructionInfo>(&mut self, instruction: I) -> &mut Self {
-        self.bytecode.append(&mut instruction.encode());
+        self.instructions.push(instruction.wrap());
         self
     }
 
@@ -64,21 +70,22 @@ impl VMTestRunner {
         &mut self,
         expected_stack: &[T],
     ) -> Result<(), TestingError> {
-        self.test_constrained(expected_stack)?;
+        let result = self.test_constrained(expected_stack);
 
-        Ok(())
+        if let Err(error) = &result {
+            println!("{}: {}", "error".bold().red(), error)
+        }
+
+        result
     }
 
     fn test_constrained<T: Into<BigInt> + Copy>(
         &mut self,
         expected_stack: &[T],
     ) -> Result<(), TestingError> {
-        let instructions = decode_all_instructions(self.bytecode.as_slice())
-            .map_err(TestingError::DecodingError)?;
-
         let mut vm = new_test_constrained_vm();
 
-        let program = Program::new(DataType::Unit, DataType::Unit, instructions);
+        let program = Program::new(DataType::Unit, DataType::Unit, self.instructions.clone());
 
         vm.run(&program, Some(&[]), |_| {}, |_| Ok(()))
             .map_err(TestingError::RuntimeError)?;

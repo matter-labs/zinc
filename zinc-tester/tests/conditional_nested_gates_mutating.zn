@@ -1,0 +1,45 @@
+//# [ {
+//#     "case": "one",
+//#     "input": {
+//#         "gates": [true, false, false],
+//#         "mutated": "5"
+//#     },
+//#     "expect": "25"
+//# }, {
+//#     "case": "two",
+//#     "input": {
+//#         "gates": [false, true, true],
+//#         "mutated": "5"
+//#     },
+//#     "expect": "50"
+//# }, {
+//#     "case": "three",
+//#     "input": {
+//#         "gates": [false, true, false],
+//#         "mutated": "5"
+//#     },
+//#     "expect": "75"
+//# }, {
+//#     "case": "four",
+//#     "input": {
+//#         "gates": [false, false, false],
+//#         "mutated": "5"
+//#     },
+//#     "expect": "100"
+//# } ]
+
+fn main(gates: [bool; 3], mut mutated: u8) -> u8 {
+    if gates[0] {
+        mutated = mutated * 5;
+    } else if gates[1] {
+        if gates[2] {
+            mutated = mutated * 10;
+        } else {
+            mutated = mutated * 15;
+        }
+    } else {
+        mutated = mutated * 20;
+    };
+
+    mutated
+}

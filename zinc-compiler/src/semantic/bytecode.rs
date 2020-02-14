@@ -285,21 +285,21 @@ impl Into<DataType> for &Type {
             Type::Boolean => DataType::Scalar(ScalarType::Boolean),
             Type::IntegerUnsigned { bitlength } => {
                 DataType::Scalar(ScalarType::Integer(IntegerType {
-                    is_signed: false,
-                    bit_length: *bitlength,
+                    signed: false,
+                    length: *bitlength,
                 }))
             }
             Type::IntegerSigned { bitlength } => {
                 DataType::Scalar(ScalarType::Integer(IntegerType {
-                    is_signed: true,
-                    bit_length: *bitlength,
+                    signed: true,
+                    length: *bitlength,
                 }))
             }
             Type::Field => DataType::Scalar(ScalarType::Field),
             Type::Enumeration { bitlength, .. } => {
                 DataType::Scalar(ScalarType::Integer(IntegerType {
-                    is_signed: false,
-                    bit_length: *bitlength,
+                    signed: false,
+                    length: *bitlength,
                 }))
             }
             Type::Array { r#type, size } => {
@@ -307,20 +307,24 @@ impl Into<DataType> for &Type {
                 DataType::Array(Box::new(element_type), *size)
             }
             Type::Tuple { types } => {
-                let mut data_types = Vec::new();
+                let mut data_types = Vec::with_capacity(types.len());
                 for r#type in types.iter() {
                     data_types.push(r#type.into());
                 }
                 DataType::Tuple(data_types)
             }
             Type::Structure(structure) => {
-                let mut new_fields: Vec<(String, DataType)> = Vec::new();
+                let mut new_fields: Vec<(String, DataType)> =
+                    Vec::with_capacity(structure.fields.len());
                 for (name, r#type) in structure.fields.iter() {
                     new_fields.push((name.to_owned(), r#type.into()));
                 }
                 DataType::Struct(new_fields)
             }
-            _ => panic!(crate::semantic::PANIC_VALUE_CANNOT_BE_CREATED_FROM),
+            Type::String => unreachable!(),
+            Type::Range { .. } => unreachable!(),
+            Type::RangeInclusive { .. } => unreachable!(),
+            Type::Function(_) => unreachable!(),
         }
     }
 }

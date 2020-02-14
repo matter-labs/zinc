@@ -5,7 +5,7 @@
 At first, you should install the following binaries into your `PATH`:
 - `zargo` - the circuit management tool
 - `znc` - the Zinc compiler
-- `zinc` - the Zinc virtual machine
+- `zvm` - the Zinc virtual machine
 
 Then, follow the example to create and use your first circuit:
 
@@ -32,6 +32,19 @@ zargo prove
 
 # verify the proof
 zargo verify
+```
+
+**OR**
+
+```bash
+# create a new circuit called 'zircuit'
+zargo new zircuit
+cd zircuit/
+
+# write some code in the circuit
+
+# build & run & setup & prove & verify
+zargo proof-check
 ```
 
 ## Roadmap

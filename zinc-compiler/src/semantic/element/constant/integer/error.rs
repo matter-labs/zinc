@@ -61,17 +61,17 @@ pub enum Error {
     #[fail(display = "literal '{}' is larger than {} bits", _0, _1)]
     IntegerTooLargeForField(String, usize),
 
-    #[fail(display = "'>=' operator is temporary forbidden for field elements")]
+    #[fail(display = "'>=' operator is temporarily forbidden for field elements")]
     ForbiddenFieldGreaterEquals,
-    #[fail(display = "'<=' operator is temporary forbidden for field elements")]
+    #[fail(display = "'<=' operator is temporarily forbidden for field elements")]
     ForbiddenFieldLesserEquals,
-    #[fail(display = "'>' operator is temporary forbidden for field elements")]
+    #[fail(display = "'>' operator is temporarily forbidden for field elements")]
     ForbiddenFieldGreater,
-    #[fail(display = "'<' operator is temporary forbidden for field elements")]
+    #[fail(display = "'<' operator is temporarily forbidden for field elements")]
     ForbiddenFieldLesser,
-    #[fail(display = "'/' operator is temporary forbidden for field elements")]
+    #[fail(display = "'/' operator is temporarily forbidden for field elements")]
     ForbiddenFieldDivision,
-    #[fail(display = "'%' operator is temporary forbidden for field elements")]
+    #[fail(display = "'%' operator is temporarily forbidden for field elements")]
     ForbiddenFieldRemainder,
     #[fail(display = "unary '-' operator is forbidden for field elements")]
     ForbiddenFieldNegation,

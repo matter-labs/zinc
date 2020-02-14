@@ -9,7 +9,6 @@ mod manifest;
 
 use std::process;
 
-use log::LevelFilter;
 use structopt::StructOpt;
 
 use self::command::error::Error as CommandError;
@@ -44,19 +43,7 @@ fn main() {
 }
 
 fn main_inner(args: Arguments) -> Result<(), CommandError> {
-    init_logger(args.verbosity);
+    zinc_bytecode::logger::init_logger("zargo", args.verbosity);
 
     args.command.execute()
-}
-
-fn init_logger(verbosity: usize) {
-    env_logger::Builder::from_default_env()
-        .format_timestamp(None)
-        .filter_level(match verbosity {
-            0 => LevelFilter::Warn,
-            1 => LevelFilter::Info,
-            2 => LevelFilter::Debug,
-            _ => LevelFilter::Trace,
-        })
-        .init();
 }

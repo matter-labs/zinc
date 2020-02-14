@@ -11,9 +11,11 @@ use zinc_bytecode::program::Program;
 
 use crate::core::VirtualMachine;
 use crate::debug_constraint_system::DebugConstraintSystem;
-pub use crate::errors::RuntimeError;
+pub use crate::errors::{MalformedBytecode, RuntimeError, TypeSizeError};
 use crate::gadgets::utils::bigint_to_fr;
 use crate::Engine;
+use failure::Fail;
+use zinc_bytecode::data::values::Value;
 
 struct VMCircuit<'a> {
     program: &'a Program,
@@ -29,14 +31,16 @@ impl<E: Engine> Circuit<E> for VMCircuit<'_> {
     }
 }
 
-pub fn run<E: Engine>(program: &Program, inputs: &[BigInt]) -> Result<Vec<BigInt>, RuntimeError> {
+pub fn run<E: Engine>(program: &Program, inputs: &Value) -> Result<Value, RuntimeError> {
     let cs = DebugConstraintSystem::<Bn256>::default();
     let mut vm = VirtualMachine::new(cs, true);
+
+    let inputs_flat = inputs.to_flat_values();
 
     let mut num_constraints = 0;
     let result = vm.run(
         program,
-        Some(inputs),
+        Some(&inputs_flat),
         |cs| {
             let num = cs.num_constraints() - num_constraints;
             num_constraints += num;
@@ -64,8 +68,19 @@ pub fn run<E: Engine>(program: &Program, inputs: &[BigInt]) -> Result<Vec<BigInt
     //        ));
     //    }
 
-    // TODO: Remove unwrap
-    Ok(result.into_iter().map(|v| v.unwrap()).collect())
+    let output_flat = result
+        .into_iter()
+        .map(|v| v.expect("`run` always computes witness"))
+        .collect::<Vec<_>>();
+
+    let value = Value::from_flat_values(&program.output, &output_flat).ok_or_else(|| {
+        TypeSizeError::Output {
+            expected: 0,
+            actual: 0,
+        }
+    })?;
+
+    Ok(value)
 }
 
 pub fn setup<E: Engine>(program: &Program) -> Result<Parameters<E>, RuntimeError> {
@@ -78,21 +93,27 @@ pub fn setup<E: Engine>(program: &Program) -> Result<Parameters<E>, RuntimeError
     };
 
     let params = groth16::generate_random_parameters::<E, VMCircuit, ThreadRng>(circuit, rng)?;
-    Ok(params)
+
+    match result.expect("vm should return either output or error") {
+        Ok(_) => Ok(params),
+        Err(error) => Err(error),
+    }
 }
 
 pub fn prove<E: Engine>(
     program: &Program,
     params: &Parameters<E>,
-    witness: &[BigInt],
-) -> Result<(Vec<BigInt>, Proof<E>), RuntimeError> {
+    witness: &Value,
+) -> Result<(Value, Proof<E>), RuntimeError> {
     let rng = &mut rand::thread_rng();
+
+    let witness_flat = witness.to_flat_values();
 
     let (result, proof) = {
         let mut result = None;
         let circuit = VMCircuit {
             program,
-            inputs: Some(witness),
+            inputs: Some(&witness_flat),
             result: &mut result,
         };
 
@@ -107,31 +128,51 @@ pub fn prove<E: Engine>(
             "circuit hasn't generate outputs".into(),
         )),
         Some(res) => match res {
-            Ok(values) => Ok((values.into_iter().map(|v| v.unwrap()).collect(), proof)),
+            Ok(values) => {
+                let output_flat: Vec<BigInt> = values
+                    .into_iter()
+                    .map(|v| v.expect("`prove` always computes witness"))
+                    .collect();
+
+                let value =
+                    Value::from_flat_values(&program.output, &output_flat).ok_or_else(|| {
+                        TypeSizeError::Output {
+                            expected: 0,
+                            actual: 0,
+                        }
+                    })?;
+
+                Ok((value, proof))
+            }
             Err(err) => Err(err),
         },
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Fail)]
 pub enum VerificationError {
-    InputFormatError,
+    #[fail(display = "value overflow: value {} is not in the field", _0)]
+    ValueOverflow(BigInt),
+
+    #[fail(display = "failed to synthesize circuit: {}", _0)]
     SynthesisError(SynthesisError),
 }
 
 pub fn verify<E: Engine>(
     key: &VerifyingKey<E>,
     proof: &Proof<E>,
-    pub_inputs: &[BigInt],
+    public_input: &Value,
 ) -> Result<bool, VerificationError> {
-    let mut pub_inputs_fr = Vec::new();
-    for v in pub_inputs.iter() {
-        let fr = bigint_to_fr::<E>(v).ok_or(VerificationError::InputFormatError)?;
-        pub_inputs_fr.push(fr);
-    }
+    let public_input_flat = public_input
+        .to_flat_values()
+        .into_iter()
+        .map(|value| {
+            bigint_to_fr::<E>(&value).ok_or_else(|| VerificationError::ValueOverflow(value))
+        })
+        .collect::<Result<Vec<E::Fr>, VerificationError>>()?;
 
     let pvk = groth16::prepare_verifying_key(&key);
-    let success = groth16::verify_proof(&pvk, proof, pub_inputs_fr.as_slice())
+    let success = groth16::verify_proof(&pvk, proof, public_input_flat.as_slice())
         .map_err(VerificationError::SynthesisError)?;
 
     Ok(success)

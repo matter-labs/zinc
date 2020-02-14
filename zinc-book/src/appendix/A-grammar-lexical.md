@@ -48,6 +48,8 @@ keyword =
   | 'false'
 
   | 'as'
+
+  | 'Self'
 ;
 
 literal = boolean | integer | string ;

@@ -164,8 +164,9 @@ impl Type {
             variants_bigint.push((variant.identifier, value.value));
         }
         let bigints: Vec<&BigInt> = variants_bigint.iter().map(|variant| &variant.1).collect();
-        let minimal_bitlength = IntegerConstant::minimal_bitlength_bigints(bigints.as_slice())
-            .map_err(|error| Error::InferenceConstant(identifier.location, error))?;
+        let minimal_bitlength =
+            IntegerConstant::minimal_bitlength_bigints(bigints.as_slice(), false)
+                .map_err(|error| Error::InferenceConstant(identifier.location, error))?;
 
         for (identifier, value) in variants_bigint.into_iter() {
             let location = identifier.location;
@@ -182,10 +183,7 @@ impl Type {
             bitlength: minimal_bitlength,
             scope: scope.clone(),
         };
-        scope
-            .borrow_mut()
-            .declare_type("Self".to_owned(), enumeration.clone())
-            .expect(crate::semantic::PANIC_SELF_ALIAS_DECLARATION);
+        scope.borrow_mut().declare_self(enumeration.clone());
 
         Ok(enumeration)
     }
@@ -378,14 +376,32 @@ impl PartialEq<Type> for Type {
             }
             (
                 Self::Enumeration {
-                    unique_id: unique_id_1,
+                    bitlength: bitlength_1,
                     ..
                 },
                 Self::Enumeration {
-                    unique_id: unique_id_2,
+                    bitlength: bitlength_2,
                     ..
                 },
-            ) => unique_id_1 == unique_id_2,
+            ) => bitlength_1 == bitlength_2,
+            (
+                Self::Enumeration {
+                    bitlength: bitlength_1,
+                    ..
+                },
+                Self::IntegerUnsigned {
+                    bitlength: bitlength_2,
+                },
+            ) => bitlength_1 == bitlength_2,
+            (
+                Self::IntegerUnsigned {
+                    bitlength: bitlength_1,
+                },
+                Self::Enumeration {
+                    bitlength: bitlength_2,
+                    ..
+                },
+            ) => bitlength_1 == bitlength_2,
             _ => false,
         }
     }

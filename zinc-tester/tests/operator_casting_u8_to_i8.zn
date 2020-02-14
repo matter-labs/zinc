@@ -1,0 +1,35 @@
+//# [ {
+//#     "case": "zero",
+//#     "input": {
+//#         "a": "0"
+//#     },
+//#     "expect": "0"
+//# }, {
+//#     "case": "ordinar",
+//#     "input": {
+//#         "a": "42"
+//#     },
+//#     "expect": "42"
+//# }, {
+//#     "case": "max",
+//#     "input": {
+//#         "a": "127"
+//#     },
+//#     "expect": "127"
+//# }, {
+//#     "case": "overflow_minimal", "should_panic": true,
+//#     "input": {
+//#         "a": "128"
+//#     },
+//#     "expect": null
+//# }, {
+//#     "case": "overflow", "should_panic": true,
+//#     "input": {
+//#         "a": "200"
+//#     },
+//#     "expect": null
+//# } ]
+
+fn main(a: u8) -> i8 {
+    a as i8
+}

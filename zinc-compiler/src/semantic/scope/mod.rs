@@ -12,6 +12,7 @@ use std::str;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
+use crate::lexical::Keyword;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::r#type::function::Function as FunctionType;
@@ -112,6 +113,11 @@ impl Scope {
         }
         self.items.insert(identifier, Item::Module(scope));
         Ok(())
+    }
+
+    pub fn declare_self(&mut self, r#type: Type) {
+        self.items
+            .insert(Keyword::AliasSelf.to_string(), Item::Type(r#type));
     }
 
     pub fn resolve_path(scope: Rc<RefCell<Scope>>, path: &Path) -> Result<Item, SemanticError> {

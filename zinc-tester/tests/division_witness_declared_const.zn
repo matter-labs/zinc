@@ -1,0 +1,24 @@
+//# [ {
+//#     "case": "remainder_zero",
+//#     "input": {
+//#         "witness": "15"
+//#     },
+//#     "expect": "5"
+//# }, {
+//#     "case": "remainder_one",
+//#     "input": {
+//#         "witness": "22"
+//#     },
+//#     "expect": "7"
+//# }, {
+//#     "case": "remainder_two",
+//#     "input": {
+//#         "witness": "26"
+//#     },
+//#     "expect": "8"
+//# } ]
+
+fn main(witness: u32) -> u32 {
+    const CONST: u32 = 3;
+    witness / CONST
+}

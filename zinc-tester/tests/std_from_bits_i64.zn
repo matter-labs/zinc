@@ -1,0 +1,50 @@
+//# [ {
+//#     "case": "min",
+//#     "input": {
+//#         "value": [
+//#             true, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false
+//#         ]
+//#     },
+//#     "expect": "-9223372036854775808"
+//# }, {
+//#     "case": "zero",
+//#     "input": {
+//#         "value": [
+//#             false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false,
+//#             false, false, false, false, false, false, false, false
+//#         ]
+//#     },
+//#     "expect": "0"
+//# }, {
+//#     "case": "max",
+//#     "input": {
+//#         "value": [
+//#             false, true, true, true, true, true, true, true,
+//#             true, true, true, true, true, true, true, true,
+//#             true, true, true, true, true, true, true, true,
+//#             true, true, true, true, true, true, true, true,
+//#             true, true, true, true, true, true, true, true,
+//#             true, true, true, true, true, true, true, true,
+//#             true, true, true, true, true, true, true, true,
+//#             true, true, true, true, true, true, true, true
+//#         ]
+//#     },
+//#     "expect": "9223372036854775807"
+//# } ]
+
+fn main(value: [bool; 64]) -> i64 {
+    std::convert::from_bits_signed(value)
+}

@@ -8,6 +8,7 @@ pub use evaluation_stack::*;
 
 use crate::gadgets::Primitive;
 use crate::Engine;
+use std::fmt;
 
 #[derive(Debug)]
 pub struct Loop {
@@ -53,5 +54,19 @@ impl<E: Engine> FunctionFrame<E> {
             stack_frame_begin: data_stack_address,
             stack_frame_end: data_stack_address,
         }
+    }
+}
+
+impl<E: Engine> fmt::Display for State<E> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "{}", self.evaluation_stack)?;
+        writeln!(
+            f,
+            "Data Stack Offset: {}\n",
+            self.frames_stack.last().unwrap().stack_frame_begin
+        )?;
+        writeln!(f, "{}", self.data_stack)?;
+
+        Ok(())
     }
 }

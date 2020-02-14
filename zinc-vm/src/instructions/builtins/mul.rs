@@ -3,6 +3,7 @@ extern crate franklin_crypto;
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
+use crate::gadgets::{ScalarType, ScalarTypeExpectation};
 use crate::Engine;
 use zinc_bytecode::instructions::Mul;
 
@@ -15,7 +16,13 @@ where
         let right = vm.pop()?.value()?;
         let left = vm.pop()?.value()?;
 
-        let prod = vm.operations().mul(left, right)?;
+        let unchecked_prod = vm.operations().mul(left.clone(), right.clone())?;
+        let condition = vm.condition_top()?;
+        let prod = vm.operations().assert_type(
+            condition,
+            unchecked_prod,
+            ScalarType::expect_same(left.get_type(), right.get_type())?,
+        )?;
 
         vm.push(Cell::Value(prod))
     }

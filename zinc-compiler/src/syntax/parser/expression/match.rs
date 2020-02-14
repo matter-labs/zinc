@@ -239,12 +239,9 @@ mod tests {
             )],
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -329,12 +326,9 @@ mod tests {
             ],
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -358,11 +352,8 @@ mod tests {
             vec![],
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 }

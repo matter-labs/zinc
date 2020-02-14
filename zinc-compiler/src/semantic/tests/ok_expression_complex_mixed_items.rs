@@ -6,17 +6,16 @@
 
 use num_bigint::BigInt;
 
+use zinc_bytecode::scalar::{IntegerType, ScalarType};
 use zinc_bytecode::Add;
 use zinc_bytecode::Call;
 use zinc_bytecode::Cast;
 use zinc_bytecode::Exit;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::Load;
-use zinc_bytecode::LoadGlobal;
 use zinc_bytecode::PushConst;
 use zinc_bytecode::Return;
 use zinc_bytecode::Store;
-use zinc_bytecode::StoreGlobal;
 
 #[test]
 fn test() {
@@ -33,28 +32,13 @@ fn main() -> field {
 "#;
 
     let expected = Ok(vec![
-        Instruction::Call(Call::new(5, 0)),
+        Instruction::Call(Call::new(2, 0)),
         Instruction::Exit(Exit::new(1)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(5),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
-        Instruction::StoreGlobal(StoreGlobal::new(0)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(69),
-            false,
-            crate::BITLENGTH_BYTE,
-        )),
-        Instruction::Cast(Cast::new(false, crate::BITLENGTH_FIELD)),
+        Instruction::PushConst(PushConst::new(BigInt::from(69), IntegerType::U8.into())),
+        Instruction::Cast(Cast::new(ScalarType::Field)),
         Instruction::Store(Store::new(0)),
-        Instruction::LoadGlobal(LoadGlobal::new(0)),
-        Instruction::PushConst(PushConst::new(
-            BigInt::from(42),
-            false,
-            crate::BITLENGTH_FIELD,
-        )),
+        Instruction::PushConst(PushConst::new(BigInt::from(5), ScalarType::Field)),
+        Instruction::PushConst(PushConst::new(BigInt::from(42), ScalarType::Field)),
         Instruction::Add(Add),
         Instruction::Load(Load::new(0)),
         Instruction::Add(Add),
@@ -63,5 +47,5 @@ fn main() -> field {
 
     let result = super::get_instructions(input);
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }

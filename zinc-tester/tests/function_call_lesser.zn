@@ -1,0 +1,23 @@
+//# [ {
+//#     "case": "false",
+//#     "input": {
+//#         "a": "42",
+//#         "b": "25"
+//#     },
+//#     "expect": false
+//# }, {
+//#     "case": "true",
+//#     "input": {
+//#         "a": "25",
+//#         "b": "42"
+//#     },
+//#     "expect": true
+//# } ]
+
+fn lesser(a: u104, b: u104) -> bool {
+    a < b
+}
+
+fn main(a: u104, b: u104) -> bool {
+    lesser(a, b)
+}

@@ -103,7 +103,7 @@ where
 
         for i in 0..inputs_count {
             let arg = self.pop()?;
-            self.store(i, arg)?;
+            self.store(inputs_count - i - 1, arg)?;
         }
 
         self.state.instruction_counter = address;

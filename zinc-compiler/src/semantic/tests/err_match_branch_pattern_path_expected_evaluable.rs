@@ -51,5 +51,5 @@ fn main() -> u8 {
 
     let result = super::get_instructions_with_dependencies(binary, bytecode, dependencies);
 
-    assert_eq!(expected, result);
+    assert_eq!(result, expected);
 }

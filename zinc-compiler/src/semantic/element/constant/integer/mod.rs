@@ -22,6 +22,7 @@ use crate::semantic::element::r#type::Type;
 use crate::syntax::IntegerLiteral;
 
 use self::error::Error;
+use zinc_bytecode::scalar::{IntegerType, ScalarType};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Integer {
@@ -39,9 +40,43 @@ impl Integer {
         }
     }
 
+    pub fn new_zero(is_signed: bool, bitlength: usize) -> Self {
+        Self {
+            value: BigInt::zero(),
+            is_signed,
+            bitlength,
+        }
+    }
+
     pub fn new_one(is_signed: bool, bitlength: usize) -> Self {
         Self {
             value: BigInt::one(),
+            is_signed,
+            bitlength,
+        }
+    }
+
+    pub fn new_min(is_signed: bool, bitlength: usize) -> Self {
+        let value = match (is_signed, bitlength) {
+            (false, _bitlength) => BigInt::zero(),
+            (true, bitlength) => -(BigInt::one() << (bitlength - 1)),
+        };
+
+        Self {
+            value,
+            is_signed,
+            bitlength,
+        }
+    }
+
+    pub fn new_max(is_signed: bool, bitlength: usize) -> Self {
+        let value = match (is_signed, bitlength) {
+            (false, bitlength) => (BigInt::one() << bitlength) - BigInt::one(),
+            (true, bitlength) => (BigInt::one() << (bitlength - 1)) - BigInt::one(),
+        };
+
+        Self {
+            value,
             is_signed,
             bitlength,
         }
@@ -285,9 +320,8 @@ impl Integer {
             return Err(Error::ForbiddenFieldNegation);
         }
 
-        let result = -self.value.to_owned();
         Ok(Self {
-            value: result,
+            value: -self.value.to_owned(),
             is_signed: true,
             bitlength: self.bitlength,
         })
@@ -310,10 +344,10 @@ impl Integer {
         Ok(max)
     }
 
-    pub fn minimal_bitlength_bigints(values: &[&BigInt]) -> Result<usize, Error> {
+    pub fn minimal_bitlength_bigints(values: &[&BigInt], is_signed: bool) -> Result<usize, Error> {
         let mut max = 0;
         for value in values.iter() {
-            let bitlength = Self::minimal_bitlength(value)?;
+            let bitlength = Self::minimal_bitlength(value, is_signed)?;
             if bitlength > max {
                 max = bitlength;
             }
@@ -321,10 +355,15 @@ impl Integer {
         Ok(max)
     }
 
-    fn minimal_bitlength(value: &BigInt) -> Result<usize, Error> {
+    fn minimal_bitlength(value: &BigInt, is_signed: bool) -> Result<usize, Error> {
         let mut bitlength = crate::BITLENGTH_BYTE;
         let mut exponent = BigInt::from(1 << crate::BITLENGTH_BYTE);
-        while value.gt(&exponent) {
+
+        while if is_signed {
+            value >= &(exponent.clone() / BigInt::from(2) - BigInt::one())
+        } else {
+            value >= &exponent
+        } {
             if bitlength == crate::BITLENGTH_MAX_INT {
                 exponent <<= crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
                 bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
@@ -342,10 +381,13 @@ impl Integer {
     }
 
     pub fn to_instruction(&self) -> Instruction {
+        let scalar_type = match (self.is_signed, self.bitlength) {
+            (false, crate::BITLENGTH_FIELD) => ScalarType::Field,
+            (signed, length) => IntegerType { signed, length }.into(),
+        };
         Instruction::PushConst(zinc_bytecode::PushConst::new(
             self.value.to_owned(),
-            self.is_signed,
-            self.bitlength,
+            scalar_type,
         ))
     }
 }
@@ -377,7 +419,7 @@ impl TryFrom<&IntegerLiteral> for Integer {
 
         let value = BigInt::from_str_radix(&string, base)
             .expect(crate::semantic::PANIC_VALIDATED_DURING_LEXICAL_ANALYSIS);
-        let bitlength = Self::minimal_bitlength(&value)?;
+        let bitlength = Self::minimal_bitlength(&value, false)?;
 
         Ok(Self::new(value, false, bitlength))
     }

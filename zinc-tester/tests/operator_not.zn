@@ -1,0 +1,17 @@
+//# [ {
+//#     "case": "false",
+//#     "input": {
+//#         "a": false
+//#     },
+//#     "expect": true
+//# }, {
+//#     "case": "true",
+//#     "input": {
+//#         "a": true
+//#     },
+//#     "expect": false
+//# } ]
+
+fn main(a: bool) -> bool {
+    !a
+}

@@ -1,10 +1,11 @@
 use crate::gadgets::utils::bigint_to_fr;
-use crate::gadgets::{Gadget, Primitive, PrimitiveType};
+use crate::gadgets::{Gadget, IntegerType, Primitive, ScalarType};
 use crate::Engine;
 use crate::RuntimeError;
-use bellman::{ConstraintSystem, SynthesisError};
-use ff::{Field, PrimeField};
-use franklin_crypto::circuit::boolean::AllocatedBit;
+use bellman::ConstraintSystem;
+use ff::Field;
+use franklin_crypto::circuit::boolean::{AllocatedBit, Boolean};
+use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::num::AllocatedNum;
 use num_bigint::BigInt;
 
@@ -19,58 +20,43 @@ impl<E: Engine> Gadget<E> for SignedFromBits {
         mut cs: CS,
         input: Self::Input,
     ) -> Result<Self::Output, RuntimeError> {
-        let (data_type, length) = if input.len() == (E::Fr::NUM_BITS as usize) {
-            (None, E::Fr::NUM_BITS as usize)
-        } else {
-            assert_eq!(
-                input.len() % 8,
-                0,
-                "Scalar bit length should be multiple of 8"
-            );
-            let data_type = PrimitiveType {
-                signed: false,
-                length: input.len(),
-            };
-            (Some(data_type), input.len())
-        };
+        assert_eq!(
+            input.len() % 8,
+            0,
+            "Scalar bit length should be multiple of 8"
+        );
 
-        let mut bits = Vec::with_capacity(length);
+        let length = input.len();
+        let scalar_type = ScalarType::Integer(IntegerType {
+            signed: true,
+            length,
+        });
+
+        let mut bits: Vec<Boolean> = Vec::with_capacity(length);
         for (i, value) in input.iter().rev().enumerate() {
             let bit = value.value.map(|fr| -> bool { !fr.is_zero() });
             let allocated_bit =
                 AllocatedBit::alloc(cs.namespace(|| format!("AllocatedBit {}", i)), bit)?;
             bits.push(allocated_bit.into());
         }
+        let sign_bit = bits[length - 1].clone();
+        bits.push(sign_bit.not());
 
-        let adjusted_num =
+        let num =
             AllocatedNum::pack_bits_to_element(cs.namespace(|| "pack_bits_to_element"), &bits)?;
 
-        let adjustment_bigint = BigInt::from(1) << (input.len() - 1);
-        let adjustment_fr: E::Fr = bigint_to_fr::<E>(&adjustment_bigint).expect("too much bits");
-        let value = match adjusted_num.get_value() {
-            None => None,
-            Some(mut fr) => {
-                fr.sub_assign(&adjustment_fr);
-                Some(fr)
-            }
-        };
-
-        let variable = cs.alloc(
-            || "variable",
-            || value.ok_or(SynthesisError::AssignmentMissing),
-        )?;
-
-        cs.enforce(
-            || "hello",
-            |zero| zero + variable + (adjustment_fr, CS::one()),
-            |zero| zero + CS::one(),
-            |zero| zero + adjusted_num.get_variable(),
+        let num_expr = Expression::from(&num);
+        let base_value = BigInt::from(1) << length;
+        let base_expr = Expression::<E>::constant::<CS>(
+            bigint_to_fr::<E>(&base_value).expect("length is too big"),
         );
 
+        let result = (num_expr - base_expr).into_number(cs.namespace(|| "result"))?;
+
         Ok(Primitive {
-            value,
-            variable,
-            data_type,
+            value: result.get_value(),
+            variable: result.get_variable(),
+            scalar_type,
         })
     }
 

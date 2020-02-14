@@ -1,0 +1,27 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {
+//#         "witness": "3"
+//#     },
+//#     "expect": "63"
+//# } ]
+
+struct Test {
+    x: u8,
+    y: u8,
+    z: u8,
+}
+
+fn main(witness: u8) -> u8 {
+    let mut test = Test {
+        x: 1,
+        y: 2,
+        z: 3,
+    };
+
+    test.x = 5 * witness;
+    test.y = 7 * witness;
+    test.z = 9 * witness;
+
+    test.z + test.y + test.x
+}

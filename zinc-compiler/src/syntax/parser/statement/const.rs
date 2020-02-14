@@ -196,12 +196,9 @@ mod tests {
             None,
         ));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -214,11 +211,8 @@ mod tests {
             Lexeme::Symbol(Symbol::Semicolon),
         )));
 
-        let result = Parser::default().parse(
-            Rc::new(RefCell::new(TokenStream::new(input.to_owned()))),
-            None,
-        );
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
-        assert_eq!(expected, result);
+        assert_eq!(result, expected);
     }
 }

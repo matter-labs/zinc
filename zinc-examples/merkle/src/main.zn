@@ -1,6 +1,6 @@
-//
-// The merkle tree root hash validator.
-//
+//!
+//! The merkle tree root hash validator.
+//!
 
 mod merkle;
 

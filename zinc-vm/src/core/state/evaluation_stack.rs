@@ -4,6 +4,7 @@ use crate::gadgets::{Gadgets, Primitive};
 use crate::Engine;
 use crate::RuntimeError;
 use franklin_crypto::bellman::ConstraintSystem;
+use std::fmt;
 
 #[derive(Debug)]
 pub struct EvaluationStack<E: Engine> {
@@ -74,6 +75,21 @@ impl<E: Engine> EvaluationStack<E> {
 
     pub fn revert(&mut self) -> Result<(), RuntimeError> {
         self.stack.pop().ok_or(MalformedBytecode::StackUnderflow)?;
+        Ok(())
+    }
+}
+
+impl<E: Engine> fmt::Display for EvaluationStack<E> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "Evaluation Stack:")?;
+
+        for frame in self.stack.iter().rev() {
+            for cell in frame.iter().rev() {
+                let Cell::Value(value) = cell;
+                writeln!(f, "\t{}", value)?;
+            }
+        }
+
         Ok(())
     }
 }

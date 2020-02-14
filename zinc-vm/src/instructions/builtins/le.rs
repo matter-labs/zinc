@@ -25,25 +25,28 @@ where
 mod test {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
+    use zinc_bytecode::scalar::IntegerType;
     use zinc_bytecode::*;
 
     #[test]
     fn test_le() -> Result<(), TestingError> {
+        let _ = env_logger::builder().is_test(true).try_init();
+
         VMTestRunner::new()
-            .add(PushConst::new_untyped(2.into()))
-            .add(PushConst::new_untyped(1.into()))
+            .add(PushConst::new(2.into(), IntegerType::I8.into()))
+            .add(PushConst::new(1.into(), IntegerType::I8.into()))
             .add(Le)
-            .add(PushConst::new_untyped(2.into()))
-            .add(PushConst::new_untyped(2.into()))
+            .add(PushConst::new(2.into(), IntegerType::I8.into()))
+            .add(PushConst::new(2.into(), IntegerType::I8.into()))
             .add(Le)
-            .add(PushConst::new_untyped(1.into()))
-            .add(PushConst::new_untyped(2.into()))
+            .add(PushConst::new(1.into(), IntegerType::I8.into()))
+            .add(PushConst::new(2.into(), IntegerType::I8.into()))
             .add(Le)
-            .add(PushConst::new_untyped((-2).into()))
-            .add(PushConst::new_untyped(2.into()))
+            .add(PushConst::new((-2).into(), IntegerType::I8.into()))
+            .add(PushConst::new(2.into(), IntegerType::I8.into()))
             .add(Le)
-            .add(PushConst::new_untyped(2.into()))
-            .add(PushConst::new_untyped((-2).into()))
+            .add(PushConst::new(2.into(), IntegerType::I8.into()))
+            .add(PushConst::new((-2).into(), IntegerType::I8.into()))
             .add(Le)
             .test(&[0, 1, 1, 1, 0])
     }

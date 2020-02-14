@@ -70,7 +70,7 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, input: String) -> Result<SyntaxTree, Error> {
+    pub fn parse(mut self, input: &str) -> Result<SyntaxTree, Error> {
         let stream = TokenStream::new(input);
         let stream = Rc::new(RefCell::new(stream));
 

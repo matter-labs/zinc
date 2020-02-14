@@ -1,7 +1,6 @@
-use crate::Error;
+use crate::{Error, IoToError};
 use pairing::bn256::Bn256;
 use std::fs;
-use std::io::Write;
 use std::path::PathBuf;
 use structopt::StructOpt;
 use zinc_bytecode::program::Program;
@@ -20,22 +19,26 @@ pub struct SetupCommand {
 
 impl SetupCommand {
     pub fn execute(&self) -> Result<(), Error> {
-        let bytes = fs::read(&self.circuit_path)?;
-        let program = Program::from_bytes(bytes.as_slice()).unwrap();
+        let bytes =
+            fs::read(&self.circuit_path).error_with_path(|| self.circuit_path.to_string_lossy())?;
+        let program = Program::from_bytes(bytes.as_slice()).map_err(Error::ProgramDecoding)?;
 
         let params = zinc_vm::setup::<Bn256>(&program)?;
 
-        let pkey_file = fs::File::create(&self.proving_key_path)?;
-        params.write(pkey_file)?;
+        let pkey_file = fs::File::create(&self.proving_key_path)
+            .error_with_path(|| self.proving_key_path.to_string_lossy())?;
+        params
+            .write(pkey_file)
+            .error_with_path(|| self.proving_key_path.to_string_lossy())?;
 
         let vk_hex = {
             let mut vk_bytes = Vec::new();
-            params.vk.write(&mut vk_bytes)?;
-            hex::encode(vk_bytes)
+            params.vk.write(&mut vk_bytes).expect("writing to vec");
+            hex::encode(vk_bytes) + "\n"
         };
 
-        let mut vkey_file = fs::File::create(&self.verifying_key_path)?;
-        writeln!(vkey_file, "{}", vk_hex)?;
+        fs::write(&self.verifying_key_path, vk_hex)
+            .error_with_path(|| self.verifying_key_path.to_string_lossy())?;
 
         Ok(())
     }

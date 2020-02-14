@@ -1,0 +1,11 @@
+//# [ {
+//#     "case": "default", "should_panic": true,
+//#     "input": {
+//#         "witness": "-9223372036854775808"
+//#     },
+//#     "expect": null
+//# } ]
+
+fn main(witness: i64) -> i64 {
+    witness - 1 as i64
+}

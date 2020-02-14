@@ -1,4 +1,4 @@
-use crate::gadgets::{Gadget, Primitive};
+use crate::gadgets::{Gadget, Primitive, ScalarType};
 use crate::{Engine, RuntimeError};
 use bellman::ConstraintSystem;
 use ff::Field;
@@ -47,7 +47,7 @@ impl<E: Engine> Gadget<E> for Pedersen {
             .map(|&num| Primitive {
                 value: num.get_value(),
                 variable: num.get_variable(),
-                data_type: None,
+                scalar_type: ScalarType::Field,
             })
             .collect()
     }

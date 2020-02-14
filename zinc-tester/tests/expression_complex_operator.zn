@@ -1,0 +1,11 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {
+//#         "witness": "16"
+//#     },
+//#     "expect": "81"
+//# } ]
+
+fn main(witness: u8) -> u8 {
+    19 * 3 - 8 / 3 + (witness / (5 - 3) + 5) * (8 / 2 / 2)
+}
