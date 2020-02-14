@@ -2,12 +2,12 @@ use crate::gadgets::utils::bigint_to_fr;
 use crate::gadgets::{Gadget, IntegerType, Primitive, ScalarType};
 use crate::Engine;
 use crate::RuntimeError;
-use bellman::{ConstraintSystem};
+use bellman::ConstraintSystem;
 use ff::Field;
 use franklin_crypto::circuit::boolean::{AllocatedBit, Boolean};
+use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::num::AllocatedNum;
 use num_bigint::BigInt;
-use franklin_crypto::circuit::expression::Expression;
 
 pub struct SignedFromBits;
 
@@ -42,20 +42,16 @@ impl<E: Engine> Gadget<E> for SignedFromBits {
         let sign_bit = bits[length - 1].clone();
         bits.push(sign_bit.not());
 
-        let num = AllocatedNum::pack_bits_to_element(
-            cs.namespace(|| "pack_bits_to_element"),
-            &bits
-        )?;
+        let num =
+            AllocatedNum::pack_bits_to_element(cs.namespace(|| "pack_bits_to_element"), &bits)?;
 
         let num_expr = Expression::from(&num);
         let base_value = BigInt::from(1) << length;
         let base_expr = Expression::<E>::constant::<CS>(
-            bigint_to_fr::<E>(&base_value).expect("length is too big")
+            bigint_to_fr::<E>(&base_value).expect("length is too big"),
         );
 
-        let result = (num_expr - base_expr).into_number(
-            cs.namespace(|| "result")
-        )?;
+        let result = (num_expr - base_expr).into_number(cs.namespace(|| "result"))?;
 
         Ok(Primitive {
             value: result.get_value(),

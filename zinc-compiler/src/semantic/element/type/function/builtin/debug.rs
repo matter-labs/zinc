@@ -54,7 +54,7 @@ impl Function {
 
         let arguments_expected_count = format_string.matches("{}").count();
         if arguments_expected_count != inputs.len() - 1 {
-            return Err(Error::ArgumentCount(
+            return Err(Error::DebugArgumentCount(
                 self.identifier,
                 arguments_expected_count + 1,
                 inputs.len(),

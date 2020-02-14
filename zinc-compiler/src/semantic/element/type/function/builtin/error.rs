@@ -26,4 +26,9 @@ pub enum Error {
         _0, _1, _2
     )]
     ArgumentNotEvaluable(&'static str, usize, String),
+    #[fail(
+        display = "the number of {}!(...) arguments must be equal to the number of placeholders in the format string: expected {}, but got {}. Example: 'dbg!(\"{{}}, {{}}\", a, b)'",
+        _0, _1, _2
+    )]
+    DebugArgumentCount(&'static str, usize, usize),
 }

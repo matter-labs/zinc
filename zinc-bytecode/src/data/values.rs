@@ -74,7 +74,9 @@ impl Value {
             DataType::Scalar(scalar_type) => match scalar_type {
                 ScalarType::Field => Value::Scalar(ScalarValue::Field(0.into())),
                 ScalarType::Boolean => Value::Scalar(ScalarValue::Bool(false)),
-                ScalarType::Integer(int_type) => Value::Scalar(ScalarValue::Integer(0.into(), *int_type)),
+                ScalarType::Integer(int_type) => {
+                    Value::Scalar(ScalarValue::Integer(0.into(), *int_type))
+                }
             },
             DataType::Struct(fields) => Value::Struct(
                 fields
@@ -175,7 +177,7 @@ impl Value {
                     } else {
                         json::Value::String(String::from("0x") + value.to_str_radix(16).as_str())
                     }
-                },
+                }
                 ScalarValue::Integer(value, int_type) => {
                     if value <= &BigInt::from(std::u64::MAX) || int_type.signed {
                         json::Value::String(value.to_str_radix(10))
