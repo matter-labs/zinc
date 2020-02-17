@@ -8,11 +8,11 @@ Both operands of a binary operator must always be of the same type, e.g.:
 - `i64` and `i64`
 - `field` and `field`
 
-> The operators `/`, `%`, `>=`, `>`, `<=`, `<` are temporarily forbidden for the
+> The operators `/` and `%` are temporarily forbidden for the
 > type `field`, but will probably become available soon.
 
 > When is comes to the division of negative numbers, Zinc follows the Euclidean
-> division concept. It means that `-45 / 7 == 4`. To get the detailed explanation
+> division concept. It means that `-45 % 7 == 4`. To get the detailed explanation
 > and some examples, see the [article](https://en.wikipedia.org/wiki/Euclidean_division).
 
 #### Addition

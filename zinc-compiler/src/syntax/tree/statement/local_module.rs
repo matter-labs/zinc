@@ -23,4 +23,5 @@ pub enum Statement {
     Mod(ModStatement),
     Use(UseStatement),
     Impl(ImplStatement),
+    Empty,
 }

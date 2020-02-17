@@ -1,5 +1,8 @@
 # Comparison operators
 
+> The operators `>=`, `>`, `<=`, `<` are temporarily forbidden for the
+> type `field`, but will probably become available soon.
+
 #### Equality
 
 `==` is a binary operator.

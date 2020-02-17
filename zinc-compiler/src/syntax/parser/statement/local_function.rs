@@ -61,6 +61,10 @@ impl Parser {
                     LoopStatementParser::default().parse(stream.clone(), Some(token))?;
                 FunctionLocalStatement::Loop(statement)
             }
+            Token {
+                lexeme: Lexeme::Symbol(Symbol::Semicolon),
+                ..
+            } => return Ok((FunctionLocalStatement::Empty, None, false)),
             token => {
                 let (expression, next) =
                     ExpressionParser::default().parse(stream.clone(), Some(token))?;

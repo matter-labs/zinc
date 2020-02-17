@@ -8,6 +8,7 @@ use std::rc::Rc;
 use crate::error::Error;
 use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
+use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::ConstStatementParser;
@@ -41,6 +42,10 @@ impl Parser {
             } => FnStatementParser::default()
                 .parse(stream, Some(token))
                 .map(|(statement, next)| (ImplementationLocalStatement::Fn(statement), next)),
+            Token {
+                lexeme: Lexeme::Symbol(Symbol::Semicolon),
+                ..
+            } => Ok((ImplementationLocalStatement::Empty, None)),
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
                 location,
                 vec!["const", "fn"],

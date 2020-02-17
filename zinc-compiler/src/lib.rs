@@ -3,6 +3,7 @@
 //!
 
 #![allow(clippy::implicit_hasher)]
+#![allow(clippy::large_enum_variant)]
 
 mod error;
 mod lexical;

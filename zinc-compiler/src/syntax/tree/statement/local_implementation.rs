@@ -9,4 +9,5 @@ use crate::syntax::FnStatement;
 pub enum Statement {
     Const(ConstStatement),
     Fn(FnStatement),
+    Empty,
 }

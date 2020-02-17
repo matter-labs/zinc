@@ -6,7 +6,7 @@ These are the Zinc lexical grammar rules in the EWBF notation.
 lexeme = comment | identifier | keyword | literal | symbol | EOF ;
 
 comment = single_line_comment | multi_line_comment ;
-single_line_comment = '//', ( ? ANY ? - '\n' ), '\n' ;
+single_line_comment = '//', ( ? ANY ? - '\n' | EOF ), '\n' | EOF ;
 multi_line_comment = '/*', ( ? ANY ? - '*/' ), '*/' ;
 
 identifier = (

@@ -8,6 +8,7 @@ use std::rc::Rc;
 use crate::error::Error;
 use crate::lexical::Keyword;
 use crate::lexical::Lexeme;
+use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::ConstStatementParser;
@@ -104,6 +105,10 @@ impl Parser {
             } => ImplStatementParser::default()
                 .parse(stream, Some(token))
                 .map(|(statement, next)| (ModuleLocalStatement::Impl(statement), next)),
+            Token {
+                lexeme: Lexeme::Symbol(Symbol::Semicolon),
+                ..
+            } => Ok((ModuleLocalStatement::Empty, None)),
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
                 location,
                 vec![
