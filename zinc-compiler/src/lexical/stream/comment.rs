@@ -28,67 +28,72 @@ pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
     let mut lines = 0;
     let mut column = 1;
 
-    while let Some(character) = input.chars().nth(size) {
+    loop {
+        let character = input.chars().nth(size);
         match state {
             State::Start => match character {
-                '/' => {
+                Some('/') => {
                     size += 1;
                     column += 1;
                     state = State::Slash;
                 }
-                _ => return Err(Error::NotAComment),
+                Some(_) => return Err(Error::NotAComment),
+                None => break,
             },
             State::Slash => match character {
-                '/' => {
+                Some('/') => {
                     size += 1;
                     column += 1;
                     state = State::SingleLine;
                 }
-                '*' => {
+                Some('*') => {
                     size += 1;
                     column += 1;
                     state = State::MultiLine;
                 }
-                _ => return Err(Error::NotAComment),
+                Some(_) => return Err(Error::NotAComment),
+                None => break,
             },
             State::SingleLine => match character {
-                '\n' => {
+                Some('\n') | None => {
                     let comment = Comment::new(input[2..size].to_owned());
                     return Ok((size, lines, column, comment));
                 }
-                _ => {
+                Some(_) => {
                     size += 1;
                     column += 1;
                 }
             },
             State::MultiLine => match character {
-                '*' => {
+                Some('*') => {
                     size += 1;
                     column += 1;
                     state = State::MultiLineStar;
                 }
-                '\n' => {
+                Some('\n') => {
                     size += 1;
                     column = 1;
                     lines += 1;
                 }
-                _ => {
+                Some(_) => {
                     size += 1;
                     column += 1;
                 }
+                None => break,
             },
             State::MultiLineStar => match character {
-                '/' => {
+                Some('/') => {
                     size += 1;
                     column += 1;
                     let comment = Comment::new(input[2..size - 2].to_owned());
                     return Ok((size, lines, column, comment));
                 }
-                _ => {
+                Some(_) => {
                     size += 1;
                     column += 1;
                     state = State::MultiLine;
                 }
+                None => break,
             },
         }
     }
@@ -103,8 +108,21 @@ mod tests {
     use crate::lexical::token::lexeme::comment::Comment;
 
     #[test]
-    fn ok_single_line() {
+    fn ok_single_line_with_break() {
         let input = "//mega ultra comment text\n";
+        let expected = Ok((
+            25,
+            0,
+            26,
+            Comment::new("mega ultra comment text".to_owned()),
+        ));
+        let result = parse(input);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_single_line_with_eof() {
+        let input = "//mega ultra comment text";
         let expected = Ok((
             25,
             0,
@@ -126,14 +144,6 @@ mod tests {
             3,
             Comment::new("\n    This is the mega ultra test application!\n".to_owned()),
         ));
-        let result = parse(input);
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn err_single_line_unexpected_end() {
-        let input = "//mega ultra comment text";
-        let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
         assert_eq!(result, expected);
     }

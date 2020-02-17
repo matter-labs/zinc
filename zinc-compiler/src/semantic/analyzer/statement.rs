@@ -73,18 +73,17 @@ impl Analyzer {
 
     pub fn module_local_statement(&mut self, statement: ModuleLocalStatement) -> Result<(), Error> {
         match statement {
-            ModuleLocalStatement::Const(statement) => self.const_statement(statement)?,
-            ModuleLocalStatement::Static(statement) => self.static_statement(statement)?,
-            ModuleLocalStatement::Type(statement) => self.type_statement(statement)?,
-            ModuleLocalStatement::Struct(statement) => self.struct_statement(statement)?,
-            ModuleLocalStatement::Enum(statement) => self.enum_statement(statement)?,
-            ModuleLocalStatement::Fn(statement) => self.fn_statement(statement)?,
-            ModuleLocalStatement::Mod(statement) => self.mod_statement(statement)?,
-            ModuleLocalStatement::Use(statement) => self.use_statement(statement)?,
-            ModuleLocalStatement::Impl(statement) => self.impl_statement(statement)?,
+            ModuleLocalStatement::Const(statement) => self.const_statement(statement),
+            ModuleLocalStatement::Static(statement) => self.static_statement(statement),
+            ModuleLocalStatement::Type(statement) => self.type_statement(statement),
+            ModuleLocalStatement::Struct(statement) => self.struct_statement(statement),
+            ModuleLocalStatement::Enum(statement) => self.enum_statement(statement),
+            ModuleLocalStatement::Fn(statement) => self.fn_statement(statement),
+            ModuleLocalStatement::Mod(statement) => self.mod_statement(statement),
+            ModuleLocalStatement::Use(statement) => self.use_statement(statement),
+            ModuleLocalStatement::Impl(statement) => self.impl_statement(statement),
+            ModuleLocalStatement::Empty => Ok(()),
         }
-
-        Ok(())
     }
 
     pub fn function_local_statement(
@@ -92,16 +91,16 @@ impl Analyzer {
         statement: FunctionLocalStatement,
     ) -> Result<(), Error> {
         match statement {
-            FunctionLocalStatement::Let(statement) => self.let_statement(statement)?,
-            FunctionLocalStatement::Const(statement) => self.const_statement(statement)?,
-            FunctionLocalStatement::Loop(statement) => self.loop_statement(statement)?,
+            FunctionLocalStatement::Let(statement) => self.let_statement(statement),
+            FunctionLocalStatement::Const(statement) => self.const_statement(statement),
+            FunctionLocalStatement::Loop(statement) => self.loop_statement(statement),
             FunctionLocalStatement::Expression(expression) => {
                 ExpressionAnalyzer::new(self.scope(), self.bytecode.clone())
                     .expression(expression, TranslationHint::ValueExpression)?;
+                Ok(())
             }
+            FunctionLocalStatement::Empty => Ok(()),
         }
-
-        Ok(())
     }
 
     pub fn implementation_local_statement(
@@ -109,11 +108,10 @@ impl Analyzer {
         statement: ImplementationLocalStatement,
     ) -> Result<(), Error> {
         match statement {
-            ImplementationLocalStatement::Const(statement) => self.const_statement(statement)?,
-            ImplementationLocalStatement::Fn(statement) => self.fn_statement(statement)?,
+            ImplementationLocalStatement::Const(statement) => self.const_statement(statement),
+            ImplementationLocalStatement::Fn(statement) => self.fn_statement(statement),
+            ImplementationLocalStatement::Empty => Ok(()),
         }
-
-        Ok(())
     }
 
     fn const_statement(&mut self, statement: ConstStatement) -> Result<(), Error> {
