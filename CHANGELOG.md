@@ -1,5 +1,12 @@
 # The Zinc changelog
 
+## Version 0.1.3 (2020-02-17)
+
+### Compiler
+
+- fix the compile error with a comment at the end of a file
+- add an empty statement to allow optional semicolons
+
 ## Version 0.1.2 (2020-02-14)
 
 ### Language
