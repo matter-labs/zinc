@@ -19,7 +19,7 @@ impl Builder {
         self.location = Some(value);
     }
 
-    pub fn set_scrutinee(&mut self, value: Expression) {
+    pub fn set_scrutinee_expression(&mut self, value: Expression) {
         self.scrutinee = Some(value);
     }
 

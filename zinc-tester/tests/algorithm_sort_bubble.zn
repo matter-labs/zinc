@@ -21,7 +21,7 @@
 //#     "expect": ["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
 //# } ]
 
-const LENGTH: u8 = 10;
+const ARRAY_SIZE: u8 = 10;
 
 enum Direction {
     None = 0,
@@ -29,9 +29,9 @@ enum Direction {
     Descending = 2,
 }
 
-fn main(mut array: [u8; 10], direction: Direction) -> [u8; 10] {
-    for i in 0..LENGTH {
-        for j in 0..LENGTH {
+fn main(mut array: [u8; ARRAY_SIZE], direction: Direction) -> [u8; ARRAY_SIZE] {
+    for i in 0..ARRAY_SIZE {
+        for j in 0..ARRAY_SIZE {
             if match direction {
                 Direction::Ascending => array[i] < array[j],
                 Direction::Descending => array[i] > array[j],

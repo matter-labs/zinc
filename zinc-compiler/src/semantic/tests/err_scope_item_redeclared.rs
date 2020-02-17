@@ -22,7 +22,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         Location::new(5, 9),
-        ScopeError::ItemRedeclared("result".to_owned()),
+        ScopeError::ItemRedeclared("result".to_owned(), Location::new(3, 9)),
     )));
 
     let result = super::get_binary_result(input);

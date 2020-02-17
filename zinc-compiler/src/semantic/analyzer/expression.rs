@@ -34,7 +34,7 @@ use crate::semantic::element::value::tuple::Tuple;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
-use crate::semantic::scope::item::Item as ScopeItem;
+use crate::semantic::scope::item::Variant as ScopeItem;
 use crate::semantic::scope::Scope;
 use crate::syntax;
 use crate::syntax::ArrayExpression;
@@ -659,7 +659,7 @@ impl Analyzer {
 
         let function = match operand_1 {
             Element::Type(Type::Function(function)) => function,
-            Element::Path(path) => match Scope::resolve_path(self.scope(), &path)? {
+            Element::Path(path) => match Scope::resolve_path(self.scope(), &path)?.variant {
                 ScopeItem::Type(Type::Function(function)) => function,
                 item => {
                     return Err(Error::FunctionCallingNotCallableObject(
@@ -1130,17 +1130,12 @@ impl Analyzer {
                             .push_instruction(Instruction::Else(zinc_bytecode::Else), location);
                     }
                     self.push_scope();
-                    self.scope()
-                        .borrow_mut()
-                        .declare_variable(
-                            identifier.name,
-                            ScopeVariableItem::new(
-                                scrutinee_type.clone(),
-                                false,
-                                scrutinee_address,
-                            ),
-                        )
-                        .map_err(|error| Error::Scope(location, error))?;
+                    Scope::declare_variable(
+                        self.scope(),
+                        identifier,
+                        ScopeVariableItem::new(scrutinee_type.clone(), false, scrutinee_address),
+                    )
+                    .map_err(|error| Error::Scope(location, error))?;
                     let result = self.expression(expression, TranslationHint::ValueExpression)?;
                     self.pop_scope();
 
@@ -1179,7 +1174,7 @@ impl Analyzer {
                         false,
                         scrutinee_location,
                     );
-                    match Scope::resolve_path(self.scope(), &path)? {
+                    match Scope::resolve_path(self.scope(), &path)?.variant {
                         ScopeItem::Variable(variable) => {
                             self.bytecode.borrow_mut().push_instruction_load(
                                 variable.address,
@@ -1322,6 +1317,7 @@ impl Analyzer {
         let (structure_identifier, type_unique_id, expected_fields) =
             match Scope::resolve_item(self.scope(), &structure.identifier.name)
                 .map_err(|error| Error::Scope(identifier_location, error))?
+                .variant
             {
                 ScopeItem::Type(Type::Structure(structure)) => {
                     (structure.identifier, structure.unique_id, structure.fields)
@@ -1410,54 +1406,58 @@ impl Analyzer {
         let path_last = path.last();
 
         match translation_hint {
-            TranslationHint::ValueExpression => match Scope::resolve_path(self.scope(), path)? {
-                ScopeItem::Variable(variable) => {
-                    let size = variable.r#type.size();
-                    self.bytecode.borrow_mut().push_instruction_load(
-                        variable.address,
-                        size,
-                        None,
-                        false,
-                        location,
-                    );
-                    self.loads += 1;
-                    Value::try_from(variable.r#type)
-                        .map(Element::Value)
-                        .map_err(ElementError::Value)
-                        .map_err(|error| Error::Element(location, error))
+            TranslationHint::ValueExpression => {
+                match Scope::resolve_path(self.scope(), path)?.variant {
+                    ScopeItem::Variable(variable) => {
+                        let size = variable.r#type.size();
+                        self.bytecode.borrow_mut().push_instruction_load(
+                            variable.address,
+                            size,
+                            None,
+                            false,
+                            location,
+                        );
+                        self.loads += 1;
+                        Value::try_from(variable.r#type)
+                            .map(Element::Value)
+                            .map_err(ElementError::Value)
+                            .map_err(|error| Error::Element(location, error))
+                    }
+                    ScopeItem::Constant(constant) => {
+                        self.bytecode
+                            .borrow_mut()
+                            .push_instruction(constant.to_instruction(), location);
+                        self.pushes += 1;
+                        Ok(Element::Constant(constant))
+                    }
+                    ScopeItem::Static(r#static) => {
+                        let r#type = r#static.data.r#type();
+                        let size = r#type.size();
+                        self.bytecode.borrow_mut().push_instruction_load(
+                            r#static.address,
+                            size,
+                            None,
+                            true,
+                            location,
+                        );
+                        self.loads += 1;
+                        Ok(Element::Constant(r#static.data))
+                    }
+                    ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
+                    ScopeItem::Module(_) => Ok(Element::Module(path_last.name.to_owned())),
                 }
-                ScopeItem::Constant(constant) => {
-                    self.bytecode
-                        .borrow_mut()
-                        .push_instruction(constant.to_instruction(), location);
-                    self.pushes += 1;
-                    Ok(Element::Constant(constant))
+            }
+            TranslationHint::TypeExpression => {
+                match Scope::resolve_path(self.scope(), path)?.variant {
+                    ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
+                    _ => Ok(Element::Path(path.to_owned())),
                 }
-                ScopeItem::Static(r#static) => {
-                    let r#type = r#static.data.r#type();
-                    let size = r#type.size();
-                    self.bytecode.borrow_mut().push_instruction_load(
-                        r#static.address,
-                        size,
-                        None,
-                        true,
-                        location,
-                    );
-                    self.loads += 1;
-                    Ok(Element::Constant(r#static.data))
-                }
-                ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
-                ScopeItem::Module(_) => Ok(Element::Module(path_last.name.to_owned())),
-            },
-            TranslationHint::TypeExpression => match Scope::resolve_path(self.scope(), path)? {
-                ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
-                _ => Ok(Element::Path(path.to_owned())),
-            },
+            }
 
             TranslationHint::PathExpression => Ok(Element::Path(path.to_owned())),
             TranslationHint::PlaceExpression => {
                 let identifier = path.last().name.to_owned();
-                match Scope::resolve_path(self.scope(), path)? {
+                match Scope::resolve_path(self.scope(), path)?.variant {
                     ScopeItem::Variable(variable) => Ok(Element::Place(Place::new(
                         location,
                         identifier,

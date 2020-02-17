@@ -58,8 +58,8 @@ struct Arguments {
 enum Error {
     #[fail(display = "source file: {}", _0)]
     SourceFile(FileError),
-    #[fail(display = "{}:{}", _0, _1)]
-    Compiler(String, zinc_compiler::Error),
+    #[fail(display = "{}", _0)]
+    Compiler(zinc_compiler::Error),
     #[fail(display = "witness template output: {}", _0)]
     WitnessTemplateOutput(OutputError),
     #[fail(display = "public data template output: {}", _0)]
@@ -106,7 +106,7 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));
 
     let mut modules = HashMap::<String, Rc<RefCell<Scope>>>::new();
-    let mut binary_path = None;
+    let mut entry_file_path = None;
 
     for source_file_path in args.source_files.into_iter() {
         let source_file_extension = source_file_path
@@ -125,27 +125,29 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
             .ok_or(FileError::StemNotFound)
             .map_err(Error::SourceFile)?;
         if source_file_stem == "main" {
-            binary_path = Some(source_file_path);
+            entry_file_path = Some(source_file_path);
             continue;
         }
 
         let module_name = source_file_stem.to_string_lossy().to_string();
-        let module_file_path = format!("src/{}.zn", module_name);
-        bytecode.borrow_mut().start_new_file(&module_file_path);
+        bytecode
+            .borrow_mut()
+            .start_new_file(source_file_path.to_string_lossy().as_ref());
         log::info!("Compiling {:?}", source_file_path);
         let module = zinc_compiler::compile_module(source_file_path, bytecode.clone())
-            .map_err(|error| Error::Compiler(module_file_path, error))?;
+            .map_err(Error::Compiler)?;
 
         modules.insert(module_name, module);
     }
 
-    let entry_file_path = "src/main.zn";
-    bytecode.borrow_mut().start_new_file(entry_file_path);
-    log::info!("Compiling {:?}", entry_file_path);
-    match binary_path.take() {
-        Some(binary_path) => {
-            zinc_compiler::compile_entry(binary_path, bytecode.clone(), modules)
-                .map_err(|error| Error::Compiler(entry_file_path.to_owned(), error))?;
+    match entry_file_path.take() {
+        Some(entry_file_path) => {
+            bytecode
+                .borrow_mut()
+                .start_new_file(entry_file_path.to_string_lossy().as_ref());
+            log::info!("Compiling {:?}", entry_file_path);
+            zinc_compiler::compile_entry(entry_file_path, bytecode.clone(), modules)
+                .map_err(Error::Compiler)?;
         }
         None => return Err(Error::EntrySourceFileNotFound),
     }

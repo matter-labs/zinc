@@ -6,6 +6,9 @@
 //#     "expect": ["6", "7", "8", "9", "10"]
 //# } ]
 
-fn main(array: [u8; 10]) -> [u8; 5] {
-    array[5..10]
+const LENGTH_INPUT: u8 = 10;
+const LENGTH_OUTPUT: u8 = 5;
+
+fn main(array: [u8; LENGTH_INPUT]) -> [u8; LENGTH_OUTPUT] {
+    array[5..5+LENGTH_OUTPUT]
 }

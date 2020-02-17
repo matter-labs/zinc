@@ -68,10 +68,12 @@ enum TokenId {
     Zcash = 3,
 }
 
+const TOKENS_COUNT: u8 = 4;
+
 struct Person {
     id: field,
     date_of_birth: Date,
-    balances: [(TokenId, field); 4],
+    balances: [(TokenId, field); TOKENS_COUNT],
 }
 
 struct Result {
@@ -102,7 +104,7 @@ fn main(token_id: u8) -> Result {
         date_of_birth: person.date_of_birth,
     };
 
-    for id in 0..4 {
+    for id in 0..TOKENS_COUNT {
         if person.balances[id].0 == token_id {
             result.sum = result.sum + person.balances[id].1;
         };

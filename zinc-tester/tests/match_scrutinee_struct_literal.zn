@@ -1,0 +1,21 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {
+//#         "witness": "2"
+//#     },
+//#     "expect": "42"
+//# } ]
+
+struct Data {
+    value: u8,
+    another: u8,
+}
+
+fn main(witness: u8) -> u8 {
+    // Does not compile in Rust, but does compile in Zinc!
+    match Data { value: witness, another: witness * 21 }.value {
+        1 => 10,
+        2 => Data { value: witness, another: witness * 21 }.another,
+        _ => 69,
+    }
+}

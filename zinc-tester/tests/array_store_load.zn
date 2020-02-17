@@ -6,7 +6,9 @@
 //#     "expect": "69"
 //# } ]
 
-fn main(mut array: [u8; 4]) -> u8 {
+const SIZE: u8 = 4;
+
+fn main(mut array: [u8; SIZE]) -> u8 {
     array[3] = 111;
     array[1] = 42;
 

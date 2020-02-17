@@ -6,6 +6,8 @@
 //#     "expect": ["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
 //# } ]
 
-fn main(array: [field; 10]) -> [field; 10] {
+const ARRAY_SIZE: u16 = 10;
+
+fn main(array: [field; ARRAY_SIZE]) -> [field; ARRAY_SIZE] {
     std::array::reverse(array)
 }

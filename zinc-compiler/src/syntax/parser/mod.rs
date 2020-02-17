@@ -70,8 +70,11 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn parse(mut self, input: &str) -> Result<SyntaxTree, Error> {
-        let stream = TokenStream::new(input);
+    pub fn parse(mut self, input: &str, file: Option<usize>) -> Result<SyntaxTree, Error> {
+        let stream = match file {
+            Some(file) => TokenStream::new_with_file(input, file),
+            None => TokenStream::new(input),
+        };
         let stream = Rc::new(RefCell::new(stream));
 
         let mut statements = Vec::new();
