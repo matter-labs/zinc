@@ -58,7 +58,7 @@ struct Arguments {
 enum Error {
     #[fail(display = "source file: {}", _0)]
     SourceFile(FileError),
-    #[fail(display = "compiler: {}:{}", _0, _1)]
+    #[fail(display = "{}:{}", _0, _1)]
     Compiler(String, zinc_compiler::Error),
     #[fail(display = "witness template output: {}", _0)]
     WitnessTemplateOutput(OutputError),

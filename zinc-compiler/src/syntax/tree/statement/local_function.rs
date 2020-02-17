@@ -13,5 +13,6 @@ pub enum Statement {
     Let(LetStatement),
     Const(ConstStatement),
     Loop(LoopStatement),
+    Empty,
     Expression(Expression),
 }

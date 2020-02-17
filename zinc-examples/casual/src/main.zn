@@ -6,6 +6,8 @@ fn main() -> u64 {
     let mut sum: u64 = 0;
     for i in -2147483648..=-2147483639 {
         sum = sum + 1 as u64;
-    }
+    };;;
     sum
 }
+
+// this is the comment

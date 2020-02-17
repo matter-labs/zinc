@@ -16,17 +16,22 @@ module_local_statement =
   | mod_statement
   | use_statement
   | impl_statement
+  | empty_statement
+;
 
 function_local_statement =
     let_statement
   | const_statement
   | loop_statement
+  | empty_statement
   | expression
+;
 
 implementation_local_statement =
     const_statement
   | fn_statement
-';' ;
+  | empty_statement
+;
 
 let_statement = 'let', [ 'mut' ], identifier, [ ':', type ], '=', expression ;
 loop_statement = 'for', identifier, 'in', expression, [ 'while', expression ], block_expression ;
@@ -37,6 +42,7 @@ fn_statement = 'fn', identifier, '(', field_list, ')', [ '->', type ], block_exp
 mod_statement = 'mod', identifier ;
 use_statement = 'use', path_expression ;
 impl_statement = 'impl', identifier, '{', { implementation_local_statement }, '}' ;
+empty_statement = ';' ;
 
 (* Expressions *)
 expression = operand_assignment, [ '=', operand_assignment ] ;
