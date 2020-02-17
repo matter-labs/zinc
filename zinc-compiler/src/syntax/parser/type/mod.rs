@@ -103,6 +103,7 @@ mod tests {
     use crate::syntax::ExpressionElement;
     use crate::syntax::ExpressionObject;
     use crate::syntax::ExpressionOperand;
+    use crate::syntax::ExpressionOperator;
     use crate::syntax::Identifier;
     use crate::syntax::IntegerLiteral;
     use crate::syntax::Type;
@@ -153,9 +154,63 @@ mod tests {
                 Location::new(1, 1),
                 TypeVariant::array(
                     TypeVariant::field(),
-                    IntegerLiteral::new(
+                    Expression::new(
                         Location::new(1, 9),
-                        lexical::IntegerLiteral::new_decimal("8".to_owned()),
+                        vec![ExpressionElement::new(
+                            Location::new(1, 9),
+                            ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                                IntegerLiteral::new(
+                                    Location::new(1, 9),
+                                    lexical::IntegerLiteral::new_decimal("8".to_owned()),
+                                ),
+                            )),
+                        )],
+                    ),
+                ),
+            ),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_array_size_expression() {
+        let input = "[field; 4 * 4]";
+
+        let expected = Ok((
+            Type::new(
+                Location::new(1, 1),
+                TypeVariant::array(
+                    TypeVariant::field(),
+                    Expression::new(
+                        Location::new(1, 9),
+                        vec![
+                            ExpressionElement::new(
+                                Location::new(1, 9),
+                                ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                                    IntegerLiteral::new(
+                                        Location::new(1, 9),
+                                        lexical::IntegerLiteral::new_decimal("4".to_owned()),
+                                    ),
+                                )),
+                            ),
+                            ExpressionElement::new(
+                                Location::new(1, 13),
+                                ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                                    IntegerLiteral::new(
+                                        Location::new(1, 13),
+                                        lexical::IntegerLiteral::new_decimal("4".to_owned()),
+                                    ),
+                                )),
+                            ),
+                            ExpressionElement::new(
+                                Location::new(1, 11),
+                                ExpressionObject::Operator(ExpressionOperator::Multiplication),
+                            ),
+                        ],
                     ),
                 ),
             ),
@@ -177,14 +232,30 @@ mod tests {
                 TypeVariant::array(
                     TypeVariant::array(
                         TypeVariant::field(),
-                        IntegerLiteral::new(
+                        Expression::new(
                             Location::new(1, 10),
-                            lexical::IntegerLiteral::new_decimal("8".to_owned()),
+                            vec![ExpressionElement::new(
+                                Location::new(1, 10),
+                                ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                                    IntegerLiteral::new(
+                                        Location::new(1, 10),
+                                        lexical::IntegerLiteral::new_decimal("8".to_owned()),
+                                    ),
+                                )),
+                            )],
                         ),
                     ),
-                    IntegerLiteral::new(
+                    Expression::new(
                         Location::new(1, 14),
-                        lexical::IntegerLiteral::new_decimal("8".to_owned()),
+                        vec![ExpressionElement::new(
+                            Location::new(1, 14),
+                            ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                                IntegerLiteral::new(
+                                    Location::new(1, 14),
+                                    lexical::IntegerLiteral::new_decimal("8".to_owned()),
+                                ),
+                            )),
+                        )],
                     ),
                 ),
             ),
@@ -225,9 +296,17 @@ mod tests {
                     TypeVariant::Unit,
                     TypeVariant::array(
                         TypeVariant::integer_unsigned(8),
-                        IntegerLiteral::new(
+                        Expression::new(
                             Location::new(1, 18),
-                            lexical::IntegerLiteral::new_decimal("4".to_owned()),
+                            vec![ExpressionElement::new(
+                                Location::new(1, 18),
+                                ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                                    IntegerLiteral::new(
+                                        Location::new(1, 18),
+                                        lexical::IntegerLiteral::new_decimal("4".to_owned()),
+                                    ),
+                                )),
+                            )],
                         ),
                     ),
                 ]),

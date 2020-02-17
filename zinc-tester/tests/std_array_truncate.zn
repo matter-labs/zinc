@@ -40,6 +40,9 @@
 //#     ]
 //# } ]
 
-fn main(array: [field; 256]) -> [field; 241] {
-    std::array::truncate(array, 241)
+const ARRAY_SIZE_INPUT: u16 = 256;
+const ARRAY_SIZE_OUTPUT: u16 = 241;
+
+fn main(array: [field; ARRAY_SIZE_INPUT]) -> [field; ARRAY_SIZE_OUTPUT] {
+    std::array::truncate(array, ARRAY_SIZE_OUTPUT)
 }

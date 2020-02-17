@@ -27,7 +27,7 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::element::r#type::UNIQUE_ID;
 use crate::semantic::element::Element;
 use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
-use crate::semantic::scope::item::Item as ScopeItem;
+use crate::semantic::scope::item::Variant as ScopeItem;
 use crate::semantic::scope::Scope;
 use crate::syntax::BindingPatternVariant;
 use crate::syntax::ConstStatement;
@@ -137,9 +137,7 @@ impl Analyzer {
             }
         };
 
-        self.scope()
-            .borrow_mut()
-            .declare_constant(statement.identifier.name, constant)
+        Scope::declare_constant(self.scope(), statement.identifier, constant)
             .map_err(|error| Error::Scope(location, error))?;
 
         Ok(())
@@ -168,9 +166,7 @@ impl Analyzer {
             }
         };
 
-        self.scope()
-            .borrow_mut()
-            .declare_constant(statement.identifier.name, constant)
+        Scope::declare_constant(self.scope(), statement.identifier, constant)
             .map_err(|error| Error::Scope(location, error))?;
 
         Ok(())
@@ -181,9 +177,7 @@ impl Analyzer {
 
         let r#type = Type::from_type_variant(&statement.r#type.variant, self.scope())?;
 
-        self.scope()
-            .borrow_mut()
-            .declare_type(statement.identifier.name, r#type)
+        Scope::declare_type(self.scope(), statement.identifier, r#type)
             .map_err(|error| Error::Scope(location, error))?;
 
         Ok(())
@@ -210,9 +204,7 @@ impl Analyzer {
             Some(self.scope()),
         );
 
-        self.scope()
-            .borrow_mut()
-            .declare_type(statement.identifier.name, r#type)
+        Scope::declare_type(self.scope(), statement.identifier, r#type)
             .map_err(|error| Error::Scope(location, error))?;
 
         Ok(())
@@ -231,9 +223,7 @@ impl Analyzer {
             Some(self.scope()),
         )?;
 
-        self.scope()
-            .borrow_mut()
-            .declare_type(statement.identifier.name, r#type)
+        Scope::declare_type(self.scope(), statement.identifier, r#type)
             .map_err(|error| Error::Scope(location, error))?;
 
         Ok(())
@@ -241,8 +231,6 @@ impl Analyzer {
 
     fn fn_statement(&mut self, statement: FnStatement) -> Result<(), Error> {
         let location = statement.location;
-
-        let identifier = statement.identifier.name;
 
         let mut argument_bindings = Vec::with_capacity(statement.argument_bindings.len());
         for argument_binding in statement.argument_bindings.iter() {
@@ -263,22 +251,20 @@ impl Analyzer {
             UNIQUE_ID
         };
         let function_type = UserDefinedFunctionType::new(
-            identifier.clone(),
+            statement.identifier.name.clone(),
             unique_id,
             argument_bindings,
             return_type,
         );
         let r#type = Type::Function(FunctionType::UserDefined(function_type));
 
-        self.scope()
-            .borrow_mut()
-            .declare_type(identifier.clone(), r#type)
+        Scope::declare_type(self.scope(), statement.identifier.clone(), r#type)
             .map_err(|error| Error::Scope(location, error))?;
 
         // record the function address in the bytecode
         self.bytecode
             .borrow_mut()
-            .start_new_function(&identifier, unique_id);
+            .start_new_function(&statement.identifier.name, unique_id);
 
         // start a new scope and declare the function arguments there
         self.push_scope();
@@ -293,13 +279,12 @@ impl Analyzer {
                 .bytecode
                 .borrow_mut()
                 .allocate_data_stack_space(r#type.size());
-            self.scope()
-                .borrow_mut()
-                .declare_variable(
-                    identifier.name,
-                    ScopeVariableItem::new(r#type, is_mutable, address),
-                )
-                .map_err(|error| Error::Scope(location, error))?;
+            Scope::declare_variable(
+                self.scope(),
+                identifier,
+                ScopeVariableItem::new(r#type, is_mutable, address),
+            )
+            .map_err(|error| Error::Scope(location, error))?;
         }
 
         // compile the function block
@@ -313,7 +298,7 @@ impl Analyzer {
         if expected_type != result_type {
             return Err(Error::FunctionReturnTypeMismatch(
                 statement.return_type.location,
-                identifier,
+                statement.identifier.name,
                 expected_type.to_string(),
                 result_type.to_string(),
             ));
@@ -338,9 +323,7 @@ impl Analyzer {
                 ))
             }
         };
-        self.scope()
-            .borrow_mut()
-            .declare_module(statement.identifier.name, module)
+        Scope::declare_module(self.scope(), statement.identifier, module)
             .map_err(|error| Error::Scope(identifier_location, error))?;
 
         Ok(())
@@ -360,9 +343,7 @@ impl Analyzer {
             .elements
             .last()
             .expect(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
-        self.scope()
-            .borrow_mut()
-            .declare_item(last_member_string.name.to_owned(), item)
+        Scope::declare_item(self.scope(), last_member_string.to_owned().into(), item)
             .map_err(|error| Error::Scope(last_member_string.location, error))?;
 
         Ok(())
@@ -374,6 +355,7 @@ impl Analyzer {
         let structure_scope =
             match Scope::resolve_item(self.scope(), statement.identifier.name.as_str())
                 .map_err(|error| Error::Scope(identifier_location, error))?
+                .variant
             {
                 ScopeItem::Type(Type::Structure(structure)) => structure.scope,
                 ScopeItem::Type(Type::Enumeration { scope, .. }) => scope,
@@ -428,13 +410,12 @@ impl Analyzer {
         self.bytecode
             .borrow_mut()
             .push_instruction_store(address, size, None, false, location);
-        self.scope()
-            .borrow_mut()
-            .declare_variable(
-                statement.identifier.name,
-                ScopeVariableItem::new(r#type, statement.is_mutable, address),
-            )
-            .map_err(|error| Error::Scope(location, error))?;
+        Scope::declare_variable(
+            self.scope(),
+            statement.identifier,
+            ScopeVariableItem::new(r#type, statement.is_mutable, address),
+        )
+        .map_err(|error| Error::Scope(location, error))?;
 
         Ok(())
     }
@@ -535,13 +516,12 @@ impl Analyzer {
 
         // declare the index variable
         self.push_scope();
-        self.scope()
-            .borrow_mut()
-            .declare_variable(
-                statement.index_identifier.name,
-                ScopeVariableItem::new(Type::scalar(is_signed, bitlength), false, index_address),
-            )
-            .map_err(|error| Error::Scope(location, error))?;
+        Scope::declare_variable(
+            self.scope(),
+            statement.index_identifier,
+            ScopeVariableItem::new(Type::scalar(is_signed, bitlength), false, index_address),
+        )
+        .map_err(|error| Error::Scope(location, error))?;
 
         // check the while condition, set the allowed variable, and execute the loop body
         if let (Some(expression), Some(while_allowed_address)) =

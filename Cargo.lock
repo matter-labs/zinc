@@ -1121,6 +1121,7 @@ version = "0.1.3"
 dependencies = [
  "env_logger",
  "failure",
+ "lazy_static",
  "log",
  "num-bigint",
  "num-traits 0.2.11",

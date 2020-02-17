@@ -20,7 +20,7 @@ use crate::semantic::analyzer::translation_hint::TranslationHint;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::Element;
-use crate::semantic::scope::item::Item as ScopeItem;
+use crate::semantic::scope::item::Variant as ScopeItemVariant;
 use crate::semantic::scope::Scope;
 use crate::syntax::Identifier;
 use crate::syntax::TypeVariant;
@@ -171,9 +171,7 @@ impl Type {
         for (identifier, value) in variants_bigint.into_iter() {
             let location = identifier.location;
             let constant = IntegerConstant::new(value, false, minimal_bitlength);
-            scope
-                .borrow_mut()
-                .declare_constant(identifier.name, Constant::Integer(constant))
+            Scope::declare_constant(scope.clone(), identifier, Constant::Integer(constant))
                 .map_err(|error| Error::Scope(location, error))?;
         }
 
@@ -293,13 +291,24 @@ impl Type {
             TypeVariant::IntegerSigned { bitlength } => Self::integer_signed(*bitlength),
             TypeVariant::Field => Self::field(),
             TypeVariant::Array { inner, size } => {
-                Self::array(Self::from_type_variant(&*inner, scope)?, {
-                    let location = size.location;
-                    IntegerConstant::try_from(size)
-                        .map_err(|error| Error::InferenceConstant(location, error))?
+                let r#type = Self::from_type_variant(&*inner, scope.clone())?;
+
+                let size_location = size.location;
+                let size = match ExpressionAnalyzer::new_without_bytecode(scope)
+                    .expression(size.to_owned(), TranslationHint::ValueExpression)?
+                {
+                    Element::Constant(Constant::Integer(integer)) => integer
                         .to_usize()
-                        .map_err(|error| Error::InferenceConstant(location, error))?
-                })
+                        .map_err(|error| Error::InferenceConstant(size_location, error))?,
+                    element => {
+                        return Err(Error::ConstantExpressionHasNonConstantElement(
+                            size_location,
+                            element.to_string(),
+                        ))
+                    }
+                };
+
+                Self::array(r#type, size)
             }
             TypeVariant::Tuple { inners } => {
                 let mut types = Vec::with_capacity(inners.len());
@@ -330,10 +339,10 @@ impl Type {
             Element::Value(value) => value.r#type(),
             Element::Constant(constant) => constant.r#type(),
             Element::Type(r#type) => r#type.to_owned(),
-            Element::Path(path) => match Scope::resolve_path(scope, &path)? {
-                ScopeItem::Variable(variable) => variable.r#type,
-                ScopeItem::Constant(constant) => constant.r#type(),
-                ScopeItem::Static(r#static) => r#static.data.r#type(),
+            Element::Path(path) => match Scope::resolve_path(scope, &path)?.variant {
+                ScopeItemVariant::Variable(variable) => variable.r#type,
+                ScopeItemVariant::Constant(constant) => constant.r#type(),
+                ScopeItemVariant::Static(r#static) => r#static.data.r#type(),
                 _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
             },
             Element::Place(place) => place.r#type.to_owned(),

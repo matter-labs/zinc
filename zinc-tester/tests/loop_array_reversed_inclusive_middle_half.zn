@@ -6,7 +6,9 @@
 //#     "expect": "30"
 //# } ]
 
-fn main(array: [u8; 10]) -> u8 {
+const ARRAY_SIZE: u8 = 10;
+
+fn main(array: [u8; ARRAY_SIZE]) -> u8 {
     let mut sum = 0;
     for i in 7..=3 {
         sum = sum + array[i];

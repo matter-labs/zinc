@@ -6,10 +6,12 @@
 //#     "expect": "3025"
 //# } ]
 
-fn main(array: [u8; 10]) -> u32 {
+const ARRAY_SIZE: u8 = 10;
+
+fn main(array: [u8; ARRAY_SIZE]) -> u32 {
     let mut sum: u32 = 0;
-    for i in 0..10 {
-        for j in 0..10 {
+    for i in 0..ARRAY_SIZE {
+        for j in 0..ARRAY_SIZE {
             sum = sum + (array[i] * array[j]) as u32;
         }
     }

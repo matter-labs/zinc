@@ -5,7 +5,6 @@
 use crate::lexical::Keyword;
 use crate::lexical::Location;
 use crate::syntax::Expression;
-use crate::syntax::IntegerLiteral;
 use crate::syntax::Type;
 use crate::syntax::TypeVariant;
 
@@ -15,7 +14,7 @@ pub struct Builder {
     is_unit: bool,
     keyword: Option<Keyword>,
     array_type_variant: Option<TypeVariant>,
-    array_size: Option<IntegerLiteral>,
+    array_size: Option<Expression>,
     tuple_element_types: Vec<TypeVariant>,
     tuple_has_comma: bool,
     path_expression: Option<Expression>,
@@ -40,7 +39,7 @@ impl Builder {
         self.array_type_variant = Some(value);
     }
 
-    pub fn set_array_size(&mut self, value: IntegerLiteral) {
+    pub fn set_array_size_expression(&mut self, value: Expression) {
         self.array_size = Some(value);
     }
 

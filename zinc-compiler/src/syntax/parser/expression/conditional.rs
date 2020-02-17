@@ -72,7 +72,7 @@ impl Parser {
                 }
                 State::Condition => {
                     let (expression, next) =
-                        ExpressionParser::default().parse(stream.clone(), None)?;
+                        ExpressionParser::default().parse(stream.clone(), self.next.take())?;
                     self.next = next;
                     self.builder.set_condition(expression);
                     self.state = State::MainBlock;

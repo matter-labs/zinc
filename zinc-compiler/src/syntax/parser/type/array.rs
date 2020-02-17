@@ -7,12 +7,11 @@ use std::rc::Rc;
 
 use crate::error::Error;
 use crate::lexical::Lexeme;
-use crate::lexical::Literal;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::Error as SyntaxError;
-use crate::syntax::IntegerLiteral;
+use crate::syntax::ExpressionParser;
 use crate::syntax::Type;
 use crate::syntax::TypeBuilder;
 use crate::syntax::TypeParser;
@@ -22,7 +21,7 @@ pub enum State {
     BracketSquareLeft,
     Type,
     Semicolon,
-    Size,
+    SizeExpression,
     BracketSquareRight,
 }
 
@@ -77,7 +76,7 @@ impl Parser {
                             lexeme: Lexeme::Symbol(Symbol::Semicolon),
                             ..
                         } => {
-                            self.state = State::Size;
+                            self.state = State::SizeExpression;
                         }
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::Expected(
@@ -88,40 +87,24 @@ impl Parser {
                         }
                     }
                 }
-                State::Size => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
-                        Token {
-                            lexeme: Lexeme::Literal(Literal::Integer(integer)),
-                            location,
-                        } => {
-                            let integer = IntegerLiteral::new(location, integer);
-                            self.builder.set_array_size(integer);
-                            self.state = State::BracketSquareRight;
-                        }
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{integer}"],
-                                lexeme,
-                            )))
-                        }
-                    }
+                State::SizeExpression => {
+                    let (expression, next) =
+                        ExpressionParser::default().parse(stream.clone(), self.next.take())?;
+                    self.next = next;
+                    self.builder.set_array_size_expression(expression);
+                    self.state = State::BracketSquareRight;
                 }
                 State::BracketSquareRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream)? {
+                    return match crate::syntax::take_or_next(self.next.take(), stream)? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareRight),
                             ..
-                        } => {
-                            return Ok(self.builder.finish());
-                        }
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["]"],
-                                lexeme,
-                            )))
-                        }
+                        } => Ok(self.builder.finish()),
+                        Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
+                            location,
+                            vec!["]"],
+                            lexeme,
+                        ))),
                     }
                 }
             }

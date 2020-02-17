@@ -41,6 +41,9 @@
 //#     ]
 //# } ]
 
-fn main(array: [field; 254], fill_value: field) -> [field; 256] {
-    std::array::pad(array, 256, fill_value)
+const ARRAY_SIZE_INPUT: u16 = 254;
+const ARRAY_SIZE_OUTPUT: u16 = 256;
+
+fn main(array: [field; ARRAY_SIZE_INPUT], fill_value: field) -> [field; ARRAY_SIZE_OUTPUT] {
+    std::array::pad(array, ARRAY_SIZE_OUTPUT, fill_value)
 }
