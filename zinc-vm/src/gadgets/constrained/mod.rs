@@ -846,7 +846,7 @@ where
 
                 let zero = self.zero(scalar_with_offset.scalar_type)?;
                 let value_or_zero = self.conditional_select(
-                    condition,
+                    condition.clone(),
                     scalar_with_offset,
                     zero,
                 )?;
@@ -858,20 +858,22 @@ where
                         .into_bits_le_fixed(cs.namespace(|| "into_bits"), int_type.length)?;
                 }
 
-                if let Some(value) = &scalar.value {
-                    let value_bigint = utils::fr_to_bigint(value, int_type.signed);
-                    let (lower_bound, upper_bound) = if int_type.signed {
-                        let lower_bound = - (BigInt::from(1) << (int_type.length - 1));
-                        let upper_bound = (- lower_bound.clone()) - 1;
-                        (lower_bound, upper_bound)
-                    } else {
-                        let lower_bound = BigInt::from(0);
-                        let upper_bound = (BigInt::from(1) << int_type.length) - 1;
-                        (lower_bound, upper_bound)
-                    };
+                if let (Some(value), Some(condition)) = (&scalar.value, &condition.value) {
+                    if !condition.is_zero() {
+                        let value_bigint = utils::fr_to_bigint(value, int_type.signed);
+                        let (lower_bound, upper_bound) = if int_type.signed {
+                            let lower_bound = -(BigInt::from(1) << (int_type.length - 1));
+                            let upper_bound = (-lower_bound.clone()) - 1;
+                            (lower_bound, upper_bound)
+                        } else {
+                            let lower_bound = BigInt::from(0);
+                            let upper_bound = (BigInt::from(1) << int_type.length) - 1;
+                            (lower_bound, upper_bound)
+                        };
 
-                    if value_bigint < lower_bound || value_bigint > upper_bound {
-                        return Err(RuntimeError::ValueOverflow { value: value_bigint, scalar_type });
+                        if value_bigint < lower_bound || value_bigint > upper_bound {
+                            return Err(RuntimeError::ValueOverflow { value: value_bigint, scalar_type });
+                        }
                     }
                 }
 
