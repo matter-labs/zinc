@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use crate::core::Cell;
 use crate::errors::MalformedBytecode;
@@ -14,7 +14,7 @@ struct CellDelta<E: Engine> {
     new: Cell<E>,
 }
 
-type DataStackDelta<E> = HashMap<usize, CellDelta<E>>;
+type DataStackDelta<E> = BTreeMap<usize, CellDelta<E>>;
 
 #[derive(Debug)]
 enum DataStackBranch<E: Engine> {
@@ -24,7 +24,7 @@ enum DataStackBranch<E: Engine> {
 
 impl<E: Engine> DataStackBranch<E> {
     fn new() -> Self {
-        DataStackBranch::IfThen(HashMap::new())
+        DataStackBranch::IfThen(DataStackDelta::new())
     }
 
     fn active_delta(&mut self) -> &mut DataStackDelta<E> {
@@ -36,7 +36,7 @@ impl<E: Engine> DataStackBranch<E> {
 
     fn switch(self) -> Option<Self> {
         match self {
-            DataStackBranch::IfThen(t) => Some(DataStackBranch::IfThenElse(t, HashMap::new())),
+            DataStackBranch::IfThen(t) => Some(DataStackBranch::IfThenElse(t, DataStackDelta::new())),
             DataStackBranch::IfThenElse(_, _) => None,
         }
     }
@@ -148,9 +148,7 @@ impl<E: Engine> DataStack<E> {
                     let value =
                         ops.conditional_select(condition.clone(), new.clone(), old.clone())?;
                     self.set(addr, Cell::Value(value))?;
-                } //                (Some(old), new) => {
-                  //                    log::warn!("Merging {:?} into {:?}, ignoring...", new, old);
-                  //                }
+                }
             }
         }
 
