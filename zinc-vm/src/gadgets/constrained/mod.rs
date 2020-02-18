@@ -844,31 +844,40 @@ where
                     self.add(scalar.clone(), offset)?
                 };
 
-                let upper_bound_value = BigInt::from(1) << int_type.length;
-                let upper_bound = self.constant_bigint(&upper_bound_value, ScalarType::Field)?;
-                let lt = self.lt(scalar_with_offset.as_field(), upper_bound)?;
-                let false_branch = self.not(condition.clone())?;
-                let required = self.or(lt, false_branch)?;
+                let zero = self.zero(scalar_with_offset.scalar_type)?;
+                let value_or_zero =
+                    self.conditional_select(condition.clone(), scalar_with_offset, zero)?;
 
-                // Since we are not forcing type checks in false branch we will reset value.
-                let zero = self.zero(scalar.get_type())?;
-                let new_scalar = self.conditional_select(condition, scalar.clone(), zero)?;
-
-                match self.assert(required, None) {
-                    Ok(()) => Ok(Primitive::new(
-                        new_scalar.value,
-                        new_scalar.variable,
-                        scalar_type,
-                    )),
-                    Err(RuntimeError::AssertionError(_)) => Err(RuntimeError::ValueOverflow {
-                        value: utils::fr_to_bigint(
-                            &scalar.value.expect("if assert failed, value is known"),
-                            scalar_type.is_signed(),
-                        ),
-                        scalar_type,
-                    }),
-                    Err(e) => Err(e),
+                {
+                    let mut cs = self.cs_namespace();
+                    let _bits = value_or_zero
+                        .as_allocated_num(cs.namespace(|| "as_allocated_num"))?
+                        .into_bits_le_fixed(cs.namespace(|| "into_bits"), int_type.length)?;
                 }
+
+                if let (Some(value), Some(condition)) = (&scalar.value, &condition.value) {
+                    if !condition.is_zero() {
+                        let value_bigint = utils::fr_to_bigint(value, int_type.signed);
+                        let (lower_bound, upper_bound) = if int_type.signed {
+                            let lower_bound = -(BigInt::from(1) << (int_type.length - 1));
+                            let upper_bound = (-lower_bound.clone()) - 1;
+                            (lower_bound, upper_bound)
+                        } else {
+                            let lower_bound = BigInt::from(0);
+                            let upper_bound = (BigInt::from(1) << int_type.length) - 1;
+                            (lower_bound, upper_bound)
+                        };
+
+                        if value_bigint < lower_bound || value_bigint > upper_bound {
+                            return Err(RuntimeError::ValueOverflow {
+                                value: value_bigint,
+                                scalar_type,
+                            });
+                        }
+                    }
+                }
+
+                Ok(Primitive::new(scalar.value, scalar.variable, scalar_type))
             }
         }
     }

@@ -36,7 +36,9 @@ impl<E: Engine> DataStackBranch<E> {
 
     fn switch(self) -> Option<Self> {
         match self {
-            DataStackBranch::IfThen(t) => Some(DataStackBranch::IfThenElse(t, DataStackDelta::new())),
+            DataStackBranch::IfThen(t) => {
+                Some(DataStackBranch::IfThenElse(t, DataStackDelta::new()))
+            }
             DataStackBranch::IfThenElse(_, _) => None,
         }
     }
