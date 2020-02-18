@@ -845,11 +845,8 @@ where
                 };
 
                 let zero = self.zero(scalar_with_offset.scalar_type)?;
-                let value_or_zero = self.conditional_select(
-                    condition.clone(),
-                    scalar_with_offset,
-                    zero,
-                )?;
+                let value_or_zero =
+                    self.conditional_select(condition.clone(), scalar_with_offset, zero)?;
 
                 {
                     let mut cs = self.cs_namespace();
@@ -872,16 +869,15 @@ where
                         };
 
                         if value_bigint < lower_bound || value_bigint > upper_bound {
-                            return Err(RuntimeError::ValueOverflow { value: value_bigint, scalar_type });
+                            return Err(RuntimeError::ValueOverflow {
+                                value: value_bigint,
+                                scalar_type,
+                            });
                         }
                     }
                 }
 
-                Ok(Primitive::new(
-                    scalar.value,
-                    scalar.variable,
-                    scalar_type,
-                ))
+                Ok(Primitive::new(scalar.value, scalar.variable, scalar_type))
             }
         }
     }
