@@ -254,10 +254,6 @@ impl Integer {
             ));
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldDivision);
-        }
-
         if other.value.is_zero() {
             return Err(Error::DivisionZero);
         }

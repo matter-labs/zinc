@@ -1,3 +1,5 @@
+pub mod arithmetic;
+
 mod constrained;
 mod scalar;
 pub mod stdlib;
@@ -18,9 +20,9 @@ use num_traits::ToPrimitive;
 /// Primitive is a primitive value that can be stored on the stack and operated by VM's instructions.
 #[derive(Clone)]
 pub struct Primitive<E: Engine> {
-    value: Option<E::Fr>,
-    variable: Variable,
-    scalar_type: ScalarType,
+    pub value: Option<E::Fr>,
+    pub variable: Variable,
+    pub scalar_type: ScalarType,
 }
 
 impl<E: Engine> Primitive<E> {

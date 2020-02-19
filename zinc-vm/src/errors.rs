@@ -76,7 +76,10 @@ pub enum RuntimeError {
     UnsatisfiedConstraint,
 
     #[fail(display = "division by zero")]
-    ZeroDivisionError,
+    DivisionByZero,
+
+    #[fail(display = "inverting zero")]
+    ZeroInversion,
 
     #[fail(display = "type size mismatch: {}", _0)]
     TypeSize(TypeSizeError),
