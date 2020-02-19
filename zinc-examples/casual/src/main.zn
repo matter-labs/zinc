@@ -1,13 +1,3 @@
-//# [ {
-//#     "case": "default",
-//#     "input": {},
-//#     "expect": "256"
-//# } ]
-
-fn main() -> u64 {
-    let mut sum: u64 = 0;
-    for i in 0..=255 {
-        sum = sum + 1 as u64;
-    }
-    sum
+fn main(a: field, b: field) -> field {
+    a / b
 }

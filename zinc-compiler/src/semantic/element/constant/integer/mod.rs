@@ -158,10 +158,6 @@ impl Integer {
             ));
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldGreaterEquals);
-        }
-
         let result = self.value >= other.value;
         Ok(result)
     }
@@ -172,10 +168,6 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
-        }
-
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldLesserEquals);
         }
 
         let result = self.value <= other.value;
@@ -190,10 +182,6 @@ impl Integer {
             ));
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldGreater);
-        }
-
         let result = self.value > other.value;
         Ok(result)
     }
@@ -204,10 +192,6 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
-        }
-
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldLesser);
         }
 
         let result = self.value < other.value;
@@ -316,10 +300,6 @@ impl Integer {
     }
 
     pub fn negate(&self) -> Result<Self, Error> {
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldNegation);
-        }
-
         Ok(Self {
             value: -self.value.to_owned(),
             is_signed: true,
