@@ -8,7 +8,7 @@ pub use state::*;
 
 use crate::core::location::CodeLocation;
 use crate::errors::MalformedBytecode;
-use crate::gadgets::{Gadgets, IntegerType, Primitive, ScalarType};
+use crate::gadgets::{Gadgets, Scalar, ScalarType};
 use crate::Engine;
 use colored::Colorize;
 use franklin_crypto::bellman::ConstraintSystem;
@@ -52,7 +52,7 @@ pub struct VirtualMachine<E: Engine, CS: ConstraintSystem<E>> {
     pub(crate) debugging: bool,
     state: State<E>,
     cs: CounterNamespace<E, CS>,
-    outputs: Vec<Primitive<E>>,
+    outputs: Vec<Scalar<E>>,
     pub(crate) location: CodeLocation,
 }
 
@@ -90,7 +90,7 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
     {
         let one = self
             .operations()
-            .constant_bigint(&1.into(), IntegerType::BOOLEAN.into())?;
+            .constant_bigint(&1.into(), ScalarType::Boolean)?;
         self.condition_push(one)?;
 
         self.init_root_frame(&program.input, inputs)?;
@@ -177,19 +177,19 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         Gadgets::new(self.cs.namespace())
     }
 
-    pub fn condition_push(&mut self, element: Primitive<E>) -> Result<(), RuntimeError> {
+    pub fn condition_push(&mut self, element: Scalar<E>) -> Result<(), RuntimeError> {
         self.state.conditions_stack.push(element);
         Ok(())
     }
 
-    pub fn condition_pop(&mut self) -> Result<Primitive<E>, RuntimeError> {
+    pub fn condition_pop(&mut self) -> Result<Scalar<E>, RuntimeError> {
         self.state
             .conditions_stack
             .pop()
             .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
     }
 
-    pub fn condition_top(&mut self) -> Result<Primitive<E>, RuntimeError> {
+    pub fn condition_top(&mut self) -> Result<Scalar<E>, RuntimeError> {
         self.state
             .conditions_stack
             .last()

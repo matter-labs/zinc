@@ -35,7 +35,7 @@ mod tests {
     #[test]
     fn test_assert_ok() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new(1.into(), IntegerType::BOOLEAN.into()))
+            .add(PushConst::new(1.into(), ScalarType::Boolean))
             .add(Assert::new(None))
             .test::<i32>(&[])
     }
@@ -43,7 +43,7 @@ mod tests {
     #[test]
     fn test_assert_fail() {
         let res = VMTestRunner::new()
-            .add(PushConst::new(0.into(), IntegerType::BOOLEAN.into()))
+            .add(PushConst::new(0.into(), ScalarType::Boolean))
             .add(Assert::new(None))
             .test::<i32>(&[]);
 
@@ -56,9 +56,9 @@ mod tests {
     #[test]
     fn test_assert_in_condition() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new(0.into(), IntegerType::BOOLEAN.into()))
+            .add(PushConst::new(0.into(), ScalarType::Boolean))
             .add(If)
-            .add(PushConst::new(0.into(), IntegerType::BOOLEAN.into()))
+            .add(PushConst::new(0.into(), ScalarType::Boolean))
             .add(Assert::new(None))
             .add(EndIf)
             .test::<i32>(&[])

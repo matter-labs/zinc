@@ -6,7 +6,7 @@ pub use cell::*;
 pub use data_stack::*;
 pub use evaluation_stack::*;
 
-use crate::gadgets::Primitive;
+use crate::gadgets::Scalar;
 use crate::Engine;
 use std::fmt;
 
@@ -18,7 +18,7 @@ pub struct Loop {
 
 #[derive(Debug)]
 pub struct Branch<E: Engine> {
-    pub condition: Primitive<E>,
+    pub condition: Scalar<E>,
     /// False if there is only one case (If-Endif), true if two cases (If-Else-Endif).
     pub is_full: bool,
 }
@@ -42,7 +42,7 @@ pub struct State<E: Engine> {
     pub instruction_counter: usize,
     pub evaluation_stack: EvaluationStack<E>,
     pub data_stack: DataStack<E>,
-    pub conditions_stack: Vec<Primitive<E>>,
+    pub conditions_stack: Vec<Scalar<E>>,
     pub frames_stack: Vec<FunctionFrame<E>>,
 }
 

@@ -29,8 +29,7 @@ where
             },
             _ => {
                 let (unchecked_div, _rem) =
-                    vm.operations()
-                        .div_rem_conditional(left.clone(), right.clone(), condition)?;
+                    vm.operations().div_rem_conditional(left, right, condition)?;
 
                 let condition = vm.condition_top()?;
                 vm.operations().assert_type(
