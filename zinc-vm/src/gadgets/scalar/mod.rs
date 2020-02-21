@@ -125,6 +125,7 @@ impl<E: Engine> Scalar<E> {
         }
     }
 
+    #[allow(dead_code)]
     pub fn get_bits<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<Vec<Self>> {
         let num = self.to_expression::<CS>();
         let bits = match self.scalar_type {

@@ -47,6 +47,7 @@ pub enum InstructionCode {
     Pop,
     Slice,
     Swap,
+    Tee,
 
     // Data Stack
     Load,
@@ -135,6 +136,7 @@ pub enum Instruction {
     Pop(Pop),
     Slice(Slice),
     Swap(Swap),
+    Tee(Tee),
 
     // Storage
     Load(Load),
@@ -234,6 +236,7 @@ macro_rules! dispatch_instruction {
             Instruction::Pop($pattern) => $expression,
             Instruction::Slice($pattern) => $expression,
             Instruction::Swap($pattern) => $expression,
+            Instruction::Tee($pattern) => $expression,
 
             Instruction::Load($pattern) => $expression,
             Instruction::LoadSequence($pattern) => $expression,

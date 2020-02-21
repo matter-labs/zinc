@@ -88,6 +88,12 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         CB: FnMut(&CS) -> (),
         F: FnMut(&CS) -> Result<(), RuntimeError>,
     {
+        self.cs.cs.enforce(
+            || "ONE * ONE = ONE (do this to avoid `unconstrained` error)",
+            |zero| zero + CS::one(),
+            |zero| zero + CS::one(),
+            |zero| zero + CS::one(),
+        );
         let one = self
             .operations()
             .constant_bigint(&1.into(), ScalarType::Boolean)?;
