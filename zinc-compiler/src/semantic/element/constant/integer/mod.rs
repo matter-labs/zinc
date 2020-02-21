@@ -4,6 +4,7 @@
 
 pub mod error;
 
+use std::cmp;
 use std::convert::TryFrom;
 use std::fmt;
 
@@ -95,34 +96,30 @@ impl Integer {
     }
 
     pub fn range_inclusive(&self, other: &Self) -> Result<RangeInclusive, Error> {
-        if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchRangeInclusive(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
-        }
-
+        let is_signed = self.is_signed || other.is_signed;
+        let bitlength = cmp::max(
+            cmp::max(self.bitlength, other.bitlength),
+            Self::minimal_bitlength_bigints(&[&self.value, &other.value], is_signed)?,
+        );
         Ok(RangeInclusive::new(
             self.value.to_owned(),
             other.value.to_owned(),
-            self.is_signed,
-            self.bitlength,
+            is_signed,
+            bitlength,
         ))
     }
 
     pub fn range(&self, other: &Self) -> Result<Range, Error> {
-        if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchRange(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
-        }
-
+        let is_signed = self.is_signed || other.is_signed;
+        let bitlength = cmp::max(
+            cmp::max(self.bitlength, other.bitlength),
+            Self::minimal_bitlength_bigints(&[&self.value, &other.value], is_signed)?,
+        );
         Ok(Range::new(
             self.value.to_owned(),
             other.value.to_owned(),
-            self.is_signed,
-            self.bitlength,
+            self.is_signed || other.is_signed,
+            bitlength,
         ))
     }
 

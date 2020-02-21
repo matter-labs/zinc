@@ -62,7 +62,7 @@ impl Parser {
                             self.state = State::Condition;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["if"],
                                 lexeme,
@@ -93,7 +93,7 @@ impl Parser {
                     }
                 }
                 State::KeywordIfOrElseBlock => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    return match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                         token
                         @
                         Token {
@@ -115,7 +115,7 @@ impl Parser {
                                 )),
                             );
                             self.builder.set_else_block(block);
-                            return Ok((self.builder.finish(), next));
+                            Ok((self.builder.finish(), next))
                         }
                         token
                         @
@@ -126,16 +126,12 @@ impl Parser {
                             let block =
                                 BlockExpressionParser::default().parse(stream, Some(token))?;
                             self.builder.set_else_block(block);
-                            return Ok((self.builder.finish(), None));
+                            Ok((self.builder.finish(), None))
                         }
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["if", "{"],
-                                lexeme,
-                            )));
-                        }
-                    }
+                        Token { lexeme, location } => Err(Error::Syntax(
+                            SyntaxError::expected_one_of(location, vec!["if", "{"], lexeme),
+                        )),
+                    };
                 }
             }
         }

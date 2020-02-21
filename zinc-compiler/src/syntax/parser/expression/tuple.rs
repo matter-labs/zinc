@@ -59,7 +59,7 @@ impl Parser {
                             self.state = State::ExpressionOrParenthesisRight;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["("],
                                 lexeme,
@@ -98,7 +98,7 @@ impl Parser {
                             ..
                         } => return Ok(self.builder.finish()),
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of_or_operator(
                                 location,
                                 vec![",", ")"],
                                 lexeme,

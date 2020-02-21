@@ -88,11 +88,9 @@ impl Parser {
                             return Ok((self.builder.finish(), None));
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{integer}", "{identifier}", "_"],
-                                lexeme,
-                            )))
+                            return Err(Error::Syntax(SyntaxError::expected_match_pattern(
+                                location, lexeme,
+                            )));
                         }
                     }
                 }

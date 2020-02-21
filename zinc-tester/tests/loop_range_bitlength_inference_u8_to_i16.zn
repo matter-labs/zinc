@@ -1,0 +1,13 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {},
+//#     "expect": "-200"
+//# } ]
+
+fn main() -> i16 {
+    let mut sum: i16 = 0;
+    for i in -200..200 {
+        sum = sum + i;
+    }
+    sum
+}

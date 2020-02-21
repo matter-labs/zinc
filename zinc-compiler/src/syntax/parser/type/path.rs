@@ -62,10 +62,8 @@ impl Parser {
                             self.state = State::DoubleColonOrEnd;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{identifier}"],
-                                lexeme,
+                            return Err(Error::Syntax(SyntaxError::expected_identifier(
+                                location, lexeme,
                             )));
                         }
                     }

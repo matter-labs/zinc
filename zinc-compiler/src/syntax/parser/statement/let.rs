@@ -61,7 +61,7 @@ impl Parser {
                             self.state = State::MutOrIdentifier;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["let"],
                                 lexeme,
@@ -87,10 +87,8 @@ impl Parser {
                             self.state = State::ColonOrEquals;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["mut", "{identifier}"],
-                                lexeme,
+                            return Err(Error::Syntax(SyntaxError::expected_mut_or_identifier(
+                                location, lexeme,
                             )));
                         }
                     }
@@ -106,10 +104,8 @@ impl Parser {
                             self.state = State::ColonOrEquals;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{identifier}"],
-                                lexeme,
+                            return Err(Error::Syntax(SyntaxError::expected_identifier(
+                                location, lexeme,
                             )));
                         }
                     }
@@ -125,10 +121,8 @@ impl Parser {
                             ..
                         } => self.state = State::Expression,
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec![":", "="],
-                                lexeme,
+                            return Err(Error::Syntax(SyntaxError::expected_type_or_value(
+                                location, lexeme,
                             )));
                         }
                     }
@@ -146,10 +140,8 @@ impl Parser {
                             ..
                         } => self.state = State::Expression,
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["="],
-                                lexeme,
+                            return Err(Error::Syntax(SyntaxError::expected_value(
+                                location, lexeme,
                             )));
                         }
                     }
@@ -167,11 +159,9 @@ impl Parser {
                             lexeme: Lexeme::Symbol(Symbol::Semicolon),
                             ..
                         } => Ok((self.builder.finish(), None)),
-                        Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                            location,
-                            vec![";"],
-                            lexeme,
-                        ))),
+                        Token { lexeme, location } => Err(Error::Syntax(
+                            SyntaxError::expected_one_of_or_operator(location, vec![";"], lexeme),
+                        )),
                     }
                 }
             }
@@ -271,9 +261,8 @@ mod tests {
     fn err_no_value() {
         let input = r#"let a;"#;
 
-        let expected = Err(Error::Syntax(SyntaxError::Expected(
+        let expected = Err(Error::Syntax(SyntaxError::expected_type_or_value(
             Location::new(1, 6),
-            vec![":", "="],
             Lexeme::Symbol(Symbol::Semicolon),
         )));
 

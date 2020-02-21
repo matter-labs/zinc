@@ -3,10 +3,10 @@ extern crate franklin_crypto;
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
+use crate::gadgets::arithmetic::field;
 use crate::gadgets::{ScalarType, ScalarTypeExpectation};
 use crate::Engine;
 use zinc_bytecode::instructions::Div;
-use crate::gadgets::arithmetic::field;
 
 impl<E, CS> VMInstruction<E, CS> for Div
 where
@@ -26,18 +26,15 @@ where
                 let denom = vm.operations().conditional_select(condition, right, one)?;
                 let inverse = field::inverse(vm.constraint_system(), denom)?;
                 vm.operations().mul(left, inverse)?
-            },
+            }
             _ => {
                 let (unchecked_div, _rem) =
                     vm.operations()
                         .div_rem_conditional(left.clone(), right.clone(), condition)?;
 
                 let condition = vm.condition_top()?;
-                vm.operations().assert_type(
-                    condition,
-                    unchecked_div,
-                    scalar_type,
-                )?
+                vm.operations()
+                    .assert_type(condition, unchecked_div, scalar_type)?
             }
         };
 

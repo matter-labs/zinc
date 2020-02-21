@@ -46,9 +46,8 @@ impl Parser {
                     self.builder.set_keyword(keyword);
                     Ok((self.builder.finish(), None))
                 }
-                _ => Err(Error::Syntax(SyntaxError::Expected(
+                _ => Err(Error::Syntax(SyntaxError::expected_type(
                     location,
-                    vec!["{type}"],
                     Lexeme::Keyword(keyword),
                 ))),
             },
@@ -76,11 +75,9 @@ impl Parser {
                 lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                 ..
             } => Ok((TupleTypeParser::default().parse(stream, Some(token))?, None)),
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                location,
-                vec!["{type}", "{identifier}", "(", "["],
-                lexeme,
-            ))),
+            Token { lexeme, location } => {
+                Err(Error::Syntax(SyntaxError::expected_type(location, lexeme)))
+            }
         }
     }
 }
@@ -369,7 +366,7 @@ mod tests {
     fn err_array_expected_semicolon() {
         let input = "[field, 8]";
 
-        let expected = Err(Error::Syntax(SyntaxError::Expected(
+        let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 7),
             vec![";"],
             Lexeme::Symbol(Symbol::Comma),

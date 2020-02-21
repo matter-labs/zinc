@@ -109,7 +109,7 @@ impl Parser {
                 lexeme: Lexeme::Symbol(Symbol::Semicolon),
                 ..
             } => Ok((ModuleLocalStatement::Empty, None)),
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
+            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::expected_one_of(
                 location,
                 vec![
                     "const", "static", "type", "struct", "enum", "fn", "mod", "use", "impl",

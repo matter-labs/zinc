@@ -17,7 +17,7 @@ pub struct ProgramData {
 #[derive(Debug, Fail)]
 pub enum Error {
     #[fail(display = "compiler: {}", _0)]
-    Compiler(zinc_compiler::Error),
+    Compiler(String),
     #[fail(display = "program: {}", _0)]
     Program(String),
     #[fail(display = "JSON type value: {}", _0)]

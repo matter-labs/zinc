@@ -24,7 +24,7 @@ impl ScalarTypeExpectation for ScalarType {
         } else {
             Err(RuntimeError::TypeError {
                 expected: self.to_string(),
-                actual: expected.to_string()
+                actual: expected.to_string(),
             })
         }
     }

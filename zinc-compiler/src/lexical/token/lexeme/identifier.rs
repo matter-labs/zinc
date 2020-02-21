@@ -16,8 +16,6 @@ pub struct Identifier {
 
 #[derive(Debug, Fail)]
 pub enum Error {
-    #[fail(display = "is empty")]
-    IsEmpty,
     #[fail(display = "is underscore")]
     IsUnderscore,
     #[fail(display = "is keyword: {:?}", _0)]
@@ -42,10 +40,6 @@ impl TryFrom<&str> for Identifier {
     type Error = Error;
 
     fn try_from(input: &str) -> Result<Self, Self::Error> {
-        if input.is_empty() {
-            return Err(Error::IsEmpty);
-        }
-
         if input == "_" {
             return Err(Error::IsUnderscore);
         }

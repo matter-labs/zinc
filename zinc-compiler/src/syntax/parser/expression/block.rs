@@ -54,7 +54,7 @@ impl Parser {
                             self.state = State::StatementOrBracketCurlyRight;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["{"],
                                 lexeme,
@@ -91,18 +91,14 @@ impl Parser {
                     }
                 }
                 State::BracketCurlyRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream)? {
+                    return match crate::syntax::take_or_next(self.next.take(), stream)? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
-                        } => return Ok(self.builder.finish()),
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["}"],
-                                lexeme,
-                            )));
-                        }
+                        } => Ok(self.builder.finish()),
+                        Token { lexeme, location } => Err(Error::Syntax(
+                            SyntaxError::expected_one_of(location, vec!["}"], lexeme),
+                        )),
                     }
                 }
             }

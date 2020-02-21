@@ -79,7 +79,7 @@ impl Parser {
 
         let mut statements = Vec::new();
         loop {
-            match crate::syntax::take_or_next(self.next, stream.clone())? {
+            match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
                 Token {
                     lexeme: Lexeme::Eof,
                     ..

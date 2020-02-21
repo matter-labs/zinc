@@ -60,7 +60,7 @@ impl Parser {
                             self.state = State::IndexIdentifier;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["for"],
                                 lexeme,
@@ -79,10 +79,8 @@ impl Parser {
                             self.state = State::KeywordIn;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{identifier}"],
-                                lexeme,
+                            return Err(Error::Syntax(SyntaxError::expected_identifier(
+                                location, lexeme,
                             )));
                         }
                     }
@@ -96,7 +94,7 @@ impl Parser {
                             self.state = State::BoundsExpression;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["in"],
                                 lexeme,
@@ -129,7 +127,7 @@ impl Parser {
                             ..
                         } => self.state = State::WhileConditionExpression,
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["{", "while"],
                                 lexeme,

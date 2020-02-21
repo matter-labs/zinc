@@ -57,7 +57,7 @@ impl Parser {
                             self.state = State::Identifier;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["enum"],
                                 lexeme,
@@ -76,10 +76,8 @@ impl Parser {
                             self.state = State::BracketCurlyLeftOrEnd;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{identifier}"],
-                                lexeme,
+                            return Err(Error::Syntax(SyntaxError::expected_identifier(
+                                location, lexeme,
                             )));
                         }
                     }
@@ -101,18 +99,14 @@ impl Parser {
                     self.state = State::BracketCurlyRight;
                 }
                 State::BracketCurlyRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream)? {
+                    return match crate::syntax::take_or_next(self.next.take(), stream)? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
-                        } => return Ok((self.builder.finish(), None)),
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["}"],
-                                lexeme,
-                            )));
-                        }
+                        } => Ok((self.builder.finish(), None)),
+                        Token { lexeme, location } => Err(Error::Syntax(
+                            SyntaxError::expected_one_of(location, vec!["}"], lexeme),
+                        )),
                     }
                 }
             }

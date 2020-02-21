@@ -81,11 +81,9 @@ impl Parser {
                             self.state = State::Colon;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{identifier}", "_"],
-                                lexeme,
-                            )))
+                            return Err(Error::Syntax(SyntaxError::expected_binding_pattern(
+                                location, lexeme,
+                            )));
                         }
                     }
                 }
@@ -96,11 +94,11 @@ impl Parser {
                             ..
                         } => self.state = State::Type,
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec![":"],
                                 lexeme,
-                            )))
+                            )));
                         }
                     }
                 }

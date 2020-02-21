@@ -1,15 +1,15 @@
 use crate::gadgets::{Primitive, ScalarTypeExpectation};
 use crate::{Engine, RuntimeError};
 
-use ff::Field;
 use bellman::ConstraintSystem;
+use ff::Field;
 use franklin_crypto::circuit::Assignment;
 use zinc_bytecode::scalar::ScalarType;
 
 pub fn inverse<E, CS>(mut cs: CS, scalar: Primitive<E>) -> Result<Primitive<E>, RuntimeError>
-    where
-        E: Engine,
-        CS: ConstraintSystem<E>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
     scalar.scalar_type.assert_type(ScalarType::Field)?;
 
@@ -17,9 +17,7 @@ pub fn inverse<E, CS>(mut cs: CS, scalar: Primitive<E>) -> Result<Primitive<E>, 
         None => None,
         Some(value) => match value.inverse() {
             Some(inverse) => Some(inverse),
-            None => {
-                return Err(RuntimeError::ZeroInversion)
-            }
+            None => return Err(RuntimeError::ZeroInversion),
         },
     };
 
@@ -35,6 +33,6 @@ pub fn inverse<E, CS>(mut cs: CS, scalar: Primitive<E>) -> Result<Primitive<E>, 
     Ok(Primitive {
         value,
         variable,
-        scalar_type: ScalarType::Field
+        scalar_type: ScalarType::Field,
     })
 }

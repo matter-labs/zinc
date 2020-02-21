@@ -359,8 +359,8 @@ where
             let nom_bi = utils::fr_to_bigint(&nom, nominator.is_signed());
             let denom_bi = utils::fr_to_bigint(&denom, denominator.is_signed());
 
-            let (q, r) = utils::euclidean_div_rem(&nom_bi, &denom_bi)
-                .ok_or(RuntimeError::DivisionByZero)?;
+            let (q, r) =
+                utils::euclidean_div_rem(&nom_bi, &denom_bi).ok_or(RuntimeError::DivisionByZero)?;
 
             quotient_value = utils::bigint_to_fr::<E>(&q);
             remainder_value = utils::bigint_to_fr::<E>(&r);

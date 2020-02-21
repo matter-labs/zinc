@@ -62,7 +62,7 @@ impl Parser {
                             self.state = State::Identifier;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["fn"],
                                 lexeme,
@@ -81,10 +81,8 @@ impl Parser {
                             self.state = State::ParenthesisLeft;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{identifier}"],
-                                lexeme,
+                            return Err(Error::Syntax(SyntaxError::expected_identifier(
+                                location, lexeme,
                             )));
                         }
                     }
@@ -96,7 +94,7 @@ impl Parser {
                             ..
                         } => self.state = State::ArgumentBindingList,
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["("],
                                 lexeme,
@@ -118,7 +116,7 @@ impl Parser {
                             ..
                         } => self.state = State::ArrowOrBody,
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec![",", ")"],
                                 lexeme,

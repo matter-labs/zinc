@@ -4,8 +4,6 @@
 
 use std::str;
 
-use failure::Fail;
-
 use crate::lexical::Symbol;
 
 pub enum State {
@@ -23,14 +21,18 @@ pub enum State {
     Circumflex,
 }
 
-#[derive(Debug, Fail, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Error {
-    #[fail(display = "unexpected end")]
+    ExpectedOneOf {
+        expected: Vec<char>,
+        found: char,
+        offset: usize,
+    },
+    InvalidCharacter {
+        found: char,
+        offset: usize,
+    },
     UnexpectedEnd,
-    #[fail(display = "not a symbol")]
-    NotASymbol,
-    #[fail(display = "invalid character '{}' at position {} of '{}'", _0, _1, _2)]
-    InvalidCharacter(char, usize, String),
 }
 
 pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
@@ -54,7 +56,6 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                 '*' => return Ok((size + 1, Symbol::Asterisk)),
                 '/' => return Ok((size + 1, Symbol::Slash)),
                 '%' => return Ok((size + 1, Symbol::Percent)),
-                '\\' => return Ok((size + 1, Symbol::Backslash)),
 
                 '-' => {
                     size += 1;
@@ -98,34 +99,43 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                 }
 
                 character => {
-                    return Err(Error::InvalidCharacter(
-                        character,
-                        size + 1,
-                        character.to_string(),
-                    ))
+                    return Err(Error::InvalidCharacter {
+                        found: character,
+                        offset: size,
+                    });
                 }
             },
-            State::Equals => match character {
-                '=' => return Ok((size + 1, Symbol::DoubleEquals)),
-                '>' => return Ok((size + 1, Symbol::EqualsGreater)),
-                _ => return Ok((size, Symbol::Equals)),
-            },
-            State::Exclamation => match character {
-                '=' => return Ok((size + 1, Symbol::ExclamationMarkEquals)),
-                _ => return Ok((size, Symbol::ExclamationMark)),
-            },
-            State::Lesser => match character {
-                '=' => return Ok((size + 1, Symbol::LesserThanEquals)),
-                _ => return Ok((size, Symbol::LesserThan)),
-            },
-            State::Greater => match character {
-                '=' => return Ok((size + 1, Symbol::GreaterThanEquals)),
-                _ => return Ok((size, Symbol::GreaterThan)),
-            },
-            State::Minus => match character {
-                '>' => return Ok((size + 1, Symbol::MinusGreater)),
-                _ => return Ok((size, Symbol::Minus)),
-            },
+            State::Equals => {
+                return match character {
+                    '=' => Ok((size + 1, Symbol::DoubleEquals)),
+                    '>' => Ok((size + 1, Symbol::EqualsGreater)),
+                    _ => Ok((size, Symbol::Equals)),
+                }
+            }
+            State::Exclamation => {
+                return match character {
+                    '=' => Ok((size + 1, Symbol::ExclamationMarkEquals)),
+                    _ => Ok((size, Symbol::ExclamationMark)),
+                }
+            }
+            State::Lesser => {
+                return match character {
+                    '=' => Ok((size + 1, Symbol::LesserThanEquals)),
+                    _ => Ok((size, Symbol::LesserThan)),
+                }
+            }
+            State::Greater => {
+                return match character {
+                    '=' => Ok((size + 1, Symbol::GreaterThanEquals)),
+                    _ => Ok((size, Symbol::GreaterThan)),
+                }
+            }
+            State::Minus => {
+                return match character {
+                    '>' => Ok((size + 1, Symbol::MinusGreater)),
+                    _ => Ok((size, Symbol::Minus)),
+                }
+            }
             State::Dot => match character {
                 '.' => {
                     size += 1;
@@ -133,38 +143,48 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                 }
                 _ => return Ok((size, Symbol::Dot)),
             },
-            State::Colon => match character {
-                ':' => return Ok((size + 1, Symbol::DoubleColon)),
-                _ => return Ok((size, Symbol::Colon)),
-            },
-            State::DoubleDot => match character {
-                '=' => return Ok((size + 1, Symbol::DoubleDotEquals)),
-                _ => return Ok((size, Symbol::DoubleDot)),
-            },
-            State::Ampersand => match character {
-                '&' => return Ok((size + 1, Symbol::DoubleAmpersand)),
-                _ => return Ok((size, Symbol::Ampersand)),
-            },
-            State::VerticalBar => match character {
-                '|' => return Ok((size + 1, Symbol::DoubleVerticalBar)),
-                _ => {
-                    return Err(Error::InvalidCharacter(
-                        character,
-                        size + 1,
-                        input[..=size].to_owned(),
-                    ))
+            State::Colon => {
+                return match character {
+                    ':' => Ok((size + 1, Symbol::DoubleColon)),
+                    _ => Ok((size, Symbol::Colon)),
                 }
-            },
-            State::Circumflex => match character {
-                '^' => return Ok((size + 1, Symbol::DoubleCircumflex)),
-                _ => {
-                    return Err(Error::InvalidCharacter(
-                        character,
-                        size + 1,
-                        input[..=size].to_owned(),
-                    ))
+            }
+            State::DoubleDot => {
+                return match character {
+                    '=' => Ok((size + 1, Symbol::DoubleDotEquals)),
+                    _ => Ok((size, Symbol::DoubleDot)),
                 }
-            },
+            }
+            State::Ampersand => {
+                return match character {
+                    '&' => Ok((size + 1, Symbol::DoubleAmpersand)),
+                    _ => Err(Error::ExpectedOneOf {
+                        expected: vec!['&'],
+                        found: character,
+                        offset: size,
+                    }),
+                }
+            }
+            State::VerticalBar => {
+                return match character {
+                    '|' => Ok((size + 1, Symbol::DoubleVerticalBar)),
+                    _ => Err(Error::ExpectedOneOf {
+                        expected: vec!['|'],
+                        found: character,
+                        offset: size,
+                    }),
+                }
+            }
+            State::Circumflex => {
+                return match character {
+                    '^' => Ok((size + 1, Symbol::DoubleCircumflex)),
+                    _ => Err(Error::ExpectedOneOf {
+                        expected: vec!['^'],
+                        found: character,
+                        offset: size,
+                    }),
+                }
+            }
         }
     }
 
@@ -180,23 +200,38 @@ mod tests {
     #[test]
     fn ok() {
         let input = "==";
-        let expected = Ok((2, Symbol::DoubleEquals));
+        let expected = Ok((input.len(), Symbol::DoubleEquals));
         let result = parse(input);
         assert_eq!(result, expected);
     }
 
     #[test]
-    fn err_unexpected_end() {
+    fn error_expected_one_of() {
+        let input = "|5";
+        let expected = Err(Error::ExpectedOneOf {
+            expected: vec!['|'],
+            found: '5',
+            offset: 1,
+        });
+        let result = parse(input);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_invalid_character() {
+        let input = "#";
+        let expected = Err(Error::InvalidCharacter {
+            found: '#',
+            offset: 0,
+        });
+        let result = parse(input);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_unexpected_end() {
         let input = "|";
         let expected = Err(Error::UnexpectedEnd);
-        let result = parse(input);
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn err_invalid_character() {
-        let input = "|5";
-        let expected = Err(Error::InvalidCharacter('5', 2, "|5".to_owned()));
         let result = parse(input);
         assert_eq!(result, expected);
     }

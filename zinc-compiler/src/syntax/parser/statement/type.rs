@@ -57,7 +57,7 @@ impl Parser {
                             self.state = State::Identifier;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["type"],
                                 lexeme,
@@ -76,10 +76,8 @@ impl Parser {
                             self.state = State::Equals;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{identifier}"],
-                                lexeme,
+                            return Err(Error::Syntax(SyntaxError::expected_identifier(
+                                location, lexeme,
                             )));
                         }
                     }
@@ -91,10 +89,8 @@ impl Parser {
                             ..
                         } => self.state = State::Type,
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["="],
-                                lexeme,
+                            return Err(Error::Syntax(SyntaxError::expected_type(
+                                location, lexeme,
                             )));
                         }
                     }
@@ -105,19 +101,17 @@ impl Parser {
                     self.builder.set_type(r#type);
                     self.state = State::Semicolon;
                 }
-                State::Semicolon => match crate::syntax::take_or_next(self.next.take(), stream)? {
-                    Token {
-                        lexeme: Lexeme::Symbol(Symbol::Semicolon),
-                        ..
-                    } => return Ok((self.builder.finish(), None)),
-                    Token { lexeme, location } => {
-                        return Err(Error::Syntax(SyntaxError::Expected(
-                            location,
-                            vec![";"],
-                            lexeme,
-                        )));
+                State::Semicolon => {
+                    return match crate::syntax::take_or_next(self.next.take(), stream)? {
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::Semicolon),
+                            ..
+                        } => Ok((self.builder.finish(), None)),
+                        Token { lexeme, location } => Err(Error::Syntax(
+                            SyntaxError::expected_one_of(location, vec![";"], lexeme),
+                        )),
                     }
-                },
+                }
             }
         }
     }
@@ -159,12 +153,11 @@ mod tests {
     }
 
     #[test]
-    fn err_no_value() {
+    fn err_no_type() {
         let input = r#"type X;"#;
 
-        let expected = Err(Error::Syntax(SyntaxError::Expected(
+        let expected = Err(Error::Syntax(SyntaxError::expected_type(
             Location::new(1, 7),
-            vec!["="],
             Lexeme::Symbol(Symbol::Semicolon),
         )));
 

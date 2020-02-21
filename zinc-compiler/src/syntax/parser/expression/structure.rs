@@ -59,10 +59,8 @@ impl Parser {
                             self.state = State::BracketCurlyLeftOrEnd;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{identifier}"],
-                                lexeme,
+                            return Err(Error::Syntax(SyntaxError::expected_identifier(
+                                location, lexeme,
                             )));
                         }
                     }
@@ -104,10 +102,8 @@ impl Parser {
                             self.state = State::Colon;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{identifier}", "}"],
-                                lexeme,
+                            return Err(Error::Syntax(SyntaxError::expected_identifier(
+                                location, lexeme,
                             )));
                         }
                     }
@@ -119,7 +115,7 @@ impl Parser {
                             ..
                         } => self.state = State::Expression,
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec![":"],
                                 lexeme,
@@ -145,7 +141,7 @@ impl Parser {
                             ..
                         } => return Ok((self.builder.finish(), None)),
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of_or_operator(
                                 location,
                                 vec![",", "}"],
                                 lexeme,

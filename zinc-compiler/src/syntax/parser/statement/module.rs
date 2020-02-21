@@ -36,7 +36,7 @@ impl Parser {
                 self.builder.set_location(location);
             }
             Token { lexeme, location } => {
-                return Err(Error::Syntax(SyntaxError::Expected(
+                return Err(Error::Syntax(SyntaxError::expected_one_of(
                     location,
                     vec!["mod"],
                     lexeme,
@@ -53,10 +53,8 @@ impl Parser {
                 self.builder.set_identifier(identifier);
             }
             Token { lexeme, location } => {
-                return Err(Error::Syntax(SyntaxError::Expected(
-                    location,
-                    vec!["{identifier}"],
-                    lexeme,
+                return Err(Error::Syntax(SyntaxError::expected_identifier(
+                    location, lexeme,
                 )))
             }
         }
@@ -66,7 +64,7 @@ impl Parser {
                 lexeme: Lexeme::Symbol(Symbol::Semicolon),
                 ..
             } => Ok((self.builder.finish(), None)),
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
+            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::expected_one_of(
                 location,
                 vec![";"],
                 lexeme,

@@ -56,7 +56,7 @@ impl Parser {
                             self.state = State::Type;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["["],
                                 lexeme,
@@ -79,7 +79,7 @@ impl Parser {
                             self.state = State::SizeExpression;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec![";"],
                                 lexeme,
@@ -100,11 +100,9 @@ impl Parser {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareRight),
                             ..
                         } => Ok(self.builder.finish()),
-                        Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                            location,
-                            vec!["]"],
-                            lexeme,
-                        ))),
+                        Token { lexeme, location } => Err(Error::Syntax(
+                            SyntaxError::expected_one_of(location, vec!["]"], lexeme),
+                        )),
                     }
                 }
             }

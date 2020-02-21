@@ -59,7 +59,7 @@ enum Error {
     #[fail(display = "source file: {}", _0)]
     SourceFile(FileError),
     #[fail(display = "{}", _0)]
-    Compiler(zinc_compiler::Error),
+    Compiler(String),
     #[fail(display = "witness template output: {}", _0)]
     WitnessTemplateOutput(OutputError),
     #[fail(display = "public data template output: {}", _0)]
@@ -94,7 +94,7 @@ fn main() {
     process::exit(match main_inner(args) {
         Ok(()) => EXIT_CODE_SUCCESS,
         Err(error) => {
-            log::error!("{}", error);
+            eprintln!("{}", error);
             EXIT_CODE_FAILURE
         }
     })

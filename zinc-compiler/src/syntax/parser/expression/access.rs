@@ -127,7 +127,7 @@ impl Parser {
                             self.state = State::AccessOrCallOrEnd;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["]"],
                                 lexeme,
@@ -173,10 +173,8 @@ impl Parser {
                             self.state = State::AccessOrCallOrEnd;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{decimal}", "{identifier}"],
-                                lexeme,
+                            return Err(Error::Syntax(SyntaxError::expected_field_identifier(
+                                location, lexeme,
                             )))
                         }
                     }
@@ -203,7 +201,7 @@ impl Parser {
                             self.state = State::AccessOrCallOrEnd;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec![")"],
                                 lexeme,

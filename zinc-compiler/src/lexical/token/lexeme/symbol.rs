@@ -24,11 +24,9 @@ pub enum Symbol {
     Asterisk,
     Slash,
     Percent,
-    Backslash,
     ExclamationMark,
     LesserThan,
     GreaterThan,
-    Ampersand,
 
     // complex
     DoubleColon,
@@ -65,11 +63,9 @@ impl fmt::Display for Symbol {
             Self::Asterisk => write!(f, "*"),
             Self::Slash => write!(f, "/"),
             Self::Percent => write!(f, "%"),
-            Self::Backslash => write!(f, "\\"),
             Self::ExclamationMark => write!(f, "!"),
             Self::LesserThan => write!(f, "<"),
             Self::GreaterThan => write!(f, ">"),
-            Self::Ampersand => write!(f, "&"),
 
             Self::DoubleColon => write!(f, "::"),
             Self::DoubleEquals => write!(f, "=="),

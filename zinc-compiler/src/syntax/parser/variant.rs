@@ -39,10 +39,8 @@ impl Parser {
                 self.builder.set_identifier(identifier);
             }
             Token { lexeme, location } => {
-                return Err(Error::Syntax(SyntaxError::Expected(
-                    location,
-                    vec!["{identifier}"],
-                    lexeme,
+                return Err(Error::Syntax(SyntaxError::expected_identifier(
+                    location, lexeme,
                 )));
             }
         }
@@ -53,7 +51,7 @@ impl Parser {
                 ..
             } => {}
             Token { lexeme, location } => {
-                return Err(Error::Syntax(SyntaxError::Expected(
+                return Err(Error::Syntax(SyntaxError::expected_one_of(
                     location,
                     vec!["="],
                     lexeme,
@@ -70,11 +68,9 @@ impl Parser {
                     .set_literal(IntegerLiteral::new(location, literal));
                 Ok(self.builder.finish())
             }
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                location,
-                vec!["{integer}"],
-                lexeme,
-            ))),
+            Token { lexeme, location } => Err(Error::Syntax(
+                SyntaxError::expected_integer_literal(location, lexeme),
+            )),
         }
     }
 }

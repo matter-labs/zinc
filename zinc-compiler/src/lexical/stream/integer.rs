@@ -4,8 +4,6 @@
 
 use std::str;
 
-use failure::Fail;
-
 use crate::lexical::token::lexeme::literal::integer::Integer;
 
 pub enum State {
@@ -15,24 +13,13 @@ pub enum State {
     Hexadecimal,
 }
 
-#[derive(Debug, Fail, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Error {
-    #[fail(display = "unexpected end")]
-    UnexpectedEnd,
-    #[fail(display = "not an integer")]
     NotAnInteger,
-    #[fail(
-        display = "invalid decimal character '{}' at position {} of '{}'",
-        _0, _1, _2
-    )]
-    InvalidDecimalCharacter(char, usize, String),
-    #[fail(
-        display = "invalid hexadecimal character '{}' at position {} of '{}'",
-        _0, _1, _2
-    )]
-    InvalidHexadecimalCharacter(char, usize, String),
-    #[fail(display = "hexadecimal literal must have at least one digit after '0x'")]
-    EmptyHexadecimalLiteral,
+    EmptyHexadecimalBody,
+    ExpectedOneOfDecimal { found: char, offset: usize },
+    ExpectedOneOfHexadecimal { found: char, offset: usize },
+    UnexpectedEnd,
 }
 
 pub fn parse(input: &str) -> Result<(usize, Integer), Error> {
@@ -61,11 +48,10 @@ pub fn parse(input: &str) -> Result<(usize, Integer), Error> {
                     value.clear();
                     state = State::Hexadecimal;
                 } else if character.is_ascii_alphabetic() {
-                    return Err(Error::InvalidDecimalCharacter(
-                        character,
-                        size + 1,
-                        input[..=size].to_owned(),
-                    ));
+                    return Err(Error::ExpectedOneOfDecimal {
+                        found: character,
+                        offset: size,
+                    });
                 } else {
                     return Ok((size, Integer::new_decimal(value)));
                 }
@@ -75,11 +61,10 @@ pub fn parse(input: &str) -> Result<(usize, Integer), Error> {
                     value.push(character);
                     size += 1;
                 } else if character.is_ascii_alphabetic() {
-                    return Err(Error::InvalidDecimalCharacter(
-                        character,
-                        size + 1,
-                        input[..=size].to_owned(),
-                    ));
+                    return Err(Error::ExpectedOneOfDecimal {
+                        found: character,
+                        offset: size,
+                    });
                 } else if character == '_' {
                     size += 1;
                 } else {
@@ -91,11 +76,10 @@ pub fn parse(input: &str) -> Result<(usize, Integer), Error> {
                     value.push(character.to_ascii_lowercase());
                     size += 1;
                 } else if character != '_' && (character.is_ascii_alphabetic() || size <= 2) {
-                    return Err(Error::InvalidHexadecimalCharacter(
-                        character,
-                        size + 1,
-                        input[..=size].to_owned(),
-                    ));
+                    return Err(Error::ExpectedOneOfHexadecimal {
+                        found: character,
+                        offset: size,
+                    });
                 } else if character == '_' {
                     size += 1;
                 } else {
@@ -113,7 +97,7 @@ pub fn parse(input: &str) -> Result<(usize, Integer), Error> {
             if !value.is_empty() {
                 Ok((size, Integer::new_hexadecimal(value)))
             } else {
-                Err(Error::EmptyHexadecimalLiteral)
+                Err(Error::EmptyHexadecimalBody)
             }
         }
     }
@@ -128,7 +112,7 @@ mod tests {
     #[test]
     fn ok_decimal_zero() {
         let input = "0";
-        let expected = Ok((1, Integer::new_decimal("0".to_owned())));
+        let expected = Ok((input.len(), Integer::new_decimal(input.to_owned())));
         let result = parse(input);
         assert_eq!(result, expected);
     }
@@ -136,7 +120,7 @@ mod tests {
     #[test]
     fn ok_decimal() {
         let input = "666";
-        let expected = Ok((3, Integer::new_decimal("666".to_owned())));
+        let expected = Ok((input.len(), Integer::new_decimal(input.to_owned())));
         let result = parse(input);
         assert_eq!(result, expected);
     }
@@ -144,7 +128,8 @@ mod tests {
     #[test]
     fn ok_hexadecimal_lowercase() {
         let input = "0xdead_666_beef";
-        let expected = Ok((15, Integer::new_hexadecimal("dead666beef".to_owned())));
+        let filtered = "dead666beef";
+        let expected = Ok((input.len(), Integer::new_hexadecimal(filtered.to_owned())));
         let result = parse(input);
         assert_eq!(result, expected);
     }
@@ -152,7 +137,8 @@ mod tests {
     #[test]
     fn ok_hexadecimal_uppercase() {
         let input = "0xDEAD_666_BEEF";
-        let expected = Ok((15, Integer::new_hexadecimal("dead666beef".to_owned())));
+        let filtered = "dead666beef";
+        let expected = Ok((input.len(), Integer::new_hexadecimal(filtered.to_owned())));
         let result = parse(input);
         assert_eq!(result, expected);
     }
@@ -160,21 +146,14 @@ mod tests {
     #[test]
     fn ok_hexadecimal_mixed_case() {
         let input = "0xdEaD_666_bEeF";
-        let expected = Ok((15, Integer::new_hexadecimal("dead666beef".to_owned())));
+        let filtered = "dead666beef";
+        let expected = Ok((input.len(), Integer::new_hexadecimal(filtered.to_owned())));
         let result = parse(input);
         assert_eq!(result, expected);
     }
 
     #[test]
-    fn err_unexpected_end() {
-        let input = "";
-        let expected = Err(Error::UnexpectedEnd);
-        let result = parse(input);
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn err_not_an_integer() {
+    fn error_not_an_integer() {
         let input = "xyz";
         let expected = Err(Error::NotAnInteger);
         let result = parse(input);
@@ -182,29 +161,39 @@ mod tests {
     }
 
     #[test]
-    fn err_invalid_decimal_character() {
-        let input = "25x";
-        let expected = Err(Error::InvalidDecimalCharacter('x', 3, "25x".to_owned()));
-        let result = parse(input);
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn err_invalid_hexadecimal_character() {
-        let input = "0xABC_X";
-        let expected = Err(Error::InvalidHexadecimalCharacter(
-            'X',
-            7,
-            "0xABC_X".to_owned(),
-        ));
-        let result = parse(input);
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn err_empty_hexadecimal_literal() {
+    fn error_empty_hexadecimal_body() {
         let input = "0x";
-        let expected = Err(Error::EmptyHexadecimalLiteral);
+        let expected = Err(Error::EmptyHexadecimalBody);
+        let result = parse(input);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_one_of_decimal() {
+        let input = "25x";
+        let expected = Err(Error::ExpectedOneOfDecimal {
+            found: 'x',
+            offset: 2,
+        });
+        let result = parse(input);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_one_of_hexadecimal() {
+        let input = "0xABC_X";
+        let expected = Err(Error::ExpectedOneOfHexadecimal {
+            found: 'X',
+            offset: 6,
+        });
+        let result = parse(input);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_unexpected_end() {
+        let input = "";
+        let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
         assert_eq!(result, expected);
     }

@@ -171,11 +171,9 @@ impl Parser {
                     .push_operand(location, ExpressionOperand::Identifier(builder.finish()));
                 Ok((self.builder.finish(), None))
             }
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                location,
-                vec!["(", "{", "[", "if", "match", "{identifier}", "{literal}"],
-                lexeme,
-            ))),
+            Token { lexeme, location } => Err(Error::Syntax(
+                SyntaxError::expected_expression_or_operand(location, lexeme),
+            )),
         }
     }
 }
