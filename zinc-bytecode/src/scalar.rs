@@ -24,7 +24,7 @@ impl ScalarType {
 }
 
 impl IntegerType {
-    pub const BOOLEAN: Self = IntegerType {
+    pub const BIT: Self = IntegerType {
         signed: false,
         length: 1,
     };

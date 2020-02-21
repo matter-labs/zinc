@@ -16,13 +16,13 @@ where
         let right = vm.pop()?.value()?;
         let left = vm.pop()?.value()?;
 
-        let unchecked_sum = vm.operations().add(left.clone(), right.clone())?;
+        let sum_type = ScalarType::expect_same(left.get_type(), right.get_type())?;
+
+        let unchecked_sum = vm.operations().add(left, right)?;
         let condition = vm.condition_top()?;
-        let sum = vm.operations().assert_type(
-            condition,
-            unchecked_sum,
-            ScalarType::expect_same(left.get_type(), right.get_type())?,
-        )?;
+        let sum = vm
+            .operations()
+            .assert_type(condition, unchecked_sum, sum_type)?;
 
         vm.push(Cell::Value(sum))
     }

@@ -11,7 +11,7 @@ use zinc_bytecode::program::Program;
 
 use crate::core::VirtualMachine;
 use crate::debug_constraint_system::DebugConstraintSystem;
-pub use crate::errors::{MalformedBytecode, RuntimeError, TypeSizeError};
+pub use crate::errors::{MalformedBytecode, Result, RuntimeError, TypeSizeError};
 use crate::gadgets::utils::bigint_to_fr;
 use crate::Engine;
 use failure::Fail;
@@ -20,18 +20,21 @@ use zinc_bytecode::data::values::Value;
 struct VMCircuit<'a> {
     program: &'a Program,
     inputs: Option<&'a [BigInt]>,
-    result: &'a mut Option<Result<Vec<Option<BigInt>>, RuntimeError>>,
+    result: &'a mut Option<Result<Vec<Option<BigInt>>>>,
 }
 
 impl<E: Engine> Circuit<E> for VMCircuit<'_> {
-    fn synthesize<CS: ConstraintSystem<E>>(self, cs: &mut CS) -> Result<(), SynthesisError> {
+    fn synthesize<CS: ConstraintSystem<E>>(
+        self,
+        cs: &mut CS,
+    ) -> std::result::Result<(), SynthesisError> {
         let mut vm = VirtualMachine::new(cs, false);
         *self.result = Some(vm.run(self.program, self.inputs, |_| {}, |_| Ok(())));
         Ok(())
     }
 }
 
-pub fn run<E: Engine>(program: &Program, inputs: &Value) -> Result<Value, RuntimeError> {
+pub fn run<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
     let cs = DebugConstraintSystem::<Bn256>::default();
     let mut vm = VirtualMachine::new(cs, true);
 
@@ -83,7 +86,7 @@ pub fn run<E: Engine>(program: &Program, inputs: &Value) -> Result<Value, Runtim
     Ok(value)
 }
 
-pub fn setup<E: Engine>(program: &Program) -> Result<Parameters<E>, RuntimeError> {
+pub fn setup<E: Engine>(program: &Program) -> Result<Parameters<E>> {
     let rng = &mut rand::thread_rng();
     let mut result = None;
     let circuit = VMCircuit {
@@ -104,7 +107,7 @@ pub fn prove<E: Engine>(
     program: &Program,
     params: &Parameters<E>,
     witness: &Value,
-) -> Result<(Value, Proof<E>), RuntimeError> {
+) -> Result<(Value, Proof<E>)> {
     let rng = &mut rand::thread_rng();
 
     let witness_flat = witness.to_flat_values();
@@ -162,14 +165,14 @@ pub fn verify<E: Engine>(
     key: &VerifyingKey<E>,
     proof: &Proof<E>,
     public_input: &Value,
-) -> Result<bool, VerificationError> {
+) -> std::result::Result<bool, VerificationError> {
     let public_input_flat = public_input
         .to_flat_values()
         .into_iter()
         .map(|value| {
             bigint_to_fr::<E>(&value).ok_or_else(|| VerificationError::ValueOverflow(value))
         })
-        .collect::<Result<Vec<E::Fr>, VerificationError>>()?;
+        .collect::<std::result::Result<Vec<E::Fr>, VerificationError>>()?;
 
     let pvk = groth16::prepare_verifying_key(&key);
     let success = groth16::verify_proof(&pvk, proof, public_input_flat.as_slice())

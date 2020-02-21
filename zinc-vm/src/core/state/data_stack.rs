@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use crate::core::Cell;
 use crate::errors::MalformedBytecode;
-use crate::gadgets::{Gadgets, Primitive};
+use crate::gadgets::{Gadgets, Scalar};
 use crate::Engine;
 use crate::RuntimeError;
 use franklin_crypto::bellman::ConstraintSystem;
@@ -113,7 +113,7 @@ impl<E: Engine> DataStack<E> {
     /// Merge top-level branch or branches into parent branch.
     pub fn merge<CS: ConstraintSystem<E>>(
         &mut self,
-        condition: Primitive<E>,
+        condition: Scalar<E>,
         ops: &mut Gadgets<E, CS>,
     ) -> Result<(), RuntimeError> {
         let mut branch = self
@@ -139,7 +139,7 @@ impl<E: Engine> DataStack<E> {
     /// Conditionally apply delta
     fn merge_single<CS: ConstraintSystem<E>>(
         &mut self,
-        condition: Primitive<E>,
+        condition: Scalar<E>,
         delta: &DataStackDelta<E>,
         ops: &mut Gadgets<E, CS>,
     ) -> Result<(), RuntimeError> {
@@ -160,7 +160,7 @@ impl<E: Engine> DataStack<E> {
     /// Conditionally apply one of two deltas.
     fn merge_pair<CS>(
         &mut self,
-        condition: Primitive<E>,
+        condition: Scalar<E>,
         delta_then: &DataStackDelta<E>,
         delta_else: &DataStackDelta<E>,
         ops: &mut Gadgets<E, CS>,

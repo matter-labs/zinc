@@ -2,6 +2,7 @@ pub mod pop;
 pub mod push;
 pub mod slice;
 pub mod swap;
+pub mod tee;
 
 pub mod load;
 pub mod load_array;

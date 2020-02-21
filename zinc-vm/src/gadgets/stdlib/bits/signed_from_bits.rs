@@ -1,5 +1,5 @@
 use crate::gadgets::utils::bigint_to_fr;
-use crate::gadgets::{Gadget, IntegerType, Primitive, ScalarType};
+use crate::gadgets::{Gadget, IntegerType, Scalar, ScalarType};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
@@ -12,8 +12,8 @@ use num_bigint::BigInt;
 pub struct SignedFromBits;
 
 impl<E: Engine> Gadget<E> for SignedFromBits {
-    type Input = Vec<Primitive<E>>;
-    type Output = Primitive<E>;
+    type Input = Vec<Scalar<E>>;
+    type Output = Scalar<E>;
 
     fn synthesize<CS: ConstraintSystem<E>>(
         &self,
@@ -34,7 +34,7 @@ impl<E: Engine> Gadget<E> for SignedFromBits {
 
         let mut bits: Vec<Boolean> = Vec::with_capacity(length);
         for (i, value) in input.iter().rev().enumerate() {
-            let bit = value.value.map(|fr| -> bool { !fr.is_zero() });
+            let bit = value.get_value().map(|fr| -> bool { !fr.is_zero() });
             let allocated_bit =
                 AllocatedBit::alloc(cs.namespace(|| format!("AllocatedBit {}", i)), bit)?;
             bits.push(allocated_bit.into());
@@ -53,18 +53,18 @@ impl<E: Engine> Gadget<E> for SignedFromBits {
 
         let result = (num_expr - base_expr).into_number(cs.namespace(|| "result"))?;
 
-        Ok(Primitive {
-            value: result.get_value(),
-            variable: result.get_variable(),
+        Ok(Scalar::new_unchecked_variable(
+            result.get_value(),
+            result.get_variable(),
             scalar_type,
-        })
+        ))
     }
 
-    fn input_from_vec(input: &[Primitive<E>]) -> Result<Self::Input, RuntimeError> {
+    fn input_from_vec(input: &[Scalar<E>]) -> Result<Self::Input, RuntimeError> {
         Ok(Vec::from(input))
     }
 
-    fn output_into_vec(output: Self::Output) -> Vec<Primitive<E>> {
+    fn output_into_vec(output: Self::Output) -> Vec<Scalar<E>> {
         vec![output]
     }
 }
