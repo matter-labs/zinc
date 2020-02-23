@@ -12,9 +12,13 @@ Both operands of a binary operator must always be of the same type, e.g.:
 > division concept. It means that `-45 % 7 == 4`. To get the detailed explanation
 > and some examples, see the [article](https://en.wikipedia.org/wiki/Euclidean_division).
 
+The `+=`, `-=`, `*=`, `/=`, `%=` shortcut operators performs the operation
+and assign the result to the first operand. The first operand must be a mutable memory location
+like a variable, array element, or structure field.
+
 #### Addition
 
-`+` is a binary operator.
+`+` and `+=` are binary operators.
 
 **Accepts**
 1. Integer expression
@@ -24,7 +28,7 @@ Both operands of a binary operator must always be of the same type, e.g.:
 
 #### Subtraction
 
-`-` is a binary operator.
+`-` and `-=` are binary operators.
 
 **Accepts**
 1. Integer expression
@@ -34,7 +38,7 @@ Both operands of a binary operator must always be of the same type, e.g.:
 
 #### Multiplication
 
-`*` is a binary operator.
+`*` and `*=` are binary operators.
 
 **Accepts**
 1. Integer expression
@@ -44,7 +48,7 @@ Both operands of a binary operator must always be of the same type, e.g.:
 
 #### Division
 
-`/` is a binary operator.
+`/` and `/=` are binary operators.
 
 **Accepts**
 1. Integer expression (anything but `field`)
@@ -54,7 +58,7 @@ Both operands of a binary operator must always be of the same type, e.g.:
 
 #### Remainder
 
-`%` is a binary operator.
+`%` and `%=` are binary operators.
 
 **Accepts**
 1. Integer expression (anything but `field`)

@@ -29,6 +29,11 @@ pub enum Symbol {
     GreaterThan,
 
     // complex
+    PlusEquals,
+    MinusEquals,
+    AsteriskEquals,
+    SlashEquals,
+    PercentEquals,
     DoubleColon,
     DoubleEquals,
     ExclamationMarkEquals,
@@ -67,6 +72,11 @@ impl fmt::Display for Symbol {
             Self::LesserThan => write!(f, "<"),
             Self::GreaterThan => write!(f, ">"),
 
+            Self::PlusEquals => write!(f, "+="),
+            Self::MinusEquals => write!(f, "-="),
+            Self::AsteriskEquals => write!(f, "*="),
+            Self::SlashEquals => write!(f, "/="),
+            Self::PercentEquals => write!(f, "%="),
             Self::DoubleColon => write!(f, "::"),
             Self::DoubleEquals => write!(f, "=="),
             Self::ExclamationMarkEquals => write!(f, "!="),

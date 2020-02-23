@@ -61,11 +61,13 @@ use zinc_bytecode::scalar::{IntegerType, ScalarType};
 pub struct Analyzer {
     scope_stack: Vec<Rc<RefCell<Scope>>>,
     bytecode: Rc<RefCell<Bytecode>>,
-
-    is_next_call_instruction: bool,
     operands: Vec<StackElement>,
 
+    // will be removed when IR is implemented
+    is_next_call_instruction: bool,
+    // will be removed when IR is implemented
     loads: usize,
+    // will be removed when IR is implemented
     pushes: usize,
 }
 
@@ -87,10 +89,9 @@ impl Analyzer {
                 scope_stack
             },
             bytecode,
-
-            is_next_call_instruction: false,
             operands: Vec::with_capacity(Self::STACK_OPERAND_INITIAL_CAPACITY),
 
+            is_next_call_instruction: false,
             loads: 0,
             pushes: 0,
         }
@@ -149,6 +150,77 @@ impl Analyzer {
                     );
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
                 }
+                ExpressionObject::Operator(ExpressionOperator::AssignmentAddition) => {
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(
+                        TranslationHint::PlaceExpression,
+                        TranslationHint::ValueExpression,
+                        false,
+                    )?;
+
+                    let place = operand_1
+                        .clone()
+                        .assign(&operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    let r#type = Type::from_element(&operand_2, self.scope())?;
+
+                    if !place.is_mutable {
+                        return Err(Error::AssignmentToImmutableMemory(
+                            location,
+                            place.to_string(),
+                        ));
+                    }
+                    if place.r#type != r#type {
+                        return Err(Error::AssignmentTypesMismatch(
+                            location,
+                            r#type.to_string(),
+                            place.r#type.to_string(),
+                        ));
+                    }
+
+                    let operand_1_value = match operand_1 {
+                        Element::Place(place) => {
+                            self.translate_place(&place, TranslationHint::ValueExpression)?
+                        }
+                        element => element,
+                    };
+                    operand_1_value
+                        .add(&operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+
+                    // self.bytecode.borrow_mut().push_instruction_load(
+                    //     place.address,
+                    //     place.r#type.size(),
+                    //     if place.is_indexed {
+                    //         Some(place.total_size)
+                    //     } else {
+                    //         None
+                    //     },
+                    //     false,
+                    //     element.location,
+                    // );
+                    // self.bytecode
+                    //     .borrow_mut()
+                    //     .push_instruction(Instruction::Swap(zinc_bytecode::Swap), element.location);
+                    // self.bytecode
+                    //     .borrow_mut()
+                    //     .push_instruction(Instruction::Add(zinc_bytecode::Add), element.location);
+                    self.bytecode.borrow_mut().push_instruction_store(
+                        place.address,
+                        place.r#type.size(),
+                        if place.is_indexed {
+                            Some(place.total_size)
+                        } else {
+                            None
+                        },
+                        false,
+                        element.location,
+                    );
+                    self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
+                }
+                ExpressionObject::Operator(ExpressionOperator::AssignmentSubtraction) => todo!(),
+                ExpressionObject::Operator(ExpressionOperator::AssignmentMultiplication) => todo!(),
+                ExpressionObject::Operator(ExpressionOperator::AssignmentDivision) => todo!(),
+                ExpressionObject::Operator(ExpressionOperator::AssignmentRemainder) => todo!(),
                 ExpressionObject::Operator(ExpressionOperator::RangeInclusive) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
@@ -1406,6 +1478,30 @@ impl Analyzer {
         let path_last = path.last();
 
         match translation_hint {
+            TranslationHint::PlaceExpression => {
+                let identifier = path.last().name.to_owned();
+                match Scope::resolve_path(self.scope(), path)?.variant {
+                    ScopeItem::Variable(variable) => Ok(Element::Place(Place::new(
+                        location,
+                        identifier,
+                        variable.r#type,
+                        variable.address,
+                        variable.is_mutable,
+                        false,
+                    ))),
+                    ScopeItem::Static(r#static) => Ok(Element::Place(Place::new(
+                        location,
+                        identifier,
+                        r#static.data.r#type(),
+                        r#static.address,
+                        false,
+                        true,
+                    ))),
+                    ScopeItem::Constant(constant) => Ok(Element::Constant(constant)),
+                    ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
+                    ScopeItem::Module(_) => Ok(Element::Module(path_last.name.to_owned())),
+                }
+            }
             TranslationHint::ValueExpression => {
                 match Scope::resolve_path(self.scope(), path)?.variant {
                     ScopeItem::Variable(variable) => {
@@ -1447,38 +1543,14 @@ impl Analyzer {
                     ScopeItem::Module(_) => Ok(Element::Module(path_last.name.to_owned())),
                 }
             }
+
             TranslationHint::TypeExpression => {
                 match Scope::resolve_path(self.scope(), path)?.variant {
                     ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
                     _ => Ok(Element::Path(path.to_owned())),
                 }
             }
-
             TranslationHint::PathExpression => Ok(Element::Path(path.to_owned())),
-            TranslationHint::PlaceExpression => {
-                let identifier = path.last().name.to_owned();
-                match Scope::resolve_path(self.scope(), path)?.variant {
-                    ScopeItem::Variable(variable) => Ok(Element::Place(Place::new(
-                        location,
-                        identifier,
-                        variable.r#type,
-                        variable.address,
-                        variable.is_mutable,
-                        false,
-                    ))),
-                    ScopeItem::Static(r#static) => Ok(Element::Place(Place::new(
-                        location,
-                        identifier,
-                        r#static.data.r#type(),
-                        r#static.address,
-                        false,
-                        true,
-                    ))),
-                    ScopeItem::Constant(constant) => Ok(Element::Constant(constant)),
-                    ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
-                    ScopeItem::Module(_) => Ok(Element::Module(path_last.name.to_owned())),
-                }
-            }
             TranslationHint::CompoundTypeMember => Ok(Element::MemberString(MemberString::new(
                 location,
                 path_last.name.to_owned(),
@@ -1496,7 +1568,11 @@ impl Analyzer {
                 self.bytecode.borrow_mut().push_instruction_load(
                     place.address,
                     place.r#type.size(),
-                    Some(place.total_size),
+                    if place.is_indexed {
+                        Some(place.total_size)
+                    } else {
+                        None
+                    },
                     place.is_global,
                     place.location,
                 );

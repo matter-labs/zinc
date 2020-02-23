@@ -101,6 +101,46 @@ impl Parser {
                             self.operator = Some((location, ExpressionOperator::Assignment));
                             self.state = State::AssignmentSecondOperand;
                         }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::PlusEquals),
+                            location,
+                        } => {
+                            self.operator =
+                                Some((location, ExpressionOperator::AssignmentAddition));
+                            self.state = State::AssignmentSecondOperand;
+                        }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::MinusEquals),
+                            location,
+                        } => {
+                            self.operator =
+                                Some((location, ExpressionOperator::AssignmentSubtraction));
+                            self.state = State::AssignmentSecondOperand;
+                        }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::AsteriskEquals),
+                            location,
+                        } => {
+                            self.operator =
+                                Some((location, ExpressionOperator::AssignmentMultiplication));
+                            self.state = State::AssignmentSecondOperand;
+                        }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::SlashEquals),
+                            location,
+                        } => {
+                            self.operator =
+                                Some((location, ExpressionOperator::AssignmentDivision));
+                            self.state = State::AssignmentSecondOperand;
+                        }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::PercentEquals),
+                            location,
+                        } => {
+                            self.operator =
+                                Some((location, ExpressionOperator::AssignmentRemainder));
+                            self.state = State::AssignmentSecondOperand;
+                        }
                         token => return Ok((self.builder.finish(), Some(token))),
                     }
                 }

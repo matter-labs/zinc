@@ -6,6 +6,11 @@
 pub enum Operator {
     // assignment
     Assignment,
+    AssignmentAddition,
+    AssignmentSubtraction,
+    AssignmentMultiplication,
+    AssignmentDivision,
+    AssignmentRemainder,
 
     // range
     Range,

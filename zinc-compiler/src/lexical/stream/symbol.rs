@@ -12,7 +12,11 @@ pub enum State {
     Exclamation,
     Lesser,
     Greater,
+    Plus,
     Minus,
+    Asterisk,
+    Slash,
+    Percent,
     Dot,
     Colon,
     DoubleDot,
@@ -52,14 +56,25 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                 ';' => return Ok((size + 1, Symbol::Semicolon)),
                 ',' => return Ok((size + 1, Symbol::Comma)),
 
-                '+' => return Ok((size + 1, Symbol::Plus)),
-                '*' => return Ok((size + 1, Symbol::Asterisk)),
-                '/' => return Ok((size + 1, Symbol::Slash)),
-                '%' => return Ok((size + 1, Symbol::Percent)),
-
+                '+' => {
+                    size += 1;
+                    state = State::Plus;
+                }
                 '-' => {
                     size += 1;
                     state = State::Minus;
+                }
+                '*' => {
+                    size += 1;
+                    state = State::Asterisk;
+                }
+                '/' => {
+                    size += 1;
+                    state = State::Slash;
+                }
+                '%' => {
+                    size += 1;
+                    state = State::Percent;
                 }
                 '.' => {
                     size += 1;
@@ -130,10 +145,35 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                     _ => Ok((size, Symbol::GreaterThan)),
                 }
             }
+            State::Plus => {
+                return match character {
+                    '=' => Ok((size + 1, Symbol::PlusEquals)),
+                    _ => Ok((size, Symbol::Plus)),
+                }
+            }
             State::Minus => {
                 return match character {
                     '>' => Ok((size + 1, Symbol::MinusGreater)),
+                    '=' => Ok((size + 1, Symbol::MinusEquals)),
                     _ => Ok((size, Symbol::Minus)),
+                }
+            }
+            State::Asterisk => {
+                return match character {
+                    '=' => Ok((size + 1, Symbol::AsteriskEquals)),
+                    _ => Ok((size, Symbol::Asterisk)),
+                }
+            }
+            State::Slash => {
+                return match character {
+                    '=' => Ok((size + 1, Symbol::SlashEquals)),
+                    _ => Ok((size, Symbol::Slash)),
+                }
+            }
+            State::Percent => {
+                return match character {
+                    '=' => Ok((size + 1, Symbol::PercentEquals)),
+                    _ => Ok((size, Symbol::Percent)),
                 }
             }
             State::Dot => match character {

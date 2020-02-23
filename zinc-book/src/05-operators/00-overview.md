@@ -27,4 +27,4 @@ The top one is executed first.
 |        ^^        |  left to right  |
 |        ⎮⎮        |  left to right  |
 |      .. ..=      |     single      |
-|         =        |     single      |
+| = += -= *= /= %= |     single      |
