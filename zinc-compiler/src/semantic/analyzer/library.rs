@@ -10,7 +10,7 @@ use crate::error::Error as CompilerError;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
 use crate::semantic::bytecode::Bytecode;
 use crate::semantic::scope::Scope;
-use crate::SyntaxTree;
+use crate::syntax::Tree as SyntaxTree;
 
 pub struct Analyzer {
     scope_stack: Vec<Rc<RefCell<Scope>>>,

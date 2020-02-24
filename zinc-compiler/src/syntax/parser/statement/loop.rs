@@ -11,12 +11,15 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::BlockExpressionParser;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::ExpressionParser;
-use crate::syntax::Identifier;
-use crate::syntax::LoopStatement;
-use crate::syntax::LoopStatementBuilder;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::expression::block::Parser as BlockExpressionParser;
+use crate::syntax::parser::expression::Parser as ExpressionParser;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::statement::r#loop::builder::Builder as LoopStatementBuilder;
+use crate::syntax::tree::statement::r#loop::Statement as LoopStatement;
+
+static HINT_EXPECTED_INDEX_IDENTIFIER: &str =
+    "loop must have the index identifier, e.g. `for i in 0..10 { ... }`";
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -51,7 +54,7 @@ impl Parser {
         loop {
             match self.state {
                 State::KeywordFor => {
-                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::For),
                             location,
@@ -64,12 +67,13 @@ impl Parser {
                                 location,
                                 vec!["for"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
                 }
                 State::IndexIdentifier => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
@@ -80,13 +84,15 @@ impl Parser {
                         }
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::expected_identifier(
-                                location, lexeme,
+                                location,
+                                lexeme,
+                                Some(HINT_EXPECTED_INDEX_IDENTIFIER),
                             )));
                         }
                     }
                 }
                 State::KeywordIn => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::In),
                             ..
@@ -98,6 +104,7 @@ impl Parser {
                                 location,
                                 vec!["in"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
@@ -110,7 +117,7 @@ impl Parser {
                     self.state = State::BlockExpressionOrKeywordWhile;
                 }
                 State::BlockExpressionOrKeywordWhile => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         token
                         @
                         Token {
@@ -127,10 +134,11 @@ impl Parser {
                             ..
                         } => self.state = State::WhileConditionExpression,
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::expected_one_of(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of_or_operator(
                                 location,
                                 vec!["{", "while"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
@@ -159,21 +167,68 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::error::Error;
     use crate::lexical;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Symbol;
     use crate::lexical::TokenStream;
-    use crate::syntax::BlockExpression;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::ExpressionOperator;
-    use crate::syntax::Identifier;
-    use crate::syntax::IntegerLiteral;
-    use crate::syntax::LoopStatement;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::block::Expression as BlockExpression;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+    use crate::syntax::tree::statement::r#loop::Statement as LoopStatement;
 
     #[test]
-    fn ok_with_block() {
+    fn ok_empty() {
+        let input = r#"for i in 0..4 {}"#;
+
+        let expected = Ok(LoopStatement::new(
+            Location::new(1, 1),
+            Identifier::new(Location::new(1, 5), "i".to_owned()),
+            Expression::new(
+                Location::new(1, 10),
+                vec![
+                    ExpressionElement::new(
+                        Location::new(1, 10),
+                        ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 10),
+                                lexical::IntegerLiteral::new_decimal("0".to_owned()),
+                            ),
+                        )),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 13),
+                        ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 13),
+                                lexical::IntegerLiteral::new_decimal("4".to_owned()),
+                            ),
+                        )),
+                    ),
+                    ExpressionElement::new(
+                        Location::new(1, 11),
+                        ExpressionObject::Operator(ExpressionOperator::Range),
+                    ),
+                ],
+            ),
+            None,
+            BlockExpression::new(Location::new(1, 15), vec![], None),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok() {
         let input = r#"for i in 0..=4 { 2 + 1 }"#;
 
         let expected = Ok(LoopStatement::new(
@@ -246,42 +301,46 @@ mod tests {
     }
 
     #[test]
-    fn ok_with_empty_block() {
-        let input = r#"for i in 0..4 {}"#;
+    fn error_expected_identifier() {
+        let input = r#"for { 2 + 2 }"#;
 
-        let expected = Ok(LoopStatement::new(
-            Location::new(1, 1),
-            Identifier::new(Location::new(1, 5), "i".to_owned()),
-            Expression::new(
-                Location::new(1, 10),
-                vec![
-                    ExpressionElement::new(
-                        Location::new(1, 10),
-                        ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-                            IntegerLiteral::new(
-                                Location::new(1, 10),
-                                lexical::IntegerLiteral::new_decimal("0".to_owned()),
-                            ),
-                        )),
-                    ),
-                    ExpressionElement::new(
-                        Location::new(1, 13),
-                        ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-                            IntegerLiteral::new(
-                                Location::new(1, 13),
-                                lexical::IntegerLiteral::new_decimal("4".to_owned()),
-                            ),
-                        )),
-                    ),
-                    ExpressionElement::new(
-                        Location::new(1, 11),
-                        ExpressionObject::Operator(ExpressionOperator::Range),
-                    ),
-                ],
-            ),
+        let expected = Err(Error::Syntax(SyntaxError::expected_identifier(
+            Location::new(1, 5),
+            Lexeme::Symbol(Symbol::BracketCurlyLeft),
+            Some(super::HINT_EXPECTED_INDEX_IDENTIFIER),
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_keyword_in() {
+        let input = r#"for i { 2 + 2 }"#;
+
+        let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 7),
+            vec!["in"],
+            Lexeme::Symbol(Symbol::BracketCurlyLeft),
             None,
-            BlockExpression::new(Location::new(1, 15), vec![], None),
-        ));
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_bracket_curly_left_or_keyword_while() {
+        let input = r#"for i in 0..10;"#;
+
+        let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 15),
+            vec!["{", "while"],
+            Lexeme::Symbol(Symbol::Semicolon),
+            None,
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 

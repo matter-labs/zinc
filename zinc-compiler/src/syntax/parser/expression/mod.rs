@@ -2,45 +2,25 @@
 //! The expression parser.
 //!
 
-mod access;
-mod add_sub;
-mod and;
-mod array;
-mod assignment;
-mod block;
-mod casting;
-mod comparison;
-mod conditional;
-mod list;
-mod r#match;
-mod mul_div_rem;
-mod or;
-mod path;
-mod range;
-mod structure;
-mod terminal;
-mod tuple;
-mod xor;
-
-pub use self::access::Parser as AccessOperandParser;
-pub use self::add_sub::Parser as AddSubOperandParser;
-pub use self::and::Parser as AndOperandParser;
-pub use self::array::Parser as ArrayExpressionParser;
-pub use self::assignment::Parser as AssignmentOperandParser;
-pub use self::block::Parser as BlockExpressionParser;
-pub use self::casting::Parser as CastingOperandParser;
-pub use self::comparison::Parser as ComparisonOperandParser;
-pub use self::conditional::Parser as ConditionalExpressionParser;
-pub use self::list::Parser as ListParser;
-pub use self::mul_div_rem::Parser as MulDivRemOperandParser;
-pub use self::or::Parser as OrOperandParser;
-pub use self::path::Parser as PathOperandParser;
-pub use self::r#match::Parser as MatchExpressionParser;
-pub use self::range::Parser as RangeOperandParser;
-pub use self::structure::Parser as StructureExpressionParser;
-pub use self::terminal::Parser as TerminalOperandParser;
-pub use self::tuple::Parser as TupleExpressionParser;
-pub use self::xor::Parser as XorOperandParser;
+pub mod access;
+pub mod add_sub;
+pub mod and;
+pub mod array;
+pub mod assignment;
+pub mod block;
+pub mod casting;
+pub mod comparison;
+pub mod conditional;
+pub mod list;
+pub mod r#match;
+pub mod mul_div_rem;
+pub mod or;
+pub mod path;
+pub mod range;
+pub mod structure;
+pub mod terminal;
+pub mod tuple;
+pub mod xor;
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -51,9 +31,10 @@ use crate::lexical::Location;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Expression;
-use crate::syntax::ExpressionBuilder;
-use crate::syntax::ExpressionOperator;
+use crate::syntax::parser::expression::assignment::Parser as AssignmentOperandParser;
+use crate::syntax::tree::expression::builder::Builder as ExpressionBuilder;
+use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
+use crate::syntax::tree::expression::Expression;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -93,7 +74,7 @@ impl Parser {
                     self.state = State::AssignmentOperator;
                 }
                 State::AssignmentOperator => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Equals),
                             location,
@@ -169,12 +150,12 @@ mod tests {
     use crate::lexical::Location;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
-    use crate::syntax::BooleanLiteral;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::ExpressionOperator;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
 
     #[test]
     fn ok() {

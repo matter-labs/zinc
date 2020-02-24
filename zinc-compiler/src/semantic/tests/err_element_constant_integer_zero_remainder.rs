@@ -17,13 +17,13 @@ use crate::Error;
 fn test() {
     let input = r#"
 fn main() {
-    let value = 42 / 0;
+    let value = 42 % 0;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 20),
-        ElementError::Constant(ConstantError::Integer(IntegerConstantError::DivisionZero)),
+        ElementError::Constant(ConstantError::Integer(IntegerConstantError::ZeroRemainder)),
     )));
 
     let result = super::get_binary_result(input);

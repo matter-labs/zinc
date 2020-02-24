@@ -2,7 +2,7 @@
 //! The binding pattern variant.
 //!
 
-use crate::syntax::Identifier;
+use crate::syntax::tree::identifier::Identifier;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Variant {

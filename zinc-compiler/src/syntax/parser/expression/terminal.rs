@@ -12,20 +12,20 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::ArrayExpressionParser;
-use crate::syntax::BlockExpressionParser;
-use crate::syntax::BooleanLiteral;
-use crate::syntax::ConditionalExpressionParser;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::Expression;
-use crate::syntax::ExpressionBuilder;
-use crate::syntax::ExpressionOperand;
-use crate::syntax::IdentifierBuilder;
-use crate::syntax::IntegerLiteral;
-use crate::syntax::MatchExpressionParser;
-use crate::syntax::StringLiteral;
-use crate::syntax::StructureExpressionParser;
-use crate::syntax::TupleExpressionParser;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::expression::array::Parser as ArrayExpressionParser;
+use crate::syntax::parser::expression::block::Parser as BlockExpressionParser;
+use crate::syntax::parser::expression::conditional::Parser as ConditionalExpressionParser;
+use crate::syntax::parser::expression::r#match::Parser as MatchExpressionParser;
+use crate::syntax::parser::expression::structure::Parser as StructureExpressionParser;
+use crate::syntax::parser::expression::tuple::Parser as TupleExpressionParser;
+use crate::syntax::tree::expression::builder::Builder as ExpressionBuilder;
+use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::identifier::builder::Builder as IdentifierBuilder;
+use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+use crate::syntax::tree::literal::string::Literal as StringLiteral;
 
 #[derive(Default)]
 pub struct Parser {
@@ -38,7 +38,7 @@ impl Parser {
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
     ) -> Result<(Expression, Option<Token>), Error> {
-        match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+        match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
             token
             @
             Token {
@@ -183,20 +183,24 @@ mod tests {
     use std::cell::RefCell;
     use std::rc::Rc;
 
+    use super::Error;
     use super::Parser;
     use crate::lexical;
     use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Symbol;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::Identifier;
-    use crate::syntax::IntegerLiteral;
-    use crate::syntax::StringLiteral;
-    use crate::syntax::{BooleanLiteral, ExpressionOperator};
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+    use crate::syntax::tree::literal::string::Literal as StringLiteral;
 
     #[test]
     fn ok_literal_boolean() {
@@ -294,6 +298,29 @@ mod tests {
     }
 
     #[test]
+    fn ok_alias_self() {
+        let input = r#"Self"#;
+
+        let expected = Ok((
+            Expression::new(
+                Location::new(1, 1),
+                vec![ExpressionElement::new(
+                    Location::new(1, 1),
+                    ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
+                        Location::new(1, 1),
+                        "Self".to_owned(),
+                    ))),
+                )],
+            ),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
     fn ok_parenthesized() {
         let input = r#"(2 + 2)"#;
 
@@ -327,6 +354,21 @@ mod tests {
             ),
             None,
         ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected() {
+        let input = r#"*"#;
+
+        let expected: Result<_, Error> =
+            Err(Error::Syntax(SyntaxError::expected_expression_or_operand(
+                Location::new(1, 1),
+                Lexeme::Symbol(Symbol::Asterisk),
+            )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 

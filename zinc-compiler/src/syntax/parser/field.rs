@@ -10,11 +10,14 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::Field;
-use crate::syntax::FieldBuilder;
-use crate::syntax::Identifier;
-use crate::syntax::TypeParser;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::r#type::Parser as TypeParser;
+use crate::syntax::tree::field::builder::Builder as FieldBuilder;
+use crate::syntax::tree::field::Field;
+use crate::syntax::tree::identifier::Identifier;
+
+static HINT_EXPECTED_IDENTIFIER: &str = "structure field must have an identifier, e.g. `a: u8`";
+static HINT_EXPECTED_TYPE: &str = "structure field must have a type, e.g. `a: u8`";
 
 #[derive(Default)]
 pub struct Parser {
@@ -28,7 +31,7 @@ impl Parser {
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
     ) -> Result<(Field, Option<Token>), Error> {
-        match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+        match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
             Token {
                 lexeme: Lexeme::Identifier(identifier),
                 location,
@@ -39,21 +42,23 @@ impl Parser {
             }
             Token { lexeme, location } => {
                 return Err(Error::Syntax(SyntaxError::expected_identifier(
-                    location, lexeme,
+                    location,
+                    lexeme,
+                    Some(HINT_EXPECTED_IDENTIFIER),
                 )));
             }
         }
 
-        match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+        match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
             Token {
                 lexeme: Lexeme::Symbol(Symbol::Colon),
                 ..
             } => {}
             Token { lexeme, location } => {
-                return Err(Error::Syntax(SyntaxError::expected_one_of(
+                return Err(Error::Syntax(SyntaxError::expected_type(
                     location,
-                    vec![":"],
                     lexeme,
+                    Some(HINT_EXPECTED_TYPE),
                 )));
             }
         }
@@ -70,25 +75,44 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::error::Error;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
     use crate::lexical::TokenStream;
-    use crate::syntax::Field;
-    use crate::syntax::Identifier;
-    use crate::syntax::Type;
-    use crate::syntax::TypeVariant;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::parser::field::HINT_EXPECTED_TYPE;
+    use crate::syntax::tree::field::Field;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
+    use crate::syntax::tree::r#type::Type;
 
     #[test]
-    fn ok_single() {
-        let input = "a: u232";
+    fn ok() {
+        let input = "id: u232";
 
         let expected = Ok((
             Field::new(
                 Location::new(1, 1),
-                Identifier::new(Location::new(1, 1), "a".to_owned()),
-                Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
+                Identifier::new(Location::new(1, 1), "id".to_owned()),
+                Type::new(Location::new(1, 5), TypeVariant::integer_unsigned(232)),
             ),
             None,
         ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_type() {
+        let input = "id";
+
+        let expected = Err(Error::Syntax(SyntaxError::expected_type(
+            Location::new(1, 3),
+            Lexeme::Eof,
+            Some(HINT_EXPECTED_TYPE),
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 

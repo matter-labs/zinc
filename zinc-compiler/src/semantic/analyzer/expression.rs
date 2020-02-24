@@ -11,6 +11,8 @@ use num_bigint::BigInt;
 use num_traits::Zero;
 
 use zinc_bytecode::data::types::DataType;
+use zinc_bytecode::scalar::IntegerType;
+use zinc_bytecode::scalar::ScalarType;
 use zinc_bytecode::Instruction;
 
 use crate::lexical::Location;
@@ -56,7 +58,6 @@ use crate::syntax::MemberString;
 use crate::syntax::StringLiteral;
 use crate::syntax::StructureExpression;
 use crate::syntax::TupleExpression;
-use zinc_bytecode::scalar::{IntegerType, ScalarType};
 
 pub struct Analyzer {
     scope_stack: Vec<Rc<RefCell<Scope>>>,
@@ -1344,13 +1345,24 @@ impl Analyzer {
 
         for expression in array.elements.into_iter() {
             let location = expression.location;
-            match array.repeats_count {
-                Some(ref repeats_count) => {
-                    let repeats_count = IntegerConstant::try_from(repeats_count)
-                        .map_err(|error| Error::InferenceConstant(location, error))?
-                        .to_usize()
-                        .map_err(|error| Error::InferenceConstant(location, error))?;
-                    for _ in 0..repeats_count {
+            match array.size_expression {
+                Some(ref size_expression) => {
+                    let size_location = size_expression.location;
+                    let size = match Self::new_without_bytecode(self.scope())
+                        .expression(size_expression.to_owned(), TranslationHint::ValueExpression)?
+                    {
+                        Element::Constant(Constant::Integer(integer)) => integer
+                            .to_usize()
+                            .map_err(|error| Error::InferenceConstant(size_location, error))?,
+                        element => {
+                            return Err(Error::ConstantExpressionHasNonConstantElement(
+                                size_location,
+                                element.to_string(),
+                            ))
+                        }
+                    };
+
+                    for _ in 0..size {
                         let element =
                             self.expression(expression.clone(), TranslationHint::ValueExpression)?;
                         let element_type = Type::from_element(&element, self.scope())?;

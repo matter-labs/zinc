@@ -10,10 +10,10 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::Expression;
-use crate::syntax::ExpressionParser;
-use crate::syntax::TupleExpressionBuilder;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::expression::Parser as ExpressionParser;
+use crate::syntax::tree::expression::tuple::builder::Builder as TupleExpressionBuilder;
+use crate::syntax::tree::expression::Expression;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -50,7 +50,7 @@ impl Parser {
         loop {
             match self.state {
                 State::ParenthesisLeft => {
-                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                             location,
@@ -63,12 +63,13 @@ impl Parser {
                                 location,
                                 vec!["("],
                                 lexeme,
+                                None,
                             )))
                         }
                     }
                 }
                 State::ExpressionOrParenthesisRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                             ..
@@ -85,7 +86,7 @@ impl Parser {
                     }
                 }
                 State::CommaOrParenthesisRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
@@ -102,6 +103,7 @@ impl Parser {
                                 location,
                                 vec![",", ")"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
@@ -116,16 +118,20 @@ mod tests {
     use std::cell::RefCell;
     use std::rc::Rc;
 
+    use super::Error;
     use super::Parser;
     use crate::lexical;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Symbol;
     use crate::lexical::TokenStream;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::IntegerLiteral;
-    use crate::syntax::TupleExpression;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::tuple::Expression as TupleExpression;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 
     #[test]
     fn ok_unit() {
@@ -246,6 +252,22 @@ mod tests {
                 ))),
             )],
         ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_comma_or_parenthesis_right() {
+        let input = r#"(42, 69]"#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 8),
+            vec![",", ")"],
+            Lexeme::Symbol(Symbol::BracketSquareRight),
+            None,
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 

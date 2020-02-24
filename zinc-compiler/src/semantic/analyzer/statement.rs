@@ -12,6 +12,8 @@ use num_traits::One;
 use num_traits::ToPrimitive;
 use num_traits::Zero;
 
+use zinc_bytecode::scalar::IntegerType;
+use zinc_bytecode::scalar::ScalarType;
 use zinc_bytecode::Instruction;
 
 use crate::semantic::analyzer::error::Error;
@@ -44,7 +46,6 @@ use crate::syntax::StaticStatement;
 use crate::syntax::StructStatement;
 use crate::syntax::TypeStatement;
 use crate::syntax::UseStatement;
-use zinc_bytecode::scalar::{IntegerType, ScalarType};
 
 pub struct Analyzer {
     scope_stack: Vec<Rc<RefCell<Scope>>>,

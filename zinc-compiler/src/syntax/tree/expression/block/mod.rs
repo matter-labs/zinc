@@ -2,26 +2,24 @@
 //! The block expression.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax;
-use crate::syntax::FunctionLocalStatement;
+use crate::syntax::tree::expression::Expression as SyntaxExpression;
+use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatement;
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Expression {
     pub location: Location,
     pub statements: Vec<FunctionLocalStatement>,
-    pub expression: Option<Box<syntax::Expression>>,
+    pub expression: Option<Box<SyntaxExpression>>,
 }
 
 impl Expression {
     pub fn new(
         location: Location,
         statements: Vec<FunctionLocalStatement>,
-        expression: Option<syntax::Expression>,
+        expression: Option<SyntaxExpression>,
     ) -> Self {
         Self {
             location,

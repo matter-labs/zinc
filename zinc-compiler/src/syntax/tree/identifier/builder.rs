@@ -3,7 +3,7 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::Identifier;
+use crate::syntax::tree::identifier::Identifier;
 
 #[derive(Default)]
 pub struct Builder {

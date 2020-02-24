@@ -34,7 +34,7 @@ pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
                     state = State::Slash;
                 }
                 Some(_) => return Err(Error::NotAComment),
-                None => break,
+                None => return Err(Error::UnterminatedBlock { lines, column }),
             },
             State::Slash => match character {
                 Some('/') => {
@@ -48,7 +48,7 @@ pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
                     state = State::MultiLine;
                 }
                 Some(_) => return Err(Error::NotAComment),
-                None => break,
+                None => return Err(Error::UnterminatedBlock { lines, column }),
             },
             State::SingleLine => match character {
                 Some('\n') => {
@@ -81,7 +81,7 @@ pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
                     size += 1;
                     column += 1;
                 }
-                None => break,
+                None => return Err(Error::UnterminatedBlock { lines, column }),
             },
             State::MultiLineStar => match character {
                 Some('/') => {
@@ -95,12 +95,10 @@ pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
                     column += 1;
                     state = State::MultiLine;
                 }
-                None => break,
+                None => return Err(Error::UnterminatedBlock { lines, column }),
             },
         }
     }
-
-    Err(Error::UnterminatedBlock { lines, column })
 }
 
 #[cfg(test)]

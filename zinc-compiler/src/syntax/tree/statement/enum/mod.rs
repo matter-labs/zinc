@@ -2,22 +2,20 @@
 //! The enum statement.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax::Identifier;
-use crate::syntax::Variant;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::variant::Variant;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Enum {
+pub struct Statement {
     pub location: Location,
     pub identifier: Identifier,
     pub variants: Vec<Variant>,
 }
 
-impl Enum {
+impl Statement {
     pub fn new(location: Location, identifier: Identifier, variants: Vec<Variant>) -> Self {
         Self {
             location,

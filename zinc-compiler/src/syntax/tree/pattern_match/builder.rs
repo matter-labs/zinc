@@ -3,16 +3,16 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::BooleanLiteral;
-use crate::syntax::Expression;
-use crate::syntax::ExpressionElement;
-use crate::syntax::ExpressionObject;
-use crate::syntax::ExpressionOperand;
-use crate::syntax::ExpressionOperator;
-use crate::syntax::Identifier;
-use crate::syntax::IntegerLiteral;
-use crate::syntax::MatchPattern;
-use crate::syntax::MatchPatternVariant;
+use crate::syntax::tree::expression::element::Element as ExpressionElement;
+use crate::syntax::tree::expression::object::Object as ExpressionObject;
+use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
+use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+use crate::syntax::tree::pattern_match::variant::Variant as MatchPatternVariant;
+use crate::syntax::tree::pattern_match::Pattern as MatchPattern;
 
 #[derive(Default)]
 pub struct Builder {

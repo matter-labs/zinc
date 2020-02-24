@@ -3,9 +3,9 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::BlockExpression;
-use crate::syntax::ConditionalExpression;
-use crate::syntax::Expression;
+use crate::syntax::tree::expression::block::Expression as BlockExpression;
+use crate::syntax::tree::expression::conditional::Expression as ConditionalExpression;
+use crate::syntax::tree::expression::Expression;
 
 #[derive(Default)]
 pub struct Builder {

@@ -2,31 +2,28 @@
 //! The array expression.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax;
-use crate::syntax::IntegerLiteral;
+use crate::syntax::tree::expression::Expression as SyntaxExpression;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
     pub location: Location,
-    pub elements: Vec<syntax::Expression>,
-    pub repeats_count: Option<IntegerLiteral>,
+    pub elements: Vec<SyntaxExpression>,
+    pub size_expression: Option<SyntaxExpression>,
 }
 
 impl Expression {
     pub fn new(
         location: Location,
-        elements: Vec<syntax::Expression>,
-        repeats_count: Option<IntegerLiteral>,
+        elements: Vec<SyntaxExpression>,
+        size_expression: Option<SyntaxExpression>,
     ) -> Self {
         Self {
             location,
             elements,
-            repeats_count,
+            size_expression,
         }
     }
 }

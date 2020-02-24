@@ -2,20 +2,20 @@
 //! The expression operand.
 //!
 
-use crate::syntax::ArrayExpression;
-use crate::syntax::BlockExpression;
-use crate::syntax::BooleanLiteral;
-use crate::syntax::ConditionalExpression;
-use crate::syntax::Expression;
-use crate::syntax::Identifier;
-use crate::syntax::IntegerLiteral;
-use crate::syntax::MatchExpression;
-use crate::syntax::MemberInteger;
-use crate::syntax::MemberString;
-use crate::syntax::StringLiteral;
-use crate::syntax::StructureExpression;
-use crate::syntax::TupleExpression;
-use crate::syntax::Type;
+use crate::syntax::tree::expression::array::Expression as ArrayExpression;
+use crate::syntax::tree::expression::block::Expression as BlockExpression;
+use crate::syntax::tree::expression::conditional::Expression as ConditionalExpression;
+use crate::syntax::tree::expression::r#match::Expression as MatchExpression;
+use crate::syntax::tree::expression::structure::Expression as StructureExpression;
+use crate::syntax::tree::expression::tuple::Expression as TupleExpression;
+use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+use crate::syntax::tree::literal::string::Literal as StringLiteral;
+use crate::syntax::tree::member_integer::MemberInteger;
+use crate::syntax::tree::member_string::MemberString;
+use crate::syntax::tree::r#type::Type;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Operand {

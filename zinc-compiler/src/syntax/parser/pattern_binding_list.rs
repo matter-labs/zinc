@@ -11,8 +11,8 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::BindingPattern;
-use crate::syntax::BindingPatternParser;
+use crate::syntax::parser::pattern_binding::Parser as BindingPatternParser;
+use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -42,7 +42,7 @@ impl Parser {
         loop {
             match self.state {
                 State::BindingPattern => {
-                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         token
                         @
                         Token {
@@ -81,7 +81,7 @@ impl Parser {
                     self.state = State::CommaOrEnd;
                 }
                 State::CommaOrEnd => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
@@ -104,11 +104,25 @@ mod tests {
     use crate::lexical::Location;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
-    use crate::syntax::BindingPattern;
-    use crate::syntax::BindingPatternVariant;
-    use crate::syntax::Identifier;
-    use crate::syntax::Type;
-    use crate::syntax::TypeVariant;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;
+    use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
+    use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
+    use crate::syntax::tree::r#type::Type;
+
+    #[test]
+    fn ok_empty() {
+        let input = r#""#;
+
+        let expected = Ok((
+            Vec::<BindingPattern>::new(),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 1))),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
 
     #[test]
     fn ok_single() {
@@ -184,20 +198,6 @@ mod tests {
                 ),
             ],
             Some(Token::new(Lexeme::Eof, Location::new(1, 25))),
-        ));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn ok_empty() {
-        let input = r#""#;
-
-        let expected = Ok((
-            Vec::<BindingPattern>::new(),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 1))),
         ));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);

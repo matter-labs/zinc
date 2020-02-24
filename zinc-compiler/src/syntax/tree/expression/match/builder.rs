@@ -3,9 +3,9 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::Expression;
-use crate::syntax::MatchExpression;
-use crate::syntax::MatchPattern;
+use crate::syntax::tree::expression::r#match::Expression as MatchExpression;
+use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::pattern_match::Pattern as MatchPattern;
 
 #[derive(Default)]
 pub struct Builder {

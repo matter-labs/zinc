@@ -2,12 +2,10 @@
 //! The member string.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax::Identifier;
+use crate::syntax::tree::identifier::Identifier;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct MemberString {

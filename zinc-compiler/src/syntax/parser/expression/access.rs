@@ -12,18 +12,18 @@ use crate::lexical::Location;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::Expression;
-use crate::syntax::ExpressionAuxiliary;
-use crate::syntax::ExpressionBuilder;
-use crate::syntax::ExpressionListParser;
-use crate::syntax::ExpressionOperand;
-use crate::syntax::ExpressionOperator;
-use crate::syntax::ExpressionParser;
-use crate::syntax::IntegerLiteral;
-use crate::syntax::MemberIntegerBuilder;
-use crate::syntax::MemberStringBuilder;
-use crate::syntax::PathOperandParser;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::expression::list::Parser as ExpressionListParser;
+use crate::syntax::parser::expression::path::Parser as PathOperandParser;
+use crate::syntax::parser::expression::Parser as ExpressionParser;
+use crate::syntax::tree::expression::auxiliary::Auxiliary as ExpressionAuxiliary;
+use crate::syntax::tree::expression::builder::Builder as ExpressionBuilder;
+use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
+use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+use crate::syntax::tree::member_integer::builder::Builder as MemberIntegerBuilder;
+use crate::syntax::tree::member_string::builder::Builder as MemberStringBuilder;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -68,7 +68,7 @@ impl Parser {
                     self.state = State::AccessOrCallOrEnd;
                 }
                 State::AccessOrCallOrEnd => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareLeft),
                             location,
@@ -119,7 +119,7 @@ impl Parser {
                     self.state = State::BracketSquareRight;
                 }
                 State::BracketSquareRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareRight),
                             ..
@@ -127,16 +127,17 @@ impl Parser {
                             self.state = State::AccessOrCallOrEnd;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::expected_one_of(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of_or_operator(
                                 location,
                                 vec!["]"],
                                 lexeme,
+                                None,
                             )))
                         }
                     }
                 }
                 State::FieldDescriptor => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme:
                                 Lexeme::Literal(lexical::Literal::Integer(
@@ -174,7 +175,7 @@ impl Parser {
                         }
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::expected_field_identifier(
-                                location, lexeme,
+                                location, lexeme, None,
                             )))
                         }
                     }
@@ -193,7 +194,7 @@ impl Parser {
                     self.state = State::ParenthesisRight;
                 }
                 State::ParenthesisRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                             ..
@@ -201,10 +202,11 @@ impl Parser {
                             self.state = State::AccessOrCallOrEnd;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::expected_one_of(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of_or_operator(
                                 location,
                                 vec![")"],
                                 lexeme,
+                                None,
                             )))
                         }
                     }
@@ -219,22 +221,25 @@ mod tests {
     use std::cell::RefCell;
     use std::rc::Rc;
 
+    use super::Error;
     use super::Parser;
     use crate::lexical;
     use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Symbol;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionAuxiliary;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::ExpressionOperator;
-    use crate::syntax::Identifier;
-    use crate::syntax::IntegerLiteral;
-    use crate::syntax::MemberInteger;
-    use crate::syntax::MemberString;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::auxiliary::Auxiliary as ExpressionAuxiliary;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+    use crate::syntax::tree::member_integer::MemberInteger;
+    use crate::syntax::tree::member_string::MemberString;
 
     #[test]
     fn ok() {
@@ -298,6 +303,38 @@ mod tests {
             ),
             Some(Token::new(Lexeme::Eof, Location::new(1, 19))),
         ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_bracket_square_right() {
+        let input = r#"array[42)"#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 9),
+            vec!["]"],
+            Lexeme::Symbol(Symbol::ParenthesisRight),
+            None,
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_parenthesis_right() {
+        let input = r#"sort(42, 69]"#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 12),
+            vec![")"],
+            Lexeme::Symbol(Symbol::BracketSquareRight),
+            None,
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 

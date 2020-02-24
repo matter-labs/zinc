@@ -12,14 +12,14 @@ use crate::lexical::Location;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::BooleanLiteral;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::ExpressionOperator;
-use crate::syntax::Identifier;
-use crate::syntax::IntegerLiteral;
-use crate::syntax::MatchPattern;
-use crate::syntax::MatchPatternBuilder;
-use crate::syntax::TerminalOperandParser;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::expression::terminal::Parser as TerminalOperandParser;
+use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+use crate::syntax::tree::pattern_match::builder::Builder as MatchPatternBuilder;
+use crate::syntax::tree::pattern_match::Pattern as MatchPattern;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -51,7 +51,7 @@ impl Parser {
         loop {
             match self.state {
                 State::Start => {
-                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Literal(lexical::Literal::Boolean(boolean)),
                             location,
@@ -95,7 +95,7 @@ impl Parser {
                     }
                 }
                 State::PathOperatorOrEnd => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::DoubleColon),
                             location,
@@ -132,16 +132,16 @@ mod tests {
     use crate::lexical::Location;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
-    use crate::syntax::BooleanLiteral;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::ExpressionOperator;
-    use crate::syntax::Identifier;
-    use crate::syntax::IntegerLiteral;
-    use crate::syntax::MatchPattern;
-    use crate::syntax::MatchPatternVariant;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+    use crate::syntax::tree::pattern_match::variant::Variant as MatchPatternVariant;
+    use crate::syntax::tree::pattern_match::Pattern as MatchPattern;
 
     #[test]
     fn ok_literal_boolean() {

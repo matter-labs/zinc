@@ -3,7 +3,7 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::ExpressionObject;
+use crate::syntax::tree::expression::object::Object as ExpressionObject;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Element {

@@ -3,8 +3,8 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::Identifier;
-use crate::syntax::ModStatement;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::statement::module::Statement as ModStatement;
 
 #[derive(Default)]
 pub struct Builder {

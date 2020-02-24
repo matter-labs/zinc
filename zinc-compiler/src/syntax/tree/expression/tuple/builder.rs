@@ -3,12 +3,12 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::Expression;
-use crate::syntax::ExpressionBuilder;
-use crate::syntax::ExpressionElement;
-use crate::syntax::ExpressionObject;
-use crate::syntax::ExpressionOperand;
-use crate::syntax::TupleExpression;
+use crate::syntax::tree::expression::builder::Builder as ExpressionBuilder;
+use crate::syntax::tree::expression::element::Element as ExpressionElement;
+use crate::syntax::tree::expression::object::Object as ExpressionObject;
+use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+use crate::syntax::tree::expression::tuple::Expression as TupleExpression;
+use crate::syntax::tree::expression::Expression;
 
 #[derive(Default)]
 pub struct Builder {

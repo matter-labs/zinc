@@ -11,11 +11,11 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::ConstStatementParser;
-use crate::syntax::ExpressionParser;
-use crate::syntax::FunctionLocalStatement;
-use crate::syntax::LetStatementParser;
-use crate::syntax::LoopStatementParser;
+use crate::syntax::parser::expression::Parser as ExpressionParser;
+use crate::syntax::parser::statement::r#const::Parser as ConstStatementParser;
+use crate::syntax::parser::statement::r#let::Parser as LetStatementParser;
+use crate::syntax::parser::statement::r#loop::Parser as LoopStatementParser;
+use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatement;
 
 #[derive(Default)]
 pub struct Parser {
@@ -28,7 +28,7 @@ impl Parser {
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
     ) -> Result<(FunctionLocalStatement, Option<Token>, bool), Error> {
-        let statement = match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+        let statement = match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
             token
             @
             Token {
@@ -74,7 +74,7 @@ impl Parser {
         };
         match statement {
             statement @ FunctionLocalStatement::Expression { .. } => {
-                match crate::syntax::take_or_next(self.next.take(), stream)? {
+                match crate::syntax::parser::take_or_next(self.next.take(), stream)? {
                     Token {
                         lexeme: Lexeme::Symbol(Symbol::Semicolon),
                         ..
@@ -98,17 +98,17 @@ mod tests {
     use crate::lexical::Location;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
-    use crate::syntax::BlockExpression;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::FunctionLocalStatement;
-    use crate::syntax::Identifier;
-    use crate::syntax::IntegerLiteral;
-    use crate::syntax::LetStatement;
-    use crate::syntax::Type;
-    use crate::syntax::TypeVariant;
+    use crate::syntax::tree::expression::block::Expression as BlockExpression;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+    use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
+    use crate::syntax::tree::r#type::Type;
+    use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatement;
+    use crate::syntax::tree::statement::r#let::Statement as LetStatement;
 
     #[test]
     fn ok_semicolon_terminated() {
