@@ -11,7 +11,7 @@ use crate::gadgets::utils;
 use franklin_crypto::circuit::num::AllocatedNum;
 use franklin_crypto::bellman::{SynthesisError, LinearCombination};
 use num_bigint::{ToBigInt, BigInt};
-use franklin_crypto::circuit::boolean::Boolean;
+use franklin_crypto::circuit::boolean::{Boolean, AllocatedBit};
 use franklin_crypto::circuit::Assignment;
 use franklin_crypto::circuit::expression::Expression;
 
@@ -23,7 +23,7 @@ pub struct Scalar<E: Engine> {
 }
 
 #[derive(Debug, Clone)]
-enum ScalarVariant<E: Engine> {
+pub enum ScalarVariant<E: Engine> {
     Constant(ScalarConstant<E>),
     Variable(ScalarVariable<E>),
 }
@@ -41,12 +41,12 @@ impl<E: Engine> From<ScalarVariable<E>> for ScalarVariant<E> {
 }
 
 #[derive(Debug, Clone)]
-struct ScalarConstant<E: Engine> {
-    value: E::Fr
+pub struct ScalarConstant<E: Engine> {
+    pub value: E::Fr
 }
 
 #[derive(Debug, Clone)]
-struct ScalarVariable<E: Engine> {
+pub struct ScalarVariable<E: Engine> {
     value: Option<E::Fr>,
     variable: Variable,
 }
@@ -73,6 +73,32 @@ impl<E: Engine> Scalar<E> {
         )
     }
 
+    pub fn to_boolean<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<Boolean> {
+        self.scalar_type.assert_type(ScalarType::Boolean)?;
+
+        match &self.variant {
+            ScalarVariant::Constant(constant) => {
+                Ok(Boolean::constant(!constant.value.is_zero()))
+            },
+            ScalarVariant::Variable(variable) => {
+                // TODO: Add constructor to AllocatedBit
+                let bit = AllocatedBit::alloc(
+                    cs.namespace(|| "allocate bit"),
+                    variable.value.map(|value| !value.is_zero())
+                )?;
+
+                cs.enforce(
+                    || "bit equality",
+                    |zero| zero + bit.get_variable(),
+                    |zero| zero + CS::one(),
+                    |zero| zero + variable.variable,
+                );
+
+                Ok(bit.into())
+            },
+        }
+    }
+
     pub fn get_type(&self) -> ScalarType {
         self.scalar_type
     }
@@ -82,6 +108,10 @@ impl<E: Engine> Scalar<E> {
             ScalarVariant::Constant(constant) => Some(constant.value),
             ScalarVariant::Variable(variable) => variable.value,
         }
+    }
+
+    pub fn get_variant(&self) -> &ScalarVariant<E> {
+        &self.variant
     }
 
     pub fn grab_value(&self) -> std::result::Result<E::Fr, SynthesisError> {
@@ -112,6 +142,13 @@ impl<E: Engine> Scalar<E> {
 
     pub fn is_signed(&self) -> bool {
         self.scalar_type.is_signed()
+    }
+
+    pub fn is_constant(&self) -> bool {
+        match self.variant {
+            ScalarVariant::Constant(_) => true,
+            ScalarVariant::Variable(_) => false,
+        }
     }
 
     pub fn lc<CS: ConstraintSystem<E>>(&self) -> LinearCombination<E> {
@@ -148,9 +185,9 @@ impl<E: Engine> Scalar<E> {
             .collect()
     }
 
-    pub fn with_type_unchecked(self, scalar_type: ScalarType) -> Self {
+    pub fn with_type_unchecked(&self, scalar_type: ScalarType) -> Self {
         Self {
-            variant: self.variant,
+            variant: self.variant.clone(),
             scalar_type
         }
     }
@@ -175,6 +212,12 @@ impl<E: Engine> Scalar<E> {
         }
     }
 
+    pub fn as_constant_unchecked(&self) -> Result<Self> {
+        Ok(Self::new_unchecked_constant(
+            self.grab_value()?,
+            self.get_type()
+        ))
+    }
 }
 
 //impl<E: Engine> fmt::Debug for Scalar<E> {

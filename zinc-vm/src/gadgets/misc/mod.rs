@@ -362,8 +362,11 @@ where
     }
 
     pub fn not(&mut self, element: Scalar<E>) -> Result<Scalar<E>, RuntimeError> {
+        element.get_type().assert_type(ScalarType::Boolean)?;
         let one = self.one(element.get_type());
-        self.sub(one, element)
+        self
+            .sub(one, element)
+            .map(|scalar| scalar.with_type_unchecked(ScalarType::Boolean))
     }
 
     pub fn and(
@@ -371,6 +374,9 @@ where
         left: Scalar<E>,
         right: Scalar<E>,
     ) -> Result<Scalar<E>, RuntimeError> {
+        left.get_type().assert_type(ScalarType::Boolean)?;
+        right.get_type().assert_type(ScalarType::Boolean)?;
+
         let mut cs = self.cs_namespace();
 
         let value = match (left.get_value(), right.get_value()) {
@@ -393,7 +399,7 @@ where
             |lc| lc + variable,
         );
 
-        Ok(Scalar::new_unchecked_variable(value, variable, ScalarType::Field))
+        Ok(Scalar::new_unchecked_variable(value, variable, ScalarType::Boolean))
     }
 
     pub fn or(
@@ -401,6 +407,9 @@ where
         left: Scalar<E>,
         right: Scalar<E>,
     ) -> Result<Scalar<E>, RuntimeError> {
+        left.get_type().assert_type(ScalarType::Boolean)?;
+        right.get_type().assert_type(ScalarType::Boolean)?;
+
         let mut cs = self.cs_namespace();
 
         let value = match (left.get_value(), right.get_value()) {
@@ -425,7 +434,7 @@ where
             |lc| lc + CS::one() - variable,
         );
 
-        Ok(Scalar::new_unchecked_variable(value, variable, ScalarType::Field))
+        Ok(Scalar::new_unchecked_variable(value, variable, ScalarType::Boolean))
     }
 
     pub fn xor(
@@ -433,6 +442,9 @@ where
         left: Scalar<E>,
         right: Scalar<E>,
     ) -> Result<Scalar<E>, RuntimeError> {
+        left.get_type().assert_type(ScalarType::Boolean)?;
+        right.get_type().assert_type(ScalarType::Boolean)?;
+
         let mut cs = self.cs_namespace();
 
         let value = match (left.get_value(), right.get_value()) {

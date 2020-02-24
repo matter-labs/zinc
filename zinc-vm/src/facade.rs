@@ -10,7 +10,7 @@ use rand::ThreadRng;
 use zinc_bytecode::program::Program;
 
 use crate::core::VirtualMachine;
-use crate::debug_constraint_system::DebugConstraintSystem;
+use crate::constraint_systems::DebugConstraintSystem;
 pub use crate::errors::{Result, MalformedBytecode, RuntimeError, TypeSizeError};
 use crate::gadgets::utils::bigint_to_fr;
 use crate::Engine;

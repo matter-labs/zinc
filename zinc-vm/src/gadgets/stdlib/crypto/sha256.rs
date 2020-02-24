@@ -58,7 +58,7 @@ impl<E: Engine> Gadget<E> for Sha256 {
 
 #[cfg(test)]
 mod tests {
-    use crate::debug_constraint_system::DebugConstraintSystem;
+    use crate::constraint_systems::DebugConstraintSystem;
     use franklin_crypto::bellman::ConstraintSystem;
     use franklin_crypto::circuit::boolean::{AllocatedBit, Boolean};
     use franklin_crypto::circuit::sha256::sha256;

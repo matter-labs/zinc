@@ -6,7 +6,7 @@ use crate::core::{RuntimeError, VirtualMachine};
 use crate::gadgets::{ScalarType, ScalarTypeExpectation};
 use crate::Engine;
 use zinc_bytecode::instructions::Div;
-use crate::gadgets::arithmetic::field;
+use crate::gadgets::arithmetic;
 
 impl<E, CS> VMInstruction<E, CS> for Div
 where
@@ -24,7 +24,7 @@ where
             ScalarType::Field => {
                 let one = vm.operations().constant_bigint(&1.into(), scalar_type)?;
                 let denom = vm.operations().conditional_select(condition, right, one)?;
-                let inverse = field::inverse(vm.constraint_system(), denom)?;
+                let inverse = arithmetic::inverse(vm.constraint_system(), denom)?;
                 vm.operations().mul(left, inverse)?
             },
             _ => {

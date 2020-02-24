@@ -1,7 +1,9 @@
 pub mod arithmetic;
 pub mod comparison;
+pub mod constants;
+pub mod types;
 
-mod constrained;
+mod misc;
 mod scalar;
 pub mod stdlib;
 pub mod utils;
@@ -10,7 +12,7 @@ pub use scalar::*;
 use crate::Engine;
 use bellman::ConstraintSystem;
 
-pub use constrained::*;
+pub use misc::*;
 
 use crate::core::RuntimeError;
 use crate::gadgets::utils::dummy_constraint_system::DummyConstraintSystem;
@@ -46,4 +48,4 @@ pub trait Gadget<E: Engine> {
     }
 }
 
-pub use constrained::Gadgets;
+pub use misc::Gadgets;

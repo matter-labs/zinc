@@ -3,9 +3,13 @@ extern crate franklin_crypto;
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
+use crate::gadgets;
 use crate::gadgets::{ScalarType, ScalarTypeExpectation};
 use crate::Engine;
 use zinc_bytecode::instructions::Add;
+use crate::auto_const;
+use crate::gadgets::ScalarVariant;
+use crate::constraint_systems::ConstantCS;
 
 impl<E, CS> VMInstruction<E, CS> for Add
 where
@@ -18,11 +22,20 @@ where
 
         let sum_type = ScalarType::expect_same(left.get_type(), right.get_type())?;
 
-        let unchecked_sum = vm.operations().add(left, right)?;
         let condition = vm.condition_top()?;
-        let sum = vm.operations().assert_type(
-            condition,
-            unchecked_sum,
+        let cs = vm.constraint_system();
+
+        let unchecked_sum = auto_const!(
+            gadgets::arithmetic::add,
+            cs.namespace(|| "sum"),
+            &left,
+            &right
+        )?;
+
+        let sum = gadgets::types::conditional_type_check(
+            cs.namespace(|| "type check"),
+            &condition,
+            &unchecked_sum,
             sum_type
         )?;
 
