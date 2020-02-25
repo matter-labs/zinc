@@ -1,5 +1,4 @@
 mod bigint;
-pub mod dummy_constraint_system;
 mod fr_bigint;
 
 pub use bigint::*;

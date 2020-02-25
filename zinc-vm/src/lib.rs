@@ -3,7 +3,7 @@
 mod core;
 pub mod constraint_systems;
 mod errors;
-mod gadgets;
+pub mod gadgets;
 mod instructions;
 
 #[cfg(test)]

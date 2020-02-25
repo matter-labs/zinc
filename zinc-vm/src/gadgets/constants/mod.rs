@@ -6,6 +6,29 @@ pub mod prelude {
 ///
 /// # Example
 /// ```
+/// # use ff::PrimeField;
+/// # use pairing::bn256::{Bn256, Fr};
+/// # use franklin_crypto::circuit::test::TestConstraintSystem;
+/// # use zinc_bytecode::scalar::ScalarType;
+/// # use bellman::ConstraintSystem;
+/// use zinc_vm::auto_const;
+/// use zinc_vm::gadgets::Scalar;
+/// use zinc_vm::gadgets::arithmetic;
+/// use zinc_vm::gadgets::constants::prelude::*;
+///
+/// let a = Scalar::<Bn256>::new_unchecked_constant(Fr::from_str("42").unwrap(), ScalarType::Field);
+/// let b = Scalar::<Bn256>::new_unchecked_constant(Fr::from_str("69").unwrap(), ScalarType::Field);
+///
+/// let mut cs = TestConstraintSystem::<Bn256>::new();
+///
+/// let c: Scalar<Bn256> = auto_const!(arithmetic::mul, cs.namespace(|| "mul"), &a, &b).unwrap();
+///
+/// assert!(c.is_constant());
+///
+/// let expected = Fr::from_str(&(42 * 69).to_string());
+/// assert_eq!(c.get_value(), expected);
+///
+/// assert!(cs.constraints.is_empty())
 /// ```
 #[macro_export]
 macro_rules! auto_const {

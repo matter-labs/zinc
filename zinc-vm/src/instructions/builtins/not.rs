@@ -25,13 +25,14 @@ mod test {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
     use zinc_bytecode::*;
+    use zinc_bytecode::scalar::ScalarType;
 
     #[test]
     fn test_not() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new_untyped(0.into()))
+            .add(PushConst::new(0.into(), ScalarType::Boolean))
             .add(Not)
-            .add(PushConst::new_untyped(1.into()))
+            .add(PushConst::new(1.into(), ScalarType::Boolean))
             .add(Not)
             .test(&[0, 1])
     }

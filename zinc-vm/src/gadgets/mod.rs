@@ -15,7 +15,6 @@ use bellman::ConstraintSystem;
 pub use misc::*;
 
 use crate::core::RuntimeError;
-use crate::gadgets::utils::dummy_constraint_system::DummyConstraintSystem;
 
 pub trait Gadget<E: Engine> {
     type Input;
@@ -27,12 +26,6 @@ pub trait Gadget<E: Engine> {
         cs: CS,
         input: Self::Input,
     ) -> Result<Self::Output, RuntimeError>;
-
-    /// Calculate function's result without synthesizing a circuit.
-    fn calculate(&self, input: Self::Input) -> Result<Self::Output, RuntimeError> {
-        let cs = DummyConstraintSystem;
-        self.synthesize(cs, input)
-    }
 
     fn input_from_vec(input: &[Scalar<E>]) -> Result<Self::Input, RuntimeError>;
     fn output_into_vec(output: Self::Output) -> Vec<Scalar<E>>;
