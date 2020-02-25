@@ -9,7 +9,7 @@ const INDEX: u8 = 6;
 fn main() -> field {
     let mut fact: field = 1;
     for i in 1..INDEX {
-        fact = fact * i as field;
+        fact *= i as field;
     }
     fact
 }

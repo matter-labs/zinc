@@ -11,7 +11,7 @@ const ARRAY_SIZE: u8 = 10;
 fn main(array: [u8; ARRAY_SIZE]) -> u8 {
     let mut sum = 0;
     for i in 3..8 {
-        sum = sum + array[i];
+        sum += array[i];
     }
     sum
 }

@@ -95,14 +95,22 @@ impl Parser {
                         token => {
                             match token.lexeme {
                                 Lexeme::Symbol(Symbol::Equals) => {}
-                                _ => {
-                                    if self.is_indexed {
-                                        self.builder.push_auxiliary(
-                                            token.location,
-                                            ExpressionAuxiliary::PlaceEnd,
-                                        )
-                                    }
+                                Lexeme::Symbol(Symbol::PlusEquals)
+                                | Lexeme::Symbol(Symbol::MinusEquals)
+                                | Lexeme::Symbol(Symbol::AsteriskEquals)
+                                | Lexeme::Symbol(Symbol::SlashEquals)
+                                | Lexeme::Symbol(Symbol::PercentEquals)
+                                    if self.is_indexed =>
+                                {
+                                    self.builder.push_auxiliary(
+                                        token.location,
+                                        ExpressionAuxiliary::PlaceCopy,
+                                    )
                                 }
+                                _ if self.is_indexed => self
+                                    .builder
+                                    .push_auxiliary(token.location, ExpressionAuxiliary::PlaceEnd),
+                                _ => {}
                             }
                             return Ok((self.builder.finish(), Some(token)));
                         }

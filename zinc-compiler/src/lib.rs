@@ -4,6 +4,7 @@
 
 #![allow(clippy::implicit_hasher)]
 #![allow(clippy::large_enum_variant)]
+#![allow(clippy::cognitive_complexity)]
 
 mod error;
 mod lexical;

@@ -160,7 +160,7 @@ impl Analyzer {
 
                     let place = operand_1
                         .clone()
-                        .assign(&operand_2)
+                        .assign_add(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
@@ -178,33 +178,29 @@ impl Analyzer {
                         ));
                     }
 
-                    let operand_1_value = match operand_1 {
-                        Element::Place(place) => {
-                            self.translate_place(&place, TranslationHint::ValueExpression)?
-                        }
-                        element => element,
-                    };
-                    operand_1_value
-                        .add(&operand_2)
-                        .map_err(|error| Error::Element(element.location, error))?;
-
-                    // self.bytecode.borrow_mut().push_instruction_load(
-                    //     place.address,
-                    //     place.r#type.size(),
-                    //     if place.is_indexed {
-                    //         Some(place.total_size)
-                    //     } else {
-                    //         None
-                    //     },
-                    //     false,
-                    //     element.location,
-                    // );
-                    // self.bytecode
-                    //     .borrow_mut()
-                    //     .push_instruction(Instruction::Swap(zinc_bytecode::Swap), element.location);
-                    // self.bytecode
-                    //     .borrow_mut()
-                    //     .push_instruction(Instruction::Add(zinc_bytecode::Add), element.location);
+                    if place.is_indexed {
+                        self.bytecode.borrow_mut().push_instruction(
+                            Instruction::Swap(zinc_bytecode::Swap),
+                            element.location,
+                        );
+                    }
+                    self.bytecode.borrow_mut().push_instruction_load(
+                        place.address,
+                        place.r#type.size(),
+                        if place.is_indexed {
+                            Some(place.total_size)
+                        } else {
+                            None
+                        },
+                        false,
+                        element.location,
+                    );
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Swap(zinc_bytecode::Swap), element.location);
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Add(zinc_bytecode::Add), element.location);
                     self.bytecode.borrow_mut().push_instruction_store(
                         place.address,
                         place.r#type.size(),
@@ -218,10 +214,258 @@ impl Analyzer {
                     );
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
                 }
-                ExpressionObject::Operator(ExpressionOperator::AssignmentSubtraction) => todo!(),
-                ExpressionObject::Operator(ExpressionOperator::AssignmentMultiplication) => todo!(),
-                ExpressionObject::Operator(ExpressionOperator::AssignmentDivision) => todo!(),
-                ExpressionObject::Operator(ExpressionOperator::AssignmentRemainder) => todo!(),
+                ExpressionObject::Operator(ExpressionOperator::AssignmentSubtraction) => {
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(
+                        TranslationHint::PlaceExpression,
+                        TranslationHint::ValueExpression,
+                        false,
+                    )?;
+
+                    let place = operand_1
+                        .clone()
+                        .assign_subtract(&operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    let r#type = Type::from_element(&operand_2, self.scope())?;
+
+                    if !place.is_mutable {
+                        return Err(Error::AssignmentToImmutableMemory(
+                            location,
+                            place.to_string(),
+                        ));
+                    }
+                    if place.r#type != r#type {
+                        return Err(Error::AssignmentTypesMismatch(
+                            location,
+                            r#type.to_string(),
+                            place.r#type.to_string(),
+                        ));
+                    }
+
+                    if place.is_indexed {
+                        self.bytecode.borrow_mut().push_instruction(
+                            Instruction::Swap(zinc_bytecode::Swap),
+                            element.location,
+                        );
+                    }
+                    self.bytecode.borrow_mut().push_instruction_load(
+                        place.address,
+                        place.r#type.size(),
+                        if place.is_indexed {
+                            Some(place.total_size)
+                        } else {
+                            None
+                        },
+                        false,
+                        element.location,
+                    );
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Swap(zinc_bytecode::Swap), element.location);
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Sub(zinc_bytecode::Sub), element.location);
+                    self.bytecode.borrow_mut().push_instruction_store(
+                        place.address,
+                        place.r#type.size(),
+                        if place.is_indexed {
+                            Some(place.total_size)
+                        } else {
+                            None
+                        },
+                        false,
+                        element.location,
+                    );
+                    self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
+                }
+                ExpressionObject::Operator(ExpressionOperator::AssignmentMultiplication) => {
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(
+                        TranslationHint::PlaceExpression,
+                        TranslationHint::ValueExpression,
+                        false,
+                    )?;
+
+                    let place = operand_1
+                        .clone()
+                        .assign_multiply(&operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    let r#type = Type::from_element(&operand_2, self.scope())?;
+
+                    if !place.is_mutable {
+                        return Err(Error::AssignmentToImmutableMemory(
+                            location,
+                            place.to_string(),
+                        ));
+                    }
+                    if place.r#type != r#type {
+                        return Err(Error::AssignmentTypesMismatch(
+                            location,
+                            r#type.to_string(),
+                            place.r#type.to_string(),
+                        ));
+                    }
+
+                    if place.is_indexed {
+                        self.bytecode.borrow_mut().push_instruction(
+                            Instruction::Swap(zinc_bytecode::Swap),
+                            element.location,
+                        );
+                    }
+                    self.bytecode.borrow_mut().push_instruction_load(
+                        place.address,
+                        place.r#type.size(),
+                        if place.is_indexed {
+                            Some(place.total_size)
+                        } else {
+                            None
+                        },
+                        false,
+                        element.location,
+                    );
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Swap(zinc_bytecode::Swap), element.location);
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Mul(zinc_bytecode::Mul), element.location);
+                    self.bytecode.borrow_mut().push_instruction_store(
+                        place.address,
+                        place.r#type.size(),
+                        if place.is_indexed {
+                            Some(place.total_size)
+                        } else {
+                            None
+                        },
+                        false,
+                        element.location,
+                    );
+                    self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
+                }
+                ExpressionObject::Operator(ExpressionOperator::AssignmentDivision) => {
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(
+                        TranslationHint::PlaceExpression,
+                        TranslationHint::ValueExpression,
+                        false,
+                    )?;
+
+                    let place = operand_1
+                        .clone()
+                        .assign_divide(&operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    let r#type = Type::from_element(&operand_2, self.scope())?;
+
+                    if !place.is_mutable {
+                        return Err(Error::AssignmentToImmutableMemory(
+                            location,
+                            place.to_string(),
+                        ));
+                    }
+                    if place.r#type != r#type {
+                        return Err(Error::AssignmentTypesMismatch(
+                            location,
+                            r#type.to_string(),
+                            place.r#type.to_string(),
+                        ));
+                    }
+
+                    if place.is_indexed {
+                        self.bytecode.borrow_mut().push_instruction(
+                            Instruction::Swap(zinc_bytecode::Swap),
+                            element.location,
+                        );
+                    }
+                    self.bytecode.borrow_mut().push_instruction_load(
+                        place.address,
+                        place.r#type.size(),
+                        if place.is_indexed {
+                            Some(place.total_size)
+                        } else {
+                            None
+                        },
+                        false,
+                        element.location,
+                    );
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Swap(zinc_bytecode::Swap), element.location);
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Div(zinc_bytecode::Div), element.location);
+                    self.bytecode.borrow_mut().push_instruction_store(
+                        place.address,
+                        place.r#type.size(),
+                        if place.is_indexed {
+                            Some(place.total_size)
+                        } else {
+                            None
+                        },
+                        false,
+                        element.location,
+                    );
+                    self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
+                }
+                ExpressionObject::Operator(ExpressionOperator::AssignmentRemainder) => {
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(
+                        TranslationHint::PlaceExpression,
+                        TranslationHint::ValueExpression,
+                        false,
+                    )?;
+
+                    let place = operand_1
+                        .clone()
+                        .assign_remainder(&operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    let r#type = Type::from_element(&operand_2, self.scope())?;
+
+                    if !place.is_mutable {
+                        return Err(Error::AssignmentToImmutableMemory(
+                            location,
+                            place.to_string(),
+                        ));
+                    }
+                    if place.r#type != r#type {
+                        return Err(Error::AssignmentTypesMismatch(
+                            location,
+                            r#type.to_string(),
+                            place.r#type.to_string(),
+                        ));
+                    }
+
+                    if place.is_indexed {
+                        self.bytecode.borrow_mut().push_instruction(
+                            Instruction::Swap(zinc_bytecode::Swap),
+                            element.location,
+                        );
+                    }
+                    self.bytecode.borrow_mut().push_instruction_load(
+                        place.address,
+                        place.r#type.size(),
+                        if place.is_indexed {
+                            Some(place.total_size)
+                        } else {
+                            None
+                        },
+                        false,
+                        element.location,
+                    );
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Swap(zinc_bytecode::Swap), element.location);
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Rem(zinc_bytecode::Rem), element.location);
+                    self.bytecode.borrow_mut().push_instruction_store(
+                        place.address,
+                        place.r#type.size(),
+                        if place.is_indexed {
+                            Some(place.total_size)
+                        } else {
+                            None
+                        },
+                        false,
+                        element.location,
+                    );
+                    self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
+                }
                 ExpressionObject::Operator(ExpressionOperator::RangeInclusive) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
                         TranslationHint::ValueExpression,
@@ -714,6 +958,11 @@ impl Analyzer {
                         .evaluate_operand(TranslationHint::ValueExpression)
                         .map(StackElement::Evaluated)?;
                     self.push_operand(element);
+                }
+                ExpressionObject::Auxiliary(ExpressionAuxiliary::PlaceCopy) => {
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Tee(zinc_bytecode::Tee), element.location);
                 }
             }
         }

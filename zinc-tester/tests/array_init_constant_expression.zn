@@ -11,7 +11,7 @@ const SIZE_HALVED: u8 = 2;
 fn main(mut value: u8) -> u8 {
     let array = [2; SIZE_HALVED * 2];
     for i in 0..SIZE_HALVED * 2 {
-        value = value + array[i];
+        value += array[i];
     }
     value
 }

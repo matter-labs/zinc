@@ -9,7 +9,7 @@
 fn main(witness: u8) -> u8 {
     let mut inner = 25;
     {
-        inner = inner + witness;
+        inner += witness;
     };
     inner
 }
