@@ -394,7 +394,7 @@ dependencies = [
 [[package]]
 name = "franklin-crypto"
 version = "0.0.5"
-source = "git+https://github.com/matter-labs/franklin-crypto.git#0fcd3ca0c623cd0bfcfb9634d791b1890ab0131e"
+source = "git+https://github.com/matter-labs/franklin-crypto.git?branch=zinc#33d3c9e6913f212ac3e40156f247cd2d2f2ded9a"
 dependencies = [
  "bellman_ce",
  "bit-vec 0.6.1",
