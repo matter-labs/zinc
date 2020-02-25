@@ -1,0 +1,21 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {
+//#         "data": { "inner": { "value": "168" } },
+//#         "divider": "4"
+//#     },
+//#     "expect": { "inner": { "value": "42" } }
+//# } ]
+
+struct Inner {
+    value: u8
+}
+
+struct Data {
+    inner: Inner,
+}
+
+fn main(mut data: Data, divider: u8) -> Data {
+    data.inner.value /= divider;
+    data
+}
