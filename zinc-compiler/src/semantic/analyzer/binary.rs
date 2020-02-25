@@ -15,7 +15,7 @@ use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::scope::item::Variant as ScopeItem;
 use crate::semantic::scope::Scope;
-use crate::SyntaxTree;
+use crate::syntax::Tree as SyntaxTree;
 
 pub struct Analyzer {
     scope_stack: Vec<Rc<RefCell<Scope>>>,

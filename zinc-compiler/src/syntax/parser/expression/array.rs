@@ -7,15 +7,13 @@ use std::rc::Rc;
 
 use crate::error::Error;
 use crate::lexical::Lexeme;
-use crate::lexical::Literal;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::ArrayExpression;
-use crate::syntax::ArrayExpressionBuilder;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::ExpressionParser;
-use crate::syntax::IntegerLiteral;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::expression::Parser as ExpressionParser;
+use crate::syntax::tree::expression::array::builder::Builder as ArrayExpressionBuilder;
+use crate::syntax::tree::expression::array::Expression as ArrayExpression;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -24,7 +22,7 @@ pub enum State {
     ExpressionOrBracketSquareRight,
     CommaOrBracketSquareRight,
     CommaOrSemicolonOrBracketSquareRight,
-    SizeLiteral,
+    SizeExpression,
     BracketSquareRight,
 }
 
@@ -50,7 +48,7 @@ impl Parser {
         loop {
             match self.state {
                 State::BracketSquareLeft => {
-                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareLeft),
                             location,
@@ -63,12 +61,13 @@ impl Parser {
                                 location,
                                 vec!["["],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
                 }
                 State::FirstExpressionOrBracketSquareRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareRight),
                             ..
@@ -83,7 +82,7 @@ impl Parser {
                     }
                 }
                 State::ExpressionOrBracketSquareRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareRight),
                             ..
@@ -98,7 +97,7 @@ impl Parser {
                     }
                 }
                 State::CommaOrBracketSquareRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
@@ -114,12 +113,13 @@ impl Parser {
                                 location,
                                 vec![",", "]"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
                 }
                 State::CommaOrSemicolonOrBracketSquareRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
@@ -130,7 +130,7 @@ impl Parser {
                             lexeme: Lexeme::Symbol(Symbol::Semicolon),
                             ..
                         } => {
-                            self.state = State::SizeLiteral;
+                            self.state = State::SizeExpression;
                         }
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareRight),
@@ -141,38 +141,32 @@ impl Parser {
                                 location,
                                 vec![",", ";", "]"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
                 }
-                State::SizeLiteral => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
-                        Token {
-                            lexeme: Lexeme::Literal(Literal::Integer(integer)),
-                            location,
-                        } => {
-                            self.builder
-                                .set_repeats_count(IntegerLiteral::new(location, integer));
-                            self.state = State::BracketSquareRight;
-                        }
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::expected_one_of(
-                                location,
-                                vec!["{integer}"],
-                                lexeme,
-                            )));
-                        }
-                    }
+                State::SizeExpression => {
+                    let (expression, next) =
+                        ExpressionParser::default().parse(stream.clone(), self.next.take())?;
+                    self.next = next;
+                    self.builder.set_size_expression(expression);
+                    self.state = State::BracketSquareRight;
                 }
                 State::BracketSquareRight => {
-                    return match crate::syntax::take_or_next(self.next.take(), stream)? {
+                    return match crate::syntax::parser::take_or_next(self.next.take(), stream)? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareRight),
                             ..
                         } => Ok(self.builder.finish()),
-                        Token { lexeme, location } => Err(Error::Syntax(
-                            SyntaxError::expected_one_of(location, vec!["]"], lexeme),
-                        )),
+                        Token { lexeme, location } => {
+                            Err(Error::Syntax(SyntaxError::expected_one_of_or_operator(
+                                location,
+                                vec!["]"],
+                                lexeme,
+                                None,
+                            )))
+                        }
                     }
                 }
             }
@@ -185,19 +179,60 @@ mod tests {
     use std::cell::RefCell;
     use std::rc::Rc;
 
+    use super::Error;
     use super::Parser;
     use crate::lexical;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Symbol;
     use crate::lexical::TokenStream;
-    use crate::syntax::ArrayExpression;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::IntegerLiteral;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::array::Expression as ArrayExpression;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 
     #[test]
-    fn ok() {
+    fn ok_empty() {
+        let input = r#"[]"#;
+
+        let expected = Ok(ArrayExpression::new(Location::new(1, 1), vec![], None));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_single() {
+        let input = r#"[1]"#;
+
+        let expected = Ok(ArrayExpression::new(
+            Location::new(1, 1),
+            vec![Expression::new(
+                Location::new(1, 2),
+                vec![ExpressionElement::new(
+                    Location::new(1, 2),
+                    ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 2),
+                            lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                        ),
+                    )),
+                )],
+            )],
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_multiple() {
         let input = r#"[1, 2, 3]"#;
 
         let expected = Ok(ArrayExpression::new(
@@ -249,7 +284,7 @@ mod tests {
     }
 
     #[test]
-    fn ok_repeats() {
+    fn ok_with_size_expression() {
         let input = r#"[1; 10]"#;
 
         let expected = Ok(ArrayExpression::new(
@@ -266,9 +301,17 @@ mod tests {
                     )),
                 )],
             )],
-            Some(IntegerLiteral::new(
+            Some(Expression::new(
                 Location::new(1, 5),
-                lexical::IntegerLiteral::new_decimal("10".to_owned()),
+                vec![ExpressionElement::new(
+                    Location::new(1, 5),
+                    ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 5),
+                            lexical::IntegerLiteral::new_decimal("10".to_owned()),
+                        ),
+                    )),
+                )],
             )),
         ));
 
@@ -278,10 +321,47 @@ mod tests {
     }
 
     #[test]
-    fn ok_empty() {
-        let input = r#"[]"#;
+    fn error_expected_comma_or_semicolon_or_bracket_square_right() {
+        let input = r#"[42)"#;
 
-        let expected = Ok(ArrayExpression::new(Location::new(1, 1), vec![], None));
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 4),
+            vec![",", ";", "]"],
+            Lexeme::Symbol(Symbol::ParenthesisRight),
+            None,
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_comma_or_bracket_square_right() {
+        let input = r#"[42, 69)"#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 8),
+            vec![",", "]"],
+            Lexeme::Symbol(Symbol::ParenthesisRight),
+            None,
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_bracket_square_right() {
+        let input = r#"[42; 8)"#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 7),
+            vec!["]"],
+            Lexeme::Symbol(Symbol::ParenthesisRight),
+            None,
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 

@@ -10,11 +10,15 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::ExpressionParser;
-use crate::syntax::Identifier;
-use crate::syntax::StructureExpression;
-use crate::syntax::StructureExpressionBuilder;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::expression::Parser as ExpressionParser;
+use crate::syntax::tree::expression::structure::builder::Builder as StructureExpressionBuilder;
+use crate::syntax::tree::expression::structure::Expression as StructureExpression;
+use crate::syntax::tree::identifier::Identifier;
+
+static HINT_EXPECTED_IDENTIFIER: &str =
+    "structure field must have an identifier, e.g. `Data { a: 42 }`";
+static HINT_EXPECTED_VALUE: &str = "structure field must be initialized, e.g. `Data { a: 42 }`";
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -48,7 +52,7 @@ impl Parser {
         loop {
             match self.state {
                 State::Identifier => {
-                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
@@ -60,13 +64,13 @@ impl Parser {
                         }
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::expected_identifier(
-                                location, lexeme,
+                                location, lexeme, None,
                             )));
                         }
                     }
                 }
                 State::BracketCurlyLeftOrEnd => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         token
                         @
                         Token {
@@ -88,7 +92,7 @@ impl Parser {
                     }
                 }
                 State::IdentifierOrBracketCurlyRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
@@ -103,22 +107,24 @@ impl Parser {
                         }
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::expected_identifier(
-                                location, lexeme,
+                                location,
+                                lexeme,
+                                Some(HINT_EXPECTED_IDENTIFIER),
                             )));
                         }
                     }
                 }
                 State::Colon => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Colon),
                             ..
                         } => self.state = State::Expression,
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::expected_one_of(
+                            return Err(Error::Syntax(SyntaxError::expected_value(
                                 location,
-                                vec![":"],
                                 lexeme,
+                                Some(HINT_EXPECTED_VALUE),
                             )));
                         }
                     }
@@ -131,7 +137,7 @@ impl Parser {
                     self.state = State::CommaOrBracketCurlyRight;
                 }
                 State::CommaOrBracketCurlyRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
@@ -145,6 +151,7 @@ impl Parser {
                                 location,
                                 vec![",", "}"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
@@ -159,19 +166,41 @@ mod tests {
     use std::cell::RefCell;
     use std::rc::Rc;
 
+    use super::Error;
     use super::Parser;
     use crate::lexical;
     use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Symbol;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::Identifier;
-    use crate::syntax::IntegerLiteral;
-    use crate::syntax::StructureExpression;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::structure::Expression as StructureExpression;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+
+    #[test]
+    fn ok_identifier() {
+        let input = r#"test"#;
+
+        let expected = Ok((
+            StructureExpression::new(
+                Location::new(1, 1),
+                Identifier::new(Location::new(1, 1), "test".to_owned()),
+                false,
+                vec![],
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 5))),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
 
     #[test]
     fn ok_struct_single() {
@@ -282,18 +311,45 @@ Test {
     }
 
     #[test]
-    fn ok_identifier() {
-        let input = r#"test"#;
+    fn error_expected_identifier_or_bracket_curly_right() {
+        let input = r#"Data { ) : 42 }"#;
 
-        let expected = Ok((
-            StructureExpression::new(
-                Location::new(1, 1),
-                Identifier::new(Location::new(1, 1), "test".to_owned()),
-                false,
-                vec![],
-            ),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 5))),
-        ));
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_identifier(
+            Location::new(1, 8),
+            Lexeme::Symbol(Symbol::ParenthesisRight),
+            Some(super::HINT_EXPECTED_IDENTIFIER),
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_value() {
+        let input = r#"Data { a: 42, b }"#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_value(
+            Location::new(1, 17),
+            Lexeme::Symbol(Symbol::BracketCurlyRight),
+            Some(super::HINT_EXPECTED_VALUE),
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_comma_or_bracket_curly_right() {
+        let input = r#"Data { a: 42 )"#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 14),
+            vec![",", "}"],
+            Lexeme::Symbol(Symbol::ParenthesisRight),
+            None,
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 

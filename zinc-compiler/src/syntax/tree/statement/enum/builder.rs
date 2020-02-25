@@ -3,9 +3,9 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::EnumStatement;
-use crate::syntax::Identifier;
-use crate::syntax::Variant;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::statement::r#enum::Statement as EnumStatement;
+use crate::syntax::tree::variant::Variant;
 
 #[derive(Default)]
 pub struct Builder {

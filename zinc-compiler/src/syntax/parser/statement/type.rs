@@ -11,11 +11,16 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::Identifier;
-use crate::syntax::TypeParser;
-use crate::syntax::TypeStatement;
-use crate::syntax::TypeStatementBuilder;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::r#type::Parser as TypeParser;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::statement::r#type::builder::Builder as TypeStatementBuilder;
+use crate::syntax::tree::statement::r#type::Statement as TypeStatement;
+
+static HINT_EXPECTED_IDENTIFIER: &str =
+    "type alias must have an identifier, e.g. `type Complex = (u8, field);`";
+static HINT_EXPECTED_TYPE: &str =
+    "type alias must be initialized, e.g. `type Complex = (u8, field);`";
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -48,7 +53,7 @@ impl Parser {
         loop {
             match self.state {
                 State::KeywordType => {
-                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Type),
                             location,
@@ -61,12 +66,13 @@ impl Parser {
                                 location,
                                 vec!["type"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
                 }
                 State::Identifier => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
@@ -77,20 +83,24 @@ impl Parser {
                         }
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::expected_identifier(
-                                location, lexeme,
+                                location,
+                                lexeme,
+                                Some(HINT_EXPECTED_IDENTIFIER),
                             )));
                         }
                     }
                 }
                 State::Equals => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Equals),
                             ..
                         } => self.state = State::Type,
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::expected_type(
-                                location, lexeme,
+                                location,
+                                lexeme,
+                                Some(HINT_EXPECTED_TYPE),
                             )));
                         }
                     }
@@ -102,13 +112,13 @@ impl Parser {
                     self.state = State::Semicolon;
                 }
                 State::Semicolon => {
-                    return match crate::syntax::take_or_next(self.next.take(), stream)? {
+                    return match crate::syntax::parser::take_or_next(self.next.take(), stream)? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Semicolon),
                             ..
                         } => Ok((self.builder.finish(), None)),
                         Token { lexeme, location } => Err(Error::Syntax(
-                            SyntaxError::expected_one_of(location, vec![";"], lexeme),
+                            SyntaxError::expected_one_of(location, vec![";"], lexeme, None),
                         )),
                     }
                 }
@@ -128,11 +138,11 @@ mod tests {
     use crate::lexical::Location;
     use crate::lexical::Symbol;
     use crate::lexical::TokenStream;
-    use crate::syntax::Error as SyntaxError;
-    use crate::syntax::Identifier;
-    use crate::syntax::Type;
-    use crate::syntax::TypeStatement;
-    use crate::syntax::TypeVariant;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
+    use crate::syntax::tree::r#type::Type;
+    use crate::syntax::tree::statement::r#type::Statement as TypeStatement;
 
     #[test]
     fn ok() {
@@ -153,12 +163,44 @@ mod tests {
     }
 
     #[test]
-    fn err_no_type() {
-        let input = r#"type X;"#;
+    fn error_expected_identifier() {
+        let input = r#"type = field;"#;
+
+        let expected = Err(Error::Syntax(SyntaxError::expected_identifier(
+            Location::new(1, 6),
+            Lexeme::Symbol(Symbol::Equals),
+            Some(super::HINT_EXPECTED_IDENTIFIER),
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_type() {
+        let input = r#"type Data;"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_type(
-            Location::new(1, 7),
+            Location::new(1, 10),
             Lexeme::Symbol(Symbol::Semicolon),
+            Some(super::HINT_EXPECTED_TYPE),
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_semicolon() {
+        let input = "type Data = field";
+
+        let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 18),
+            vec![";"],
+            Lexeme::Eof,
+            None,
         )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);

@@ -1,0 +1,63 @@
+//# [ {
+//#     "case": "zero_by_zero", "should_panic": true,
+//#     "input": {
+//#         "a": "0",
+//#         "b": "0"
+//#     },
+//#     "expect": null
+//# }, {
+//#     "case": "ordinar_by_zero", "should_panic": true,
+//#     "input": {
+//#         "a": "42",
+//#         "b": "0"
+//#     },
+//#     "expect": null
+//# }, {
+//#     "case": "max_by_zero", "should_panic": true,
+//#     "input": {
+//#         "a": "255",
+//#         "b": "0"
+//#     },
+//#     "expect": null
+//# }, {
+//#     "case": "ordinar",
+//#     "input": {
+//#         "a": "42",
+//#         "b": "7"
+//#     },
+//#     "expect": "6"
+//# }, {
+//#     "case": "ordinar_max_remainder",
+//#     "input": {
+//#         "a": "48",
+//#         "b": "7"
+//#     },
+//#     "expect": "6"
+//# }, {
+//#     "case": "ordinar_next",
+//#     "input": {
+//#         "a": "49",
+//#         "b": "7"
+//#     },
+//#     "expect": "7"
+//# }, {
+//#     "case": "to_max",
+//#     "input": {
+//#         "a": "255",
+//#         "b": "1"
+//#     },
+//#     "expect": "255"
+//# }, {
+//#     "case": "to_one",
+//#     "input": {
+//#         "a": "255",
+//#         "b": "255"
+//#     },
+//#     "expect": "1"
+//# } ]
+
+fn main(a: u8, b: u8) -> u8 {
+    let mut c = a;
+    c /= b;
+    c
+}

@@ -11,27 +11,33 @@ pub enum Error {
         location: Location,
         expected: String,
         found: Lexeme,
+        help: Option<&'static str>,
     },
     ExpectedOneOfOrOperator {
         location: Location,
         expected: String,
         found: Lexeme,
+        help: Option<&'static str>,
     },
     ExpectedIdentifier {
         location: Location,
         found: Lexeme,
+        help: Option<&'static str>,
     },
     ExpectedMutOrIdentifier {
         location: Location,
         found: Lexeme,
+        help: Option<&'static str>,
     },
     ExpectedFieldIdentifier {
         location: Location,
         found: Lexeme,
+        help: Option<&'static str>,
     },
     ExpectedType {
         location: Location,
         found: Lexeme,
+        help: Option<&'static str>,
     },
     ExpectedExpressionOrOperand {
         location: Location,
@@ -40,10 +46,12 @@ pub enum Error {
     ExpectedTypeOrValue {
         location: Location,
         found: Lexeme,
+        help: Option<&'static str>,
     },
     ExpectedValue {
         location: Location,
         found: Lexeme,
+        help: Option<&'static str>,
     },
     ExpectedIntegerLiteral {
         location: Location,
@@ -60,11 +68,17 @@ pub enum Error {
 }
 
 impl Error {
-    pub fn expected_one_of(location: Location, expected: Vec<&'static str>, found: Lexeme) -> Self {
+    pub fn expected_one_of(
+        location: Location,
+        expected: Vec<&'static str>,
+        found: Lexeme,
+        help: Option<&'static str>,
+    ) -> Self {
         Self::ExpectedOneOf {
             location,
             expected: Self::format_one_of(expected.as_slice()),
             found,
+            help,
         }
     }
 
@@ -72,36 +86,78 @@ impl Error {
         location: Location,
         expected: Vec<&'static str>,
         found: Lexeme,
+        help: Option<&'static str>,
     ) -> Self {
         Self::ExpectedOneOf {
             location,
             expected: Self::format_one_of(expected.as_slice()),
             found,
+            help,
         }
     }
 
-    pub fn expected_identifier(location: Location, found: Lexeme) -> Self {
-        Self::ExpectedIdentifier { location, found }
+    pub fn expected_identifier(
+        location: Location,
+        found: Lexeme,
+        help: Option<&'static str>,
+    ) -> Self {
+        Self::ExpectedIdentifier {
+            location,
+            found,
+            help,
+        }
     }
 
-    pub fn expected_mut_or_identifier(location: Location, found: Lexeme) -> Self {
-        Self::ExpectedMutOrIdentifier { location, found }
+    pub fn expected_mut_or_identifier(
+        location: Location,
+        found: Lexeme,
+        help: Option<&'static str>,
+    ) -> Self {
+        Self::ExpectedMutOrIdentifier {
+            location,
+            found,
+            help,
+        }
     }
 
-    pub fn expected_field_identifier(location: Location, found: Lexeme) -> Self {
-        Self::ExpectedFieldIdentifier { location, found }
+    pub fn expected_field_identifier(
+        location: Location,
+        found: Lexeme,
+        help: Option<&'static str>,
+    ) -> Self {
+        Self::ExpectedFieldIdentifier {
+            location,
+            found,
+            help,
+        }
     }
 
-    pub fn expected_type(location: Location, found: Lexeme) -> Self {
-        Self::ExpectedType { location, found }
+    pub fn expected_type(location: Location, found: Lexeme, help: Option<&'static str>) -> Self {
+        Self::ExpectedType {
+            location,
+            found,
+            help,
+        }
     }
 
-    pub fn expected_type_or_value(location: Location, found: Lexeme) -> Self {
-        Self::ExpectedTypeOrValue { location, found }
+    pub fn expected_type_or_value(
+        location: Location,
+        found: Lexeme,
+        help: Option<&'static str>,
+    ) -> Self {
+        Self::ExpectedTypeOrValue {
+            location,
+            found,
+            help,
+        }
     }
 
-    pub fn expected_value(location: Location, found: Lexeme) -> Self {
-        Self::ExpectedValue { location, found }
+    pub fn expected_value(location: Location, found: Lexeme, help: Option<&'static str>) -> Self {
+        Self::ExpectedValue {
+            location,
+            found,
+            help,
+        }
     }
 
     pub fn expected_expression_or_operand(location: Location, found: Lexeme) -> Self {

@@ -381,7 +381,7 @@ impl Constant {
         };
 
         if let Self::Integer(integer) = self {
-            integer.cast(is_signed, bitlength);
+            integer.cast(is_signed, bitlength).map_err(Error::Integer)?;
         }
         Ok(Some((is_signed, bitlength)))
     }
@@ -415,12 +415,6 @@ impl From<BooleanLiteral> for Constant {
     fn from(value: BooleanLiteral) -> Self {
         let value: bool = value.into();
         Self::from(value)
-    }
-}
-
-impl From<(usize, usize)> for Constant {
-    fn from((value, bitlength): (usize, usize)) -> Self {
-        Self::Integer(Integer::from((value, bitlength)))
     }
 }
 

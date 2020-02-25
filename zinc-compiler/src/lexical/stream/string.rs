@@ -23,10 +23,11 @@ pub fn parse(input: &str) -> Result<(usize, String), Error> {
     let mut column = 1;
     let mut value = String::with_capacity(64);
 
-    while let Some(character) = input.chars().nth(size) {
+    loop {
+        let character = input.chars().nth(size);
         match state {
             State::DoubleQuoteOpen => match character {
-                '\"' => {
+                Some('\"') => {
                     size += 1;
                     column += 1;
                     state = State::Character;
@@ -34,37 +35,39 @@ pub fn parse(input: &str) -> Result<(usize, String), Error> {
                 _ => return Err(Error::NotAString),
             },
             State::Character => match character {
-                '\"' => {
+                Some('\"') => {
                     size += 1;
                     return Ok((size, value));
                 }
-                '\\' => {
+                Some('\\') => {
                     size += 1;
                     column += 1;
                     state = State::EscapedCharacter;
                 }
-                '\n' => {
+                Some('\n') => {
                     size += 1;
                     lines += 1;
                     column = 1;
                     state = State::EscapedCharacter;
                 }
-                _ => {
+                Some(character) => {
                     value.push(character);
                     size += 1;
                     column += 1;
                 }
+                None => return Err(Error::UnterminatedDoubleQuote { lines, column }),
             },
-            State::EscapedCharacter => {
-                value.push(character);
-                size += 1;
-                column += 1;
-                state = State::Character;
-            }
+            State::EscapedCharacter => match character {
+                Some(character) => {
+                    value.push(character);
+                    size += 1;
+                    column += 1;
+                    state = State::Character;
+                }
+                None => return Err(Error::UnterminatedDoubleQuote { lines, column }),
+            },
         }
     }
-
-    Err(Error::UnterminatedDoubleQuote { lines, column })
 }
 
 #[cfg(test)]

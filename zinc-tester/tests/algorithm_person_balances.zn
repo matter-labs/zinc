@@ -106,7 +106,7 @@ fn main(token_id: u8) -> Result {
 
     for id in 0..TOKENS_COUNT {
         if person.balances[id].0 == token_id {
-            result.sum = result.sum + person.balances[id].1;
+            result.sum += person.balances[id].1;
         };
     }
 

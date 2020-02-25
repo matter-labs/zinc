@@ -167,6 +167,10 @@ impl Integer {
     }
 
     pub fn negate(&self) -> Result<Self, Error> {
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldNegation);
+        }
+
         Ok(Self::new(true, self.bitlength))
     }
 }

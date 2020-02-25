@@ -30,15 +30,15 @@
 
 fn main(gates: [bool; 3], mut mutated: u8) -> u8 {
     if gates[0] {
-        mutated = mutated * 5;
+        mutated *= 5;
     } else if gates[1] {
         if gates[2] {
-            mutated = mutated * 10;
+            mutated *= 10;
         } else {
-            mutated = mutated * 15;
+            mutated *= 15;
         }
     } else {
-        mutated = mutated * 20;
+        mutated *= 20;
     };
 
     mutated

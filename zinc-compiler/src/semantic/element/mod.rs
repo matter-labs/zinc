@@ -66,6 +66,156 @@ impl Element {
         }
     }
 
+    pub fn assign_add(self, other: &Self) -> Result<Place, Error> {
+        match self {
+            Self::Place(place) => {
+                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                match other {
+                    Self::Value(value_2) => {
+                        value_1
+                            .add(value_2)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    Self::Constant(value_2) => {
+                        value_1
+                            .add(&Value::try_from(value_2).map_err(Error::Value)?)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    element => Err(Error::OperatorAssignmentSecondOperandExpectedEvaluable(
+                        element.to_string(),
+                    )),
+                }
+            }
+            element => Err(Error::OperatorAssignmentFirstOperandExpectedPlace(
+                element.to_string(),
+            )),
+        }
+    }
+
+    pub fn assign_subtract(self, other: &Self) -> Result<Place, Error> {
+        match self {
+            Self::Place(place) => {
+                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                match other {
+                    Self::Value(value_2) => {
+                        value_1
+                            .subtract(value_2)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    Self::Constant(value_2) => {
+                        value_1
+                            .subtract(&Value::try_from(value_2).map_err(Error::Value)?)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    element => Err(Error::OperatorAssignmentSecondOperandExpectedEvaluable(
+                        element.to_string(),
+                    )),
+                }
+            }
+            element => Err(Error::OperatorAssignmentFirstOperandExpectedPlace(
+                element.to_string(),
+            )),
+        }
+    }
+
+    pub fn assign_multiply(self, other: &Self) -> Result<Place, Error> {
+        match self {
+            Self::Place(place) => {
+                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                match other {
+                    Self::Value(value_2) => {
+                        value_1
+                            .multiply(value_2)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    Self::Constant(value_2) => {
+                        value_1
+                            .multiply(&Value::try_from(value_2).map_err(Error::Value)?)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    element => Err(Error::OperatorAssignmentSecondOperandExpectedEvaluable(
+                        element.to_string(),
+                    )),
+                }
+            }
+            element => Err(Error::OperatorAssignmentFirstOperandExpectedPlace(
+                element.to_string(),
+            )),
+        }
+    }
+
+    pub fn assign_divide(self, other: &Self) -> Result<Place, Error> {
+        match self {
+            Self::Place(place) => {
+                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                match other {
+                    Self::Value(value_2) => {
+                        value_1
+                            .divide(value_2)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    Self::Constant(value_2) => {
+                        value_1
+                            .divide(&Value::try_from(value_2).map_err(Error::Value)?)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    element => Err(Error::OperatorAssignmentSecondOperandExpectedEvaluable(
+                        element.to_string(),
+                    )),
+                }
+            }
+            element => Err(Error::OperatorAssignmentFirstOperandExpectedPlace(
+                element.to_string(),
+            )),
+        }
+    }
+
+    pub fn assign_remainder(self, other: &Self) -> Result<Place, Error> {
+        match self {
+            Self::Place(place) => {
+                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                match other {
+                    Self::Value(value_2) => {
+                        value_1
+                            .remainder(value_2)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    Self::Constant(value_2) => {
+                        value_1
+                            .remainder(&Value::try_from(value_2).map_err(Error::Value)?)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    element => Err(Error::OperatorAssignmentSecondOperandExpectedEvaluable(
+                        element.to_string(),
+                    )),
+                }
+            }
+            element => Err(Error::OperatorAssignmentFirstOperandExpectedPlace(
+                element.to_string(),
+            )),
+        }
+    }
+
     pub fn range_inclusive(&self, other: &Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1

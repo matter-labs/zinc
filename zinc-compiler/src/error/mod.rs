@@ -6,19 +6,19 @@ pub mod file;
 
 use colored::Colorize;
 
-use crate::lexical;
+use crate::lexical::Error as LexicalError;
 use crate::lexical::Location;
-use crate::semantic;
-use crate::syntax;
+use crate::semantic::Error as SemanticError;
+use crate::syntax::Error as SyntaxError;
 
 use self::file::Error as FileError;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
     File(FileError),
-    Lexical(lexical::Error),
-    Syntax(syntax::Error),
-    Semantic(semantic::Error),
+    Lexical(LexicalError),
+    Syntax(SyntaxError),
+    Semantic(SemanticError),
 }
 
 impl Error {
@@ -26,13 +26,19 @@ impl Error {
         match self {
             Self::File(inner) => inner.to_string(),
 
-            Self::Lexical(lexical::Error::UnterminatedBlockComment { start, end }) => {
-                Self::format_range(context, "unterminated block comment", start, end)
+            Self::Lexical(LexicalError::UnterminatedBlockComment { start, end }) => {
+                Self::format_range(context, "unterminated block comment", start, end, None)
             }
-            Self::Lexical(lexical::Error::UnterminatedDoubleQuoteString { start, end }) => {
-                Self::format_range(context, "unterminated double quote string", start, end)
+            Self::Lexical(LexicalError::UnterminatedDoubleQuoteString { start, end }) => {
+                Self::format_range(
+                    context,
+                    "unterminated double quote string",
+                    start,
+                    end,
+                    None,
+                )
             }
-            Self::Lexical(lexical::Error::ExpectedOneOf {
+            Self::Lexical(LexicalError::ExpectedOneOf {
                 location,
                 expected,
                 found,
@@ -40,8 +46,9 @@ impl Error {
                 context,
                 format!("expected one of {}, found `{}`", expected, found).as_str(),
                 location,
+                None,
             ),
-            Self::Lexical(lexical::Error::ExpectedOneOfDecimal {
+            Self::Lexical(LexicalError::ExpectedOneOfDecimal {
                 location,
                 expected,
                 found,
@@ -53,8 +60,9 @@ impl Error {
                 )
                 .as_str(),
                 location,
+                None,
             ),
-            Self::Lexical(lexical::Error::ExpectedOneOfHexadecimal {
+            Self::Lexical(LexicalError::ExpectedOneOfHexadecimal {
                 location,
                 expected,
                 found,
@@ -66,31 +74,34 @@ impl Error {
                 )
                 .as_str(),
                 location,
+                None,
             ),
-            Self::Lexical(lexical::Error::InvalidCharacter { location, found }) => {
-                Self::format_line(
-                    context,
-                    format!("invalid character `{}`", found).as_str(),
-                    location,
-                )
-            }
-            Self::Lexical(lexical::Error::UnexpectedEnd { location }) => {
-                Self::format_line(context, "unexpected end of input", location)
+            Self::Lexical(LexicalError::InvalidCharacter { location, found }) => Self::format_line(
+                context,
+                format!("invalid character `{}`", found).as_str(),
+                location,
+                None,
+            ),
+            Self::Lexical(LexicalError::UnexpectedEnd { location }) => {
+                Self::format_line(context, "unexpected end of input", location, None)
             }
 
-            Self::Syntax(syntax::Error::ExpectedOneOf {
+            Self::Syntax(SyntaxError::ExpectedOneOf {
                 location,
                 expected,
                 found,
+                help,
             }) => Self::format_line(
                 context,
                 format!("expected one of {}, found `{}`", expected, found).as_str(),
                 location,
+                help,
             ),
-            Self::Syntax(syntax::Error::ExpectedOneOfOrOperator {
+            Self::Syntax(SyntaxError::ExpectedOneOfOrOperator {
                 location,
                 expected,
                 found,
+                help,
             }) => Self::format_line(
                 context,
                 format!(
@@ -99,71 +110,97 @@ impl Error {
                 )
                 .as_str(),
                 location,
+                help,
             ),
-            Self::Syntax(syntax::Error::ExpectedIdentifier { location, found }) => {
-                Self::format_line(
-                    context,
-                    format!("expected identifier, found `{}`", found).as_str(),
-                    location,
-                )
-            }
-            Self::Syntax(syntax::Error::ExpectedMutOrIdentifier { location, found }) => {
-                Self::format_line(
-                    context,
-                    format!("expected `mut` or identifier, found `{}`", found).as_str(),
-                    location,
-                )
-            }
-            Self::Syntax(syntax::Error::ExpectedFieldIdentifier { location, found }) => {
-                Self::format_line(
-                    context,
-                    format!("expected field identifier, found `{}`", found).as_str(),
-                    location,
-                )
-            }
-            Self::Syntax(syntax::Error::ExpectedType { location, found }) => Self::format_line(
+            Self::Syntax(SyntaxError::ExpectedIdentifier {
+                location,
+                found,
+                help,
+            }) => Self::format_line(
+                context,
+                format!("expected identifier, found `{}`", found).as_str(),
+                location,
+                help,
+            ),
+            Self::Syntax(SyntaxError::ExpectedMutOrIdentifier {
+                location,
+                found,
+                help,
+            }) => Self::format_line(
+                context,
+                format!("expected `mut` or identifier, found `{}`", found).as_str(),
+                location,
+                help,
+            ),
+            Self::Syntax(SyntaxError::ExpectedFieldIdentifier {
+                location,
+                found,
+                help,
+            }) => Self::format_line(
+                context,
+                format!("expected field identifier, found `{}`", found).as_str(),
+                location,
+                help,
+            ),
+            Self::Syntax(SyntaxError::ExpectedType {
+                location,
+                found,
+                help,
+            }) => Self::format_line(
                 context,
                 format!("expected type, found `{}`", found).as_str(),
                 location,
+                help,
             ),
-            Self::Syntax(syntax::Error::ExpectedTypeOrValue { location, found }) => {
-                Self::format_line(
-                    context,
-                    format!(
-                        "expected `:` with type or `=` with value, found `{}`",
-                        found
-                    )
-                    .as_str(),
-                    location,
+            Self::Syntax(SyntaxError::ExpectedTypeOrValue {
+                location,
+                found,
+                help,
+            }) => Self::format_line(
+                context,
+                format!(
+                    "expected `:` with type or `=` with value, found `{}`",
+                    found
                 )
-            }
-            Self::Syntax(syntax::Error::ExpectedValue { location, found }) => Self::format_line(
+                .as_str(),
+                location,
+                help,
+            ),
+            Self::Syntax(SyntaxError::ExpectedValue {
+                location,
+                found,
+                help,
+            }) => Self::format_line(
                 context,
                 format!("expected `=` with value, found `{}`", found).as_str(),
                 location,
+                help,
             ),
-            Self::Syntax(syntax::Error::ExpectedExpressionOrOperand { location, found }) => {
+            Self::Syntax(SyntaxError::ExpectedExpressionOrOperand { location, found }) => {
                 Self::format_line(
                     context,
                     format!("expected expression or operand, found `{}`", found).as_str(),
                     location,
+                    None,
                 )
             }
-            Self::Syntax(syntax::Error::ExpectedIntegerLiteral { location, found }) => {
+            Self::Syntax(SyntaxError::ExpectedIntegerLiteral { location, found }) => {
                 Self::format_line(
                     context,
                     format!("expected integer literal, found `{}`", found).as_str(),
                     location,
+                    None,
                 )
             }
-            Self::Syntax(syntax::Error::ExpectedBindingPattern { location, found }) => {
+            Self::Syntax(SyntaxError::ExpectedBindingPattern { location, found }) => {
                 Self::format_line(
                     context,
                     format!("expected identifier or `_`, found `{}`", found).as_str(),
                     location,
+                    None,
                 )
             }
-            Self::Syntax(syntax::Error::ExpectedMatchPattern { location, found }) => {
+            Self::Syntax(SyntaxError::ExpectedMatchPattern { location, found }) => {
                 Self::format_line(
                     context,
                     format!(
@@ -172,6 +209,7 @@ impl Error {
                     )
                     .as_str(),
                     location,
+                    None,
                 )
             }
 
@@ -179,8 +217,13 @@ impl Error {
         }
     }
 
-    fn format_line(context: &[&str], message: &str, location: Location) -> String {
-        let mut strings = Vec::with_capacity(7);
+    fn format_line(
+        context: &[&str],
+        message: &str,
+        location: Location,
+        help: Option<&'static str>,
+    ) -> String {
+        let mut strings = Vec::with_capacity(8);
         strings.push(String::new());
         strings.push(format!(
             "{}: {}",
@@ -204,6 +247,9 @@ impl Error {
             "_".repeat(location.column - 1).bright_red(),
             "^".bright_red()
         ));
+        if let Some(help) = help {
+            strings.push(format!("{}: {}", "help".bright_white(), help.bright_blue()));
+        }
         strings.push(String::new());
         strings.join("\n")
     }
@@ -213,8 +259,9 @@ impl Error {
         message: &'static str,
         start: Location,
         end: Location,
+        help: Option<&'static str>,
     ) -> String {
-        let mut strings = Vec::with_capacity(7 + end.line - start.line);
+        let mut strings = Vec::with_capacity(8 + end.line - start.line);
         strings.push(String::new());
         strings.push(format!(
             "{}: {}",
@@ -240,6 +287,9 @@ impl Error {
             "_".repeat(end.column - 1).bright_red(),
             "^".bright_red()
         ));
+        if let Some(help) = help {
+            strings.push(format!("{}: {}", "help".bright_white(), help.bright_blue()));
+        }
         strings.push(String::new());
         strings.join("\n")
     }
@@ -251,20 +301,20 @@ impl From<FileError> for Error {
     }
 }
 
-impl From<lexical::Error> for Error {
-    fn from(error: lexical::Error) -> Self {
+impl From<LexicalError> for Error {
+    fn from(error: LexicalError) -> Self {
         Self::Lexical(error)
     }
 }
 
-impl From<syntax::Error> for Error {
-    fn from(error: syntax::Error) -> Self {
+impl From<SyntaxError> for Error {
+    fn from(error: SyntaxError) -> Self {
         Self::Syntax(error)
     }
 }
 
-impl From<semantic::Error> for Error {
-    fn from(error: semantic::Error) -> Self {
+impl From<SemanticError> for Error {
+    fn from(error: SemanticError) -> Self {
         Self::Semantic(error)
     }
 }

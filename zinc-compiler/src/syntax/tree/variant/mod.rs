@@ -2,13 +2,11 @@
 //! The variant.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax::Identifier;
-use crate::syntax::IntegerLiteral;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Variant {

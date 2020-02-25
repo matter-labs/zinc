@@ -2,26 +2,24 @@
 //! The match expression.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax;
-use crate::syntax::MatchPattern;
+use crate::syntax::tree::expression::Expression as SyntaxExpression;
+use crate::syntax::tree::pattern_match::Pattern as MatchPattern;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
     pub location: Location,
-    pub scrutinee: syntax::Expression,
-    pub branches: Vec<(MatchPattern, syntax::Expression)>,
+    pub scrutinee: SyntaxExpression,
+    pub branches: Vec<(MatchPattern, SyntaxExpression)>,
 }
 
 impl Expression {
     pub fn new(
         location: Location,
-        scrutinee: syntax::Expression,
-        branches: Vec<(MatchPattern, syntax::Expression)>,
+        scrutinee: SyntaxExpression,
+        branches: Vec<(MatchPattern, SyntaxExpression)>,
     ) -> Self {
         Self {
             location,

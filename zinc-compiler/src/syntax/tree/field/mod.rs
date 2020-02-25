@@ -2,13 +2,11 @@
 //! The field.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax::Identifier;
-use crate::syntax::Type;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::r#type::Type;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Field {

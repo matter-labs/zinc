@@ -45,7 +45,7 @@ impl_statement = 'impl', identifier, '{', { implementation_local_statement }, '}
 empty_statement = ';' ;
 
 (* Expressions *)
-expression = operand_assignment, [ '=', operand_assignment ] ;
+expression = operand_assignment, [ '=' | '+=' | '-=' | '*=' | '/=' | '%=', operand_assignment ] ;
 operand_assignment = operand_range, [ '..' | '..=', operand_range ] ;
 operand_range = operand_or, { '||', operand_or } ;
 operand_or = operand_xor, { '^^', operand_xor } ;

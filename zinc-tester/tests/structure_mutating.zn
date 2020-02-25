@@ -3,7 +3,7 @@
 //#     "input": {
 //#         "witness": "3"
 //#     },
-//#     "expect": "63"
+//#     "expect": "69"
 //# } ]
 
 struct Test {
@@ -19,9 +19,9 @@ fn main(witness: u8) -> u8 {
         z: 3,
     };
 
-    test.x = 5 * witness;
-    test.y = 7 * witness;
-    test.z = 9 * witness;
+    test.x += 5 * witness;
+    test.y += 7 * witness;
+    test.z += 9 * witness;
 
     test.z + test.y + test.x
 }

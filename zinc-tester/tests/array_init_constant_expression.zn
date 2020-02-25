@@ -1,0 +1,17 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {
+//#         "value": "42"
+//#     },
+//#     "expect": "50"
+//# } ]
+
+const SIZE_HALVED: u8 = 2;
+
+fn main(mut value: u8) -> u8 {
+    let array = [2; SIZE_HALVED * 2];
+    for i in 0..SIZE_HALVED * 2 {
+        value += array[i];
+    }
+    value
+}

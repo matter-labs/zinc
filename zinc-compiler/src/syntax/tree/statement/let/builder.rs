@@ -3,10 +3,10 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::Expression;
-use crate::syntax::Identifier;
-use crate::syntax::LetStatement;
-use crate::syntax::Type;
+use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::r#type::Type;
+use crate::syntax::tree::statement::r#let::Statement as LetStatement;
 
 #[derive(Default)]
 pub struct Builder {

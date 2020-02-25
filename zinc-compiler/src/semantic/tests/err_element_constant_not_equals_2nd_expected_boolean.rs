@@ -26,7 +26,7 @@ fn main() {
         Location::new(3, 22),
         ElementError::Constant(
             ConstantError::OperatorNotEqualsSecondOperandExpectedBoolean(Constant::Integer(
-                IntegerConstant::from((42, 8)),
+                IntegerConstant::new_from_usize(42, crate::BITLENGTH_BYTE),
             )),
         ),
     )));

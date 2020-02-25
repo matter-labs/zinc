@@ -3,10 +3,10 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::BindingPattern;
-use crate::syntax::BindingPatternVariant;
-use crate::syntax::Identifier;
-use crate::syntax::Type;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;
+use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
+use crate::syntax::tree::r#type::Type;
 
 #[derive(Default)]
 pub struct Builder {

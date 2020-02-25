@@ -10,8 +10,8 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Field;
-use crate::syntax::FieldParser;
+use crate::syntax::parser::field::Parser as FieldParser;
+use crate::syntax::tree::field::Field;
 
 #[derive(Default)]
 pub struct Parser {
@@ -26,7 +26,7 @@ impl Parser {
         mut initial: Option<Token>,
     ) -> Result<(Vec<Field>, Option<Token>), Error> {
         loop {
-            match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+            match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                 token
                 @
                 Token {
@@ -41,7 +41,7 @@ impl Parser {
                 token => return Ok((self.fields, Some(token))),
             }
 
-            match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+            match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                 Token {
                     lexeme: Lexeme::Symbol(Symbol::Comma),
                     ..
@@ -62,10 +62,24 @@ mod tests {
     use crate::lexical::Location;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
-    use crate::syntax::Field;
-    use crate::syntax::Identifier;
-    use crate::syntax::Type;
-    use crate::syntax::TypeVariant;
+    use crate::syntax::tree::field::Field;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
+    use crate::syntax::tree::r#type::Type;
+
+    #[test]
+    fn ok_empty() {
+        let input = r#""#;
+
+        let expected = Ok((
+            Vec::<Field>::new(),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 1))),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
 
     #[test]
     fn ok_single() {
@@ -104,12 +118,28 @@ mod tests {
     }
 
     #[test]
-    fn ok_empty() {
-        let input = r#""#;
+    fn ok_multiple() {
+        let input = r#"a: u232, b: i128, c: u104"#;
 
         let expected = Ok((
-            Vec::<Field>::new(),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 1))),
+            vec![
+                Field::new(
+                    Location::new(1, 1),
+                    Identifier::new(Location::new(1, 1), "a".to_owned()),
+                    Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
+                ),
+                Field::new(
+                    Location::new(1, 10),
+                    Identifier::new(Location::new(1, 10), "b".to_owned()),
+                    Type::new(Location::new(1, 13), TypeVariant::integer_signed(128)),
+                ),
+                Field::new(
+                    Location::new(1, 19),
+                    Identifier::new(Location::new(1, 19), "c".to_owned()),
+                    Type::new(Location::new(1, 22), TypeVariant::integer_unsigned(104)),
+                ),
+            ],
+            Some(Token::new(Lexeme::Eof, Location::new(1, 26))),
         ));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);

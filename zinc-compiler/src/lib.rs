@@ -4,6 +4,7 @@
 
 #![allow(clippy::implicit_hasher)]
 #![allow(clippy::large_enum_variant)]
+#![allow(clippy::cognitive_complexity)]
 
 mod error;
 mod lexical;
@@ -16,7 +17,7 @@ pub use self::semantic::Bytecode;
 pub use self::semantic::LibraryAnalyzer;
 pub use self::semantic::Scope;
 pub use self::syntax::Parser;
-pub use self::syntax::SyntaxTree;
+pub use self::syntax::Tree;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -84,7 +85,7 @@ pub fn compile_test(code: &str) -> Result<Bytecode, String> {
         .into_inner())
 }
 
-pub fn parse(path: PathBuf) -> Result<SyntaxTree, String> {
+pub fn parse(path: PathBuf) -> Result<Tree, String> {
     let mut file = File::open(path.clone())
         .map_err(FileError::Opening)
         .map_err(|error| error.to_string())?;

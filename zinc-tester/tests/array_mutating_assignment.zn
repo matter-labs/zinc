@@ -1,0 +1,20 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {
+//#         "array": ["10", "20", "30", "40", "50"],
+//#         "witness": "4"
+//#     },
+//#     "expect": ["14", "16", "120", "10", "2"]
+//# } ]
+
+const SIZE: u8 = 5;
+
+fn main(mut array: [u8; SIZE], witness: u8) -> [u8; SIZE] {
+    array[0] += witness;
+    array[1] -= witness;
+    array[2] *= witness;
+    array[3] /= witness;
+    array[4] %= witness;
+
+    array
+}

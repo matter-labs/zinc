@@ -3,15 +3,14 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::ArrayExpression;
-use crate::syntax::Expression;
-use crate::syntax::IntegerLiteral;
+use crate::syntax::tree::expression::array::Expression as ArrayExpression;
+use crate::syntax::tree::expression::Expression;
 
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
     elements: Vec<Expression>,
-    repeats_count: Option<IntegerLiteral>,
+    size_expression: Option<Expression>,
 }
 
 impl Builder {
@@ -23,8 +22,8 @@ impl Builder {
         self.elements.push(expression);
     }
 
-    pub fn set_repeats_count(&mut self, repeats_count: IntegerLiteral) {
-        self.repeats_count = Some(repeats_count);
+    pub fn set_size_expression(&mut self, value: Expression) {
+        self.size_expression = Some(value);
     }
 
     pub fn finish(mut self) -> ArrayExpression {
@@ -37,7 +36,7 @@ impl Builder {
                 )
             }),
             self.elements,
-            self.repeats_count.take(),
+            self.size_expression.take(),
         )
     }
 }

@@ -3,9 +3,9 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::Identifier;
-use crate::syntax::Type;
-use crate::syntax::TypeStatement;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::r#type::Type;
+use crate::syntax::tree::statement::r#type::Statement as TypeStatement;
 
 #[derive(Default)]
 pub struct Builder {

@@ -2,10 +2,10 @@
 //! The match pattern variant.
 //!
 
-use crate::syntax::BooleanLiteral;
-use crate::syntax::Expression;
-use crate::syntax::Identifier;
-use crate::syntax::IntegerLiteral;
+use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Variant {

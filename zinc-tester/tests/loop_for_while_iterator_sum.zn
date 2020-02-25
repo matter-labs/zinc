@@ -9,7 +9,7 @@
 fn main(witness: u8) -> u8 {
     let mut result = 0;
     for i in 1..=10 while i <= witness {
-        result = result + i;
+        result += i;
     }
     result
 }

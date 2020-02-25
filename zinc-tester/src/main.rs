@@ -121,7 +121,7 @@ fn main_inner() -> Summary {
                         if test_case.expect == output {
                             if !test_case.should_panic {
                                 summary.lock().expect(PANIC_SYNC).passed += 1;
-                                if !args.quiet {
+                                if args.verbosity > 0 {
                                     println!("[INTEGRATION] {} {}", "PASSED".green(), case_name);
                                 }
                             } else {
@@ -146,7 +146,7 @@ fn main_inner() -> Summary {
                     Err(error) => {
                         if test_case.should_panic {
                             summary.lock().expect(PANIC_SYNC).passed += 1;
-                            if !args.quiet {
+                            if args.verbosity > 0 {
                                 println!(
                                     "[INTEGRATION] {} {} (panicked)",
                                     "PASSED".green(),

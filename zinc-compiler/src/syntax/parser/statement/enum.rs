@@ -11,11 +11,14 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::EnumStatement;
-use crate::syntax::EnumStatementBuilder;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::Identifier;
-use crate::syntax::VariantListParser;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::variant_list::Parser as VariantListParser;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::statement::r#enum::builder::Builder as EnumStatementBuilder;
+use crate::syntax::tree::statement::r#enum::Statement as EnumStatement;
+
+static HINT_EXPECTED_IDENTIFIER: &str =
+    "enumeration type must have an identifier, e.g. `enum List { ... }`";
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -48,7 +51,7 @@ impl Parser {
         loop {
             match self.state {
                 State::KeywordEnum => {
-                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Enum),
                             location,
@@ -61,12 +64,13 @@ impl Parser {
                                 location,
                                 vec!["enum"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
                 }
                 State::Identifier => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
@@ -77,13 +81,15 @@ impl Parser {
                         }
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::expected_identifier(
-                                location, lexeme,
+                                location,
+                                lexeme,
+                                Some(HINT_EXPECTED_IDENTIFIER),
                             )));
                         }
                     }
                 }
                 State::BracketCurlyLeftOrEnd => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
@@ -99,13 +105,13 @@ impl Parser {
                     self.state = State::BracketCurlyRight;
                 }
                 State::BracketCurlyRight => {
-                    return match crate::syntax::take_or_next(self.next.take(), stream)? {
+                    return match crate::syntax::parser::take_or_next(self.next.take(), stream)? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
                         } => Ok((self.builder.finish(), None)),
                         Token { lexeme, location } => Err(Error::Syntax(
-                            SyntaxError::expected_one_of(location, vec!["}"], lexeme),
+                            SyntaxError::expected_one_of(location, vec!["}"], lexeme, None),
                         )),
                     }
                 }
@@ -120,16 +126,61 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::error::Error;
     use crate::lexical;
     use crate::lexical::Lexeme;
     use crate::lexical::Location;
     use crate::lexical::Symbol;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
-    use crate::syntax::EnumStatement;
-    use crate::syntax::Identifier;
-    use crate::syntax::IntegerLiteral;
-    use crate::syntax::Variant;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+    use crate::syntax::tree::statement::r#enum::Statement as EnumStatement;
+    use crate::syntax::tree::variant::Variant;
+
+    #[test]
+    fn ok_empty_with_brackets() {
+        let input = r#"
+    enum Test {}
+"#;
+
+        let expected = Ok((
+            EnumStatement::new(
+                Location::new(2, 5),
+                Identifier::new(Location::new(2, 10), "Test".to_owned()),
+                vec![],
+            ),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_empty_with_semicolon() {
+        let input = r#"
+    enum Test;
+"#;
+
+        let expected = Ok((
+            EnumStatement::new(
+                Location::new(2, 5),
+                Identifier::new(Location::new(2, 10), "Test".to_owned()),
+                vec![],
+            ),
+            Some(Token::new(
+                Lexeme::Symbol(Symbol::Semicolon),
+                Location::new(2, 14),
+            )),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
 
     #[test]
     fn ok_single() {
@@ -210,19 +261,14 @@ mod tests {
     }
 
     #[test]
-    fn ok_empty_with_brackets() {
-        let input = r#"
-    enum Test {}
-"#;
+    fn error_expected_identifier() {
+        let input = r#"enum { A = 1 };"#;
 
-        let expected = Ok((
-            EnumStatement::new(
-                Location::new(2, 5),
-                Identifier::new(Location::new(2, 10), "Test".to_owned()),
-                vec![],
-            ),
-            None,
-        ));
+        let expected = Err(Error::Syntax(SyntaxError::expected_identifier(
+            Location::new(1, 6),
+            Lexeme::Symbol(Symbol::BracketCurlyLeft),
+            Some(super::HINT_EXPECTED_IDENTIFIER),
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
@@ -230,22 +276,15 @@ mod tests {
     }
 
     #[test]
-    fn ok_empty_with_semicolon() {
-        let input = r#"
-    enum Test;
-"#;
+    fn error_expected_bracket_curly_right() {
+        let input = "enum List { A = 1 );";
 
-        let expected = Ok((
-            EnumStatement::new(
-                Location::new(2, 5),
-                Identifier::new(Location::new(2, 10), "Test".to_owned()),
-                vec![],
-            ),
-            Some(Token::new(
-                Lexeme::Symbol(Symbol::Semicolon),
-                Location::new(2, 14),
-            )),
-        ));
+        let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 19),
+            vec!["}"],
+            Lexeme::Symbol(Symbol::ParenthesisRight),
+            None,
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
