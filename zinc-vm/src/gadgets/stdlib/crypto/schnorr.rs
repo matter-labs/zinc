@@ -17,27 +17,27 @@ impl<E: Engine> NativeFunction<E> for VerifyEddsaSignature {
     where
         CS: ConstraintSystem<E>,
     {
-        let r_x = stack
-            .pop()?
-            .value()?
-            .to_number(cs.namespace(|| "to_number r_x"))?;
-        let r_y = stack
-            .pop()?
-            .value()?
-            .to_number(cs.namespace(|| "to_number r_y"))?;
-        let s = stack
-            .pop()?
-            .value()?
-            .to_number(cs.namespace(|| "to_number s"))?;
-        let pk_x = stack
-            .pop()?
-            .value()?
-            .to_number(cs.namespace(|| "to_number pk_x"))?;
+        let message = stack.pop()?.value()?;
         let pk_y = stack
             .pop()?
             .value()?
             .to_number(cs.namespace(|| "to_number pk_y"))?;
-        let message = stack.pop()?.value()?;
+        let pk_x = stack
+            .pop()?
+            .value()?
+            .to_number(cs.namespace(|| "to_number pk_x"))?;
+        let s = stack
+            .pop()?
+            .value()?
+            .to_number(cs.namespace(|| "to_number s"))?;
+        let r_y = stack
+            .pop()?
+            .value()?
+            .to_number(cs.namespace(|| "to_number r_y"))?;
+        let r_x = stack
+            .pop()?
+            .value()?
+            .to_number(cs.namespace(|| "to_number r_x"))?;
 
         let r = edwards_point_from_witness(cs.namespace(|| "r"), r_x, r_y, E::jubjub_params())?;
         let pk = edwards_point_from_witness(cs.namespace(|| "pk"), pk_x, pk_y, E::jubjub_params())?;
@@ -158,12 +158,12 @@ mod tests {
 
         let mut stack = EvaluationStack::<Bn256>::new();
 
-        stack.push(Scalar::new_unchecked_constant(message, ScalarType::Field).into())?;
-        stack.push(Scalar::new_unchecked_constant(pk_y, ScalarType::Field).into())?;
-        stack.push(Scalar::new_unchecked_constant(pk_x, ScalarType::Field).into())?;
-        stack.push(Scalar::new_unchecked_constant(s, ScalarType::Field).into())?;
-        stack.push(Scalar::new_unchecked_constant(r_y, ScalarType::Field).into())?;
         stack.push(Scalar::new_unchecked_constant(r_x, ScalarType::Field).into())?;
+        stack.push(Scalar::new_unchecked_constant(r_y, ScalarType::Field).into())?;
+        stack.push(Scalar::new_unchecked_constant(s, ScalarType::Field).into())?;
+        stack.push(Scalar::new_unchecked_constant(pk_x, ScalarType::Field).into())?;
+        stack.push(Scalar::new_unchecked_constant(pk_y, ScalarType::Field).into())?;
+        stack.push(Scalar::new_unchecked_constant(message, ScalarType::Field).into())?;
 
         let mut cs = TestConstraintSystem::new();
         VerifyEddsaSignature.execute(cs.namespace(|| "signature check"), &mut stack)?;
