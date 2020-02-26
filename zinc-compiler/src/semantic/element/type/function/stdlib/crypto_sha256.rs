@@ -1,8 +1,9 @@
 //!
-//! The semantic analyzer standard library `to_bits` function type element.
+//! The semantic analyzer standard library `sha256` function type element.
 //!
 
 use std::fmt;
+use std::ops::Deref;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
@@ -13,15 +14,17 @@ use crate::semantic::element::Element;
 #[derive(Debug, Default, Clone)]
 pub struct Function {
     identifier: &'static str,
+    return_type: Box<Type>,
 }
 
 impl Function {
-    const ARGUMENT_INDEX_VALUE: usize = 0;
+    const ARGUMENT_INDEX_PREIMAGE: usize = 0;
     const ARGUMENT_COUNT: usize = 1;
 
     pub fn new() -> Self {
         Self {
-            identifier: "to_bits",
+            identifier: "sha256",
+            return_type: Box::new(Type::array(Type::boolean(), crate::SHA256_HASH_SIZE_BITS)),
         }
     }
 
@@ -30,7 +33,7 @@ impl Function {
     }
 
     pub fn builtin_identifier(&self) -> BuiltinIdentifier {
-        BuiltinIdentifier::ToBits
+        BuiltinIdentifier::CryptoSha256
     }
 
     pub fn call(self, actual_elements: Vec<Element>) -> Result<Type, Error> {
@@ -50,17 +53,25 @@ impl Function {
             actual_params.push(r#type);
         }
 
-        let return_type = match actual_params.get(Self::ARGUMENT_INDEX_VALUE) {
-            Some(Type::Boolean) => Type::array(Type::boolean(), crate::BITLENGTH_BOOLEAN),
-            Some(Type::IntegerUnsigned { bitlength }) => Type::array(Type::boolean(), *bitlength),
-            Some(Type::IntegerSigned { bitlength }) => Type::array(Type::boolean(), *bitlength),
-            Some(Type::Field) => Type::array(Type::boolean(), crate::BITLENGTH_FIELD),
+        match actual_params.get(Self::ARGUMENT_INDEX_PREIMAGE) {
+            Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
+                (Type::Boolean, size) if size % crate::BITLENGTH_BYTE == 0 => {}
+                (r#type, size) => {
+                    return Err(Error::ArgumentType(
+                        self.identifier.to_owned(),
+                        "[bool; {8*N}]".to_owned(),
+                        Self::ARGUMENT_INDEX_PREIMAGE + 1,
+                        "preimage".to_owned(),
+                        format!("[{}; {}]", r#type, size),
+                    ))
+                }
+            },
             Some(r#type) => {
                 return Err(Error::ArgumentType(
                     self.identifier.to_owned(),
-                    "integer".to_owned(),
-                    Self::ARGUMENT_INDEX_VALUE + 1,
-                    "value".to_owned(),
+                    "[bool; {8*N}]".to_owned(),
+                    Self::ARGUMENT_INDEX_PREIMAGE + 1,
+                    "preimage".to_owned(),
                     r#type.to_string(),
                 ))
             }
@@ -71,7 +82,7 @@ impl Function {
                     actual_params.len(),
                 ))
             }
-        };
+        }
 
         if actual_params.len() > Self::ARGUMENT_COUNT {
             return Err(Error::ArgumentCount(
@@ -81,12 +92,16 @@ impl Function {
             ));
         }
 
-        Ok(return_type)
+        Ok(*self.return_type)
     }
 }
 
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "fn std::{}(value: field) -> [bool: N]", self.identifier,)
+        write!(
+            f,
+            "fn std::crypto::{}(preimage: [bool: 8*N]) -> {}",
+            self.identifier, self.return_type,
+        )
     }
 }

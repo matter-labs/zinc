@@ -104,7 +104,7 @@ impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "fn std::{}(bits: [bool; {{N}}]) -> u{{N}}",
+            "fn std::convert::{}(bits: [bool; {{N}}]) -> u{{N}}",
             self.identifier
         )
     }

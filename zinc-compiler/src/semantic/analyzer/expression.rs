@@ -1075,22 +1075,25 @@ impl Analyzer {
                 }
 
                 let return_type = match function {
-                    StandardLibraryFunctionType::Sha256(function) => function
+                    StandardLibraryFunctionType::CryptoSha256(function) => function
                         .call(argument_elements)
                         .map_err(|error| Error::Function(element.location, error))?,
-                    StandardLibraryFunctionType::Pedersen(function) => function
+                    StandardLibraryFunctionType::CryptoPedersen(function) => function
                         .call(argument_elements)
                         .map_err(|error| Error::Function(element.location, error))?,
-                    StandardLibraryFunctionType::ToBits(function) => function
+                    StandardLibraryFunctionType::CryptoSchnorrVerify(function) => function
                         .call(argument_elements)
                         .map_err(|error| Error::Function(element.location, error))?,
-                    StandardLibraryFunctionType::FromBitsUnsigned(function) => function
+                    StandardLibraryFunctionType::ConvertToBits(function) => function
                         .call(argument_elements)
                         .map_err(|error| Error::Function(element.location, error))?,
-                    StandardLibraryFunctionType::FromBitsSigned(function) => function
+                    StandardLibraryFunctionType::ConvertFromBitsUnsigned(function) => function
                         .call(argument_elements)
                         .map_err(|error| Error::Function(element.location, error))?,
-                    StandardLibraryFunctionType::FromBitsField(function) => function
+                    StandardLibraryFunctionType::ConvertFromBitsSigned(function) => function
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
+                    StandardLibraryFunctionType::ConvertFromBitsField(function) => function
                         .call(argument_elements)
                         .map_err(|error| Error::Function(element.location, error))?,
                     StandardLibraryFunctionType::ArrayReverse(function) => function

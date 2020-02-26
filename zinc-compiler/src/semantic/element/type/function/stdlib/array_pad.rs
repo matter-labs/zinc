@@ -160,7 +160,7 @@ impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "fn std::{}(array: [{{T}}; {{N}}]) -> [{{T}}; {{N}}]",
+            "fn std::array::{}(array: [{{T: scalar}}; {{N}}], new_length: {{M: unsigned integer}}, fill_value: {{T}}) -> [{{T: scalar}}; new_length]",
             self.identifier,
         )
     }

@@ -64,7 +64,7 @@ pub enum Type {
     Function(Function),
 }
 
-pub static mut UNIQUE_ID: usize = 0;
+pub static mut UNIQUE_ID: usize = Scope::TYPE_ID_FIRST_AVAILABLE;
 
 impl Default for Type {
     fn default() -> Self {

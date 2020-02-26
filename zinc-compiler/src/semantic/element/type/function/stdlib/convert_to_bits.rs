@@ -1,9 +1,8 @@
 //!
-//! The semantic analyzer standard library `from_bits_signed` function type element.
+//! The semantic analyzer standard library `to_bits` function type element.
 //!
 
 use std::fmt;
-use std::ops::Deref;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
@@ -17,12 +16,12 @@ pub struct Function {
 }
 
 impl Function {
-    const ARGUMENT_INDEX_BITS: usize = 0;
+    const ARGUMENT_INDEX_VALUE: usize = 0;
     const ARGUMENT_COUNT: usize = 1;
 
     pub fn new() -> Self {
         Self {
-            identifier: "from_bits_signed",
+            identifier: "to_bits",
         }
     }
 
@@ -31,7 +30,7 @@ impl Function {
     }
 
     pub fn builtin_identifier(&self) -> BuiltinIdentifier {
-        BuiltinIdentifier::SignedFromBits
+        BuiltinIdentifier::ToBits
     }
 
     pub fn call(self, actual_elements: Vec<Element>) -> Result<Type, Error> {
@@ -51,31 +50,17 @@ impl Function {
             actual_params.push(r#type);
         }
 
-        let return_type = match actual_params.get(Self::ARGUMENT_INDEX_BITS) {
-            Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
-                (Type::Boolean, size)
-                    if crate::BITLENGTH_BYTE <= size
-                        && size <= crate::BITLENGTH_MAX_INT
-                        && size % crate::BITLENGTH_BYTE == 0 =>
-                {
-                    Type::integer_signed(size)
-                }
-                (r#type, size) => {
-                    return Err(Error::ArgumentType(
-                        self.identifier.to_owned(),
-                        "[bool; {{N}}]".to_owned(),
-                        Self::ARGUMENT_INDEX_BITS + 1,
-                        "bits".to_owned(),
-                        format!("[{}; {}]", r#type, size),
-                    ))
-                }
-            },
+        let return_type = match actual_params.get(Self::ARGUMENT_INDEX_VALUE) {
+            Some(Type::Boolean) => Type::array(Type::boolean(), crate::BITLENGTH_BOOLEAN),
+            Some(Type::IntegerUnsigned { bitlength }) => Type::array(Type::boolean(), *bitlength),
+            Some(Type::IntegerSigned { bitlength }) => Type::array(Type::boolean(), *bitlength),
+            Some(Type::Field) => Type::array(Type::boolean(), crate::BITLENGTH_FIELD),
             Some(r#type) => {
                 return Err(Error::ArgumentType(
                     self.identifier.to_owned(),
-                    "[bool; {{N}}]".to_owned(),
-                    Self::ARGUMENT_INDEX_BITS + 1,
-                    "bits".to_owned(),
+                    "integer".to_owned(),
+                    Self::ARGUMENT_INDEX_VALUE + 1,
+                    "value".to_owned(),
                     r#type.to_string(),
                 ))
             }
@@ -104,8 +89,8 @@ impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "fn std::{}(bits: [bool; {{N}}]) -> i{{N}}",
-            self.identifier
+            "fn std::convert::{}(value: {{T: scalar}}) -> [bool: {{T bitlength}}]",
+            self.identifier,
         )
     }
 }
