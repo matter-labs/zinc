@@ -7,8 +7,8 @@ use zinc_bytecode::data::values::Value;
 use zinc_bytecode::program::Program;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "run", about = "Executes circuit and prints program's output")]
-pub struct RunCommand {
+#[structopt(name = "debug", about = "Executes circuit with additional checks")]
+pub struct DebugCommand {
     #[structopt(short = "c", long = "circuit", help = "Circuit's bytecode file")]
     pub circuit_path: PathBuf,
 
@@ -19,7 +19,7 @@ pub struct RunCommand {
     pub output_path: PathBuf,
 }
 
-impl RunCommand {
+impl DebugCommand {
     pub fn execute(&self) -> Result<(), Error> {
         let bytes =
             fs::read(&self.circuit_path).error_with_path(|| self.circuit_path.to_string_lossy())?;
@@ -30,7 +30,7 @@ impl RunCommand {
         let json = serde_json::from_str(&input_text)?;
         let input = Value::from_typed_json(&json, &program.input)?;
 
-        let output = zinc_vm::run::<Bn256>(&program, &input)?;
+        let output = zinc_vm::debug::<Bn256>(&program, &input)?;
 
         let output_json = serde_json::to_string_pretty(&output.to_json())? + "\n";
         fs::write(&self.output_path, &output_json)

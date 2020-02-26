@@ -16,6 +16,7 @@ use crate::gadgets::utils::bigint_to_fr;
 use crate::Engine;
 use failure::Fail;
 use zinc_bytecode::data::values::Value;
+use franklin_crypto::circuit::test::TestConstraintSystem;
 
 struct VMCircuit<'a> {
     program: &'a Program,
@@ -70,6 +71,62 @@ pub fn run<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
     //            "Generated unconstrained variables".into(),
     //        ));
     //    }
+
+    let output_flat = result
+        .into_iter()
+        .map(|v| v.expect("`run` always computes witness"))
+        .collect::<Vec<_>>();
+
+    let value = Value::from_flat_values(&program.output, &output_flat).ok_or_else(|| {
+        TypeSizeError::Output {
+            expected: 0,
+            actual: 0,
+        }
+    })?;
+
+    Ok(value)
+}
+
+pub fn debug<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
+    let cs = TestConstraintSystem::<Bn256>::new();
+    let mut vm = VirtualMachine::new(cs, true);
+
+    let inputs_flat = inputs.to_flat_values();
+
+    let mut num_constraints = 0;
+    let result = vm.run(
+        program,
+        Some(&inputs_flat),
+        |cs| {
+            let num = cs.num_constraints() - num_constraints;
+            num_constraints += num;
+            log::debug!("Constraints: {}", num);
+        },
+        |cs| {
+            if !cs.is_satisfied() {
+                return Err(RuntimeError::UnsatisfiedConstraint);
+            }
+
+            Ok(())
+        },
+    )?;
+
+    let cs = vm.constraint_system();
+
+    log::trace!("{}", cs.pretty_print());
+
+    if !cs.is_satisfied() {
+        log::error!("unsatisfied: {}", cs.which_is_unsatisfied().unwrap());
+        return Err(RuntimeError::UnsatisfiedConstraint);
+    }
+
+    let unconstrained = cs.find_unconstrained();
+    if !unconstrained.is_empty() {
+        log::error!("Unconstrained: {}", unconstrained);
+        return Err(RuntimeError::InternalError(
+            "Generated unconstrained variables".into(),
+        ));
+    }
 
     let output_flat = result
         .into_iter()
