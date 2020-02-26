@@ -26,7 +26,7 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::place::Place;
 use crate::semantic::element::r#type::function::builtin::Function as BuiltInFunctionType;
-use crate::semantic::element::r#type::function::standard::Function as StandardLibraryFunctionType;
+use crate::semantic::element::r#type::function::stdlib::Function as StandardLibraryFunctionType;
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::array::Array;
@@ -65,7 +65,7 @@ pub struct Analyzer {
     operands: Vec<StackElement>,
 
     // will be removed when IR is implemented
-    is_next_call_instruction: bool,
+    is_next_call_builtin: bool,
     // will be removed when IR is implemented
     loads: usize,
     // will be removed when IR is implemented
@@ -92,7 +92,7 @@ impl Analyzer {
             bytecode,
             operands: Vec::with_capacity(Self::STACK_OPERAND_INITIAL_CAPACITY),
 
-            is_next_call_instruction: false,
+            is_next_call_builtin: false,
             loads: 0,
             pushes: 0,
         }
@@ -125,13 +125,10 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::AssignmentToImmutableMemory(
-                            location,
-                            place.to_string(),
-                        ));
+                        return Err(Error::MutatingImmutableMemory(location, place.to_string()));
                     }
                     if place.r#type != r#type {
-                        return Err(Error::AssignmentTypesMismatch(
+                        return Err(Error::MutatingWithDifferentType(
                             location,
                             r#type.to_string(),
                             place.r#type.to_string(),
@@ -165,13 +162,10 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::AssignmentToImmutableMemory(
-                            location,
-                            place.to_string(),
-                        ));
+                        return Err(Error::MutatingImmutableMemory(location, place.to_string()));
                     }
                     if place.r#type != r#type {
-                        return Err(Error::AssignmentTypesMismatch(
+                        return Err(Error::MutatingWithDifferentType(
                             location,
                             r#type.to_string(),
                             place.r#type.to_string(),
@@ -228,13 +222,10 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::AssignmentToImmutableMemory(
-                            location,
-                            place.to_string(),
-                        ));
+                        return Err(Error::MutatingImmutableMemory(location, place.to_string()));
                     }
                     if place.r#type != r#type {
-                        return Err(Error::AssignmentTypesMismatch(
+                        return Err(Error::MutatingWithDifferentType(
                             location,
                             r#type.to_string(),
                             place.r#type.to_string(),
@@ -291,13 +282,10 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::AssignmentToImmutableMemory(
-                            location,
-                            place.to_string(),
-                        ));
+                        return Err(Error::MutatingImmutableMemory(location, place.to_string()));
                     }
                     if place.r#type != r#type {
-                        return Err(Error::AssignmentTypesMismatch(
+                        return Err(Error::MutatingWithDifferentType(
                             location,
                             r#type.to_string(),
                             place.r#type.to_string(),
@@ -354,13 +342,10 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::AssignmentToImmutableMemory(
-                            location,
-                            place.to_string(),
-                        ));
+                        return Err(Error::MutatingImmutableMemory(location, place.to_string()));
                     }
                     if place.r#type != r#type {
-                        return Err(Error::AssignmentTypesMismatch(
+                        return Err(Error::MutatingWithDifferentType(
                             location,
                             r#type.to_string(),
                             place.r#type.to_string(),
@@ -417,13 +402,10 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::AssignmentToImmutableMemory(
-                            location,
-                            place.to_string(),
-                        ));
+                        return Err(Error::MutatingImmutableMemory(location, place.to_string()));
                     }
                     if place.r#type != r#type {
-                        return Err(Error::AssignmentTypesMismatch(
+                        return Err(Error::MutatingWithDifferentType(
                             location,
                             r#type.to_string(),
                             place.r#type.to_string(),
@@ -936,7 +918,7 @@ impl Analyzer {
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Call) => {
-                    self.operator_function_call(element)?
+                    self.operator_call(element)?
                 }
                 ExpressionObject::Operator(ExpressionOperator::Path) => {
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
@@ -950,8 +932,8 @@ impl Analyzer {
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.push_operand(StackElement::Evaluated(operand_1));
                 }
-                ExpressionObject::Auxiliary(ExpressionAuxiliary::Instruction) => {
-                    self.is_next_call_instruction = true;
+                ExpressionObject::Auxiliary(ExpressionAuxiliary::CallBuiltIn) => {
+                    self.is_next_call_builtin = true;
                 }
                 ExpressionObject::Auxiliary(ExpressionAuxiliary::PlaceEnd) => {
                     let element = self
@@ -970,7 +952,7 @@ impl Analyzer {
         self.evaluate_operand(translation_hint)
     }
 
-    pub fn operator_function_call(&mut self, element: ExpressionElement) -> Result<(), Error> {
+    pub fn operator_call(&mut self, element: ExpressionElement) -> Result<(), Error> {
         let location = element.location;
 
         let (operand_1, operand_2) = self.evaluate_binary_operands(
@@ -998,7 +980,6 @@ impl Analyzer {
             }
         };
 
-        // check the number of the arguments
         let argument_elements = match operand_2 {
             Element::ArgumentList(values) => values,
             _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
@@ -1006,19 +987,10 @@ impl Analyzer {
 
         let return_type = match function {
             FunctionType::UserDefined(function) => {
-                if self.is_next_call_instruction {
-                    return Err(Error::FunctionInstructionUnknown(
+                if self.is_next_call_builtin {
+                    return Err(Error::FunctionBuiltInUnknown(
                         element.location,
                         function.identifier,
-                    ));
-                }
-
-                if argument_elements.len() != function.arguments.len() {
-                    return Err(Error::FunctionArgumentCountMismatch(
-                        element.location,
-                        function.identifier,
-                        function.arguments.len(),
-                        argument_elements.len(),
                     ));
                 }
 
@@ -1028,26 +1000,14 @@ impl Analyzer {
                     .function_address(function.unique_id)
                     .expect(crate::semantic::PANIC_FUNCTION_ADDRESS_ALWAYS_EXISTS);
                 let function_input_size = function
-                    .arguments
+                    .formal_params
                     .iter()
                     .map(|(_name, r#type)| r#type.size())
                     .sum();
 
-                for (argument_index, (argument_name, expected_type)) in
-                    function.arguments.into_iter().enumerate()
-                {
-                    let actual_type =
-                        Type::from_element(&argument_elements[argument_index], self.scope())?;
-                    if expected_type != actual_type {
-                        return Err(Error::FunctionArgumentTypeMismatch(
-                            element.location,
-                            function.identifier,
-                            argument_name,
-                            expected_type.to_string(),
-                            actual_type.to_string(),
-                        ));
-                    }
-                }
+                let return_type = function
+                    .call(argument_elements)
+                    .map_err(|error| Error::Function(element.location, error))?;
 
                 self.bytecode.borrow_mut().push_instruction(
                     Instruction::Call(zinc_bytecode::Call::new(
@@ -1057,11 +1017,11 @@ impl Analyzer {
                     element.location,
                 );
 
-                *function.return_type
+                return_type
             }
             FunctionType::BuiltInFunction(function) => {
-                if !self.is_next_call_instruction {
-                    return Err(Error::FunctionInstructionSpecifierMissing(
+                if !self.is_next_call_builtin {
+                    return Err(Error::FunctionBuiltInSpecifierMissing(
                         element.location,
                         function.identifier(),
                     ));
@@ -1070,8 +1030,8 @@ impl Analyzer {
                 match function {
                     BuiltInFunctionType::Debug(function) => {
                         let (return_type, format, argument_types) = function
-                            .validate(argument_elements.as_slice())
-                            .map_err(|error| Error::FunctionBuiltIn(element.location, error))?;
+                            .call(argument_elements)
+                            .map_err(|error| Error::Function(element.location, error))?;
 
                         let bytecode_input_types: Vec<DataType> = argument_types
                             .into_iter()
@@ -1087,8 +1047,8 @@ impl Analyzer {
                     }
                     BuiltInFunctionType::Assert(function) => {
                         let (return_type, message) = function
-                            .validate(argument_elements.as_slice())
-                            .map_err(|error| Error::FunctionBuiltIn(element.location, error))?;
+                            .call(argument_elements)
+                            .map_err(|error| Error::Function(element.location, error))?;
 
                         self.bytecode.borrow_mut().push_instruction(
                             Instruction::Assert(zinc_bytecode::Assert::new(message)),
@@ -1100,8 +1060,8 @@ impl Analyzer {
                 }
             }
             FunctionType::StandardLibrary(function) => {
-                if self.is_next_call_instruction {
-                    return Err(Error::FunctionInstructionUnknown(
+                if self.is_next_call_builtin {
+                    return Err(Error::FunctionBuiltInUnknown(
                         element.location,
                         function.identifier().to_owned(),
                     ));
@@ -1109,85 +1069,45 @@ impl Analyzer {
 
                 let builtin_identifier = function.builtin_identifier();
 
-                let mut arguments = Vec::with_capacity(argument_elements.len());
+                let mut input_size = 0;
                 for element in argument_elements.iter() {
-                    arguments.push(Type::from_element(element, self.scope())?);
+                    input_size += Type::from_element(element, self.scope())?.size();
                 }
 
                 let return_type = match function {
                     StandardLibraryFunctionType::Sha256(function) => function
-                        .validate(arguments.as_slice())
-                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
                     StandardLibraryFunctionType::Pedersen(function) => function
-                        .validate(arguments.as_slice())
-                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
                     StandardLibraryFunctionType::ToBits(function) => function
-                        .validate(arguments.as_slice())
-                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
                     StandardLibraryFunctionType::FromBitsUnsigned(function) => function
-                        .validate(arguments.as_slice())
-                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
                     StandardLibraryFunctionType::FromBitsSigned(function) => function
-                        .validate(arguments.as_slice())
-                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
                     StandardLibraryFunctionType::FromBitsField(function) => function
-                        .validate(arguments.as_slice())
-                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
                     StandardLibraryFunctionType::ArrayReverse(function) => function
-                        .validate(arguments.as_slice())
-                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
-                    StandardLibraryFunctionType::ArrayTruncate(function) => {
-                        match argument_elements.get(1) {
-                            Some(Element::Constant(Constant::Integer(
-                                integer @ IntegerConstant { .. },
-                            ))) if !integer.is_signed => {
-                                let new_length = integer.to_usize().map_err(|error| {
-                                    Error::InferenceConstant(Location::default(), error)
-                                })?;
-                                function
-                                    .validate(arguments.as_slice(), new_length)
-                                    .map_err(|error| {
-                                        Error::FunctionStandardLibrary(element.location, error)
-                                    })?
-                            }
-                            argument => {
-                                return Err(Error::FunctionExpectedConstantLengthArgument(
-                                    element.location,
-                                    function.identifier(),
-                                    format!("{:?}", argument),
-                                ))
-                            }
-                        }
-                    }
-                    StandardLibraryFunctionType::ArrayPad(function) => {
-                        match argument_elements.get(1) {
-                            Some(Element::Constant(Constant::Integer(
-                                integer @ IntegerConstant { .. },
-                            ))) if !integer.is_signed => {
-                                let new_length = integer.to_usize().map_err(|error| {
-                                    Error::InferenceConstant(Location::default(), error)
-                                })?;
-                                function
-                                    .validate(arguments.as_slice(), new_length)
-                                    .map_err(|error| {
-                                        Error::FunctionStandardLibrary(element.location, error)
-                                    })?
-                            }
-                            argument => {
-                                return Err(Error::FunctionExpectedConstantLengthArgument(
-                                    element.location,
-                                    function.identifier(),
-                                    format!("{:?}", argument),
-                                ))
-                            }
-                        }
-                    }
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
+                    StandardLibraryFunctionType::ArrayTruncate(function) => function
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
+                    StandardLibraryFunctionType::ArrayPad(function) => function
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
                 };
 
                 self.bytecode.borrow_mut().push_instruction(
                     Instruction::CallBuiltin(zinc_bytecode::CallBuiltin::new(
                         builtin_identifier,
-                        arguments.into_iter().map(|r#type| r#type.size()).sum(),
+                        input_size,
                         return_type.size(),
                     )),
                     element.location,
@@ -1197,7 +1117,7 @@ impl Analyzer {
             }
         };
 
-        self.is_next_call_instruction = false;
+        self.is_next_call_builtin = false;
         self.push_operand(StackElement::Evaluated(Element::Value(
             Value::try_from(return_type)
                 .map_err(ElementError::Value)

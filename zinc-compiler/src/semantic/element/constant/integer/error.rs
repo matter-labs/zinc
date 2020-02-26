@@ -86,10 +86,8 @@ pub enum Error {
     #[fail(display = "'%' operator division by zero")]
     ZeroRemainder,
 
-    #[fail(display = "literal '{}' is larger than {} bits", _0, _1)]
-    LiteralTooLargeForIndex(String, usize),
-    #[fail(display = "literal '{}' is larger than {} bits", _0, _1)]
-    IntegerTooLargeForField(String, usize),
+    #[fail(display = "integer '{}' is larger than {} bits", _0, _1)]
+    IntegerTooLarge(String, usize),
 
     #[fail(display = "'%' operator is temporarily forbidden for field elements")]
     ForbiddenFieldRemainder,

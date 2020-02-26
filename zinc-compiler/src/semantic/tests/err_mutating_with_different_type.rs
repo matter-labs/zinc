@@ -5,22 +5,23 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
+use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
 use crate::Error;
 
 #[test]
 fn test() {
     let input = r#"
-fn unknown() {}
-
 fn main() {
-    unknown!();
+    let mut result = 42;
+    result = false;
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::FunctionBuiltInUnknown(
-        Location::new(5, 13),
-        "unknown".to_owned(),
+    let expected = Err(Error::Semantic(SemanticError::MutatingWithDifferentType(
+        Location::new(4, 5),
+        Type::boolean().to_string(),
+        Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
     )));
 
     let result = super::get_binary_result(input);

@@ -5,23 +5,25 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
-use crate::semantic::element::r#type::Type;
+use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::Error as SemanticError;
 use crate::Error;
 
 #[test]
 fn test() {
     let input = r#"
+fn another(x: u8) -> u8 {
+    42
+}
+
 fn main() {
-    let mut result = 42;
-    result = false;
+    let value = another();
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::AssignmentTypesMismatch(
-        Location::new(4, 5),
-        Type::boolean().to_string(),
-        Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+    let expected = Err(Error::Semantic(SemanticError::Function(
+        Location::new(7, 24),
+        FunctionError::ArgumentCount("another".to_owned(), 1, 0),
     )));
 
     let result = super::get_binary_result(input);

@@ -303,7 +303,7 @@ impl Value {
 
     pub fn cast(&mut self, to: &Type) -> Result<Option<(bool, usize)>, Error> {
         let from = self.r#type();
-        Caster::validate(&from, &to).map_err(Error::Casting)?;
+        Caster::cast(&from, &to).map_err(Error::Casting)?;
 
         let (is_signed, bitlength) = match to {
             Type::IntegerUnsigned { bitlength } => (false, *bitlength),

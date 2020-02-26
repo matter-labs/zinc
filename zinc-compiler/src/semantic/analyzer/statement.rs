@@ -504,7 +504,7 @@ impl Analyzer {
         let iterations_count = iterations_count.to_usize().ok_or_else(|| {
             Error::InferenceConstant(
                 location,
-                IntegerConstantError::LiteralTooLargeForIndex(
+                IntegerConstantError::IntegerTooLarge(
                     iterations_count.to_string(),
                     crate::BITLENGTH_INDEX,
                 ),

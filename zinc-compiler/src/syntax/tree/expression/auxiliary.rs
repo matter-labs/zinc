@@ -4,7 +4,7 @@
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Auxiliary {
-    Instruction,
+    CallBuiltIn,
     PlaceEnd,
     PlaceCopy,
 }

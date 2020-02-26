@@ -17,7 +17,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(
-        SemanticError::FunctionInstructionSpecifierMissing(Location::new(3, 11), "assert"),
+        SemanticError::FunctionBuiltInSpecifierMissing(Location::new(3, 11), "assert"),
     ));
 
     let result = super::get_binary_result(input);

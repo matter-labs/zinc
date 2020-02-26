@@ -410,9 +410,9 @@ impl Integer {
     }
 
     pub fn to_usize(&self) -> Result<usize, Error> {
-        self.value.to_usize().ok_or_else(|| {
-            Error::LiteralTooLargeForIndex(self.value.to_string(), crate::BITLENGTH_BYTE)
-        })
+        self.value
+            .to_usize()
+            .ok_or_else(|| Error::IntegerTooLarge(self.value.to_string(), crate::BITLENGTH_BYTE))
     }
 
     pub fn minimal_bitlength_literals(literals: &[&IntegerLiteral]) -> Result<usize, Error> {
@@ -456,7 +456,7 @@ impl Integer {
                 exponent <<= crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
                 bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
             } else if bitlength == crate::BITLENGTH_FIELD {
-                return Err(Error::IntegerTooLargeForField(
+                return Err(Error::IntegerTooLarge(
                     value.to_string(),
                     crate::BITLENGTH_FIELD,
                 ));

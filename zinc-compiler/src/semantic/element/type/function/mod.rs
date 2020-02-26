@@ -3,7 +3,8 @@
 //!
 
 pub mod builtin;
-pub mod standard;
+pub mod error;
+pub mod stdlib;
 pub mod user;
 
 use std::fmt;
@@ -13,13 +14,13 @@ use zinc_bytecode::builtins::BuiltinIdentifier;
 use crate::semantic::element::r#type::Type;
 
 use self::builtin::Function as BuiltInFunction;
-use self::standard::Function as StandardFunction;
+use self::stdlib::Function as StandardLibraryFunction;
 use self::user::Function as UserFunction;
 
 #[derive(Debug, Clone)]
 pub enum Function {
     BuiltInFunction(BuiltInFunction),
-    StandardLibrary(StandardFunction),
+    StandardLibrary(StandardLibraryFunction),
     UserDefined(UserFunction),
 }
 
@@ -33,7 +34,7 @@ impl Function {
     }
 
     pub fn new_std(identifier: BuiltinIdentifier) -> Self {
-        Self::StandardLibrary(StandardFunction::new(identifier))
+        Self::StandardLibrary(StandardLibraryFunction::new(identifier))
     }
 
     pub fn new_user_defined(

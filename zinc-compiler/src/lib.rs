@@ -33,6 +33,7 @@ use self::error::file::Error as FileError;
 
 pub const BASE_DECIMAL: usize = 10;
 pub const BASE_HEXADECIMAL: usize = 16;
+
 pub const BITLENGTH_BOOLEAN: usize = 1;
 pub const BITLENGTH_BYTE: usize = 8;
 pub const BITLENGTH_INDEX: usize = 64;
@@ -49,16 +50,6 @@ lazy_static! {
     static ref FILE_INDEX: RwLock<HashMap<usize, PathBuf>> = RwLock::new(HashMap::new());
 }
 
-pub fn compile_module(
-    path: PathBuf,
-    bytecode: Rc<RefCell<Bytecode>>,
-) -> Result<Rc<RefCell<Scope>>, String> {
-    let syntax_tree = parse(path)?;
-    LibraryAnalyzer::new(bytecode)
-        .compile(syntax_tree)
-        .map_err(|error| error.into())
-}
-
 pub fn compile_entry(
     path: PathBuf,
     bytecode: Rc<RefCell<Bytecode>>,
@@ -67,6 +58,16 @@ pub fn compile_entry(
     let syntax_tree = parse(path)?;
     BinaryAnalyzer::new(bytecode)
         .compile(syntax_tree, dependencies)
+        .map_err(|error| error.into())
+}
+
+pub fn compile_module(
+    path: PathBuf,
+    bytecode: Rc<RefCell<Bytecode>>,
+) -> Result<Rc<RefCell<Scope>>, String> {
+    let syntax_tree = parse(path)?;
+    LibraryAnalyzer::new(bytecode)
+        .compile(syntax_tree)
         .map_err(|error| error.into())
 }
 

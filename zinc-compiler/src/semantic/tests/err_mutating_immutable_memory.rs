@@ -17,7 +17,7 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::AssignmentToImmutableMemory(
+    let expected = Err(Error::Semantic(SemanticError::MutatingImmutableMemory(
         Location::new(4, 5),
         "result".to_string(),
     )));

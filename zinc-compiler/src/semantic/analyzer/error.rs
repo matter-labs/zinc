@@ -7,8 +7,7 @@ use failure::Fail;
 use crate::lexical::Location;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionError;
-use crate::semantic::element::r#type::function::standard::error::Error as StandardFunctionError;
+use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::value::array::error::Error as ArrayValueError;
 use crate::semantic::element::value::structure::error::Error as StructureValueError;
 use crate::semantic::scope::error::Error as ScopeError;
@@ -52,9 +51,9 @@ pub enum Error {
         display = "{}: cannot assign a value of type '{}' to a variable of type '{}'",
         _0, _1, _2
     )]
-    AssignmentTypesMismatch(Location, String, String),
+    MutatingWithDifferentType(Location, String, String),
     #[fail(display = "{}: cannot assign to an immutable variable '{}'", _0, _1)]
-    AssignmentToImmutableMemory(Location, String),
+    MutatingImmutableMemory(Location, String),
 
     #[fail(
         display = "{}: loop expected a boolean expression in the while condition, but got '{}'",
@@ -81,34 +80,21 @@ pub enum Error {
     #[fail(display = "{}: calling a non-callable object '{}'", _0, _1)]
     FunctionCallingNotCallableObject(Location, String),
     #[fail(
-        display = "{}: function '{}' expected {} arguments, but got {}",
-        _0, _1, _2, _3
-    )]
-    FunctionArgumentCountMismatch(Location, String, usize, usize),
-    #[fail(
-        display = "{}: function '{}' argument '{}' type mismatch: expected '{}', but got '{}'",
-        _0, _1, _2, _3, _4
-    )]
-    FunctionArgumentTypeMismatch(Location, String, String, String, String),
-    #[fail(
         display = "{}: function '{}' return type mismatch: expected '{}', but got '{}'",
         _0, _1, _2, _3
     )]
     FunctionReturnTypeMismatch(Location, String, String, String),
     #[fail(display = "{}: built-in function '{}' is unknown", _0, _1)]
-    FunctionInstructionUnknown(Location, String),
+    FunctionBuiltInUnknown(Location, String),
     #[fail(display = "{}: built-in function '{}' must be called with '!'", _0, _1)]
-    FunctionInstructionSpecifierMissing(Location, &'static str),
+    FunctionBuiltInSpecifierMissing(Location, &'static str),
     #[fail(
         display = "{}: function '{}' expected a constant unsigned length argument, but got '{}'",
         _0, _1, _2
     )]
     FunctionExpectedConstantLengthArgument(Location, &'static str, String),
-
     #[fail(display = "{}: {}", _0, _1)]
-    FunctionStandardLibrary(Location, StandardFunctionError),
-    #[fail(display = "{}: {}", _0, _1)]
-    FunctionBuiltIn(Location, BuiltInFunctionError),
+    Function(Location, FunctionError),
     #[fail(display = "function 'main' is missing")]
     FunctionMainMissing,
 

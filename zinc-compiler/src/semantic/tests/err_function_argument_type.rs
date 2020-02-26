@@ -5,6 +5,7 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
+use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
 use crate::Error;
@@ -21,15 +22,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(
-        SemanticError::FunctionArgumentTypeMismatch(
-            Location::new(7, 24),
+    let expected = Err(Error::Semantic(SemanticError::Function(
+        Location::new(7, 24),
+        FunctionError::ArgumentType(
             "another".to_owned(),
-            "x".to_owned(),
             Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            1,
+            "x".to_owned(),
             Type::boolean().to_string(),
         ),
-    ));
+    )));
 
     let result = super::get_binary_result(input);
 

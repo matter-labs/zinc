@@ -58,7 +58,7 @@ impl Analyzer {
 
         if let ScopeItem::Type(Type::Function(FunctionType::UserDefined(
             UserDefinedFunctionType {
-                arguments,
+                formal_params: arguments,
                 return_type,
                 unique_id,
                 ..

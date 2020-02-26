@@ -4,8 +4,6 @@
 
 #![allow(dead_code)]
 
-mod err_assignment_to_immutable_memory;
-mod err_assignment_types_mismatch;
 mod err_caster_from_invalid_type;
 mod err_caster_to_invalid_type;
 mod err_caster_to_lesser_bitlength;
@@ -185,8 +183,8 @@ mod err_element_value_xor_1st_expected_boolean;
 mod err_element_value_xor_2nd_expected_boolean;
 mod err_element_xor_1st_expected_evaluable;
 mod err_element_xor_2nd_expected_evaluable;
-mod err_function_argument_count_mismatch;
-mod err_function_argument_type_mismatch;
+mod err_function_argument_count;
+mod err_function_argument_type;
 mod err_function_calling_not_callable;
 mod err_function_instruction_specifier_missing;
 mod err_function_instruction_unknown;
@@ -206,6 +204,8 @@ mod err_match_branch_pattern_path_expected_evaluable;
 mod err_match_branch_unreachable;
 mod err_match_not_exhausted;
 mod err_module_not_found;
+mod err_mutating_immutable_memory;
+mod err_mutating_with_different_type;
 mod err_scope_item_is_not_namespace;
 mod err_scope_item_redeclared;
 mod err_scope_item_undeclared;
