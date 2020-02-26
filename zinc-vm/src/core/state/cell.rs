@@ -16,3 +16,9 @@ impl<E: Engine> Cell<E> {
         }
     }
 }
+
+impl<E: Engine> From<Scalar<E>> for Cell<E> {
+    fn from(scalar: Scalar<E>) -> Self {
+        Cell::Value(scalar)
+    }
+}

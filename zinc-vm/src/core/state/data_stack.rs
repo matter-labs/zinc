@@ -210,7 +210,7 @@ mod tests {
     fn test_get_set() {
         let mut ds = DataStack::new();
         let mut cs = TestConstraintSystem::<Bn256>::new();
-        let mut op = Gadgets::new(&mut cs);
+        let op = Gadgets::new(&mut cs);
         let value = op.constant_bigint(&42.into(), ScalarType::Field).unwrap();
         ds.set(4, Cell::Value(value)).unwrap();
 

@@ -74,6 +74,11 @@ impl<E: Engine> Scalar<E> {
         Expression::new(self.get_value(), self.lc::<CS>())
     }
 
+    pub fn to_number<CS: ConstraintSystem<E>>(&self, cs: CS) -> Result<AllocatedNum<E>> {
+        let num = self.to_expression::<CS>().into_number(cs)?;
+        Ok(num)
+    }
+
     pub fn get_type(&self) -> ScalarType {
         self.scalar_type
     }
