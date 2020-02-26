@@ -1,11 +1,11 @@
-use crate::Result;
 use crate::core::{Block, Branch, Cell, FunctionFrame, Loop, VirtualMachine};
 use crate::errors::MalformedBytecode;
+use crate::gadgets::stdlib::NativeFunction;
 use crate::gadgets::Gadgets;
 use crate::Engine;
+use crate::Result;
 use crate::RuntimeError;
 use franklin_crypto::bellman::ConstraintSystem;
-use crate::gadgets::stdlib::NativeFunction;
 
 /// This is an internal interface to virtual machine used by instructions.
 pub trait InternalVM<E: Engine> {

@@ -75,9 +75,7 @@ impl<E: Engine> Scalar<E> {
     }
 
     pub fn to_number<CS: ConstraintSystem<E>>(&self, cs: CS) -> Result<AllocatedNum<E>> {
-        let num = self
-            .to_expression::<CS>()
-            .into_number(cs)?;
+        let num = self.to_expression::<CS>().into_number(cs)?;
         Ok(num)
     }
 
