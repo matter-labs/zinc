@@ -9,6 +9,11 @@ use colored::Colorize;
 use crate::lexical::Error as LexicalError;
 use crate::lexical::Location;
 use crate::semantic::Error as SemanticError;
+use crate::semantic::element::error::Error as ElementError;
+use crate::semantic::element::value::error::Error as ValueError;
+use crate::semantic::element::constant::error::Error as ConstantError;
+use crate::semantic::scope::error::Error as ScopeError;
+use crate::semantic::caster::error::Error as CasterError;
 use crate::syntax::Error as SyntaxError;
 
 use self::file::Error as FileError;
@@ -213,15 +218,224 @@ impl Error {
                 )
             }
 
+            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemRedeclared(item, original))) => {
+                Self::format_line_with_reference(
+                    context,
+                    format!(
+                        "item `{}` redeclared here",
+                        item
+                    )
+                        .as_str(),
+                    location,
+                    original,
+                    Some("consider giving the latter item another name"),
+                )
+            }
+            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemUndeclared(item))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "cannot find item `{}` in this scope",
+                        item
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemIsNotNamespace(item))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "item `{}` is not a namespace",
+                        item
+                    )
+                        .as_str(),
+                    location,
+                    Some("only modules, structures, and enumerations can contain items within their namespaces"),
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Casting(CasterError::FromInvalidType(from, to))))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Casting(CasterError::FromInvalidType(from, to))))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Casting(CasterError::ToInvalidType(from, to))))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Casting(CasterError::ToInvalidType(from, to))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "cannot cast from `{}` to `{}`",
+                        from, to,
+                    )
+                        .as_str(),
+                    location,
+                    Some("only integer values can be casted to greater or equal bitlength"),
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Casting(CasterError::ToLesserBitlength(from, to))))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Casting(CasterError::ToLesserBitlength(from, to))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "cannot cast an integer with bitlength `{}` to an integer with bitlength `{}`",
+                        from, to,
+                    )
+                        .as_str(),
+                    location,
+                    Some("integer values can only be casted to greater or equal bitlength"),
+                )
+            }
+
+            Self::Semantic(SemanticError::MutatingWithDifferentType(location, expected, found)) => {
+                Self::format_line(
+                    context,
+                    format!("expected `{}`, found `{}`", expected, found).as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::MutatingImmutableMemory(location, name)) => {
+                Self::format_line(
+                    context,
+                    format!("cannot assign to the immutable variable `{}`", name).as_str(),
+                    location,
+                    Some(format!("make this variable mutable: `mut {}`", name).as_str()),
+                )
+            }
+
+            Self::Semantic(SemanticError::LoopWhileExpectedBooleanCondition(location, r#type)) => {
+                Self::format_line(
+                    context,
+                    format!("expected `bool`, found `{}`", r#type).as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::LoopBoundsExpectedConstantRangeExpression(location, value)) => {
+                Self::format_line(
+                    context,
+                    format!("expected a constant range expression, found `{}`", value).as_str(),
+                    location,
+                    Some("only constant ranges allowed, e.g. `for i in 0..42 { ... }`"),
+                )
+            }
+
+            Self::Semantic(SemanticError::ConditionalExpectedBooleanCondition(location, r#type)) => {
+                Self::format_line(
+                    context,
+                    format!("expected `bool`, found `{}`", r#type).as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::ConditionalBranchTypesMismatch(location, first, second)) => {
+                Self::format_line(
+                    context,
+                    format!("if and else have incompatible types `{}` and `{}`", first, second).as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::EntryPointMissing) => {
+                Self::format_message(
+                    format!("function `main` is missing").as_str(),
+                    Some("create the `main` function in the entry point file `main.zn`"),
+                )
+            }
+            Self::Semantic(SemanticError::ModuleNotFound(location, name)) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "file not found for module `{}`",
+                        name
+                    )
+                        .as_str(),
+                    location,
+                    Some(format!("create a file called `{}.zn` inside the 'src' directory", name).as_str()),
+                )
+            }
+            Self::Semantic(SemanticError::UseExpectedPath(location, item)) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "`use` expected an item path, but got `{}`",
+                        item
+                    )
+                        .as_str(),
+                    location,
+                    Some("consider specifying a valid path to an item to import"),
+                )
+            }
+            Self::Semantic(SemanticError::ImplStatementExpectedStructureOrEnumeration(location, item)) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "`impl` expected a type with namespace, but got `{}`",
+                        item
+                    )
+                        .as_str(),
+                    location,
+                    Some("only structures and enumerations can have an implementation"),
+                )
+            }
+            Self::Semantic(SemanticError::TypeAliasDoesNotPointToType(location, item)) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "expected type, found `{}`",
+                        item
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::TypeAliasDoesNotPointToStructure(location, item)) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "expected structure type, found `{}`",
+                        item
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::ConstantExpressionHasNonConstantElement(location, _item)) => {
+                Self::format_line(
+                    context,
+                    "attempt to use a non-constant value in a constant",
+                    location,
+                    None,
+                )
+            }
+
             Self::Semantic(inner) => inner.to_string(),
         }
+    }
+
+    fn format_message(
+        message: &str,
+        help: Option<&str>,
+    ) -> String {
+        let mut strings = Vec::with_capacity(8);
+        strings.push(String::new());
+        strings.push(format!(
+            "{}: {}",
+            "error".bright_red(),
+            message.bright_white()
+        ));
+        if let Some(help) = help {
+            strings.push(format!("{}: {}", "help".bright_white(), help.bright_blue()));
+        }
+        strings.push(String::new());
+        strings.join("\n")
     }
 
     fn format_line(
         context: &[&str],
         message: &str,
         location: Location,
-        help: Option<&'static str>,
+        help: Option<&str>,
     ) -> String {
         let mut strings = Vec::with_capacity(8);
         strings.push(String::new());
@@ -231,9 +445,7 @@ impl Error {
             message.bright_white()
         ));
         strings.push(format!(" {} {}", "-->".bright_cyan(), location));
-        if location.line > 1 {
-            strings.push(format!("  {}", "|".bright_cyan()));
-        }
+        strings.push(format!("  {}", "|".bright_cyan()));
         if let Some(line) = context.get(location.line - 1) {
             strings.push(format!(
                 "{}{}",
@@ -254,12 +466,68 @@ impl Error {
         strings.join("\n")
     }
 
+    fn format_line_with_reference(
+        context: &[&str],
+        message: &str,
+        location: Location,
+        reference: Location,
+        help: Option<&str>,
+    ) -> String {
+        let mut strings = Vec::with_capacity(11);
+        strings.push(String::new());
+        strings.push(format!(
+            "{}: {}",
+            "error".bright_red(),
+            message.bright_white()
+        ));
+
+        strings.push(format!("  {}", "|".bright_cyan()));
+        if let Some(line) = context.get(reference.line - 1) {
+            strings.push(format!(
+                "{}{}",
+                (reference.line.to_string() + " | ").bright_cyan(),
+                line
+            ));
+        }
+        strings.push(format!(
+            "  {} {}{}",
+            "|".bright_cyan(),
+            "_".repeat(reference.column - 1).bright_red(),
+            "^".bright_red()
+        ));
+
+        strings.push(format!(" {} {}", "-->".bright_cyan(), location));
+
+        if location.line > 1 {
+            strings.push(format!("  {}", "|".bright_cyan()));
+        }
+        if let Some(line) = context.get(location.line - 1) {
+            strings.push(format!(
+                "{}{}",
+                (location.line.to_string() + " | ").bright_cyan(),
+                line
+            ));
+        }
+        strings.push(format!(
+            "  {} {}{}",
+            "|".bright_cyan(),
+            "_".repeat(location.column - 1).bright_red(),
+            "^".bright_red()
+        ));
+
+        if let Some(help) = help {
+            strings.push(format!("{}: {}", "help".bright_white(), help.bright_blue()));
+        }
+        strings.push(String::new());
+        strings.join("\n")
+    }
+
     fn format_range(
         context: &[&str],
         message: &'static str,
         start: Location,
         end: Location,
-        help: Option<&'static str>,
+        help: Option<&str>,
     ) -> String {
         let mut strings = Vec::with_capacity(8 + end.line - start.line);
         strings.push(String::new());

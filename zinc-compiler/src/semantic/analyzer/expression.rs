@@ -26,6 +26,7 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::place::Place;
 use crate::semantic::element::r#type::function::builtin::Function as BuiltInFunctionType;
+use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::function::stdlib::Function as StandardLibraryFunctionType;
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
@@ -107,7 +108,6 @@ impl Analyzer {
         expression: Expression,
         translation_hint: TranslationHint,
     ) -> Result<Element, Error> {
-        let location = expression.location;
         for element in expression.into_iter() {
             match element.object {
                 ExpressionObject::Operand(operand) => {
@@ -125,11 +125,11 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::MutatingImmutableMemory(location, place.to_string()));
+                        return Err(Error::MutatingImmutableMemory(element.location, place.to_string()));
                     }
                     if place.r#type != r#type {
                         return Err(Error::MutatingWithDifferentType(
-                            location,
+                            element.location,
                             r#type.to_string(),
                             place.r#type.to_string(),
                         ));
@@ -162,11 +162,11 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::MutatingImmutableMemory(location, place.to_string()));
+                        return Err(Error::MutatingImmutableMemory(element.location, place.to_string()));
                     }
                     if place.r#type != r#type {
                         return Err(Error::MutatingWithDifferentType(
-                            location,
+                            element.location,
                             r#type.to_string(),
                             place.r#type.to_string(),
                         ));
@@ -222,11 +222,11 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::MutatingImmutableMemory(location, place.to_string()));
+                        return Err(Error::MutatingImmutableMemory(element.location, place.to_string()));
                     }
                     if place.r#type != r#type {
                         return Err(Error::MutatingWithDifferentType(
-                            location,
+                            element.location,
                             r#type.to_string(),
                             place.r#type.to_string(),
                         ));
@@ -282,11 +282,11 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::MutatingImmutableMemory(location, place.to_string()));
+                        return Err(Error::MutatingImmutableMemory(element.location, place.to_string()));
                     }
                     if place.r#type != r#type {
                         return Err(Error::MutatingWithDifferentType(
-                            location,
+                            element.location,
                             r#type.to_string(),
                             place.r#type.to_string(),
                         ));
@@ -342,11 +342,11 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::MutatingImmutableMemory(location, place.to_string()));
+                        return Err(Error::MutatingImmutableMemory(element.location, place.to_string()));
                     }
                     if place.r#type != r#type {
                         return Err(Error::MutatingWithDifferentType(
-                            location,
+                            element.location,
                             r#type.to_string(),
                             place.r#type.to_string(),
                         ));
@@ -402,11 +402,11 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::MutatingImmutableMemory(location, place.to_string()));
+                        return Err(Error::MutatingImmutableMemory(element.location, place.to_string()));
                     }
                     if place.r#type != r#type {
                         return Err(Error::MutatingWithDifferentType(
-                            location,
+                            element.location,
                             r#type.to_string(),
                             place.r#type.to_string(),
                         ));
@@ -966,17 +966,17 @@ impl Analyzer {
             Element::Path(path) => match Scope::resolve_path(self.scope(), &path)?.variant {
                 ScopeItem::Type(Type::Function(function)) => function,
                 item => {
-                    return Err(Error::FunctionCallingNotCallableObject(
+                    return Err(Error::Function(
                         element.location,
-                        item.to_string(),
-                    ))
+                        FunctionError::NonCallableObject(item.to_string()),
+                    ));
                 }
             },
             operand => {
-                return Err(Error::FunctionCallingNotCallableObject(
+                return Err(Error::Function(
                     element.location,
-                    operand.to_string(),
-                ))
+                    FunctionError::NonCallableObject(operand.to_string()),
+                ));
             }
         };
 
@@ -988,23 +988,18 @@ impl Analyzer {
         let return_type = match function {
             FunctionType::UserDefined(function) => {
                 if self.is_next_call_builtin {
-                    return Err(Error::FunctionBuiltInUnknown(
+                    return Err(Error::Function(
                         element.location,
-                        function.identifier,
+                        FunctionError::BuiltInUnknown(function.identifier().to_owned()),
                     ));
                 }
 
                 let function_address = self
                     .bytecode
                     .borrow_mut()
-                    .function_address(function.unique_id)
+                    .function_address(function.unique_id())
                     .expect(crate::semantic::PANIC_FUNCTION_ADDRESS_ALWAYS_EXISTS);
-                let function_input_size = function
-                    .formal_params
-                    .iter()
-                    .map(|(_name, r#type)| r#type.size())
-                    .sum();
-
+                let function_input_size = function.input_size();
                 let return_type = function
                     .call(argument_elements)
                     .map_err(|error| Error::Function(element.location, error))?;
@@ -1021,9 +1016,9 @@ impl Analyzer {
             }
             FunctionType::BuiltInFunction(function) => {
                 if !self.is_next_call_builtin {
-                    return Err(Error::FunctionBuiltInSpecifierMissing(
+                    return Err(Error::Function(
                         element.location,
-                        function.identifier(),
+                        FunctionError::BuiltInSpecifierMissing(function.identifier()),
                     ));
                 }
 
@@ -1061,9 +1056,9 @@ impl Analyzer {
             }
             FunctionType::StandardLibrary(function) => {
                 if self.is_next_call_builtin {
-                    return Err(Error::FunctionBuiltInUnknown(
+                    return Err(Error::Function(
                         element.location,
-                        function.identifier().to_owned(),
+                        FunctionError::BuiltInUnknown(function.identifier().to_owned()),
                     ));
                 }
 

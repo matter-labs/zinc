@@ -10,7 +10,6 @@ use crate::error::Error as CompilerError;
 use crate::semantic::analyzer::error::Error;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
 use crate::semantic::bytecode::Bytecode;
-use crate::semantic::element::r#type::function::user::Function as UserDefinedFunctionType;
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::scope::item::Variant as ScopeItem;
@@ -56,33 +55,31 @@ impl Analyzer {
                 .map_err(CompilerError::Semantic)?;
         }
 
-        if let ScopeItem::Type(Type::Function(FunctionType::UserDefined(
-            UserDefinedFunctionType {
-                formal_params: arguments,
-                return_type,
-                unique_id,
-                ..
-            },
-        ))) = Scope::resolve_item(self.scope(), "main")
-            .map_err(|_| Error::FunctionMainMissing)
-            .map_err(CompilerError::Semantic)?
-            .variant
+        if let ScopeItem::Type(Type::Function(FunctionType::UserDefined(function))) =
+            Scope::resolve_item(self.scope(), "main")
+                .map_err(|_| Error::EntryPointMissing)
+                .map_err(CompilerError::Semantic)?
+                .variant
         {
             // replace the placeholders inserted above with an actual 'main' function call
             let main_function_address = self
                 .bytecode
                 .borrow_mut()
-                .function_address(unique_id)
-                .ok_or(Error::FunctionMainMissing)
+                .function_address(function.unique_id())
+                .ok_or(Error::EntryPointMissing)
                 .map_err(CompilerError::Semantic)?;
 
-            let input_size = arguments.iter().map(|(_name, r#type)| r#type.size()).sum();
-            let output_size = return_type.size();
+            let input_size = function.input_size();
+            let output_size = function.output_size();
 
-            self.bytecode.borrow_mut().set_input_fields(arguments);
-            self.bytecode.borrow_mut().set_output_type(*return_type);
+            self.bytecode
+                .borrow_mut()
+                .set_input_fields(function.formal_params().to_owned());
+            self.bytecode
+                .borrow_mut()
+                .set_output_type(function.return_type().to_owned());
             self.bytecode.borrow_mut().set_main_function(
-                unique_id,
+                function.unique_id(),
                 main_function_address,
                 input_size,
                 output_size,

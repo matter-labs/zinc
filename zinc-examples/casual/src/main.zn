@@ -1,5 +1,4 @@
-fn main() -> [u8; 5] {
-    let mut array = [10; 5];
-    array[3] %= 14 - array[3];
-    array
+fn main() {
+    let a = 42;
+    a = 42;
 }

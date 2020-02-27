@@ -6,7 +6,7 @@ use failure::Fail;
 
 #[derive(Debug, Fail, PartialEq)]
 pub enum Error {
-    #[fail(display = "casting from invalid type: from '{}' to '{}'", _0, _1)]
+    #[fail(display = "cannot cast from '{}' to '{}'", _0, _1)]
     FromInvalidType(String, String),
     #[fail(display = "casting to invalid type: from '{}' to '{}'", _0, _1)]
     ToInvalidType(String, String),

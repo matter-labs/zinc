@@ -12,12 +12,12 @@ pub enum Error {
         display = "attempted to truncate an array from the size {} to the bigger size {}",
         _0, _1
     )]
-    TruncatingToBiggerSize(usize, usize),
+    ArrayTruncatingToBiggerSize(usize, usize),
     #[fail(
-        display = "attempted to pad an array from the size {} to the bigger size {}",
+        display = "attempted to pad an array from the size {} to the lesser size {}",
         _0, _1
     )]
-    PaddingToBiggerSize(usize, usize),
+    ArrayPaddingToLesserSize(usize, usize),
     #[fail(display = "new array length '{}' cannot act as an index: {}", _0, _1)]
-    NewArrayLengthInvalid(String, IntegerConstantError),
+    ArrayNewLengthInvalid(String, IntegerConstantError),
 }

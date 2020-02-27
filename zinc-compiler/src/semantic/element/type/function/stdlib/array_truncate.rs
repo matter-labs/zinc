@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer standard library `array_truncate` function type element.
+//! The semantic analyzer standard library `std::array::truncate` function type element.
 //!
 
 use std::fmt;
@@ -49,7 +49,7 @@ impl Function {
                         .to_usize()
                         .map(Option::Some)
                         .map_err(|error| {
-                            StdlibError::NewArrayLengthInvalid(integer.to_string(), error)
+                            StdlibError::ArrayNewLengthInvalid(integer.to_string(), error)
                         })
                         .map_err(Error::StandardLibrary)?,
                 ),
@@ -126,10 +126,9 @@ impl Function {
         }
 
         if new_length > input_array_size {
-            return Err(Error::StandardLibrary(StdlibError::TruncatingToBiggerSize(
-                input_array_size,
-                new_length,
-            )));
+            return Err(Error::StandardLibrary(
+                StdlibError::ArrayTruncatingToBiggerSize(input_array_size, new_length),
+            ));
         }
 
         Ok(Type::array(input_array_type, new_length))

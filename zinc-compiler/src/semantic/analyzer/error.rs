@@ -27,6 +27,9 @@ pub enum Error {
     #[fail(display = "{}: structure literal: {}", _0, _1)]
     LiteralStructure(Location, StructureValueError),
 
+    #[fail(display = "{}: {}", _0, _1)]
+    Function(Location, FunctionError),
+
     #[fail(display = "{}: match expression must be exhausted", _0)]
     MatchNotExhausted(Location),
     #[fail(display = "{}: match branch is unreachable", _0)]
@@ -77,26 +80,8 @@ pub enum Error {
     )]
     ConditionalBranchTypesMismatch(Location, String, String),
 
-    #[fail(display = "{}: calling a non-callable object '{}'", _0, _1)]
-    FunctionCallingNotCallableObject(Location, String),
-    #[fail(
-        display = "{}: function '{}' return type mismatch: expected '{}', but got '{}'",
-        _0, _1, _2, _3
-    )]
-    FunctionReturnTypeMismatch(Location, String, String, String),
-    #[fail(display = "{}: built-in function '{}' is unknown", _0, _1)]
-    FunctionBuiltInUnknown(Location, String),
-    #[fail(display = "{}: built-in function '{}' must be called with '!'", _0, _1)]
-    FunctionBuiltInSpecifierMissing(Location, &'static str),
-    #[fail(
-        display = "{}: function '{}' expected a constant unsigned length argument, but got '{}'",
-        _0, _1, _2
-    )]
-    FunctionExpectedConstantLengthArgument(Location, &'static str, String),
-    #[fail(display = "{}: {}", _0, _1)]
-    Function(Location, FunctionError),
     #[fail(display = "function 'main' is missing")]
-    FunctionMainMissing,
+    EntryPointMissing,
 
     #[fail(display = "{}: module '{}' not found in the project", _0, _1)]
     ModuleNotFound(Location, String),

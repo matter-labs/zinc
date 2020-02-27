@@ -3,6 +3,7 @@
 //!
 
 use std::fmt;
+use std::ops::Deref;
 
 use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
@@ -10,10 +11,10 @@ use crate::semantic::element::Element;
 
 #[derive(Debug, Clone)]
 pub struct Function {
-    pub identifier: String,
-    pub unique_id: usize,
-    pub formal_params: Vec<(String, Type)>,
-    pub return_type: Box<Type>,
+    identifier: String,
+    unique_id: usize,
+    formal_params: Vec<(String, Type)>,
+    return_type: Box<Type>,
 }
 
 impl Function {
@@ -29,6 +30,33 @@ impl Function {
             return_type: Box::new(return_type),
             unique_id,
         }
+    }
+
+    pub fn identifier(&self) -> &str {
+        self.identifier.as_str()
+    }
+
+    pub fn unique_id(&self) -> usize {
+        self.unique_id
+    }
+
+    pub fn formal_params(&self) -> &[(String, Type)] {
+        self.formal_params.as_slice()
+    }
+
+    pub fn return_type(&self) -> &Type {
+        self.return_type.deref()
+    }
+
+    pub fn input_size(&self) -> usize {
+        self.formal_params
+            .iter()
+            .map(|(_name, r#type)| r#type.size())
+            .sum()
+    }
+
+    pub fn output_size(&self) -> usize {
+        self.return_type.size()
     }
 
     pub fn call(self, actual_elements: Vec<Element>) -> Result<Type, Error> {

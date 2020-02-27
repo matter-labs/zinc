@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer standard library `from_bits_field` function type element.
+//! The semantic analyzer standard library `std::convert::from_bits_field` function type element.
 //!
 
 use std::fmt;

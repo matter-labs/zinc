@@ -23,6 +23,7 @@ use crate::semantic::bytecode::Bytecode;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
+use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::function::user::Function as UserDefinedFunctionType;
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
@@ -297,11 +298,13 @@ impl Analyzer {
         let result_type = Type::from_element(&result, self.scope())?;
         let expected_type = Type::from_type_variant(&statement.return_type.variant, self.scope())?;
         if expected_type != result_type {
-            return Err(Error::FunctionReturnTypeMismatch(
+            return Err(Error::Function(
                 statement.return_type.location,
-                statement.identifier.name,
-                expected_type.to_string(),
-                result_type.to_string(),
+                FunctionError::ReturnType(
+                    statement.identifier.name,
+                    expected_type.to_string(),
+                    result_type.to_string(),
+                ),
             ));
         }
 

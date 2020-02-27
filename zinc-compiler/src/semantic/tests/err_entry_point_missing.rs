@@ -15,7 +15,7 @@ fn another() -> u8 {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::FunctionMainMissing));
+    let expected = Err(Error::Semantic(SemanticError::EntryPointMissing));
 
     let result = super::get_binary_result(input);
 

@@ -183,13 +183,7 @@ mod err_element_value_xor_1st_expected_boolean;
 mod err_element_value_xor_2nd_expected_boolean;
 mod err_element_xor_1st_expected_evaluable;
 mod err_element_xor_2nd_expected_evaluable;
-mod err_function_argument_count;
-mod err_function_argument_type;
-mod err_function_calling_not_callable;
-mod err_function_instruction_specifier_missing;
-mod err_function_instruction_unknown;
-mod err_function_main_missing;
-mod err_function_return_type_mismatch;
+mod err_entry_point_missing;
 mod err_impl_expected_structure_or_enumeration;
 mod err_inference_constant;
 mod err_inference_constant_loop_bounds;
@@ -231,7 +225,7 @@ static PANIC_SYNTAX_ERROR: &str = "Syntax errors must be eliminated at this poin
 static PANIC_THE_ONLY_REFERENCE: &str =
     "The last shared reference is always unwrapped successfully";
 
-pub(self) fn get_binary_result(input: &str) -> Result<(), Error> {
+pub fn get_binary_result(input: &str) -> Result<(), Error> {
     BinaryAnalyzer::default().compile(
         Parser::default()
             .parse(input, None)

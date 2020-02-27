@@ -2,6 +2,8 @@
 //! The semantic analyzer function type element.
 //!
 
+mod tests;
+
 pub mod builtin;
 pub mod error;
 pub mod stdlib;
@@ -55,7 +57,7 @@ impl Function {
         match self {
             Function::BuiltInFunction(inner) => inner.identifier().to_owned(),
             Function::StandardLibrary(inner) => inner.identifier().to_owned(),
-            Function::UserDefined(inner) => inner.identifier.to_owned(),
+            Function::UserDefined(inner) => inner.identifier().to_owned(),
         }
     }
 }

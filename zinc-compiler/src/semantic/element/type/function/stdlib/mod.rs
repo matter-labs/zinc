@@ -2,6 +2,8 @@
 //! The semantic analyzer standard library function type element.
 //!
 
+mod tests;
+
 pub mod array_pad;
 pub mod array_reverse;
 pub mod array_truncate;

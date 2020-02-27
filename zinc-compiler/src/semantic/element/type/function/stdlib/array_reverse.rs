@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer standard library `array_reverse` function type element.
+//! The semantic analyzer standard library `std::array::reverse` function type element.
 //!
 
 use std::fmt;
