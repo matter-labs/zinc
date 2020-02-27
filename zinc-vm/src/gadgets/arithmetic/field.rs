@@ -1,15 +1,15 @@
 use crate::gadgets::{Scalar, ScalarTypeExpectation};
 use crate::{Engine, RuntimeError};
 
-use ff::Field;
 use bellman::ConstraintSystem;
+use ff::Field;
 use franklin_crypto::circuit::Assignment;
 use zinc_bytecode::scalar::ScalarType;
 
 pub fn inverse<E, CS>(mut cs: CS, scalar: Scalar<E>) -> Result<Scalar<E>, RuntimeError>
-    where
-        E: Engine,
-        CS: ConstraintSystem<E>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
     scalar.get_type().assert_type(ScalarType::Field)?;
 
@@ -17,9 +17,7 @@ pub fn inverse<E, CS>(mut cs: CS, scalar: Scalar<E>) -> Result<Scalar<E>, Runtim
         None => None,
         Some(value) => match value.inverse() {
             Some(inverse) => Some(inverse),
-            None => {
-                return Err(RuntimeError::ZeroInversion)
-            }
+            None => return Err(RuntimeError::ZeroInversion),
         },
     };
 
@@ -32,5 +30,9 @@ pub fn inverse<E, CS>(mut cs: CS, scalar: Scalar<E>) -> Result<Scalar<E>, Runtim
         |zero| zero + CS::one(),
     );
 
-    Ok(Scalar::new_unchecked_variable(value, variable, ScalarType::Field))
+    Ok(Scalar::new_unchecked_variable(
+        value,
+        variable,
+        ScalarType::Field,
+    ))
 }

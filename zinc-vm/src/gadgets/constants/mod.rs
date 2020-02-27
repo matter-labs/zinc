@@ -1,6 +1,6 @@
 pub mod prelude {
-    pub use crate::gadgets::{Scalar, ScalarVariant};
     pub use crate::constraint_systems::ConstantCS;
+    pub use crate::gadgets::{Scalar, ScalarVariant};
 }
 
 ///

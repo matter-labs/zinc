@@ -24,9 +24,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::gadgets::ScalarType;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
     use zinc_bytecode::*;
-    use crate::gadgets::ScalarType;
 
     #[test]
     fn test_and() -> Result<(), TestingError> {

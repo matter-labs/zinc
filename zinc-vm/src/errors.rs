@@ -3,7 +3,7 @@ use failure::Fail;
 use franklin_crypto::bellman::SynthesisError;
 use num_bigint::BigInt;
 
-pub type Result<T=()> = std::result::Result<T, RuntimeError>;
+pub type Result<T = ()> = std::result::Result<T, RuntimeError>;
 
 #[derive(Debug, Fail)]
 pub enum TypeSizeError {

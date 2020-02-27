@@ -1,19 +1,19 @@
 mod scalar_type;
 pub use scalar_type::*;
 
-use std::fmt;
-use bellman::{Variable, ConstraintSystem};
+use bellman::{ConstraintSystem, Variable};
 use num_traits::ToPrimitive;
+use std::fmt;
 
-use ff::Field;
-use crate::{Result, Engine, RuntimeError};
 use crate::gadgets::utils;
-use franklin_crypto::circuit::num::AllocatedNum;
-use franklin_crypto::bellman::{SynthesisError, LinearCombination};
-use num_bigint::{ToBigInt, BigInt};
-use franklin_crypto::circuit::boolean::{Boolean, AllocatedBit};
-use franklin_crypto::circuit::Assignment;
+use crate::{Engine, Result, RuntimeError};
+use ff::Field;
+use franklin_crypto::bellman::{LinearCombination, SynthesisError};
+use franklin_crypto::circuit::boolean::{AllocatedBit, Boolean};
 use franklin_crypto::circuit::expression::Expression;
+use franklin_crypto::circuit::num::AllocatedNum;
+use franklin_crypto::circuit::Assignment;
+use num_bigint::{BigInt, ToBigInt};
 
 /// Scalar is a primitive value that can be stored on the stack and operated by VM's instructions.
 #[derive(Debug, Clone)]
@@ -42,7 +42,7 @@ impl<E: Engine> From<ScalarVariable<E>> for ScalarVariant<E> {
 
 #[derive(Debug, Clone)]
 pub struct ScalarConstant<E: Engine> {
-    pub value: E::Fr
+    pub value: E::Fr,
 }
 
 #[derive(Debug, Clone)]
@@ -59,7 +59,11 @@ impl<E: Engine> Scalar<E> {
         }
     }
 
-    pub fn new_unchecked_variable(value: Option<E::Fr>, variable: Variable, scalar_type: ScalarType) -> Self {
+    pub fn new_unchecked_variable(
+        value: Option<E::Fr>,
+        variable: Variable,
+        scalar_type: ScalarType,
+    ) -> Self {
         Self {
             variant: ScalarVariable { value, variable }.into(),
             scalar_type,
@@ -67,24 +71,19 @@ impl<E: Engine> Scalar<E> {
     }
 
     pub fn to_expression<CS: ConstraintSystem<E>>(&self) -> Expression<E> {
-        Expression::new(
-            self.get_value(),
-            self.lc::<CS>()
-        )
+        Expression::new(self.get_value(), self.lc::<CS>())
     }
 
     pub fn to_boolean<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<Boolean> {
         self.scalar_type.assert_type(ScalarType::Boolean)?;
 
         match &self.variant {
-            ScalarVariant::Constant(constant) => {
-                Ok(Boolean::constant(!constant.value.is_zero()))
-            },
+            ScalarVariant::Constant(constant) => Ok(Boolean::constant(!constant.value.is_zero())),
             ScalarVariant::Variable(variable) => {
                 // TODO: Add constructor to AllocatedBit
                 let bit = AllocatedBit::alloc(
                     cs.namespace(|| "allocate bit"),
-                    variable.value.map(|value| !value.is_zero())
+                    variable.value.map(|value| !value.is_zero()),
                 )?;
 
                 cs.enforce(
@@ -95,7 +94,7 @@ impl<E: Engine> Scalar<E> {
                 );
 
                 Ok(bit.into())
-            },
+            }
         }
     }
 
@@ -155,10 +154,8 @@ impl<E: Engine> Scalar<E> {
         match &self.variant {
             ScalarVariant::Constant(constant) => {
                 LinearCombination::zero() + (constant.value, CS::one())
-            },
-            ScalarVariant::Variable(variable) => {
-                LinearCombination::zero() + variable.variable
-            },
+            }
+            ScalarVariant::Variable(variable) => LinearCombination::zero() + variable.variable,
         }
     }
 
@@ -166,29 +163,23 @@ impl<E: Engine> Scalar<E> {
     pub fn get_bits<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<Vec<Self>> {
         let num = self.to_expression::<CS>();
         let bits = match self.scalar_type {
-            ScalarType::Field => num.into_bits_le_strict(
-                cs.namespace(|| "into_bits_le_strict")
-            ),
+            ScalarType::Field => num.into_bits_le_strict(cs.namespace(|| "into_bits_le_strict")),
             scalar_type => num.into_bits_le_fixed(
                 cs.namespace(|| "into_bits_le_fixed"),
-                scalar_type.bit_length::<E>()
-            )
+                scalar_type.bit_length::<E>(),
+            ),
         }?;
 
-        bits
-            .into_iter()
+        bits.into_iter()
             .enumerate()
-            .map(|(i, bit)| Self::from_boolean(
-                cs.namespace(|| format!("bit {}", i)),
-                bit,
-            ))
+            .map(|(i, bit)| Self::from_boolean(cs.namespace(|| format!("bit {}", i)), bit))
             .collect()
     }
 
     pub fn with_type_unchecked(&self, scalar_type: ScalarType) -> Self {
         Self {
             variant: self.variant.clone(),
-            scalar_type
+            scalar_type,
         }
     }
 
@@ -197,14 +188,14 @@ impl<E: Engine> Scalar<E> {
             Boolean::Is(bit) => Ok(Self::new_unchecked_variable(
                 bit.get_value_field::<E>(),
                 bit.get_variable(),
-                ScalarType::Boolean
+                ScalarType::Boolean,
             )),
             Boolean::Not(bit) => {
                 let expr = Expression::constant::<CS>(E::Fr::one()) - Expression::from(&bit);
                 let num = expr.into_number(cs.namespace(|| "into_number"))?;
                 let scalar = Self::from(num);
                 Ok(scalar.with_type_unchecked(ScalarType::Boolean))
-            },
+            }
             Boolean::Constant(_) => Ok(Self::new_unchecked_constant(
                 boolean.get_value_field::<E>().unwrap(),
                 ScalarType::Boolean,
@@ -215,7 +206,7 @@ impl<E: Engine> Scalar<E> {
     pub fn as_constant_unchecked(&self) -> Result<Self> {
         Ok(Self::new_unchecked_constant(
             self.grab_value()?,
-            self.get_type()
+            self.get_type(),
         ))
     }
 }
@@ -248,7 +239,8 @@ impl<E: Engine> fmt::Display for Scalar<E> {
 
 impl<E: Engine> ToBigInt for Scalar<E> {
     fn to_bigint(&self) -> Option<BigInt> {
-        self.get_value().map(|fr| utils::fr_to_bigint(&fr, self.is_signed()))
+        self.get_value()
+            .map(|fr| utils::fr_to_bigint(&fr, self.is_signed()))
     }
 }
 
@@ -258,8 +250,9 @@ impl<E: Engine> From<AllocatedNum<E>> for Scalar<E> {
             variant: ScalarVariable {
                 value: num.get_value(),
                 variable: num.get_variable(),
-            }.into(),
-            scalar_type: ScalarType::Field
+            }
+            .into(),
+            scalar_type: ScalarType::Field,
         }
     }
 }

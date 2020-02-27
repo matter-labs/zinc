@@ -1,6 +1,6 @@
+use num_bigint::BigInt;
 use serde_derive::{Deserialize, Serialize};
 use std::fmt;
-use num_bigint::BigInt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum ScalarType {
@@ -54,7 +54,7 @@ impl IntegerType {
 
     pub fn min(&self) -> BigInt {
         if self.signed {
-            - (BigInt::from(1) << self.length) / 2
+            -(BigInt::from(1) << self.length) / 2
         } else {
             0.into()
         }

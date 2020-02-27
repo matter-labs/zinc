@@ -40,7 +40,7 @@ impl<E: Engine> Gadget<E> for FieldFromBits {
         Ok(Scalar::new_unchecked_variable(
             num.get_value(),
             num.get_variable(),
-            ScalarType::Field
+            ScalarType::Field,
         ))
     }
 

@@ -35,14 +35,15 @@ impl<E: Engine> Gadget<E> for ToBits {
 
         let scalars = bits
             .into_iter()
-            .map(|bit| Scalar::new_unchecked_variable(
-                bit.get_value_field::<E>(),
-                bit
-                    .get_variable()
-                    .expect("into_bits_le_fixed must allocate")
-                    .get_variable(),
-                ScalarType::Boolean,
-            ))
+            .map(|bit| {
+                Scalar::new_unchecked_variable(
+                    bit.get_value_field::<E>(),
+                    bit.get_variable()
+                        .expect("into_bits_le_fixed must allocate")
+                        .get_variable(),
+                    ScalarType::Boolean,
+                )
+            })
             .collect();
 
         Ok(scalars)
@@ -58,10 +59,7 @@ impl<E: Engine> Gadget<E> for ToBits {
     }
 }
 
-fn signed_to_bits<E, CS>(
-    mut cs: CS,
-    scalar: Scalar<E>,
-) -> Result<Vec<Scalar<E>>, RuntimeError>
+fn signed_to_bits<E, CS>(mut cs: CS, scalar: Scalar<E>) -> Result<Vec<Scalar<E>>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,

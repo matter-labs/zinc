@@ -1,7 +1,7 @@
 #![feature(trait_alias)]
 
-mod core;
 pub mod constraint_systems;
+mod core;
 mod errors;
 pub mod gadgets;
 mod instructions;

@@ -41,10 +41,10 @@ impl<E: Engine> ConstraintSystem<E> for DebugConstraintSystem<E> {
     type Root = Self;
 
     fn alloc<F, A, AR>(&mut self, _annotation: A, f: F) -> Result<Variable, SynthesisError>
-        where
-            F: FnOnce() -> Result<E::Fr, SynthesisError>,
-            A: FnOnce() -> AR,
-            AR: Into<String>,
+    where
+        F: FnOnce() -> Result<E::Fr, SynthesisError>,
+        A: FnOnce() -> AR,
+        AR: Into<String>,
     {
         let value = f()?;
         self.witness.push(value);
@@ -52,10 +52,10 @@ impl<E: Engine> ConstraintSystem<E> for DebugConstraintSystem<E> {
     }
 
     fn alloc_input<F, A, AR>(&mut self, _annotation: A, f: F) -> Result<Variable, SynthesisError>
-        where
-            F: FnOnce() -> Result<E::Fr, SynthesisError>,
-            A: FnOnce() -> AR,
-            AR: Into<String>,
+    where
+        F: FnOnce() -> Result<E::Fr, SynthesisError>,
+        A: FnOnce() -> AR,
+        AR: Into<String>,
     {
         let value = f()?;
         self.inputs.push(value);
@@ -63,12 +63,12 @@ impl<E: Engine> ConstraintSystem<E> for DebugConstraintSystem<E> {
     }
 
     fn enforce<A, AR, LA, LB, LC>(&mut self, _annotation: A, a: LA, b: LB, c: LC)
-        where
-            A: FnOnce() -> AR,
-            AR: Into<String>,
-            LA: FnOnce(LinearCombination<E>) -> LinearCombination<E>,
-            LB: FnOnce(LinearCombination<E>) -> LinearCombination<E>,
-            LC: FnOnce(LinearCombination<E>) -> LinearCombination<E>,
+    where
+        A: FnOnce() -> AR,
+        AR: Into<String>,
+        LA: FnOnce(LinearCombination<E>) -> LinearCombination<E>,
+        LB: FnOnce(LinearCombination<E>) -> LinearCombination<E>,
+        LC: FnOnce(LinearCombination<E>) -> LinearCombination<E>,
     {
         let zero = LinearCombination::zero();
         let value_a = eval_lc::<E>(a(zero.clone()).as_ref(), &self.inputs, &self.witness);
@@ -89,9 +89,9 @@ impl<E: Engine> ConstraintSystem<E> for DebugConstraintSystem<E> {
     }
 
     fn push_namespace<NR, N>(&mut self, _name_fn: N)
-        where
-            NR: Into<String>,
-            N: FnOnce() -> NR,
+    where
+        NR: Into<String>,
+        N: FnOnce() -> NR,
     {
     }
 

@@ -1,13 +1,13 @@
 extern crate franklin_crypto;
 
 use self::franklin_crypto::bellman::ConstraintSystem;
+use crate::auto_const;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::gadgets::{ScalarType, ScalarTypeExpectation};
-use crate::{Engine, gadgets};
-use zinc_bytecode::instructions::Mul;
-use crate::auto_const;
 use crate::gadgets::constants::prelude::*;
+use crate::gadgets::{ScalarType, ScalarTypeExpectation};
+use crate::{gadgets, Engine};
+use zinc_bytecode::instructions::Mul;
 
 impl<E, CS> VMInstruction<E, CS> for Mul
 where
@@ -34,7 +34,7 @@ where
             cs.namespace(|| "type check"),
             &condition,
             &unchecked_mul,
-            mul_type
+            mul_type,
         )?;
 
         vm.push(Cell::Value(mul))

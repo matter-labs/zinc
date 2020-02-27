@@ -9,9 +9,9 @@ use rand::ThreadRng;
 
 use zinc_bytecode::program::Program;
 
-use crate::core::VirtualMachine;
 use crate::constraint_systems::DebugConstraintSystem;
-pub use crate::errors::{Result, MalformedBytecode, RuntimeError, TypeSizeError};
+use crate::core::VirtualMachine;
+pub use crate::errors::{MalformedBytecode, Result, RuntimeError, TypeSizeError};
 use crate::gadgets::utils::bigint_to_fr;
 use crate::Engine;
 use failure::Fail;
@@ -24,7 +24,10 @@ struct VMCircuit<'a> {
 }
 
 impl<E: Engine> Circuit<E> for VMCircuit<'_> {
-    fn synthesize<CS: ConstraintSystem<E>>(self, cs: &mut CS) -> std::result::Result<(), SynthesisError> {
+    fn synthesize<CS: ConstraintSystem<E>>(
+        self,
+        cs: &mut CS,
+    ) -> std::result::Result<(), SynthesisError> {
         let mut vm = VirtualMachine::new(cs, false);
         *self.result = Some(vm.run(self.program, self.inputs, |_| {}, |_| Ok(())));
         Ok(())

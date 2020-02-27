@@ -1,5 +1,5 @@
+use crate::{Engine, RuntimeError};
 use ff::PrimeField;
-use crate::{RuntimeError, Engine};
 pub use zinc_bytecode::scalar::*;
 
 pub trait ScalarTypeExpectation: Sized {
@@ -26,7 +26,7 @@ impl ScalarTypeExpectation for ScalarType {
         } else {
             Err(RuntimeError::TypeError {
                 expected: expected.to_string(),
-                actual: self.to_string()
+                actual: self.to_string(),
             })
         }
     }
