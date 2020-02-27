@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 use std::mem;
 
-use bellman::{ConstraintSystem, Namespace, SynthesisError};
+use bellman::{ConstraintSystem, Namespace};
 use ff::Field;
 use franklin_crypto::circuit::num::AllocatedNum;
 use num_bigint::BigInt;
@@ -78,42 +78,52 @@ where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    pub fn variable_none(&mut self, scalar_type: ScalarType) -> Result<Scalar<E>, RuntimeError> {
+    fn witness_fr(
+        &mut self,
+        value: Option<E::Fr>,
+        scalar_type: ScalarType,
+    ) -> Result<Scalar<E>, RuntimeError> {
         let mut cs = self.cs_namespace();
 
-        let variable = cs
-            .alloc(
-                || "variable value",
-                || Err(SynthesisError::AssignmentMissing),
-            )
-            .map_err(RuntimeError::SynthesisError)?;
+        let variable = cs.alloc(|| "variable", || value.grab())?;
+        let scalar = Scalar::new_unchecked_variable(value, variable, scalar_type);
 
-        mem::drop(cs);
-
-        Ok(Scalar::new_unchecked_variable(None, variable, scalar_type))
+        match scalar_type {
+            ScalarType::Field => {
+                // Create some constraints to avoid unconstrained variable errors.
+                let one = Scalar::new_unchecked_constant(E::Fr::one(), ScalarType::Field);
+                gadgets::arithmetic::add(cs.namespace(|| "dummy constraint"), &scalar, &one)?;
+                Ok(scalar)
+            }
+            _ => {
+                let condition = Scalar::new_unchecked_constant(E::Fr::one(), ScalarType::Boolean);
+                gadgets::types::conditional_type_check(
+                    cs.namespace(|| "type check"),
+                    &condition,
+                    &scalar,
+                    scalar_type,
+                )
+            }
+        }
     }
 
-    pub fn variable_bigint(
+    pub fn allocate_witness(
         &mut self,
-        value: &BigInt,
-        data_type: ScalarType,
+        value: Option<&BigInt>,
+        scalar_type: ScalarType,
     ) -> Result<Scalar<E>, RuntimeError> {
-        let value = utils::bigint_to_fr::<E>(value)
-            .ok_or_else(|| RuntimeError::InternalError("bigint_to_fr".into()))?;
+        let fr = if let Some(bigint) = value {
+            Some(
+                utils::bigint_to_fr::<E>(bigint).ok_or(RuntimeError::ValueOverflow {
+                    value: bigint.clone(),
+                    scalar_type,
+                })?,
+            )
+        } else {
+            None
+        };
 
-        let mut cs = self.cs_namespace();
-
-        let variable = cs
-            .alloc(|| "variable value", || Ok(value))
-            .map_err(RuntimeError::SynthesisError)?;
-
-        mem::drop(cs);
-
-        Ok(Scalar::new_unchecked_variable(
-            Some(value),
-            variable,
-            data_type,
-        ))
+        self.witness_fr(fr, scalar_type)
     }
 
     pub fn constant_bigint(
