@@ -24,8 +24,9 @@ fn main() {
     let expected = Err(Error::Semantic(
         SemanticError::MatchBranchExpressionInvalidType(
             Location::new(6, 14),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
             Type::boolean().to_string(),
+            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            Location::new(5, 14),
         ),
     ));
 

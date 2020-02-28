@@ -61,8 +61,8 @@ impl Array {
         }
         if end < start {
             return Err(Error::SliceEndLesserThanStart(
-                end.to_string(),
                 start.to_string(),
+                end.to_string(),
             ));
         }
         let start = start
@@ -70,7 +70,7 @@ impl Array {
             .ok_or_else(|| Error::SliceStartOutOfRange(start.to_string()))?;
         let length = (end - start)
             .to_usize()
-            .ok_or_else(|| Error::SliceEndLesserThanStart(end.to_string(), start.to_string()))?;
+            .ok_or_else(|| Error::SliceEndLesserThanStart(start.to_string(), end.to_string()))?;
         Ok(AccessData::new(
             self.r#type.size() * start,
             self.r#type.size() * length,
@@ -91,8 +91,8 @@ impl Array {
         }
         if end < start {
             return Err(Error::SliceEndLesserThanStart(
-                end.to_string(),
                 start.to_string(),
+                end.to_string(),
             ));
         }
         let start = start
@@ -100,7 +100,7 @@ impl Array {
             .ok_or_else(|| Error::SliceStartOutOfRange(start.to_string()))?;
         let length = (end - start + BigInt::one())
             .to_usize()
-            .ok_or_else(|| Error::SliceEndLesserThanStart(end.to_string(), start.to_string()))?;
+            .ok_or_else(|| Error::SliceEndLesserThanStart(start.to_string(), end.to_string()))?;
         Ok(AccessData::new(
             self.r#type.size() * start,
             self.r#type.size() * length,
@@ -114,8 +114,8 @@ impl Array {
             self.r#type = r#type;
         } else if r#type != self.r#type {
             return Err(Error::PushingInvalidType(
-                r#type.to_string(),
                 self.r#type.to_string(),
+                r#type.to_string(),
             ));
         }
         self.size += 1;

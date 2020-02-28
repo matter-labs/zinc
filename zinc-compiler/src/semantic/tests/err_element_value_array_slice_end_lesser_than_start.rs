@@ -22,8 +22,8 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 20),
         ElementError::Value(ValueError::Array(ArrayValueError::SliceEndLesserThanStart(
-            "1".to_owned(),
             "2".to_owned(),
+            "1".to_owned(),
         ))),
     )));
 

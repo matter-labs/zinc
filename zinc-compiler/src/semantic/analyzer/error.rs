@@ -8,7 +8,6 @@ use crate::lexical::Location;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::function::error::Error as FunctionError;
-use crate::semantic::element::value::array::error::Error as ArrayValueError;
 use crate::semantic::element::value::structure::error::Error as StructureValueError;
 use crate::semantic::scope::error::Error as ScopeError;
 
@@ -22,8 +21,6 @@ pub enum Error {
     #[fail(display = "{}: constant type inference: {}", _0, _1)]
     InferenceConstant(Location, IntegerConstantError),
 
-    #[fail(display = "{}: array literal: {}", _0, _1)]
-    LiteralArray(Location, ArrayValueError),
     #[fail(display = "{}: structure literal: {}", _0, _1)]
     LiteralStructure(Location, StructureValueError),
 
@@ -40,23 +37,26 @@ pub enum Error {
     )]
     MatchBranchPatternPathExpectedEvaluable(Location, String),
     #[fail(
-        display = "{}: match pattern type '{}' does not match the scrutinee type '{}'",
-        _0, _1, _2
+        display = "{}: match pattern type '{}' does not match the scrutinee type '{}' at {}",
+        _0, _2, _1, _3
     )]
-    MatchBranchPatternInvalidType(Location, String, String),
+    MatchBranchPatternInvalidType(Location, String, String, Location),
     #[fail(
-        display = "{}: match expression type '{}' does not match the first branch result type '{}'",
-        _0, _1, _2
+        display = "{}: match expression type '{}' does not match the first branch result type '{}' at {}",
+        _0, _2, _1, _3
     )]
-    MatchBranchExpressionInvalidType(Location, String, String),
+    MatchBranchExpressionInvalidType(Location, String, String, Location),
 
     #[fail(
         display = "{}: cannot assign a value of type '{}' to a variable of type '{}'",
         _0, _1, _2
     )]
     MutatingWithDifferentType(Location, String, String),
-    #[fail(display = "{}: cannot assign to an immutable variable '{}'", _0, _1)]
-    MutatingImmutableMemory(Location, String),
+    #[fail(
+        display = "{}: cannot assign to an immutable variable '{}' declared at {:?}",
+        _0, _1, _2
+    )]
+    MutatingImmutableMemory(Location, String, Option<Location>),
 
     #[fail(
         display = "{}: loop expected a boolean expression in the while condition, but got '{}'",

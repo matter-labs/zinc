@@ -19,7 +19,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::MutatingWithDifferentType(
-        Location::new(4, 5),
+        Location::new(4, 12),
         Type::boolean().to_string(),
         Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
     )));

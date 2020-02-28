@@ -8,12 +8,13 @@ use colored::Colorize;
 
 use crate::lexical::Error as LexicalError;
 use crate::lexical::Location;
-use crate::semantic::Error as SemanticError;
-use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::value::error::Error as ValueError;
-use crate::semantic::element::constant::error::Error as ConstantError;
-use crate::semantic::scope::error::Error as ScopeError;
 use crate::semantic::caster::error::Error as CasterError;
+use crate::semantic::element::constant::error::Error as ConstantError;
+use crate::semantic::element::error::Error as ElementError;
+use crate::semantic::element::value::array::error::Error as ArrayValueError;
+use crate::semantic::element::value::error::Error as ValueError;
+use crate::semantic::scope::error::Error as ScopeError;
+use crate::semantic::Error as SemanticError;
 use crate::syntax::Error as SyntaxError;
 
 use self::file::Error as FileError;
@@ -218,43 +219,6 @@ impl Error {
                 )
             }
 
-            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemRedeclared(item, original))) => {
-                Self::format_line_with_reference(
-                    context,
-                    format!(
-                        "item `{}` redeclared here",
-                        item
-                    )
-                        .as_str(),
-                    location,
-                    original,
-                    Some("consider giving the latter item another name"),
-                )
-            }
-            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemUndeclared(item))) => {
-                Self::format_line(
-                    context,
-                    format!(
-                        "cannot find item `{}` in this scope",
-                        item
-                    )
-                        .as_str(),
-                    location,
-                    None,
-                )
-            }
-            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemIsNotNamespace(item))) => {
-                Self::format_line(
-                    context,
-                    format!(
-                        "item `{}` is not a namespace",
-                        item
-                    )
-                        .as_str(),
-                    location,
-                    Some("only modules, structures, and enumerations can contain items within their namespaces"),
-                )
-            }
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Casting(CasterError::FromInvalidType(from, to))))) |
             Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Casting(CasterError::FromInvalidType(from, to))))) |
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Casting(CasterError::ToInvalidType(from, to))))) |
@@ -284,6 +248,136 @@ impl Error {
                 )
             }
 
+            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemRedeclared(item, reference))) => {
+                Self::format_line_with_reference(
+                    context,
+                    format!(
+                        "item `{}` redeclared here",
+                        item
+                    )
+                        .as_str(),
+                    location,
+                    Some(reference),
+                    Some("consider giving the latter item another name"),
+                )
+            }
+            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemUndeclared(item))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "cannot find item `{}` in this scope",
+                        item
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemIsNotNamespace(item))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "item `{}` is not a namespace",
+                        item
+                    )
+                        .as_str(),
+                    location,
+                    Some("only modules, structures, and enumerations can contain items within their namespaces"),
+                )
+            }
+
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::PushingInvalidType(expected, found))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "expected `{}`, found `{}`",
+                        expected, found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::SliceStartOutOfRange(left))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "left slice bound `{}` is negative",
+                        left,
+                    )
+                        .as_str(),
+                    location,
+                    Some("slice range bounds must be within the array size"),
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::SliceEndOutOfRange(right, size))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "right slice bound `{}` is out of range of the array of size {}",
+                        right, size,
+                    )
+                        .as_str(),
+                    location,
+                    Some("slice range bounds must be within the array size"),
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::SliceEndLesserThanStart(left, right))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "left slice bound `{}` is greater than right slice bound `{}`",
+                        left, right,
+                    )
+                        .as_str(),
+                    location,
+                    Some("left slice range bound must be lesser or equal to the right one"),
+                )
+            }
+
+            Self::Semantic(SemanticError::MatchNotExhausted(location)) => {
+                Self::format_line(
+                    context,
+                    "match expression must be exhaustive",
+                    location,
+                    Some("consider covering all possible cases or adding an irrefutable branch with a binding or `_` wildcard"),
+                )
+            }
+            Self::Semantic(SemanticError::MatchBranchUnreachable(location)) => {
+                Self::format_line(
+                    context,
+                    "match expression branch is unreachable",
+                    location,
+                    Some("consider removing the branch or moving it above the branch with irrefutable pattern"),
+                )
+            }
+            Self::Semantic(SemanticError::MatchBranchPatternPathExpectedEvaluable(location, item)) => {
+                Self::format_line(
+                    context,
+                    format!("expected value, found `{}`", item).as_str(),
+                    location,
+                    Some("consider specifying a path to an evaluable item"),
+                )
+            }
+            Self::Semantic(SemanticError::MatchBranchPatternInvalidType(location, expected, found, reference)) => {
+                Self::format_line_with_reference(
+                    context,
+                    format!("expected `{}`, found `{}`", expected, found).as_str(),
+                    location,
+                    Some(reference),
+                    Some("all branch patterns must be compatible with the type of the expression being matched"),
+                )
+            }
+            Self::Semantic(SemanticError::MatchBranchExpressionInvalidType(location, expected, found, reference)) => {
+                Self::format_line_with_reference(
+                    context,
+                    format!("expected `{}`, found `{}`", expected, found).as_str(),
+                    location,
+                    Some(reference),
+                    Some("all branches must return type equal to the type of the first branch"),
+                )
+            }
+
             Self::Semantic(SemanticError::MutatingWithDifferentType(location, expected, found)) => {
                 Self::format_line(
                     context,
@@ -292,11 +386,12 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::MutatingImmutableMemory(location, name)) => {
-                Self::format_line(
+            Self::Semantic(SemanticError::MutatingImmutableMemory(location, name, reference)) => {
+                Self::format_line_with_reference(
                     context,
-                    format!("cannot assign to the immutable variable `{}`", name).as_str(),
+                    format!("cannot assign twice to immutable variable `{}`", name).as_str(),
                     location,
+                    reference,
                     Some(format!("make this variable mutable: `mut {}`", name).as_str()),
                 )
             }
@@ -336,7 +431,7 @@ impl Error {
             }
             Self::Semantic(SemanticError::EntryPointMissing) => {
                 Self::format_message(
-                    format!("function `main` is missing").as_str(),
+                    "function `main` is missing",
                     Some("create the `main` function in the entry point file `main.zn`"),
                 )
             }
@@ -413,10 +508,7 @@ impl Error {
         }
     }
 
-    fn format_message(
-        message: &str,
-        help: Option<&str>,
-    ) -> String {
+    fn format_message(message: &str, help: Option<&str>) -> String {
         let mut strings = Vec::with_capacity(8);
         strings.push(String::new());
         strings.push(format!(
@@ -437,6 +529,8 @@ impl Error {
         location: Location,
         help: Option<&str>,
     ) -> String {
+        let line_number_length = location.line.to_string().len();
+
         let mut strings = Vec::with_capacity(8);
         strings.push(String::new());
         strings.push(format!(
@@ -445,7 +539,11 @@ impl Error {
             message.bright_white()
         ));
         strings.push(format!(" {} {}", "-->".bright_cyan(), location));
-        strings.push(format!("  {}", "|".bright_cyan()));
+        strings.push(format!(
+            "{}{}",
+            " ".repeat(line_number_length + 1),
+            "|".bright_cyan()
+        ));
         if let Some(line) = context.get(location.line - 1) {
             strings.push(format!(
                 "{}{}",
@@ -454,7 +552,8 @@ impl Error {
             ));
         }
         strings.push(format!(
-            "  {} {}{}",
+            "{}{} {}{}",
+            " ".repeat(line_number_length + 1),
             "|".bright_cyan(),
             "_".repeat(location.column - 1).bright_red(),
             "^".bright_red()
@@ -470,9 +569,11 @@ impl Error {
         context: &[&str],
         message: &str,
         location: Location,
-        reference: Location,
+        reference: Option<Location>,
         help: Option<&str>,
     ) -> String {
+        let line_number_length = location.line.to_string().len();
+
         let mut strings = Vec::with_capacity(11);
         strings.push(String::new());
         strings.push(format!(
@@ -481,25 +582,37 @@ impl Error {
             message.bright_white()
         ));
 
-        strings.push(format!("  {}", "|".bright_cyan()));
-        if let Some(line) = context.get(reference.line - 1) {
+        if let Some(reference) = reference {
+            let line_number_length = reference.line.to_string().len();
             strings.push(format!(
                 "{}{}",
-                (reference.line.to_string() + " | ").bright_cyan(),
-                line
+                " ".repeat(line_number_length + 1),
+                "|".bright_cyan()
+            ));
+            if let Some(line) = context.get(reference.line - 1) {
+                strings.push(format!(
+                    "{}{}",
+                    (reference.line.to_string() + " | ").bright_cyan(),
+                    line
+                ));
+            }
+            strings.push(format!(
+                "{}{} {}{}",
+                " ".repeat(line_number_length + 1),
+                "|".bright_cyan(),
+                "_".repeat(reference.column - 1).bright_red(),
+                "^".bright_red()
             ));
         }
-        strings.push(format!(
-            "  {} {}{}",
-            "|".bright_cyan(),
-            "_".repeat(reference.column - 1).bright_red(),
-            "^".bright_red()
-        ));
 
         strings.push(format!(" {} {}", "-->".bright_cyan(), location));
 
         if location.line > 1 {
-            strings.push(format!("  {}", "|".bright_cyan()));
+            strings.push(format!(
+                "{}{}",
+                " ".repeat(line_number_length + 1),
+                "|".bright_cyan()
+            ));
         }
         if let Some(line) = context.get(location.line - 1) {
             strings.push(format!(
@@ -509,7 +622,8 @@ impl Error {
             ));
         }
         strings.push(format!(
-            "  {} {}{}",
+            "{}{} {}{}",
+            " ".repeat(line_number_length + 1),
             "|".bright_cyan(),
             "_".repeat(location.column - 1).bright_red(),
             "^".bright_red()
@@ -529,6 +643,8 @@ impl Error {
         end: Location,
         help: Option<&str>,
     ) -> String {
+        let line_number_length = end.line.to_string().len();
+
         let mut strings = Vec::with_capacity(8 + end.line - start.line);
         strings.push(String::new());
         strings.push(format!(
@@ -538,7 +654,11 @@ impl Error {
         ));
         strings.push(format!(" {} {}", "-->".bright_cyan(), start));
         if start.line > 1 {
-            strings.push(format!("  {}", "|".bright_cyan()));
+            strings.push(format!(
+                "{}{}",
+                " ".repeat(line_number_length + 1),
+                "|".bright_cyan()
+            ));
         }
         for line_number in start.line..=end.line {
             if let Some(line) = context.get(line_number - 1) {
@@ -550,7 +670,8 @@ impl Error {
             }
         }
         strings.push(format!(
-            "  {} {}{}",
+            "{}{} {}{}",
+            " ".repeat(line_number_length + 1),
             "|".bright_cyan(),
             "_".repeat(end.column - 1).bright_red(),
             "^".bright_red()

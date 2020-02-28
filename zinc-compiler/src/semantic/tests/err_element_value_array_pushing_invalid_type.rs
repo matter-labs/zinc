@@ -5,11 +5,11 @@
 #![cfg(test)]
 
 use crate::lexical::Location;
-use crate::semantic::element::value::array::error::Error as ArrayValueError;
-
+use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
+use crate::semantic::element::value::array::error::Error as ArrayValueError;
+use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::Error as SemanticError;
-
 use crate::Error;
 
 #[test]
@@ -20,12 +20,12 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::LiteralArray(
+    let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 21),
-        ArrayValueError::PushingInvalidType(
-            Type::boolean().to_string(),
+        ElementError::Value(ValueError::Array(ArrayValueError::PushingInvalidType(
             Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-        ),
+            Type::boolean().to_string(),
+        ))),
     )));
 
     let result = super::get_binary_result(input);

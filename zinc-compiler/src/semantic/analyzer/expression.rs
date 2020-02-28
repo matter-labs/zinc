@@ -31,6 +31,7 @@ use crate::semantic::element::r#type::function::stdlib::Function as StandardLibr
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::array::Array;
+use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::element::value::structure::error::Error as StructureValueError;
 use crate::semantic::element::value::structure::Structure;
 use crate::semantic::element::value::tuple::Tuple;
@@ -125,7 +126,15 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::MutatingImmutableMemory(element.location, place.to_string()));
+                        let item_location =
+                            Scope::resolve_item(self.scope(), place.identifier.as_str())
+                                .map_err(|error| Error::Scope(place.location, error))?
+                                .location;
+                        return Err(Error::MutatingImmutableMemory(
+                            element.location,
+                            place.to_string(),
+                            item_location,
+                        ));
                     }
                     if place.r#type != r#type {
                         return Err(Error::MutatingWithDifferentType(
@@ -162,7 +171,15 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::MutatingImmutableMemory(element.location, place.to_string()));
+                        let item_location =
+                            Scope::resolve_item(self.scope(), place.identifier.as_str())
+                                .map_err(|error| Error::Scope(place.location, error))?
+                                .location;
+                        return Err(Error::MutatingImmutableMemory(
+                            element.location,
+                            place.to_string(),
+                            item_location,
+                        ));
                     }
                     if place.r#type != r#type {
                         return Err(Error::MutatingWithDifferentType(
@@ -222,7 +239,15 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::MutatingImmutableMemory(element.location, place.to_string()));
+                        let item_location =
+                            Scope::resolve_item(self.scope(), place.identifier.as_str())
+                                .map_err(|error| Error::Scope(place.location, error))?
+                                .location;
+                        return Err(Error::MutatingImmutableMemory(
+                            element.location,
+                            place.to_string(),
+                            item_location,
+                        ));
                     }
                     if place.r#type != r#type {
                         return Err(Error::MutatingWithDifferentType(
@@ -282,7 +307,15 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::MutatingImmutableMemory(element.location, place.to_string()));
+                        let item_location =
+                            Scope::resolve_item(self.scope(), place.identifier.as_str())
+                                .map_err(|error| Error::Scope(place.location, error))?
+                                .location;
+                        return Err(Error::MutatingImmutableMemory(
+                            element.location,
+                            place.to_string(),
+                            item_location,
+                        ));
                     }
                     if place.r#type != r#type {
                         return Err(Error::MutatingWithDifferentType(
@@ -342,7 +375,15 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::MutatingImmutableMemory(element.location, place.to_string()));
+                        let item_location =
+                            Scope::resolve_item(self.scope(), place.identifier.as_str())
+                                .map_err(|error| Error::Scope(place.location, error))?
+                                .location;
+                        return Err(Error::MutatingImmutableMemory(
+                            element.location,
+                            place.to_string(),
+                            item_location,
+                        ));
                     }
                     if place.r#type != r#type {
                         return Err(Error::MutatingWithDifferentType(
@@ -402,7 +443,15 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::MutatingImmutableMemory(element.location, place.to_string()));
+                        let item_location =
+                            Scope::resolve_item(self.scope(), place.identifier.as_str())
+                                .map_err(|error| Error::Scope(place.location, error))?
+                                .location;
+                        return Err(Error::MutatingImmutableMemory(
+                            element.location,
+                            place.to_string(),
+                            item_location,
+                        ));
                     }
                     if place.r#type != r#type {
                         return Err(Error::MutatingWithDifferentType(
@@ -1270,6 +1319,8 @@ impl Analyzer {
             scrutinee_location,
         );
 
+        let first_branch_expression_location = r#match.branches[0].1.location;
+
         let mut is_exhausted = false;
         let mut branch_results = Vec::with_capacity(r#match.branches.len());
         let mut endifs = 0;
@@ -1289,8 +1340,9 @@ impl Analyzer {
                     if pattern_type != scrutinee_type {
                         return Err(Error::MatchBranchPatternInvalidType(
                             pattern_location,
-                            pattern_type.to_string(),
                             scrutinee_type.to_string(),
+                            pattern_type.to_string(),
+                            scrutinee_location,
                         ));
                     }
 
@@ -1329,8 +1381,9 @@ impl Analyzer {
                     if pattern_type != scrutinee_type {
                         return Err(Error::MatchBranchPatternInvalidType(
                             pattern_location,
-                            pattern_type.to_string(),
                             scrutinee_type.to_string(),
+                            pattern_type.to_string(),
+                            scrutinee_location,
                         ));
                     }
 
@@ -1482,8 +1535,9 @@ impl Analyzer {
                 if result_type != first_branch_result_type {
                     return Err(Error::MatchBranchExpressionInvalidType(
                         expression_location,
-                        result_type.to_string(),
                         first_branch_result_type.to_string(),
+                        result_type.to_string(),
+                        first_branch_expression_location,
                     ));
                 }
             }
@@ -1533,18 +1587,18 @@ impl Analyzer {
                         let element =
                             self.expression(expression.clone(), TranslationHint::ValueExpression)?;
                         let element_type = Type::from_element(&element, self.scope())?;
-                        result
-                            .push(element_type)
-                            .map_err(|error| Error::LiteralArray(location, error))?;
+                        result.push(element_type).map_err(|error| {
+                            Error::Element(location, ElementError::Value(ValueError::Array(error)))
+                        })?;
                     }
                     break;
                 }
                 None => {
                     let element = self.expression(expression, TranslationHint::ValueExpression)?;
                     let element_type = Type::from_element(&element, self.scope())?;
-                    result
-                        .push(element_type)
-                        .map_err(|error| Error::LiteralArray(location, error))?
+                    result.push(element_type).map_err(|error| {
+                        Error::Element(location, ElementError::Value(ValueError::Array(error)))
+                    })?;
                 }
             }
         }

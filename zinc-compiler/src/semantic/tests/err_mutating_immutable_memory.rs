@@ -18,8 +18,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::MutatingImmutableMemory(
-        Location::new(4, 5),
+        Location::new(4, 12),
         "result".to_string(),
+        Some(Location::new(3, 9)),
     )));
 
     let result = super::get_binary_result(input);
