@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer `dbg!` built-in function type element.
+//! The semantic analyzer `dbg!` built-in function element.
 //!
 
 use std::fmt;
@@ -60,6 +60,7 @@ impl Function {
                 return Err(Error::ArgumentConstantness(
                     self.identifier.to_owned(),
                     Self::ARGUMENT_INDEX_FORMAT_STRING + 1,
+                    "format".to_owned(),
                     r#type.to_string(),
                 ))
             }

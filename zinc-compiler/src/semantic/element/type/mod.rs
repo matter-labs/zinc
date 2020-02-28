@@ -17,8 +17,10 @@ use zinc_bytecode::builtins::BuiltinIdentifier;
 use crate::semantic::analyzer::error::Error;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::translation_hint::TranslationHint;
+use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
+use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::Element;
 use crate::semantic::scope::item::Variant as ScopeItemVariant;
 use crate::semantic::scope::Scope;
@@ -159,14 +161,24 @@ impl Type {
 
         let mut variants_bigint = Vec::with_capacity(variants.len());
         for variant in variants.into_iter() {
-            let value = IntegerConstant::try_from(&variant.literal)
-                .map_err(|error| Error::InferenceConstant(variant.identifier.location, error))?;
+            let value = IntegerConstant::try_from(&variant.literal).map_err(|error| {
+                Error::Element(
+                    variant.identifier.location,
+                    ElementError::Constant(ConstantError::Integer(error)),
+                )
+            })?;
             variants_bigint.push((variant.identifier, value.value));
         }
         let bigints: Vec<&BigInt> = variants_bigint.iter().map(|variant| &variant.1).collect();
         let minimal_bitlength =
-            IntegerConstant::minimal_bitlength_bigints(bigints.as_slice(), false)
-                .map_err(|error| Error::InferenceConstant(identifier.location, error))?;
+            IntegerConstant::minimal_bitlength_bigints(bigints.as_slice(), false).map_err(
+                |error| {
+                    Error::Element(
+                        identifier.location,
+                        ElementError::Constant(ConstantError::Integer(error)),
+                    )
+                },
+            )?;
 
         for (identifier, value) in variants_bigint.into_iter() {
             let location = identifier.location;
@@ -297,9 +309,14 @@ impl Type {
                 let size = match ExpressionAnalyzer::new_without_bytecode(scope)
                     .expression(size.to_owned(), TranslationHint::ValueExpression)?
                 {
-                    Element::Constant(Constant::Integer(integer)) => integer
-                        .to_usize()
-                        .map_err(|error| Error::InferenceConstant(size_location, error))?,
+                    Element::Constant(Constant::Integer(integer)) => {
+                        integer.to_usize().map_err(|error| {
+                            Error::Element(
+                                size_location,
+                                ElementError::Constant(ConstantError::Integer(error)),
+                            )
+                        })?
+                    }
                     element => {
                         return Err(Error::ConstantExpressionHasNonConstantElement(
                             size_location,

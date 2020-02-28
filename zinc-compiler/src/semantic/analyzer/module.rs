@@ -1,5 +1,5 @@
 //!
-//! The library semantic analyzer.
+//! The module semantic analyzer.
 //!
 
 use std::cell::RefCell;

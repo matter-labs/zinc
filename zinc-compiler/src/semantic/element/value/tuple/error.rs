@@ -2,10 +2,7 @@
 //! The semantic analyzer array value element error.
 //!
 
-use failure::Fail;
-
-#[derive(Debug, Fail, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
-    #[fail(display = "tuple field {} does not exist in '{}'", _0, _1)]
     FieldDoesNotExist(usize, String),
 }

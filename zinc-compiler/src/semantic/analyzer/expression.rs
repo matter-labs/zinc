@@ -20,11 +20,13 @@ use crate::semantic::analyzer::error::Error;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
 use crate::semantic::analyzer::translation_hint::TranslationHint;
 use crate::semantic::bytecode::Bytecode;
+use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::place::Place;
+use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionError;
 use crate::semantic::element::r#type::function::builtin::Function as BuiltInFunctionType;
 use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::function::stdlib::Function as StandardLibraryFunctionType;
@@ -1017,14 +1019,14 @@ impl Analyzer {
                 item => {
                     return Err(Error::Function(
                         element.location,
-                        FunctionError::NonCallableObject(item.to_string()),
+                        FunctionError::NonCallable(item.to_string()),
                     ));
                 }
             },
             operand => {
                 return Err(Error::Function(
                     element.location,
-                    FunctionError::NonCallableObject(operand.to_string()),
+                    FunctionError::NonCallable(operand.to_string()),
                 ));
             }
         };
@@ -1039,7 +1041,9 @@ impl Analyzer {
                 if self.is_next_call_builtin {
                     return Err(Error::Function(
                         element.location,
-                        FunctionError::BuiltInUnknown(function.identifier().to_owned()),
+                        FunctionError::BuiltIn(BuiltInFunctionError::Unknown(
+                            function.identifier().to_owned(),
+                        )),
                     ));
                 }
 
@@ -1067,7 +1071,9 @@ impl Analyzer {
                 if !self.is_next_call_builtin {
                     return Err(Error::Function(
                         element.location,
-                        FunctionError::BuiltInSpecifierMissing(function.identifier()),
+                        FunctionError::BuiltIn(BuiltInFunctionError::SpecifierMissing(
+                            function.identifier(),
+                        )),
                     ));
                 }
 
@@ -1107,7 +1113,9 @@ impl Analyzer {
                 if self.is_next_call_builtin {
                     return Err(Error::Function(
                         element.location,
-                        FunctionError::BuiltInUnknown(function.identifier().to_owned()),
+                        FunctionError::BuiltIn(BuiltInFunctionError::Unknown(
+                            function.identifier().to_owned(),
+                        )),
                     ));
                 }
 
@@ -1198,8 +1206,12 @@ impl Analyzer {
     fn integer_literal(&mut self, literal: IntegerLiteral) -> Result<Element, Error> {
         let location = literal.location;
 
-        let integer = IntegerConstant::try_from(&literal)
-            .map_err(|error| Error::InferenceConstant(location, error))?;
+        let integer = IntegerConstant::try_from(&literal).map_err(|error| {
+            Error::Element(
+                location,
+                ElementError::Constant(ConstantError::Integer(error)),
+            )
+        })?;
         self.bytecode
             .borrow_mut()
             .push_instruction(integer.to_instruction(), location);
@@ -1214,9 +1226,19 @@ impl Analyzer {
     fn member_integer(&mut self, integer: MemberInteger) -> Result<Element, Error> {
         let location = integer.location;
         let integer = IntegerConstant::try_from(&integer.literal)
-            .map_err(|error| Error::InferenceConstant(location, error))?
+            .map_err(|error| {
+                Error::Element(
+                    location,
+                    ElementError::Constant(ConstantError::Integer(error)),
+                )
+            })?
             .to_usize()
-            .map_err(|error| Error::InferenceConstant(location, error))?;
+            .map_err(|error| {
+                Error::Element(
+                    location,
+                    ElementError::Constant(ConstantError::Integer(error)),
+                )
+            })?;
         Ok(Element::MemberInteger(integer))
     }
 
@@ -1375,8 +1397,12 @@ impl Analyzer {
                 MatchPatternVariant::IntegerLiteral(integer) => {
                     let location = integer.location;
 
-                    let constant = IntegerConstant::try_from(&integer)
-                        .map_err(|error| Error::InferenceConstant(location, error))?;
+                    let constant = IntegerConstant::try_from(&integer).map_err(|error| {
+                        Error::Element(
+                            location,
+                            ElementError::Constant(ConstantError::Integer(error)),
+                        )
+                    })?;
                     let pattern_type = constant.r#type();
                     if pattern_type != scrutinee_type {
                         return Err(Error::MatchBranchPatternInvalidType(
@@ -1572,9 +1598,14 @@ impl Analyzer {
                     let size = match Self::new_without_bytecode(self.scope())
                         .expression(size_expression.to_owned(), TranslationHint::ValueExpression)?
                     {
-                        Element::Constant(Constant::Integer(integer)) => integer
-                            .to_usize()
-                            .map_err(|error| Error::InferenceConstant(size_location, error))?,
+                        Element::Constant(Constant::Integer(integer)) => {
+                            integer.to_usize().map_err(|error| {
+                                Error::Element(
+                                    size_location,
+                                    ElementError::Constant(ConstantError::Integer(error)),
+                                )
+                            })?
+                        }
                         element => {
                             return Err(Error::ConstantExpressionHasNonConstantElement(
                                 size_location,
@@ -1641,53 +1672,71 @@ impl Analyzer {
             Vec::with_capacity(structure.fields.len()),
         );
         for (index, (identifier, expression)) in structure.fields.into_iter().enumerate() {
-            let location = identifier.location;
+            let identifier_location = identifier.location;
+            let expression_location = expression.location;
             let element = self.expression(expression, TranslationHint::ValueExpression)?;
             let element_type = Type::from_element(&element, self.scope())?;
 
             if result.contains_key(&identifier.name) {
-                return Err(Error::LiteralStructure(
-                    location,
-                    StructureValueError::FieldAlreadyExists(identifier.name, structure_identifier),
+                return Err(Error::Element(
+                    identifier_location,
+                    ElementError::Value(ValueError::Structure(
+                        StructureValueError::FieldAlreadyExists(
+                            identifier.name,
+                            structure_identifier,
+                        ),
+                    )),
                 ));
             }
 
             match expected_fields.get(index) {
                 Some((field_name, field_type)) => {
                     if field_type != &element_type {
-                        return Err(Error::LiteralStructure(
-                            location,
-                            StructureValueError::FieldInvalidType(
-                                identifier.name,
-                                field_type.to_string(),
-                                element_type.to_string(),
-                            ),
+                        return Err(Error::Element(
+                            expression_location,
+                            ElementError::Value(ValueError::Structure(
+                                StructureValueError::FieldInvalidType(
+                                    identifier.name,
+                                    structure_identifier,
+                                    field_type.to_string(),
+                                    element_type.to_string(),
+                                ),
+                            )),
                         ));
                     }
                     if field_name != &identifier.name {
-                        return Err(Error::LiteralStructure(
-                            location,
-                            StructureValueError::FieldDoesNotExist(
-                                identifier.name,
-                                structure_identifier,
-                            ),
+                        return Err(Error::Element(
+                            identifier_location,
+                            ElementError::Value(ValueError::Structure(
+                                StructureValueError::FieldDoesNotExist(
+                                    identifier.name,
+                                    structure_identifier,
+                                ),
+                            )),
                         ));
                     }
                 }
                 None => {
-                    return Err(Error::LiteralStructure(
-                        location,
-                        StructureValueError::FieldDoesNotExist(
-                            identifier.name,
-                            structure_identifier,
-                        ),
-                    ))
+                    return Err(Error::Element(
+                        identifier_location,
+                        ElementError::Value(ValueError::Structure(
+                            StructureValueError::FieldDoesNotExist(
+                                identifier.name,
+                                structure_identifier,
+                            ),
+                        )),
+                    ));
                 }
             }
 
             result
                 .push(identifier.name.clone(), element_type)
-                .map_err(|error| Error::LiteralStructure(location, error))?;
+                .map_err(|error| {
+                    Error::Element(
+                        identifier_location,
+                        ElementError::Value(ValueError::Structure(error)),
+                    )
+                })?;
         }
 
         Ok(Element::Value(Value::Structure(result)))

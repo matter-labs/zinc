@@ -109,8 +109,8 @@ impl Parser {
                 .map(|(statement, next)| (ModuleLocalStatement::Impl(statement), next)),
             Token {
                 lexeme: Lexeme::Symbol(Symbol::Semicolon),
-                ..
-            } => Ok((ModuleLocalStatement::Empty, None)),
+                location,
+            } => Ok((ModuleLocalStatement::Empty(location), None)),
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::expected_one_of(
                 location,
                 vec![

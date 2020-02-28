@@ -1,15 +1,10 @@
 //!
-//! Casting error.
+//! The type caster error.
 //!
 
-use failure::Fail;
-
-#[derive(Debug, Fail, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
-    #[fail(display = "cannot cast from '{}' to '{}'", _0, _1)]
     FromInvalidType(String, String),
-    #[fail(display = "casting to invalid type: from '{}' to '{}'", _0, _1)]
     ToInvalidType(String, String),
-    #[fail(display = "casting to lesser bitlength: from {} to {}", _0, _1)]
     ToLesserBitlength(usize, usize),
 }

@@ -24,13 +24,13 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 26),
         ElementError::Constant(
-            ConstantError::OperatorNotEqualsFirstOperandExpectedPrimitiveType(Constant::String(
-                "string".to_owned(),
-            )),
+            ConstantError::OperatorNotEqualsFirstOperandExpectedPrimitiveType(
+                Constant::String("string".to_owned()).to_string(),
+            ),
         ),
     )));
 
-    let result = super::get_binary_result(input);
+    let result = super::compile_entry_point(input);
 
     assert_eq!(result, expected);
 }

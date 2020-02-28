@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer standard library `std::crypto::schnorr::verify` function type element.
+//! The semantic analyzer standard library `std::crypto::schnorr::verify` function element.
 //!
 
 use std::fmt;

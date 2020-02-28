@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer standard library `std::array::pad` function type element.
+//! The semantic analyzer standard library `std::array::pad` function element.
 //!
 
 use std::fmt;
@@ -47,9 +47,7 @@ impl Function {
                     integer
                         .to_usize()
                         .map(Option::Some)
-                        .map_err(|error| {
-                            StdlibError::ArrayNewLengthInvalid(integer.to_string(), error)
-                        })
+                        .map_err(|_error| StdlibError::ArrayNewLengthInvalid(integer.to_string()))
                         .map_err(Error::StandardLibrary)?,
                 ),
                 Element::Constant(constant) => (constant.r#type(), true, None),
@@ -104,6 +102,7 @@ impl Function {
                 return Err(Error::ArgumentConstantness(
                     self.identifier.to_owned(),
                     Self::ARGUMENT_INDEX_NEW_LENGTH + 1,
+                    "new_length".to_owned(),
                     r#type.to_string(),
                 ))
             }

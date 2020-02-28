@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer standard library `std::crypto::pedersen` function type element.
+//! The semantic analyzer standard library `std::crypto::pedersen` function element.
 //!
 
 use std::fmt;

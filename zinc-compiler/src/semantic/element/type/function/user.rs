@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer user-defined function type element.
+//! The semantic analyzer user-defined function element.
 //!
 
 use std::fmt;

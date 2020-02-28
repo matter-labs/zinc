@@ -23,7 +23,7 @@ fn main() {
         Some(Location::new(3, 9)),
     )));
 
-    let result = super::get_binary_result(input);
+    let result = super::compile_entry_point(input);
 
     assert_eq!(result, expected);
 }

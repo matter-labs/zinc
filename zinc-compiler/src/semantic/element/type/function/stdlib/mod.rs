@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer standard library function type element.
+//! The semantic analyzer standard library function element.
 //!
 
 mod tests;

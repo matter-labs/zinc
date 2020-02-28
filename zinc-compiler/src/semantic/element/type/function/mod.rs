@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer function type element.
+//! The semantic analyzer function element.
 //!
 
 mod tests;

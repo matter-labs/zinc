@@ -24,13 +24,13 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 23),
-        ElementError::Place(PlaceError::FieldDoesNotExistInTuple(
+        ElementError::Place(PlaceError::TupleFieldDoesNotExist(
             5,
             Type::tuple(vec![Type::integer_unsigned(crate::BITLENGTH_BYTE); 3]).to_string(),
         )),
     )));
 
-    let result = super::get_binary_result(input);
+    let result = super::compile_entry_point(input);
 
     assert_eq!(result, expected);
 }

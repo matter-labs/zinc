@@ -27,7 +27,7 @@ fn main() {
         ElementError::OperatorIndexSecondOperandExpectedEvaluable("field".to_string()),
     )));
 
-    let result = super::get_binary_result(input);
+    let result = super::compile_entry_point(input);
 
     assert_eq!(result, expected);
 }

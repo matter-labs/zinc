@@ -1,12 +1,11 @@
 //!
-//! The built-in function type tests.
+//! The built-in function tests.
 //!
 
 #![cfg(test)]
 
 use crate::error::Error;
 use crate::lexical::Location;
-use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionError;
 use crate::semantic::Error as SemanticError;
@@ -26,7 +25,7 @@ fn main() -> [u8; 4] {
         )),
     )));
 
-    let result = crate::semantic::tests::get_binary_result(input);
+    let result = crate::semantic::tests::compile_entry_point(input);
 
     assert_eq!(result, expected);
 }
@@ -46,7 +45,7 @@ fn main() -> [u8; 4] {
         )),
     )));
 
-    let result = crate::semantic::tests::get_binary_result(input);
+    let result = crate::semantic::tests::compile_entry_point(input);
 
     assert_eq!(result, expected);
 }
@@ -63,14 +62,10 @@ fn main() -> [u8; 4] {
         Location::new(3, 25),
         FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayNewLengthInvalid(
             "18446744073709551616: u72".to_owned(),
-            IntegerConstantError::IntegerTooLarge(
-                "18446744073709551616".to_owned(),
-                crate::BITLENGTH_INDEX,
-            ),
         )),
     )));
 
-    let result = crate::semantic::tests::get_binary_result(input);
+    let result = crate::semantic::tests::compile_entry_point(input);
 
     assert_eq!(result, expected);
 }

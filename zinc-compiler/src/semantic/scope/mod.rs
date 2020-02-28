@@ -2,6 +2,8 @@
 //! The semantic analyzer scope.
 //!
 
+mod tests;
+
 pub mod error;
 pub mod item;
 

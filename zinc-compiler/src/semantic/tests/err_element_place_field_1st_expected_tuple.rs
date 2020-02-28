@@ -47,7 +47,7 @@ fn main() {
     unsafe {
         crate::semantic::element::r#type::UNIQUE_ID = 0;
     }
-    let result = super::get_binary_result(input);
+    let result = super::compile_entry_point(input);
 
     assert_eq!(result, expected);
 }

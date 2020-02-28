@@ -9,9 +9,9 @@ pub mod element;
 pub mod scope;
 pub mod tests;
 
-pub use self::analyzer::binary::Analyzer as BinaryAnalyzer;
+pub use self::analyzer::entry_point::Analyzer as EntryPointAnalyzer;
 pub use self::analyzer::error::Error;
-pub use self::analyzer::library::Analyzer as LibraryAnalyzer;
+pub use self::analyzer::module::Analyzer as ModuleAnalyzer;
 pub use self::bytecode::Bytecode;
 pub use self::scope::Scope;
 

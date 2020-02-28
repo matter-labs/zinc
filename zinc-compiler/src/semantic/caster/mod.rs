@@ -1,6 +1,8 @@
 //!
-//! Casting.
+//! The type caster.
 //!
+
+mod tests;
 
 pub mod error;
 

@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer standard library `std::crypto::sha256` function type element.
+//! The semantic analyzer standard library `std::crypto::sha256` function element.
 //!
 
 use std::fmt;

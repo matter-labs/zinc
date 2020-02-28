@@ -29,13 +29,13 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(10, 21),
-        ElementError::Place(PlaceError::FieldDoesNotExistInStructure(
+        ElementError::Place(PlaceError::StructureFieldDoesNotExist(
             "b".to_owned(),
             "Data".to_owned(),
         )),
     )));
 
-    let result = super::get_binary_result(input);
+    let result = super::compile_entry_point(input);
 
     assert_eq!(result, expected);
 }

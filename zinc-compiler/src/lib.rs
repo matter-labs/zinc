@@ -13,9 +13,9 @@ pub mod semantic;
 pub mod syntax;
 
 pub use self::error::Error;
-pub use self::semantic::BinaryAnalyzer;
 pub use self::semantic::Bytecode;
-pub use self::semantic::LibraryAnalyzer;
+pub use self::semantic::EntryPointAnalyzer;
+pub use self::semantic::ModuleAnalyzer;
 pub use self::semantic::Scope;
 pub use self::syntax::Parser;
 pub use self::syntax::Tree;
@@ -69,7 +69,7 @@ pub fn compile_entry(
         .parse(&code, Some(next_file_id))
         .map_err(|error| error.format(&lines))?;
 
-    BinaryAnalyzer::new(bytecode)
+    EntryPointAnalyzer::new(bytecode)
         .compile(syntax_tree, dependencies)
         .map_err(|error| error.format(&lines))
 }
@@ -91,7 +91,7 @@ pub fn compile_module(
         .parse(&code, Some(next_file_id))
         .map_err(|error| error.format(&lines))?;
 
-    LibraryAnalyzer::new(bytecode)
+    ModuleAnalyzer::new(bytecode)
         .compile(syntax_tree)
         .map_err(|error| error.format(&lines))
 }
@@ -104,7 +104,7 @@ pub fn compile_test(code: &str) -> Result<Bytecode, String> {
         .map_err(|error| error.format(&lines))?;
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));
 
-    BinaryAnalyzer::new(bytecode.clone())
+    EntryPointAnalyzer::new(bytecode.clone())
         .compile(syntax_tree, HashMap::new())
         .map_err(|error| error.format(&lines))?;
 

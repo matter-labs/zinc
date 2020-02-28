@@ -2,6 +2,8 @@
 //! The semantic analyzer array element value.
 //!
 
+mod tests;
+
 pub mod error;
 
 use std::fmt;

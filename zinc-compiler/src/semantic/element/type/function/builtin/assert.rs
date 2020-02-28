@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer `assert!` built-in function type element.
+//! The semantic analyzer `assert!` built-in function element.
 //!
 
 use std::fmt;
@@ -82,6 +82,7 @@ impl Function {
                 return Err(Error::ArgumentConstantness(
                     self.identifier.to_owned(),
                     Self::ARGUMENT_INDEX_MESSAGE + 1,
+                    "message".to_owned(),
                     r#type.to_string(),
                 ))
             }

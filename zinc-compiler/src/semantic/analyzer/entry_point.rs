@@ -1,5 +1,5 @@
 //!
-//! The binary semantic analyzer.
+//! The entry point semantic analyzer.
 //!
 
 use std::cell::RefCell;
@@ -94,5 +94,26 @@ impl Analyzer {
             .last()
             .cloned()
             .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_SCOPE)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::semantic::Error as SemanticError;
+    use crate::Error;
+
+    #[test]
+    fn test() {
+        let input = r#"
+fn another() -> u8 {
+    42
+}
+"#;
+
+        let expected = Err(Error::Semantic(SemanticError::EntryPointMissing));
+
+        let result = crate::semantic::tests::compile_entry_point(input);
+
+        assert_eq!(result, expected);
     }
 }

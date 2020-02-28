@@ -407,7 +407,12 @@ impl TryFrom<Type> for Value {
                 structure.fields,
             )),
             Type::Enumeration { bitlength, .. } => Self::Integer(Integer::new(false, bitlength)),
-            r#type => return Err(Error::ConvertingFromType(r#type.to_string())),
+            r#type @ Type::String
+            | r#type @ Type::Range { .. }
+            | r#type @ Type::RangeInclusive { .. }
+            | r#type @ Type::Function(_) => {
+                return Err(Error::ConvertingFromType(r#type.to_string()))
+            }
         })
     }
 }

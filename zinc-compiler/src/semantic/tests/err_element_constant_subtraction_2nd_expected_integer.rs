@@ -24,11 +24,13 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 20),
         ElementError::Constant(
-            ConstantError::OperatorSubtractionSecondOperandExpectedInteger(Constant::Boolean(true)),
+            ConstantError::OperatorSubtractionSecondOperandExpectedInteger(
+                Constant::Boolean(true).to_string(),
+            ),
         ),
     )));
 
-    let result = super::get_binary_result(input);
+    let result = super::compile_entry_point(input);
 
     assert_eq!(result, expected);
 }

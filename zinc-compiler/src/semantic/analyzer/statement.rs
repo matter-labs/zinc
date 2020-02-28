@@ -20,9 +20,11 @@ use crate::semantic::analyzer::error::Error;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::translation_hint::TranslationHint;
 use crate::semantic::bytecode::Bytecode;
+use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
+use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::function::user::Function as UserDefinedFunctionType;
 use crate::semantic::element::r#type::function::Function as FunctionType;
@@ -84,7 +86,7 @@ impl Analyzer {
             ModuleLocalStatement::Mod(statement) => self.mod_statement(statement),
             ModuleLocalStatement::Use(statement) => self.use_statement(statement),
             ModuleLocalStatement::Impl(statement) => self.impl_statement(statement),
-            ModuleLocalStatement::Empty => Ok(()),
+            ModuleLocalStatement::Empty(_location) => Ok(()),
         }
     }
 
@@ -101,7 +103,7 @@ impl Analyzer {
                     .expression(expression, TranslationHint::ValueExpression)?;
                 Ok(())
             }
-            FunctionLocalStatement::Empty => Ok(()),
+            FunctionLocalStatement::Empty(_location) => Ok(()),
         }
     }
 
@@ -112,7 +114,7 @@ impl Analyzer {
         match statement {
             ImplementationLocalStatement::Const(statement) => self.const_statement(statement),
             ImplementationLocalStatement::Fn(statement) => self.fn_statement(statement),
-            ImplementationLocalStatement::Empty => Ok(()),
+            ImplementationLocalStatement::Empty(_location) => Ok(()),
         }
     }
 
@@ -246,7 +248,10 @@ impl Analyzer {
                 Type::from_type_variant(&argument_binding.r#type.variant, self.scope())?,
             ));
         }
-        let return_type = Type::from_type_variant(&statement.return_type.variant, self.scope())?;
+        let expected_type = match statement.return_type {
+            Some(ref r#type) => Type::from_type_variant(&r#type.variant, self.scope())?,
+            None => Type::unit(),
+        };
 
         let unique_id = unsafe {
             UNIQUE_ID += 1;
@@ -256,7 +261,7 @@ impl Analyzer {
             statement.identifier.name.clone(),
             unique_id,
             argument_bindings,
-            return_type,
+            expected_type.clone(),
         );
         let r#type = Type::Function(FunctionType::UserDefined(function_type));
 
@@ -290,27 +295,44 @@ impl Analyzer {
         }
 
         // compile the function block
+        let return_expression_location = match statement
+            .body
+            .expression
+            .as_ref()
+            .map(|expression| expression.location)
+        {
+            Some(location) => location,
+            None => statement
+                .body
+                .statements
+                .last()
+                .map(|statement| statement.location())
+                .unwrap_or(statement.location),
+        };
         let result = ExpressionAnalyzer::new(self.scope(), self.bytecode.clone())
             .block_expression(statement.body)?;
         self.pop_scope();
 
         // check the function return type to match the block result
         let result_type = Type::from_element(&result, self.scope())?;
-        let expected_type = Type::from_type_variant(&statement.return_type.variant, self.scope())?;
         if expected_type != result_type {
             return Err(Error::Function(
-                statement.return_type.location,
+                return_expression_location,
                 FunctionError::ReturnType(
                     statement.identifier.name,
                     expected_type.to_string(),
                     result_type.to_string(),
+                    statement
+                        .return_type
+                        .map(|r#type| r#type.location)
+                        .unwrap_or(statement.location),
                 ),
             ));
         }
 
         self.bytecode.borrow_mut().push_instruction(
             Instruction::Return(zinc_bytecode::Return::new(expected_type.size())),
-            statement.return_type.location,
+            return_expression_location,
         );
 
         Ok(())
@@ -505,12 +527,14 @@ impl Analyzer {
         };
 
         let iterations_count = iterations_count.to_usize().ok_or_else(|| {
-            Error::InferenceConstant(
+            Error::Element(
                 location,
-                IntegerConstantError::IntegerTooLarge(
-                    iterations_count.to_string(),
-                    crate::BITLENGTH_INDEX,
-                ),
+                ElementError::Constant(ConstantError::Integer(
+                    IntegerConstantError::IntegerTooLarge(
+                        iterations_count.to_string(),
+                        crate::BITLENGTH_INDEX,
+                    ),
+                )),
             )
         })?;
         self.bytecode.borrow_mut().push_instruction(

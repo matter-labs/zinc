@@ -4,9 +4,6 @@
 
 #![allow(dead_code)]
 
-mod err_caster_from_invalid_type;
-mod err_caster_to_invalid_type;
-mod err_caster_to_lesser_bitlength;
 mod err_conditional_branch_types_mismatch;
 mod err_conditional_expected_boolean_condition;
 mod err_const_expression_has_non_const_element;
@@ -33,6 +30,9 @@ mod err_element_constant_greater_1st_expected_integer;
 mod err_element_constant_greater_2nd_expected_integer;
 mod err_element_constant_greater_equals_1st_expected_integer;
 mod err_element_constant_greater_equals_2nd_expected_integer;
+mod err_element_constant_integer_inference_constant;
+mod err_element_constant_integer_inference_constant_loop_bounds;
+mod err_element_constant_integer_inference_constant_pattern_match;
 mod err_element_constant_integer_overflow_addition_signed_negative;
 mod err_element_constant_integer_overflow_addition_signed_positive;
 mod err_element_constant_integer_overflow_addition_unsigned_positive;
@@ -128,11 +128,6 @@ mod err_element_value_addition_1st_expected_integer;
 mod err_element_value_addition_2nd_expected_integer;
 mod err_element_value_and_1st_expected_boolean;
 mod err_element_value_and_2nd_expected_boolean;
-mod err_element_value_array_pushing_invalid_type;
-mod err_element_value_array_slice_end_lesser_than_start;
-mod err_element_value_array_slice_end_out_of_range;
-mod err_element_value_array_slice_start_out_of_range;
-mod err_element_value_casting_let;
 mod err_element_value_division_1st_expected_integer;
 mod err_element_value_division_2nd_expected_integer;
 mod err_element_value_equals_1st_expected_primitive;
@@ -174,22 +169,13 @@ mod err_element_value_or_1st_expected_boolean;
 mod err_element_value_or_2nd_expected_boolean;
 mod err_element_value_remainder_1st_expected_integer;
 mod err_element_value_remainder_2nd_expected_integer;
-mod err_element_value_structure_field_already_exists;
-mod err_element_value_structure_field_does_not_exist;
 mod err_element_value_subtraction_1st_expected_integer;
 mod err_element_value_subtraction_2nd_expected_integer;
-mod err_element_value_tuple_field_does_not_exist;
 mod err_element_value_xor_1st_expected_boolean;
 mod err_element_value_xor_2nd_expected_boolean;
 mod err_element_xor_1st_expected_evaluable;
 mod err_element_xor_2nd_expected_evaluable;
-mod err_entry_point_missing;
 mod err_impl_expected_structure_or_enumeration;
-mod err_inference_constant;
-mod err_inference_constant_loop_bounds;
-mod err_inference_constant_pattern_match;
-mod err_literal_structure_field_does_not_exist;
-mod err_literal_structure_field_invalid_type;
 mod err_loop_bounds_expected_constant_range_expression;
 mod err_loop_while_expected_boolean_condition;
 mod err_match_branch_expression_invalid_type;
@@ -200,10 +186,6 @@ mod err_match_not_exhausted;
 mod err_module_not_found;
 mod err_mutating_immutable_memory;
 mod err_mutating_with_different_type;
-mod err_scope_item_is_not_namespace;
-mod err_scope_item_redeclared;
-mod err_scope_item_undeclared;
-mod err_scope_item_undeclared_enum_variant;
 mod err_type_alias_does_not_point_to_structure;
 mod err_type_alias_does_not_point_to_type;
 mod err_use_expected_path;
@@ -214,10 +196,10 @@ use std::rc::Rc;
 
 use zinc_bytecode::Instruction;
 
-use crate::BinaryAnalyzer;
 use crate::Bytecode;
+use crate::EntryPointAnalyzer;
 use crate::Error;
-use crate::LibraryAnalyzer;
+use crate::ModuleAnalyzer;
 use crate::Parser;
 use crate::Scope;
 
@@ -225,8 +207,8 @@ static PANIC_SYNTAX_ERROR: &str = "Syntax errors must be eliminated at this poin
 static PANIC_THE_ONLY_REFERENCE: &str =
     "The last shared reference is always unwrapped successfully";
 
-pub fn get_binary_result(input: &str) -> Result<(), Error> {
-    BinaryAnalyzer::default().compile(
+pub fn compile_entry_point(input: &str) -> Result<(), Error> {
+    EntryPointAnalyzer::default().compile(
         Parser::default()
             .parse(input, None)
             .expect(PANIC_SYNTAX_ERROR),
@@ -234,11 +216,11 @@ pub fn get_binary_result(input: &str) -> Result<(), Error> {
     )
 }
 
-pub(self) fn get_dependency(
+pub(self) fn compile_module(
     input: &str,
     bytecode: Rc<RefCell<Bytecode>>,
 ) -> Result<Rc<RefCell<Scope>>, Error> {
-    LibraryAnalyzer::new(bytecode).compile(
+    ModuleAnalyzer::new(bytecode).compile(
         Parser::default()
             .parse(input, None)
             .expect(PANIC_SYNTAX_ERROR),
@@ -258,7 +240,7 @@ pub(self) fn get_instructions_with_dependencies(
     bytecode: Rc<RefCell<Bytecode>>,
     dependencies: HashMap<String, Rc<RefCell<Scope>>>,
 ) -> Result<Vec<Instruction>, Error> {
-    BinaryAnalyzer::new(bytecode.clone()).compile(
+    EntryPointAnalyzer::new(bytecode.clone()).compile(
         Parser::default()
             .parse(input, None)
             .expect(PANIC_SYNTAX_ERROR),

@@ -23,13 +23,13 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 22),
-        ElementError::Place(PlaceError::IndexSliceEndLesserThanStart(
+        ElementError::Place(PlaceError::ArraySliceEndLesserThanStart(
             "1".to_owned(),
             "2".to_owned(),
         )),
     )));
 
-    let result = super::get_binary_result(input);
+    let result = super::compile_entry_point(input);
 
     assert_eq!(result, expected);
 }
