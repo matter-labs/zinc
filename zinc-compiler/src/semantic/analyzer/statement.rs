@@ -29,7 +29,7 @@ use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::function::user::Function as UserDefinedFunctionType;
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::r#type::UNIQUE_ID;
+use crate::semantic::element::r#type::TYPE_INDEX;
 use crate::semantic::element::Element;
 use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::item::Variant as ScopeItem;
@@ -198,16 +198,18 @@ impl Analyzer {
             ));
         }
 
-        unsafe {
-            UNIQUE_ID += 1;
-        }
+        let unique_id = TYPE_INDEX.read().expect(crate::PANIC_MUTEX_SYNC).len();
         let r#type = Type::structure(
             statement.identifier.name.clone(),
-            unsafe { UNIQUE_ID },
+            unique_id,
             fields,
             Some(self.scope()),
         );
 
+        TYPE_INDEX
+            .write()
+            .expect(crate::PANIC_MUTEX_SYNC)
+            .insert(unique_id, r#type.to_string());
         Scope::declare_type(self.scope(), statement.identifier, r#type)
             .map_err(|error| Error::Scope(location, error))?;
 
@@ -217,16 +219,18 @@ impl Analyzer {
     fn enum_statement(&mut self, statement: EnumStatement) -> Result<(), Error> {
         let location = statement.location;
 
-        unsafe {
-            UNIQUE_ID += 1;
-        }
+        let unique_id = TYPE_INDEX.read().expect(crate::PANIC_MUTEX_SYNC).len();
         let r#type = Type::enumeration(
             statement.identifier.clone(),
-            unsafe { UNIQUE_ID },
+            unique_id,
             statement.variants,
             Some(self.scope()),
         )?;
 
+        TYPE_INDEX
+            .write()
+            .expect(crate::PANIC_MUTEX_SYNC)
+            .insert(unique_id, r#type.to_string());
         Scope::declare_type(self.scope(), statement.identifier, r#type)
             .map_err(|error| Error::Scope(location, error))?;
 
@@ -253,10 +257,7 @@ impl Analyzer {
             None => Type::unit(),
         };
 
-        let unique_id = unsafe {
-            UNIQUE_ID += 1;
-            UNIQUE_ID
-        };
+        let unique_id = TYPE_INDEX.read().expect(crate::PANIC_MUTEX_SYNC).len();
         let function_type = UserDefinedFunctionType::new(
             statement.identifier.name.clone(),
             unique_id,
@@ -265,6 +266,10 @@ impl Analyzer {
         );
         let r#type = Type::Function(FunctionType::UserDefined(function_type));
 
+        TYPE_INDEX
+            .write()
+            .expect(crate::PANIC_MUTEX_SYNC)
+            .insert(unique_id, r#type.to_string());
         Scope::declare_type(self.scope(), statement.identifier.clone(), r#type)
             .map_err(|error| Error::Scope(location, error))?;
 

@@ -10,6 +10,7 @@ use crate::lexical::Error as LexicalError;
 use crate::lexical::Location;
 use crate::semantic::caster::error::Error as CasterError;
 use crate::semantic::element::constant::error::Error as ConstantError;
+use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::place::error::Error as PlaceError;
 use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionError;
@@ -17,6 +18,7 @@ use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionError;
 use crate::semantic::element::value::array::error::Error as ArrayValueError;
 use crate::semantic::element::value::error::Error as ValueError;
+use crate::semantic::element::value::integer::error::Error as IntegerValueError;
 use crate::semantic::element::value::structure::error::Error as StructureValueError;
 use crate::semantic::element::value::tuple::error::Error as TupleValueError;
 use crate::semantic::scope::error::Error as ScopeError;
@@ -977,6 +979,283 @@ impl Error {
                     Some("strings, ranges, and functions cannot be used as values or stored as variables"),
                 )
             }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchEquals(first, second))))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchEquals(first, second))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the equals operator `==` operator expected two integers of the same type, found `{}` and `{}`",
+                        first, second,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchNotEquals(first, second))))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchNotEquals(first, second))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the not equals operator `!=` operator expected two integers of the same type, found `{}` and `{}`",
+                        first, second,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchGreaterEquals(first, second))))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchGreaterEquals(first, second))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the greater equals operator `>=` operator expected two integers of the same type, found `{}` and `{}`",
+                        first, second,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchLesserEquals(first, second))))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchLesserEquals(first, second))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the lesser equals operator `<=` operator expected two integers of the same type, found `{}` and `{}`",
+                        first, second,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchGreater(first, second))))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchGreater(first, second))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the greater operator `>` operator expected two integers of the same type, found `{}` and `{}`",
+                        first, second,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchLesser(first, second))))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchLesser(first, second))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the lesser operator `<` operator expected two integers of the same type, found `{}` and `{}`",
+                        first, second,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchAddition(first, second))))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchAddition(first, second))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the addition operator `+` operator expected two integers of the same type, found `{}` and `{}`",
+                        first, second,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchSubtraction(first, second))))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchSubtraction(first, second))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the subtraction operator `-` operator expected two integers of the same type, found `{}` and `{}`",
+                        first, second,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchMultiplication(first, second))))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchMultiplication(first, second))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the multiplication operator `*` operator expected two integers of the same type, found `{}` and `{}`",
+                        first, second,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchDivision(first, second))))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchDivision(first, second))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the division operator `/` operator expected two integers of the same type, found `{}` and `{}`",
+                        first, second,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchRemainder(first, second))))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchRemainder(first, second))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the remainder operator `%` operator expected two integers of the same type, found `{}` and `{}`",
+                        first, second,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowAddition(value, r#type))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the operator addition `+` overflow, as the value `{}` cannot be represeneted by type `{}`",
+                        value, r#type,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowSubtraction(value, r#type))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the operator subtraction `-` overflow, as the value `{}` cannot be represeneted by type `{}`",
+                        value, r#type,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowMultiplication(value, r#type))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the operator multiplication `*` overflow, as the value `{}` cannot be represeneted by type `{}`",
+                        value, r#type,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowDivision(value, r#type))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the operator division `/` overflow, as the value `{}` cannot be represeneted by type `{}`",
+                        value, r#type,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowRemainder(value, r#type))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the operator remainder `%` overflow, as the value `{}` cannot be represeneted by type `{}`",
+                        value, r#type,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowCasting(value, r#type))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the operator casting `as` overflow, as the value `{}` cannot be represeneted by type `{}`",
+                        value, r#type,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowNegation(value, r#type))))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the operator negation `-` overflow, as the value `{}` cannot be represeneted by type `{}`",
+                        value, r#type,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::ForbiddenFieldRemainder)))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::ForbiddenFieldRemainder)))) => {
+                Self::format_line(
+                    context,
+                    "the remainder operator `%` is temporarily forbidden for the `field` type",
+                    location,
+                    Some("Will be fixed soon!"),
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::ForbiddenFieldNegation)))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::ForbiddenFieldNegation)))) => {
+                Self::format_line(
+                    context,
+                    "the `field` type values cannot be negated",
+                    location,
+                    Some("`field` type values cannot be negative"),
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::ZeroDivision)))) => {
+                Self::format_line(
+                    context,
+                    "division by zero",
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::ZeroRemainder)))) => {
+                Self::format_line(
+                    context,
+                    "remainder from division by zero",
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::IntegerTooLarge(value, bitlength))))) => {
+                Self::format_line(
+                    context,
+                    format!("integer `{}` is larger than `{}` bits", value, bitlength).as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::UnsignedNegative(value, r#type))))) => {
+                Self::format_line(
+                    context,
+                    format!("found a negative value `{}` of unsigned type `{}`", value, r#type).as_str(),
+                    location,
+                    None,
+                )
+            }
 
             Self::Semantic(SemanticError::Scope(location, ScopeError::ItemRedeclared(item, reference))) => {
                 Self::format_line_with_reference(
@@ -1153,7 +1432,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "new array length '{}' cannot act as an index",
+                        "new array length {} cannot act as an index",
                         value,
                     )
                         .as_str(),
@@ -1271,7 +1550,7 @@ impl Error {
                     )
                         .as_str(),
                     location,
-                    Some(format!("create a file called `{}.zn` inside the 'src' directory", name).as_str()),
+                    Some(format!("create a file called `{}.zn` inside the `src` directory", name).as_str()),
                 )
             }
             Self::Semantic(SemanticError::UseExpectedPath(location, item)) => {
@@ -1330,9 +1609,6 @@ impl Error {
                     None,
                 )
             }
-
-            Self::Semantic(SemanticError::Element(_, ElementError::Value(ValueError::Integer(..)))) => unimplemented!(),
-            Self::Semantic(SemanticError::Element(_, ElementError::Constant(ConstantError::Integer(..)))) => unimplemented!(),
         }
     }
 

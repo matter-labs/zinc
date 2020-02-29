@@ -6,10 +6,13 @@ pub mod function;
 pub mod structure;
 
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::fmt;
 use std::rc::Rc;
+use std::sync::RwLock;
 
+use lazy_static::lazy_static;
 use num_bigint::BigInt;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
@@ -30,6 +33,10 @@ use crate::syntax::Variant;
 
 use self::function::Function;
 use self::structure::Structure;
+
+lazy_static! {
+    pub static ref TYPE_INDEX: RwLock<HashMap<usize, String>> = RwLock::new(HashMap::new());
+}
 
 #[derive(Debug, Clone)]
 pub enum Type {
@@ -65,8 +72,6 @@ pub enum Type {
     },
     Function(Function),
 }
-
-pub static mut UNIQUE_ID: usize = Scope::TYPE_ID_FIRST_AVAILABLE;
 
 impl Default for Type {
     fn default() -> Self {
