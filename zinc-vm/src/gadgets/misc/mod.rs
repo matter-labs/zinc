@@ -6,13 +6,10 @@ use ff::Field;
 use num_bigint::BigInt;
 
 use crate::core::RuntimeError;
-use crate::gadgets::utils::math;
-use crate::gadgets::{
-    utils, Gadget, IntegerType, Scalar, ScalarType, ScalarTypeExpectation, ScalarVariant,
-};
+use crate::gadgets::{utils, Gadget, IntegerType, Scalar, ScalarType, ScalarTypeExpectation, ScalarVariant};
 use crate::{gadgets, Engine};
-use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::Assignment;
+use franklin_crypto::circuit::expression::Expression;
 
 pub struct Gadgets<E, CS>
 where
@@ -253,21 +250,16 @@ where
         mem::drop(cs);
 
         let new_type = match element.get_type() {
+            t @ ScalarType::Boolean => return Err(RuntimeError::TypeError {
+                expected: "field or integer type".to_string(),
+                actual: t.to_string()
+            }),
             t @ ScalarType::Field => t,
-            _t @ ScalarType::Boolean => IntegerType {
-                signed: true,
-                length: 1,
-            }
-            .into(),
             t @ ScalarType::Integer(IntegerType { signed: true, .. }) => t,
-            ScalarType::Integer(IntegerType {
-                signed: false,
-                length,
-            }) => IntegerType {
+            ScalarType::Integer(IntegerType { signed: false, length, }) => IntegerType {
                 signed: true,
                 length: length + 1,
-            }
-            .into(),
+            }.into(),
         };
         Ok(Scalar::new_unchecked_variable(
             neg_value,
@@ -493,23 +485,30 @@ where
                 Ok(array[i].clone())
             }
             _ => {
-                let mut cs = self.cs_namespace();
-                let num_bits = math::log2ceil(array.len());
-                let bits_le = index
-                    .to_expression::<CS>()
-                    .into_bits_le_fixed(cs.namespace(|| "into_bits"), num_bits)?;
-                let bits_be = bits_le
-                    .into_iter()
-                    .rev()
-                    .enumerate()
-                    .map(|(i, bit)| {
-                        Scalar::from_boolean(cs.namespace(|| format!("bit {}", i)), bit)
-                    })
-                    .collect::<Result<Vec<Scalar<E>>, RuntimeError>>()?;
+                return Err(RuntimeError::WitnessArrayIndex);
+                // let mut cs = self.cs_namespace();
+                // let num_bits = math::log2ceil(array.len());
+                // let bits_le = index.to_expression::<CS>().into_bits_le_fixed(
+                //     cs.namespace(|| "into_bits"),
+                //     num_bits
+                // )?;
+                // let bits_be = bits_le
+                //     .into_iter()
+                //     .rev()
+                //     .enumerate()
+                //     .map(|(i, bit)| {
+                //         Scalar::from_boolean(cs.namespace(|| format!("bit {}", i)), bit)
+                //     })
+                //     .collect::<Result<Vec<Scalar<E>>, RuntimeError>>()?;
 
-                gadgets::recursive_select(cs.namespace(|| "recursive_select"), &bits_be, array)
+                // gadgets::recursive_select(
+                //     cs.namespace(|| "recursive_select"),
+                //     &bits_be,
+                //     array
+                // )
             }
         }
+
     }
 
     pub fn array_set(
@@ -533,15 +532,16 @@ where
                 new_array[i] = value;
             }
             _ => {
-                let mut new_array = Vec::new();
+                return Err(RuntimeError::WitnessArrayIndex);
+                // let mut new_array = Vec::new();
 
-                for (i, p) in array.iter().enumerate() {
-                    let curr_index = Scalar::new_constant_int(i, ScalarType::Field);
-                    let is_current_index = self.eq(curr_index, index.clone())?;
-                    let cs = self.cs_namespace();
-                    let value = gadgets::conditional_select(cs, &is_current_index, &value, p)?;
-                    new_array.push(value);
-                }
+                // for (i, p) in array.iter().enumerate() {
+                //     let curr_index = Scalar::new_constant_int(i, ScalarType::Field);
+                //     let is_current_index = self.eq(curr_index, index.clone())?;
+                //     let cs = self.cs_namespace();
+                //     let value = gadgets::conditional_select(cs, &is_current_index, &value, p)?;
+                //     new_array.push(value);
+                // }
             }
         };
 

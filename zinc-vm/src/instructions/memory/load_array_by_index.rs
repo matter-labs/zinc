@@ -1,7 +1,5 @@
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::gadgets;
-use crate::gadgets::Scalar;
 use crate::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::instructions::LoadSequenceByIndex;
@@ -23,13 +21,7 @@ where
         let condition = vm.condition_top()?;
         let mut values = Vec::with_capacity(self.value_len);
         for i in 0..self.value_len {
-            let cs = vm.constraint_system();
-            let offset = Scalar::new_constant_int(i, index.get_type());
-            let address = gadgets::add(cs.namespace(|| format!("add {}", i)), &index, &offset)?;
-            // mem::drop(cs);
-            let value =
-                vm.operations()
-                    .conditional_array_get(&condition, array.as_slice(), &address)?;
+            let value = vm.operations().conditional_array_get(&condition, &array[i..], &index)?;
             values.push(value);
         }
 

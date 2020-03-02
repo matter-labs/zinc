@@ -95,8 +95,8 @@ pub enum RuntimeError {
         scalar_type: ScalarType,
     },
 
-    #[fail(display = "feature is not implemented: {}", _0)]
-    Unimplemented(String),
+    #[fail(display = "using witness as array index is not yet supported")]
+    WitnessArrayIndex,
 }
 
 impl From<SynthesisError> for RuntimeError {
