@@ -163,12 +163,12 @@ mod tests {
 
         let mut stack = EvaluationStack::<Bn256>::new();
 
-        stack.push(Scalar::new_unchecked_constant(r_x, ScalarType::Field).into())?;
-        stack.push(Scalar::new_unchecked_constant(r_y, ScalarType::Field).into())?;
-        stack.push(Scalar::new_unchecked_constant(s, ScalarType::Field).into())?;
-        stack.push(Scalar::new_unchecked_constant(pk_x, ScalarType::Field).into())?;
-        stack.push(Scalar::new_unchecked_constant(pk_y, ScalarType::Field).into())?;
-        stack.push(Scalar::new_unchecked_constant(message, ScalarType::Field).into())?;
+        stack.push(Scalar::new_constant_fr(r_x, ScalarType::Field).into())?;
+        stack.push(Scalar::new_constant_fr(r_y, ScalarType::Field).into())?;
+        stack.push(Scalar::new_constant_fr(s, ScalarType::Field).into())?;
+        stack.push(Scalar::new_constant_fr(pk_x, ScalarType::Field).into())?;
+        stack.push(Scalar::new_constant_fr(pk_y, ScalarType::Field).into())?;
+        stack.push(Scalar::new_constant_fr(message, ScalarType::Field).into())?;
 
         let mut cs = TestConstraintSystem::new();
         VerifyEddsaSignature.execute(cs.namespace(|| "signature check"), &mut stack)?;

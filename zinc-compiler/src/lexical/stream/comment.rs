@@ -54,6 +54,7 @@ pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
                 Some('\n') => {
                     size += 1;
                     column += 1;
+                    lines += 1;
                     let comment = Comment::new(input[2..size - 1].to_owned());
                     return Ok((size, lines, column, comment));
                 }
