@@ -2,6 +2,8 @@
 //! The semantic analyzer scope.
 //!
 
+mod tests;
+
 pub mod error;
 pub mod item;
 
@@ -224,10 +226,18 @@ impl Scope {
         Rc::new(RefCell::new(Scope::new(Some(parent))))
     }
 
+    // TODO: refactor towards the structure hierarchy
+    pub const TYPE_ID_STD_CRYPTO_ECC_POINT: usize = 0;
+    pub const TYPE_ID_STD_CRYPTO_SCHNORR_PUBLIC_KEY: usize = 1;
+    pub const TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE: usize = 2;
+    pub const TYPE_ID_FIRST_AVAILABLE: usize = 3;
+
     fn default_items() -> HashMap<String, Item> {
         let mut std_crypto_scope = Scope::default();
         let std_crypto_sha256 = FunctionType::new_std(BuiltinIdentifier::CryptoSha256);
         let std_crypto_pedersen = FunctionType::new_std(BuiltinIdentifier::CryptoPedersen);
+        let std_crypto_schnorr_verify =
+            FunctionType::new_std(BuiltinIdentifier::CryptoSchnorrVerify);
         std_crypto_scope.items.insert(
             std_crypto_sha256.identifier(),
             Item::new(ItemVariant::Type(Type::Function(std_crypto_sha256)), None),
@@ -235,6 +245,21 @@ impl Scope {
         std_crypto_scope.items.insert(
             std_crypto_pedersen.identifier(),
             Item::new(ItemVariant::Type(Type::Function(std_crypto_pedersen)), None),
+        );
+        let mut std_crypto_schnorr = Scope::default();
+        std_crypto_schnorr.items.insert(
+            std_crypto_schnorr_verify.identifier(),
+            Item::new(
+                ItemVariant::Type(Type::Function(std_crypto_schnorr_verify)),
+                None,
+            ),
+        );
+        std_crypto_scope.items.insert(
+            "schnorr".to_owned(),
+            Item::new(
+                ItemVariant::Module(Rc::new(RefCell::new(std_crypto_schnorr))),
+                None,
+            ),
         );
 
         let mut std_convert_scope = Scope::default();

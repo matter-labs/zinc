@@ -13,6 +13,7 @@ pub struct EvaluationStack<E: Engine> {
 }
 
 impl<E: Engine> EvaluationStack<E> {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             stack: vec![vec![]],

@@ -1,6 +1,8 @@
 //!
-//! Casting.
+//! The type caster.
 //!
+
+mod tests;
 
 pub mod error;
 
@@ -24,7 +26,7 @@ impl Caster {
     /// `b1` and `b2` are bitlengths
     /// `x` and `y` are types
     ///
-    pub fn validate(from: &Type, to: &Type) -> Result<(), Error> {
+    pub fn cast(from: &Type, to: &Type) -> Result<(), Error> {
         match (from, to) {
             (Type::IntegerUnsigned { bitlength: b1 }, Type::IntegerUnsigned { bitlength: b2 }) => {
                 let (b1, b2) = (*b1, *b2);

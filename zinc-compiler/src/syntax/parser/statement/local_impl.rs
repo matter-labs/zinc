@@ -47,8 +47,8 @@ impl Parser {
                 .map(|(statement, next)| (ImplementationLocalStatement::Fn(statement), next)),
             Token {
                 lexeme: Lexeme::Symbol(Symbol::Semicolon),
-                ..
-            } => Ok((ImplementationLocalStatement::Empty, None)),
+                location,
+            } => Ok((ImplementationLocalStatement::Empty(location), None)),
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::expected_one_of(
                 location,
                 vec!["const", "fn"],

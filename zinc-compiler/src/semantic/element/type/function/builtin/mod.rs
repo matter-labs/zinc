@@ -1,6 +1,8 @@
 //!
-//! The semantic analyzer built-in function type element.
+//! The semantic analyzer built-in function element.
 //!
+
+mod tests;
 
 pub mod assert;
 pub mod debug;

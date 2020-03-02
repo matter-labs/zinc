@@ -2,6 +2,8 @@
 //! The semantic analyzer constant integer element.
 //!
 
+mod tests;
+
 pub mod error;
 
 use std::cmp;
@@ -410,9 +412,9 @@ impl Integer {
     }
 
     pub fn to_usize(&self) -> Result<usize, Error> {
-        self.value.to_usize().ok_or_else(|| {
-            Error::LiteralTooLargeForIndex(self.value.to_string(), crate::BITLENGTH_BYTE)
-        })
+        self.value
+            .to_usize()
+            .ok_or_else(|| Error::IntegerTooLarge(self.value.to_string(), crate::BITLENGTH_INDEX))
     }
 
     pub fn minimal_bitlength_literals(literals: &[&IntegerLiteral]) -> Result<usize, Error> {
@@ -437,7 +439,92 @@ impl Integer {
         Ok(max)
     }
 
-    fn minimal_bitlength(value: &BigInt, is_signed: bool) -> Result<usize, Error> {
+    ///
+    /// Infers the minimal bitlength enough to represent the value.
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    ///
+    /// use num_bigint::BigInt;
+    ///
+    /// use zinc_compiler::semantic::element::constant::integer::Integer;
+    ///
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("0").unwrap_or_default(), false),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 1),
+    /// );
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("255").unwrap_or_default(), false),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 1),
+    /// );
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("256").unwrap_or_default(), false),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 2),
+    /// );
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("65535").unwrap_or_default(), false),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 2),
+    /// );
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("65536").unwrap_or_default(), false),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 3),
+    /// );
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("4294967295").unwrap_or_default(), false),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 4),
+    /// );
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("4294967296").unwrap_or_default(), false),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 5),
+    /// );
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("18446744073709551615").unwrap_or_default(), false),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 8),
+    /// );
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("18446744073709551616").unwrap_or_default(), false),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 9),
+    /// );
+    ///
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("-128").unwrap_or_default(), true),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 1),
+    /// );
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("127").unwrap_or_default(), true),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 1),
+    /// );
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("128").unwrap_or_default(), true),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 2),
+    /// );
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("32767").unwrap_or_default(), true),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 2),
+    /// );
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("32768").unwrap_or_default(), true),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 3),
+    /// );
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("2147483647").unwrap_or_default(), true),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 4),
+    /// );
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("2147483648").unwrap_or_default(), true),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 5),
+    /// );
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("9223372036854775807").unwrap_or_default(), true),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 8),
+    /// );
+    /// assert_eq!(
+    ///     Integer::minimal_bitlength(&BigInt::from_str("9223372036854775808").unwrap_or_default(), true),
+    ///     Ok(zinc_compiler::BITLENGTH_BYTE * 9),
+    /// );
+    /// ```
+    ///
+    pub fn minimal_bitlength(value: &BigInt, is_signed: bool) -> Result<usize, Error> {
         let mut bitlength = crate::BITLENGTH_BYTE;
         let mut exponent = BigInt::from(1 << crate::BITLENGTH_BYTE);
 
@@ -456,7 +543,7 @@ impl Integer {
                 exponent <<= crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
                 bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
             } else if bitlength == crate::BITLENGTH_FIELD {
-                return Err(Error::IntegerTooLargeForField(
+                return Err(Error::IntegerTooLarge(
                     value.to_string(),
                     crate::BITLENGTH_FIELD,
                 ));

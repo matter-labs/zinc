@@ -7,8 +7,6 @@ use std::fmt;
 use std::ops::RangeInclusive;
 use std::str;
 
-use failure::Fail;
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Keyword {
     // declarations
@@ -59,17 +57,12 @@ impl Keyword {
     }
 }
 
-#[derive(Debug, Fail)]
+#[derive(Debug)]
 pub enum Error {
-    #[fail(display = "integer bitlength is empty")]
     IntegerBitlengthEmpty,
-    #[fail(display = "integer bitlength '{}' is not numeric", _0)]
     IntegerBitlengthNotNumeric(String),
-    #[fail(display = "integer bitlength {} is not multiple of {}", _0, _1)]
     IntegerBitlengthInvalidModulo(usize, usize),
-    #[fail(display = "integer bitlength {} is out of range {:?}", _0, _1)]
     IntegerBitlengthOutOfRange(usize, RangeInclusive<usize>),
-    #[fail(display = "unknown")]
     Unknown(String),
 }
 

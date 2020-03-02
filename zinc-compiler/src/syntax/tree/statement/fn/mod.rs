@@ -15,7 +15,7 @@ pub struct Statement {
     pub location: Location,
     pub identifier: Identifier,
     pub argument_bindings: Vec<BindingPattern>,
-    pub return_type: Type,
+    pub return_type: Option<Type>,
     pub body: BlockExpression,
 }
 
@@ -24,7 +24,7 @@ impl Statement {
         location: Location,
         identifier: Identifier,
         argument_bindings: Vec<BindingPattern>,
-        return_type: Type,
+        return_type: Option<Type>,
         body: BlockExpression,
     ) -> Self {
         Self {
