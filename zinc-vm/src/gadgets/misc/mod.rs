@@ -459,12 +459,15 @@ where
     /// This gadget only enforces 0 <= index < array.len() if condition is true
     pub fn conditional_array_get(
         &mut self,
-        condition: &Scalar<E>,
+        _condition: &Scalar<E>,
         array: &[Scalar<E>],
         index: &Scalar<E>,
     ) -> Result<Scalar<E>, RuntimeError> {
-        let zero = Scalar::new_constant_int(0, index.get_type());
-        let index = gadgets::conditional_select(self.cs_namespace(), condition, index, &zero)?;
+        if !index.is_constant() {
+            return Err(RuntimeError::WitnessArrayIndex);
+        }
+        // let zero = Scalar::new_constant_int(0, index.get_type());
+        // let index = gadgets::conditional_select(self.cs_namespace(), condition, index, &zero)?;
         self.enforcing_array_get(array, &index)
     }
 
@@ -493,7 +496,7 @@ where
                 Ok(array[i].clone())
             }
             _ => {
-                return Err(RuntimeError::WitnessArrayIndex);
+                Err(RuntimeError::WitnessArrayIndex)
                 // let mut cs = self.cs_namespace();
                 // let num_bits = math::log2ceil(array.len());
                 // let bits_le = index.to_expression::<CS>().into_bits_le_fixed(
