@@ -1,5 +1,3 @@
-#![feature(trait_alias)]
-
 pub mod constraint_systems;
 mod core;
 mod errors;

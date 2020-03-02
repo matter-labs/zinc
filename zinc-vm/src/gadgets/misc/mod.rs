@@ -6,11 +6,13 @@ use ff::Field;
 use num_bigint::BigInt;
 
 use crate::core::RuntimeError;
-use crate::gadgets::{utils, Gadget, IntegerType, Scalar, ScalarType, ScalarTypeExpectation, ScalarVariant};
-use crate::{gadgets, Engine};
-use franklin_crypto::circuit::Assignment;
-use franklin_crypto::circuit::expression::Expression;
 use crate::gadgets::utils::math;
+use crate::gadgets::{
+    utils, Gadget, IntegerType, Scalar, ScalarType, ScalarTypeExpectation, ScalarVariant,
+};
+use crate::{gadgets, Engine};
+use franklin_crypto::circuit::expression::Expression;
+use franklin_crypto::circuit::Assignment;
 
 pub struct Gadgets<E, CS>
 where
@@ -493,10 +495,9 @@ where
             _ => {
                 let mut cs = self.cs_namespace();
                 let num_bits = math::log2ceil(array.len());
-                let bits_le = index.to_expression::<CS>().into_bits_le_fixed(
-                    cs.namespace(|| "into_bits"),
-                    num_bits
-                )?;
+                let bits_le = index
+                    .to_expression::<CS>()
+                    .into_bits_le_fixed(cs.namespace(|| "into_bits"), num_bits)?;
                 let bits_be = bits_le
                     .into_iter()
                     .rev()
@@ -506,14 +507,9 @@ where
                     })
                     .collect::<Result<Vec<Scalar<E>>, RuntimeError>>()?;
 
-                gadgets::recursive_select(
-                    cs.namespace(|| "recursive_select"),
-                    &bits_be,
-                    array
-                )
+                gadgets::recursive_select(cs.namespace(|| "recursive_select"), &bits_be, array)
             }
         }
-
     }
 
     pub fn array_set(

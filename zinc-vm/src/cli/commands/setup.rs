@@ -6,7 +6,10 @@ use structopt::StructOpt;
 use zinc_bytecode::program::Program;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "setup", about = "Generates a pair of proving and verifying keys")]
+#[structopt(
+    name = "setup",
+    about = "Generates a pair of proving and verifying keys"
+)]
 pub struct SetupCommand {
     #[structopt(short = "c", long = "circuit", help = "Circuit's bytecode file")]
     pub circuit_path: PathBuf,

@@ -62,9 +62,7 @@ macro_rules! auto_const {
                 let result = $op(const_cs, a);
                 result.and_then(|result| result.to_constant())
             }
-            _ => {
-                $op($cs, a)
-            }
+            _ => $op($cs, a),
         }
     }};
     // Binary operators
@@ -77,9 +75,7 @@ macro_rules! auto_const {
                 let result = $op(const_cs, a, b);
                 result.and_then(|result| result.to_constant())
             }
-            _ => {
-                $op($cs, a, b)
-            }
+            _ => $op($cs, a, b),
         }
     }};
 }

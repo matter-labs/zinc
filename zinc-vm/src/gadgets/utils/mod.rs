@@ -15,7 +15,7 @@ pub mod math {
 
     pub fn floor_to_power_of_two(n: usize) -> usize {
         let mut pow = 0;
-        while n/2 >= 1 << pow {
+        while n / 2 >= 1 << pow {
             pow += 1;
         }
         1 << pow

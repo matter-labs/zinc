@@ -22,8 +22,8 @@ where
             let condition = vm.condition_top()?;
             let value = vm.operations().conditional_array_get(
                 &condition,
-                &array[i..(array.len() - self.slice_len + i + 1)],
-                &offset
+                &array[i..=array.len() - self.slice_len + i],
+                &offset,
             )?;
             vm.push(Cell::Value(value))?;
         }

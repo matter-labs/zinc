@@ -18,7 +18,9 @@ where
         }
 
         let condition = vm.condition_top()?;
-        let value = vm.operations().conditional_array_get(&condition, array.as_slice(), &index)?;
+        let value = vm
+            .operations()
+            .conditional_array_get(&condition, array.as_slice(), &index)?;
         vm.push(Cell::Value(value))
     }
 }

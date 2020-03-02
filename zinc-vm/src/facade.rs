@@ -15,8 +15,8 @@ pub use crate::errors::{MalformedBytecode, Result, RuntimeError, TypeSizeError};
 use crate::gadgets::utils::bigint_to_fr;
 use crate::Engine;
 use failure::Fail;
-use zinc_bytecode::data::values::Value;
 use franklin_crypto::circuit::test::TestConstraintSystem;
+use zinc_bytecode::data::values::Value;
 
 struct VMCircuit<'a> {
     program: &'a Program,

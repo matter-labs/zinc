@@ -1,12 +1,12 @@
+mod debug;
 mod prove;
 mod run;
 mod setup;
 mod verify;
-mod debug;
 
+use self::debug::DebugCommand;
 use self::prove::ProveCommand;
 use self::run::RunCommand;
-use self::debug::DebugCommand;
 use self::setup::SetupCommand;
 use self::verify::VerifyCommand;
 use structopt::StructOpt;

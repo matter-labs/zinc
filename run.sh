@@ -40,15 +40,15 @@ case "${2}" in
         ;;
 esac
 
-export CIRCUIT_DIRECTORY='./zinc-examples/casual/'
+export CIRCUIT_DIRECTORY='./zinc-examples/merkle/'
 export CIRCUIT_BUILD_DIRECTORY="${CIRCUIT_DIRECTORY}/build/"
 export CIRCUIT_DATA_DIRECTORY="${CIRCUIT_DIRECTORY}/data/"
 
 cargo fmt --all
 cargo clippy
 cargo build ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG}
-cargo test
-cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester'
+#cargo test
+#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester'
 
 export ZARGO_PATH="./target/${TARGET_DIRECTORY}/zargo"
 

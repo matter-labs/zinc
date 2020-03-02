@@ -26,7 +26,9 @@ where
             let address = vm.operations().add(index.clone(), offset)?;
 
             let condition = vm.condition_top()?;
-            let value = vm.operations().conditional_array_get(&condition, array.as_slice(), &address)?;
+            let value =
+                vm.operations()
+                    .conditional_array_get(&condition, array.as_slice(), &address)?;
             values.push(value);
         }
 

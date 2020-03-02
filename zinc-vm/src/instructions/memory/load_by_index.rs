@@ -18,14 +18,16 @@ where
         }
 
         let condition = vm.condition_top()?;
-        let value = vm.operations().conditional_array_get(&condition, array.as_slice(), &index)?;
+        let value = vm
+            .operations()
+            .conditional_array_get(&condition, array.as_slice(), &index)?;
         vm.push(Cell::Value(value))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::instructions::testing_utils::{VMTestRunner, TestingError};
+    use crate::instructions::testing_utils::{TestingError, VMTestRunner};
     use zinc_bytecode::instructions::*;
     use zinc_bytecode::scalar::ScalarType;
 

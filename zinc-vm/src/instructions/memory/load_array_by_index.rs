@@ -1,11 +1,10 @@
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
+use crate::gadgets;
+use crate::gadgets::Scalar;
 use crate::Engine;
 use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::instructions::LoadSequenceByIndex;
-use crate::gadgets;
-use crate::gadgets::Scalar;
-use std::mem;
 
 impl<E, CS> VMInstruction<E, CS> for LoadSequenceByIndex
 where
@@ -27,8 +26,10 @@ where
             let cs = vm.constraint_system();
             let offset = Scalar::new_constant_int(i, index.get_type());
             let address = gadgets::add(cs.namespace(|| format!("add {}", i)), &index, &offset)?;
-            mem::drop(cs);
-            let value = vm.operations().conditional_array_get(&condition, array.as_slice(), &address)?;
+            // mem::drop(cs);
+            let value =
+                vm.operations()
+                    .conditional_array_get(&condition, array.as_slice(), &address)?;
             values.push(value);
         }
 
