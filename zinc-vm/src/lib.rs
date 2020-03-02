@@ -1,7 +1,7 @@
+pub mod constraint_systems;
 mod core;
-pub mod debug_constraint_system;
 mod errors;
-mod gadgets;
+pub mod gadgets;
 mod instructions;
 
 #[cfg(test)]

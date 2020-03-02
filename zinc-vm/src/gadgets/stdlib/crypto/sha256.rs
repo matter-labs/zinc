@@ -2,8 +2,6 @@ use crate::gadgets::{Gadget, Scalar};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
-use ff::Field;
-use franklin_crypto::circuit::boolean::AllocatedBit;
 use franklin_crypto::circuit::sha256::sha256;
 use zinc_bytecode::scalar::ScalarType;
 
@@ -20,12 +18,8 @@ impl<E: Engine> Gadget<E> for Sha256 {
     ) -> Result<Self::Output, RuntimeError> {
         let mut bits = Vec::new();
         for (i, bit_scalar) in input.into_iter().enumerate() {
-            let allocated_bit = AllocatedBit::alloc(
-                cs.namespace(|| format!("AllocatedBit {}", i)),
-                bit_scalar.get_value().map(|fr| !fr.is_zero()),
-            )?;
-
-            bits.push(allocated_bit.into());
+            let boolean = bit_scalar.to_boolean(cs.namespace(|| format!("to_boolean {}", i)))?;
+            bits.push(boolean);
         }
 
         let digest_bits = sha256(cs.namespace(|| "sha256"), &bits)?;
@@ -59,7 +53,7 @@ impl<E: Engine> Gadget<E> for Sha256 {
 
 #[cfg(test)]
 mod tests {
-    use crate::debug_constraint_system::DebugConstraintSystem;
+    use crate::constraint_systems::DebugConstraintSystem;
     use franklin_crypto::bellman::ConstraintSystem;
     use franklin_crypto::circuit::boolean::{AllocatedBit, Boolean};
     use franklin_crypto::circuit::sha256::sha256;

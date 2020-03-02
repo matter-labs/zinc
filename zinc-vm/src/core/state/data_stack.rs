@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 use crate::core::Cell;
 use crate::errors::MalformedBytecode;
+use crate::gadgets;
 use crate::gadgets::{Gadgets, Scalar};
 use crate::Engine;
 use crate::RuntimeError;
@@ -147,8 +148,10 @@ impl<E: Engine> DataStack<E> {
             match (&self.memory[addr], &diff.new) {
                 (None, _) => {}
                 (Some(Cell::Value(old)), Cell::Value(new)) => {
-                    let value =
-                        ops.conditional_select(condition.clone(), new.clone(), old.clone())?;
+                    let cs = ops
+                        .constraint_system()
+                        .namespace(|| format!("merge address {}", addr));
+                    let value = gadgets::conditional_select(cs, &condition, new, old)?;
                     self.set(addr, Cell::Value(value))?;
                 }
             }
@@ -178,12 +181,12 @@ impl<E: Engine> DataStack<E> {
             match (&alt, &diff.new) {
                 (None, _) => {}
                 (Some(Cell::Value(old)), Cell::Value(new)) => {
-                    let value =
-                        ops.conditional_select(condition.clone(), new.clone(), old.clone())?;
+                    let cs = ops
+                        .constraint_system()
+                        .namespace(|| format!("merge address {}", addr));
+                    let value = gadgets::conditional_select(cs, &condition, new, old)?;
                     self.set(*addr, Cell::Value(value))?;
-                } //                (Some(old), new) => {
-                  //                    log::warn!("Merging {:?} into {:?}, ignoring...", new, old);
-                  //                }
+                }
             }
         }
 
@@ -233,7 +236,7 @@ mod tests {
         ds.set(4, Cell::Value(value2)).unwrap();
         assert_cell_eq(ds.get(4).unwrap(), 13.into());
 
-        let condition = ops.constant_bigint(&1.into(), ScalarType::Field).unwrap();
+        let condition = Scalar::new_constant_bool(true);
         ds.merge(condition, &mut ops).unwrap();
         assert_cell_eq(ds.get(4).unwrap(), 13.into());
     }
@@ -254,7 +257,7 @@ mod tests {
         ds.set(4, Cell::Value(value2)).unwrap();
         assert_cell_eq(ds.get(4).unwrap(), 13.into());
 
-        let condition = ops.constant_bigint(&0.into(), ScalarType::Field).unwrap();
+        let condition = Scalar::new_constant_bool(false);
         ds.merge(condition, &mut ops).unwrap();
         assert_cell_eq(ds.get(4).unwrap(), 42.into());
     }

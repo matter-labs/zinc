@@ -54,6 +54,7 @@ pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
                 Some('\n') => {
                     size += 1;
                     column += 1;
+                    lines += 1;
                     let comment = Comment::new(input[2..size - 1].to_owned());
                     return Ok((size, lines, column, comment));
                 }
@@ -112,7 +113,7 @@ mod tests {
         let input = "//mega ultra comment text\n";
         let expected = Ok((
             input.len(),
-            input.lines().count() - 1,
+            input.lines().count(),
             input.len() + 1,
             Comment::new("mega ultra comment text".to_owned()),
         ));

@@ -1,8 +1,6 @@
 use crate::gadgets::{Gadget, Scalar, ScalarType};
 use crate::{Engine, RuntimeError};
 use bellman::ConstraintSystem;
-use ff::Field;
-use franklin_crypto::circuit::boolean::AllocatedBit;
 use franklin_crypto::circuit::ecc::EdwardsPoint;
 use franklin_crypto::circuit::pedersen_hash::{pedersen_hash, Personalization};
 
@@ -19,12 +17,8 @@ impl<E: Engine> Gadget<E> for Pedersen {
     ) -> Result<Self::Output, RuntimeError> {
         let mut bits = Vec::new();
         for (i, bit_scalar) in input.into_iter().enumerate() {
-            let allocated_bit = AllocatedBit::alloc(
-                cs.namespace(|| format!("AllocatedBit {}", i)),
-                bit_scalar.get_value().map(|fr| !fr.is_zero()),
-            )?;
-
-            bits.push(allocated_bit.into());
+            let boolean = bit_scalar.to_boolean(cs.namespace(|| format!("to_boolean {}", i)))?;
+            bits.push(boolean);
         }
 
         let digest = pedersen_hash(

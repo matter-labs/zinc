@@ -4,7 +4,7 @@ use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 
-use crate::Engine;
+use crate::{gadgets, Engine};
 use zinc_bytecode::instructions::Cast;
 
 impl<E, CS> VMInstruction<E, CS> for Cast
@@ -16,9 +16,13 @@ where
         let old_value = vm.pop()?.value()?;
 
         let condition = vm.condition_top()?;
-        let new_value = vm
-            .operations()
-            .assert_type(condition, old_value, self.scalar_type)?;
+        let cs = vm.constraint_system();
+        let new_value = gadgets::conditional_type_check(
+            cs.namespace(|| "type check"),
+            &condition,
+            &old_value,
+            self.scalar_type,
+        )?;
 
         vm.push(Cell::Value(new_value))
     }

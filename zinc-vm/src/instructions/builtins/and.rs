@@ -24,23 +24,24 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::gadgets::ScalarType;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
     use zinc_bytecode::*;
 
     #[test]
     fn test_and() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new_untyped(0.into()))
-            .add(PushConst::new_untyped(0.into()))
+            .add(PushConst::new(0.into(), ScalarType::Boolean))
+            .add(PushConst::new(0.into(), ScalarType::Boolean))
             .add(And)
-            .add(PushConst::new_untyped(0.into()))
-            .add(PushConst::new_untyped(1.into()))
+            .add(PushConst::new(0.into(), ScalarType::Boolean))
+            .add(PushConst::new(1.into(), ScalarType::Boolean))
             .add(And)
-            .add(PushConst::new_untyped(1.into()))
-            .add(PushConst::new_untyped(0.into()))
+            .add(PushConst::new(1.into(), ScalarType::Boolean))
+            .add(PushConst::new(0.into(), ScalarType::Boolean))
             .add(And)
-            .add(PushConst::new_untyped(1.into()))
-            .add(PushConst::new_untyped(1.into()))
+            .add(PushConst::new(1.into(), ScalarType::Boolean))
+            .add(PushConst::new(1.into(), ScalarType::Boolean))
             .add(And)
             .test(&[1, 0, 0, 0])
     }

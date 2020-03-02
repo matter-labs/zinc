@@ -19,12 +19,12 @@ where
         array.reverse();
 
         for i in 0..self.slice_len {
-            let index = vm
-                .operations()
-                .constant_bigint(&i.into(), offset.get_type())?;
-            let address = vm.operations().add(offset.clone(), index)?;
-
-            let value = vm.operations().array_get(array.as_slice(), address)?;
+            let condition = vm.condition_top()?;
+            let value = vm.operations().conditional_array_get(
+                &condition,
+                &array[i..=array.len() - self.slice_len + i],
+                &offset,
+            )?;
             vm.push(Cell::Value(value))?;
         }
 

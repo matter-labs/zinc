@@ -32,13 +32,13 @@ fn merkle_node_hash(left: Sha256Digest, right: Sha256Digest) -> Sha256Digest {
 fn restore_root_hash(
     leaf_hash: Sha256Digest,
     address: field,
-    merkle_path: [Sha256Digest; 1],
+    merkle_path: [Sha256Digest; 10],
 ) -> Sha256Digest
 {
     let address_bits = std::convert::to_bits(address);
     let mut current = leaf_hash;
 
-    for i in 0..1 {
+    for i in 0..10 {
         let left_and_right = if address_bits[i] {
             [current, merkle_path[i]]
         } else {

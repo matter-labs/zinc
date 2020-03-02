@@ -1,3 +1,6 @@
+use crate::auto_const;
+use crate::gadgets::auto_const::prelude::*;
+use crate::gadgets::boolean::not;
 use crate::gadgets::{utils, Scalar, ScalarTypeExpectation};
 use crate::{Engine, Result, RuntimeError};
 use ff::PrimeField;
@@ -8,32 +11,69 @@ use franklin_crypto::circuit::num::AllocatedNum;
 use num_bigint::BigInt;
 use zinc_bytecode::scalar::ScalarType;
 
-pub fn less_than<E, CS>(mut cs: CS, left: Scalar<E>, right: Scalar<E>) -> Result<Scalar<E>>
+pub fn gt<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    let scalar_type = ScalarType::expect_same(left.get_type(), right.get_type())?;
-
-    match scalar_type {
-        ScalarType::Field => less_than_field(cs, left, right),
-        ScalarType::Integer(int_type) => {
-            let boolean = less_than_integer(
-                cs.namespace(|| "less_than_integer"),
-                int_type.length,
-                left,
-                right,
-            )?;
-            Scalar::from_boolean(cs.namespace(|| "from_boolean"), boolean)
-        }
-        ScalarType::Boolean => Err(RuntimeError::TypeError {
-            expected: "field or integer type".into(),
-            actual: "boolean".to_string(),
-        }),
-    }
+    lt(cs, right, left)
 }
 
-fn less_than_field<E, CS>(mut cs: CS, left: Scalar<E>, right: Scalar<E>) -> Result<Scalar<E>>
+pub fn ge<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
+{
+    le(cs, right, left)
+}
+
+pub fn le<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
+{
+    let is_gt = gt(cs.namespace(|| "gt"), left, right)?;
+    not(cs.namespace(|| "not"), &is_gt)
+}
+
+pub fn lt<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
+{
+    pub fn less_than_inner<E, CS>(
+        mut cs: CS,
+        left: &Scalar<E>,
+        right: &Scalar<E>,
+    ) -> Result<Scalar<E>>
+    where
+        E: Engine,
+        CS: ConstraintSystem<E>,
+    {
+        let scalar_type = ScalarType::expect_same(left.get_type(), right.get_type())?;
+
+        match scalar_type {
+            ScalarType::Field => less_than_field(cs, left, right),
+            ScalarType::Integer(int_type) => {
+                let boolean = less_than_integer(
+                    cs.namespace(|| "less_than_integer"),
+                    int_type.length,
+                    left,
+                    right,
+                )?;
+                Scalar::from_boolean(cs.namespace(|| "from_boolean"), boolean)
+            }
+            ScalarType::Boolean => Err(RuntimeError::TypeError {
+                expected: "field or integer type".into(),
+                actual: "boolean".to_string(),
+            }),
+        }
+    }
+
+    auto_const!(less_than_inner, cs, left, right)
+}
+
+fn less_than_field<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -60,15 +100,15 @@ where
     let upper_a_lt_b = less_than_integer(
         cs.namespace(|| "upper_a_lt_b"),
         upper_bits_len,
-        a_upper.clone().into(),
-        b_upper.clone().into(),
+        &a_upper.clone().into(),
+        &b_upper.clone().into(),
     )?;
 
     let lower_a_lt_b = less_than_integer(
         cs.namespace(|| "lower_a_lt_b"),
         lower_bits_len,
-        a_lower.into(),
-        b_lower.into(),
+        &a_lower.into(),
+        &b_lower.into(),
     )?;
 
     let upper_a_eq_b = AllocatedNum::equals(cs.namespace(|| "upper_a_eq_b"), &a_upper, &b_upper)?;
@@ -83,8 +123,8 @@ where
 fn less_than_integer<E, CS>(
     mut cs: CS,
     length: usize,
-    left: Scalar<E>,
-    right: Scalar<E>,
+    left: &Scalar<E>,
+    right: &Scalar<E>,
 ) -> Result<Boolean>
 where
     E: Engine,

@@ -17,25 +17,13 @@
 //#     },
 //#     "expect": "-128"
 //# }, {
-//#     "case": "almost_min_to_max",
-//#     "input": {
-//#         "a": "-127"
-//#     },
-//#     "expect": "127"
-//# }, {
 //#     "case": "overflow", "should_panic": true,
 //#     "input": {
 //#         "a": "200"
 //#     },
 //#     "expect": null
 //# }, {
-//#     "case": "overflow_minimal_from_min_to_max", "should_panic": true,
-//#     "input": {
-//#         "a": "-128"
-//#     },
-//#     "expect": null
-//# }, {
-//#     "case": "overflow_minimal_from_max_to_min", "should_panic": true,
+//#     "case": "overflow_minimal", "should_panic": true,
 //#     "input": {
 //#         "a": "129"
 //#     },
