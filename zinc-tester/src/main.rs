@@ -55,7 +55,6 @@ fn main() {
 }
 
 static PANIC_TEST_DIRECTORY_INVALID: &str = "The test files directory must be valid";
-static PANIC_TEST_FILE_STEM_GETTING: &str = "Every test file must have a stem";
 
 static PANIC_THE_ONLY_REFERENCE: &str =
     "The last shared reference is always unwrapped successfully";
@@ -76,7 +75,7 @@ fn main_inner() -> Summary {
         .expect(PANIC_TEST_DIRECTORY_INVALID)
         .file_paths
         .into_par_iter()
-        .map(move |test_file_path| {
+        .map(move |mut test_file_path: PathBuf| {
             let summary = summary_inner.clone();
 
             let test_file = TestFile::try_from(&test_file_path)
@@ -84,15 +83,12 @@ fn main_inner() -> Summary {
             let test_data = TestData::from_str(test_file.code.as_str())
                 .unwrap_or_else(|_| panic!("Test file {:?} case data is invalid", test_file_path));
 
+            test_file_path = match test_file_path.strip_prefix("zinc-tester/tests/") {
+                Ok(path) => path.to_owned(),
+                Err(_error) => test_file_path,
+            };
             for test_case in test_data.cases.into_iter() {
-                let case_name = format!(
-                    "{}::{}",
-                    test_file_path
-                        .file_stem()
-                        .expect(PANIC_TEST_FILE_STEM_GETTING)
-                        .to_string_lossy(),
-                    test_case.case
-                );
+                let case_name = format!("{}::{}", test_file_path.to_string_lossy(), test_case.case);
 
                 let program_data = match ProgramData::new(&test_case.input, test_file.code.as_str())
                 {

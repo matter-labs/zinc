@@ -38,31 +38,35 @@ impl TestDirectory {
     pub fn new(path: &PathBuf) -> Result<Self, Error> {
         let directory = fs::read_dir(path).map_err(Error::Reading)?;
         let mut file_paths = Vec::new();
-        for file_entry in directory.into_iter() {
-            let file_entry = file_entry.map_err(Error::GettingFileEntry)?;
-            let file_path = file_entry.path();
+        for entry in directory.into_iter() {
+            let entry = entry.map_err(Error::GettingFileEntry)?;
+            let entry_path = entry.path();
 
-            let file_type = file_entry
-                .file_type()
-                .map_err(|error| Error::GettingFileType(file_path.as_os_str().to_owned(), error))?;
-            if !file_type.is_file() {
+            let entry_type = entry.file_type().map_err(|error| {
+                Error::GettingFileType(entry_path.as_os_str().to_owned(), error)
+            })?;
+
+            if entry_type.is_dir() {
+                file_paths.extend(Self::new(&entry_path)?.file_paths);
+                continue;
+            } else if !entry_type.is_file() {
                 return Err(Error::InvalidFileType(
-                    file_path.as_os_str().to_owned(),
-                    file_type,
+                    entry_path.as_os_str().to_owned(),
+                    entry_type,
                 ));
             }
 
-            let file_extension = file_path
+            let file_extension = entry_path
                 .extension()
-                .ok_or_else(|| Error::GettingFileExtension(file_path.as_os_str().to_owned()))?;
+                .ok_or_else(|| Error::GettingFileExtension(entry_path.as_os_str().to_owned()))?;
             if file_extension != TEST_FILE_EXTENSION_DEFAULT {
                 return Err(Error::InvalidFileExtension(
-                    file_path.as_os_str().to_owned(),
+                    entry_path.as_os_str().to_owned(),
                     file_extension.to_owned(),
                 ));
             }
 
-            file_paths.push(file_path);
+            file_paths.push(entry_path);
         }
         Ok(Self { file_paths })
     }

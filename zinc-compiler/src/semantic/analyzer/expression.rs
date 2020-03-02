@@ -896,7 +896,7 @@ impl Analyzer {
                                 element.location,
                             );
 
-                            let value = Value::try_from(result.sliced_type)
+                            let value = Value::try_from(&result.sliced_type)
                                 .map_err(ElementError::Value)
                                 .map_err(|error| Error::Element(element.location, error))?;
                             self.push_operand(StackElement::Evaluated(Element::Value(value)));
@@ -960,7 +960,7 @@ impl Analyzer {
                                 element.location,
                             );
 
-                            let value = Value::try_from(result.sliced_type)
+                            let value = Value::try_from(&result.sliced_type)
                                 .map_err(ElementError::Value)
                                 .map_err(|error| Error::Element(element.location, error))?;
                             self.push_operand(StackElement::Evaluated(Element::Value(value)));
@@ -1174,7 +1174,7 @@ impl Analyzer {
 
         self.is_next_call_builtin = false;
         self.push_operand(StackElement::Evaluated(Element::Value(
-            Value::try_from(return_type)
+            Value::try_from(&return_type)
                 .map_err(ElementError::Value)
                 .map_err(|error| Error::Element(location, error))?,
         )));
@@ -1815,7 +1815,7 @@ impl Analyzer {
                             location,
                         );
                         self.loads += 1;
-                        Value::try_from(variable.r#type)
+                        Value::try_from(&variable.r#type)
                             .map(Element::Value)
                             .map_err(ElementError::Value)
                             .map_err(|error| Error::Element(location, error))

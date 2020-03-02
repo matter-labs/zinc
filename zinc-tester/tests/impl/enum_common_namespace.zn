@@ -14,7 +14,7 @@ impl Data {
     const ANOTHER: u8 = 25;
 
     fn test(witness: u8) -> u8 {
-        (Self::VALUE - Self::ANOTHER) * witness
+        (Self::VALUE as u8 - Self::ANOTHER) * witness
     }
 }
 

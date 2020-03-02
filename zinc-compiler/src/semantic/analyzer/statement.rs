@@ -389,7 +389,7 @@ impl Analyzer {
                 .variant
             {
                 ScopeItem::Type(Type::Structure(structure)) => structure.scope,
-                ScopeItem::Type(Type::Enumeration { scope, .. }) => scope,
+                ScopeItem::Type(Type::Enumeration(enumeration)) => enumeration.scope,
                 item => {
                     return Err(Error::ImplStatementExpectedStructureOrEnumeration(
                         identifier_location,

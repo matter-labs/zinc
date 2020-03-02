@@ -82,7 +82,7 @@ struct Result {
     date_of_birth: Date,
 }
 
-fn main(token_id: u8) -> Result {
+fn main(token_id: TokenId) -> Result {
     let person = Person {
         id: 42 as field,
         date_of_birth: Date {
