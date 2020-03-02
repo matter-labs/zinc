@@ -113,7 +113,7 @@ mod tests {
         let input = "//mega ultra comment text\n";
         let expected = Ok((
             input.len(),
-            input.lines().count() - 1,
+            input.lines().count(),
             input.len() + 1,
             Comment::new("mega ultra comment text".to_owned()),
         ));
