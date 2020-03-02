@@ -240,7 +240,8 @@ impl<E: Engine> fmt::Display for Scalar<E> {
             .map(|f| utils::fr_to_bigint(&f, self.is_signed()).to_string())
             .unwrap_or_else(|| "none".into());
 
-        write!(f, "{} as {}", value_str, self.scalar_type)
+        let det = if self.is_constant() { "det" } else { "witness" };
+        write!(f, "{} as {} ({})", value_str, self.scalar_type, det)
     }
 }
 

@@ -6,10 +6,12 @@ use ff::Field;
 use num_bigint::BigInt;
 
 use crate::core::RuntimeError;
-use crate::gadgets::{utils, Gadget, IntegerType, Scalar, ScalarType, ScalarTypeExpectation, ScalarVariant};
+use crate::gadgets::{
+    utils, Gadget, IntegerType, Scalar, ScalarType, ScalarTypeExpectation, ScalarVariant,
+};
 use crate::{gadgets, Engine};
-use franklin_crypto::circuit::Assignment;
 use franklin_crypto::circuit::expression::Expression;
+use franklin_crypto::circuit::Assignment;
 
 pub struct Gadgets<E, CS>
 where
@@ -250,16 +252,22 @@ where
         mem::drop(cs);
 
         let new_type = match element.get_type() {
-            t @ ScalarType::Boolean => return Err(RuntimeError::TypeError {
-                expected: "field or integer type".to_string(),
-                actual: t.to_string()
-            }),
+            t @ ScalarType::Boolean => {
+                return Err(RuntimeError::TypeError {
+                    expected: "field or integer type".to_string(),
+                    actual: t.to_string(),
+                })
+            }
             t @ ScalarType::Field => t,
             t @ ScalarType::Integer(IntegerType { signed: true, .. }) => t,
-            ScalarType::Integer(IntegerType { signed: false, length, }) => IntegerType {
+            ScalarType::Integer(IntegerType {
+                signed: false,
+                length,
+            }) => IntegerType {
                 signed: true,
                 length: length + 1,
-            }.into(),
+            }
+            .into(),
         };
         Ok(Scalar::new_unchecked_variable(
             neg_value,
@@ -451,12 +459,15 @@ where
     /// This gadget only enforces 0 <= index < array.len() if condition is true
     pub fn conditional_array_get(
         &mut self,
-        condition: &Scalar<E>,
+        _condition: &Scalar<E>,
         array: &[Scalar<E>],
         index: &Scalar<E>,
     ) -> Result<Scalar<E>, RuntimeError> {
-        let zero = Scalar::new_constant_int(0, index.get_type());
-        let index = gadgets::conditional_select(self.cs_namespace(), condition, index, &zero)?;
+        if !index.is_constant() {
+            return Err(RuntimeError::WitnessArrayIndex);
+        }
+        // let zero = Scalar::new_constant_int(0, index.get_type());
+        // let index = gadgets::conditional_select(self.cs_namespace(), condition, index, &zero)?;
         self.enforcing_array_get(array, &index)
     }
 
@@ -485,7 +496,7 @@ where
                 Ok(array[i].clone())
             }
             _ => {
-                return Err(RuntimeError::WitnessArrayIndex);
+                Err(RuntimeError::WitnessArrayIndex)
                 // let mut cs = self.cs_namespace();
                 // let num_bits = math::log2ceil(array.len());
                 // let bits_le = index.to_expression::<CS>().into_bits_le_fixed(
@@ -508,7 +519,6 @@ where
                 // )
             }
         }
-
     }
 
     pub fn array_set(
