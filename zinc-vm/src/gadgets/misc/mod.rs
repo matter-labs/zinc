@@ -6,10 +6,12 @@ use ff::Field;
 use num_bigint::BigInt;
 
 use crate::core::RuntimeError;
-use crate::gadgets::{utils, Gadget, IntegerType, Scalar, ScalarType, ScalarTypeExpectation, ScalarVariant};
+use crate::gadgets::{
+    utils, Gadget, IntegerType, Scalar, ScalarType, ScalarTypeExpectation, ScalarVariant,
+};
 use crate::{gadgets, Engine};
-use franklin_crypto::circuit::Assignment;
 use franklin_crypto::circuit::expression::Expression;
+use franklin_crypto::circuit::Assignment;
 
 pub struct Gadgets<E, CS>
 where
@@ -250,16 +252,22 @@ where
         mem::drop(cs);
 
         let new_type = match element.get_type() {
-            t @ ScalarType::Boolean => return Err(RuntimeError::TypeError {
-                expected: "field or integer type".to_string(),
-                actual: t.to_string()
-            }),
+            t @ ScalarType::Boolean => {
+                return Err(RuntimeError::TypeError {
+                    expected: "field or integer type".to_string(),
+                    actual: t.to_string(),
+                })
+            }
             t @ ScalarType::Field => t,
             t @ ScalarType::Integer(IntegerType { signed: true, .. }) => t,
-            ScalarType::Integer(IntegerType { signed: false, length, }) => IntegerType {
+            ScalarType::Integer(IntegerType {
+                signed: false,
+                length,
+            }) => IntegerType {
                 signed: true,
                 length: length + 1,
-            }.into(),
+            }
+            .into(),
         };
         Ok(Scalar::new_unchecked_variable(
             neg_value,
@@ -508,7 +516,6 @@ where
                 // )
             }
         }
-
     }
 
     pub fn array_set(

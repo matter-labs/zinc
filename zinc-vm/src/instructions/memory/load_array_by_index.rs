@@ -21,7 +21,9 @@ where
         let condition = vm.condition_top()?;
         let mut values = Vec::with_capacity(self.value_len);
         for i in 0..self.value_len {
-            let value = vm.operations().conditional_array_get(&condition, &array[i..], &index)?;
+            let value = vm
+                .operations()
+                .conditional_array_get(&condition, &array[i..], &index)?;
             values.push(value);
         }
 
