@@ -2,8 +2,6 @@
 //! The lexical comment parser.
 //!
 
-use failure::Fail;
-
 use crate::lexical::token::lexeme::comment::Comment;
 
 pub enum State {
@@ -14,12 +12,10 @@ pub enum State {
     MultiLineStar,
 }
 
-#[derive(Debug, Fail, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
-    #[fail(display = "unexpected end")]
-    UnexpectedEnd,
-    #[fail(display = "not a comment")]
     NotAComment,
+    UnterminatedBlock { lines: usize, column: usize },
 }
 
 pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
@@ -38,7 +34,7 @@ pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
                     state = State::Slash;
                 }
                 Some(_) => return Err(Error::NotAComment),
-                None => break,
+                None => return Err(Error::UnterminatedBlock { lines, column }),
             },
             State::Slash => match character {
                 Some('/') => {
@@ -52,16 +48,22 @@ pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
                     state = State::MultiLine;
                 }
                 Some(_) => return Err(Error::NotAComment),
-                None => break,
+                None => return Err(Error::UnterminatedBlock { lines, column }),
             },
             State::SingleLine => match character {
-                Some('\n') | None => {
-                    let comment = Comment::new(input[2..size].to_owned());
+                Some('\n') => {
+                    size += 1;
+                    column += 1;
+                    let comment = Comment::new(input[2..size - 1].to_owned());
                     return Ok((size, lines, column, comment));
                 }
                 Some(_) => {
                     size += 1;
                     column += 1;
+                }
+                None => {
+                    let comment = Comment::new(input[2..size].to_owned());
+                    return Ok((size, lines, column, comment));
                 }
             },
             State::MultiLine => match character {
@@ -79,7 +81,7 @@ pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
                     size += 1;
                     column += 1;
                 }
-                None => break,
+                None => return Err(Error::UnterminatedBlock { lines, column }),
             },
             State::MultiLineStar => match character {
                 Some('/') => {
@@ -93,12 +95,10 @@ pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
                     column += 1;
                     state = State::MultiLine;
                 }
-                None => break,
+                None => return Err(Error::UnterminatedBlock { lines, column }),
             },
         }
     }
-
-    Err(Error::UnexpectedEnd)
 }
 
 #[cfg(test)]
@@ -108,12 +108,12 @@ mod tests {
     use crate::lexical::token::lexeme::comment::Comment;
 
     #[test]
-    fn ok_single_line_with_break() {
+    fn ok_line_with_break() {
         let input = "//mega ultra comment text\n";
         let expected = Ok((
-            25,
-            0,
-            26,
+            input.len(),
+            input.lines().count() - 1,
+            input.len() + 1,
             Comment::new("mega ultra comment text".to_owned()),
         ));
         let result = parse(input);
@@ -121,12 +121,12 @@ mod tests {
     }
 
     #[test]
-    fn ok_single_line_with_eof() {
+    fn ok_line_with_eof() {
         let input = "//mega ultra comment text";
         let expected = Ok((
-            25,
-            0,
-            26,
+            input.len(),
+            input.lines().count() - 1,
+            input.len() + 1,
             Comment::new("mega ultra comment text".to_owned()),
         ));
         let result = parse(input);
@@ -134,14 +134,27 @@ mod tests {
     }
 
     #[test]
-    fn ok_multi_line() {
+    fn ok_block_one_line() {
+        let input = r#"/*This is the mega ultra test application!*/"#;
+        let expected = Ok((
+            input.len(),
+            input.lines().count() - 1,
+            input.len() + 1,
+            Comment::new("This is the mega ultra test application!".to_owned()),
+        ));
+        let result = parse(input);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_block_multi_line() {
         let input = r#"/*
     This is the mega ultra test application!
 */"#;
         let expected = Ok((
-            50,
-            2,
-            3,
+            input.len(),
+            input.lines().count() - 1,
+            input.lines().last().unwrap_or("").len() + 1,
             Comment::new("\n    This is the mega ultra test application!\n".to_owned()),
         ));
         let result = parse(input);
@@ -149,15 +162,7 @@ mod tests {
     }
 
     #[test]
-    fn err_multi_line_unexpected_end() {
-        let input = r#"/* This is the mega ultra test application!"#;
-        let expected = Err(Error::UnexpectedEnd);
-        let result = parse(input);
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn err_not_a_comment() {
+    fn error_not_a_comment() {
         let input = "not a comment text";
         let expected = Err(Error::NotAComment);
         let result = parse(input);
@@ -165,9 +170,20 @@ mod tests {
     }
 
     #[test]
-    fn err_not_a_comment_one_slash() {
+    fn error_not_a_comment_one_slash() {
         let input = "/almost a comment text";
         let expected = Err(Error::NotAComment);
+        let result = parse(input);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_unterminated_block() {
+        let input = r#"/* unterminated"#;
+        let expected = Err(Error::UnterminatedBlock {
+            lines: input.lines().count() - 1,
+            column: input.len() + 1,
+        });
         let result = parse(input);
         assert_eq!(result, expected);
     }

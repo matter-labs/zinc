@@ -4,15 +4,19 @@
 
 pub mod error;
 
+use std::cmp;
 use std::convert::TryFrom;
 use std::fmt;
 
 use num_bigint::BigInt;
 use num_traits::Num;
 use num_traits::One;
+use num_traits::Signed;
 use num_traits::ToPrimitive;
 use num_traits::Zero;
 
+use zinc_bytecode::scalar::IntegerType;
+use zinc_bytecode::scalar::ScalarType;
 use zinc_bytecode::Instruction;
 
 use crate::lexical;
@@ -22,7 +26,6 @@ use crate::semantic::element::r#type::Type;
 use crate::syntax::IntegerLiteral;
 
 use self::error::Error;
-use zinc_bytecode::scalar::{IntegerType, ScalarType};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Integer {
@@ -36,6 +39,14 @@ impl Integer {
         Self {
             value,
             is_signed,
+            bitlength,
+        }
+    }
+
+    pub fn new_from_usize(value: usize, bitlength: usize) -> Self {
+        Self {
+            value: BigInt::from(value),
+            is_signed: false,
             bitlength,
         }
     }
@@ -95,34 +106,30 @@ impl Integer {
     }
 
     pub fn range_inclusive(&self, other: &Self) -> Result<RangeInclusive, Error> {
-        if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchRangeInclusive(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
-        }
-
+        let is_signed = self.is_signed || other.is_signed;
+        let bitlength = cmp::max(
+            cmp::max(self.bitlength, other.bitlength),
+            Self::minimal_bitlength_bigints(&[&self.value, &other.value], is_signed)?,
+        );
         Ok(RangeInclusive::new(
             self.value.to_owned(),
             other.value.to_owned(),
-            self.is_signed,
-            self.bitlength,
+            is_signed,
+            bitlength,
         ))
     }
 
     pub fn range(&self, other: &Self) -> Result<Range, Error> {
-        if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchRange(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
-        }
-
+        let is_signed = self.is_signed || other.is_signed;
+        let bitlength = cmp::max(
+            cmp::max(self.bitlength, other.bitlength),
+            Self::minimal_bitlength_bigints(&[&self.value, &other.value], is_signed)?,
+        );
         Ok(Range::new(
             self.value.to_owned(),
             other.value.to_owned(),
-            self.is_signed,
-            self.bitlength,
+            self.is_signed || other.is_signed,
+            bitlength,
         ))
     }
 
@@ -207,6 +214,20 @@ impl Integer {
         }
 
         let result = self.value.to_owned() + other.value.to_owned();
+        if result.is_negative() && !self.is_signed {
+            return Err(Error::OverflowAddition(
+                result,
+                Type::integer(self.is_signed, self.bitlength).to_string(),
+            ));
+        }
+
+        if Self::minimal_bitlength(&result, self.is_signed)? > self.bitlength {
+            return Err(Error::OverflowAddition(
+                result,
+                Type::integer(self.is_signed, self.bitlength).to_string(),
+            ));
+        }
+
         Ok(Self {
             value: result,
             is_signed: self.is_signed,
@@ -223,6 +244,20 @@ impl Integer {
         }
 
         let result = self.value.to_owned() - other.value.to_owned();
+        if result.is_negative() && !self.is_signed {
+            return Err(Error::OverflowSubtraction(
+                result,
+                Type::integer(self.is_signed, self.bitlength).to_string(),
+            ));
+        }
+
+        if Self::minimal_bitlength(&result, self.is_signed)? > self.bitlength {
+            return Err(Error::OverflowSubtraction(
+                result,
+                Type::integer(self.is_signed, self.bitlength).to_string(),
+            ));
+        }
+
         Ok(Self {
             value: result,
             is_signed: self.is_signed,
@@ -239,6 +274,20 @@ impl Integer {
         }
 
         let result = self.value.to_owned() * other.value.to_owned();
+        if result.is_negative() && !self.is_signed {
+            return Err(Error::OverflowMultiplication(
+                result,
+                Type::integer(self.is_signed, self.bitlength).to_string(),
+            ));
+        }
+
+        if Self::minimal_bitlength(&result, self.is_signed)? > self.bitlength {
+            return Err(Error::OverflowMultiplication(
+                result,
+                Type::integer(self.is_signed, self.bitlength).to_string(),
+            ));
+        }
+
         Ok(Self {
             value: result,
             is_signed: self.is_signed,
@@ -255,10 +304,24 @@ impl Integer {
         }
 
         if other.value.is_zero() {
-            return Err(Error::DivisionZero);
+            return Err(Error::ZeroDivision);
         }
 
         let result = self.value.to_owned() / other.value.to_owned();
+        if result.is_negative() && !self.is_signed {
+            return Err(Error::OverflowDivision(
+                result,
+                Type::integer(self.is_signed, self.bitlength).to_string(),
+            ));
+        }
+
+        if Self::minimal_bitlength(&result, self.is_signed)? > self.bitlength {
+            return Err(Error::OverflowDivision(
+                result,
+                Type::integer(self.is_signed, self.bitlength).to_string(),
+            ));
+        }
+
         Ok(Self {
             value: result,
             is_signed: self.is_signed,
@@ -279,10 +342,24 @@ impl Integer {
         }
 
         if other.value.is_zero() {
-            return Err(Error::RemainderZero);
+            return Err(Error::ZeroRemainder);
         }
 
         let result = self.value.to_owned() % other.value.to_owned();
+        if result.is_negative() && !self.is_signed {
+            return Err(Error::OverflowRemainder(
+                result,
+                Type::integer(self.is_signed, self.bitlength).to_string(),
+            ));
+        }
+
+        if Self::minimal_bitlength(&result, self.is_signed)? > self.bitlength {
+            return Err(Error::OverflowRemainder(
+                result,
+                Type::integer(self.is_signed, self.bitlength).to_string(),
+            ));
+        }
+
         Ok(Self {
             value: result,
             is_signed: self.is_signed,
@@ -290,15 +367,44 @@ impl Integer {
         })
     }
 
-    pub fn cast(&mut self, is_signed: bool, bitlength: usize) {
+    pub fn cast(&mut self, is_signed: bool, bitlength: usize) -> Result<(), Error> {
+        if self.value.is_negative() && !is_signed {
+            return Err(Error::OverflowCasting(
+                self.value.to_owned(),
+                Type::integer(is_signed, bitlength).to_string(),
+            ));
+        }
+
+        if Self::minimal_bitlength(&self.value, is_signed)? > bitlength {
+            return Err(Error::OverflowCasting(
+                self.value.to_owned(),
+                Type::integer(is_signed, bitlength).to_string(),
+            ));
+        }
+
         self.is_signed = is_signed;
         self.bitlength = bitlength;
+        Ok(())
     }
 
     pub fn negate(&self) -> Result<Self, Error> {
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldNegation);
+        }
+
+        let is_signed = true;
+
+        let result = -self.value.to_owned();
+        if Self::minimal_bitlength(&result, is_signed)? > self.bitlength {
+            return Err(Error::OverflowNegation(
+                result,
+                Type::integer(is_signed, self.bitlength).to_string(),
+            ));
+        }
+
         Ok(Self {
-            value: -self.value.to_owned(),
-            is_signed: true,
+            value: result,
+            is_signed,
             bitlength: self.bitlength,
         })
     }
@@ -336,7 +442,13 @@ impl Integer {
         let mut exponent = BigInt::from(1 << crate::BITLENGTH_BYTE);
 
         while if is_signed {
-            value >= &(exponent.clone() / BigInt::from(2) - BigInt::one())
+            if value.is_negative() {
+                let bound = -(exponent.clone() / BigInt::from(2));
+                value < &bound
+            } else {
+                let bound = exponent.clone() / BigInt::from(2);
+                value >= &bound
+            }
         } else {
             value >= &exponent
         } {
@@ -353,6 +465,14 @@ impl Integer {
                 bitlength += crate::BITLENGTH_BYTE;
             }
         }
+
+        if value.is_negative() && !is_signed {
+            return Err(Error::UnsignedNegative(
+                value.to_owned(),
+                Type::integer(is_signed, bitlength).to_string(),
+            ));
+        }
+
         Ok(bitlength)
     }
 
@@ -365,16 +485,6 @@ impl Integer {
             self.value.to_owned(),
             scalar_type,
         ))
-    }
-}
-
-impl From<(usize, usize)> for Integer {
-    fn from((value, bitlength): (usize, usize)) -> Self {
-        Self {
-            value: BigInt::from(value),
-            is_signed: false,
-            bitlength,
-        }
     }
 }
 

@@ -2,22 +2,20 @@
 //! The impl statement.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax::Identifier;
-use crate::syntax::ImplementationLocalStatement;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::statement::local_impl::Statement as ImplementationLocalStatement;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Impl {
+pub struct Statement {
     pub location: Location,
     pub identifier: Identifier,
     pub statements: Vec<ImplementationLocalStatement>,
 }
 
-impl Impl {
+impl Statement {
     pub fn new(
         location: Location,
         identifier: Identifier,

@@ -1,0 +1,49 @@
+//# [ {
+//#     "case": "zero_zero",
+//#     "input": {
+//#         "a": "0",
+//#         "b": "0"
+//#     },
+//#     "expect": "0"
+//# }, {
+//#     "case": "ordinar",
+//#     "input": {
+//#         "a": "42",
+//#         "b": "69"
+//#     },
+//#     "expect": "-27"
+//# }, {
+//#     "case": "to_min",
+//#     "input": {
+//#         "a": "-1",
+//#         "b": "127"
+//#     },
+//#     "expect": "-128"
+//# }, {
+//#     "case": "to_max",
+//#     "input": {
+//#         "a": "127",
+//#         "b": "0"
+//#     },
+//#     "expect": "127"
+//# }, {
+//#     "case": "overflow", "should_panic": true,
+//#     "input": {
+//#         "a": "-50",
+//#         "b": "100"
+//#     },
+//#     "expect": null
+//# }, {
+//#     "case": "overflow_minimal", "should_panic": true,
+//#     "input": {
+//#         "a": "-128",
+//#         "b": "1"
+//#     },
+//#     "expect": null
+//# } ]
+
+fn main(a: i8, b: i8) -> i8 {
+    let mut c = a;
+    c -= b;
+    c
+}

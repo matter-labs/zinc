@@ -2,12 +2,10 @@
 //! The member integer.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax::IntegerLiteral;
+use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct MemberInteger {

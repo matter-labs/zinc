@@ -27,6 +27,22 @@ impl Location {
             column: 1,
         }
     }
+
+    pub fn shifted_down(&self, lines: usize, column: usize) -> Self {
+        Self {
+            file: self.file,
+            line: self.line + lines,
+            column,
+        }
+    }
+
+    pub fn shifted_right(&self, columns: usize) -> Self {
+        Self {
+            file: self.file,
+            line: self.line,
+            column: self.column + columns,
+        }
+    }
 }
 
 impl fmt::Display for Location {

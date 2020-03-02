@@ -7,7 +7,7 @@
 fn main() -> u64 {
     let mut sum: u64 = 0;
     for i in -128..=127 as i8 {
-        sum = sum + 1 as u64;
+        sum += 1 as u64;
     }
     sum
 }

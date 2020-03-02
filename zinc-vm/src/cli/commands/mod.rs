@@ -2,11 +2,13 @@ mod prove;
 mod run;
 mod setup;
 mod verify;
+mod debug;
 
 use self::prove::ProveCommand;
 use self::run::RunCommand;
+use self::debug::DebugCommand;
 use self::setup::SetupCommand;
-use crate::commands::verify::VerifyCommand;
+use self::verify::VerifyCommand;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -26,6 +28,7 @@ pub struct Arguments {
 #[derive(Debug, StructOpt)]
 pub enum Command {
     Run(RunCommand),
+    Debug(DebugCommand),
     Setup(SetupCommand),
     Prove(ProveCommand),
     Verify(VerifyCommand),

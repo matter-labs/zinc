@@ -2,14 +2,13 @@
 //! The binding pattern.
 //!
 
-mod builder;
-mod variant;
-
-pub use self::builder::Builder;
-pub use self::variant::Variant;
+pub mod builder;
+pub mod variant;
 
 use crate::lexical::Location;
-use crate::syntax::Type;
+use crate::syntax::tree::r#type::Type;
+
+use self::variant::Variant;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Pattern {

@@ -11,10 +11,13 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::ConstStatementParser;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::FnStatementParser;
-use crate::syntax::ImplementationLocalStatement;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::statement::r#const::Parser as ConstStatementParser;
+use crate::syntax::parser::statement::r#fn::Parser as FnStatementParser;
+use crate::syntax::tree::statement::local_impl::Statement as ImplementationLocalStatement;
+
+static HINT_ONLY_SOME_STATEMENTS: &str =
+    "only constants and functions may be declared within a type implementation";
 
 #[derive(Default)]
 pub struct Parser {}
@@ -25,7 +28,7 @@ impl Parser {
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
     ) -> Result<(ImplementationLocalStatement, Option<Token>), Error> {
-        match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+        match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
             token
             @
             Token {
@@ -46,10 +49,11 @@ impl Parser {
                 lexeme: Lexeme::Symbol(Symbol::Semicolon),
                 ..
             } => Ok((ImplementationLocalStatement::Empty, None)),
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
+            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::expected_one_of(
                 location,
                 vec!["const", "fn"],
                 lexeme,
+                Some(HINT_ONLY_SOME_STATEMENTS),
             ))),
         }
     }

@@ -7,7 +7,7 @@
 fn main() -> u64 {
     let mut sum: u64 = 0;
     for i in 9223372036854775798..=9223372036854775807 {
-        sum = sum + 1 as u64;
+        sum += 1 as u64;
     }
     sum
 }

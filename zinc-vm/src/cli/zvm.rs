@@ -14,6 +14,7 @@ fn main() {
 
     let result = match args.command {
         Command::Run(command) => command.execute(),
+        Command::Debug(command) => command.execute(),
         Command::Setup(command) => command.execute(),
         Command::Prove(command) => command.execute(),
         Command::Verify(command) => command.execute(),

@@ -1,3 +1,5 @@
-fn main(a: field, b: field) -> field {
-    a / b
+fn main() -> [u8; 5] {
+    let mut array = [10; 5];
+    array[3] %= 14 - array[3];
+    array
 }

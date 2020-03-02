@@ -3,8 +3,8 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::IntegerLiteral;
-use crate::syntax::MemberInteger;
+use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+use crate::syntax::tree::member_integer::MemberInteger;
 
 #[derive(Default)]
 pub struct Builder {

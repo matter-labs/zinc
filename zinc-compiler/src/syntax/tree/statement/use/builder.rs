@@ -3,8 +3,8 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::Expression;
-use crate::syntax::UseStatement;
+use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::statement::r#use::Statement as UseStatement;
 
 #[derive(Default)]
 pub struct Builder {

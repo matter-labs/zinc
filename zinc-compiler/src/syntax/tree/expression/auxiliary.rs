@@ -6,4 +6,5 @@
 pub enum Auxiliary {
     Instruction,
     PlaceEnd,
+    PlaceCopy,
 }

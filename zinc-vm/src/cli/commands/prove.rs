@@ -8,6 +8,7 @@ use zinc_bytecode::data::values::Value;
 use zinc_bytecode::program::Program;
 
 #[derive(Debug, StructOpt)]
+#[structopt(name = "prove", about = "Executes circuit and prints program's output")]
 pub struct ProveCommand {
     #[structopt(short = "c", long = "circuit", help = "Compiled circuit program file")]
     pub circuit_path: PathBuf,

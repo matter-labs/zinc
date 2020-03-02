@@ -2,20 +2,18 @@
 //! The structure or identifier expression.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax;
-use crate::syntax::Identifier;
+use crate::syntax::tree::expression::Expression as SyntaxExpression;
+use crate::syntax::tree::identifier::Identifier;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
     pub location: Location,
     pub identifier: Identifier,
     pub is_struct: bool,
-    pub fields: Vec<(Identifier, syntax::Expression)>,
+    pub fields: Vec<(Identifier, SyntaxExpression)>,
 }
 
 impl Expression {
@@ -23,7 +21,7 @@ impl Expression {
         location: Location,
         identifier: Identifier,
         is_struct: bool,
-        fields: Vec<(Identifier, syntax::Expression)>,
+        fields: Vec<(Identifier, SyntaxExpression)>,
     ) -> Self {
         Self {
             location,

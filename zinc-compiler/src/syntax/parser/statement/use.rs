@@ -11,10 +11,10 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::PathOperandParser;
-use crate::syntax::UseStatement;
-use crate::syntax::UseStatementBuilder;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::expression::path::Parser as PathOperandParser;
+use crate::syntax::tree::statement::r#use::builder::Builder as UseStatementBuilder;
+use crate::syntax::tree::statement::r#use::Statement as UseStatement;
 
 #[derive(Default)]
 pub struct Parser {
@@ -27,7 +27,7 @@ impl Parser {
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
     ) -> Result<(UseStatement, Option<Token>), Error> {
-        match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+        match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
             Token {
                 lexeme: Lexeme::Keyword(Keyword::Use),
                 location,
@@ -35,10 +35,11 @@ impl Parser {
                 self.builder.set_location(location);
             }
             Token { lexeme, location } => {
-                return Err(Error::Syntax(SyntaxError::Expected(
+                return Err(Error::Syntax(SyntaxError::expected_one_of(
                     location,
                     vec!["use"],
                     lexeme,
+                    None,
                 )));
             }
         }
@@ -46,15 +47,16 @@ impl Parser {
         let (path, mut next) = PathOperandParser::default().parse(stream.clone(), None)?;
         self.builder.set_path(path);
 
-        match crate::syntax::take_or_next(next.take(), stream)? {
+        match crate::syntax::parser::take_or_next(next.take(), stream)? {
             Token {
                 lexeme: Lexeme::Symbol(Symbol::Semicolon),
                 ..
             } => Ok((self.builder.finish(), None)),
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
+            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::expected_one_of(
                 location,
                 vec![";"],
                 lexeme,
+                None,
             ))),
         }
     }
@@ -66,15 +68,18 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::error::Error;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
     use crate::lexical::TokenStream;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::ExpressionOperator;
-    use crate::syntax::Identifier;
-    use crate::syntax::UseStatement;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::statement::r#use::Statement as UseStatement;
 
     #[test]
     fn ok() {
@@ -117,6 +122,22 @@ mod tests {
             ),
             None,
         ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_semicolon() {
+        let input = "use jabberwocky";
+
+        let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 16),
+            vec![";"],
+            Lexeme::Eof,
+            None,
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 

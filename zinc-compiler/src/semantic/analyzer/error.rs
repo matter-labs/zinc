@@ -14,7 +14,6 @@ use crate::semantic::element::value::structure::error::Error as StructureValueEr
 use crate::semantic::scope::error::Error as ScopeError;
 
 #[derive(Debug, Fail, PartialEq)]
-#[allow(clippy::large_enum_variant)]
 pub enum Error {
     #[fail(display = "{}: {}", _0, _1)]
     Element(Location, ElementError),

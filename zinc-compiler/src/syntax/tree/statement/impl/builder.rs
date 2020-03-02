@@ -3,9 +3,9 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::Identifier;
-use crate::syntax::ImplStatement;
-use crate::syntax::ImplementationLocalStatement;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::statement::local_impl::Statement as ImplementationLocalStatement;
+use crate::syntax::tree::statement::r#impl::Statement as ImplStatement;
 
 #[derive(Default)]
 pub struct Builder {

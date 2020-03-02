@@ -2,7 +2,7 @@
 //! The type variant.
 //!
 
-use crate::syntax::Expression;
+use crate::syntax::tree::expression::Expression;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Variant {

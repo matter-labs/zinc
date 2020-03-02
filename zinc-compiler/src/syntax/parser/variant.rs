@@ -11,11 +11,15 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::Identifier;
-use crate::syntax::IntegerLiteral;
-use crate::syntax::Variant;
-use crate::syntax::VariantBuilder;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+use crate::syntax::tree::variant::builder::Builder as VariantBuilder;
+use crate::syntax::tree::variant::Variant;
+
+static HINT_EXPECTED_IDENTIFIER: &str =
+    "enumeration variant must have an identifier, e.g. `Value = 42`";
+static HINT_EXPECTED_VALUE: &str = "enumeration variant must be initialized, e.g. `Value = 42`";
 
 #[derive(Default)]
 pub struct Parser {
@@ -29,7 +33,7 @@ impl Parser {
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
     ) -> Result<Variant, Error> {
-        match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+        match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
             Token {
                 lexeme: Lexeme::Identifier(identifier),
                 location,
@@ -39,29 +43,29 @@ impl Parser {
                 self.builder.set_identifier(identifier);
             }
             Token { lexeme, location } => {
-                return Err(Error::Syntax(SyntaxError::Expected(
+                return Err(Error::Syntax(SyntaxError::expected_identifier(
                     location,
-                    vec!["{identifier}"],
                     lexeme,
+                    Some(HINT_EXPECTED_IDENTIFIER),
                 )));
             }
         }
 
-        match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+        match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
             Token {
                 lexeme: Lexeme::Symbol(Symbol::Equals),
                 ..
             } => {}
             Token { lexeme, location } => {
-                return Err(Error::Syntax(SyntaxError::Expected(
+                return Err(Error::Syntax(SyntaxError::expected_value(
                     location,
-                    vec!["="],
                     lexeme,
+                    Some(HINT_EXPECTED_VALUE),
                 )));
             }
         }
 
-        match crate::syntax::take_or_next(self.next.take(), stream)? {
+        match crate::syntax::parser::take_or_next(self.next.take(), stream)? {
             Token {
                 lexeme: Lexeme::Literal(lexical::Literal::Integer(literal)),
                 location,
@@ -70,11 +74,9 @@ impl Parser {
                     .set_literal(IntegerLiteral::new(location, literal));
                 Ok(self.builder.finish())
             }
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                location,
-                vec!["{integer}"],
-                lexeme,
-            ))),
+            Token { lexeme, location } => Err(Error::Syntax(
+                SyntaxError::expected_integer_literal(location, lexeme),
+            )),
         }
     }
 }
@@ -85,15 +87,18 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::error::Error;
     use crate::lexical;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
     use crate::lexical::TokenStream;
-    use crate::syntax::Identifier;
-    use crate::syntax::IntegerLiteral;
-    use crate::syntax::Variant;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+    use crate::syntax::tree::variant::Variant;
 
     #[test]
-    fn ok_single() {
+    fn ok() {
         let input = "A = 1";
 
         let expected = Ok(Variant::new(
@@ -104,6 +109,35 @@ mod tests {
                 lexical::IntegerLiteral::new_decimal("1".to_owned()),
             ),
         ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_value() {
+        let input = "A";
+
+        let expected = Err(Error::Syntax(SyntaxError::expected_value(
+            Location::new(1, 2),
+            Lexeme::Eof,
+            Some(super::HINT_EXPECTED_VALUE),
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_integer_literal() {
+        let input = "A = id";
+
+        let expected = Err(Error::Syntax(SyntaxError::expected_integer_literal(
+            Location::new(1, 5),
+            Lexeme::Identifier(lexical::Identifier::new("id".to_owned())),
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 

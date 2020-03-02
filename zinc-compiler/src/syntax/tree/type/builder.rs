@@ -4,9 +4,9 @@
 
 use crate::lexical::Keyword;
 use crate::lexical::Location;
-use crate::syntax::Expression;
-use crate::syntax::Type;
-use crate::syntax::TypeVariant;
+use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
+use crate::syntax::tree::r#type::Type;
 
 #[derive(Default)]
 pub struct Builder {
@@ -16,7 +16,6 @@ pub struct Builder {
     array_type_variant: Option<TypeVariant>,
     array_size: Option<Expression>,
     tuple_element_types: Vec<TypeVariant>,
-    tuple_has_comma: bool,
     path_expression: Option<Expression>,
 }
 
@@ -45,10 +44,6 @@ impl Builder {
 
     pub fn push_tuple_element_type(&mut self, value: TypeVariant) {
         self.tuple_element_types.push(value)
-    }
-
-    pub fn set_tuple_comma(&mut self) {
-        self.tuple_has_comma = true;
     }
 
     pub fn set_path_expression(&mut self, value: Expression) {
@@ -91,11 +86,7 @@ impl Builder {
                 }),
             )
         } else if !self.tuple_element_types.is_empty() {
-            if self.tuple_has_comma {
-                TypeVariant::tuple(self.tuple_element_types)
-            } else {
-                self.tuple_element_types.remove(0)
-            }
+            TypeVariant::tuple(self.tuple_element_types)
         } else if self.is_unit {
             TypeVariant::unit()
         } else {

@@ -113,10 +113,13 @@ impl<'a> TokenStream<'a> {
                         self.offset += size;
                         continue;
                     }
-                    Err(CommentParserError::UnexpectedEnd) => {
-                        return Err(Error::UnexpectedEnd(self.location));
-                    }
                     Err(CommentParserError::NotAComment) => {}
+                    Err(CommentParserError::UnterminatedBlock { lines, column }) => {
+                        return Err(Error::unterminated_block_comment(
+                            self.location,
+                            self.location.shifted_down(lines, column),
+                        ));
+                    }
                 }
             }
 
@@ -131,10 +134,13 @@ impl<'a> TokenStream<'a> {
                             location,
                         ));
                     }
-                    Err(StringParserError::UnexpectedEnd) => {
-                        return Err(Error::UnexpectedEnd(self.location))
-                    }
                     Err(StringParserError::NotAString) => {}
+                    Err(StringParserError::UnterminatedDoubleQuote { lines, column }) => {
+                        return Err(Error::unterminated_double_quote_string(
+                            self.location,
+                            self.location.shifted_down(lines, column),
+                        ));
+                    }
                 }
             }
 
@@ -149,39 +155,60 @@ impl<'a> TokenStream<'a> {
                             location,
                         ));
                     }
-                    Err(IntegerParserError::UnexpectedEnd) => {
-                        return Err(Error::UnexpectedEnd(self.location))
-                    }
                     Err(IntegerParserError::NotAnInteger) => {}
-                    Err(error) => return Err(Error::InvalidInteger(self.location, error)),
+                    Err(IntegerParserError::EmptyHexadecimalBody) => {
+                        return Err(Error::unexpected_end(self.location));
+                    }
+                    Err(IntegerParserError::ExpectedOneOfDecimal { found, offset }) => {
+                        return Err(Error::expected_one_of_decimal(
+                            self.location.shifted_right(offset),
+                            found,
+                        ))
+                    }
+                    Err(IntegerParserError::ExpectedOneOfHexadecimal { found, offset }) => {
+                        return Err(Error::expected_one_of_hexadecimal(
+                            self.location.shifted_right(offset),
+                            found,
+                        ))
+                    }
+                    Err(IntegerParserError::UnexpectedEnd) => {
+                        return Err(Error::unexpected_end(self.location))
+                    }
                 }
             }
 
             if Identifier::can_start_with(character) {
-                return match self::word::parse(&self.input[self.offset..]) {
-                    Ok((size, lexeme)) => {
-                        let location = self.location;
-                        self.location.column += size;
-                        self.offset += size;
-                        Ok(Token::new(lexeme, location))
-                    }
-                    Err(error) => Err(Error::InvalidWord(self.location, error)),
-                };
+                let (size, lexeme) = self::word::parse(&self.input[self.offset..]);
+                let location = self.location;
+                self.location.column += size;
+                self.offset += size;
+                return Ok(Token::new(lexeme, location));
             }
 
-            match self::symbol::parse(&self.input[self.offset..]) {
+            return match self::symbol::parse(&self.input[self.offset..]) {
                 Ok((size, symbol)) => {
                     let location = self.location;
                     self.location.column += size;
                     self.offset += size;
-                    return Ok(Token::new(Lexeme::Symbol(symbol), location));
+                    Ok(Token::new(Lexeme::Symbol(symbol), location))
                 }
+                Err(SymbolParserError::ExpectedOneOf {
+                    expected,
+                    found,
+                    offset,
+                    ..
+                }) => Err(Error::expected_one_of(
+                    self.location.shifted_right(offset),
+                    expected,
+                    found,
+                )),
+                Err(SymbolParserError::InvalidCharacter { found, offset }) => Err(
+                    Error::invalid_character(self.location.shifted_right(offset), found),
+                ),
                 Err(SymbolParserError::UnexpectedEnd) => {
-                    return Err(Error::UnexpectedEnd(self.location))
+                    Err(Error::unexpected_end(self.location.shifted_right(1)))
                 }
-                Err(SymbolParserError::NotASymbol) => {}
-                Err(error) => return Err(Error::InvalidSymbol(self.location, error)),
-            }
+            };
         }
 
         Ok(Token::new(Lexeme::Eof, self.location))

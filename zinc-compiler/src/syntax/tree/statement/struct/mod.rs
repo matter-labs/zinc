@@ -2,22 +2,20 @@
 //! The struct statement.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax::Field;
-use crate::syntax::Identifier;
+use crate::syntax::tree::field::Field;
+use crate::syntax::tree::identifier::Identifier;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Struct {
+pub struct Statement {
     pub location: Location,
     pub identifier: Identifier,
     pub fields: Vec<Field>,
 }
 
-impl Struct {
+impl Statement {
     pub fn new(location: Location, identifier: Identifier, fields: Vec<Field>) -> Self {
         Self {
             location,

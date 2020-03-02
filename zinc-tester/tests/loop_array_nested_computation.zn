@@ -12,7 +12,7 @@ fn main(array: [u8; ARRAY_SIZE]) -> u32 {
     let mut sum: u32 = 0;
     for i in 0..ARRAY_SIZE {
         for j in 0..ARRAY_SIZE {
-            sum = sum + (array[i] * array[j]) as u32;
+            sum += (array[i] * array[j]) as u32;
         }
     }
     sum

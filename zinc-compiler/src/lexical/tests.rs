@@ -1,12 +1,10 @@
 //!
-//! The lexical parser semantic.tests.
+//! The lexical parser tests.
 //!
 
 #![cfg(test)]
 
 use crate::lexical::error::Error;
-use crate::lexical::stream::integer::Error as IntegerParserError;
-use crate::lexical::stream::symbol::Error as SymbolParserError;
 use crate::lexical::stream::TokenStream;
 use crate::lexical::token::lexeme::identifier::Identifier;
 use crate::lexical::token::lexeme::keyword::Keyword;
@@ -89,10 +87,13 @@ let mut c: u8 = 2 + 2;
 }
 
 #[test]
-fn err_unexpected_end() {
-    let input = "&";
+fn error_unterminated_block_comment() {
+    let input = "/*block comment";
 
-    let expected: Result<Token, Error> = Err(Error::UnexpectedEnd(Location::new(1, 1)));
+    let expected: Result<Token, Error> = Err(Error::unterminated_block_comment(
+        Location::new(1, 1),
+        Location::new(1, 16),
+    ));
 
     let result = TokenStream::new(input).next();
 
@@ -100,13 +101,60 @@ fn err_unexpected_end() {
 }
 
 #[test]
-fn err_unknown_character() {
+fn error_unterminated_double_quote_string() {
+    let input = "\"double quote string";
+
+    let expected: Result<Token, Error> = Err(Error::unterminated_double_quote_string(
+        Location::new(1, 1),
+        Location::new(1, 21),
+    ));
+
+    let result = TokenStream::new(input).next();
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_expected_one_of() {
+    let input = "^&";
+
+    let expected: Result<Token, Error> =
+        Err(Error::expected_one_of(Location::new(1, 2), vec!['^'], '&'));
+
+    let result = TokenStream::new(input).next();
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_expected_one_of_decimal() {
+    let input = "42x";
+
+    let expected: Result<Token, Error> =
+        Err(Error::expected_one_of_decimal(Location::new(1, 3), 'x'));
+
+    let result = TokenStream::new(input).next();
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_expected_one_of_hexadecimal() {
+    let input = "0x42t";
+
+    let expected: Result<Token, Error> =
+        Err(Error::expected_one_of_hexadecimal(Location::new(1, 5), 't'));
+
+    let result = TokenStream::new(input).next();
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_invalid_character() {
     let input = "#";
 
-    let expected: Result<Token, Error> = Err(Error::InvalidSymbol(
-        Location::new(1, 1),
-        SymbolParserError::InvalidCharacter('#', 1, "#".to_owned()),
-    ));
+    let expected: Result<Token, Error> = Err(Error::invalid_character(Location::new(1, 1), '#'));
 
     let result = TokenStream::new(input).next();
 
@@ -114,27 +162,10 @@ fn err_unknown_character() {
 }
 
 #[test]
-fn err_invalid_symbol() {
-    let input = "|#";
+fn error_unexpected_end() {
+    let input = "&";
 
-    let expected: Result<Token, Error> = Err(Error::InvalidSymbol(
-        Location::new(1, 1),
-        SymbolParserError::InvalidCharacter('#', 2, "|#".to_owned()),
-    ));
-
-    let result = TokenStream::new(input).next();
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn err_invalid_integer_literal() {
-    let input = "0xCRAP";
-
-    let expected: Result<Token, Error> = Err(Error::InvalidInteger(
-        Location::new(1, 1),
-        IntegerParserError::InvalidHexadecimalCharacter('R', 4, "0xCR".to_owned()),
-    ));
+    let expected: Result<Token, Error> = Err(Error::unexpected_end(Location::new(1, 2)));
 
     let result = TokenStream::new(input).next();
 

@@ -2,12 +2,10 @@
 //! The identifier.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax::MemberString;
+use crate::syntax::tree::member_string::MemberString;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Identifier {

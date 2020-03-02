@@ -1119,6 +1119,7 @@ dependencies = [
 name = "zinc-compiler"
 version = "0.1.3"
 dependencies = [
+ "colored",
  "env_logger",
  "failure",
  "lazy_static",

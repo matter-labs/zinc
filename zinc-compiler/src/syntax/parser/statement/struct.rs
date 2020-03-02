@@ -11,11 +11,14 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::FieldListParser;
-use crate::syntax::Identifier;
-use crate::syntax::StructStatement;
-use crate::syntax::StructStatementBuilder;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::field_list::Parser as FieldListParser;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::statement::r#struct::builder::Builder as StructStatementBuilder;
+use crate::syntax::tree::statement::r#struct::Statement as StructStatement;
+
+static HINT_EXPECTED_IDENTIFIER: &str =
+    "structure type must have an identifier, e.g. `struct Data { ... }`";
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -48,7 +51,7 @@ impl Parser {
         loop {
             match self.state {
                 State::KeywordStruct => {
-                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Struct),
                             location,
@@ -57,16 +60,17 @@ impl Parser {
                             self.state = State::Identifier;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["struct"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
                 }
                 State::Identifier => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
@@ -76,16 +80,16 @@ impl Parser {
                             self.state = State::BracketCurlyLeftOrEnd;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_identifier(
                                 location,
-                                vec!["{identifier}"],
                                 lexeme,
+                                Some(HINT_EXPECTED_IDENTIFIER),
                             )));
                         }
                     }
                 }
                 State::BracketCurlyLeftOrEnd => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
@@ -102,16 +106,14 @@ impl Parser {
                     self.state = State::BracketCurlyRight;
                 }
                 State::BracketCurlyRight => {
-                    return match crate::syntax::take_or_next(self.next.take(), stream)? {
+                    return match crate::syntax::parser::take_or_next(self.next.take(), stream)? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
                         } => Ok((self.builder.finish(), None)),
-                        Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                            location,
-                            vec!["}"],
-                            lexeme,
-                        ))),
+                        Token { lexeme, location } => Err(Error::Syntax(
+                            SyntaxError::expected_one_of(location, vec!["}"], lexeme, None),
+                        )),
                     };
                 }
             }
@@ -125,16 +127,61 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::error::Error;
     use crate::lexical::Lexeme;
     use crate::lexical::Location;
     use crate::lexical::Symbol;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
-    use crate::syntax::Field;
-    use crate::syntax::Identifier;
-    use crate::syntax::StructStatement;
-    use crate::syntax::Type;
-    use crate::syntax::TypeVariant;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::field::Field;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
+    use crate::syntax::tree::r#type::Type;
+    use crate::syntax::tree::statement::r#struct::Statement as StructStatement;
+
+    #[test]
+    fn ok_empty_with_brackets() {
+        let input = r#"
+    struct Test {}
+"#;
+
+        let expected = Ok((
+            StructStatement::new(
+                Location::new(2, 5),
+                Identifier::new(Location::new(2, 12), "Test".to_owned()),
+                vec![],
+            ),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_empty_with_semicolon() {
+        let input = r#"
+    struct Test;
+"#;
+
+        let expected = Ok((
+            StructStatement::new(
+                Location::new(2, 5),
+                Identifier::new(Location::new(2, 12), "Test".to_owned()),
+                vec![],
+            ),
+            Some(Token::new(
+                Lexeme::Symbol(Symbol::Semicolon),
+                Location::new(2, 16),
+            )),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
 
     #[test]
     fn ok_single() {
@@ -203,19 +250,14 @@ mod tests {
     }
 
     #[test]
-    fn ok_empty_with_brackets() {
-        let input = r#"
-    struct Test {}
-"#;
+    fn error_expected_identifier() {
+        let input = r#"struct { a: u8 };"#;
 
-        let expected = Ok((
-            StructStatement::new(
-                Location::new(2, 5),
-                Identifier::new(Location::new(2, 12), "Test".to_owned()),
-                vec![],
-            ),
-            None,
-        ));
+        let expected = Err(Error::Syntax(SyntaxError::expected_identifier(
+            Location::new(1, 8),
+            Lexeme::Symbol(Symbol::BracketCurlyLeft),
+            Some(super::HINT_EXPECTED_IDENTIFIER),
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
@@ -223,22 +265,15 @@ mod tests {
     }
 
     #[test]
-    fn ok_empty_with_semicolon() {
-        let input = r#"
-    struct Test;
-"#;
+    fn error_expected_bracket_curly_right() {
+        let input = "struct Data { a: u8 );";
 
-        let expected = Ok((
-            StructStatement::new(
-                Location::new(2, 5),
-                Identifier::new(Location::new(2, 12), "Test".to_owned()),
-                vec![],
-            ),
-            Some(Token::new(
-                Lexeme::Symbol(Symbol::Semicolon),
-                Location::new(2, 16),
-            )),
-        ));
+        let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 21),
+            vec!["}"],
+            Lexeme::Symbol(Symbol::ParenthesisRight),
+            None,
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
