@@ -9,14 +9,14 @@ use rand::ThreadRng;
 
 use zinc_bytecode::program::Program;
 
+use crate::constraint_systems::DebugConstraintSystem;
 use crate::core::VirtualMachine;
-use crate::debug_constraint_system::DebugConstraintSystem;
 pub use crate::errors::{MalformedBytecode, Result, RuntimeError, TypeSizeError};
 use crate::gadgets::utils::bigint_to_fr;
 use crate::Engine;
 use failure::Fail;
-use zinc_bytecode::data::values::Value;
 use franklin_crypto::circuit::test::TestConstraintSystem;
+use zinc_bytecode::data::values::Value;
 
 struct VMCircuit<'a> {
     program: &'a Program,

@@ -1,28 +1,30 @@
+use franklin_crypto::bellman::{ConstraintSystem, LinearCombination, SynthesisError, Variable};
+
 use crate::Engine;
-use bellman::ConstraintSystem;
-use franklin_crypto::bellman::{Index, LinearCombination, SynthesisError, Variable};
 
-pub struct DummyConstraintSystem;
+pub struct ConstantCS;
 
-impl<E: Engine> ConstraintSystem<E> for DummyConstraintSystem {
+impl<E: Engine> ConstraintSystem<E> for ConstantCS {
     type Root = Self;
 
-    fn alloc<F, A, AR>(&mut self, _annotation: A, _f: F) -> Result<Variable, SynthesisError>
+    fn alloc<F, A, AR>(&mut self, _annotation: A, f: F) -> Result<Variable, SynthesisError>
     where
         F: FnOnce() -> Result<E::Fr, SynthesisError>,
         A: FnOnce() -> AR,
         AR: Into<String>,
     {
-        Ok(Variable::new_unchecked(Index::Input(0)))
+        f()?;
+        Ok(<Self as ConstraintSystem<E>>::one())
     }
 
-    fn alloc_input<F, A, AR>(&mut self, _annotation: A, _f: F) -> Result<Variable, SynthesisError>
+    fn alloc_input<F, A, AR>(&mut self, _annotation: A, f: F) -> Result<Variable, SynthesisError>
     where
         F: FnOnce() -> Result<E::Fr, SynthesisError>,
         A: FnOnce() -> AR,
         AR: Into<String>,
     {
-        Ok(Variable::new_unchecked(Index::Input(0)))
+        f()?;
+        Ok(<Self as ConstraintSystem<E>>::one())
     }
 
     fn enforce<A, AR, LA, LB, LC>(&mut self, _annotation: A, _a: LA, _b: LB, _c: LC)

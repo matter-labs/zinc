@@ -40,10 +40,6 @@ impl<E: Engine> DebugConstraintSystem<E> {
 impl<E: Engine> ConstraintSystem<E> for DebugConstraintSystem<E> {
     type Root = Self;
 
-    fn one() -> Variable {
-        Variable::new_unchecked(Index::Input(0))
-    }
-
     fn alloc<F, A, AR>(&mut self, _annotation: A, f: F) -> Result<Variable, SynthesisError>
     where
         F: FnOnce() -> Result<E::Fr, SynthesisError>,

@@ -1,7 +1,19 @@
 pub mod arithmetic;
+pub mod arrays;
+pub mod auto_const;
+pub mod boolean;
 pub mod comparison;
+mod conditional_select;
+pub mod types;
 
-mod constrained;
+pub use arithmetic::*;
+pub use arrays::*;
+pub use boolean::*;
+pub use comparison::*;
+pub use conditional_select::*;
+pub use types::*;
+
+mod misc;
 mod scalar;
 pub mod stdlib;
 pub mod utils;
@@ -10,10 +22,9 @@ pub use scalar::*;
 use crate::Engine;
 use bellman::ConstraintSystem;
 
-pub use constrained::*;
+pub use misc::*;
 
 use crate::core::RuntimeError;
-use crate::gadgets::utils::dummy_constraint_system::DummyConstraintSystem;
 
 pub trait Gadget<E: Engine> {
     type Input;
@@ -25,12 +36,6 @@ pub trait Gadget<E: Engine> {
         cs: CS,
         input: Self::Input,
     ) -> Result<Self::Output, RuntimeError>;
-
-    /// Calculate function's result without synthesizing a circuit.
-    fn calculate(&self, input: Self::Input) -> Result<Self::Output, RuntimeError> {
-        let cs = DummyConstraintSystem;
-        self.synthesize(cs, input)
-    }
 
     fn input_from_vec(input: &[Scalar<E>]) -> Result<Self::Input, RuntimeError>;
     fn output_into_vec(output: Self::Output) -> Vec<Scalar<E>>;
@@ -46,4 +51,4 @@ pub trait Gadget<E: Engine> {
     }
 }
 
-pub use constrained::Gadgets;
+pub use misc::Gadgets;

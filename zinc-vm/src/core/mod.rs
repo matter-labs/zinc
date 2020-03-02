@@ -139,29 +139,15 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
 
         let types = data_type_into_scalar_types(&input_type);
 
-        match inputs {
-            None => {
-                for t in types {
-                    let variable = self.operations().variable_none(t)?;
-                    if let ScalarType::Field = t {
-                        // Add constraint so circuit doesn't fail if argument is not used.
-                        // TODO: Refactor this.
-                        self.operations().neg(variable.clone())?;
-                    }
-                    self.push(Cell::Value(variable))?;
-                }
-            }
-            Some(values) => {
-                for (value, dtype) in values.iter().zip(types) {
-                    let variable = self.operations().variable_bigint(value, dtype)?;
-                    if let ScalarType::Field = dtype {
-                        // Add constraint so circuit doesn't fail if argument is not used.
-                        // TODO: Refactor this.
-                        self.operations().neg(variable.clone())?;
-                    }
-                    self.push(Cell::Value(variable))?;
-                }
-            }
+        // Convert Option<&[BigInt]> to iterator of Option<&BigInt> and zip with types.
+        let value_type_pairs: Vec<_> = match inputs {
+            Some(values) => values.iter().map(Some).zip(types).collect(),
+            None => std::iter::repeat(None).zip(types).collect(),
+        };
+
+        for (value, dtype) in value_type_pairs {
+            let variable = self.operations().allocate_witness(value, dtype)?;
+            self.push(Cell::Value(variable))?;
         }
 
         Ok(())

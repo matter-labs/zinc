@@ -25,22 +25,23 @@ where
 mod tests {
     use super::*;
     use crate::instructions::testing_utils::{TestingError, VMTestRunner};
+    use zinc_bytecode::scalar::ScalarType;
     use zinc_bytecode::*;
 
     #[test]
     fn test_xor() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new_untyped(0.into()))
-            .add(PushConst::new_untyped(0.into()))
+            .add(PushConst::new(0.into(), ScalarType::Boolean))
+            .add(PushConst::new(0.into(), ScalarType::Boolean))
             .add(Xor)
-            .add(PushConst::new_untyped(0.into()))
-            .add(PushConst::new_untyped(1.into()))
+            .add(PushConst::new(0.into(), ScalarType::Boolean))
+            .add(PushConst::new(1.into(), ScalarType::Boolean))
             .add(Xor)
-            .add(PushConst::new_untyped(1.into()))
-            .add(PushConst::new_untyped(0.into()))
+            .add(PushConst::new(1.into(), ScalarType::Boolean))
+            .add(PushConst::new(0.into(), ScalarType::Boolean))
             .add(Xor)
-            .add(PushConst::new_untyped(1.into()))
-            .add(PushConst::new_untyped(1.into()))
+            .add(PushConst::new(1.into(), ScalarType::Boolean))
+            .add(PushConst::new(1.into(), ScalarType::Boolean))
             .add(Xor)
             .test(&[0, 1, 1, 0])
     }

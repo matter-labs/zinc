@@ -3,6 +3,7 @@ extern crate franklin_crypto;
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
+use crate::gadgets;
 use crate::gadgets::{ScalarType, ScalarTypeExpectation};
 use crate::Engine;
 use zinc_bytecode::instructions::Rem;
@@ -17,15 +18,15 @@ where
         let left = vm.pop()?.value()?;
 
         let condition = vm.condition_top()?;
+        let cs = vm.constraint_system();
 
         let (_div, unchecked_rem) =
-            vm.operations()
-                .div_rem_conditional(left.clone(), right.clone(), condition)?;
+            gadgets::div_rem_conditional(cs.namespace(|| "div_rem"), &condition, &left, &right)?;
 
-        let condition = vm.condition_top()?;
-        let rem = vm.operations().assert_type(
-            condition,
-            unchecked_rem,
+        let rem = gadgets::conditional_type_check(
+            cs.namespace(|| "type check"),
+            &condition,
+            &unchecked_rem,
             ScalarType::expect_same(left.get_type(), right.get_type())?,
         )?;
 
