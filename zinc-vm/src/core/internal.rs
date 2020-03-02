@@ -1,8 +1,8 @@
 use crate::core::{Block, Branch, Cell, FunctionFrame, Loop, VirtualMachine};
 use crate::errors::MalformedBytecode;
 use crate::gadgets::Gadgets;
-use crate::Engine;
 use crate::RuntimeError;
+use crate::{gadgets, Engine};
 use franklin_crypto::bellman::ConstraintSystem;
 
 /// This is an internal interface to virtual machine used by instructions.
@@ -179,7 +179,8 @@ where
 
         self.condition_pop()?;
         let prev = self.condition_top()?;
-        let not_cond = self.operations().not(condition)?;
+        let cs = self.constraint_system();
+        let not_cond = gadgets::not(cs.namespace(|| "not"), &condition)?;
         let next = self.operations().and(prev, not_cond)?;
         self.condition_push(next)?;
 
@@ -204,10 +205,9 @@ where
         }?;
 
         if branch.is_full {
-            self.state.evaluation_stack.merge(
-                branch.condition.clone(),
-                &mut Gadgets::new(self.cs.namespace()),
-            )?;
+            self.state
+                .evaluation_stack
+                .merge(self.cs.namespace(), &branch.condition)?;
         } else {
             self.state.evaluation_stack.revert()?;
         }

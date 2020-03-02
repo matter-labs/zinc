@@ -17,7 +17,8 @@ where
             array.push(vm.load_global(self.address + i)?.value()?);
         }
 
-        let value = vm.operations().array_get(array.as_slice(), index)?;
+        let condition = vm.condition_top()?;
+        let value = vm.operations().conditional_array_get(&condition, array.as_slice(), &index)?;
         vm.push(Cell::Value(value))
     }
 }

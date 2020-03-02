@@ -1,6 +1,27 @@
 pub mod prelude {
     pub use crate::constraint_systems::ConstantCS;
     pub use crate::gadgets::{Scalar, ScalarVariant};
+
+    use crate::{Engine, Result};
+
+    pub trait ToConstant: Sized {
+        fn to_constant(&self) -> Result<Self>;
+    }
+
+    impl<E: Engine> ToConstant for Scalar<E> {
+        fn to_constant(&self) -> Result<Self> {
+            self.as_constant_unchecked()
+        }
+    }
+
+    impl<E: Engine> ToConstant for (Scalar<E>, Scalar<E>) {
+        fn to_constant(&self) -> Result<Self> {
+            Ok((
+                self.0.as_constant_unchecked()?,
+                self.1.as_constant_unchecked()?,
+            ))
+        }
+    }
 }
 
 ///
@@ -14,10 +35,10 @@ pub mod prelude {
 /// use zinc_vm::auto_const;
 /// use zinc_vm::gadgets::Scalar;
 /// use zinc_vm::gadgets::arithmetic;
-/// use zinc_vm::gadgets::constants::prelude::*;
+/// use zinc_vm::gadgets::auto_const::prelude::*;
 ///
-/// let a = Scalar::<Bn256>::new_unchecked_constant(Fr::from_str("42").unwrap(), ScalarType::Field);
-/// let b = Scalar::<Bn256>::new_unchecked_constant(Fr::from_str("69").unwrap(), ScalarType::Field);
+/// let a = Scalar::<Bn256>::new_constant_fr(Fr::from_str("42").unwrap(), ScalarType::Field);
+/// let b = Scalar::<Bn256>::new_constant_fr(Fr::from_str("69").unwrap(), ScalarType::Field);
 ///
 /// let mut cs = TestConstraintSystem::<Bn256>::new();
 ///
@@ -37,13 +58,11 @@ macro_rules! auto_const {
         let a = $a;
         match a.get_variant() {
             ScalarVariant::Constant { .. } => {
-                println!("constant");
                 let const_cs = ConstantCS;
                 let result = $op(const_cs, a);
-                result.and_then(|scalar| scalar.as_constant_unchecked())
+                result.and_then(|result| result.to_constant())
             }
             _ => {
-                println!("variable");
                 $op($cs, a)
             }
         }
@@ -54,13 +73,11 @@ macro_rules! auto_const {
         let b = $b;
         match (a.get_variant(), b.get_variant()) {
             (ScalarVariant::Constant { .. }, ScalarVariant::Constant { .. }) => {
-                println!("constant");
                 let const_cs = ConstantCS;
                 let result = $op(const_cs, a, b);
-                result.and_then(|scalar| scalar.as_constant_unchecked())
+                result.and_then(|result| result.to_constant())
             }
             _ => {
-                println!("variable");
                 $op($cs, a, b)
             }
         }

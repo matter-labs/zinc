@@ -17,12 +17,6 @@
 //#     },
 //#     "expect": "-128"
 //# }, {
-//#     "case": "almost_min_to_max",
-//#     "input": {
-//#         "a": "-127"
-//#     },
-//#     "expect": "127"
-//# }, {
 //#     "case": "overflow", "should_panic": true,
 //#     "input": {
 //#         "a": "200"

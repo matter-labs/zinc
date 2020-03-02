@@ -1,6 +1,7 @@
 use crate::core::Cell;
 use crate::errors::MalformedBytecode;
-use crate::gadgets::{Gadgets, Scalar};
+use crate::gadgets;
+use crate::gadgets::Scalar;
 use crate::Engine;
 use crate::RuntimeError;
 use franklin_crypto::bellman::ConstraintSystem;
@@ -42,11 +43,7 @@ impl<E: Engine> EvaluationStack<E> {
         self.stack.push(vec![]);
     }
 
-    pub fn merge<CS>(
-        &mut self,
-        condition: Scalar<E>,
-        ops: &mut Gadgets<E, CS>,
-    ) -> Result<(), RuntimeError>
+    pub fn merge<CS>(&mut self, mut cs: CS, condition: &Scalar<E>) -> Result<(), RuntimeError>
     where
         CS: ConstraintSystem<E>,
     {
@@ -61,12 +58,17 @@ impl<E: Engine> EvaluationStack<E> {
             return Err(MalformedBytecode::BranchStacksDoNotMatch.into());
         }
 
-        for (t, e) in then_case.into_iter().zip(else_case.into_iter()) {
+        for (i, (t, e)) in then_case.into_iter().zip(else_case.into_iter()).enumerate() {
             match (t, e) {
                 (Cell::Value(tv), Cell::Value(ev)) => {
-                    let merged = ops.conditional_select(condition.clone(), tv, ev)?;
+                    let merged = gadgets::conditional_select(
+                        cs.namespace(|| format!("merge {}", i)),
+                        condition,
+                        &tv,
+                        &ev,
+                    )?;
                     self.push(Cell::Value(merged))?;
-                } //                _ => return Err(RuntimeError::MergingNonValueTypes),
+                }
             }
         }
 

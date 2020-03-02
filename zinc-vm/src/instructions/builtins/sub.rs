@@ -4,7 +4,7 @@ use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::auto_const;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::gadgets::constants::prelude::*;
+use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::{ScalarType, ScalarTypeExpectation};
 use crate::{gadgets, Engine};
 use zinc_bytecode::instructions::Sub;

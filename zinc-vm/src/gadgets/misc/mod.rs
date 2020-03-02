@@ -3,14 +3,14 @@ use std::mem;
 
 use bellman::{ConstraintSystem, Namespace};
 use ff::Field;
-use franklin_crypto::circuit::num::AllocatedNum;
 use num_bigint::BigInt;
-use num_traits::ToPrimitive;
 
 use crate::core::RuntimeError;
-use crate::gadgets::{utils, Gadget, IntegerType, Scalar, ScalarType, ScalarTypeExpectation};
+use crate::gadgets::{utils, Gadget, IntegerType, Scalar, ScalarType, ScalarTypeExpectation, ScalarVariant};
 use crate::{gadgets, Engine};
 use franklin_crypto::circuit::Assignment;
+use franklin_crypto::circuit::expression::Expression;
+use crate::gadgets::utils::math;
 
 pub struct Gadgets<E, CS>
 where
@@ -41,11 +41,6 @@ where
         self.cs.namespace(|| s)
     }
 
-    fn zero(&self, scalar_type: ScalarType) -> Scalar<E> {
-        self.constant_bigint(&0.into(), scalar_type)
-            .expect("can't overflow")
-    }
-
     fn one(&self, scalar_type: ScalarType) -> Scalar<E> {
         self.constant_bigint(&1.into(), scalar_type)
             .expect("can't overflow")
@@ -54,22 +49,6 @@ where
     #[allow(dead_code)]
     pub fn constraint_system(&mut self) -> &mut CS {
         &mut self.cs
-    }
-
-    fn abs(&mut self, value: Scalar<E>) -> Result<Scalar<E>, RuntimeError> {
-        match value.get_type() {
-            ScalarType::Field | ScalarType::Boolean => return Ok(value),
-            ScalarType::Integer(int_type) => {
-                if !int_type.signed {
-                    return Ok(value);
-                }
-            }
-        }
-
-        let zero = self.zero(value.get_type());
-        let neg = Gadgets::neg(self, value.clone())?;
-        let lt0 = Gadgets::lt(self, value.clone(), zero)?;
-        self.conditional_select(lt0, neg, value)
     }
 }
 
@@ -91,12 +70,12 @@ where
         match scalar_type {
             ScalarType::Field => {
                 // Create some constraints to avoid unconstrained variable errors.
-                let one = Scalar::new_unchecked_constant(E::Fr::one(), ScalarType::Field);
+                let one = Scalar::new_constant_fr(E::Fr::one(), ScalarType::Field);
                 gadgets::arithmetic::add(cs.namespace(|| "dummy constraint"), &scalar, &one)?;
                 Ok(scalar)
             }
             _ => {
-                let condition = Scalar::new_unchecked_constant(E::Fr::one(), ScalarType::Boolean);
+                let condition = Scalar::new_constant_fr(E::Fr::one(), ScalarType::Boolean);
                 gadgets::types::conditional_type_check(
                     cs.namespace(|| "type check"),
                     &condition,
@@ -136,7 +115,7 @@ where
             scalar_type,
         })?;
 
-        Ok(Scalar::new_unchecked_constant(value, scalar_type))
+        Ok(Scalar::new_constant_fr(value, scalar_type))
     }
 
     pub fn output(&mut self, element: Scalar<E>) -> Result<Scalar<E>, RuntimeError> {
@@ -244,82 +223,6 @@ where
             prod_var,
             ScalarType::Field,
         ))
-    }
-
-    // Make condition
-    pub fn div_rem_conditional(
-        &mut self,
-        left: Scalar<E>,
-        right: Scalar<E>,
-        condition: Scalar<E>,
-    ) -> Result<(Scalar<E>, Scalar<E>), RuntimeError> {
-        let one = self.one(right.get_type());
-        let denom = self.conditional_select(condition, right, one)?;
-        self.div_rem(left, denom)
-    }
-
-    fn div_rem(
-        &mut self,
-        left: Scalar<E>,
-        right: Scalar<E>,
-    ) -> Result<(Scalar<E>, Scalar<E>), RuntimeError> {
-        let nominator = left;
-        let denominator = right;
-
-        let mut quotient_value: Option<E::Fr> = None;
-        let mut remainder_value: Option<E::Fr> = None;
-
-        if let (Some(nom), Some(denom)) = (nominator.get_value(), denominator.get_value()) {
-            let nom_bi = utils::fr_to_bigint(&nom, nominator.is_signed());
-            let denom_bi = utils::fr_to_bigint(&denom, denominator.is_signed());
-
-            let (q, r) =
-                utils::euclidean_div_rem(&nom_bi, &denom_bi).ok_or(RuntimeError::DivisionByZero)?;
-
-            quotient_value = utils::bigint_to_fr::<E>(&q);
-            remainder_value = utils::bigint_to_fr::<E>(&r);
-        }
-
-        let (quotient, remainder) = {
-            let mut cs = self.cs_namespace();
-
-            let qutioent_var = cs
-                .alloc(|| "qutioent", || quotient_value.grab())
-                .map_err(RuntimeError::SynthesisError)?;
-
-            let remainder_var = cs
-                .alloc(|| "remainder", || remainder_value.grab())
-                .map_err(RuntimeError::SynthesisError)?;
-
-            cs.enforce(
-                || "equality",
-                |lc| lc + qutioent_var,
-                |lc| lc + &denominator.lc::<CS>(),
-                |lc| lc + &nominator.lc::<CS>() - remainder_var,
-            );
-
-            mem::drop(cs);
-            let quotient =
-                Scalar::new_unchecked_variable(quotient_value, qutioent_var, ScalarType::Field);
-            let remainder =
-                Scalar::new_unchecked_variable(remainder_value, remainder_var, ScalarType::Field);
-
-            (quotient, remainder)
-        };
-
-        let abs_denominator = self.abs(denominator)?;
-        let lt = self.lt(remainder.as_field(), abs_denominator.as_field())?;
-        let zero = self.zero(remainder.get_type());
-        let ge = self.ge(remainder.clone(), zero)?;
-        let mut cs = self.cs_namespace();
-        cs.enforce(
-            || "0 <= rem < |denominator|",
-            |lc| lc + CS::one() - &lt.lc::<CS>(),
-            |lc| lc + CS::one() - &ge.lc::<CS>(),
-            |lc| lc,
-        );
-
-        Ok((quotient, remainder))
     }
 
     pub fn neg(&mut self, element: Scalar<E>) -> Result<Scalar<E>, RuntimeError> {
@@ -484,24 +387,21 @@ where
 
     pub fn lt(&mut self, left: Scalar<E>, right: Scalar<E>) -> Result<Scalar<E>, RuntimeError> {
         let cs = self.cs_namespace();
-        gadgets::comparison::less_than(cs, left, right)
+        gadgets::comparison::lt(cs, &left, &right)
     }
 
     pub fn le(&mut self, left: Scalar<E>, right: Scalar<E>) -> Result<Scalar<E>, RuntimeError> {
-        let gt = self.gt(left, right)?;
-        self.not(gt)
+        let cs = self.cs_namespace();
+        gadgets::comparison::le(cs, &left, &right)
     }
 
     pub fn eq(&mut self, left: Scalar<E>, right: Scalar<E>) -> Result<Scalar<E>, RuntimeError> {
-        let mut cs = self.cs_namespace();
+        let cs = self.cs_namespace();
 
-        let l_num = AllocatedNum::alloc(cs.namespace(|| "l_num"), || left.grab_value())
-            .map_err(RuntimeError::SynthesisError)?;
+        let l_num = left.to_expression::<CS>();
+        let r_num = right.to_expression::<CS>();
 
-        let r_num = AllocatedNum::alloc(cs.namespace(|| "r_num"), || right.grab_value())
-            .map_err(RuntimeError::SynthesisError)?;
-
-        let eq = AllocatedNum::equals(cs, &l_num, &r_num).map_err(RuntimeError::SynthesisError)?;
+        let eq = Expression::equals(cs, l_num, r_num)?;
 
         Ok(Scalar::new_unchecked_variable(
             eq.get_value_field::<E>(),
@@ -521,43 +421,6 @@ where
 
     pub fn gt(&mut self, left: Scalar<E>, right: Scalar<E>) -> Result<Scalar<E>, RuntimeError> {
         self.lt(right, left)
-    }
-
-    pub fn conditional_select(
-        &mut self,
-        condition: Scalar<E>,
-        if_true: Scalar<E>,
-        if_false: Scalar<E>,
-    ) -> Result<Scalar<E>, RuntimeError> {
-        let mut cs = self.cs_namespace();
-        let scalar_type = ScalarType::expect_same(if_true.get_type(), if_false.get_type())?;
-
-        let value = match condition.get_value() {
-            Some(value) => {
-                if !value.is_zero() {
-                    if_true.get_value()
-                } else {
-                    if_false.get_value()
-                }
-            }
-            None => None,
-        };
-
-        let variable = cs
-            .alloc(|| "variable", || value.grab())
-            .map_err(RuntimeError::SynthesisError)?;
-
-        // Selected, Right, Left, Condition
-        // s = r + c * (l - r)
-        // (l - r) * (c) = (s - r)
-        cs.enforce(
-            || "constraint",
-            |lc| lc + &if_true.lc::<CS>() - &if_false.lc::<CS>(),
-            |lc| lc + &condition.lc::<CS>(),
-            |lc| lc + variable - &if_false.lc::<CS>(),
-        );
-
-        Ok(Scalar::new_unchecked_variable(value, variable, scalar_type))
     }
 
     pub fn assert(
@@ -591,20 +454,33 @@ where
         Ok(())
     }
 
-    pub fn array_get(
+    /// This gadget only enforces 0 <= index < array.len() if condition is true
+    pub fn conditional_array_get(
+        &mut self,
+        condition: &Scalar<E>,
+        array: &[Scalar<E>],
+        index: &Scalar<E>,
+    ) -> Result<Scalar<E>, RuntimeError> {
+        let zero = Scalar::new_constant_int(0, index.get_type());
+        let index = gadgets::conditional_select(self.cs_namespace(), condition, index, &zero)?;
+        self.enforcing_array_get(array, &index)
+    }
+
+    /// This gadget enforces 0 <= index < array.len()
+    pub fn enforcing_array_get(
         &mut self,
         array: &[Scalar<E>],
-        index: Scalar<E>,
+        index: &Scalar<E>,
     ) -> Result<Scalar<E>, RuntimeError> {
-        // TODO: Enable linear scan
+        assert!(!array.is_empty(), "reading from empty array");
 
-        match index.get_value() {
-            None => Err(RuntimeError::Unimplemented(
-                "runtime-variable array indices are not supported".into(),
-            )),
-            Some(f) => {
-                let bi = utils::fr_to_bigint(&f, index.is_signed());
-                let i = bi.to_usize().ok_or(RuntimeError::ExpectedUsize(bi))?;
+        let length = self.constant_bigint(&array.len().into(), index.get_type())?;
+        let lt = self.lt(index.clone(), length)?;
+        self.assert(lt, Some("index out of bounds"))?;
+
+        match index.get_variant() {
+            ScalarVariant::Constant(_) => {
+                let i = index.get_constant_usize()?;
                 if i >= array.len() {
                     return Err(RuntimeError::IndexOutOfBounds {
                         lower_bound: 0,
@@ -614,11 +490,30 @@ where
                 }
                 Ok(array[i].clone())
             }
+            _ => {
+                let mut cs = self.cs_namespace();
+                let num_bits = math::log2ceil(array.len());
+                let bits_le = index.to_expression::<CS>().into_bits_le_fixed(
+                    cs.namespace(|| "into_bits"),
+                    num_bits
+                )?;
+                let bits_be = bits_le
+                    .into_iter()
+                    .rev()
+                    .enumerate()
+                    .map(|(i, bit)| {
+                        Scalar::from_boolean(cs.namespace(|| format!("bit {}", i)), bit)
+                    })
+                    .collect::<Result<Vec<Scalar<E>>, RuntimeError>>()?;
+
+                gadgets::recursive_select(
+                    cs.namespace(|| "recursive_select"),
+                    &bits_be,
+                    array
+                )
+            }
         }
 
-        //        let bits = self.bits(index, array.len())?;
-        //
-        //        self.recursive_select(array, bits.as_slice())
     }
 
     pub fn array_set(
@@ -627,19 +522,11 @@ where
         index: Scalar<E>,
         value: Scalar<E>,
     ) -> Result<Vec<Scalar<E>>, RuntimeError> {
-        // TODO: Enable linear scan
-
         let mut new_array = Vec::from(array);
 
-        match index.get_value() {
-            None => {
-                return Err(RuntimeError::Unimplemented(
-                    "runtime-variable array indices are not supported".into(),
-                ))
-            }
-            Some(f) => {
-                let bi = utils::fr_to_bigint(&f, index.is_signed());
-                let i = bi.to_usize().ok_or(RuntimeError::ExpectedUsize(bi))?;
+        match index.get_variant() {
+            ScalarVariant::Constant(_) => {
+                let i = index.get_constant_usize()?;
                 if i >= array.len() {
                     return Err(RuntimeError::IndexOutOfBounds {
                         lower_bound: 0,
@@ -649,21 +536,20 @@ where
                 }
                 new_array[i] = value;
             }
+            _ => {
+                let mut new_array = Vec::new();
+
+                for (i, p) in array.iter().enumerate() {
+                    let curr_index = Scalar::new_constant_int(i, ScalarType::Field);
+                    let is_current_index = self.eq(curr_index, index.clone())?;
+                    let cs = self.cs_namespace();
+                    let value = gadgets::conditional_select(cs, &is_current_index, &value, p)?;
+                    new_array.push(value);
+                }
+            }
         };
 
         Ok(new_array)
-
-        //        let mut new_array = Vec::new();
-        //
-        //        for (i, p) in array.iter().enumerate() {
-        //            let curr_index = self.constant_bigint(&i.into())?;
-        //
-        //            let cond = self.eq(curr_index, index.clone())?;
-        //            let value = self.conditional_select(cond, value.clone(), p.clone())?;
-        //            new_array.push(value);
-        //        }
-        //
-        //        Ok(new_array)
     }
 
     pub fn execute<G: Gadget<E>>(
@@ -673,70 +559,5 @@ where
     ) -> Result<Vec<Scalar<E>>, RuntimeError> {
         let cs = self.cs_namespace();
         gadget.synthesize_vec(cs, input)
-    }
-
-    /// Asserts that value is in its type range if condition is true.
-    pub fn assert_type(
-        &mut self,
-        condition: Scalar<E>,
-        scalar: Scalar<E>,
-        scalar_type: ScalarType,
-    ) -> Result<Scalar<E>, RuntimeError> {
-        match scalar_type {
-            ScalarType::Field => {
-                // Always safe to cast into field
-                Ok(scalar.as_field())
-            }
-            ScalarType::Boolean => {
-                let checked = self.assert_type(condition, scalar, IntegerType::BIT.into())?;
-                Ok(checked.with_type_unchecked(scalar_type))
-            }
-            ScalarType::Integer(int_type) => {
-                let scalar_with_offset = if !int_type.signed {
-                    scalar.clone()
-                } else {
-                    let offset_value = BigInt::from(1) << (int_type.length - 1);
-                    let offset = self.constant_bigint(&offset_value, ScalarType::Field)?;
-                    self.add(scalar.clone(), offset)?
-                };
-
-                let zero = self.zero(scalar_with_offset.get_type());
-                let value_or_zero =
-                    self.conditional_select(condition.clone(), scalar_with_offset, zero)?;
-
-                {
-                    let mut cs = self.cs_namespace();
-                    let _bits = value_or_zero
-                        .to_expression::<CS>()
-                        .into_bits_le_fixed(cs.namespace(|| "into_bits"), int_type.length)?;
-                }
-
-                if let (Some(value), Some(condition)) =
-                    (&scalar.get_value(), &condition.get_value())
-                {
-                    if !condition.is_zero() {
-                        let value_bigint = utils::fr_to_bigint(value, int_type.signed);
-                        let (lower_bound, upper_bound) = if int_type.signed {
-                            let lower_bound = -(BigInt::from(1) << (int_type.length - 1));
-                            let upper_bound = (-lower_bound.clone()) - 1;
-                            (lower_bound, upper_bound)
-                        } else {
-                            let lower_bound = BigInt::from(0);
-                            let upper_bound = (BigInt::from(1) << int_type.length) - 1;
-                            (lower_bound, upper_bound)
-                        };
-
-                        if value_bigint < lower_bound || value_bigint > upper_bound {
-                            return Err(RuntimeError::ValueOverflow {
-                                value: value_bigint,
-                                scalar_type,
-                            });
-                        }
-                    }
-                }
-
-                Ok(scalar.with_type_unchecked(scalar_type))
-            }
-        }
     }
 }

@@ -7,7 +7,7 @@ use std::fmt;
 
 use crate::gadgets::utils;
 use crate::{Engine, Result, RuntimeError};
-use ff::Field;
+use ff::{Field, PrimeField};
 use franklin_crypto::bellman::{LinearCombination, SynthesisError};
 use franklin_crypto::circuit::boolean::{AllocatedBit, Boolean};
 use franklin_crypto::circuit::expression::Expression;
@@ -52,7 +52,18 @@ pub struct ScalarVariable<E: Engine> {
 }
 
 impl<E: Engine> Scalar<E> {
-    pub fn new_unchecked_constant(value: E::Fr, scalar_type: ScalarType) -> Self {
+    pub fn new_constant_int(value: usize, scalar_type: ScalarType) -> Self {
+        let value_string = value.to_string();
+        let fr = E::Fr::from_str(&value_string).expect("failed to convert u64 into Fr");
+        Self::new_constant_fr(fr, scalar_type)
+    }
+
+    pub fn new_constant_bool(value: bool) -> Self {
+        let fr = if value { E::Fr::one() } else { E::Fr::zero() };
+        Self::new_constant_fr(fr, ScalarType::Boolean)
+    }
+
+    pub fn new_constant_fr(value: E::Fr, scalar_type: ScalarType) -> Self {
         Self {
             variant: ScalarConstant { value }.into(),
             scalar_type,
@@ -159,8 +170,7 @@ impl<E: Engine> Scalar<E> {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn get_bits<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<Vec<Self>> {
+    pub fn get_bits_le<CS: ConstraintSystem<E>>(&self, mut cs: CS) -> Result<Vec<Self>> {
         let num = self.to_expression::<CS>();
         let bits = match self.scalar_type {
             ScalarType::Field => num.into_bits_le_strict(cs.namespace(|| "into_bits_le_strict")),
@@ -196,7 +206,7 @@ impl<E: Engine> Scalar<E> {
                 let scalar = Self::from(num);
                 Ok(scalar.with_type_unchecked(ScalarType::Boolean))
             }
-            Boolean::Constant(_) => Ok(Self::new_unchecked_constant(
+            Boolean::Constant(_) => Ok(Self::new_constant_fr(
                 boolean.get_value_field::<E>().unwrap(),
                 ScalarType::Boolean,
             )),
@@ -204,10 +214,7 @@ impl<E: Engine> Scalar<E> {
     }
 
     pub fn as_constant_unchecked(&self) -> Result<Self> {
-        Ok(Self::new_unchecked_constant(
-            self.grab_value()?,
-            self.get_type(),
-        ))
+        Ok(Self::new_constant_fr(self.grab_value()?, self.get_type()))
     }
 }
 

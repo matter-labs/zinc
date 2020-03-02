@@ -1,7 +1,17 @@
 pub mod arithmetic;
+pub mod auto_const;
+pub mod boolean;
 pub mod comparison;
-pub mod constants;
+mod conditional_select;
 pub mod types;
+pub mod arrays;
+
+pub use arithmetic::*;
+pub use boolean::*;
+pub use comparison::*;
+pub use conditional_select::*;
+pub use types::*;
+pub use arrays::*;
 
 mod misc;
 mod scalar;

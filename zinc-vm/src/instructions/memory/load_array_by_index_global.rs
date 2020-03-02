@@ -25,7 +25,8 @@ where
                 .constant_bigint(&i.into(), index.get_type())?;
             let address = vm.operations().add(index.clone(), offset)?;
 
-            let value = vm.operations().array_get(array.as_slice(), address)?;
+            let condition = vm.condition_top()?;
+            let value = vm.operations().conditional_array_get(&condition, array.as_slice(), &address)?;
             values.push(value);
         }
 
