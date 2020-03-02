@@ -20,16 +20,20 @@ use crate::semantic::analyzer::error::Error;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
 use crate::semantic::analyzer::translation_hint::TranslationHint;
 use crate::semantic::bytecode::Bytecode;
+use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::place::Place;
+use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionError;
 use crate::semantic::element::r#type::function::builtin::Function as BuiltInFunctionType;
-use crate::semantic::element::r#type::function::standard::Function as StandardLibraryFunctionType;
+use crate::semantic::element::r#type::function::error::Error as FunctionError;
+use crate::semantic::element::r#type::function::stdlib::Function as StandardLibraryFunctionType;
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::array::Array;
+use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::element::value::structure::error::Error as StructureValueError;
 use crate::semantic::element::value::structure::Structure;
 use crate::semantic::element::value::tuple::Tuple;
@@ -65,7 +69,7 @@ pub struct Analyzer {
     operands: Vec<StackElement>,
 
     // will be removed when IR is implemented
-    is_next_call_instruction: bool,
+    is_next_call_builtin: bool,
     // will be removed when IR is implemented
     loads: usize,
     // will be removed when IR is implemented
@@ -92,7 +96,7 @@ impl Analyzer {
             bytecode,
             operands: Vec::with_capacity(Self::STACK_OPERAND_INITIAL_CAPACITY),
 
-            is_next_call_instruction: false,
+            is_next_call_builtin: false,
             loads: 0,
             pushes: 0,
         }
@@ -107,7 +111,6 @@ impl Analyzer {
         expression: Expression,
         translation_hint: TranslationHint,
     ) -> Result<Element, Error> {
-        let location = expression.location;
         for element in expression.into_iter() {
             match element.object {
                 ExpressionObject::Operand(operand) => {
@@ -125,14 +128,19 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::AssignmentToImmutableMemory(
-                            location,
+                        let item_location =
+                            Scope::resolve_item(self.scope(), place.identifier.as_str())
+                                .map_err(|error| Error::Scope(place.location, error))?
+                                .location;
+                        return Err(Error::MutatingImmutableMemory(
+                            element.location,
                             place.to_string(),
+                            item_location,
                         ));
                     }
                     if place.r#type != r#type {
-                        return Err(Error::AssignmentTypesMismatch(
-                            location,
+                        return Err(Error::MutatingWithDifferentType(
+                            element.location,
                             r#type.to_string(),
                             place.r#type.to_string(),
                         ));
@@ -165,14 +173,19 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::AssignmentToImmutableMemory(
-                            location,
+                        let item_location =
+                            Scope::resolve_item(self.scope(), place.identifier.as_str())
+                                .map_err(|error| Error::Scope(place.location, error))?
+                                .location;
+                        return Err(Error::MutatingImmutableMemory(
+                            element.location,
                             place.to_string(),
+                            item_location,
                         ));
                     }
                     if place.r#type != r#type {
-                        return Err(Error::AssignmentTypesMismatch(
-                            location,
+                        return Err(Error::MutatingWithDifferentType(
+                            element.location,
                             r#type.to_string(),
                             place.r#type.to_string(),
                         ));
@@ -228,14 +241,19 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::AssignmentToImmutableMemory(
-                            location,
+                        let item_location =
+                            Scope::resolve_item(self.scope(), place.identifier.as_str())
+                                .map_err(|error| Error::Scope(place.location, error))?
+                                .location;
+                        return Err(Error::MutatingImmutableMemory(
+                            element.location,
                             place.to_string(),
+                            item_location,
                         ));
                     }
                     if place.r#type != r#type {
-                        return Err(Error::AssignmentTypesMismatch(
-                            location,
+                        return Err(Error::MutatingWithDifferentType(
+                            element.location,
                             r#type.to_string(),
                             place.r#type.to_string(),
                         ));
@@ -291,14 +309,19 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::AssignmentToImmutableMemory(
-                            location,
+                        let item_location =
+                            Scope::resolve_item(self.scope(), place.identifier.as_str())
+                                .map_err(|error| Error::Scope(place.location, error))?
+                                .location;
+                        return Err(Error::MutatingImmutableMemory(
+                            element.location,
                             place.to_string(),
+                            item_location,
                         ));
                     }
                     if place.r#type != r#type {
-                        return Err(Error::AssignmentTypesMismatch(
-                            location,
+                        return Err(Error::MutatingWithDifferentType(
+                            element.location,
                             r#type.to_string(),
                             place.r#type.to_string(),
                         ));
@@ -354,14 +377,19 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::AssignmentToImmutableMemory(
-                            location,
+                        let item_location =
+                            Scope::resolve_item(self.scope(), place.identifier.as_str())
+                                .map_err(|error| Error::Scope(place.location, error))?
+                                .location;
+                        return Err(Error::MutatingImmutableMemory(
+                            element.location,
                             place.to_string(),
+                            item_location,
                         ));
                     }
                     if place.r#type != r#type {
-                        return Err(Error::AssignmentTypesMismatch(
-                            location,
+                        return Err(Error::MutatingWithDifferentType(
+                            element.location,
                             r#type.to_string(),
                             place.r#type.to_string(),
                         ));
@@ -417,14 +445,19 @@ impl Analyzer {
                     let r#type = Type::from_element(&operand_2, self.scope())?;
 
                     if !place.is_mutable {
-                        return Err(Error::AssignmentToImmutableMemory(
-                            location,
+                        let item_location =
+                            Scope::resolve_item(self.scope(), place.identifier.as_str())
+                                .map_err(|error| Error::Scope(place.location, error))?
+                                .location;
+                        return Err(Error::MutatingImmutableMemory(
+                            element.location,
                             place.to_string(),
+                            item_location,
                         ));
                     }
                     if place.r#type != r#type {
-                        return Err(Error::AssignmentTypesMismatch(
-                            location,
+                        return Err(Error::MutatingWithDifferentType(
+                            element.location,
                             r#type.to_string(),
                             place.r#type.to_string(),
                         ));
@@ -936,7 +969,7 @@ impl Analyzer {
                     }
                 }
                 ExpressionObject::Operator(ExpressionOperator::Call) => {
-                    self.operator_function_call(element)?
+                    self.operator_call(element)?
                 }
                 ExpressionObject::Operator(ExpressionOperator::Path) => {
                     let (mut operand_1, operand_2) = self.evaluate_binary_operands(
@@ -950,8 +983,8 @@ impl Analyzer {
                         .map_err(|error| Error::Element(element.location, error))?;
                     self.push_operand(StackElement::Evaluated(operand_1));
                 }
-                ExpressionObject::Auxiliary(ExpressionAuxiliary::Instruction) => {
-                    self.is_next_call_instruction = true;
+                ExpressionObject::Auxiliary(ExpressionAuxiliary::CallBuiltIn) => {
+                    self.is_next_call_builtin = true;
                 }
                 ExpressionObject::Auxiliary(ExpressionAuxiliary::PlaceEnd) => {
                     let element = self
@@ -970,7 +1003,7 @@ impl Analyzer {
         self.evaluate_operand(translation_hint)
     }
 
-    pub fn operator_function_call(&mut self, element: ExpressionElement) -> Result<(), Error> {
+    pub fn operator_call(&mut self, element: ExpressionElement) -> Result<(), Error> {
         let location = element.location;
 
         let (operand_1, operand_2) = self.evaluate_binary_operands(
@@ -984,21 +1017,20 @@ impl Analyzer {
             Element::Path(path) => match Scope::resolve_path(self.scope(), &path)?.variant {
                 ScopeItem::Type(Type::Function(function)) => function,
                 item => {
-                    return Err(Error::FunctionCallingNotCallableObject(
+                    return Err(Error::Function(
                         element.location,
-                        item.to_string(),
-                    ))
+                        FunctionError::NonCallable(item.to_string()),
+                    ));
                 }
             },
             operand => {
-                return Err(Error::FunctionCallingNotCallableObject(
+                return Err(Error::Function(
                     element.location,
-                    operand.to_string(),
-                ))
+                    FunctionError::NonCallable(operand.to_string()),
+                ));
             }
         };
 
-        // check the number of the arguments
         let argument_elements = match operand_2 {
             Element::ArgumentList(values) => values,
             _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
@@ -1006,48 +1038,24 @@ impl Analyzer {
 
         let return_type = match function {
             FunctionType::UserDefined(function) => {
-                if self.is_next_call_instruction {
-                    return Err(Error::FunctionInstructionUnknown(
+                if self.is_next_call_builtin {
+                    return Err(Error::Function(
                         element.location,
-                        function.identifier,
-                    ));
-                }
-
-                if argument_elements.len() != function.arguments.len() {
-                    return Err(Error::FunctionArgumentCountMismatch(
-                        element.location,
-                        function.identifier,
-                        function.arguments.len(),
-                        argument_elements.len(),
+                        FunctionError::BuiltIn(BuiltInFunctionError::Unknown(
+                            function.identifier().to_owned(),
+                        )),
                     ));
                 }
 
                 let function_address = self
                     .bytecode
                     .borrow_mut()
-                    .function_address(function.unique_id)
+                    .function_address(function.unique_id())
                     .expect(crate::semantic::PANIC_FUNCTION_ADDRESS_ALWAYS_EXISTS);
-                let function_input_size = function
-                    .arguments
-                    .iter()
-                    .map(|(_name, r#type)| r#type.size())
-                    .sum();
-
-                for (argument_index, (argument_name, expected_type)) in
-                    function.arguments.into_iter().enumerate()
-                {
-                    let actual_type =
-                        Type::from_element(&argument_elements[argument_index], self.scope())?;
-                    if expected_type != actual_type {
-                        return Err(Error::FunctionArgumentTypeMismatch(
-                            element.location,
-                            function.identifier,
-                            argument_name,
-                            expected_type.to_string(),
-                            actual_type.to_string(),
-                        ));
-                    }
-                }
+                let function_input_size = function.input_size();
+                let return_type = function
+                    .call(argument_elements)
+                    .map_err(|error| Error::Function(element.location, error))?;
 
                 self.bytecode.borrow_mut().push_instruction(
                     Instruction::Call(zinc_bytecode::Call::new(
@@ -1057,21 +1065,23 @@ impl Analyzer {
                     element.location,
                 );
 
-                *function.return_type
+                return_type
             }
             FunctionType::BuiltInFunction(function) => {
-                if !self.is_next_call_instruction {
-                    return Err(Error::FunctionInstructionSpecifierMissing(
+                if !self.is_next_call_builtin {
+                    return Err(Error::Function(
                         element.location,
-                        function.identifier(),
+                        FunctionError::BuiltIn(BuiltInFunctionError::SpecifierMissing(
+                            function.identifier(),
+                        )),
                     ));
                 }
 
                 match function {
                     BuiltInFunctionType::Debug(function) => {
                         let (return_type, format, argument_types) = function
-                            .validate(argument_elements.as_slice())
-                            .map_err(|error| Error::FunctionBuiltIn(element.location, error))?;
+                            .call(argument_elements)
+                            .map_err(|error| Error::Function(element.location, error))?;
 
                         let bytecode_input_types: Vec<DataType> = argument_types
                             .into_iter()
@@ -1087,8 +1097,8 @@ impl Analyzer {
                     }
                     BuiltInFunctionType::Assert(function) => {
                         let (return_type, message) = function
-                            .validate(argument_elements.as_slice())
-                            .map_err(|error| Error::FunctionBuiltIn(element.location, error))?;
+                            .call(argument_elements)
+                            .map_err(|error| Error::Function(element.location, error))?;
 
                         self.bytecode.borrow_mut().push_instruction(
                             Instruction::Assert(zinc_bytecode::Assert::new(message)),
@@ -1100,94 +1110,59 @@ impl Analyzer {
                 }
             }
             FunctionType::StandardLibrary(function) => {
-                if self.is_next_call_instruction {
-                    return Err(Error::FunctionInstructionUnknown(
+                if self.is_next_call_builtin {
+                    return Err(Error::Function(
                         element.location,
-                        function.identifier().to_owned(),
+                        FunctionError::BuiltIn(BuiltInFunctionError::Unknown(
+                            function.identifier().to_owned(),
+                        )),
                     ));
                 }
 
                 let builtin_identifier = function.builtin_identifier();
 
-                let mut arguments = Vec::with_capacity(argument_elements.len());
+                let mut input_size = 0;
                 for element in argument_elements.iter() {
-                    arguments.push(Type::from_element(element, self.scope())?);
+                    input_size += Type::from_element(element, self.scope())?.size();
                 }
 
                 let return_type = match function {
-                    StandardLibraryFunctionType::Sha256(function) => function
-                        .validate(arguments.as_slice())
-                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
-                    StandardLibraryFunctionType::Pedersen(function) => function
-                        .validate(arguments.as_slice())
-                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
-                    StandardLibraryFunctionType::ToBits(function) => function
-                        .validate(arguments.as_slice())
-                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
-                    StandardLibraryFunctionType::FromBitsUnsigned(function) => function
-                        .validate(arguments.as_slice())
-                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
-                    StandardLibraryFunctionType::FromBitsSigned(function) => function
-                        .validate(arguments.as_slice())
-                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
-                    StandardLibraryFunctionType::FromBitsField(function) => function
-                        .validate(arguments.as_slice())
-                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
+                    StandardLibraryFunctionType::CryptoSha256(function) => function
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
+                    StandardLibraryFunctionType::CryptoPedersen(function) => function
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
+                    StandardLibraryFunctionType::CryptoSchnorrVerify(function) => function
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
+                    StandardLibraryFunctionType::ConvertToBits(function) => function
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
+                    StandardLibraryFunctionType::ConvertFromBitsUnsigned(function) => function
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
+                    StandardLibraryFunctionType::ConvertFromBitsSigned(function) => function
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
+                    StandardLibraryFunctionType::ConvertFromBitsField(function) => function
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
                     StandardLibraryFunctionType::ArrayReverse(function) => function
-                        .validate(arguments.as_slice())
-                        .map_err(|error| Error::FunctionStandardLibrary(element.location, error))?,
-                    StandardLibraryFunctionType::ArrayTruncate(function) => {
-                        match argument_elements.get(1) {
-                            Some(Element::Constant(Constant::Integer(
-                                integer @ IntegerConstant { .. },
-                            ))) if !integer.is_signed => {
-                                let new_length = integer.to_usize().map_err(|error| {
-                                    Error::InferenceConstant(Location::default(), error)
-                                })?;
-                                function
-                                    .validate(arguments.as_slice(), new_length)
-                                    .map_err(|error| {
-                                        Error::FunctionStandardLibrary(element.location, error)
-                                    })?
-                            }
-                            argument => {
-                                return Err(Error::FunctionExpectedConstantLengthArgument(
-                                    element.location,
-                                    function.identifier(),
-                                    format!("{:?}", argument),
-                                ))
-                            }
-                        }
-                    }
-                    StandardLibraryFunctionType::ArrayPad(function) => {
-                        match argument_elements.get(1) {
-                            Some(Element::Constant(Constant::Integer(
-                                integer @ IntegerConstant { .. },
-                            ))) if !integer.is_signed => {
-                                let new_length = integer.to_usize().map_err(|error| {
-                                    Error::InferenceConstant(Location::default(), error)
-                                })?;
-                                function
-                                    .validate(arguments.as_slice(), new_length)
-                                    .map_err(|error| {
-                                        Error::FunctionStandardLibrary(element.location, error)
-                                    })?
-                            }
-                            argument => {
-                                return Err(Error::FunctionExpectedConstantLengthArgument(
-                                    element.location,
-                                    function.identifier(),
-                                    format!("{:?}", argument),
-                                ))
-                            }
-                        }
-                    }
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
+                    StandardLibraryFunctionType::ArrayTruncate(function) => function
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
+                    StandardLibraryFunctionType::ArrayPad(function) => function
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
                 };
 
                 self.bytecode.borrow_mut().push_instruction(
                     Instruction::CallBuiltin(zinc_bytecode::CallBuiltin::new(
                         builtin_identifier,
-                        arguments.into_iter().map(|r#type| r#type.size()).sum(),
+                        input_size,
                         return_type.size(),
                     )),
                     element.location,
@@ -1197,7 +1172,7 @@ impl Analyzer {
             }
         };
 
-        self.is_next_call_instruction = false;
+        self.is_next_call_builtin = false;
         self.push_operand(StackElement::Evaluated(Element::Value(
             Value::try_from(return_type)
                 .map_err(ElementError::Value)
@@ -1231,8 +1206,12 @@ impl Analyzer {
     fn integer_literal(&mut self, literal: IntegerLiteral) -> Result<Element, Error> {
         let location = literal.location;
 
-        let integer = IntegerConstant::try_from(&literal)
-            .map_err(|error| Error::InferenceConstant(location, error))?;
+        let integer = IntegerConstant::try_from(&literal).map_err(|error| {
+            Error::Element(
+                location,
+                ElementError::Constant(ConstantError::Integer(error)),
+            )
+        })?;
         self.bytecode
             .borrow_mut()
             .push_instruction(integer.to_instruction(), location);
@@ -1247,9 +1226,19 @@ impl Analyzer {
     fn member_integer(&mut self, integer: MemberInteger) -> Result<Element, Error> {
         let location = integer.location;
         let integer = IntegerConstant::try_from(&integer.literal)
-            .map_err(|error| Error::InferenceConstant(location, error))?
+            .map_err(|error| {
+                Error::Element(
+                    location,
+                    ElementError::Constant(ConstantError::Integer(error)),
+                )
+            })?
             .to_usize()
-            .map_err(|error| Error::InferenceConstant(location, error))?;
+            .map_err(|error| {
+                Error::Element(
+                    location,
+                    ElementError::Constant(ConstantError::Integer(error)),
+                )
+            })?;
         Ok(Element::MemberInteger(integer))
     }
 
@@ -1278,6 +1267,24 @@ impl Analyzer {
     ) -> Result<Element, Error> {
         let location = conditional.location;
         let condition_location = conditional.condition.location;
+
+        let main_expression_location = conditional
+            .main_block
+            .expression
+            .as_ref()
+            .map(|expression| expression.location)
+            .unwrap_or(conditional.main_block.location);
+        let else_expression_location = conditional
+            .else_block
+            .as_ref()
+            .map(|block| {
+                block
+                    .expression
+                    .as_ref()
+                    .map(|expression| expression.location)
+                    .unwrap_or(block.location)
+            })
+            .unwrap_or(conditional.location);
 
         // compile the condition and check if it is boolean
         let condition_result =
@@ -1323,9 +1330,10 @@ impl Analyzer {
         // check if the two branches return equals types
         if main_type != else_type {
             return Err(Error::ConditionalBranchTypesMismatch(
-                location,
+                main_expression_location,
                 main_type.to_string(),
                 else_type.to_string(),
+                else_expression_location,
             ));
         }
 
@@ -1352,6 +1360,8 @@ impl Analyzer {
             scrutinee_location,
         );
 
+        let first_branch_expression_location = r#match.branches[0].1.location;
+
         let mut is_exhausted = false;
         let mut branch_results = Vec::with_capacity(r#match.branches.len());
         let mut endifs = 0;
@@ -1371,8 +1381,9 @@ impl Analyzer {
                     if pattern_type != scrutinee_type {
                         return Err(Error::MatchBranchPatternInvalidType(
                             pattern_location,
-                            pattern_type.to_string(),
                             scrutinee_type.to_string(),
+                            pattern_type.to_string(),
+                            scrutinee_location,
                         ));
                     }
 
@@ -1405,14 +1416,19 @@ impl Analyzer {
                 MatchPatternVariant::IntegerLiteral(integer) => {
                     let location = integer.location;
 
-                    let constant = IntegerConstant::try_from(&integer)
-                        .map_err(|error| Error::InferenceConstant(location, error))?;
+                    let constant = IntegerConstant::try_from(&integer).map_err(|error| {
+                        Error::Element(
+                            location,
+                            ElementError::Constant(ConstantError::Integer(error)),
+                        )
+                    })?;
                     let pattern_type = constant.r#type();
                     if pattern_type != scrutinee_type {
                         return Err(Error::MatchBranchPatternInvalidType(
                             pattern_location,
-                            pattern_type.to_string(),
                             scrutinee_type.to_string(),
+                            pattern_type.to_string(),
+                            scrutinee_location,
                         ));
                     }
 
@@ -1564,8 +1580,9 @@ impl Analyzer {
                 if result_type != first_branch_result_type {
                     return Err(Error::MatchBranchExpressionInvalidType(
                         expression_location,
-                        result_type.to_string(),
                         first_branch_result_type.to_string(),
+                        result_type.to_string(),
+                        first_branch_expression_location,
                     ));
                 }
             }
@@ -1600,9 +1617,14 @@ impl Analyzer {
                     let size = match Self::new_without_bytecode(self.scope())
                         .expression(size_expression.to_owned(), TranslationHint::ValueExpression)?
                     {
-                        Element::Constant(Constant::Integer(integer)) => integer
-                            .to_usize()
-                            .map_err(|error| Error::InferenceConstant(size_location, error))?,
+                        Element::Constant(Constant::Integer(integer)) => {
+                            integer.to_usize().map_err(|error| {
+                                Error::Element(
+                                    size_location,
+                                    ElementError::Constant(ConstantError::Integer(error)),
+                                )
+                            })?
+                        }
                         element => {
                             return Err(Error::ConstantExpressionHasNonConstantElement(
                                 size_location,
@@ -1615,18 +1637,18 @@ impl Analyzer {
                         let element =
                             self.expression(expression.clone(), TranslationHint::ValueExpression)?;
                         let element_type = Type::from_element(&element, self.scope())?;
-                        result
-                            .push(element_type)
-                            .map_err(|error| Error::LiteralArray(location, error))?;
+                        result.push(element_type).map_err(|error| {
+                            Error::Element(location, ElementError::Value(ValueError::Array(error)))
+                        })?;
                     }
                     break;
                 }
                 None => {
                     let element = self.expression(expression, TranslationHint::ValueExpression)?;
                     let element_type = Type::from_element(&element, self.scope())?;
-                    result
-                        .push(element_type)
-                        .map_err(|error| Error::LiteralArray(location, error))?
+                    result.push(element_type).map_err(|error| {
+                        Error::Element(location, ElementError::Value(ValueError::Array(error)))
+                    })?;
                 }
             }
         }
@@ -1669,53 +1691,71 @@ impl Analyzer {
             Vec::with_capacity(structure.fields.len()),
         );
         for (index, (identifier, expression)) in structure.fields.into_iter().enumerate() {
-            let location = identifier.location;
+            let identifier_location = identifier.location;
+            let expression_location = expression.location;
             let element = self.expression(expression, TranslationHint::ValueExpression)?;
             let element_type = Type::from_element(&element, self.scope())?;
 
             if result.contains_key(&identifier.name) {
-                return Err(Error::LiteralStructure(
-                    location,
-                    StructureValueError::FieldAlreadyExists(identifier.name, structure_identifier),
+                return Err(Error::Element(
+                    identifier_location,
+                    ElementError::Value(ValueError::Structure(
+                        StructureValueError::FieldAlreadyExists(
+                            identifier.name,
+                            structure_identifier,
+                        ),
+                    )),
                 ));
             }
 
             match expected_fields.get(index) {
                 Some((field_name, field_type)) => {
                     if field_type != &element_type {
-                        return Err(Error::LiteralStructure(
-                            location,
-                            StructureValueError::FieldInvalidType(
-                                identifier.name,
-                                field_type.to_string(),
-                                element_type.to_string(),
-                            ),
+                        return Err(Error::Element(
+                            expression_location,
+                            ElementError::Value(ValueError::Structure(
+                                StructureValueError::FieldInvalidType(
+                                    identifier.name,
+                                    structure_identifier,
+                                    field_type.to_string(),
+                                    element_type.to_string(),
+                                ),
+                            )),
                         ));
                     }
                     if field_name != &identifier.name {
-                        return Err(Error::LiteralStructure(
-                            location,
-                            StructureValueError::FieldDoesNotExist(
-                                identifier.name,
-                                structure_identifier,
-                            ),
+                        return Err(Error::Element(
+                            identifier_location,
+                            ElementError::Value(ValueError::Structure(
+                                StructureValueError::FieldDoesNotExist(
+                                    identifier.name,
+                                    structure_identifier,
+                                ),
+                            )),
                         ));
                     }
                 }
                 None => {
-                    return Err(Error::LiteralStructure(
-                        location,
-                        StructureValueError::FieldDoesNotExist(
-                            identifier.name,
-                            structure_identifier,
-                        ),
-                    ))
+                    return Err(Error::Element(
+                        identifier_location,
+                        ElementError::Value(ValueError::Structure(
+                            StructureValueError::FieldDoesNotExist(
+                                identifier.name,
+                                structure_identifier,
+                            ),
+                        )),
+                    ));
                 }
             }
 
             result
                 .push(identifier.name.clone(), element_type)
-                .map_err(|error| Error::LiteralStructure(location, error))?;
+                .map_err(|error| {
+                    Error::Element(
+                        identifier_location,
+                        ElementError::Value(ValueError::Structure(error)),
+                    )
+                })?;
         }
 
         Ok(Element::Value(Value::Structure(result)))

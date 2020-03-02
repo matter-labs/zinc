@@ -2,222 +2,65 @@
 //! The semantic analyzer constant element error.
 //!
 
-use failure::Fail;
-
 use crate::semantic::caster::error::Error as CasterError;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
-use crate::semantic::element::constant::Constant;
 
-#[derive(Debug, Fail, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
-    #[fail(
-        display = "'..=' operator expected integer as the first operand, but got '{}'",
-        _0
-    )]
-    OperatorRangeInclusiveFirstOperandExpectedInteger(Constant),
-    #[fail(
-        display = "'..=' operator expected integer as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorRangeInclusiveSecondOperandExpectedInteger(Constant),
-    #[fail(
-        display = "'..' operator expected integer as the first operand, but got '{}'",
-        _0
-    )]
-    OperatorRangeFirstOperandExpectedInteger(Constant),
-    #[fail(
-        display = "'..' operator expected integer as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorRangeSecondOperandExpectedInteger(Constant),
+    OperatorRangeInclusiveFirstOperandExpectedInteger(String),
+    OperatorRangeInclusiveSecondOperandExpectedInteger(String),
+    OperatorRangeFirstOperandExpectedInteger(String),
+    OperatorRangeSecondOperandExpectedInteger(String),
 
-    #[fail(
-        display = "'||' operator expected boolean as the first operand, but got '{}'",
-        _0
-    )]
-    OperatorOrFirstOperandExpectedBoolean(Constant),
-    #[fail(
-        display = "'||' operator expected boolean as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorOrSecondOperandExpectedBoolean(Constant),
+    OperatorOrFirstOperandExpectedBoolean(String),
+    OperatorOrSecondOperandExpectedBoolean(String),
 
-    #[fail(
-        display = "'^^' operator expected boolean as the first operand, but got '{}'",
-        _0
-    )]
-    OperatorXorFirstOperandExpectedBoolean(Constant),
-    #[fail(
-        display = "'^^' operator expected boolean as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorXorSecondOperandExpectedBoolean(Constant),
+    OperatorXorFirstOperandExpectedBoolean(String),
+    OperatorXorSecondOperandExpectedBoolean(String),
 
-    #[fail(
-        display = "'&&' operator expected boolean as the first operand, but got '{}'",
-        _0
-    )]
-    OperatorAndFirstOperandExpectedBoolean(Constant),
-    #[fail(
-        display = "'&&' operator expected boolean as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorAndSecondOperandExpectedBoolean(Constant),
+    OperatorAndFirstOperandExpectedBoolean(String),
+    OperatorAndSecondOperandExpectedBoolean(String),
 
-    #[fail(
-        display = "'==' operator expected unit as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorEqualsSecondOperandExpectedUnit(Constant),
-    #[fail(
-        display = "'==' operator expected boolean as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorEqualsSecondOperandExpectedBoolean(Constant),
-    #[fail(
-        display = "'==' operator expected integer as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorEqualsSecondOperandExpectedInteger(Constant),
-    #[fail(
-        display = "'==' operator expected a primitive type constant as the first operand, but got '{}'",
-        _0
-    )]
-    OperatorEqualsFirstOperandExpectedPrimitiveType(Constant),
+    OperatorEqualsSecondOperandExpectedUnit(String),
+    OperatorEqualsSecondOperandExpectedBoolean(String),
+    OperatorEqualsSecondOperandExpectedInteger(String),
+    OperatorEqualsFirstOperandExpectedPrimitiveType(String),
 
-    #[fail(
-        display = "'!=' operator expected unit as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorNotEqualsSecondOperandExpectedUnit(Constant),
-    #[fail(
-        display = "'!=' operator expected boolean as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorNotEqualsSecondOperandExpectedBoolean(Constant),
-    #[fail(
-        display = "'!=' operator expected integer as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorNotEqualsSecondOperandExpectedInteger(Constant),
-    #[fail(
-        display = "'!=' operator expected a primitive type constant as the first operand, but got '{}'",
-        _0
-    )]
-    OperatorNotEqualsFirstOperandExpectedPrimitiveType(Constant),
+    OperatorNotEqualsSecondOperandExpectedUnit(String),
+    OperatorNotEqualsSecondOperandExpectedBoolean(String),
+    OperatorNotEqualsSecondOperandExpectedInteger(String),
+    OperatorNotEqualsFirstOperandExpectedPrimitiveType(String),
 
-    #[fail(
-        display = "'>=' operator expected integer as the first operand, but got '{}'",
-        _0
-    )]
-    OperatorGreaterEqualsFirstOperandExpectedInteger(Constant),
-    #[fail(
-        display = "'>=' operator expected integer as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorGreaterEqualsSecondOperandExpectedInteger(Constant),
+    OperatorGreaterEqualsFirstOperandExpectedInteger(String),
+    OperatorGreaterEqualsSecondOperandExpectedInteger(String),
 
-    #[fail(
-        display = "'<=' operator expected integer as the first operand, but got '{}'",
-        _0
-    )]
-    OperatorLesserEqualsFirstOperandExpectedInteger(Constant),
-    #[fail(
-        display = "'<=' operator expected integer as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorLesserEqualsSecondOperandExpectedInteger(Constant),
+    OperatorLesserEqualsFirstOperandExpectedInteger(String),
+    OperatorLesserEqualsSecondOperandExpectedInteger(String),
 
-    #[fail(
-        display = "'>' operator expected integer as the first operand, but got '{}'",
-        _0
-    )]
-    OperatorGreaterFirstOperandExpectedInteger(Constant),
-    #[fail(
-        display = "'>' operator expected integer as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorGreaterSecondOperandExpectedInteger(Constant),
+    OperatorGreaterFirstOperandExpectedInteger(String),
+    OperatorGreaterSecondOperandExpectedInteger(String),
 
-    #[fail(
-        display = "'<' operator expected integer as the first operand, but got '{}'",
-        _0
-    )]
-    OperatorLesserFirstOperandExpectedInteger(Constant),
-    #[fail(
-        display = "'<' operator expected integer as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorLesserSecondOperandExpectedInteger(Constant),
+    OperatorLesserFirstOperandExpectedInteger(String),
+    OperatorLesserSecondOperandExpectedInteger(String),
 
-    #[fail(
-        display = "'+' operator expected integer as the first operand, but got '{}'",
-        _0
-    )]
-    OperatorAdditionFirstOperandExpectedInteger(Constant),
-    #[fail(
-        display = "'+' operator expected integer as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorAdditionSecondOperandExpectedInteger(Constant),
+    OperatorAdditionFirstOperandExpectedInteger(String),
+    OperatorAdditionSecondOperandExpectedInteger(String),
 
-    #[fail(
-        display = "'-' operator expected integer as the first operand, but got '{}'",
-        _0
-    )]
-    OperatorSubtractionFirstOperandExpectedInteger(Constant),
-    #[fail(
-        display = "'-' operator expected integer as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorSubtractionSecondOperandExpectedInteger(Constant),
+    OperatorSubtractionFirstOperandExpectedInteger(String),
+    OperatorSubtractionSecondOperandExpectedInteger(String),
 
-    #[fail(
-        display = "'*' operator expected integer as the first operand, but got '{}'",
-        _0
-    )]
-    OperatorMultiplicationFirstOperandExpectedInteger(Constant),
-    #[fail(
-        display = "'*' operator expected integer as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorMultiplicationSecondOperandExpectedInteger(Constant),
+    OperatorMultiplicationFirstOperandExpectedInteger(String),
+    OperatorMultiplicationSecondOperandExpectedInteger(String),
 
-    #[fail(
-        display = "'/' operator expected integer as the first operand, but got '{}'",
-        _0
-    )]
-    OperatorDivisionFirstOperandExpectedInteger(Constant),
-    #[fail(
-        display = "'/' operator expected integer as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorDivisionSecondOperandExpectedInteger(Constant),
+    OperatorDivisionFirstOperandExpectedInteger(String),
+    OperatorDivisionSecondOperandExpectedInteger(String),
 
-    #[fail(
-        display = "'%' operator expected integer as the first operand, but got '{}'",
-        _0
-    )]
-    OperatorRemainderFirstOperandExpectedInteger(Constant),
-    #[fail(
-        display = "'%' operator expected integer as the second operand, but got '{}'",
-        _0
-    )]
-    OperatorRemainderSecondOperandExpectedInteger(Constant),
+    OperatorRemainderFirstOperandExpectedInteger(String),
+    OperatorRemainderSecondOperandExpectedInteger(String),
 
-    #[fail(
-        display = "unary '-' operator expected an integer as the operand, but got '{}'",
-        _0
-    )]
-    OperatorNegationExpectedInteger(Constant),
-    #[fail(
-        display = "'!' operator expected a boolean as the operand, but got '{}'",
-        _0
-    )]
-    OperatorNotExpectedBoolean(Constant),
+    OperatorNegationExpectedInteger(String),
+    OperatorNotExpectedBoolean(String),
 
-    #[fail(display = "{}", _0)]
     Integer(IntegerConstantError),
-    #[fail(display = "{}", _0)]
     Casting(CasterError),
 }

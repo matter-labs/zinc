@@ -43,7 +43,7 @@ fn main() -> u8 {
 
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));
     let module_1 =
-        super::get_dependency(module_1, bytecode.clone()).expect(PANIC_COMPILE_DEPENDENCY);
+        super::compile_module(module_1, bytecode.clone()).expect(PANIC_COMPILE_DEPENDENCY);
 
     let dependencies: HashMap<String, Rc<RefCell<Scope>>> = vec![("module_1".to_owned(), module_1)]
         .into_iter()

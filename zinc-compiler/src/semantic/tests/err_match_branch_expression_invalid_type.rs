@@ -24,12 +24,13 @@ fn main() {
     let expected = Err(Error::Semantic(
         SemanticError::MatchBranchExpressionInvalidType(
             Location::new(6, 14),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
             Type::boolean().to_string(),
+            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            Location::new(5, 14),
         ),
     ));
 
-    let result = super::get_binary_result(input);
+    let result = super::compile_entry_point(input);
 
     assert_eq!(result, expected);
 }

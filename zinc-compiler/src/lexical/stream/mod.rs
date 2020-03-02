@@ -62,22 +62,17 @@ impl<'a> TokenStream<'a> {
 
     ///
     /// Advances the iterator until there is `distance` elements in the look-ahead queue.
-    /// Is used where there is a need to resolve an ambiguity like
-    /// ```
-    /// let identifier = true;
-    /// if identifier {
-    ///     // value: 42, a structure literal field
-    ///     let value = 42; // a statement within the block
-    /// }
-    /// ```
-    /// where `identifier` can be both a variable or structure literal type name.
+    /// Is used where there is a need to resolve an ambiguity like `if value {}`,
+    /// where `value` can be both a variable or structure literal type name.
     ///
     pub fn look_ahead(&mut self, distance: usize) -> Result<&Token, Error> {
         while self.look_ahead.len() < distance {
             let token = self.advance()?;
             self.look_ahead.push_back(token);
         }
-        Ok(&self.look_ahead[self.look_ahead.len() - 1])
+        self.look_ahead
+            .back()
+            .ok_or_else(|| Error::unexpected_end(self.location))
     }
 
     ///

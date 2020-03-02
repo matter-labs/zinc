@@ -2,6 +2,8 @@
 //! The semantic analyzer tuple value element.
 //!
 
+mod tests;
+
 pub mod error;
 
 use std::fmt;

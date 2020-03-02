@@ -6,7 +6,6 @@ use crate::lexical::Location;
 use crate::syntax::tree::expression::block::Expression as BlockExpression;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
-use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
 use crate::syntax::tree::r#type::Type;
 use crate::syntax::tree::statement::r#fn::Statement as FnStatement;
 
@@ -58,8 +57,7 @@ impl Builder {
                 )
             }),
             self.argument_bindings,
-            self.return_type
-                .unwrap_or_else(|| Type::new(location, TypeVariant::unit())),
+            self.return_type.take(),
             self.body.take().unwrap_or_else(|| {
                 panic!("{}{}", crate::syntax::PANIC_BUILDER_REQUIRES_VALUE, "body")
             }),

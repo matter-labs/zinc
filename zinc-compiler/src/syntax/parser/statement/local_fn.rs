@@ -63,8 +63,8 @@ impl Parser {
             }
             Token {
                 lexeme: Lexeme::Symbol(Symbol::Semicolon),
-                ..
-            } => return Ok((FunctionLocalStatement::Empty, None, false)),
+                location,
+            } => return Ok((FunctionLocalStatement::Empty(location), None, false)),
             token => {
                 let (expression, next) =
                     ExpressionParser::default().parse(stream.clone(), Some(token))?;

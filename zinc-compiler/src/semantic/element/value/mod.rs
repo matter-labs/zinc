@@ -2,6 +2,8 @@
 //! The semantic analyzer value element.
 //!
 
+mod tests;
+
 pub mod array;
 pub mod error;
 pub mod integer;
@@ -303,7 +305,7 @@ impl Value {
 
     pub fn cast(&mut self, to: &Type) -> Result<Option<(bool, usize)>, Error> {
         let from = self.r#type();
-        Caster::validate(&from, &to).map_err(Error::Casting)?;
+        Caster::cast(&from, &to).map_err(Error::Casting)?;
 
         let (is_signed, bitlength) = match to {
             Type::IntegerUnsigned { bitlength } => (false, *bitlength),
@@ -407,7 +409,12 @@ impl TryFrom<Type> for Value {
                 structure.fields,
             )),
             Type::Enumeration { bitlength, .. } => Self::Integer(Integer::new(false, bitlength)),
-            r#type => return Err(Error::ConvertingFromType(r#type.to_string())),
+            r#type @ Type::String
+            | r#type @ Type::Range { .. }
+            | r#type @ Type::RangeInclusive { .. }
+            | r#type @ Type::Function(_) => {
+                return Err(Error::ConvertingFromType(r#type.to_string()))
+            }
         })
     }
 }

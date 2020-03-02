@@ -1,5 +1,5 @@
 //!
-//! The Zinc compiler input error.
+//! The Zinc compiler file input error.
 //!
 
 use std::fmt;

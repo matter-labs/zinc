@@ -2,6 +2,8 @@
 //! The semantic analyzer place element.
 //!
 
+mod tests;
+
 pub mod error;
 
 use std::fmt;
@@ -82,25 +84,25 @@ impl Place {
             }
             Element::Constant(Constant::Range(Range { start, end, .. })) => {
                 if start.is_negative() {
-                    return Err(Error::IndexSliceStartOutOfRange(start.to_string()));
+                    return Err(Error::ArraySliceStartOutOfRange(start.to_string()));
                 }
                 if end > &BigInt::from(array_size) {
-                    return Err(Error::IndexSliceEndOutOfRange(
+                    return Err(Error::ArraySliceEndOutOfRange(
                         end.to_string(),
                         array_size.to_string(),
                     ));
                 }
                 if end < start {
-                    return Err(Error::IndexSliceEndLesserThanStart(
+                    return Err(Error::ArraySliceEndLesserThanStart(
                         end.to_string(),
                         start.to_string(),
                     ));
                 }
                 let start = start
                     .to_usize()
-                    .ok_or_else(|| Error::IndexSliceStartOutOfRange(start.to_string()))?;
+                    .ok_or_else(|| Error::ArraySliceStartOutOfRange(start.to_string()))?;
                 let length = (end - start).to_usize().ok_or_else(|| {
-                    Error::IndexSliceEndLesserThanStart(end.to_string(), start.to_string())
+                    Error::ArraySliceEndLesserThanStart(end.to_string(), start.to_string())
                 })?;
                 self.r#type = Type::array(inner_type, length);
                 Ok(AccessData::new(
@@ -112,25 +114,25 @@ impl Place {
             }
             Element::Constant(Constant::RangeInclusive(RangeInclusive { start, end, .. })) => {
                 if start.is_negative() {
-                    return Err(Error::IndexSliceStartOutOfRange(start.to_string()));
+                    return Err(Error::ArraySliceStartOutOfRange(start.to_string()));
                 }
                 if end >= &BigInt::from(array_size) {
-                    return Err(Error::IndexSliceEndOutOfRange(
+                    return Err(Error::ArraySliceEndOutOfRange(
                         end.to_string(),
                         array_size.to_string(),
                     ));
                 }
                 if end < start {
-                    return Err(Error::IndexSliceEndLesserThanStart(
+                    return Err(Error::ArraySliceEndLesserThanStart(
                         end.to_string(),
                         start.to_string(),
                     ));
                 }
                 let start = start
                     .to_usize()
-                    .ok_or_else(|| Error::IndexSliceStartOutOfRange(start.to_string()))?;
+                    .ok_or_else(|| Error::ArraySliceStartOutOfRange(start.to_string()))?;
                 let length = (end - start + BigInt::one()).to_usize().ok_or_else(|| {
-                    Error::IndexSliceEndLesserThanStart(end.to_string(), start.to_string())
+                    Error::ArraySliceEndLesserThanStart(end.to_string(), start.to_string())
                 })?;
                 self.r#type = Type::array(inner_type, length);
                 Ok(AccessData::new(
@@ -154,7 +156,7 @@ impl Place {
         match self.r#type {
             Type::Tuple { ref types } => {
                 if field_index >= types.len() {
-                    return Err(Error::FieldDoesNotExistInTuple(
+                    return Err(Error::TupleFieldDoesNotExist(
                         field_index,
                         self.r#type.to_string(),
                     ));
@@ -199,7 +201,7 @@ impl Place {
                     }
                     offset += structure_field.1.size();
                 }
-                Err(Error::FieldDoesNotExistInStructure(
+                Err(Error::StructureFieldDoesNotExist(
                     field_name.to_owned(),
                     structure.identifier.to_owned(),
                 ))

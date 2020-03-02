@@ -74,7 +74,7 @@ impl Parser {
                             location,
                         } => {
                             self.builder
-                                .push_auxiliary(location, ExpressionAuxiliary::Instruction);
+                                .push_auxiliary(location, ExpressionAuxiliary::CallBuiltIn);
                             return Ok((self.builder.finish(), None));
                         }
                         token => return Ok((self.builder.finish(), Some(token))),
