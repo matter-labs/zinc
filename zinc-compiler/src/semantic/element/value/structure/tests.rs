@@ -1,5 +1,5 @@
 //!
-//! The structure tests.
+//! The structure value element tests.
 //!
 
 #![cfg(test)]
@@ -13,7 +13,7 @@ use crate::semantic::Error as SemanticError;
 use crate::Error;
 
 #[test]
-fn field_already_exists() {
+fn error_field_already_exists() {
     let input = r#"
 struct Data {
     a: u8,
@@ -40,7 +40,7 @@ fn main() {
 }
 
 #[test]
-fn field_does_not_exist() {
+fn error_field_does_not_exist() {
     let input = r#"
 struct Data {
     a: u8,
@@ -66,7 +66,7 @@ fn main() {
 }
 
 #[test]
-fn field_invalid_type() {
+fn error_field_invalid_type() {
     let input = r#"
 struct Data {
     a: u8,

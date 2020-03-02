@@ -1,5 +1,5 @@
 //!
-//! The array tests.
+//! The array value element tests.
 //!
 
 #![cfg(test)]
@@ -13,7 +13,7 @@ use crate::semantic::Error as SemanticError;
 use crate::Error;
 
 #[test]
-fn pushing_invalid_type() {
+fn error_pushing_invalid_type() {
     let input = r#"
 fn main() {
     let array = [1, false];
@@ -34,7 +34,7 @@ fn main() {
 }
 
 #[test]
-fn slice_start_out_of_range() {
+fn error_slice_start_out_of_range() {
     let input = r#"
 fn main() {
     [1, 2, 3, 4, 5][-1 .. 1];
@@ -54,7 +54,7 @@ fn main() {
 }
 
 #[test]
-fn slice_end_out_of_range() {
+fn error_slice_end_out_of_range() {
     let input = r#"
 fn main() {
     [1, 2, 3, 4, 5][0 .. 6];
@@ -75,7 +75,7 @@ fn main() {
 }
 
 #[test]
-fn slice_end_lesser_than_start() {
+fn error_slice_end_lesser_than_start() {
     let input = r#"
 fn main() {
     [1, 2, 3, 4, 5][2 .. 1];

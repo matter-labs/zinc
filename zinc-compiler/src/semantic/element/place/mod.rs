@@ -2,6 +2,8 @@
 //! The semantic analyzer place element.
 //!
 
+mod tests;
+
 pub mod error;
 
 use std::fmt;

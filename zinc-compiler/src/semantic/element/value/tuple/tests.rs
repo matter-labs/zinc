@@ -1,5 +1,5 @@
 //!
-//! The tuple value tests.
+//! The tuple value element tests.
 //!
 
 #![cfg(test)]
@@ -13,7 +13,7 @@ use crate::semantic::Error as SemanticError;
 use crate::Error;
 
 #[test]
-fn field_does_not_exist() {
+fn error_field_does_not_exist() {
     let input = r#"
 fn main() {
     let result = (true, true, false).5;

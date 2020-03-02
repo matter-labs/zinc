@@ -1,5 +1,5 @@
 //!
-//! The array tests.
+//! The scope tests.
 //!
 
 #![cfg(test)]
@@ -10,7 +10,7 @@ use crate::semantic::Error as SemanticError;
 use crate::Error;
 
 #[test]
-fn item_is_not_namespace() {
+fn error_item_is_not_namespace() {
     let input = r#"
 const NOT_NAMESPACE: u8 = 42;
 
@@ -30,7 +30,7 @@ fn main() {
 }
 
 #[test]
-fn item_redeclared() {
+fn error_item_redeclared() {
     let input = r#"
 fn main() {
     let result = 42;
@@ -51,7 +51,7 @@ fn main() {
 }
 
 #[test]
-fn item_undeclared() {
+fn error_item_undeclared() {
     let input = r#"
 fn main() {
     result = 69;
@@ -69,7 +69,7 @@ fn main() {
 }
 
 #[test]
-fn item_undeclared_enum_variant() {
+fn error_item_undeclared_enum_variant() {
     let input = r#"
 enum Jabberwocky {
     Gone = 42,

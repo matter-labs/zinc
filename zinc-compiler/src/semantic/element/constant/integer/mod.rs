@@ -2,6 +2,8 @@
 //! The semantic analyzer constant integer element.
 //!
 
+mod tests;
+
 pub mod error;
 
 use std::cmp;

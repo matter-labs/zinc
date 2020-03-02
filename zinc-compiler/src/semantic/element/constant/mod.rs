@@ -2,6 +2,8 @@
 //! The semantic analyzer constant element.
 //!
 
+mod tests;
+
 pub mod error;
 pub mod integer;
 pub mod range;

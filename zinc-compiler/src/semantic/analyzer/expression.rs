@@ -1268,6 +1268,24 @@ impl Analyzer {
         let location = conditional.location;
         let condition_location = conditional.condition.location;
 
+        let main_expression_location = conditional
+            .main_block
+            .expression
+            .as_ref()
+            .map(|expression| expression.location)
+            .unwrap_or(conditional.main_block.location);
+        let else_expression_location = conditional
+            .else_block
+            .as_ref()
+            .map(|block| {
+                block
+                    .expression
+                    .as_ref()
+                    .map(|expression| expression.location)
+                    .unwrap_or(block.location)
+            })
+            .unwrap_or(conditional.location);
+
         // compile the condition and check if it is boolean
         let condition_result =
             self.expression(*conditional.condition, TranslationHint::ValueExpression)?;
@@ -1312,9 +1330,10 @@ impl Analyzer {
         // check if the two branches return equals types
         if main_type != else_type {
             return Err(Error::ConditionalBranchTypesMismatch(
-                location,
+                main_expression_location,
                 main_type.to_string(),
                 else_type.to_string(),
+                else_expression_location,
             ));
         }
 

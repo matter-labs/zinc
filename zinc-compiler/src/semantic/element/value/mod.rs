@@ -2,6 +2,8 @@
 //! The semantic analyzer value element.
 //!
 
+mod tests;
+
 pub mod array;
 pub mod error;
 pub mod integer;

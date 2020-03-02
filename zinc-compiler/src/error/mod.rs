@@ -1527,11 +1527,12 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::ConditionalBranchTypesMismatch(location, first, second)) => {
-                Self::format_line(
+            Self::Semantic(SemanticError::ConditionalBranchTypesMismatch(location, first, second, reference)) => {
+                Self::format_line_with_reference(
                     context,
-                    format!("if and else have incompatible types `{}` and `{}`", first, second).as_str(),
+                    format!("if and else branches return incompatible types `{}` and `{}`", first, second).as_str(),
                     location,
+                    Some(reference),
                     None,
                 )
             }

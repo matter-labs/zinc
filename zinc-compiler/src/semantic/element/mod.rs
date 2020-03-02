@@ -2,6 +2,8 @@
 //! The semantic analyzer element.
 //!
 
+mod tests;
+
 pub mod access;
 pub mod constant;
 pub mod error;

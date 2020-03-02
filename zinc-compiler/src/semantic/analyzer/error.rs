@@ -26,7 +26,7 @@ pub enum Error {
     LoopBoundsExpectedConstantRangeExpression(Location, String),
 
     ConditionalExpectedBooleanCondition(Location, String),
-    ConditionalBranchTypesMismatch(Location, String, String),
+    ConditionalBranchTypesMismatch(Location, String, String, Location),
 
     EntryPointMissing,
 
