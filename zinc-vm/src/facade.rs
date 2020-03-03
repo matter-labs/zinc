@@ -9,7 +9,7 @@ use rand::ThreadRng;
 
 use zinc_bytecode::program::Program;
 
-use crate::constraint_systems::DebugConstraintSystem;
+use crate::constraint_systems::{DebugConstraintSystem, DuplicateRemovingCS};
 use crate::core::VirtualMachine;
 pub use crate::errors::{MalformedBytecode, Result, RuntimeError, TypeSizeError};
 use crate::gadgets::utils::bigint_to_fr;
@@ -29,6 +29,8 @@ impl<E: Engine> Circuit<E> for VMCircuit<'_> {
         self,
         cs: &mut CS,
     ) -> std::result::Result<(), SynthesisError> {
+        // let cs = LoggingConstraintSystem::new(cs.namespace(|| "logging"));
+        let cs = DuplicateRemovingCS::new(cs.namespace(|| "duplicates removing"));
         let mut vm = VirtualMachine::new(cs, false);
         *self.result = Some(vm.run(self.program, self.inputs, |_| {}, |_| Ok(())));
         Ok(())
@@ -63,14 +65,6 @@ pub fn run<E: Engine>(program: &Program, inputs: &Value) -> Result<Value> {
     if !cs.is_satisfied() {
         return Err(RuntimeError::UnsatisfiedConstraint);
     }
-
-    //    let unconstrained = cs.find_unconstrained();
-    //    if !unconstrained.is_empty() {
-    //        log::error!("Unconstrained: {}", unconstrained);
-    //        return Err(RuntimeError::InternalError(
-    //            "Generated unconstrained variables".into(),
-    //        ));
-    //    }
 
     let output_flat = result
         .into_iter()
