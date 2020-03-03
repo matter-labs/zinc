@@ -25,7 +25,7 @@ use structopt::StructOpt;
 use self::data::TestData;
 use self::directory::TestDirectory;
 use self::file::TestFile;
-use crate::runners::{EvaluationTestRunner, TestRunner, ProofCheckRunner};
+use crate::runners::{EvaluationTestRunner, ProofCheckRunner, TestRunner};
 
 const EXIT_CODE_SUCCESS: i32 = 0;
 const EXIT_CODE_FAILURE: i32 = 1;
@@ -33,10 +33,14 @@ const EXIT_CODE_FAILURE: i32 = 1;
 fn main() {
     let args = arguments::Arguments::from_args();
     let result = if args.proof_check {
-        let runner = ProofCheckRunner { verbosity: args.verbosity };
+        let runner = ProofCheckRunner {
+            verbosity: args.verbosity,
+        };
         main_inner(runner)
     } else {
-        let runner = EvaluationTestRunner { verbosity: args.verbosity };
+        let runner = EvaluationTestRunner {
+            verbosity: args.verbosity,
+        };
         main_inner(runner)
     };
 
@@ -87,12 +91,7 @@ fn main_inner<R: TestRunner>(runner: R) -> Summary {
             let test_data = TestData::from_str(test_file.code.as_str())
                 .unwrap_or_else(|_| panic!("Test file {:?} case data is invalid", test_file_path));
 
-            runner.run(
-                &test_file_path,
-                &test_file,
-                &test_data,
-                summary.clone(),
-            );
+            runner.run(&test_file_path, &test_file, &test_data, summary.clone());
         })
         .collect::<Vec<()>>();
 

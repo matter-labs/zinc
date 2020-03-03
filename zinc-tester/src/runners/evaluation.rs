@@ -1,16 +1,16 @@
-use crate::file::TestFile;
 use crate::data::TestData;
+use crate::file::TestFile;
 
-use crate::{PANIC_SYNC, Summary, PANIC_TEST_FILE_STEM_GETTING};
 use crate::program::ProgramData;
-use colored::Colorize;
-use std::sync::{Arc, Mutex};
-use pairing::bn256::Bn256;
 use crate::runners::TestRunner;
+use crate::{Summary, PANIC_SYNC, PANIC_TEST_FILE_STEM_GETTING};
+use colored::Colorize;
+use pairing::bn256::Bn256;
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 
 pub struct EvaluationTestRunner {
-    pub verbosity: usize
+    pub verbosity: usize,
 }
 
 impl TestRunner for EvaluationTestRunner {
@@ -19,7 +19,7 @@ impl TestRunner for EvaluationTestRunner {
         test_file_path: &PathBuf,
         test_file: &TestFile,
         test_data: &TestData,
-        summary: Arc<Mutex<Summary>>
+        summary: Arc<Mutex<Summary>>,
     ) {
         for test_case in test_data.cases.iter() {
             let case_name = format!(
@@ -31,8 +31,7 @@ impl TestRunner for EvaluationTestRunner {
                 test_case.case
             );
 
-            let program_data = match ProgramData::new(&test_case.input, test_file.code.as_str())
-            {
+            let program_data = match ProgramData::new(&test_case.input, test_file.code.as_str()) {
                 Ok(program_data) => program_data,
                 Err(error) => {
                     summary.lock().expect(PANIC_SYNC).invalid += 1;

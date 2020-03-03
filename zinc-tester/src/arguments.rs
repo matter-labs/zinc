@@ -13,7 +13,11 @@ pub struct Arguments {
     )]
     pub verbosity: usize,
 
-    #[structopt(short = "p", long = "proof-check", help = "Performs proof-check for every test case")]
+    #[structopt(
+        short = "p",
+        long = "proof-check",
+        help = "Performs proof-check for every test case"
+    )]
     pub proof_check: bool,
 
     #[structopt(short = "q", long = "quiet", help = "Doesn't show successful tests.")]

@@ -17,7 +17,6 @@ pub trait TestRunner: Sync + Send {
         test_file_path: &PathBuf,
         test_file: &TestFile,
         test_data: &TestData,
-        summary: Arc<Mutex<Summary>>
+        summary: Arc<Mutex<Summary>>,
     );
 }
-
