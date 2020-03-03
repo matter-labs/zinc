@@ -251,6 +251,126 @@ impl Error {
                     None,
                 )
             }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentAdditionFirstOperandExpectedPlace(found))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment operator `+=` expected a memory place as the first operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentAdditionSecondOperandExpectedEvaluable(found))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment operator `+=` expected a value as the second operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentSubtractionFirstOperandExpectedPlace(found))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment operator `-=` expected a memory place as the first operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentSubtractionSecondOperandExpectedEvaluable(found))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment operator `-=` expected a value as the second operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentMultiplicationFirstOperandExpectedPlace(found))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment operator `*=` expected a memory place as the first operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentMultiplicationSecondOperandExpectedEvaluable(found))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment operator `*=` expected a value as the second operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentDivisionFirstOperandExpectedPlace(found))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment operator `/=` expected a memory place as the first operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentDivisionSecondOperandExpectedEvaluable(found))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment operator `/=` expected a value as the second operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentRemainderFirstOperandExpectedPlace(found))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment operator `%=` expected a memory place as the first operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentRemainderSecondOperandExpectedEvaluable(found))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment operator `%=` expected a value as the second operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
             Self::Semantic(SemanticError::Element(location, ElementError::OperatorRangeInclusiveFirstOperandExpectedConstant(found))) |
             Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorRangeInclusiveFirstOperandExpectedInteger(found)))) => {
                 Self::format_line(
@@ -1210,9 +1330,9 @@ impl Error {
             Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::ForbiddenFieldRemainder)))) => {
                 Self::format_line(
                     context,
-                    "the remainder operator `%` is temporarily forbidden for the `field` type",
+                    "the remainder operator `%` is forbidden for the `field` type",
                     location,
-                    Some("Will be fixed soon!"),
+                    Some("`field` type values cannot be used to get a remainder"),
                 )
             }
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::ForbiddenFieldNegation)))) |

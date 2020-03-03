@@ -80,6 +80,15 @@ impl Structure {
 
 impl fmt::Display for Structure {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.r#type())
+        write!(
+            f,
+            "structure '{}' with fields {}",
+            self.identifier,
+            self.fields
+                .iter()
+                .map(|(name, r#type)| format!("'{}' of type '{}'", name, r#type))
+                .collect::<Vec<String>>()
+                .join(", "),
+        )
     }
 }

@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer constant integer element error.
+//! The semantic analyzer integer constant element error.
 //!
 
 use num_bigint::BigInt;

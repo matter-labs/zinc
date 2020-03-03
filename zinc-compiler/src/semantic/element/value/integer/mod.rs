@@ -193,6 +193,6 @@ impl Integer {
 
 impl fmt::Display for Integer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.r#type())
+        write!(f, "integer of type '{}'", self.r#type())
     }
 }

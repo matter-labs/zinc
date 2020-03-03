@@ -61,7 +61,7 @@ fn main() -> [u8; 4] {
     let expected = Err(Error::Semantic(SemanticError::Function(
         Location::new(3, 25),
         FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayNewLengthInvalid(
-            "18446744073709551616: u72".to_owned(),
+            "constant integer '18446744073709551616' of type 'u72'".to_owned(),
         )),
     )));
 

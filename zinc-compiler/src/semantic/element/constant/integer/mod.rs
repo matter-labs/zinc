@@ -628,6 +628,11 @@ impl TryFrom<&IntegerLiteral> for Integer {
 
 impl fmt::Display for Integer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}: {}", self.value, self.r#type())
+        write!(
+            f,
+            "constant integer '{}' of type '{}'",
+            self.value,
+            self.r#type()
+        )
     }
 }

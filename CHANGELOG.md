@@ -1,34 +1,39 @@
 # The Zinc changelog
 
-## Version 0.1.4 (WIP)
+## Version 0.1.4 (tbd)
 
-### Language
+#### Language
 
-- added schnorr signature verification into standard library
-- make enums strong typed
-- field division (i.e. multplication by inverted value)
-- field comparison (interpreted as unsigned numbers)
+- added the Schnorr signature verification to the standard library
+- made enumerations strongly typed, not just groups of constants
+- match scrutinee can be any expression again (including structure literals)
+- implemented automatic loop bounds range type upcasting
+- implemented arithmetic assignment operators (`+=`, `-=`, `*=`, `/=`, `%=`)
+- allowed constant expressions as array sizes (both types and literals)
+- field division (i.e. multiplication by inverted value)
+- field comparison (treated as unsigned numbers)
 
-### Compiler
+#### Compiler
 
-- improved error messages (hints, location, formatting)
+- implemented advanced errors with Rust-like formatting, hints, location pointers
+- added constant overflow checking at compile-time
 
-### Bugfixes & Optimizations
+#### Virtual machine
 
-- fix 'unconstrained' variables in hash functions
-- fix constraint generation when same variable is encountered multiple times in the same expression
-- optimize constraint generation for deterministic expressions
+- fixed 'unconstrained' variables in hash functions
+- fixed constraint generation when same variable is encountered multiple times in the same expression
+- optimized constraint generation for deterministic expressions
 
 ## Version 0.1.3 (2020-02-17)
 
-### Compiler
+#### Compiler
 
-- fix the compile error with a comment at the end of a file
-- add an empty statement to allow optional semicolons
+- fixed the compile error with a comment at the end of a file
+- added an empty statement to allow optional semicolons
 
 ## Version 0.1.2 (2020-02-14)
 
-### Language
+#### Language
 
 - the structure literal does not require the `struct` keyword anymore
 - `dbg!(...)` string interpolation, e.g. `dbg!("{} + {} = {}", 2, 2, 4)`;
@@ -36,13 +41,13 @@
 - match scrutinee expression now can only be a single identifier (will be fixed soon)
 - operators `/`, `%`, `>=`, `>`, `<=`, `<` are temporarily forbidden for the type `field`
 
-### Zargo
+#### Zargo
 
 - the 'run' command now builds the circuit before running
 - added the 'proof-check` command, which executes the sequence 'build + setup + proof + verify'
 - circuit data (keys, inputs, outputs) moved from `build` to `data` folder
 
-### Compiler
+#### Compiler
 
 - fixed many boundaries of integer types
 - fixed the loop range overflow in some edge values of integer types
@@ -50,7 +55,7 @@
 - fixed conflicting namespaces for functions and types with the same name
 - improved some error messages
 
-### Virtual machine
+#### Virtual machine
 
 - fixed `pedersen` hash
 - fixed unsigned integers division
@@ -61,7 +66,7 @@
 - improved some error messages
 - removed the redundant 'field' and 'value' keys from the structure type in input JSON templates
 
-### Overall
+#### Overall
 
 - full integration test coverage
 - improved logging

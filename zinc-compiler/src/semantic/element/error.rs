@@ -10,6 +10,16 @@ use crate::semantic::element::value::error::Error as ValueError;
 pub enum Error {
     OperatorAssignmentFirstOperandExpectedPlace(String),
     OperatorAssignmentSecondOperandExpectedEvaluable(String),
+    OperatorAssignmentAdditionFirstOperandExpectedPlace(String),
+    OperatorAssignmentAdditionSecondOperandExpectedEvaluable(String),
+    OperatorAssignmentSubtractionFirstOperandExpectedPlace(String),
+    OperatorAssignmentSubtractionSecondOperandExpectedEvaluable(String),
+    OperatorAssignmentMultiplicationFirstOperandExpectedPlace(String),
+    OperatorAssignmentMultiplicationSecondOperandExpectedEvaluable(String),
+    OperatorAssignmentDivisionFirstOperandExpectedPlace(String),
+    OperatorAssignmentDivisionSecondOperandExpectedEvaluable(String),
+    OperatorAssignmentRemainderFirstOperandExpectedPlace(String),
+    OperatorAssignmentRemainderSecondOperandExpectedEvaluable(String),
 
     OperatorRangeInclusiveFirstOperandExpectedConstant(String),
     OperatorRangeInclusiveSecondOperandExpectedConstant(String),

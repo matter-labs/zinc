@@ -18,7 +18,7 @@ fn main() {}
 
     let expected = Err(Error::Semantic(SemanticError::UseExpectedPath(
         Location::new(2, 5),
-        "5: u8".to_owned(),
+        "constant integer '5' of type 'u8'".to_owned(),
     )));
 
     let result = super::compile_entry_point(input);

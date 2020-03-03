@@ -22,7 +22,7 @@ fn main() {
     let expected = Err(Error::Semantic(
         SemanticError::LoopBoundsExpectedConstantRangeExpression(
             Location::new(4, 14),
-            "true".to_owned(),
+            "boolean constant 'true'".to_owned(),
         ),
     ));
 

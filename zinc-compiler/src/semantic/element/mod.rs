@@ -87,12 +87,14 @@ impl Element {
                             .map_err(Error::Value)?;
                         Ok(place)
                     }
-                    element => Err(Error::OperatorAssignmentSecondOperandExpectedEvaluable(
-                        element.to_string(),
-                    )),
+                    element => Err(
+                        Error::OperatorAssignmentAdditionSecondOperandExpectedEvaluable(
+                            element.to_string(),
+                        ),
+                    ),
                 }
             }
-            element => Err(Error::OperatorAssignmentFirstOperandExpectedPlace(
+            element => Err(Error::OperatorAssignmentAdditionFirstOperandExpectedPlace(
                 element.to_string(),
             )),
         }
@@ -117,14 +119,16 @@ impl Element {
                             .map_err(Error::Value)?;
                         Ok(place)
                     }
-                    element => Err(Error::OperatorAssignmentSecondOperandExpectedEvaluable(
-                        element.to_string(),
-                    )),
+                    element => Err(
+                        Error::OperatorAssignmentSubtractionSecondOperandExpectedEvaluable(
+                            element.to_string(),
+                        ),
+                    ),
                 }
             }
-            element => Err(Error::OperatorAssignmentFirstOperandExpectedPlace(
-                element.to_string(),
-            )),
+            element => Err(
+                Error::OperatorAssignmentSubtractionFirstOperandExpectedPlace(element.to_string()),
+            ),
         }
     }
 
@@ -147,14 +151,18 @@ impl Element {
                             .map_err(Error::Value)?;
                         Ok(place)
                     }
-                    element => Err(Error::OperatorAssignmentSecondOperandExpectedEvaluable(
-                        element.to_string(),
-                    )),
+                    element => Err(
+                        Error::OperatorAssignmentMultiplicationSecondOperandExpectedEvaluable(
+                            element.to_string(),
+                        ),
+                    ),
                 }
             }
-            element => Err(Error::OperatorAssignmentFirstOperandExpectedPlace(
-                element.to_string(),
-            )),
+            element => Err(
+                Error::OperatorAssignmentMultiplicationFirstOperandExpectedPlace(
+                    element.to_string(),
+                ),
+            ),
         }
     }
 
@@ -177,12 +185,14 @@ impl Element {
                             .map_err(Error::Value)?;
                         Ok(place)
                     }
-                    element => Err(Error::OperatorAssignmentSecondOperandExpectedEvaluable(
-                        element.to_string(),
-                    )),
+                    element => Err(
+                        Error::OperatorAssignmentDivisionSecondOperandExpectedEvaluable(
+                            element.to_string(),
+                        ),
+                    ),
                 }
             }
-            element => Err(Error::OperatorAssignmentFirstOperandExpectedPlace(
+            element => Err(Error::OperatorAssignmentDivisionFirstOperandExpectedPlace(
                 element.to_string(),
             )),
         }
@@ -207,12 +217,14 @@ impl Element {
                             .map_err(Error::Value)?;
                         Ok(place)
                     }
-                    element => Err(Error::OperatorAssignmentSecondOperandExpectedEvaluable(
-                        element.to_string(),
-                    )),
+                    element => Err(
+                        Error::OperatorAssignmentRemainderSecondOperandExpectedEvaluable(
+                            element.to_string(),
+                        ),
+                    ),
                 }
             }
-            element => Err(Error::OperatorAssignmentFirstOperandExpectedPlace(
+            element => Err(Error::OperatorAssignmentRemainderFirstOperandExpectedPlace(
                 element.to_string(),
             )),
         }

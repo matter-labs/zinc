@@ -154,6 +154,6 @@ impl Array {
 
 impl fmt::Display for Array {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.r#type())
+        write!(f, "array of '{}'s", self.r#type)
     }
 }

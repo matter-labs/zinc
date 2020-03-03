@@ -4,11 +4,14 @@
 
 #![cfg(test)]
 
+use std::convert::TryFrom;
+
 use crate::lexical::Location;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::error::Error as ValueError;
+use crate::semantic::element::value::Value;
 use crate::semantic::Error as SemanticError;
 use crate::Error;
 
@@ -781,7 +784,9 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 36),
         ElementError::Value(ValueError::OperatorIndexFirstOperandExpectedArray(
-            Type::tuple(vec![Type::boolean(); 3]).to_string(),
+            Value::try_from(&Type::tuple(vec![Type::boolean(); 3]))
+                .unwrap()
+                .to_string(),
         )),
     )));
 
@@ -823,7 +828,9 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 36),
         ElementError::Value(ValueError::OperatorFieldFirstOperandExpectedTuple(
-            Type::array(Type::boolean(), 3).to_string(),
+            Value::try_from(&Type::array(Type::boolean(), 3))
+                .unwrap()
+                .to_string(),
         )),
     )));
 
@@ -843,7 +850,9 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 36),
         ElementError::Value(ValueError::OperatorFieldFirstOperandExpectedStructure(
-            Type::array(Type::boolean(), 3).to_string(),
+            Value::try_from(&Type::array(Type::boolean(), 3))
+                .unwrap()
+                .to_string(),
         )),
     )));
 

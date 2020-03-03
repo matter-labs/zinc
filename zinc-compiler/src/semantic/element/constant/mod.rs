@@ -423,12 +423,12 @@ impl From<BooleanLiteral> for Constant {
 impl fmt::Display for Constant {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Unit => write!(f, "()"),
-            Self::Boolean(inner) => write!(f, "{}", inner),
+            Self::Unit => write!(f, "unit constant '()'"),
+            Self::Boolean(constant) => write!(f, "boolean constant '{}'", constant),
             Self::Integer(inner) => write!(f, "{}", inner),
             Self::Range(inner) => write!(f, "{}", inner),
             Self::RangeInclusive(inner) => write!(f, "{}", inner),
-            Self::String(inner) => write!(f, "{}", inner),
+            Self::String(constant) => write!(f, "string constant '{}'", constant),
         }
     }
 }
