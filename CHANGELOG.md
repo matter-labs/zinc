@@ -1,5 +1,24 @@
 # The Zinc changelog
 
+## Version 0.1.4 (WIP)
+
+### Language
+
+- added schnorr signature verification into standard library
+- make enums strong typed
+- field division (i.e. multplication by inverted value)
+- field comparison (interpreted as unsigned numbers)
+
+### Compiler
+
+- improved error messages (hints, location, formatting)
+
+### Bugfixes & Optimizations
+
+- fix 'unconstrained' variables in hash functions
+- fix constraint generation when same variable is encountered multiple times in the same expression
+- optimize constraint generation for deterministic expressions
+
 ## Version 0.1.3 (2020-02-17)
 
 ### Compiler
