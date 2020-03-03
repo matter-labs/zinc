@@ -25,10 +25,19 @@ use structopt::StructOpt;
 use self::data::TestData;
 use self::directory::TestDirectory;
 use self::file::TestFile;
-use crate::runners::{EvaluationTestRunner, ProofCheckRunner, TestRunner};
+use self::runners::EvaluationTestRunner;
+use self::runners::ProofCheckRunner;
+use self::runners::TestRunner;
 
 const EXIT_CODE_SUCCESS: i32 = 0;
 const EXIT_CODE_FAILURE: i32 = 1;
+
+static TESTS_DIRECTORY: &str = "zinc-tester/tests/";
+
+static PANIC_TEST_DIRECTORY_INVALID: &str = "The test files directory must be valid";
+static PANIC_THE_ONLY_REFERENCE: &str =
+    "The last shared reference is always unwrapped successfully";
+static PANIC_SYNC: &str = "Synchronization is always successful";
 
 fn main() {
     let args = arguments::Arguments::from_args();
@@ -66,12 +75,6 @@ fn main() {
     })
 }
 
-static PANIC_TEST_DIRECTORY_INVALID: &str = "The test files directory must be valid";
-
-static PANIC_THE_ONLY_REFERENCE: &str =
-    "The last shared reference is always unwrapped successfully";
-static PANIC_SYNC: &str = "Synchronization is always successful";
-
 fn main_inner<R: TestRunner>(runner: R) -> Summary {
     println!(
         "[INTEGRATION] Started with {} worker threads",
@@ -80,7 +83,7 @@ fn main_inner<R: TestRunner>(runner: R) -> Summary {
 
     let summary = Arc::new(Mutex::new(Summary::default()));
 
-    TestDirectory::new(&PathBuf::from("zinc-tester/tests/".to_owned()))
+    TestDirectory::new(&PathBuf::from(TESTS_DIRECTORY))
         .expect(PANIC_TEST_DIRECTORY_INVALID)
         .file_paths
         .into_par_iter()

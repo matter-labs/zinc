@@ -26,18 +26,18 @@ pub enum Error {
 
 impl ProgramData {
     pub fn new(witness: &JsonValue, code: &str) -> Result<Self, Error> {
-        let program = compile(code)?;
+        let program = Self::compile(code)?;
         let input =
             Value::from_typed_json(witness, &program.input).map_err(Error::JsonTypeValue)?;
 
         Ok(Self { program, input })
     }
-}
 
-pub fn compile(code: &str) -> Result<Program, Error> {
-    let bytecode = zinc_compiler::compile_test(code).map_err(Error::Compiler)?;
-    let bytecode: Vec<u8> = bytecode.into();
-    let program = Program::from_bytes(bytecode.as_slice()).map_err(Error::Program)?;
+    pub fn compile(code: &str) -> Result<Program, Error> {
+        let bytecode = zinc_compiler::compile_test(code).map_err(Error::Compiler)?;
+        let bytecode: Vec<u8> = bytecode.into();
+        let program = Program::from_bytes(bytecode.as_slice()).map_err(Error::Program)?;
 
-    Ok(program)
+        Ok(program)
+    }
 }

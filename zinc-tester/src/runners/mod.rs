@@ -1,15 +1,20 @@
+//!
+//! The test runners.
+//!
+
 mod evaluation;
 mod proof_check;
 
+pub use self::evaluation::EvaluationTestRunner;
+pub use self::proof_check::ProofCheckRunner;
+pub use crate::Summary;
+
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use std::sync::Mutex;
 
 use crate::data::TestData;
 use crate::file::TestFile;
-
-pub use crate::Summary;
-pub use evaluation::EvaluationTestRunner;
-pub use proof_check::ProofCheckRunner;
 
 pub trait TestRunner: Sync + Send {
     fn run(
