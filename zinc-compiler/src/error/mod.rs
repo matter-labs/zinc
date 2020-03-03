@@ -984,7 +984,7 @@ impl Error {
                 )
             }
 
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::PushingInvalidType(expected, found))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::PushingInvalidType { expected, found })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -996,39 +996,39 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::SliceStartOutOfRange(left))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::ArraySliceStartOutOfRange(left)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::SliceStartOutOfRange { start })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::ArraySliceStartOutOfRange(start)))) => {
                 Self::format_line(
                     context,
                     format!(
                         "left slice bound `{}` is negative",
-                        left,
+                        start,
                     )
                         .as_str(),
                     location,
                     Some("slice range bounds must be within the array size"),
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::SliceEndOutOfRange(right, size))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::ArraySliceEndOutOfRange(right, size)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::SliceEndOutOfRange { end, size })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::ArraySliceEndOutOfRange(end, size)))) => {
                 Self::format_line(
                     context,
                     format!(
                         "right slice bound `{}` is out of range of the array of size {}",
-                        right, size,
+                        end, size,
                     )
                         .as_str(),
                     location,
                     Some("slice range bounds must be within the array size"),
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::SliceEndLesserThanStart(left, right))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::ArraySliceEndLesserThanStart(left, right)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::SliceEndLesserThanStart { start, end })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::ArraySliceEndLesserThanStart(start, end)))) => {
                 Self::format_line(
                     context,
                     format!(
                         "left slice bound `{}` is greater than right slice bound `{}`",
-                        left, right,
+                        start, end,
                     )
                         .as_str(),
                     location,
@@ -1036,13 +1036,13 @@ impl Error {
                 )
             }
 
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Tuple(TupleValueError::FieldDoesNotExist(index, r#type))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::TupleFieldDoesNotExist(index, r#type)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Tuple(TupleValueError::FieldDoesNotExist { type_identifier, field_index })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::TupleFieldDoesNotExist(field_index, type_identifier)))) => {
                 Self::format_line(
                     context,
                     format!(
                         "tuple `{}` has no field with index `{}`",
-                        r#type, index,
+                        type_identifier, field_index,
                     )
                         .as_str(),
                     location,
@@ -1050,37 +1050,49 @@ impl Error {
                 )
             }
 
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Structure(StructureValueError::FieldAlreadyExists(field, r#type))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Structure(StructureValueError::FieldDoesNotExist { type_identifier, field_name })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::StructureFieldDoesNotExist(field_name, type_identifier)))) => {
                 Self::format_line(
                     context,
                     format!(
-                        "field `{}` already exists in the structure literal of type `{}`",
-                        field, r#type,
+                        "field `{}` does not exist in structure `{}`",
+                        field_name, type_identifier,
                     )
                         .as_str(),
                     location,
-                    Some("each field may be specified only once"),
+                    None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Structure(StructureValueError::FieldDoesNotExist(field, r#type))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::StructureFieldDoesNotExist(field, r#type)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Structure(StructureValueError::FieldExpected { type_identifier, position, expected, found })))) => {
                 Self::format_line(
                     context,
                     format!(
-                        "field `{}` does not exist in the structure `{}` at the current position",
-                        field, r#type,
+                        "structure `{}` expected field `{}` at position {}, found `{}`",
+                        type_identifier, expected, position, found,
                     )
                         .as_str(),
                     location,
-                    Some("specify the fields in the correct order"),
+                    None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Structure(StructureValueError::FieldInvalidType(field, r#type, expected, found))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Structure(StructureValueError::FieldInvalidType { type_identifier, field_name, expected, found })))) => {
                 Self::format_line(
                     context,
                     format!(
-                        "field `{}` of structure `{}` expected `{}`, found `{}`",
-                        field, r#type, expected, found,
+                        "field `{}` of structure `{}` expected type `{}`, found `{}`",
+                        field_name, type_identifier, expected, found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Structure(StructureValueError::FieldOutOfRange { type_identifier, expected, found })))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "structure `{}` expected {} fields, found {}",
+                        type_identifier, expected, found,
                     )
                         .as_str(),
                     location,
@@ -1660,6 +1672,18 @@ impl Error {
                 Self::format_message(
                     "function `main` is missing",
                     Some("create the `main` function in the entry point file `main.zn`"),
+                )
+            }
+            Self::Semantic(SemanticError::StructureDuplicateField(location, type_identifier, field_name)) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "structure `{}` has a duplicate field `{}`",
+                        type_identifier, field_name,
+                    )
+                        .as_str(),
+                    location,
+                    Some("consider giving the field a unique name"),
                 )
             }
             Self::Semantic(SemanticError::ModuleNotFound(location, name)) => {

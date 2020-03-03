@@ -53,26 +53,33 @@ impl Array {
 
     pub fn slice_range(&self, start: &BigInt, end: &BigInt) -> Result<AccessData, Error> {
         if start.is_negative() {
-            return Err(Error::SliceStartOutOfRange(start.to_string()));
+            return Err(Error::SliceStartOutOfRange {
+                start: start.to_string(),
+            });
         }
         if end > &BigInt::from(self.size) {
-            return Err(Error::SliceEndOutOfRange(
-                end.to_string(),
-                self.size.to_string(),
-            ));
+            return Err(Error::SliceEndOutOfRange {
+                end: end.to_string(),
+                size: self.size,
+            });
         }
         if end < start {
-            return Err(Error::SliceEndLesserThanStart(
-                start.to_string(),
-                end.to_string(),
-            ));
+            return Err(Error::SliceEndLesserThanStart {
+                start: start.to_string(),
+                end: end.to_string(),
+            });
         }
         let start = start
             .to_usize()
-            .ok_or_else(|| Error::SliceStartOutOfRange(start.to_string()))?;
+            .ok_or_else(|| Error::SliceStartOutOfRange {
+                start: start.to_string(),
+            })?;
         let length = (end - start)
             .to_usize()
-            .ok_or_else(|| Error::SliceEndLesserThanStart(start.to_string(), end.to_string()))?;
+            .ok_or_else(|| Error::SliceEndLesserThanStart {
+                start: start.to_string(),
+                end: end.to_string(),
+            })?;
         Ok(AccessData::new(
             self.r#type.size() * start,
             self.r#type.size() * length,
@@ -83,26 +90,33 @@ impl Array {
 
     pub fn slice_range_inclusive(&self, start: &BigInt, end: &BigInt) -> Result<AccessData, Error> {
         if start.is_negative() {
-            return Err(Error::SliceStartOutOfRange(start.to_string()));
+            return Err(Error::SliceStartOutOfRange {
+                start: start.to_string(),
+            });
         }
         if end >= &BigInt::from(self.size) {
-            return Err(Error::SliceEndOutOfRange(
-                end.to_string(),
-                self.size.to_string(),
-            ));
+            return Err(Error::SliceEndOutOfRange {
+                end: end.to_string(),
+                size: self.size,
+            });
         }
         if end < start {
-            return Err(Error::SliceEndLesserThanStart(
-                start.to_string(),
-                end.to_string(),
-            ));
+            return Err(Error::SliceEndLesserThanStart {
+                start: start.to_string(),
+                end: end.to_string(),
+            });
         }
         let start = start
             .to_usize()
-            .ok_or_else(|| Error::SliceStartOutOfRange(start.to_string()))?;
-        let length = (end - start + BigInt::one())
-            .to_usize()
-            .ok_or_else(|| Error::SliceEndLesserThanStart(start.to_string(), end.to_string()))?;
+            .ok_or_else(|| Error::SliceStartOutOfRange {
+                start: start.to_string(),
+            })?;
+        let length = (end - start + BigInt::one()).to_usize().ok_or_else(|| {
+            Error::SliceEndLesserThanStart {
+                start: start.to_string(),
+                end: end.to_string(),
+            }
+        })?;
         Ok(AccessData::new(
             self.r#type.size() * start,
             self.r#type.size() * length,
@@ -115,10 +129,10 @@ impl Array {
         if self.size == 0 {
             self.r#type = r#type;
         } else if r#type != self.r#type {
-            return Err(Error::PushingInvalidType(
-                self.r#type.to_string(),
-                r#type.to_string(),
-            ));
+            return Err(Error::PushingInvalidType {
+                expected: self.r#type.to_string(),
+                found: r#type.to_string(),
+            });
         }
         self.size += 1;
 
@@ -129,10 +143,10 @@ impl Array {
         if self.size == 0 {
             self.r#type = r#type;
         } else if r#type != self.r#type {
-            return Err(Error::PushingInvalidType(
-                r#type.to_string(),
-                self.r#type.to_string(),
-            ));
+            return Err(Error::PushingInvalidType {
+                expected: self.r#type.to_string(),
+                found: r#type.to_string(),
+            });
         }
         self.size += count;
 

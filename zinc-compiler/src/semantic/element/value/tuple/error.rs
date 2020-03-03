@@ -4,5 +4,8 @@
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    FieldDoesNotExist(usize, String),
+    FieldDoesNotExist {
+        type_identifier: String,
+        field_index: usize,
+    },
 }

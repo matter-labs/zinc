@@ -22,10 +22,10 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 21),
-        ElementError::Value(ValueError::Array(ArrayValueError::PushingInvalidType(
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            Type::boolean().to_string(),
-        ))),
+        ElementError::Value(ValueError::Array(ArrayValueError::PushingInvalidType {
+            expected: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            found: Type::boolean().to_string(),
+        })),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -43,9 +43,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 20),
-        ElementError::Value(ValueError::Array(ArrayValueError::SliceStartOutOfRange(
-            "-1".to_owned(),
-        ))),
+        ElementError::Value(ValueError::Array(ArrayValueError::SliceStartOutOfRange {
+            start: "-1".to_owned(),
+        })),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -63,10 +63,10 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 20),
-        ElementError::Value(ValueError::Array(ArrayValueError::SliceEndOutOfRange(
-            "6".to_owned(),
-            "5".to_owned(),
-        ))),
+        ElementError::Value(ValueError::Array(ArrayValueError::SliceEndOutOfRange {
+            end: "6".to_owned(),
+            size: 5,
+        })),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -84,10 +84,12 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 20),
-        ElementError::Value(ValueError::Array(ArrayValueError::SliceEndLesserThanStart(
-            "2".to_owned(),
-            "1".to_owned(),
-        ))),
+        ElementError::Value(ValueError::Array(
+            ArrayValueError::SliceEndLesserThanStart {
+                start: "2".to_owned(),
+                end: "1".to_owned(),
+            },
+        )),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);

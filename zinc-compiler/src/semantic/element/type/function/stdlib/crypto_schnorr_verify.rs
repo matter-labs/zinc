@@ -158,11 +158,11 @@ impl Function {
         }
 
         match actual_params.get(Self::ARGUMENT_INDEX_MESSAGE) {
-            Some(Type::Field) => {}
+            Some(r#type) if r#type.is_bit_array() => {}
             Some(r#type) => {
                 return Err(Error::ArgumentType(
                     self.identifier.to_owned(),
-                    Type::field().to_string(),
+                    "[bool; {N}]".to_owned(),
                     Self::ARGUMENT_INDEX_MESSAGE + 1,
                     "message".to_owned(),
                     r#type.to_string(),

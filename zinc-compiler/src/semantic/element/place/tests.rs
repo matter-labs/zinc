@@ -196,10 +196,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 22),
-        ElementError::Place(PlaceError::ArraySliceEndOutOfRange(
-            "6".to_owned(),
-            "5".to_owned(),
-        )),
+        ElementError::Place(PlaceError::ArraySliceEndOutOfRange("6".to_owned(), 5)),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);

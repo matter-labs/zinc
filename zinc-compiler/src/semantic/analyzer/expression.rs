@@ -34,7 +34,6 @@ use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::array::Array;
 use crate::semantic::element::value::error::Error as ValueError;
-use crate::semantic::element::value::structure::error::Error as StructureValueError;
 use crate::semantic::element::value::structure::Structure;
 use crate::semantic::element::value::tuple::Tuple;
 use crate::semantic::element::value::Value;
@@ -1669,84 +1668,24 @@ impl Analyzer {
 
     fn structure_expression(&mut self, structure: StructureExpression) -> Result<Element, Error> {
         let identifier_location = structure.identifier.location;
-        let (structure_identifier, type_unique_id, expected_fields) =
-            match Scope::resolve_item(self.scope(), &structure.identifier.name)
-                .map_err(|error| Error::Scope(identifier_location, error))?
-                .variant
-            {
-                ScopeItem::Type(Type::Structure(structure)) => {
-                    (structure.identifier, structure.unique_id, structure.fields)
-                }
-                item => {
-                    return Err(Error::TypeAliasDoesNotPointToStructure(
-                        identifier_location,
-                        item.to_string(),
-                    ))
-                }
-            };
+        let structure_type = match Scope::resolve_item(self.scope(), &structure.identifier.name)
+            .map_err(|error| Error::Scope(identifier_location, error))?
+            .variant
+        {
+            ScopeItem::Type(Type::Structure(structure)) => structure,
+            item => {
+                return Err(Error::TypeAliasDoesNotPointToStructure(
+                    identifier_location,
+                    item.to_string(),
+                ))
+            }
+        };
 
-        let mut result = Structure::new(
-            structure_identifier.clone(),
-            type_unique_id,
-            Vec::with_capacity(structure.fields.len()),
-        );
-        for (index, (identifier, expression)) in structure.fields.into_iter().enumerate() {
+        let mut result = Structure::new(structure_type);
+        for (identifier, expression) in structure.fields.into_iter() {
             let identifier_location = identifier.location;
-            let expression_location = expression.location;
             let element = self.expression(expression, TranslationHint::ValueExpression)?;
             let element_type = Type::from_element(&element, self.scope())?;
-
-            if result.contains_key(&identifier.name) {
-                return Err(Error::Element(
-                    identifier_location,
-                    ElementError::Value(ValueError::Structure(
-                        StructureValueError::FieldAlreadyExists(
-                            identifier.name,
-                            structure_identifier,
-                        ),
-                    )),
-                ));
-            }
-
-            match expected_fields.get(index) {
-                Some((field_name, field_type)) => {
-                    if field_type != &element_type {
-                        return Err(Error::Element(
-                            expression_location,
-                            ElementError::Value(ValueError::Structure(
-                                StructureValueError::FieldInvalidType(
-                                    identifier.name,
-                                    structure_identifier,
-                                    field_type.to_string(),
-                                    element_type.to_string(),
-                                ),
-                            )),
-                        ));
-                    }
-                    if field_name != &identifier.name {
-                        return Err(Error::Element(
-                            identifier_location,
-                            ElementError::Value(ValueError::Structure(
-                                StructureValueError::FieldDoesNotExist(
-                                    identifier.name,
-                                    structure_identifier,
-                                ),
-                            )),
-                        ));
-                    }
-                }
-                None => {
-                    return Err(Error::Element(
-                        identifier_location,
-                        ElementError::Value(ValueError::Structure(
-                            StructureValueError::FieldDoesNotExist(
-                                identifier.name,
-                                structure_identifier,
-                            ),
-                        )),
-                    ));
-                }
-            }
 
             result
                 .push(identifier.name.clone(), element_type)

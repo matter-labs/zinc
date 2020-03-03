@@ -9,7 +9,7 @@ use std::rc::Rc;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::scope::Scope;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Structure {
     pub identifier: String,
     pub unique_id: usize,

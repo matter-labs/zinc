@@ -10,7 +10,7 @@ pub enum Error {
     OperatorFieldFirstOperandExpectedStructure(String),
 
     ArraySliceStartOutOfRange(String),
-    ArraySliceEndOutOfRange(String, String),
+    ArraySliceEndOutOfRange(String, usize),
     ArraySliceEndLesserThanStart(String, String),
     TupleFieldDoesNotExist(usize, String),
     StructureFieldDoesNotExist(String, String),

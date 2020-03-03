@@ -1,5 +1,5 @@
 //# [ {
-//#     "case": "true",
+//#     "case": "true", "ignore": true,
 //#     "input": {
 //#         "signature": {
 //#             "r": [
@@ -12,11 +12,11 @@
 //#                 "20956838306014746826052367476917828000427140731634825069188146376965741319115"
 //#             ]
 //#         },
-//#         "message": "72034994866411393714850512529618071366"
+//#         "message": [false, true, false, true, false, true, false, true, false, true]
 //#     },
 //#     "expect": true
 //# }, {
-//#     "case": "false",
+//#     "case": "false", "ignore": true,
 //#     "input": {
 //#         "signature": {
 //#             "r": [
@@ -29,7 +29,7 @@
 //#                 "20956838306014746826052367476917828000427140731634825069188146376965741319115"
 //#             ]
 //#         },
-//#         "message": "12345678909876543212345666"
+//#         "message": [false, true, false, true, false, true, false, true, false, true]
 //#     },
 //#     "expect": false
 //# } ]
@@ -40,7 +40,9 @@ struct Signature {
     pk: (field, field),
 }
 
-fn main(signature: Signature, message: field) -> bool {
+const MESSAGE_LENGTH: u64 = 10;
+
+fn main(signature: Signature, message: [bool; MESSAGE_LENGTH]) -> bool {
     std::crypto::schnorr::verify(
         signature.r.0,
         signature.r.1,

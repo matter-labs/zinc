@@ -403,11 +403,7 @@ impl TryFrom<&Type> for Value {
             Type::Field => Self::Integer(Integer::new(false, crate::BITLENGTH_FIELD)),
             Type::Array { r#type, size } => Self::Array(Array::new(*r#type.to_owned(), *size)),
             Type::Tuple { types } => Self::Tuple(Tuple::new(types.to_owned())),
-            Type::Structure(structure) => Self::Structure(Structure::new(
-                structure.identifier.to_owned(),
-                structure.unique_id,
-                structure.fields.to_owned(),
-            )),
+            Type::Structure(structure) => Self::Structure(Structure::new(structure.to_owned())),
             Type::Enumeration(enumeration) => {
                 let mut integer = Integer::new(false, enumeration.bitlength);
                 integer.set_enumeration(enumeration.to_owned());

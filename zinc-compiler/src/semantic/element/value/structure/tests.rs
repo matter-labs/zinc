@@ -13,33 +13,6 @@ use crate::semantic::Error as SemanticError;
 use crate::Error;
 
 #[test]
-fn error_field_already_exists() {
-    let input = r#"
-struct Data {
-    a: u8,
-}
-
-fn main() {
-    let result = Data {
-        a: 0,
-        a: 1,
-    };
-}
-"#;
-
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(9, 9),
-        ElementError::Value(ValueError::Structure(
-            StructureValueError::FieldAlreadyExists("a".to_owned(), "Data".to_owned()),
-        )),
-    )));
-
-    let result = crate::semantic::tests::compile_entry_point(input);
-
-    assert_eq!(result, expected);
-}
-
-#[test]
 fn error_field_does_not_exist() {
     let input = r#"
 struct Data {
@@ -56,8 +29,42 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(9, 6),
         ElementError::Value(ValueError::Structure(
-            StructureValueError::FieldDoesNotExist("b".to_owned(), "Data".to_owned()),
+            StructureValueError::FieldDoesNotExist {
+                type_identifier: "Data".to_owned(),
+                field_name: "b".to_owned(),
+            },
         )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_field_expected() {
+    let input = r#"
+struct Data {
+    a: u8,
+    b: u8,
+}
+
+fn main() {
+    let result = Data {
+        a: 42,
+        c: 69,
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(10, 9),
+        ElementError::Value(ValueError::Structure(StructureValueError::FieldExpected {
+            type_identifier: "Data".to_owned(),
+            position: 2,
+            expected: "b".to_owned(),
+            found: "c".to_owned(),
+        })),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -80,14 +87,47 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(8, 12),
+        Location::new(8, 9),
         ElementError::Value(ValueError::Structure(
-            StructureValueError::FieldInvalidType(
-                "a".to_owned(),
-                "Data".to_owned(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-                Type::boolean().to_string(),
-            ),
+            StructureValueError::FieldInvalidType {
+                type_identifier: "Data".to_owned(),
+                field_name: "a".to_owned(),
+                expected: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+                found: Type::boolean().to_string(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_field_out_of_range() {
+    let input = r#"
+struct Data {
+    a: u8,
+    b: u8,
+}
+
+fn main() {
+    let result = Data {
+        a: 42,
+        b: 25,
+        c: 69,
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(11, 9),
+        ElementError::Value(ValueError::Structure(
+            StructureValueError::FieldOutOfRange {
+                type_identifier: "Data".to_owned(),
+                expected: 2,
+                found: 3,
+            },
         )),
     )));
 

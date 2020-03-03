@@ -9,23 +9,22 @@ pub mod error;
 use std::fmt;
 
 use crate::semantic::element::access::AccessData;
+use crate::semantic::element::r#type::structure::Structure as StructureType;
 use crate::semantic::element::r#type::Type;
 
 use self::error::Error;
 
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Structure {
-    identifier: String,
-    unique_id: usize,
-    fields: Vec<(String, Type)>,
+    r#type: StructureType,
+    field_index: usize,
 }
 
 impl Structure {
-    pub fn new(identifier: String, unique_id: usize, fields: Vec<(String, Type)>) -> Self {
+    pub fn new(r#type: StructureType) -> Self {
         Self {
-            identifier,
-            unique_id,
-            fields,
+            r#type,
+            field_index: 0,
         }
     }
 
@@ -33,7 +32,7 @@ impl Structure {
         let mut offset = 0;
         let total_size = self.r#type().size();
 
-        for (name, r#type) in self.fields.iter() {
+        for (name, r#type) in self.r#type.fields.iter() {
             if name == field_name {
                 return Ok(AccessData::new(
                     offset,
@@ -45,36 +44,51 @@ impl Structure {
             offset += r#type.size();
         }
 
-        Err(Error::FieldDoesNotExist(
-            field_name.to_owned(),
-            self.identifier.to_string(),
-        ))
+        Err(Error::FieldDoesNotExist {
+            type_identifier: self.r#type.identifier.to_string(),
+            field_name: field_name.to_owned(),
+        })
     }
 
     pub fn r#type(&self) -> Type {
-        Type::structure(
-            self.identifier.to_owned(),
-            self.unique_id,
-            self.fields.to_owned(),
-            None,
-        )
+        Type::Structure(self.r#type.to_owned())
     }
 
-    pub fn push(&mut self, key: String, r#type: Type) -> Result<(), Error> {
-        if self.fields.iter().any(|field| field.0 == key) {
-            return Err(Error::FieldAlreadyExists(key, self.identifier.to_owned()));
+    pub fn push(&mut self, name: String, r#type: Type) -> Result<(), Error> {
+        match self.r#type.fields.get(self.field_index) {
+            Some((expected_name, expected_type)) => {
+                if &name != expected_name {
+                    return Err(Error::FieldExpected {
+                        type_identifier: self.r#type.identifier.to_owned(),
+                        position: self.field_index + 1,
+                        expected: expected_name.to_owned(),
+                        found: name,
+                    });
+                }
+                if &r#type != expected_type {
+                    return Err(Error::FieldInvalidType {
+                        type_identifier: self.r#type.identifier.to_owned(),
+                        field_name: expected_name.to_owned(),
+                        expected: expected_type.to_string(),
+                        found: r#type.to_string(),
+                    });
+                }
+            }
+            None => {
+                return Err(Error::FieldOutOfRange {
+                    type_identifier: self.r#type.identifier.to_owned(),
+                    expected: self.r#type.fields.len(),
+                    found: self.field_index + 1,
+                });
+            }
         }
 
-        self.fields.push((key, r#type));
+        self.field_index += 1;
         Ok(())
     }
 
-    pub fn contains_key(&mut self, key: &str) -> bool {
-        self.fields.iter().any(|field| field.0 == key)
-    }
-
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        self.unique_id == other.unique_id
+        self.r#type.unique_id == other.r#type.unique_id
     }
 }
 
@@ -83,8 +97,9 @@ impl fmt::Display for Structure {
         write!(
             f,
             "structure '{}' with fields {}",
-            self.identifier,
-            self.fields
+            self.r#type.identifier,
+            self.r#type
+                .fields
                 .iter()
                 .map(|(name, r#type)| format!("'{}' of type '{}'", name, r#type))
                 .collect::<Vec<String>>()

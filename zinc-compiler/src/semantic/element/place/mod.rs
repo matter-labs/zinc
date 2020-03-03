@@ -87,10 +87,7 @@ impl Place {
                     return Err(Error::ArraySliceStartOutOfRange(start.to_string()));
                 }
                 if end > &BigInt::from(array_size) {
-                    return Err(Error::ArraySliceEndOutOfRange(
-                        end.to_string(),
-                        array_size.to_string(),
-                    ));
+                    return Err(Error::ArraySliceEndOutOfRange(end.to_string(), array_size));
                 }
                 if end < start {
                     return Err(Error::ArraySliceEndLesserThanStart(
@@ -117,10 +114,7 @@ impl Place {
                     return Err(Error::ArraySliceStartOutOfRange(start.to_string()));
                 }
                 if end >= &BigInt::from(array_size) {
-                    return Err(Error::ArraySliceEndOutOfRange(
-                        end.to_string(),
-                        array_size.to_string(),
-                    ));
+                    return Err(Error::ArraySliceEndOutOfRange(end.to_string(), array_size));
                 }
                 if end < start {
                     return Err(Error::ArraySliceEndLesserThanStart(

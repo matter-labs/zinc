@@ -4,8 +4,8 @@
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    PushingInvalidType(String, String),
-    SliceStartOutOfRange(String),
-    SliceEndOutOfRange(String, String),
-    SliceEndLesserThanStart(String, String),
+    PushingInvalidType { expected: String, found: String },
+    SliceStartOutOfRange { start: String },
+    SliceEndOutOfRange { end: String, size: usize },
+    SliceEndLesserThanStart { start: String, end: String },
 }

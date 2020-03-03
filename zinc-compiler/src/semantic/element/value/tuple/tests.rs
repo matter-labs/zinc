@@ -22,10 +22,10 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 37),
-        ElementError::Value(ValueError::Tuple(TupleValueError::FieldDoesNotExist(
-            5,
-            Type::tuple(vec![Type::boolean(); 3]).to_string(),
-        ))),
+        ElementError::Value(ValueError::Tuple(TupleValueError::FieldDoesNotExist {
+            type_identifier: Type::tuple(vec![Type::boolean(); 3]).to_string(),
+            field_index: 5,
+        })),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);

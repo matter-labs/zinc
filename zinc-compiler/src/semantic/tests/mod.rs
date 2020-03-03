@@ -18,6 +18,7 @@ mod err_match_not_exhausted;
 mod err_module_not_found;
 mod err_mutating_immutable_memory;
 mod err_mutating_with_different_type;
+mod err_structure_duplicate_field;
 mod err_type_alias_does_not_point_to_structure;
 mod err_type_alias_does_not_point_to_type;
 mod err_use_expected_path;

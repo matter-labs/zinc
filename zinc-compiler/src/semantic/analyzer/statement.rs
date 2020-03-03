@@ -190,8 +190,18 @@ impl Analyzer {
     fn struct_statement(&mut self, statement: StructStatement) -> Result<(), Error> {
         let location = statement.location;
 
-        let mut fields = Vec::with_capacity(statement.fields.len());
+        let mut fields: Vec<(String, Type)> = Vec::with_capacity(statement.fields.len());
         for field in statement.fields.into_iter() {
+            if fields
+                .iter()
+                .any(|(name, _type)| name == &field.identifier.name)
+            {
+                return Err(Error::StructureDuplicateField(
+                    field.location,
+                    statement.identifier.name,
+                    field.identifier.name,
+                ));
+            }
             fields.push((
                 field.identifier.name,
                 Type::from_type_variant(&field.r#type.variant, self.scope())?,

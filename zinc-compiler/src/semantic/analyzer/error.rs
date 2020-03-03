@@ -30,6 +30,8 @@ pub enum Error {
 
     EntryPointMissing,
 
+    StructureDuplicateField(Location, String, String),
+
     ModuleNotFound(Location, String),
 
     UseExpectedPath(Location, String),
