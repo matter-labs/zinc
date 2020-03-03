@@ -24,6 +24,7 @@ use zinc_bytecode::Instruction;
 use crate::lexical;
 use crate::semantic::element::constant::Range;
 use crate::semantic::element::constant::RangeInclusive;
+use crate::semantic::element::r#type::enumeration::Enumeration;
 use crate::semantic::element::r#type::Type;
 use crate::syntax::IntegerLiteral;
 
@@ -34,6 +35,7 @@ pub struct Integer {
     pub value: BigInt,
     pub is_signed: bool,
     pub bitlength: usize,
+    pub enumeration: Option<Enumeration>,
 }
 
 impl Integer {
@@ -42,7 +44,12 @@ impl Integer {
             value,
             is_signed,
             bitlength,
+            enumeration: None,
         }
+    }
+
+    pub fn set_enumeration(&mut self, enumeration: Enumeration) {
+        self.enumeration = Some(enumeration);
     }
 
     pub fn new_from_usize(value: usize, bitlength: usize) -> Self {
@@ -50,6 +57,7 @@ impl Integer {
             value: BigInt::from(value),
             is_signed: false,
             bitlength,
+            enumeration: None,
         }
     }
 
@@ -58,6 +66,7 @@ impl Integer {
             value: BigInt::zero(),
             is_signed,
             bitlength,
+            enumeration: None,
         }
     }
 
@@ -66,6 +75,7 @@ impl Integer {
             value: BigInt::one(),
             is_signed,
             bitlength,
+            enumeration: None,
         }
     }
 
@@ -79,6 +89,7 @@ impl Integer {
             value,
             is_signed,
             bitlength,
+            enumeration: None,
         }
     }
 
@@ -92,6 +103,7 @@ impl Integer {
             value,
             is_signed,
             bitlength,
+            enumeration: None,
         }
     }
 
@@ -100,11 +112,20 @@ impl Integer {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::scalar(self.is_signed, self.bitlength)
+        match self.enumeration {
+            Some(ref enumeration) => Type::Enumeration(enumeration.to_owned()),
+            None => Type::scalar(self.is_signed, self.bitlength),
+        }
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        self.is_signed == other.is_signed && self.bitlength == other.bitlength
+        self.is_signed == other.is_signed
+            && self.bitlength == other.bitlength
+            && match (self.enumeration.as_ref(), other.enumeration.as_ref()) {
+                (Some(enumeration_1), Some(enumeration_2)) => enumeration_1 == enumeration_2,
+                (None, None) => true,
+                _ => false,
+            }
     }
 
     pub fn range_inclusive(&self, other: &Self) -> Result<RangeInclusive, Error> {
@@ -234,6 +255,7 @@ impl Integer {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
         })
     }
 
@@ -264,6 +286,7 @@ impl Integer {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
         })
     }
 
@@ -294,6 +317,7 @@ impl Integer {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
         })
     }
 
@@ -328,6 +352,7 @@ impl Integer {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
         })
     }
 
@@ -366,6 +391,7 @@ impl Integer {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
         })
     }
 
@@ -386,6 +412,7 @@ impl Integer {
 
         self.is_signed = is_signed;
         self.bitlength = bitlength;
+        self.enumeration = None;
         Ok(())
     }
 
@@ -408,6 +435,7 @@ impl Integer {
             value: result,
             is_signed,
             bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
         })
     }
 

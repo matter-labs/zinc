@@ -391,34 +391,6 @@ impl Value {
     }
 }
 
-impl TryFrom<Type> for Value {
-    type Error = Error;
-
-    fn try_from(r#type: Type) -> Result<Self, Self::Error> {
-        Ok(match r#type {
-            Type::Unit => Self::Unit,
-            Type::Boolean => Self::Boolean,
-            Type::IntegerUnsigned { bitlength } => Self::Integer(Integer::new(false, bitlength)),
-            Type::IntegerSigned { bitlength } => Self::Integer(Integer::new(true, bitlength)),
-            Type::Field => Self::Integer(Integer::new(false, crate::BITLENGTH_FIELD)),
-            Type::Array { r#type, size } => Self::Array(Array::new(*r#type, size)),
-            Type::Tuple { types } => Self::Tuple(Tuple::new(types)),
-            Type::Structure(structure) => Self::Structure(Structure::new(
-                structure.identifier,
-                structure.unique_id,
-                structure.fields,
-            )),
-            Type::Enumeration { bitlength, .. } => Self::Integer(Integer::new(false, bitlength)),
-            r#type @ Type::String
-            | r#type @ Type::Range { .. }
-            | r#type @ Type::RangeInclusive { .. }
-            | r#type @ Type::Function(_) => {
-                return Err(Error::ConvertingFromType(r#type.to_string()))
-            }
-        })
-    }
-}
-
 impl TryFrom<&Type> for Value {
     type Error = Error;
 
@@ -436,17 +408,13 @@ impl TryFrom<&Type> for Value {
                 structure.unique_id,
                 structure.fields.to_owned(),
             )),
-            Type::Enumeration { bitlength, .. } => Self::Integer(Integer::new(false, *bitlength)),
+            Type::Enumeration(enumeration) => {
+                let mut integer = Integer::new(false, enumeration.bitlength);
+                integer.set_enumeration(enumeration.to_owned());
+                Self::Integer(integer)
+            }
             r#type => return Err(Error::ConvertingFromType(r#type.to_string())),
         })
-    }
-}
-
-impl TryFrom<Constant> for Value {
-    type Error = Error;
-
-    fn try_from(constant: Constant) -> Result<Self, Self::Error> {
-        Self::try_from(constant.r#type())
     }
 }
 
@@ -454,7 +422,7 @@ impl TryFrom<&Constant> for Value {
     type Error = Error;
 
     fn try_from(constant: &Constant) -> Result<Self, Self::Error> {
-        Self::try_from(constant.r#type())
+        Self::try_from(&constant.r#type())
     }
 }
 

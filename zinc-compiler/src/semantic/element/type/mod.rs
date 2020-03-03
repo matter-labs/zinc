@@ -2,18 +2,17 @@
 //! The semantic analyzer type element.
 //!
 
+pub mod enumeration;
 pub mod function;
 pub mod structure;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::convert::TryFrom;
 use std::fmt;
 use std::rc::Rc;
 use std::sync::RwLock;
 
 use lazy_static::lazy_static;
-use num_bigint::BigInt;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
@@ -21,7 +20,6 @@ use crate::semantic::analyzer::error::Error;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::translation_hint::TranslationHint;
 use crate::semantic::element::constant::error::Error as ConstantError;
-use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::Element;
@@ -31,6 +29,7 @@ use crate::syntax::Identifier;
 use crate::syntax::TypeVariant;
 use crate::syntax::Variant;
 
+use self::enumeration::Enumeration;
 use self::function::Function;
 use self::structure::Structure;
 
@@ -42,34 +41,16 @@ lazy_static! {
 pub enum Type {
     Unit,
     Boolean,
-    IntegerUnsigned {
-        bitlength: usize,
-    },
-    IntegerSigned {
-        bitlength: usize,
-    },
+    IntegerUnsigned { bitlength: usize },
+    IntegerSigned { bitlength: usize },
     Field,
     String,
-    Range {
-        r#type: Box<Self>,
-    },
-    RangeInclusive {
-        r#type: Box<Self>,
-    },
-    Array {
-        r#type: Box<Self>,
-        size: usize,
-    },
-    Tuple {
-        types: Vec<Self>,
-    },
+    Range { r#type: Box<Self> },
+    RangeInclusive { r#type: Box<Self> },
+    Array { r#type: Box<Self>, size: usize },
+    Tuple { types: Vec<Self> },
     Structure(Structure),
-    Enumeration {
-        identifier: String,
-        unique_id: usize,
-        bitlength: usize,
-        scope: Rc<RefCell<Scope>>,
-    },
+    Enumeration(Enumeration),
     Function(Function),
 }
 
@@ -162,45 +143,7 @@ impl Type {
         variants: Vec<Variant>,
         scope_parent: Option<Rc<RefCell<Scope>>>,
     ) -> Result<Self, Error> {
-        let scope = Rc::new(RefCell::new(Scope::new(scope_parent)));
-
-        let mut variants_bigint = Vec::with_capacity(variants.len());
-        for variant in variants.into_iter() {
-            let value = IntegerConstant::try_from(&variant.literal).map_err(|error| {
-                Error::Element(
-                    variant.identifier.location,
-                    ElementError::Constant(ConstantError::Integer(error)),
-                )
-            })?;
-            variants_bigint.push((variant.identifier, value.value));
-        }
-        let bigints: Vec<&BigInt> = variants_bigint.iter().map(|variant| &variant.1).collect();
-        let minimal_bitlength =
-            IntegerConstant::minimal_bitlength_bigints(bigints.as_slice(), false).map_err(
-                |error| {
-                    Error::Element(
-                        identifier.location,
-                        ElementError::Constant(ConstantError::Integer(error)),
-                    )
-                },
-            )?;
-
-        for (identifier, value) in variants_bigint.into_iter() {
-            let location = identifier.location;
-            let constant = IntegerConstant::new(value, false, minimal_bitlength);
-            Scope::declare_constant(scope.clone(), identifier, Constant::Integer(constant))
-                .map_err(|error| Error::Scope(location, error))?;
-        }
-
-        let enumeration = Self::Enumeration {
-            identifier: identifier.name,
-            unique_id,
-            bitlength: minimal_bitlength,
-            scope: scope.clone(),
-        };
-        scope.borrow_mut().declare_self(enumeration.clone());
-
-        Ok(enumeration)
+        Enumeration::new(identifier, unique_id, variants, scope_parent).map(Self::Enumeration)
     }
 
     pub fn new_assert_function() -> Self {
@@ -405,34 +348,9 @@ impl PartialEq<Type> for Type {
             (Self::Structure(structure_1), Self::Structure(structure_2)) => {
                 structure_1.unique_id == structure_2.unique_id
             }
-            (
-                Self::Enumeration {
-                    bitlength: bitlength_1,
-                    ..
-                },
-                Self::Enumeration {
-                    bitlength: bitlength_2,
-                    ..
-                },
-            ) => bitlength_1 == bitlength_2,
-            (
-                Self::Enumeration {
-                    bitlength: bitlength_1,
-                    ..
-                },
-                Self::IntegerUnsigned {
-                    bitlength: bitlength_2,
-                },
-            ) => bitlength_1 == bitlength_2,
-            (
-                Self::IntegerUnsigned {
-                    bitlength: bitlength_1,
-                },
-                Self::Enumeration {
-                    bitlength: bitlength_2,
-                    ..
-                },
-            ) => bitlength_1 == bitlength_2,
+            (Self::Enumeration(enumeration_1), Self::Enumeration(enumeration_2)) => {
+                enumeration_1 == enumeration_2
+            }
             _ => false,
         }
     }
@@ -460,11 +378,7 @@ impl fmt::Display for Type {
                     .join(", ")
             ),
             Self::Structure(inner) => write!(f, "{}", inner),
-            Self::Enumeration {
-                identifier,
-                unique_id,
-                ..
-            } => write!(f, "enum <{}> {}", unique_id, identifier),
+            Self::Enumeration(inner) => write!(f, "{}", inner),
             Self::Function(inner) => write!(f, "{}", inner),
         }
     }

@@ -67,7 +67,6 @@ fn main() {
 }
 
 static PANIC_TEST_DIRECTORY_INVALID: &str = "The test files directory must be valid";
-static PANIC_TEST_FILE_STEM_GETTING: &str = "Every test file must have a stem";
 
 static PANIC_THE_ONLY_REFERENCE: &str =
     "The last shared reference is always unwrapped successfully";

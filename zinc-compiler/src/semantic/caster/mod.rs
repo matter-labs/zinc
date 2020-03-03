@@ -65,6 +65,15 @@ impl Caster {
                 }
             }
             (Type::IntegerSigned { .. }, Type::Field) => Ok(()),
+            (Type::Enumeration(enumeration), Type::IntegerUnsigned { bitlength: b2 }) => {
+                let (b1, b2) = (enumeration.bitlength, *b2);
+                if b1 > crate::BITLENGTH_MAX_INT || b1 > b2 {
+                    Err(Error::ToLesserBitlength(b1, b2))
+                } else {
+                    Ok(())
+                }
+            }
+            (Type::Enumeration(_enumeration), Type::Field) => Ok(()),
             (from @ Type::IntegerSigned { .. }, to) => {
                 Err(Error::ToInvalidType(from.to_string(), to.to_string()))
             }

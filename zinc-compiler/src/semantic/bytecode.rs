@@ -296,12 +296,10 @@ impl Into<DataType> for &Type {
                 }))
             }
             Type::Field => DataType::Scalar(ScalarType::Field),
-            Type::Enumeration { bitlength, .. } => {
-                DataType::Scalar(ScalarType::Integer(IntegerType {
-                    signed: false,
-                    length: *bitlength,
-                }))
-            }
+            Type::Enumeration(enumeration) => DataType::Scalar(ScalarType::Integer(IntegerType {
+                signed: false,
+                length: enumeration.bitlength,
+            })),
             Type::Array { r#type, size } => {
                 let element_type: DataType = r#type.deref().into();
                 DataType::Array(Box::new(element_type), *size)

@@ -178,21 +178,19 @@ impl Scope {
                 return Ok(item);
             }
 
-            match item.variant {
-                ItemVariant::Module(ref scope) => current_scope = scope.to_owned(),
-                ItemVariant::Type(Type::Enumeration { ref scope, .. }) => {
-                    current_scope = scope.to_owned()
+            current_scope = match item.variant {
+                ItemVariant::Module(ref scope) => scope.to_owned(),
+                ItemVariant::Type(Type::Enumeration(ref enumeration)) => {
+                    enumeration.scope.to_owned()
                 }
-                ItemVariant::Type(Type::Structure(ref structure)) => {
-                    current_scope = structure.scope.to_owned()
-                }
+                ItemVariant::Type(Type::Structure(ref structure)) => structure.scope.to_owned(),
                 _ => {
                     return Err(SemanticError::Scope(
                         identifier.location,
                         Error::ItemIsNotNamespace(identifier.name.to_owned()),
                     ))
                 }
-            }
+            };
         }
 
         Err(SemanticError::Scope(
