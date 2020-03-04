@@ -1,11 +1,11 @@
 use franklin_crypto::alt_babyjubjub::AltJubjubBn256;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
-use franklin_crypto::bellman::pairing::ff::{PrimeField, PrimeFieldRepr};
 use franklin_crypto::eddsa;
 use serde_json::json;
 use std::io::Read;
 use std::path::PathBuf;
 use structopt::StructOpt;
+use crate::arguments::fr_into_hex;
 
 #[derive(StructOpt)]
 #[structopt(name = "sign", about = "generate signature")]
@@ -67,15 +67,4 @@ impl SignCommand {
         let signature_json = serde_json::to_string_pretty(&value).unwrap();
         println!("{}", signature_json)
     }
-}
-
-pub fn fr_into_hex<Fr: PrimeField>(fr: Fr) -> String {
-    let mut buffer = Vec::<u8>::new();
-
-    fr.into_repr()
-        .write_be(&mut buffer)
-        .expect("failed to write into Vec<u8>");
-
-    let num = num_bigint::BigInt::from_bytes_be(num_bigint::Sign::Plus, &buffer);
-    format!("0x{}", num.to_str_radix(16))
 }
