@@ -18,10 +18,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(
-        SemanticError::ConditionalExpectedBooleanCondition(
-            Location::new(3, 8),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-        ),
+        SemanticError::ConditionalExpectedBooleanCondition {
+            location: Location::new(3, 8),
+            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+        },
     ));
 
     let result = super::compile_entry_point(input);

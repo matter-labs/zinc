@@ -12,7 +12,7 @@ pub mod convert_from_bits_signed;
 pub mod convert_from_bits_unsigned;
 pub mod convert_to_bits;
 pub mod crypto_pedersen;
-pub mod crypto_schnorr_verify;
+pub mod crypto_schnorr_signature_verify;
 pub mod crypto_sha256;
 pub mod error;
 
@@ -28,7 +28,7 @@ use self::convert_from_bits_signed::Function as FromBitsSignedFunction;
 use self::convert_from_bits_unsigned::Function as FromBitsUnsignedFunction;
 use self::convert_to_bits::Function as ToBitsFunction;
 use self::crypto_pedersen::Function as PedersenFunction;
-use self::crypto_schnorr_verify::Function as SchnorrVerifyFunction;
+use self::crypto_schnorr_signature_verify::Function as SchnorrVerifyFunction;
 use self::crypto_sha256::Function as Sha256Function;
 
 #[derive(Debug, Clone)]
@@ -52,7 +52,7 @@ impl Function {
         match identifier {
             BuiltinIdentifier::CryptoSha256 => Self::CryptoSha256(Sha256Function::new()),
             BuiltinIdentifier::CryptoPedersen => Self::CryptoPedersen(PedersenFunction::new()),
-            BuiltinIdentifier::CryptoSchnorrVerify => {
+            BuiltinIdentifier::CryptoSchnorrSignatureVerify => {
                 Self::CryptoSchnorrVerify(SchnorrVerifyFunction::new())
             }
 

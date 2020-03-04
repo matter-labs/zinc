@@ -23,14 +23,14 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(
-        SemanticError::TypeAliasDoesNotPointToStructure(
-            Location::new(5, 16),
-            Path::new(
+        SemanticError::TypeAliasDoesNotPointToStructure {
+            location: Location::new(5, 16),
+            found: Path::new(
                 Location::new(5, 16),
                 MemberString::new(Location::new(5, 16), "field".to_owned()),
             )
             .to_string(),
-        ),
+        },
     ));
 
     let result = super::compile_entry_point(input);

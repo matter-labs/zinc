@@ -21,7 +21,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         Location::new(5, 18),
-        ScopeError::ItemIsNotNamespace("NOT_NAMESPACE".to_owned()),
+        ScopeError::ItemIsNotNamespace {
+            name: "NOT_NAMESPACE".to_owned(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -42,7 +44,10 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         Location::new(5, 9),
-        ScopeError::ItemRedeclared("result".to_owned(), Location::new(3, 9)),
+        ScopeError::ItemRedeclared {
+            name: "result".to_owned(),
+            reference: Some(Location::new(3, 9)),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -60,7 +65,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         Location::new(3, 5),
-        ScopeError::ItemUndeclared("result".to_owned()),
+        ScopeError::ItemUndeclared {
+            name: "result".to_owned(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -82,7 +89,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         Location::new(7, 31),
-        ScopeError::ItemUndeclared("Exists".to_owned()),
+        ScopeError::ItemUndeclared {
+            name: "Exists".to_owned(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);

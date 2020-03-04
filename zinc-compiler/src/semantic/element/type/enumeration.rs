@@ -9,12 +9,12 @@ use std::rc::Rc;
 
 use num_bigint::BigInt;
 
-use crate::semantic::analyzer::error::Error;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
+use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
 use crate::syntax::Identifier;
 use crate::syntax::Variant;

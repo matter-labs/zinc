@@ -19,14 +19,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::TypeAliasDoesNotPointToType(
-        Location::new(4, 24),
-        Path::new(
-            Location::new(4, 24),
-            MemberString::new(Location::new(4, 24), "unknown".to_owned()),
-        )
-        .to_string(),
-    )));
+    let expected = Err(Error::Semantic(
+        SemanticError::TypeAliasDoesNotPointToType {
+            location: Location::new(4, 24),
+            found: Path::new(
+                Location::new(4, 24),
+                MemberString::new(Location::new(4, 24), "unknown".to_owned()),
+            )
+            .to_string(),
+        },
+    ));
 
     let result = super::compile_entry_point(input);
 

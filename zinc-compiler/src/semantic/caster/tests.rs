@@ -23,9 +23,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 24),
-        ElementError::Value(ValueError::Casting(CasterError::FromInvalidType(
-            Type::field().to_string(),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+        ElementError::Value(ValueError::Casting(CasterError::casting_from_invalid_type(
+            &Type::field(),
+            &Type::integer_unsigned(crate::BITLENGTH_BYTE),
         ))),
     )));
 
@@ -45,9 +45,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 24),
-        ElementError::Value(ValueError::Casting(CasterError::ToInvalidType(
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            Type::boolean().to_string(),
+        ElementError::Value(ValueError::Casting(CasterError::casting_to_invalid_type(
+            &Type::integer_unsigned(crate::BITLENGTH_BYTE),
+            &Type::boolean(),
         ))),
     )));
 
@@ -67,9 +67,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 17),
-        ElementError::Value(ValueError::Casting(CasterError::ToInvalidType(
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            Type::boolean().to_string(),
+        ElementError::Value(ValueError::Casting(CasterError::casting_to_invalid_type(
+            &Type::integer_unsigned(crate::BITLENGTH_BYTE),
+            &Type::boolean(),
         ))),
     )));
 
@@ -89,7 +89,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 24),
-        ElementError::Value(ValueError::Casting(CasterError::ToLesserBitlength(128, 64))),
+        ElementError::Value(ValueError::Casting(
+            CasterError::casting_integer_to_lesser_bitlength(128, 64),
+        )),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);

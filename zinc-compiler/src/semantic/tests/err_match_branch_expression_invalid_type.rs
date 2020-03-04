@@ -22,12 +22,12 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(
-        SemanticError::MatchBranchExpressionInvalidType(
-            Location::new(6, 14),
-            Type::boolean().to_string(),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            Location::new(5, 14),
-        ),
+        SemanticError::MatchBranchExpressionInvalidType {
+            location: Location::new(6, 14),
+            expected: Type::boolean().to_string(),
+            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            reference: Location::new(5, 14),
+        },
     ));
 
     let result = super::compile_entry_point(input);

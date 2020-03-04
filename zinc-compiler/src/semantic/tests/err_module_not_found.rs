@@ -16,10 +16,10 @@ mod unknown;
 fn main() {}
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::ModuleNotFound(
-        Location::new(2, 5),
-        "unknown".to_owned(),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::ModuleNotFound {
+        location: Location::new(2, 5),
+        name: "unknown".to_owned(),
+    }));
 
     let result = super::compile_entry_point(input);
 

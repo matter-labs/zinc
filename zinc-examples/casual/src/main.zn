@@ -1,3 +1,11 @@
-fn main() -> u8 {
-    42
+use std::crypto::schnorr::Signature;
+
+const MESSAGE_LENGTH: u64 = 10;
+
+fn main(signature: Signature, message: [bool; MESSAGE_LENGTH]) -> bool {
+    dbg!("R = [{}; {}]", signature.r.x, signature.r.y);
+    dbg!("S = {}", signature.s);
+    dbg!("Private key: [{}; {}]", signature.pk.x, signature.pk.y);
+    dbg!("Message: {}", message);
+    Signature::verify(signature, message)
 }

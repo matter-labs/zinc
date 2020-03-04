@@ -16,7 +16,6 @@ use zinc_bytecode::scalar::ScalarType;
 use zinc_bytecode::Instruction;
 
 use crate::lexical::Location;
-use crate::semantic::analyzer::error::Error;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
 use crate::semantic::analyzer::translation_hint::TranslationHint;
 use crate::semantic::bytecode::Bytecode;
@@ -38,6 +37,7 @@ use crate::semantic::element::value::structure::Structure;
 use crate::semantic::element::value::tuple::Tuple;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
+use crate::semantic::error::Error;
 use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::item::Variant as ScopeItem;
 use crate::semantic::scope::Scope;
@@ -131,18 +131,18 @@ impl Analyzer {
                             Scope::resolve_item(self.scope(), place.identifier.as_str())
                                 .map_err(|error| Error::Scope(place.location, error))?
                                 .location;
-                        return Err(Error::MutatingImmutableMemory(
-                            element.location,
-                            place.to_string(),
-                            item_location,
-                        ));
+                        return Err(Error::MutatingImmutableMemory {
+                            location: element.location,
+                            name: place.to_string(),
+                            reference: item_location,
+                        });
                     }
                     if place.r#type != r#type {
-                        return Err(Error::MutatingWithDifferentType(
-                            element.location,
-                            r#type.to_string(),
-                            place.r#type.to_string(),
-                        ));
+                        return Err(Error::MutatingWithDifferentType {
+                            location: element.location,
+                            expected: r#type.to_string(),
+                            found: place.r#type.to_string(),
+                        });
                     }
 
                     self.bytecode.borrow_mut().push_instruction_store(
@@ -176,18 +176,18 @@ impl Analyzer {
                             Scope::resolve_item(self.scope(), place.identifier.as_str())
                                 .map_err(|error| Error::Scope(place.location, error))?
                                 .location;
-                        return Err(Error::MutatingImmutableMemory(
-                            element.location,
-                            place.to_string(),
-                            item_location,
-                        ));
+                        return Err(Error::MutatingImmutableMemory {
+                            location: element.location,
+                            name: place.to_string(),
+                            reference: item_location,
+                        });
                     }
                     if place.r#type != r#type {
-                        return Err(Error::MutatingWithDifferentType(
-                            element.location,
-                            r#type.to_string(),
-                            place.r#type.to_string(),
-                        ));
+                        return Err(Error::MutatingWithDifferentType {
+                            location: element.location,
+                            expected: r#type.to_string(),
+                            found: place.r#type.to_string(),
+                        });
                     }
 
                     if place.is_indexed {
@@ -244,18 +244,18 @@ impl Analyzer {
                             Scope::resolve_item(self.scope(), place.identifier.as_str())
                                 .map_err(|error| Error::Scope(place.location, error))?
                                 .location;
-                        return Err(Error::MutatingImmutableMemory(
-                            element.location,
-                            place.to_string(),
-                            item_location,
-                        ));
+                        return Err(Error::MutatingImmutableMemory {
+                            location: element.location,
+                            name: place.to_string(),
+                            reference: item_location,
+                        });
                     }
                     if place.r#type != r#type {
-                        return Err(Error::MutatingWithDifferentType(
-                            element.location,
-                            r#type.to_string(),
-                            place.r#type.to_string(),
-                        ));
+                        return Err(Error::MutatingWithDifferentType {
+                            location: element.location,
+                            expected: r#type.to_string(),
+                            found: place.r#type.to_string(),
+                        });
                     }
 
                     if place.is_indexed {
@@ -312,18 +312,18 @@ impl Analyzer {
                             Scope::resolve_item(self.scope(), place.identifier.as_str())
                                 .map_err(|error| Error::Scope(place.location, error))?
                                 .location;
-                        return Err(Error::MutatingImmutableMemory(
-                            element.location,
-                            place.to_string(),
-                            item_location,
-                        ));
+                        return Err(Error::MutatingImmutableMemory {
+                            location: element.location,
+                            name: place.to_string(),
+                            reference: item_location,
+                        });
                     }
                     if place.r#type != r#type {
-                        return Err(Error::MutatingWithDifferentType(
-                            element.location,
-                            r#type.to_string(),
-                            place.r#type.to_string(),
-                        ));
+                        return Err(Error::MutatingWithDifferentType {
+                            location: element.location,
+                            expected: r#type.to_string(),
+                            found: place.r#type.to_string(),
+                        });
                     }
 
                     if place.is_indexed {
@@ -380,18 +380,18 @@ impl Analyzer {
                             Scope::resolve_item(self.scope(), place.identifier.as_str())
                                 .map_err(|error| Error::Scope(place.location, error))?
                                 .location;
-                        return Err(Error::MutatingImmutableMemory(
-                            element.location,
-                            place.to_string(),
-                            item_location,
-                        ));
+                        return Err(Error::MutatingImmutableMemory {
+                            location: element.location,
+                            name: place.to_string(),
+                            reference: item_location,
+                        });
                     }
                     if place.r#type != r#type {
-                        return Err(Error::MutatingWithDifferentType(
-                            element.location,
-                            r#type.to_string(),
-                            place.r#type.to_string(),
-                        ));
+                        return Err(Error::MutatingWithDifferentType {
+                            location: element.location,
+                            expected: r#type.to_string(),
+                            found: place.r#type.to_string(),
+                        });
                     }
 
                     if place.is_indexed {
@@ -448,18 +448,18 @@ impl Analyzer {
                             Scope::resolve_item(self.scope(), place.identifier.as_str())
                                 .map_err(|error| Error::Scope(place.location, error))?
                                 .location;
-                        return Err(Error::MutatingImmutableMemory(
-                            element.location,
-                            place.to_string(),
-                            item_location,
-                        ));
+                        return Err(Error::MutatingImmutableMemory {
+                            location: element.location,
+                            name: place.to_string(),
+                            reference: item_location,
+                        });
                     }
                     if place.r#type != r#type {
-                        return Err(Error::MutatingWithDifferentType(
-                            element.location,
-                            r#type.to_string(),
-                            place.r#type.to_string(),
-                        ));
+                        return Err(Error::MutatingWithDifferentType {
+                            location: element.location,
+                            expected: r#type.to_string(),
+                            found: place.r#type.to_string(),
+                        });
                     }
 
                     if place.is_indexed {
@@ -1018,14 +1018,14 @@ impl Analyzer {
                 item => {
                     return Err(Error::Function(
                         element.location,
-                        FunctionError::NonCallable(item.to_string()),
+                        FunctionError::non_callable(item.to_string()),
                     ));
                 }
             },
             operand => {
                 return Err(Error::Function(
                     element.location,
-                    FunctionError::NonCallable(operand.to_string()),
+                    FunctionError::non_callable(operand.to_string()),
                 ));
             }
         };
@@ -1040,7 +1040,7 @@ impl Analyzer {
                 if self.is_next_call_builtin {
                     return Err(Error::Function(
                         element.location,
-                        FunctionError::BuiltIn(BuiltInFunctionError::Unknown(
+                        FunctionError::BuiltIn(BuiltInFunctionError::unknown(
                             function.identifier().to_owned(),
                         )),
                     ));
@@ -1070,7 +1070,7 @@ impl Analyzer {
                 if !self.is_next_call_builtin {
                     return Err(Error::Function(
                         element.location,
-                        FunctionError::BuiltIn(BuiltInFunctionError::SpecifierMissing(
+                        FunctionError::BuiltIn(BuiltInFunctionError::specifier_missing(
                             function.identifier(),
                         )),
                     ));
@@ -1112,7 +1112,7 @@ impl Analyzer {
                 if self.is_next_call_builtin {
                     return Err(Error::Function(
                         element.location,
-                        FunctionError::BuiltIn(BuiltInFunctionError::Unknown(
+                        FunctionError::BuiltIn(BuiltInFunctionError::unknown(
                             function.identifier().to_owned(),
                         )),
                     ));
@@ -1291,10 +1291,10 @@ impl Analyzer {
         match Type::from_element(&condition_result, self.scope())? {
             Type::Boolean => {}
             r#type => {
-                return Err(Error::ConditionalExpectedBooleanCondition(
-                    condition_location,
-                    r#type.to_string(),
-                ))
+                return Err(Error::ConditionalExpectedBooleanCondition {
+                    location: condition_location,
+                    found: r#type.to_string(),
+                });
             }
         }
 
@@ -1328,12 +1328,12 @@ impl Analyzer {
 
         // check if the two branches return equals types
         if main_type != else_type {
-            return Err(Error::ConditionalBranchTypesMismatch(
-                main_expression_location,
-                main_type.to_string(),
-                else_type.to_string(),
-                else_expression_location,
-            ));
+            return Err(Error::ConditionalBranchTypesMismatch {
+                location: main_expression_location,
+                expected: main_type.to_string(),
+                found: else_type.to_string(),
+                reference: else_expression_location,
+            });
         }
 
         Ok(main_result)
@@ -1369,7 +1369,9 @@ impl Analyzer {
             let expression_location = expression.location;
 
             if is_exhausted {
-                return Err(Error::MatchBranchUnreachable(pattern.location));
+                return Err(Error::MatchBranchUnreachable {
+                    location: pattern.location,
+                });
             }
             let result = match pattern.variant {
                 MatchPatternVariant::BooleanLiteral(boolean) => {
@@ -1378,12 +1380,12 @@ impl Analyzer {
                     let constant = Constant::from(boolean);
                     let pattern_type = constant.r#type();
                     if pattern_type != scrutinee_type {
-                        return Err(Error::MatchBranchPatternInvalidType(
-                            pattern_location,
-                            scrutinee_type.to_string(),
-                            pattern_type.to_string(),
-                            scrutinee_location,
-                        ));
+                        return Err(Error::MatchBranchPatternInvalidType {
+                            location: pattern_location,
+                            expected: scrutinee_type.to_string(),
+                            found: pattern_type.to_string(),
+                            reference: scrutinee_location,
+                        });
                     }
 
                     if index > 0 {
@@ -1423,12 +1425,12 @@ impl Analyzer {
                     })?;
                     let pattern_type = constant.r#type();
                     if pattern_type != scrutinee_type {
-                        return Err(Error::MatchBranchPatternInvalidType(
-                            pattern_location,
-                            scrutinee_type.to_string(),
-                            pattern_type.to_string(),
-                            scrutinee_location,
-                        ));
+                        return Err(Error::MatchBranchPatternInvalidType {
+                            location: pattern_location,
+                            expected: scrutinee_type.to_string(),
+                            found: pattern_type.to_string(),
+                            reference: scrutinee_location,
+                        });
                     }
 
                     if index > 0 {
@@ -1497,10 +1499,10 @@ impl Analyzer {
                     let path = match self.expression(path, TranslationHint::PathExpression)? {
                         Element::Path(path) => path,
                         element => {
-                            return Err(Error::MatchBranchPatternPathExpectedEvaluable(
+                            return Err(Error::MatchBranchPatternPathExpectedEvaluable {
                                 location,
-                                element.to_string(),
-                            ))
+                                found: element.to_string(),
+                            });
                         }
                     };
 
@@ -1535,10 +1537,10 @@ impl Analyzer {
                             .borrow_mut()
                             .push_instruction(constant.to_instruction(), location),
                         item => {
-                            return Err(Error::MatchBranchPatternPathExpectedEvaluable(
-                                path.location,
-                                item.to_string(),
-                            ))
+                            return Err(Error::MatchBranchPatternPathExpectedEvaluable {
+                                location: path.location,
+                                found: item.to_string(),
+                            });
                         }
                     }
                     self.bytecode
@@ -1577,12 +1579,12 @@ impl Analyzer {
                 let first_branch_result_type =
                     Type::from_element(first_branch_result, self.scope())?;
                 if result_type != first_branch_result_type {
-                    return Err(Error::MatchBranchExpressionInvalidType(
-                        expression_location,
-                        first_branch_result_type.to_string(),
-                        result_type.to_string(),
-                        first_branch_expression_location,
-                    ));
+                    return Err(Error::MatchBranchExpressionInvalidType {
+                        location: expression_location,
+                        expected: first_branch_result_type.to_string(),
+                        found: result_type.to_string(),
+                        reference: first_branch_expression_location,
+                    });
                 }
             }
 
@@ -1596,7 +1598,7 @@ impl Analyzer {
         }
 
         if !is_exhausted {
-            return Err(Error::MatchNotExhausted(location));
+            return Err(Error::MatchNotExhausted { location });
         }
 
         Ok(match branch_results.pop() {
@@ -1625,10 +1627,10 @@ impl Analyzer {
                             })?
                         }
                         element => {
-                            return Err(Error::ConstantExpressionHasNonConstantElement(
-                                size_location,
-                                element.to_string(),
-                            ))
+                            return Err(Error::ConstantExpressionHasNonConstantElement {
+                                location: size_location,
+                                found: element.to_string(),
+                            });
                         }
                     };
 
@@ -1674,10 +1676,10 @@ impl Analyzer {
         {
             ScopeItem::Type(Type::Structure(structure)) => structure,
             item => {
-                return Err(Error::TypeAliasDoesNotPointToStructure(
-                    identifier_location,
-                    item.to_string(),
-                ))
+                return Err(Error::TypeAliasDoesNotPointToStructure {
+                    location: identifier_location,
+                    found: item.to_string(),
+                });
             }
         };
 

@@ -16,7 +16,6 @@ use zinc_bytecode::scalar::IntegerType;
 use zinc_bytecode::scalar::ScalarType;
 use zinc_bytecode::Instruction;
 
-use crate::semantic::analyzer::error::Error;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::translation_hint::TranslationHint;
 use crate::semantic::bytecode::Bytecode;
@@ -31,6 +30,7 @@ use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::r#type::TYPE_INDEX;
 use crate::semantic::element::Element;
+use crate::semantic::error::Error;
 use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::item::Variant as ScopeItem;
 use crate::semantic::scope::Scope;
@@ -134,10 +134,10 @@ impl Analyzer {
         let constant = match rvalue {
             Element::Constant(constant) => constant,
             element => {
-                return Err(Error::ConstantExpressionHasNonConstantElement(
-                    expression_location,
-                    element.to_string(),
-                ))
+                return Err(Error::ConstantExpressionHasNonConstantElement {
+                    location: expression_location,
+                    found: element.to_string(),
+                });
             }
         };
 
@@ -163,10 +163,10 @@ impl Analyzer {
         let constant = match rvalue {
             Element::Constant(constant) => constant,
             element => {
-                return Err(Error::ConstantExpressionHasNonConstantElement(
-                    expression_location,
-                    element.to_string(),
-                ))
+                return Err(Error::ConstantExpressionHasNonConstantElement {
+                    location: expression_location,
+                    found: element.to_string(),
+                });
             }
         };
 
@@ -196,11 +196,11 @@ impl Analyzer {
                 .iter()
                 .any(|(name, _type)| name == &field.identifier.name)
             {
-                return Err(Error::StructureDuplicateField(
-                    field.location,
-                    statement.identifier.name,
-                    field.identifier.name,
-                ));
+                return Err(Error::StructureDuplicateField {
+                    location: field.location,
+                    type_identifier: statement.identifier.name,
+                    field_name: field.identifier.name,
+                });
             }
             fields.push((
                 field.identifier.name,
@@ -333,7 +333,7 @@ impl Analyzer {
         if expected_type != result_type {
             return Err(Error::Function(
                 return_expression_location,
-                FunctionError::ReturnType(
+                FunctionError::return_type(
                     statement.identifier.name,
                     expected_type.to_string(),
                     result_type.to_string(),
@@ -358,10 +358,10 @@ impl Analyzer {
         let module = match self.dependencies.remove(statement.identifier.name.as_str()) {
             Some(module) => module,
             None => {
-                return Err(Error::ModuleNotFound(
-                    identifier_location,
-                    statement.identifier.name,
-                ))
+                return Err(Error::ModuleNotFound {
+                    location: identifier_location,
+                    name: statement.identifier.name,
+                });
             }
         };
         Scope::declare_module(self.scope(), statement.identifier, module)
@@ -377,7 +377,12 @@ impl Analyzer {
             .expression(statement.path, TranslationHint::PathExpression)?
         {
             Element::Path(path) => path,
-            element => return Err(Error::UseExpectedPath(path_location, element.to_string())),
+            element => {
+                return Err(Error::UseExpectedPath {
+                    location: path_location,
+                    found: element.to_string(),
+                })
+            }
         };
         let item = Scope::resolve_path(self.scope(), &path)?;
         let last_member_string = path
@@ -401,10 +406,10 @@ impl Analyzer {
                 ScopeItem::Type(Type::Structure(structure)) => structure.scope,
                 ScopeItem::Type(Type::Enumeration(enumeration)) => enumeration.scope,
                 item => {
-                    return Err(Error::ImplStatementExpectedStructureOrEnumeration(
-                        identifier_location,
-                        item.to_string(),
-                    ))
+                    return Err(Error::ImplStatementExpectedStructureOrEnumeration {
+                        location: identifier_location,
+                        found: item.to_string(),
+                    });
                 }
             };
 
@@ -485,10 +490,10 @@ impl Analyzer {
                     false,
                 ),
                 element => {
-                    return Err(Error::LoopBoundsExpectedConstantRangeExpression(
-                        bounds_expression_location,
-                        element.to_string(),
-                    ))
+                    return Err(Error::LoopBoundsExpectedConstantRangeExpression {
+                        location: bounds_expression_location,
+                        found: element.to_string(),
+                    });
                 }
             };
 
@@ -545,10 +550,10 @@ impl Analyzer {
             Error::Element(
                 location,
                 ElementError::Constant(ConstantError::Integer(
-                    IntegerConstantError::IntegerTooLarge(
-                        iterations_count.to_string(),
-                        crate::BITLENGTH_INDEX,
-                    ),
+                    IntegerConstantError::IntegerTooLarge {
+                        value: iterations_count.to_owned(),
+                        bitlength: crate::BITLENGTH_INDEX,
+                    },
                 )),
             )
         })?;
@@ -577,10 +582,10 @@ impl Analyzer {
             match Type::from_element(&while_result, self.scope())? {
                 Type::Boolean => {}
                 r#type => {
-                    return Err(Error::LoopWhileExpectedBooleanCondition(
+                    return Err(Error::LoopWhileExpectedBooleanCondition {
                         location,
-                        r#type.to_string(),
-                    ))
+                        found: r#type.to_string(),
+                    });
                 }
             }
 

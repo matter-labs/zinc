@@ -24,7 +24,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Function(
         Location::new(7, 24),
-        FunctionError::ArgumentCount("another".to_owned(), 1, 0),
+        FunctionError::argument_count("another".to_owned(), 1, 0),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -46,7 +46,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Function(
         Location::new(7, 24),
-        FunctionError::ArgumentType(
+        FunctionError::argument_type(
             "another".to_owned(),
             Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
             1,
@@ -72,10 +72,10 @@ fn main() -> [u8; 2] {
 
     let expected = Err(Error::Semantic(SemanticError::Function(
         Location::new(5, 25),
-        FunctionError::ArgumentConstantness(
+        FunctionError::argument_constantness(
             "truncate".to_owned(),
-            2,
             "new_length".to_owned(),
+            2,
             Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
         ),
     )));
@@ -101,7 +101,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Function(
         Location::new(9, 24),
-        FunctionError::ArgumentNotEvaluable(
+        FunctionError::argument_not_evaluable(
             "another".to_owned(),
             1,
             Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
@@ -127,7 +127,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Function(
         Location::new(3, 5),
-        FunctionError::ReturnType(
+        FunctionError::return_type(
             "another".to_owned(),
             Type::boolean().to_string(),
             Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
@@ -152,7 +152,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Function(
         Location::new(5, 24),
-        FunctionError::NonCallable(
+        FunctionError::non_callable(
             Type::tuple(vec![Type::integer_unsigned(crate::BITLENGTH_BYTE); 2]).to_string(),
         ),
     )));

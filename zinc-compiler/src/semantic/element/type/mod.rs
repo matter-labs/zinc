@@ -16,13 +16,13 @@ use lazy_static::lazy_static;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
-use crate::semantic::analyzer::error::Error;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::translation_hint::TranslationHint;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::Element;
+use crate::semantic::error::Error;
 use crate::semantic::scope::item::Variant as ScopeItemVariant;
 use crate::semantic::scope::Scope;
 use crate::syntax::Identifier;
@@ -266,10 +266,10 @@ impl Type {
                         })?
                     }
                     element => {
-                        return Err(Error::ConstantExpressionHasNonConstantElement(
-                            size_location,
-                            element.to_string(),
-                        ))
+                        return Err(Error::ConstantExpressionHasNonConstantElement {
+                            location: size_location,
+                            found: element.to_string(),
+                        });
                     }
                 };
 
@@ -289,10 +289,10 @@ impl Type {
                 {
                     Element::Type(r#type) => r#type,
                     element => {
-                        return Err(Error::TypeAliasDoesNotPointToType(
+                        return Err(Error::TypeAliasDoesNotPointToType {
                             location,
-                            element.to_string(),
-                        ))
+                            found: element.to_string(),
+                        });
                     }
                 }
             }

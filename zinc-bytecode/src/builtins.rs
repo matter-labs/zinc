@@ -14,7 +14,7 @@ pub enum BuiltinIdentifier {
     ArrayReverse = 7,
     ArrayTruncate = 8,
     ArrayPad = 9,
-    CryptoSchnorrVerify = 11,
+    CryptoSchnorrSignatureVerify = 11,
 }
 
 impl Display for BuiltinIdentifier {
@@ -29,7 +29,7 @@ impl Display for BuiltinIdentifier {
             BuiltinIdentifier::ArrayReverse => "ArrayReverse",
             BuiltinIdentifier::ArrayTruncate => "ArrayTruncate",
             BuiltinIdentifier::ArrayPad => "ArrayPad",
-            BuiltinIdentifier::CryptoSchnorrVerify => "CryptoSchnorrVerify",
+            BuiltinIdentifier::CryptoSchnorrSignatureVerify => "CryptoSchnorrVerify",
         };
         f.write_str(name)
     }

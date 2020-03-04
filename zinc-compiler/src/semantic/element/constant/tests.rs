@@ -785,10 +785,10 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 19),
-        ElementError::Constant(ConstantError::Casting(CasterError::ToInvalidType(
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            Type::boolean().to_string(),
-        ))),
+        ElementError::Constant(ConstantError::Casting(CasterError::CastingToInvalidType {
+            from: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            to: Type::boolean().to_string(),
+        })),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -807,10 +807,10 @@ fn main() {}
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 16),
-        ElementError::Constant(ConstantError::Casting(CasterError::ToInvalidType(
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            Type::boolean().to_string(),
-        ))),
+        ElementError::Constant(ConstantError::Casting(CasterError::CastingToInvalidType {
+            from: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            to: Type::boolean().to_string(),
+        })),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);

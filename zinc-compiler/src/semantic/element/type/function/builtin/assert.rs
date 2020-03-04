@@ -37,7 +37,7 @@ impl Function {
                 Element::Constant(Constant::String(string)) => (Type::string(), true, Some(string)),
                 Element::Constant(constant) => (constant.r#type(), true, None),
                 element => {
-                    return Err(Error::ArgumentNotEvaluable(
+                    return Err(Error::argument_not_evaluable(
                         self.identifier.to_owned(),
                         index + 1,
                         element.to_string(),
@@ -50,7 +50,7 @@ impl Function {
         match actual_params.get(Self::ARGUMENT_INDEX_CONDITION) {
             Some((Type::Boolean, _is_constant, _string)) => {}
             Some((r#type, _is_constant, _string)) => {
-                return Err(Error::ArgumentType(
+                return Err(Error::argument_type(
                     self.identifier.to_owned(),
                     Type::boolean().to_string(),
                     Self::ARGUMENT_INDEX_CONDITION + 1,
@@ -59,7 +59,7 @@ impl Function {
                 ))
             }
             None => {
-                return Err(Error::ArgumentCount(
+                return Err(Error::argument_count(
                     self.identifier.to_owned(),
                     Self::ARGUMENT_INDEX_CONDITION + 1,
                     actual_params.len(),
@@ -70,7 +70,7 @@ impl Function {
         let string = match actual_params.get(Self::ARGUMENT_INDEX_MESSAGE) {
             Some((Type::String, true, string)) => string.to_owned(),
             Some((r#type, true, _string)) => {
-                return Err(Error::ArgumentType(
+                return Err(Error::argument_type(
                     self.identifier.to_owned(),
                     Type::string().to_string(),
                     Self::ARGUMENT_INDEX_MESSAGE + 1,
@@ -79,10 +79,10 @@ impl Function {
                 ))
             }
             Some((r#type, false, _string)) => {
-                return Err(Error::ArgumentConstantness(
+                return Err(Error::argument_constantness(
                     self.identifier.to_owned(),
-                    Self::ARGUMENT_INDEX_MESSAGE + 1,
                     "message".to_owned(),
+                    Self::ARGUMENT_INDEX_MESSAGE + 1,
                     r#type.to_string(),
                 ))
             }
@@ -90,7 +90,7 @@ impl Function {
         };
 
         if actual_params.len() > Self::ARGUMENT_COUNT {
-            return Err(Error::ArgumentCount(
+            return Err(Error::argument_count(
                 self.identifier.to_owned(),
                 Self::ARGUMENT_COUNT,
                 actual_params.len(),

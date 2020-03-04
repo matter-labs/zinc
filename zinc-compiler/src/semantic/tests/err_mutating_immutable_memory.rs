@@ -17,11 +17,11 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::MutatingImmutableMemory(
-        Location::new(4, 12),
-        "result".to_string(),
-        Some(Location::new(3, 9)),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::MutatingImmutableMemory {
+        location: Location::new(4, 12),
+        name: "result".to_string(),
+        reference: Some(Location::new(3, 9)),
+    }));
 
     let result = super::compile_entry_point(input);
 

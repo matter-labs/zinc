@@ -21,9 +21,9 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::MatchBranchUnreachable(
-        Location::new(7, 9),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::MatchBranchUnreachable {
+        location: Location::new(7, 9),
+    }));
 
     let result = super::compile_entry_point(input);
 

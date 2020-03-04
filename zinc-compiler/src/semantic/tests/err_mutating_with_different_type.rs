@@ -18,11 +18,11 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::MutatingWithDifferentType(
-        Location::new(4, 12),
-        Type::boolean().to_string(),
-        Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::MutatingWithDifferentType {
+        location: Location::new(4, 12),
+        expected: Type::boolean().to_string(),
+        found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+    }));
 
     let result = super::compile_entry_point(input);
 

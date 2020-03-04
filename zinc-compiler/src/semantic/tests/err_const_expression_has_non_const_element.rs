@@ -23,13 +23,13 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(
-        SemanticError::ConstantExpressionHasNonConstantElement(
-            Location::new(4, 26),
-            Element::Value(
+        SemanticError::ConstantExpressionHasNonConstantElement {
+            location: Location::new(4, 26),
+            found: Element::Value(
                 Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE)).unwrap(),
             )
             .to_string(),
-        ),
+        },
     ));
 
     let result = super::compile_entry_point(input);

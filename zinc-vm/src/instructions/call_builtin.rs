@@ -18,7 +18,7 @@ where
 {
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         // TODO: Use call_native for all built-in functions
-        if let BuiltinIdentifier::CryptoSchnorrVerify = self.identifier {
+        if let BuiltinIdentifier::CryptoSchnorrSignatureVerify = self.identifier {
             return vm.call_native(VerifyEddsaSignature);
         }
 

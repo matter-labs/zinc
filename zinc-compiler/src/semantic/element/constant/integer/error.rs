@@ -18,13 +18,13 @@ pub enum Error {
     TypesMismatchDivision(String, String),
     TypesMismatchRemainder(String, String),
 
-    OverflowAddition(BigInt, String),
-    OverflowSubtraction(BigInt, String),
-    OverflowMultiplication(BigInt, String),
-    OverflowDivision(BigInt, String),
-    OverflowRemainder(BigInt, String),
-    OverflowCasting(BigInt, String),
-    OverflowNegation(BigInt, String),
+    OverflowAddition { value: BigInt, r#type: String },
+    OverflowSubtraction { value: BigInt, r#type: String },
+    OverflowMultiplication { value: BigInt, r#type: String },
+    OverflowDivision { value: BigInt, r#type: String },
+    OverflowRemainder { value: BigInt, r#type: String },
+    OverflowCasting { value: BigInt, r#type: String },
+    OverflowNegation { value: BigInt, r#type: String },
 
     ForbiddenFieldRemainder,
     ForbiddenFieldNegation,
@@ -32,6 +32,6 @@ pub enum Error {
     ZeroDivision,
     ZeroRemainder,
 
-    IntegerTooLarge(String, usize),
-    UnsignedNegative(BigInt, String),
+    IntegerTooLarge { value: BigInt, bitlength: usize },
+    UnsignedNegative { value: BigInt, r#type: String },
 }

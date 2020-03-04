@@ -20,7 +20,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Function(
         Location::new(3, 11),
-        FunctionError::BuiltIn(BuiltInFunctionError::SpecifierMissing("assert")),
+        FunctionError::BuiltIn(BuiltInFunctionError::specifier_missing("assert")),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -40,7 +40,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Function(
         Location::new(5, 13),
-        FunctionError::BuiltIn(BuiltInFunctionError::Unknown("unknown".to_owned())),
+        FunctionError::BuiltIn(BuiltInFunctionError::unknown("unknown".to_owned())),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -58,7 +58,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Function(
         Location::new(3, 9),
-        FunctionError::BuiltIn(BuiltInFunctionError::DebugArgumentCount(3, 2)),
+        FunctionError::BuiltIn(BuiltInFunctionError::debug_argument_count(3, 2)),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -76,7 +76,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Function(
         Location::new(3, 9),
-        FunctionError::BuiltIn(BuiltInFunctionError::DebugArgumentCount(2, 3)),
+        FunctionError::BuiltIn(BuiltInFunctionError::debug_argument_count(2, 3)),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);

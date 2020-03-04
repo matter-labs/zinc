@@ -35,10 +35,10 @@ fn main() -> u8 {
 "#;
 
     let expected = Err(Error::Semantic(
-        SemanticError::MatchBranchPatternPathExpectedEvaluable(
-            Location::new(7, 9),
-            "field".to_owned(),
-        ),
+        SemanticError::MatchBranchPatternPathExpectedEvaluable {
+            location: Location::new(7, 9),
+            found: "field".to_owned(),
+        },
     ));
 
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));

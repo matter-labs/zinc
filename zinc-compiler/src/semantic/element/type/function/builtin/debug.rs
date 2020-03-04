@@ -35,7 +35,7 @@ impl Function {
                 Element::Constant(Constant::String(string)) => (Type::string(), true, Some(string)),
                 Element::Constant(constant) => (constant.r#type(), true, None),
                 element => {
-                    return Err(Error::ArgumentNotEvaluable(
+                    return Err(Error::argument_not_evaluable(
                         self.identifier.to_owned(),
                         index + 1,
                         element.to_string(),
@@ -48,7 +48,7 @@ impl Function {
         let format_string = match actual_params.get(Self::ARGUMENT_INDEX_FORMAT_STRING) {
             Some((Type::String, true, Some(string))) => string.to_owned(),
             Some((r#type, true, _string)) => {
-                return Err(Error::ArgumentType(
+                return Err(Error::argument_type(
                     self.identifier.to_owned(),
                     Type::string().to_string(),
                     Self::ARGUMENT_INDEX_FORMAT_STRING + 1,
@@ -57,15 +57,15 @@ impl Function {
                 ))
             }
             Some((r#type, false, _string)) => {
-                return Err(Error::ArgumentConstantness(
+                return Err(Error::argument_constantness(
                     self.identifier.to_owned(),
-                    Self::ARGUMENT_INDEX_FORMAT_STRING + 1,
                     "format".to_owned(),
+                    Self::ARGUMENT_INDEX_FORMAT_STRING + 1,
                     r#type.to_string(),
                 ))
             }
             None => {
-                return Err(Error::ArgumentCount(
+                return Err(Error::argument_count(
                     self.identifier.to_owned(),
                     Self::ARGUMENT_INDEX_FORMAT_STRING + 1,
                     actual_params.len(),
@@ -75,7 +75,7 @@ impl Function {
 
         let arguments_expected_count = format_string.matches("{}").count();
         if arguments_expected_count != actual_params.len() - 1 {
-            return Err(Error::BuiltIn(BuiltInFunctionError::DebugArgumentCount(
+            return Err(Error::BuiltIn(BuiltInFunctionError::debug_argument_count(
                 arguments_expected_count + 1,
                 actual_params.len(),
             )));

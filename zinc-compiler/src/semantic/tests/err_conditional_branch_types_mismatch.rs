@@ -18,12 +18,12 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(
-        SemanticError::ConditionalBranchTypesMismatch(
-            Location::new(3, 15),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            Type::boolean().to_string(),
-            Location::new(3, 27),
-        ),
+        SemanticError::ConditionalBranchTypesMismatch {
+            location: Location::new(3, 15),
+            expected: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            found: Type::boolean().to_string(),
+            reference: Location::new(3, 27),
+        },
     ));
 
     let result = super::compile_entry_point(input);

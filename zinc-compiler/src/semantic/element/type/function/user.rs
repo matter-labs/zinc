@@ -66,7 +66,7 @@ impl Function {
                 Element::Value(value) => (value.r#type(), false),
                 Element::Constant(constant) => (constant.r#type(), true),
                 element => {
-                    return Err(Error::ArgumentNotEvaluable(
+                    return Err(Error::argument_not_evaluable(
                         self.identifier.to_owned(),
                         index + 1,
                         element.to_string(),
@@ -81,7 +81,7 @@ impl Function {
             match actual_params.get(index) {
                 Some((actual_type, _is_constant)) if actual_type == &r#type => {}
                 Some((actual_type, _is_constant)) => {
-                    return Err(Error::ArgumentType(
+                    return Err(Error::argument_type(
                         self.identifier.to_owned(),
                         r#type.to_string(),
                         index + 1,
@@ -90,7 +90,7 @@ impl Function {
                     ))
                 }
                 None => {
-                    return Err(Error::ArgumentCount(
+                    return Err(Error::argument_count(
                         self.identifier.to_owned(),
                         formal_params_length,
                         actual_params.len(),

@@ -21,10 +21,10 @@ fn main() {}
 "#;
 
     let expected = Err(Error::Semantic(
-        SemanticError::ImplStatementExpectedStructureOrEnumeration(
-            Location::new(4, 6),
-            "field".to_owned(),
-        ),
+        SemanticError::ImplStatementExpectedStructureOrEnumeration {
+            location: Location::new(4, 6),
+            found: "field".to_owned(),
+        },
     ));
 
     let result = super::compile_entry_point(input);

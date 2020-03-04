@@ -7,10 +7,10 @@
 #![allow(clippy::large_enum_variant)]
 #![allow(clippy::cognitive_complexity)]
 
-pub mod error;
-pub mod lexical;
-pub mod semantic;
-pub mod syntax;
+mod error;
+mod lexical;
+mod semantic;
+mod syntax;
 
 pub use self::error::Error;
 pub use self::semantic::Bytecode;

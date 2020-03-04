@@ -18,6 +18,7 @@ use crate::lexical::Keyword;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::r#type::function::Function as FunctionType;
+use crate::semantic::element::r#type::structure::Structure as StructureType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
 use crate::syntax::Identifier;
@@ -61,10 +62,10 @@ impl Scope {
         item: Item,
     ) -> Result<(), Error> {
         if let Ok(item) = Self::resolve_item(scope.clone(), &identifier.name) {
-            return Err(Error::ItemRedeclared(
-                identifier.name,
-                item.location.unwrap_or_default(),
-            ));
+            return Err(Error::ItemRedeclared {
+                name: identifier.name,
+                reference: item.location,
+            });
         }
         scope.borrow_mut().items.insert(identifier.name, item);
         Ok(())
@@ -76,10 +77,10 @@ impl Scope {
         variable: VariableItem,
     ) -> Result<(), Error> {
         if let Ok(item) = Self::resolve_item(scope.clone(), &identifier.name) {
-            return Err(Error::ItemRedeclared(
-                identifier.name,
-                item.location.unwrap_or_default(),
-            ));
+            return Err(Error::ItemRedeclared {
+                name: identifier.name,
+                reference: item.location,
+            });
         }
         scope.borrow_mut().items.insert(
             identifier.name,
@@ -94,10 +95,10 @@ impl Scope {
         constant: Constant,
     ) -> Result<(), Error> {
         if let Ok(item) = Self::resolve_item(scope.clone(), &identifier.name) {
-            return Err(Error::ItemRedeclared(
-                identifier.name,
-                item.location.unwrap_or_default(),
-            ));
+            return Err(Error::ItemRedeclared {
+                name: identifier.name,
+                reference: item.location,
+            });
         }
         scope.borrow_mut().items.insert(
             identifier.name,
@@ -112,10 +113,10 @@ impl Scope {
         r#static: StaticItem,
     ) -> Result<(), Error> {
         if let Ok(item) = Self::resolve_item(scope.clone(), &identifier.name) {
-            return Err(Error::ItemRedeclared(
-                identifier.name,
-                item.location.unwrap_or_default(),
-            ));
+            return Err(Error::ItemRedeclared {
+                name: identifier.name,
+                reference: item.location,
+            });
         }
         scope.borrow_mut().items.insert(
             identifier.name,
@@ -130,10 +131,10 @@ impl Scope {
         r#type: Type,
     ) -> Result<(), Error> {
         if let Ok(item) = Self::resolve_item(scope.clone(), &identifier.name) {
-            return Err(Error::ItemRedeclared(
-                identifier.name,
-                item.location.unwrap_or_default(),
-            ));
+            return Err(Error::ItemRedeclared {
+                name: identifier.name,
+                reference: item.location,
+            });
         }
         scope.borrow_mut().items.insert(
             identifier.name,
@@ -148,10 +149,10 @@ impl Scope {
         module: Rc<RefCell<Scope>>,
     ) -> Result<(), Error> {
         if let Ok(item) = Self::resolve_item(scope.clone(), &identifier.name) {
-            return Err(Error::ItemRedeclared(
-                identifier.name,
-                item.location.unwrap_or_default(),
-            ));
+            return Err(Error::ItemRedeclared {
+                name: identifier.name,
+                reference: item.location,
+            });
         }
         scope.borrow_mut().items.insert(
             identifier.name,
@@ -187,7 +188,9 @@ impl Scope {
                 _ => {
                     return Err(SemanticError::Scope(
                         identifier.location,
-                        Error::ItemIsNotNamespace(identifier.name.to_owned()),
+                        Error::ItemIsNotNamespace {
+                            name: identifier.name.to_owned(),
+                        },
                     ))
                 }
             };
@@ -195,7 +198,9 @@ impl Scope {
 
         Err(SemanticError::Scope(
             path.location,
-            Error::ItemUndeclared(path.to_string()),
+            Error::ItemUndeclared {
+                name: path.to_string(),
+            },
         ))
     }
 
@@ -204,7 +209,9 @@ impl Scope {
             Some(item) => Ok(item.to_owned()),
             None => match scope.borrow().parent {
                 Some(ref parent) => Self::resolve_item(parent.to_owned(), identifier),
-                None => Err(Error::ItemUndeclared(identifier.to_owned())),
+                None => Err(Error::ItemUndeclared {
+                    name: identifier.to_owned(),
+                }),
             },
         }
     }
@@ -224,18 +231,68 @@ impl Scope {
         Rc::new(RefCell::new(Scope::new(Some(parent))))
     }
 
-    // TODO: refactor towards the structure hierarchy
     pub const TYPE_ID_STD_CRYPTO_ECC_POINT: usize = 0;
-    pub const TYPE_ID_STD_CRYPTO_SCHNORR_PUBLIC_KEY: usize = 1;
-    pub const TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE: usize = 2;
-    pub const TYPE_ID_FIRST_AVAILABLE: usize = 3;
+    pub const TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE: usize = 1;
+    pub const TYPE_ID_FIRST_AVAILABLE: usize = 2;
 
     fn default_items() -> HashMap<String, Item> {
         let mut std_crypto_scope = Scope::default();
         let std_crypto_sha256 = FunctionType::new_std(BuiltinIdentifier::CryptoSha256);
         let std_crypto_pedersen = FunctionType::new_std(BuiltinIdentifier::CryptoPedersen);
+
+        let mut std_crypto_schnorr = Scope::default();
+        let mut std_crypto_schnorr_signature_scope = Scope::default();
         let std_crypto_schnorr_verify =
-            FunctionType::new_std(BuiltinIdentifier::CryptoSchnorrVerify);
+            FunctionType::new_std(BuiltinIdentifier::CryptoSchnorrSignatureVerify);
+        std_crypto_schnorr_signature_scope.items.insert(
+            std_crypto_schnorr_verify.identifier(),
+            Item::new(
+                ItemVariant::Type(Type::Function(std_crypto_schnorr_verify)),
+                None,
+            ),
+        );
+        let std_crypto_ecc_point = StructureType::new(
+            "Signature".to_owned(),
+            Self::TYPE_ID_STD_CRYPTO_ECC_POINT,
+            vec![
+                ("x".to_owned(), Type::field()),
+                ("y".to_owned(), Type::field()),
+            ],
+            None,
+        );
+        let std_crypto_schnorr_signature = StructureType::new(
+            "Signature".to_owned(),
+            Self::TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE,
+            vec![
+                (
+                    "r".to_owned(),
+                    Type::Structure(std_crypto_ecc_point.clone()),
+                ),
+                ("s".to_owned(), Type::field()),
+                (
+                    "pk".to_owned(),
+                    Type::Structure(std_crypto_ecc_point.clone()),
+                ),
+            ],
+            Some(Rc::new(RefCell::new(std_crypto_schnorr_signature_scope))),
+        );
+        std_crypto_schnorr.items.insert(
+            "Signature".to_owned(),
+            Item::new(
+                ItemVariant::Type(Type::Structure(std_crypto_schnorr_signature)),
+                None,
+            ),
+        );
+
+        let mut std_crypto_ecc = Scope::default();
+        std_crypto_ecc.items.insert(
+            "Point".to_owned(),
+            Item::new(
+                ItemVariant::Type(Type::Structure(std_crypto_ecc_point)),
+                None,
+            ),
+        );
+
         std_crypto_scope.items.insert(
             std_crypto_sha256.identifier(),
             Item::new(ItemVariant::Type(Type::Function(std_crypto_sha256)), None),
@@ -244,11 +301,10 @@ impl Scope {
             std_crypto_pedersen.identifier(),
             Item::new(ItemVariant::Type(Type::Function(std_crypto_pedersen)), None),
         );
-        let mut std_crypto_schnorr = Scope::default();
-        std_crypto_schnorr.items.insert(
-            std_crypto_schnorr_verify.identifier(),
+        std_crypto_scope.items.insert(
+            "ecc".to_owned(),
             Item::new(
-                ItemVariant::Type(Type::Function(std_crypto_schnorr_verify)),
+                ItemVariant::Module(Rc::new(RefCell::new(std_crypto_ecc))),
                 None,
             ),
         );

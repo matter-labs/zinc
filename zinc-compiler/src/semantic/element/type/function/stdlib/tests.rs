@@ -20,9 +20,9 @@ fn main() -> [u8; 4] {
 
     let expected = Err(Error::Semantic(SemanticError::Function(
         Location::new(3, 25),
-        FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayTruncatingToBiggerSize(
-            2, 4,
-        )),
+        FunctionError::StandardLibrary(
+            StandardLibraryFunctionError::array_truncating_to_bigger_size(2, 4),
+        ),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -40,7 +40,7 @@ fn main() -> [u8; 4] {
 
     let expected = Err(Error::Semantic(SemanticError::Function(
         Location::new(3, 20),
-        FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayPaddingToLesserSize(
+        FunctionError::StandardLibrary(StandardLibraryFunctionError::array_padding_to_lesser_size(
             4, 2,
         )),
     )));
@@ -60,7 +60,7 @@ fn main() -> [u8; 4] {
 
     let expected = Err(Error::Semantic(SemanticError::Function(
         Location::new(3, 25),
-        FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayNewLengthInvalid(
+        FunctionError::StandardLibrary(StandardLibraryFunctionError::array_new_length_invalid(
             "constant integer '18446744073709551616' of type 'u72'".to_owned(),
         )),
     )));

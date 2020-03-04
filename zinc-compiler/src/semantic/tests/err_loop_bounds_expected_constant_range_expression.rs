@@ -20,10 +20,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(
-        SemanticError::LoopBoundsExpectedConstantRangeExpression(
-            Location::new(4, 14),
-            "boolean constant 'true'".to_owned(),
-        ),
+        SemanticError::LoopBoundsExpectedConstantRangeExpression {
+            location: Location::new(4, 14),
+            found: "boolean constant 'true'".to_owned(),
+        },
     ));
 
     let result = super::compile_entry_point(input);

@@ -8,21 +8,21 @@ use colored::Colorize;
 
 use crate::lexical::Error as LexicalError;
 use crate::lexical::Location;
-use crate::semantic::caster::error::Error as CasterError;
-use crate::semantic::element::constant::error::Error as ConstantError;
-use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
-use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::place::error::Error as PlaceError;
-use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionError;
-use crate::semantic::element::r#type::function::error::Error as FunctionError;
-use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionError;
-use crate::semantic::element::value::array::error::Error as ArrayValueError;
-use crate::semantic::element::value::error::Error as ValueError;
-use crate::semantic::element::value::integer::error::Error as IntegerValueError;
-use crate::semantic::element::value::structure::error::Error as StructureValueError;
-use crate::semantic::element::value::tuple::error::Error as TupleValueError;
-use crate::semantic::scope::error::Error as ScopeError;
+use crate::semantic::ArrayValueError;
+use crate::semantic::BuiltInFunctionError;
+use crate::semantic::CasterError;
+use crate::semantic::ConstantError;
+use crate::semantic::ElementError;
 use crate::semantic::Error as SemanticError;
+use crate::semantic::FunctionError;
+use crate::semantic::IntegerConstantError;
+use crate::semantic::IntegerValueError;
+use crate::semantic::PlaceError;
+use crate::semantic::ScopeError;
+use crate::semantic::StandardLibraryFunctionError;
+use crate::semantic::StructureValueError;
+use crate::semantic::TupleValueError;
+use crate::semantic::ValueError;
 use crate::syntax::Error as SyntaxError;
 
 use self::file::Error as FileError;
@@ -847,10 +847,10 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Casting(CasterError::FromInvalidType(from, to))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Casting(CasterError::ToInvalidType(from, to))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Casting(CasterError::FromInvalidType(from, to))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Casting(CasterError::ToInvalidType(from, to))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Casting(CasterError::CastingFromInvalidType { from, to })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Casting(CasterError::CastingToInvalidType { from, to })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Casting(CasterError::CastingFromInvalidType { from, to })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Casting(CasterError::CastingToInvalidType { from, to })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -862,8 +862,8 @@ impl Error {
                     Some("only integer values can be casted to greater or equal bitlength"),
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Casting(CasterError::ToLesserBitlength(from, to))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Casting(CasterError::ToLesserBitlength(from, to))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Casting(CasterError::CastingIntegerToLesserBitlength { from, to })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Casting(CasterError::CastingIntegerToLesserBitlength { from, to })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -997,7 +997,7 @@ impl Error {
                 )
             }
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::SliceStartOutOfRange { start })))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::ArraySliceStartOutOfRange(start)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::ArraySliceStartOutOfRange { start }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1010,7 +1010,7 @@ impl Error {
                 )
             }
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::SliceEndOutOfRange { end, size })))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::ArraySliceEndOutOfRange(end, size)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::ArraySliceEndOutOfRange { end, size }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1023,7 +1023,7 @@ impl Error {
                 )
             }
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::SliceEndLesserThanStart { start, end })))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::ArraySliceEndLesserThanStart(start, end)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::ArraySliceEndLesserThanStart { start, end }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1037,7 +1037,7 @@ impl Error {
             }
 
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Tuple(TupleValueError::FieldDoesNotExist { type_identifier, field_index })))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::TupleFieldDoesNotExist(field_index, type_identifier)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::TupleFieldDoesNotExist { type_identifier, field_index }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1051,7 +1051,7 @@ impl Error {
             }
 
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Structure(StructureValueError::FieldDoesNotExist { type_identifier, field_name })))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::StructureFieldDoesNotExist(field_name, type_identifier)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::StructureFieldDoesNotExist { type_identifier, field_name }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1254,7 +1254,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowAddition(value, r#type))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowAddition { value, r#type })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1266,7 +1266,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowSubtraction(value, r#type))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowSubtraction { value, r#type })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1278,7 +1278,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowMultiplication(value, r#type))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowMultiplication { value, r#type })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1290,7 +1290,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowDivision(value, r#type))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowDivision { value, r#type })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1302,7 +1302,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowRemainder(value, r#type))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowRemainder { value, r#type })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1314,7 +1314,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowCasting(value, r#type))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowCasting { value, r#type })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1326,7 +1326,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowNegation(value, r#type))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OverflowNegation { value, r#type })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1372,7 +1372,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::IntegerTooLarge(value, bitlength))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::IntegerTooLarge { value, bitlength })))) => {
                 Self::format_line(
                     context,
                     format!("integer `{}` is larger than `{}` bits", value, bitlength).as_str(),
@@ -1380,7 +1380,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::UnsignedNegative(value, r#type))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::UnsignedNegative { value, r#type })))) => {
                 Self::format_line(
                     context,
                     format!("found a negative value `{}` of unsigned type `{}`", value, r#type).as_str(),
@@ -1389,37 +1389,37 @@ impl Error {
                 )
             }
 
-            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemRedeclared(item, reference))) => {
+            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemRedeclared { name, reference })) => {
                 Self::format_line_with_reference(
                     context,
                     format!(
                         "item `{}` redeclared here",
-                        item
+                        name
                     )
                         .as_str(),
                     location,
-                    Some(reference),
+                    reference,
                     Some("consider giving the latter item another name"),
                 )
             }
-            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemUndeclared(item))) => {
+            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemUndeclared { name })) => {
                 Self::format_line(
                     context,
                     format!(
                         "cannot find item `{}` in this scope",
-                        item
+                        name
                     )
                         .as_str(),
                     location,
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemIsNotNamespace(item))) => {
+            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemIsNotNamespace { name })) => {
                 Self::format_line(
                     context,
                     format!(
                         "item `{}` is not a namespace",
-                        item
+                        name
                     )
                         .as_str(),
                     location,
@@ -1427,60 +1427,60 @@ impl Error {
                 )
             }
 
-            Self::Semantic(SemanticError::Function(location, FunctionError::ArgumentCount(name, expected, found))) => {
+            Self::Semantic(SemanticError::Function(location, FunctionError::ArgumentCount { function, expected, found })) => {
                 Self::format_line(
                     context,
                     format!(
                         "function `{}` expected {} arguments, found {}",
-                        name, expected, found
+                        function, expected, found
                     )
                         .as_str(),
                     location,
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Function(location, FunctionError::ArgumentType(name, expected, index, field, found))) => {
+            Self::Semantic(SemanticError::Function(location, FunctionError::ArgumentType { function, name, position, expected, found })) => {
                 Self::format_line(
                     context,
                     format!(
                         "function `{}` expected type `{}` as the argument `{}` (#{}), found `{}`",
-                        name, expected, field, index, found
+                        function, expected, name, position, found
                     )
                         .as_str(),
                     location,
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Function(location, FunctionError::ArgumentConstantness(name, index, field, found))) => {
+            Self::Semantic(SemanticError::Function(location, FunctionError::ArgumentConstantness { function, name, position, found })) => {
                 Self::format_line(
                     context,
                     format!(
                         "function `{}` expected a constant as the argument `{}` (#{}), found a non-constant of type `{}`",
-                        name, field, index, found
+                        function, name, position, found
                     )
                         .as_str(),
                     location,
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Function(location, FunctionError::ArgumentNotEvaluable(name, index, found))) => {
+            Self::Semantic(SemanticError::Function(location, FunctionError::ArgumentNotEvaluable { function, position, found })) => {
                 Self::format_line(
                     context,
                     format!(
                         "function `{}` expected a value as the argument #{}, found `{}`",
-                        name, index, found
+                        function, position, found
                     )
                         .as_str(),
                     location,
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Function(location, FunctionError::ReturnType(name, expected, found, reference))) => {
+            Self::Semantic(SemanticError::Function(location, FunctionError::ReturnType { function, expected, found, reference })) => {
                 Self::format_line_with_reference(
                     context,
                     format!(
                         "function `{}` must return a value of type `{}`, found `{}`",
-                        name, expected, found
+                        function, expected, found
                     )
                         .as_str(),
                     location,
@@ -1488,7 +1488,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Function(location, FunctionError::NonCallable(name))) => {
+            Self::Semantic(SemanticError::Function(location, FunctionError::NonCallable { name })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1500,31 +1500,31 @@ impl Error {
                     Some("only functions may be called"),
                 )
             }
-            Self::Semantic(SemanticError::Function(location, FunctionError::BuiltIn(BuiltInFunctionError::Unknown(name)))) => {
+            Self::Semantic(SemanticError::Function(location, FunctionError::BuiltIn(BuiltInFunctionError::Unknown { function }))) => {
                 Self::format_line(
                     context,
                     format!(
                         "attempt to call a non-builtin function `{}` with `!` specifier",
-                        name
+                        function
                     )
                         .as_str(),
                     location,
                     Some("only built-in functions require the `!` symbol after the function name"),
                 )
             }
-            Self::Semantic(SemanticError::Function(location, FunctionError::BuiltIn(BuiltInFunctionError::SpecifierMissing(name)))) => {
+            Self::Semantic(SemanticError::Function(location, FunctionError::BuiltIn(BuiltInFunctionError::SpecifierMissing { function }))) => {
                 Self::format_line(
                     context,
                     format!(
                         "attempt to call a builtin function `{}` without `!` specifier",
-                        name
+                        function
                     )
                         .as_str(),
                     location,
                     Some("built-in functions require the `!` symbol after the function name"),
                 )
             }
-            Self::Semantic(SemanticError::Function(location, FunctionError::BuiltIn(BuiltInFunctionError::DebugArgumentCount(expected, found)))) => {
+            Self::Semantic(SemanticError::Function(location, FunctionError::BuiltIn(BuiltInFunctionError::DebugArgumentCount { expected, found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1536,7 +1536,7 @@ impl Error {
                     Some("the number of `dbg!` arguments after the format string must be equal to the number of placeholders, e.g. `dbg!(\"{}, {}\", a, b)`"),
                 )
             }
-            Self::Semantic(SemanticError::Function(location, FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayTruncatingToBiggerSize(from, to)))) => {
+            Self::Semantic(SemanticError::Function(location, FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayTruncatingToBiggerSize { from, to }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1548,7 +1548,7 @@ impl Error {
                     Some("consider truncating the array to a smaller size"),
                 )
             }
-            Self::Semantic(SemanticError::Function(location, FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayPaddingToLesserSize(from, to)))) => {
+            Self::Semantic(SemanticError::Function(location, FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayPaddingToLesserSize { from, to }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1560,7 +1560,7 @@ impl Error {
                     Some("consider padding the array to a bigger size"),
                 )
             }
-            Self::Semantic(SemanticError::Function(location, FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayNewLengthInvalid(value)))) => {
+            Self::Semantic(SemanticError::Function(location, FunctionError::StandardLibrary(StandardLibraryFunctionError::ArrayNewLengthInvalid { value }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1573,7 +1573,7 @@ impl Error {
                 )
             }
 
-            Self::Semantic(SemanticError::MatchNotExhausted(location)) => {
+            Self::Semantic(SemanticError::MatchNotExhausted { location }) => {
                 Self::format_line(
                     context,
                     "match expression must be exhaustive",
@@ -1581,7 +1581,7 @@ impl Error {
                     Some("consider covering all possible cases or adding an irrefutable branch with a binding or `_` wildcard"),
                 )
             }
-            Self::Semantic(SemanticError::MatchBranchUnreachable(location)) => {
+            Self::Semantic(SemanticError::MatchBranchUnreachable { location }) => {
                 Self::format_line(
                     context,
                     "match expression branch is unreachable",
@@ -1589,15 +1589,15 @@ impl Error {
                     Some("consider removing the branch or moving it above the branch with irrefutable pattern"),
                 )
             }
-            Self::Semantic(SemanticError::MatchBranchPatternPathExpectedEvaluable(location, item)) => {
+            Self::Semantic(SemanticError::MatchBranchPatternPathExpectedEvaluable { location, found }) => {
                 Self::format_line(
                     context,
-                    format!("expected value, found `{}`", item).as_str(),
+                    format!("expected value, found `{}`", found).as_str(),
                     location,
                     Some("consider specifying a path to an evaluable item"),
                 )
             }
-            Self::Semantic(SemanticError::MatchBranchPatternInvalidType(location, expected, found, reference)) => {
+            Self::Semantic(SemanticError::MatchBranchPatternInvalidType { location, expected, found, reference }) => {
                 Self::format_line_with_reference(
                     context,
                     format!("expected `{}`, found `{}`", expected, found).as_str(),
@@ -1606,7 +1606,7 @@ impl Error {
                     Some("all branch patterns must be compatible with the type of the expression being matched"),
                 )
             }
-            Self::Semantic(SemanticError::MatchBranchExpressionInvalidType(location, expected, found, reference)) => {
+            Self::Semantic(SemanticError::MatchBranchExpressionInvalidType { location, expected, found, reference }) => {
                 Self::format_line_with_reference(
                     context,
                     format!("expected `{}`, found `{}`", expected, found).as_str(),
@@ -1616,7 +1616,7 @@ impl Error {
                 )
             }
 
-            Self::Semantic(SemanticError::MutatingWithDifferentType(location, expected, found)) => {
+            Self::Semantic(SemanticError::MutatingWithDifferentType { location, expected, found }) => {
                 Self::format_line(
                     context,
                     format!("expected `{}`, found `{}`", expected, found).as_str(),
@@ -1624,7 +1624,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::MutatingImmutableMemory(location, name, reference)) => {
+            Self::Semantic(SemanticError::MutatingImmutableMemory { location, name, reference }) => {
                 Self::format_line_with_reference(
                     context,
                     format!("cannot assign twice to immutable variable `{}`", name).as_str(),
@@ -1634,35 +1634,35 @@ impl Error {
                 )
             }
 
-            Self::Semantic(SemanticError::LoopWhileExpectedBooleanCondition(location, r#type)) => {
+            Self::Semantic(SemanticError::LoopWhileExpectedBooleanCondition { location, found }) => {
                 Self::format_line(
                     context,
-                    format!("expected `bool`, found `{}`", r#type).as_str(),
+                    format!("expected `bool`, found `{}`", found).as_str(),
                     location,
                     None,
                 )
             }
-            Self::Semantic(SemanticError::LoopBoundsExpectedConstantRangeExpression(location, value)) => {
+            Self::Semantic(SemanticError::LoopBoundsExpectedConstantRangeExpression { location, found }) => {
                 Self::format_line(
                     context,
-                    format!("expected a constant range expression, found `{}`", value).as_str(),
+                    format!("expected a constant range expression, found `{}`", found).as_str(),
                     location,
                     Some("only constant ranges allowed, e.g. `for i in 0..42 { ... }`"),
                 )
             }
 
-            Self::Semantic(SemanticError::ConditionalExpectedBooleanCondition(location, r#type)) => {
+            Self::Semantic(SemanticError::ConditionalExpectedBooleanCondition { location, found }) => {
                 Self::format_line(
                     context,
-                    format!("expected `bool`, found `{}`", r#type).as_str(),
+                    format!("expected `bool`, found `{}`", found).as_str(),
                     location,
                     None,
                 )
             }
-            Self::Semantic(SemanticError::ConditionalBranchTypesMismatch(location, first, second, reference)) => {
+            Self::Semantic(SemanticError::ConditionalBranchTypesMismatch { location, expected, found, reference }) => {
                 Self::format_line_with_reference(
                     context,
-                    format!("if and else branches return incompatible types `{}` and `{}`", first, second).as_str(),
+                    format!("if and else branches return incompatible types `{}` and `{}`", expected, found).as_str(),
                     location,
                     Some(reference),
                     None,
@@ -1674,7 +1674,7 @@ impl Error {
                     Some("create the `main` function in the entry point file `main.zn`"),
                 )
             }
-            Self::Semantic(SemanticError::StructureDuplicateField(location, type_identifier, field_name)) => {
+            Self::Semantic(SemanticError::StructureDuplicateField { location, type_identifier, field_name }) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1686,7 +1686,7 @@ impl Error {
                     Some("consider giving the field a unique name"),
                 )
             }
-            Self::Semantic(SemanticError::ModuleNotFound(location, name)) => {
+            Self::Semantic(SemanticError::ModuleNotFound { location, name }) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1698,58 +1698,58 @@ impl Error {
                     Some(format!("create a file called `{}.zn` inside the `src` directory", name).as_str()),
                 )
             }
-            Self::Semantic(SemanticError::UseExpectedPath(location, item)) => {
+            Self::Semantic(SemanticError::UseExpectedPath { location, found }) => {
                 Self::format_line(
                     context,
                     format!(
                         "`use` expected an item path, but got `{}`",
-                        item
+                        found
                     )
                         .as_str(),
                     location,
                     Some("consider specifying a valid path to an item to import"),
                 )
             }
-            Self::Semantic(SemanticError::ImplStatementExpectedStructureOrEnumeration(location, item)) => {
+            Self::Semantic(SemanticError::ImplStatementExpectedStructureOrEnumeration { location, found }) => {
                 Self::format_line(
                     context,
                     format!(
-                        "`impl` expected a type with namespace, but got `{}`",
-                        item
+                        "`impl` expected a type with namespace, found `{}`",
+                        found
                     )
                         .as_str(),
                     location,
                     Some("only structures and enumerations can have an implementation"),
                 )
             }
-            Self::Semantic(SemanticError::TypeAliasDoesNotPointToType(location, item)) => {
+            Self::Semantic(SemanticError::TypeAliasDoesNotPointToType { location, found }) => {
                 Self::format_line(
                     context,
                     format!(
                         "expected type, found `{}`",
-                        item
+                        found
                     )
                         .as_str(),
                     location,
                     None,
                 )
             }
-            Self::Semantic(SemanticError::TypeAliasDoesNotPointToStructure(location, item)) => {
+            Self::Semantic(SemanticError::TypeAliasDoesNotPointToStructure { location, found }) => {
                 Self::format_line(
                     context,
                     format!(
                         "expected structure type, found `{}`",
-                        item
+                        found
                     )
                         .as_str(),
                     location,
                     None,
                 )
             }
-            Self::Semantic(SemanticError::ConstantExpressionHasNonConstantElement(location, _item)) => {
+            Self::Semantic(SemanticError::ConstantExpressionHasNonConstantElement { location, found }) => {
                 Self::format_line(
                     context,
-                    "attempt to use a non-constant value in a constant",
+                    format!("attempt to use a non-constant value `{}` in a constant expression", found).as_str(),
                     location,
                     None,
                 )

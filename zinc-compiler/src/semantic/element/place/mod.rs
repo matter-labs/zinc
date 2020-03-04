@@ -75,6 +75,10 @@ impl Place {
         match index_value {
             Element::Value(Value::Integer(..)) | Element::Constant(Constant::Integer(..)) => {
                 self.r#type = inner_type;
+
+                self.identifier
+                    .push_str(format!("[{}]", self.r#type).as_str());
+
                 Ok(AccessData::new(
                     0,
                     inner_type_size,
@@ -83,23 +87,36 @@ impl Place {
                 ))
             }
             Element::Constant(Constant::Range(Range { start, end, .. })) => {
+                self.identifier
+                    .push_str(format!("[{}..{}]", start, end).as_str());
+
                 if start.is_negative() {
-                    return Err(Error::ArraySliceStartOutOfRange(start.to_string()));
+                    return Err(Error::ArraySliceStartOutOfRange {
+                        start: start.to_string(),
+                    });
                 }
                 if end > &BigInt::from(array_size) {
-                    return Err(Error::ArraySliceEndOutOfRange(end.to_string(), array_size));
+                    return Err(Error::ArraySliceEndOutOfRange {
+                        end: end.to_string(),
+                        size: array_size,
+                    });
                 }
                 if end < start {
-                    return Err(Error::ArraySliceEndLesserThanStart(
-                        end.to_string(),
-                        start.to_string(),
-                    ));
+                    return Err(Error::ArraySliceEndLesserThanStart {
+                        start: start.to_string(),
+                        end: end.to_string(),
+                    });
                 }
                 let start = start
                     .to_usize()
-                    .ok_or_else(|| Error::ArraySliceStartOutOfRange(start.to_string()))?;
+                    .ok_or_else(|| Error::ArraySliceStartOutOfRange {
+                        start: start.to_string(),
+                    })?;
                 let length = (end - start).to_usize().ok_or_else(|| {
-                    Error::ArraySliceEndLesserThanStart(end.to_string(), start.to_string())
+                    Error::ArraySliceEndLesserThanStart {
+                        start: start.to_string(),
+                        end: end.to_string(),
+                    }
                 })?;
                 self.r#type = Type::array(inner_type, length);
                 Ok(AccessData::new(
@@ -110,23 +127,36 @@ impl Place {
                 ))
             }
             Element::Constant(Constant::RangeInclusive(RangeInclusive { start, end, .. })) => {
+                self.identifier
+                    .push_str(format!("[{}..={}]", start, end).as_str());
+
                 if start.is_negative() {
-                    return Err(Error::ArraySliceStartOutOfRange(start.to_string()));
+                    return Err(Error::ArraySliceStartOutOfRange {
+                        start: start.to_string(),
+                    });
                 }
                 if end >= &BigInt::from(array_size) {
-                    return Err(Error::ArraySliceEndOutOfRange(end.to_string(), array_size));
+                    return Err(Error::ArraySliceEndOutOfRange {
+                        end: end.to_string(),
+                        size: array_size,
+                    });
                 }
                 if end < start {
-                    return Err(Error::ArraySliceEndLesserThanStart(
-                        end.to_string(),
-                        start.to_string(),
-                    ));
+                    return Err(Error::ArraySliceEndLesserThanStart {
+                        start: start.to_string(),
+                        end: end.to_string(),
+                    });
                 }
                 let start = start
                     .to_usize()
-                    .ok_or_else(|| Error::ArraySliceStartOutOfRange(start.to_string()))?;
+                    .ok_or_else(|| Error::ArraySliceStartOutOfRange {
+                        start: start.to_string(),
+                    })?;
                 let length = (end - start + BigInt::one()).to_usize().ok_or_else(|| {
-                    Error::ArraySliceEndLesserThanStart(end.to_string(), start.to_string())
+                    Error::ArraySliceEndLesserThanStart {
+                        start: start.to_string(),
+                        end: end.to_string(),
+                    }
                 })?;
                 self.r#type = Type::array(inner_type, length);
                 Ok(AccessData::new(
@@ -149,11 +179,14 @@ impl Place {
         let total_size = self.r#type.size();
         match self.r#type {
             Type::Tuple { ref types } => {
+                self.identifier
+                    .push_str(format!(".{}", field_index).as_str());
+
                 if field_index >= types.len() {
-                    return Err(Error::TupleFieldDoesNotExist(
+                    return Err(Error::TupleFieldDoesNotExist {
+                        type_identifier: self.r#type.to_string(),
                         field_index,
-                        self.r#type.to_string(),
-                    ));
+                    });
                 }
                 let mut tuple_index = 0;
                 while tuple_index < field_index {
@@ -182,6 +215,9 @@ impl Place {
         let total_size = self.r#type.size();
         match self.r#type {
             Type::Structure(ref structure) => {
+                self.identifier
+                    .push_str(format!(".{}", field_name).as_str());
+
                 for structure_field in structure.fields.iter() {
                     if structure_field.0 == field_name {
                         self.r#type = structure_field.1.to_owned();
@@ -195,10 +231,10 @@ impl Place {
                     }
                     offset += structure_field.1.size();
                 }
-                Err(Error::StructureFieldDoesNotExist(
-                    field_name.to_owned(),
-                    structure.identifier.to_owned(),
-                ))
+                Err(Error::StructureFieldDoesNotExist {
+                    type_identifier: structure.identifier.to_owned(),
+                    field_name: field_name.to_owned(),
+                })
             }
             ref r#type => Err(Error::OperatorFieldFirstOperandExpectedStructure(
                 r#type.to_string(),

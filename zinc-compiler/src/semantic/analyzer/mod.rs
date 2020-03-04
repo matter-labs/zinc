@@ -3,7 +3,6 @@
 //!
 
 pub mod entry_point;
-pub mod error;
 pub mod expression;
 pub mod module;
 pub mod statement;

@@ -21,10 +21,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(
-        SemanticError::LoopWhileExpectedBooleanCondition(
-            Location::new(4, 26),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-        ),
+        SemanticError::LoopWhileExpectedBooleanCondition {
+            location: Location::new(4, 26),
+            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+        },
     ));
 
     let result = super::compile_entry_point(input);

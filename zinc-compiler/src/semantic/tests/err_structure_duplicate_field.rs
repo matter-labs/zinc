@@ -22,11 +22,11 @@ fn main() -> u8 {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::StructureDuplicateField(
-        Location::new(5, 5),
-        "Data".to_owned(),
-        "b".to_owned(),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::StructureDuplicateField {
+        location: Location::new(5, 5),
+        type_identifier: "Data".to_owned(),
+        field_name: "b".to_owned(),
+    }));
 
     let result = super::compile_entry_point(input);
 

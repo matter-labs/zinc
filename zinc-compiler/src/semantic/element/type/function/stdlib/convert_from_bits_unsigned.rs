@@ -41,7 +41,7 @@ impl Function {
                 Element::Value(value) => value.r#type(),
                 Element::Constant(constant) => constant.r#type(),
                 element => {
-                    return Err(Error::ArgumentNotEvaluable(
+                    return Err(Error::argument_not_evaluable(
                         self.identifier.to_owned(),
                         index + 1,
                         element.to_string(),
@@ -61,7 +61,7 @@ impl Function {
                     Type::integer_unsigned(size)
                 }
                 (r#type, size) => {
-                    return Err(Error::ArgumentType(
+                    return Err(Error::argument_type(
                         self.identifier.to_owned(),
                         "[bool; {{N}}]".to_owned(),
                         Self::ARGUMENT_INDEX_BITS + 1,
@@ -71,7 +71,7 @@ impl Function {
                 }
             },
             Some(r#type) => {
-                return Err(Error::ArgumentType(
+                return Err(Error::argument_type(
                     self.identifier.to_owned(),
                     "[bool; {{N}}]".to_owned(),
                     Self::ARGUMENT_INDEX_BITS + 1,
@@ -80,7 +80,7 @@ impl Function {
                 ))
             }
             None => {
-                return Err(Error::ArgumentCount(
+                return Err(Error::argument_count(
                     self.identifier.to_owned(),
                     Self::ARGUMENT_COUNT,
                     actual_params.len(),
@@ -89,7 +89,7 @@ impl Function {
         };
 
         if actual_params.len() > Self::ARGUMENT_COUNT {
-            return Err(Error::ArgumentCount(
+            return Err(Error::argument_count(
                 self.identifier.to_owned(),
                 Self::ARGUMENT_COUNT,
                 actual_params.len(),

@@ -20,9 +20,9 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::MatchNotExhausted(
-        Location::new(4, 18),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::MatchNotExhausted {
+        location: Location::new(4, 18),
+    }));
 
     let result = super::compile_entry_point(input);
 

@@ -47,12 +47,14 @@ impl Function {
                     integer
                         .to_usize()
                         .map(Option::Some)
-                        .map_err(|_error| StdlibError::ArrayNewLengthInvalid(integer.to_string()))
+                        .map_err(|_error| {
+                            StdlibError::array_new_length_invalid(integer.to_string())
+                        })
                         .map_err(Error::StandardLibrary)?,
                 ),
                 Element::Constant(constant) => (constant.r#type(), true, None),
                 element => {
-                    return Err(Error::ArgumentNotEvaluable(
+                    return Err(Error::argument_not_evaluable(
                         self.identifier.to_owned(),
                         index + 1,
                         element.to_string(),
@@ -70,7 +72,7 @@ impl Function {
                     (r#type.deref().to_owned(), *size)
                 }
                 Some((r#type, _is_constant, _is_number)) => {
-                    return Err(Error::ArgumentType(
+                    return Err(Error::argument_type(
                         self.identifier.to_owned(),
                         "[{scalar}; {N}]".to_owned(),
                         Self::ARGUMENT_INDEX_ARRAY + 1,
@@ -79,7 +81,7 @@ impl Function {
                     ))
                 }
                 None => {
-                    return Err(Error::ArgumentCount(
+                    return Err(Error::argument_count(
                         self.identifier.to_owned(),
                         Self::ARGUMENT_COUNT,
                         actual_params.len(),
@@ -90,7 +92,7 @@ impl Function {
         let new_length = match actual_params.get(Self::ARGUMENT_INDEX_NEW_LENGTH) {
             Some((r#type, true, Some(number))) if r#type.is_scalar_unsigned() => *number,
             Some((r#type, true, _number)) => {
-                return Err(Error::ArgumentType(
+                return Err(Error::argument_type(
                     self.identifier.to_owned(),
                     "{unsigned integer}".to_owned(),
                     Self::ARGUMENT_INDEX_NEW_LENGTH + 1,
@@ -99,15 +101,15 @@ impl Function {
                 ))
             }
             Some((r#type, false, _number)) => {
-                return Err(Error::ArgumentConstantness(
+                return Err(Error::argument_constantness(
                     self.identifier.to_owned(),
-                    Self::ARGUMENT_INDEX_NEW_LENGTH + 1,
                     "new_length".to_owned(),
+                    Self::ARGUMENT_INDEX_NEW_LENGTH + 1,
                     r#type.to_string(),
                 ))
             }
             None => {
-                return Err(Error::ArgumentCount(
+                return Err(Error::argument_count(
                     self.identifier.to_owned(),
                     Self::ARGUMENT_COUNT,
                     actual_params.len(),
@@ -119,7 +121,7 @@ impl Function {
             Some((r#type, _is_constant, _number))
                 if r#type.is_scalar() && r#type == &input_array_type => {}
             Some((r#type, _is_constant, _number)) => {
-                return Err(Error::ArgumentType(
+                return Err(Error::argument_type(
                     self.identifier.to_owned(),
                     "{scalar}".to_owned(),
                     Self::ARGUMENT_INDEX_FILL_VALUE + 1,
@@ -128,7 +130,7 @@ impl Function {
                 ))
             }
             None => {
-                return Err(Error::ArgumentCount(
+                return Err(Error::argument_count(
                     self.identifier.to_owned(),
                     Self::ARGUMENT_COUNT,
                     actual_params.len(),
@@ -137,7 +139,7 @@ impl Function {
         }
 
         if actual_params.len() > Self::ARGUMENT_COUNT {
-            return Err(Error::ArgumentCount(
+            return Err(Error::argument_count(
                 self.identifier.to_owned(),
                 Self::ARGUMENT_COUNT,
                 actual_params.len(),
@@ -146,7 +148,7 @@ impl Function {
 
         if new_length < input_array_size {
             return Err(Error::StandardLibrary(
-                StdlibError::ArrayPaddingToLesserSize(input_array_size, new_length),
+                StdlibError::array_padding_to_lesser_size(input_array_size, new_length),
             ));
         }
 

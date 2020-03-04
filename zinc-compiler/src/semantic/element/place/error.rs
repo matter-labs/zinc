@@ -9,9 +9,23 @@ pub enum Error {
     OperatorFieldFirstOperandExpectedTuple(String),
     OperatorFieldFirstOperandExpectedStructure(String),
 
-    ArraySliceStartOutOfRange(String),
-    ArraySliceEndOutOfRange(String, usize),
-    ArraySliceEndLesserThanStart(String, String),
-    TupleFieldDoesNotExist(usize, String),
-    StructureFieldDoesNotExist(String, String),
+    ArraySliceStartOutOfRange {
+        start: String,
+    },
+    ArraySliceEndOutOfRange {
+        end: String,
+        size: usize,
+    },
+    ArraySliceEndLesserThanStart {
+        start: String,
+        end: String,
+    },
+    TupleFieldDoesNotExist {
+        type_identifier: String,
+        field_index: usize,
+    },
+    StructureFieldDoesNotExist {
+        type_identifier: String,
+        field_name: String,
+    },
 }

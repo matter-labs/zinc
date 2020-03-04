@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer standard library `std::convert::to_bits` function element.
+//! The semantic analyzer standard library `std::crypto::schnorr::verify` function element.
 //!
 
 use std::fmt;
@@ -9,19 +9,23 @@ use zinc_bytecode::builtins::BuiltinIdentifier;
 use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
+use crate::semantic::scope::Scope;
 
 #[derive(Debug, Default, Clone)]
 pub struct Function {
     identifier: &'static str,
+    return_type: Box<Type>,
 }
 
 impl Function {
-    const ARGUMENT_INDEX_VALUE: usize = 0;
-    const ARGUMENT_COUNT: usize = 1;
+    const ARGUMENT_INDEX_SIGNATURE: usize = 0;
+    const ARGUMENT_INDEX_MESSAGE: usize = 1;
+    const ARGUMENT_COUNT: usize = 2;
 
     pub fn new() -> Self {
         Self {
-            identifier: "to_bits",
+            identifier: "verify",
+            return_type: Box::new(Type::boolean()),
         }
     }
 
@@ -30,7 +34,7 @@ impl Function {
     }
 
     pub fn builtin_identifier(&self) -> BuiltinIdentifier {
-        BuiltinIdentifier::ToBits
+        BuiltinIdentifier::CryptoSchnorrSignatureVerify
     }
 
     pub fn call(self, actual_elements: Vec<Element>) -> Result<Type, Error> {
@@ -50,17 +54,15 @@ impl Function {
             actual_params.push(r#type);
         }
 
-        let return_type = match actual_params.get(Self::ARGUMENT_INDEX_VALUE) {
-            Some(Type::Boolean) => Type::array(Type::boolean(), crate::BITLENGTH_BOOLEAN),
-            Some(Type::IntegerUnsigned { bitlength }) => Type::array(Type::boolean(), *bitlength),
-            Some(Type::IntegerSigned { bitlength }) => Type::array(Type::boolean(), *bitlength),
-            Some(Type::Field) => Type::array(Type::boolean(), crate::BITLENGTH_FIELD),
+        match actual_params.get(Self::ARGUMENT_INDEX_SIGNATURE) {
+            Some(Type::Structure(structure))
+                if structure.unique_id == Scope::TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE => {}
             Some(r#type) => {
                 return Err(Error::argument_type(
                     self.identifier.to_owned(),
-                    "integer".to_owned(),
-                    Self::ARGUMENT_INDEX_VALUE + 1,
-                    "value".to_owned(),
+                    Type::field().to_string(),
+                    Self::ARGUMENT_INDEX_SIGNATURE + 1,
+                    "r_x".to_owned(),
                     r#type.to_string(),
                 ))
             }
@@ -71,7 +73,27 @@ impl Function {
                     actual_params.len(),
                 ))
             }
-        };
+        }
+
+        match actual_params.get(Self::ARGUMENT_INDEX_MESSAGE) {
+            Some(r#type) if r#type.is_bit_array() => {}
+            Some(r#type) => {
+                return Err(Error::argument_type(
+                    self.identifier.to_owned(),
+                    "[bool; {N}]".to_owned(),
+                    Self::ARGUMENT_INDEX_MESSAGE + 1,
+                    "message".to_owned(),
+                    r#type.to_string(),
+                ))
+            }
+            None => {
+                return Err(Error::argument_count(
+                    self.identifier.to_owned(),
+                    Self::ARGUMENT_COUNT,
+                    actual_params.len(),
+                ))
+            }
+        }
 
         if actual_params.len() > Self::ARGUMENT_COUNT {
             return Err(Error::argument_count(
@@ -81,16 +103,12 @@ impl Function {
             ));
         }
 
-        Ok(return_type)
+        Ok(*self.return_type)
     }
 }
 
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "fn std::convert::{}(value: {{T: scalar}}) -> [bool: {{T bitlength}}]",
-            self.identifier,
-        )
+        write!(f, "fn std::crypto::schnorr::{}(signature: std::crypto::schnorr::Signature, message: [bool; N]) -> bool", self.identifier)
     }
 }

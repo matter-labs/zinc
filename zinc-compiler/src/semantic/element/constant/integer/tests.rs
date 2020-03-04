@@ -4,15 +4,106 @@
 
 #![cfg(test)]
 
+use std::str::FromStr;
+
 use num_bigint::BigInt;
 
 use crate::lexical::Location;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
+use crate::semantic::element::constant::integer::Integer;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
 use crate::Error;
+
+#[test]
+fn minimal_bitlength() {
+    assert_eq!(
+        Integer::minimal_bitlength(&BigInt::from_str("0").unwrap_or_default(), false),
+        Ok(crate::BITLENGTH_BYTE * 1),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(&BigInt::from_str("255").unwrap_or_default(), false),
+        Ok(crate::BITLENGTH_BYTE * 1),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(&BigInt::from_str("256").unwrap_or_default(), false),
+        Ok(crate::BITLENGTH_BYTE * 2),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(&BigInt::from_str("65535").unwrap_or_default(), false),
+        Ok(crate::BITLENGTH_BYTE * 2),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(&BigInt::from_str("65536").unwrap_or_default(), false),
+        Ok(crate::BITLENGTH_BYTE * 3),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(&BigInt::from_str("4294967295").unwrap_or_default(), false),
+        Ok(crate::BITLENGTH_BYTE * 4),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(&BigInt::from_str("4294967296").unwrap_or_default(), false),
+        Ok(crate::BITLENGTH_BYTE * 5),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(
+            &BigInt::from_str("18446744073709551615").unwrap_or_default(),
+            false
+        ),
+        Ok(crate::BITLENGTH_BYTE * 8),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(
+            &BigInt::from_str("18446744073709551616").unwrap_or_default(),
+            false
+        ),
+        Ok(crate::BITLENGTH_BYTE * 9),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(&BigInt::from_str("-128").unwrap_or_default(), true),
+        Ok(crate::BITLENGTH_BYTE * 1),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(&BigInt::from_str("127").unwrap_or_default(), true),
+        Ok(crate::BITLENGTH_BYTE * 1),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(&BigInt::from_str("128").unwrap_or_default(), true),
+        Ok(crate::BITLENGTH_BYTE * 2),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(&BigInt::from_str("32767").unwrap_or_default(), true),
+        Ok(crate::BITLENGTH_BYTE * 2),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(&BigInt::from_str("32768").unwrap_or_default(), true),
+        Ok(crate::BITLENGTH_BYTE * 3),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(&BigInt::from_str("2147483647").unwrap_or_default(), true),
+        Ok(crate::BITLENGTH_BYTE * 4),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(&BigInt::from_str("2147483648").unwrap_or_default(), true),
+        Ok(crate::BITLENGTH_BYTE * 5),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(
+            &BigInt::from_str("9223372036854775807").unwrap_or_default(),
+            true
+        ),
+        Ok(crate::BITLENGTH_BYTE * 8),
+    );
+    assert_eq!(
+        Integer::minimal_bitlength(
+            &BigInt::from_str("9223372036854775808").unwrap_or_default(),
+            true
+        ),
+        Ok(crate::BITLENGTH_BYTE * 9),
+    );
+}
 
 #[test]
 fn error_element_constant_integer_inference_constant() {
@@ -25,11 +116,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 19),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::IntegerTooLarge(
-                "115792089237316195423570985008687907853269984665640564039457584007913129639935"
-                    .to_owned(),
-                crate::BITLENGTH_FIELD,
-            ),
+            IntegerConstantError::IntegerTooLarge {
+                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").unwrap(),
+                bitlength: crate::BITLENGTH_FIELD,
+            },
         )),
     )));
 
@@ -49,11 +139,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 17),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::IntegerTooLarge(
-                "115792089237316195423570985008687907853269984665640564039457584007913129639935"
-                    .to_owned(),
-                crate::BITLENGTH_FIELD,
-            ),
+            IntegerConstantError::IntegerTooLarge {
+                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").unwrap(),
+                bitlength: crate::BITLENGTH_FIELD,
+            },
         )),
     )));
 
@@ -78,11 +167,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 9),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::IntegerTooLarge(
-                "115792089237316195423570985008687907853269984665640564039457584007913129639935"
-                    .to_owned(),
-                crate::BITLENGTH_FIELD,
-            ),
+            IntegerConstantError::IntegerTooLarge {
+                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").unwrap(),
+                bitlength: crate::BITLENGTH_FIELD,
+            },
         )),
     )));
 
@@ -309,10 +397,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 22),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::OverflowAddition(
-                BigInt::from(-170),
-                Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::OverflowAddition {
+                value: BigInt::from(-170),
+                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -332,10 +420,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 26),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::OverflowAddition(
-                BigInt::from(142),
-                Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::OverflowAddition {
+                value: BigInt::from(142),
+                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -355,10 +443,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 20),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::OverflowAddition(
-                BigInt::from(297),
-                Type::integer(false, crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::OverflowAddition {
+                value: BigInt::from(297),
+                r#type: Type::integer(false, crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -378,10 +466,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 21),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::OverflowSubtraction(
-                BigInt::from(-142),
-                Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::OverflowSubtraction {
+                value: BigInt::from(-142),
+                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -401,10 +489,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 28),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::OverflowSubtraction(
-                BigInt::from(150),
-                Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::OverflowSubtraction {
+                value: BigInt::from(150),
+                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -424,10 +512,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 20),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::OverflowSubtraction(
-                BigInt::from(-213),
-                Type::integer(false, crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::OverflowSubtraction {
+                value: BigInt::from(-213),
+                r#type: Type::integer(false, crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -447,10 +535,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 22),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::OverflowMultiplication(
-                BigInt::from(-200),
-                Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::OverflowMultiplication {
+                value: BigInt::from(-200),
+                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -470,10 +558,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::OverflowMultiplication(
-                BigInt::from(200),
-                Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::OverflowMultiplication {
+                value: BigInt::from(200),
+                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -493,10 +581,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 20),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::OverflowMultiplication(
-                BigInt::from(420),
-                Type::integer(false, crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::OverflowMultiplication {
+                value: BigInt::from(420),
+                r#type: Type::integer(false, crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -516,10 +604,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 22),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::OverflowDivision(
-                BigInt::from(128),
-                Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::OverflowDivision {
+                value: BigInt::from(128),
+                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -539,10 +627,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 21),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::OverflowCasting(
-                BigInt::from(200),
-                Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::OverflowCasting {
+                value: BigInt::from(200),
+                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -562,10 +650,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 23),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::OverflowCasting(
-                BigInt::from(-100),
-                Type::integer(false, crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::OverflowCasting {
+                value: BigInt::from(-100),
+                r#type: Type::integer(false, crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -585,10 +673,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 17),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::OverflowNegation(
-                BigInt::from(128),
-                Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::OverflowNegation {
+                value: BigInt::from(128),
+                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -608,10 +696,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 17),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::OverflowNegation(
-                BigInt::from(-200),
-                Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::OverflowNegation {
+                value: BigInt::from(-200),
+                r#type: Type::integer(true, crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 

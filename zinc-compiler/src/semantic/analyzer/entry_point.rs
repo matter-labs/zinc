@@ -7,11 +7,11 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::error::Error as CompilerError;
-use crate::semantic::analyzer::error::Error;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
 use crate::semantic::bytecode::Bytecode;
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
+use crate::semantic::error::Error;
 use crate::semantic::scope::item::Variant as ScopeItem;
 use crate::semantic::scope::Scope;
 use crate::syntax::Tree as SyntaxTree;
