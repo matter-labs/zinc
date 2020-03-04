@@ -27,9 +27,9 @@ use self::value::Value;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Element {
-    /// Runtime value, which is unknown at compile time (a.k.a. `lvalue`)
+    /// Runtime value, which is unknown at compile time (`rvalue`)
     Value(Value),
-    /// Constant value, which is known at compile time (a.k.a. `lvalue`)
+    /// Constant value, which is known at compile time (`rvalue`)
     Constant(Constant),
     /// The second operand of the casting operator
     Type(Type),
@@ -38,13 +38,13 @@ pub enum Element {
 
     /// Path to be resolved in the scope
     Path(Path),
-    /// Memory descriptor (a.k.a. `lvalue`)
+    /// Memory descriptor (`lvalue`)
     Place(Place),
     /// Tuple field index
     MemberInteger(usize),
     /// Structure field name
     MemberString(MemberString),
-    /// Module scope shared reference
+    /// Module name
     Module(String),
 }
 

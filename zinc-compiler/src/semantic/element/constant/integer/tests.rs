@@ -8,6 +8,7 @@ use std::str::FromStr;
 
 use num_bigint::BigInt;
 
+use crate::error::Error;
 use crate::lexical::Location;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
@@ -15,7 +16,6 @@ use crate::semantic::element::constant::integer::Integer;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
-use crate::Error;
 
 #[test]
 fn minimal_bitlength() {
@@ -117,7 +117,7 @@ fn main() {
         Location::new(3, 19),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::IntegerTooLarge {
-                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").unwrap(),
+                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::semantic::tests::PANIC_TEST_DATA),
                 bitlength: crate::BITLENGTH_FIELD,
             },
         )),
@@ -140,7 +140,7 @@ fn main() {
         Location::new(3, 17),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::IntegerTooLarge {
-                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").unwrap(),
+                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::semantic::tests::PANIC_TEST_DATA),
                 bitlength: crate::BITLENGTH_FIELD,
             },
         )),
@@ -168,7 +168,7 @@ fn main() {
         Location::new(5, 9),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::IntegerTooLarge {
-                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").unwrap(),
+                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::semantic::tests::PANIC_TEST_DATA),
                 bitlength: crate::BITLENGTH_FIELD,
             },
         )),
@@ -203,6 +203,64 @@ fn main() {
 }
 
 #[test]
+fn error_element_constant_integer_types_mismatch_greater_equals_enumeration() {
+    let input = r#"
+enum Default {
+    Value = 42,
+}
+
+fn main() {
+    let value = Default::Value >= 69;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(7, 32),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchGreaterEquals(
+                "enum Default".to_owned(),
+                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_greater_equals_two_enumerations() {
+    let input = r#"
+enum One {
+    Value = 42,
+}
+
+enum Two {
+    Value = 69,
+}
+
+fn main() {
+    let value = One::Value >= Two::Value;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(11, 28),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchGreaterEquals(
+                "enum One".to_owned(),
+                "enum Two".to_owned(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_element_constant_integer_types_mismatch_lesser_equals() {
     let input = r#"
 fn main() {
@@ -216,6 +274,64 @@ fn main() {
             IntegerConstantError::TypesMismatchLesserEquals(
                 Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
                 Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_lesser_equals_enumeration() {
+    let input = r#"
+enum Default {
+    Value = 42,
+}
+
+fn main() {
+    let value = Default::Value <= 69;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(7, 32),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchLesserEquals(
+                "enum Default".to_owned(),
+                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_lesser_equals_two_enumerations() {
+    let input = r#"
+enum One {
+    Value = 42,
+}
+
+enum Two {
+    Value = 69,
+}
+
+fn main() {
+    let value = One::Value <= Two::Value;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(11, 28),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchLesserEquals(
+                "enum One".to_owned(),
+                "enum Two".to_owned(),
             ),
         )),
     )));
@@ -249,6 +365,64 @@ fn main() {
 }
 
 #[test]
+fn error_element_constant_integer_types_mismatch_greater_enumeration() {
+    let input = r#"
+enum Default {
+    Value = 42,
+}
+
+fn main() {
+    let value = Default::Value > 69;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(7, 32),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchGreater(
+                "enum Default".to_owned(),
+                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_greater_two_enumerations() {
+    let input = r#"
+enum One {
+    Value = 42,
+}
+
+enum Two {
+    Value = 69,
+}
+
+fn main() {
+    let value = One::Value > Two::Value;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(11, 28),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchGreater(
+                "enum One".to_owned(),
+                "enum Two".to_owned(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_element_constant_integer_types_mismatch_lesser() {
     let input = r#"
 fn main() {
@@ -272,6 +446,61 @@ fn main() {
 }
 
 #[test]
+fn error_element_constant_integer_types_mismatch_lesser_enumeration() {
+    let input = r#"
+enum Default {
+    Value = 42,
+}
+
+fn main() {
+    let value = Default::Value < 69;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(7, 32),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchLesser(
+                "enum Default".to_owned(),
+                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_lesser_two_enumerations() {
+    let input = r#"
+enum One {
+    Value = 42,
+}
+
+enum Two {
+    Value = 69,
+}
+
+fn main() {
+    let value = One::Value < Two::Value;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(11, 28),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchLesser("enum One".to_owned(), "enum Two".to_owned()),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_element_constant_integer_types_mismatch_addition() {
     let input = r#"
 fn main() {
@@ -285,6 +514,64 @@ fn main() {
             IntegerConstantError::TypesMismatchAddition(
                 Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
                 Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_addition_enumeration() {
+    let input = r#"
+enum Default {
+    Value = 42,
+}
+
+fn main() {
+    let value = Default::Value + 69;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(7, 32),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchAddition(
+                "enum Default".to_owned(),
+                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_addition_two_enumerations() {
+    let input = r#"
+enum One {
+    Value = 42,
+}
+
+enum Two {
+    Value = 69,
+}
+
+fn main() {
+    let value = One::Value + Two::Value;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(11, 28),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchAddition(
+                "enum One".to_owned(),
+                "enum Two".to_owned(),
             ),
         )),
     )));
@@ -318,6 +605,64 @@ fn main() {
 }
 
 #[test]
+fn error_element_constant_integer_types_mismatch_subtraction_enumeration() {
+    let input = r#"
+enum Default {
+    Value = 42,
+}
+
+fn main() {
+    let value = Default::Value - 69;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(7, 32),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchSubtraction(
+                "enum Default".to_owned(),
+                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_subtraction_two_enumerations() {
+    let input = r#"
+enum One {
+    Value = 42,
+}
+
+enum Two {
+    Value = 69,
+}
+
+fn main() {
+    let value = One::Value - Two::Value;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(11, 28),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchSubtraction(
+                "enum One".to_owned(),
+                "enum Two".to_owned(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_element_constant_integer_types_mismatch_multiplication() {
     let input = r#"
 fn main() {
@@ -331,6 +676,64 @@ fn main() {
             IntegerConstantError::TypesMismatchMultiplication(
                 Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
                 Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_multiplication_enumeration() {
+    let input = r#"
+enum Default {
+    Value = 42,
+}
+
+fn main() {
+    let value = Default::Value * 69;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(7, 32),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchMultiplication(
+                "enum Default".to_owned(),
+                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_multiplication_two_enumerations() {
+    let input = r#"
+enum One {
+    Value = 42,
+}
+
+enum Two {
+    Value = 69,
+}
+
+fn main() {
+    let value = One::Value * Two::Value;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(11, 28),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchMultiplication(
+                "enum One".to_owned(),
+                "enum Two".to_owned(),
             ),
         )),
     )));
@@ -364,6 +767,64 @@ fn main() {
 }
 
 #[test]
+fn error_element_constant_integer_types_mismatch_division_enumeration() {
+    let input = r#"
+enum Default {
+    Value = 42,
+}
+
+fn main() {
+    let value = Default::Value / 69;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(7, 32),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchDivision(
+                "enum Default".to_owned(),
+                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_division_two_enumerations() {
+    let input = r#"
+enum One {
+    Value = 42,
+}
+
+enum Two {
+    Value = 69,
+}
+
+fn main() {
+    let value = One::Value / Two::Value;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(11, 28),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchDivision(
+                "enum One".to_owned(),
+                "enum Two".to_owned(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_element_constant_integer_types_mismatch_remainder() {
     let input = r#"
 fn main() {
@@ -377,6 +838,64 @@ fn main() {
             IntegerConstantError::TypesMismatchRemainder(
                 Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
                 Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_remainder_enumeration() {
+    let input = r#"
+enum Default {
+    Value = 42,
+}
+
+fn main() {
+    let value = Default::Value % 69;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(7, 32),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchRemainder(
+                "enum Default".to_owned(),
+                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            ),
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_remainder_two_enumerations() {
+    let input = r#"
+enum One {
+    Value = 42,
+}
+
+enum Two {
+    Value = 69,
+}
+
+fn main() {
+    let value = One::Value % Two::Value;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(11, 28),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchRemainder(
+                "enum One".to_owned(),
+                "enum Two".to_owned(),
             ),
         )),
     )));

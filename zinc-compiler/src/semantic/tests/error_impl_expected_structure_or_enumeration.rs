@@ -4,9 +4,10 @@
 
 #![cfg(test)]
 
+use crate::error::Error;
 use crate::lexical::Location;
+use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
-use crate::Error;
 
 #[test]
 fn test() {
@@ -23,7 +24,7 @@ fn main() {}
     let expected = Err(Error::Semantic(
         SemanticError::ImplStatementExpectedStructureOrEnumeration {
             location: Location::new(4, 6),
-            found: "field".to_owned(),
+            found: Type::field().to_string(),
         },
     ));
 

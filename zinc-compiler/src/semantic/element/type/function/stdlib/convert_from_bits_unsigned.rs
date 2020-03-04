@@ -65,7 +65,7 @@ impl Function {
                         self.identifier.to_owned(),
                         "bits".to_owned(),
                         Self::ARGUMENT_INDEX_BITS + 1,
-                        "[bool; {{N}}]".to_owned(),
+                        "[bool; {N}], 8 <= N <= 248, N % 8 == 0".to_owned(),
                         format!("[{}; {}]", r#type, size),
                     ))
                 }
@@ -75,7 +75,7 @@ impl Function {
                     self.identifier.to_owned(),
                     "bits".to_owned(),
                     Self::ARGUMENT_INDEX_BITS + 1,
-                    "[bool; {{N}}]".to_owned(),
+                    "[bool; {N}], 8 <= N <= 248, N % 8 == 0".to_owned(),
                     r#type.to_string(),
                 ))
             }

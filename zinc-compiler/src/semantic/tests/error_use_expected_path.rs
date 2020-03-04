@@ -4,9 +4,12 @@
 
 #![cfg(test)]
 
+use num_bigint::BigInt;
+
+use crate::error::Error;
 use crate::lexical::Location;
+use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::Error as SemanticError;
-use crate::Error;
 
 #[test]
 fn test() {
@@ -18,7 +21,7 @@ fn main() {}
 
     let expected = Err(Error::Semantic(SemanticError::UseExpectedPath {
         location: Location::new(2, 5),
-        found: "constant integer '5' of type 'u8'".to_owned(),
+        found: IntegerConstant::new(BigInt::from(5), false, crate::BITLENGTH_BYTE).to_string(),
     }));
 
     let result = super::compile_entry_point(input);

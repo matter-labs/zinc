@@ -27,7 +27,7 @@ impl RangeInclusive {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::range(self.bounds_type())
+        Type::range_inclusive(self.bounds_type())
     }
 
     pub fn bounds_type(&self) -> Type {

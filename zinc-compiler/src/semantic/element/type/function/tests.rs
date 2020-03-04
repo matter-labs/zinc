@@ -48,9 +48,9 @@ fn main() {
         Location::new(7, 24),
         FunctionError::argument_type(
             "another".to_owned(),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            1,
             "x".to_owned(),
+            1,
+            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
             Type::boolean().to_string(),
         ),
     )));

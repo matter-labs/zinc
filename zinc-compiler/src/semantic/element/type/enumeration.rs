@@ -80,8 +80,8 @@ impl Enumeration {
     }
 }
 
-impl PartialEq<Enumeration> for Enumeration {
-    fn eq(&self, other: &Enumeration) -> bool {
+impl PartialEq<Self> for Enumeration {
+    fn eq(&self, other: &Self) -> bool {
         self.unique_id == other.unique_id
     }
 }

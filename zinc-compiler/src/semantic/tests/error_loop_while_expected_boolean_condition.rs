@@ -4,31 +4,26 @@
 
 #![cfg(test)]
 
-use std::convert::TryFrom;
-
+use crate::error::Error;
 use crate::lexical::Location;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::value::Value;
-use crate::semantic::element::Element;
 use crate::semantic::Error as SemanticError;
-use crate::Error;
 
 #[test]
 fn test() {
     let input = r#"
 fn main() {
-    let variable = 42;
-    const CONSTANT: u8 = variable;
+    let mut sum = 0;
+    for i in 0..10 while 42 {
+        sum = sum + i;
+    }
 }
 "#;
 
     let expected = Err(Error::Semantic(
-        SemanticError::ConstantExpressionHasNonConstantElement {
+        SemanticError::LoopWhileExpectedBooleanCondition {
             location: Location::new(4, 26),
-            found: Element::Value(
-                Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE)).unwrap(),
-            )
-            .to_string(),
+            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
         },
     ));
 

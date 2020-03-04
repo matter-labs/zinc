@@ -21,6 +21,8 @@ impl Caster {
     /// i<b1> -> i<b2>, where b1 <= b2
     /// i<b1> -> u<b2>, where b1 <= b2
     /// i<b1> -> field
+    /// enum<b1> -> u<b2>, where b1 <= b2
+    /// enum<b1> -> field
     /// x -> y, where x == y
     ///
     /// `b1` and `b2` are bitlengths

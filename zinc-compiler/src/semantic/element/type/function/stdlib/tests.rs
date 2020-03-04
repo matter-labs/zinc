@@ -4,8 +4,13 @@
 
 #![cfg(test)]
 
+use std::str::FromStr;
+
+use num_bigint::BigInt;
+
 use crate::error::Error;
 use crate::lexical::Location;
+use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionError;
 use crate::semantic::Error as SemanticError;
@@ -61,7 +66,13 @@ fn main() -> [u8; 4] {
     let expected = Err(Error::Semantic(SemanticError::Function(
         Location::new(3, 25),
         FunctionError::StandardLibrary(StandardLibraryFunctionError::array_new_length_invalid(
-            "constant integer '18446744073709551616' of type 'u72'".to_owned(),
+            IntegerConstant::new(
+                BigInt::from_str("18446744073709551616")
+                    .expect(crate::semantic::tests::PANIC_TEST_DATA),
+                false,
+                72,
+            )
+            .to_string(),
         )),
     )));
 

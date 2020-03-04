@@ -4,10 +4,10 @@
 
 #![cfg(test)]
 
+use crate::error::Error;
 use crate::lexical::Location;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
-use crate::Error;
 
 #[test]
 fn test() {

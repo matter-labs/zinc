@@ -4,16 +4,16 @@
 
 #![cfg(test)]
 
+use crate::error::Error;
 use crate::lexical::Location;
 use crate::semantic::caster::error::Error as CasterError;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::Error as SemanticError;
-use crate::Error;
 
 #[test]
-fn from_invalid_type() {
+fn casting_from_invalid_type() {
     let input = r#"
 fn main() {
     let value: field = 0;
@@ -35,7 +35,7 @@ fn main() {
 }
 
 #[test]
-fn to_invalid_type() {
+fn casting_to_invalid_type() {
     let input = r#"
 fn main() {
     let value: u8 = 0;
@@ -57,7 +57,7 @@ fn main() {
 }
 
 #[test]
-fn to_invalid_type_let_implicit() {
+fn casting_to_invalid_type_let_implicit() {
     let input = r#"
 fn main() {
     let value = 42;
@@ -79,7 +79,7 @@ fn main() {
 }
 
 #[test]
-fn to_lesser_bitlength() {
+fn casting_integer_to_lesser_bitlength() {
     let input = r#"
 fn main() {
     let value: u128 = 0;

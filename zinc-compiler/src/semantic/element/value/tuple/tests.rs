@@ -4,13 +4,13 @@
 
 #![cfg(test)]
 
+use crate::error::Error;
 use crate::lexical::Location;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::element::value::tuple::error::Error as TupleValueError;
 use crate::semantic::Error as SemanticError;
-use crate::Error;
 
 #[test]
 fn error_field_does_not_exist() {

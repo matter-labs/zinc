@@ -4,6 +4,9 @@
 
 #![cfg(test)]
 
+use num_bigint::BigInt;
+
+use crate::error::Error;
 use crate::lexical::Location;
 use crate::semantic::caster::error::Error as CasterError;
 use crate::semantic::element::constant::error::Error as ConstantError;
@@ -12,7 +15,6 @@ use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
-use crate::Error;
 
 #[test]
 fn error_element_constant_range_1st_expected_integer() {
@@ -109,8 +111,12 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 20),
         ElementError::Constant(ConstantError::OperatorOrFirstOperandExpectedBoolean(
-            Constant::Integer(IntegerConstant::new_from_usize(42, crate::BITLENGTH_BYTE))
-                .to_string(),
+            Constant::Integer(IntegerConstant::new(
+                BigInt::from(42),
+                false,
+                crate::BITLENGTH_BYTE,
+            ))
+            .to_string(),
         )),
     )));
 
@@ -130,8 +136,12 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 22),
         ElementError::Constant(ConstantError::OperatorOrSecondOperandExpectedBoolean(
-            Constant::Integer(IntegerConstant::new_from_usize(42, crate::BITLENGTH_BYTE))
-                .to_string(),
+            Constant::Integer(IntegerConstant::new(
+                BigInt::from(42),
+                false,
+                crate::BITLENGTH_BYTE,
+            ))
+            .to_string(),
         )),
     )));
 
@@ -151,8 +161,12 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 20),
         ElementError::Constant(ConstantError::OperatorXorFirstOperandExpectedBoolean(
-            Constant::Integer(IntegerConstant::new_from_usize(42, crate::BITLENGTH_BYTE))
-                .to_string(),
+            Constant::Integer(IntegerConstant::new(
+                BigInt::from(42),
+                false,
+                crate::BITLENGTH_BYTE,
+            ))
+            .to_string(),
         )),
     )));
 
@@ -172,8 +186,12 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 22),
         ElementError::Constant(ConstantError::OperatorXorSecondOperandExpectedBoolean(
-            Constant::Integer(IntegerConstant::new_from_usize(42, crate::BITLENGTH_BYTE))
-                .to_string(),
+            Constant::Integer(IntegerConstant::new(
+                BigInt::from(42),
+                false,
+                crate::BITLENGTH_BYTE,
+            ))
+            .to_string(),
         )),
     )));
 
@@ -193,8 +211,12 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 20),
         ElementError::Constant(ConstantError::OperatorAndFirstOperandExpectedBoolean(
-            Constant::Integer(IntegerConstant::new_from_usize(42, crate::BITLENGTH_BYTE))
-                .to_string(),
+            Constant::Integer(IntegerConstant::new(
+                BigInt::from(42),
+                false,
+                crate::BITLENGTH_BYTE,
+            ))
+            .to_string(),
         )),
     )));
 
@@ -214,8 +236,12 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 22),
         ElementError::Constant(ConstantError::OperatorAndSecondOperandExpectedBoolean(
-            Constant::Integer(IntegerConstant::new_from_usize(42, crate::BITLENGTH_BYTE))
-                .to_string(),
+            Constant::Integer(IntegerConstant::new(
+                BigInt::from(42),
+                false,
+                crate::BITLENGTH_BYTE,
+            ))
+            .to_string(),
         )),
     )));
 
@@ -257,8 +283,12 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 20),
         ElementError::Constant(ConstantError::OperatorEqualsSecondOperandExpectedUnit(
-            Constant::Integer(IntegerConstant::new_from_usize(42, crate::BITLENGTH_BYTE))
-                .to_string(),
+            Constant::Integer(IntegerConstant::new(
+                BigInt::from(42),
+                false,
+                crate::BITLENGTH_BYTE,
+            ))
+            .to_string(),
         )),
     )));
 
@@ -278,8 +308,12 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 22),
         ElementError::Constant(ConstantError::OperatorEqualsSecondOperandExpectedBoolean(
-            Constant::Integer(IntegerConstant::new_from_usize(42, crate::BITLENGTH_BYTE))
-                .to_string(),
+            Constant::Integer(IntegerConstant::new(
+                BigInt::from(42),
+                false,
+                crate::BITLENGTH_BYTE,
+            ))
+            .to_string(),
         )),
     )));
 
@@ -341,8 +375,12 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 20),
         ElementError::Constant(ConstantError::OperatorNotEqualsSecondOperandExpectedUnit(
-            Constant::Integer(IntegerConstant::new_from_usize(42, crate::BITLENGTH_BYTE))
-                .to_string(),
+            Constant::Integer(IntegerConstant::new(
+                BigInt::from(42),
+                false,
+                crate::BITLENGTH_BYTE,
+            ))
+            .to_string(),
         )),
     )));
 
@@ -363,8 +401,12 @@ fn main() {
         Location::new(3, 22),
         ElementError::Constant(
             ConstantError::OperatorNotEqualsSecondOperandExpectedBoolean(
-                Constant::Integer(IntegerConstant::new_from_usize(42, crate::BITLENGTH_BYTE))
-                    .to_string(),
+                Constant::Integer(IntegerConstant::new(
+                    BigInt::from(42),
+                    false,
+                    crate::BITLENGTH_BYTE,
+                ))
+                .to_string(),
             ),
         ),
     )));
@@ -829,8 +871,12 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 17),
         ElementError::Constant(ConstantError::OperatorNotExpectedBoolean(
-            Constant::Integer(IntegerConstant::new_from_usize(42, crate::BITLENGTH_BYTE))
-                .to_string(),
+            Constant::Integer(IntegerConstant::new(
+                BigInt::from(42),
+                false,
+                crate::BITLENGTH_BYTE,
+            ))
+            .to_string(),
         )),
     )));
 

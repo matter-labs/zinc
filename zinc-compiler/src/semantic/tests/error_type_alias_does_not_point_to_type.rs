@@ -4,11 +4,11 @@
 
 #![cfg(test)]
 
+use crate::error::Error;
 use crate::lexical::Location;
 use crate::semantic::element::path::Path;
 use crate::semantic::Error as SemanticError;
 use crate::syntax::MemberString;
-use crate::Error;
 
 #[test]
 fn test() {

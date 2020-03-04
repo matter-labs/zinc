@@ -15,9 +15,10 @@ pub struct Function {
 }
 
 impl Function {
-    const ARGUMENT_INDEX_CONDITION: usize = 0;
-    const ARGUMENT_INDEX_MESSAGE: usize = 1;
-    const ARGUMENT_COUNT: usize = 2;
+    pub const ARGUMENT_INDEX_CONDITION: usize = 0;
+    pub const ARGUMENT_INDEX_MESSAGE: usize = 1;
+    pub const ARGUMENT_COUNT_MANDATORY: usize = 1;
+    pub const ARGUMENT_COUNT_OPTIONAL: usize = 2;
 
     pub fn new() -> Self {
         Self {
@@ -61,7 +62,7 @@ impl Function {
             None => {
                 return Err(Error::argument_count(
                     self.identifier.to_owned(),
-                    Self::ARGUMENT_INDEX_CONDITION + 1,
+                    Self::ARGUMENT_COUNT_MANDATORY,
                     actual_params.len(),
                 ))
             }
@@ -89,10 +90,10 @@ impl Function {
             None => None,
         };
 
-        if actual_params.len() > Self::ARGUMENT_COUNT {
+        if actual_params.len() > Self::ARGUMENT_COUNT_OPTIONAL {
             return Err(Error::argument_count(
                 self.identifier.to_owned(),
-                Self::ARGUMENT_COUNT,
+                Self::ARGUMENT_COUNT_OPTIONAL,
                 actual_params.len(),
             ));
         }

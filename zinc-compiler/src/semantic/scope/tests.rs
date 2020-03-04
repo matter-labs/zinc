@@ -4,10 +4,10 @@
 
 #![cfg(test)]
 
+use crate::error::Error;
 use crate::lexical::Location;
 use crate::semantic::scope::error::Error as ScopeError;
 use crate::semantic::Error as SemanticError;
-use crate::Error;
 
 #[test]
 fn error_item_is_not_namespace() {

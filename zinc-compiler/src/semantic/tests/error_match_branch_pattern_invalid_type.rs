@@ -4,10 +4,10 @@
 
 #![cfg(test)]
 
+use crate::error::Error;
 use crate::lexical::Location;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
-use crate::Error;
 
 #[test]
 fn test() {
@@ -15,18 +15,18 @@ fn test() {
 fn main() {
     let scrutinee = 42;
     let result = match scrutinee {
-        0 => false,
-        1 => 0,
+        false => 0,
+        true => 1,
     };
 }
 "#;
 
     let expected = Err(Error::Semantic(
-        SemanticError::MatchBranchExpressionInvalidType {
-            location: Location::new(6, 14),
-            expected: Type::boolean().to_string(),
-            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            reference: Location::new(5, 14),
+        SemanticError::MatchBranchPatternInvalidType {
+            location: Location::new(5, 9),
+            expected: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            found: Type::boolean().to_string(),
+            reference: Location::new(4, 24),
         },
     ));
 

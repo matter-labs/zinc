@@ -34,7 +34,18 @@ use self::function::Function;
 use self::structure::Structure;
 
 lazy_static! {
-    pub static ref TYPE_INDEX: RwLock<HashMap<usize, String>> = RwLock::new(HashMap::new());
+    pub static ref TYPE_INDEX: RwLock<HashMap<usize, String>> = {
+        let mut index = HashMap::with_capacity(Scope::TYPE_ID_FIRST_AVAILABLE);
+        index.insert(
+            Scope::TYPE_ID_STD_CRYPTO_ECC_POINT,
+            "struct std::crypto::ecc::Point".to_owned(),
+        );
+        index.insert(
+            Scope::TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE,
+            "struct std::crypto::schnorr::Signature".to_owned(),
+        );
+        RwLock::new(index)
+    };
 }
 
 #[derive(Debug, Clone)]
@@ -144,14 +155,6 @@ impl Type {
         scope_parent: Option<Rc<RefCell<Scope>>>,
     ) -> Result<Self, Error> {
         Enumeration::new(identifier, unique_id, variants, scope_parent).map(Self::Enumeration)
-    }
-
-    pub fn new_assert_function() -> Self {
-        Self::Function(Function::new_assert())
-    }
-
-    pub fn new_dbg_function() -> Self {
-        Self::Function(Function::new_dbg())
     }
 
     pub fn new_std_function(builtin_identifier: BuiltinIdentifier) -> Self {
@@ -346,7 +349,7 @@ impl PartialEq<Type> for Type {
             ) => type_1 == type_2 && size_1 == size_2,
             (Self::Tuple { types: types_1 }, Self::Tuple { types: types_2 }) => types_1 == types_2,
             (Self::Structure(structure_1), Self::Structure(structure_2)) => {
-                structure_1.unique_id == structure_2.unique_id
+                structure_1 == structure_2
             }
             (Self::Enumeration(enumeration_1), Self::Enumeration(enumeration_2)) => {
                 enumeration_1 == enumeration_2
@@ -365,8 +368,8 @@ impl fmt::Display for Type {
             Self::IntegerSigned { bitlength } => write!(f, "i{}", bitlength),
             Self::Field => write!(f, "field"),
             Self::String => write!(f, "str"),
-            Self::Range { r#type } => write!(f, "{0} .. {0}", r#type),
-            Self::RangeInclusive { r#type } => write!(f, "{0} ..= {0}", r#type),
+            Self::Range { r#type } => write!(f, "{0}..{0}", r#type),
+            Self::RangeInclusive { r#type } => write!(f, "{0}..={0}", r#type),
             Self::Array { r#type, size } => write!(f, "[{}; {}]", r#type, size),
             Self::Tuple { types } => write!(
                 f,

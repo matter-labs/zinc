@@ -8,6 +8,7 @@ use std::convert::TryFrom;
 
 use num_bigint::BigInt;
 
+use crate::error::Error;
 use crate::lexical::Location;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
@@ -16,7 +17,6 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::Error as SemanticError;
-use crate::Error;
 
 #[test]
 fn error_element_assignment_1st_expected_place() {
@@ -32,7 +32,7 @@ fn main() {
             Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,
-                8,
+                crate::BITLENGTH_BYTE,
             )))
             .to_string(),
         ),
@@ -80,7 +80,7 @@ fn main() {
             Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,
-                8,
+                crate::BITLENGTH_BYTE,
             )))
             .to_string(),
         ),
@@ -128,7 +128,7 @@ fn main() {
             Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,
-                8,
+                crate::BITLENGTH_BYTE,
             )))
             .to_string(),
         ),
@@ -176,7 +176,7 @@ fn main() {
             Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,
-                8,
+                crate::BITLENGTH_BYTE,
             )))
             .to_string(),
         ),
@@ -224,7 +224,7 @@ fn main() {
             Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,
-                8,
+                crate::BITLENGTH_BYTE,
             )))
             .to_string(),
         ),
@@ -272,7 +272,7 @@ fn main() {
             Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,
-                8,
+                crate::BITLENGTH_BYTE,
             )))
             .to_string(),
         ),
@@ -319,7 +319,7 @@ fn main() {
         Location::new(4, 7),
         ElementError::OperatorRangeFirstOperandExpectedConstant(
             Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
-                .unwrap()
+                .expect(crate::semantic::tests::PANIC_TEST_DATA)
                 .to_string(),
         ),
     )));
@@ -342,7 +342,7 @@ fn main() {
         Location::new(4, 7),
         ElementError::OperatorRangeSecondOperandExpectedConstant(
             Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
-                .unwrap()
+                .expect(crate::semantic::tests::PANIC_TEST_DATA)
                 .to_string(),
         ),
     )));
@@ -365,7 +365,7 @@ fn main() {
         Location::new(4, 7),
         ElementError::OperatorRangeInclusiveFirstOperandExpectedConstant(
             Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
-                .unwrap()
+                .expect(crate::semantic::tests::PANIC_TEST_DATA)
                 .to_string(),
         ),
     )));
@@ -388,7 +388,7 @@ fn main() {
         Location::new(4, 7),
         ElementError::OperatorRangeInclusiveSecondOperandExpectedConstant(
             Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
-                .unwrap()
+                .expect(crate::semantic::tests::PANIC_TEST_DATA)
                 .to_string(),
         ),
     )));
@@ -1036,28 +1036,6 @@ fn main() {
     assert_eq!(result, expected);
 }
 
-// #[test]
-// fn error_element_casting_2nd_expected_type() {
-//     let input = r#"
-// const X: u8 = 69;
-//
-// fn main() {
-//     let value = 42 as X;
-// }
-// "#;
-//
-//     let expected = Err(Error::Semantic(SemanticError::Element(
-//         Location::new(5, 20),
-//         ElementError::OperatorCastingSecondOperandExpectedType(
-//             Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-//         ),
-//     )));
-//
-//     let result = crate::semantic::tests::compile_entry_point(input);
-//
-//     assert_eq!(result, expected);
-// }
-
 #[test]
 fn error_element_not_expected_evaluable() {
     let input = r#"
@@ -1116,7 +1094,7 @@ fn main() {
             Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,
-                8,
+                crate::BITLENGTH_BYTE,
             )))
             .to_string(),
         ),
@@ -1140,7 +1118,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(6, 23),
-        ElementError::OperatorIndexSecondOperandExpectedEvaluable("field".to_string()),
+        ElementError::OperatorIndexSecondOperandExpectedEvaluable(
+            Element::Type(Type::field()).to_string(),
+        ),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -1162,7 +1142,7 @@ fn main() {
             Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,
-                8,
+                crate::BITLENGTH_BYTE,
             )))
             .to_string(),
         ),
@@ -1184,7 +1164,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 18),
         ElementError::OperatorPathFirstOperandExpectedPath(
-            "constant integer '5' of type 'u8'".to_owned(),
+            IntegerConstant::new(BigInt::from(5), false, crate::BITLENGTH_BYTE).to_string(),
         ),
     )));
 
@@ -1208,7 +1188,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(7, 22),
         ElementError::OperatorPathSecondOperandExpectedMemberString(
-            "constant integer '5' of type 'u8'".to_owned(),
+            IntegerConstant::new(BigInt::from(5), false, crate::BITLENGTH_BYTE).to_string(),
         ),
     )));
 

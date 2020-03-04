@@ -15,8 +15,9 @@ impl PubKeyCommand {
         let params = AltJubjubBn256::new();
         let p_g = jubjub::FixedGenerators::SpendingKeyGenerator;
 
-        let mut private_key_hex = String::new();
-        std::io::stdin().read_to_string(&mut private_key_hex)?;
+        let mut private_key_hex = vec![0; 64];
+        std::io::stdin().read_exact(&mut private_key_hex)?;
+        let private_key_hex = String::from_utf8_lossy(&private_key_hex);
 
         let bytes = hex::decode(private_key_hex.trim())?;
         let private_key = eddsa::PrivateKey::<Bn256>::read(bytes.as_slice())?;

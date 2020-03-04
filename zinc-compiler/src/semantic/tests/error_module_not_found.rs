@@ -4,24 +4,21 @@
 
 #![cfg(test)]
 
+use crate::error::Error;
 use crate::lexical::Location;
 use crate::semantic::Error as SemanticError;
-use crate::Error;
 
 #[test]
 fn test() {
     let input = r#"
-fn main() {
-    let scrutinee = 42;
-    let result = match scrutinee {
-        1 => 10,
-        2 => 20,
-    };
-}
+mod unknown;
+
+fn main() {}
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::MatchNotExhausted {
-        location: Location::new(4, 18),
+    let expected = Err(Error::Semantic(SemanticError::ModuleNotFound {
+        location: Location::new(2, 5),
+        name: "unknown".to_owned(),
     }));
 
     let result = super::compile_entry_point(input);

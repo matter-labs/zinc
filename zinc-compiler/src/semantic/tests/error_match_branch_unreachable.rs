@@ -4,23 +4,25 @@
 
 #![cfg(test)]
 
+use crate::error::Error;
 use crate::lexical::Location;
 use crate::semantic::Error as SemanticError;
-use crate::Error;
 
 #[test]
 fn test() {
     let input = r#"
 fn main() {
-    let result = 42;
-    result = 69;
+    let scrutinee = 42;
+    let result = match scrutinee {
+        1 => 10,
+        _ => 101,
+        2 => 20,
+    };
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::MutatingImmutableMemory {
-        location: Location::new(4, 12),
-        name: "result".to_string(),
-        reference: Some(Location::new(3, 9)),
+    let expected = Err(Error::Semantic(SemanticError::MatchBranchUnreachable {
+        location: Location::new(7, 9),
     }));
 
     let result = super::compile_entry_point(input);

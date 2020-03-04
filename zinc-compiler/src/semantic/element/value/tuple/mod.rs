@@ -29,6 +29,26 @@ impl Tuple {
         }
     }
 
+    pub fn r#type(&self) -> Type {
+        Type::tuple(self.element_types.to_owned())
+    }
+
+    pub fn len(&self) -> usize {
+        self.element_types.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.element_types.is_empty()
+    }
+
+    pub fn has_the_same_type_as(&self, other: &Self) -> bool {
+        self.element_types == other.element_types
+    }
+
+    pub fn push(&mut self, r#type: Type) {
+        self.element_types.push(r#type);
+    }
+
     pub fn slice(&self, index: usize) -> Result<AccessData, Error> {
         let mut offset = 0;
         let total_size = self.r#type().size();
@@ -52,26 +72,6 @@ impl Tuple {
             total_size,
             self.element_types[tuple_index].to_owned(),
         ))
-    }
-
-    pub fn r#type(&self) -> Type {
-        Type::tuple(self.element_types.to_owned())
-    }
-
-    pub fn push(&mut self, r#type: Type) {
-        self.element_types.push(r#type);
-    }
-
-    pub fn len(&self) -> usize {
-        self.element_types.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.element_types.is_empty()
-    }
-
-    pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        self.element_types == other.element_types
     }
 }
 

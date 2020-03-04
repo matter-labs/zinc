@@ -42,6 +42,46 @@ impl Array {
         Type::array(self.r#type.to_owned(), self.size)
     }
 
+    pub fn has_the_same_type_as(&self, other: &Self) -> bool {
+        self.len() == other.len() && self.r#type == other.r#type
+    }
+
+    pub fn len(&self) -> usize {
+        self.size
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    pub fn push(&mut self, r#type: Type) -> Result<(), Error> {
+        if self.size == 0 {
+            self.r#type = r#type;
+        } else if r#type != self.r#type {
+            return Err(Error::PushingInvalidType {
+                expected: self.r#type.to_string(),
+                found: r#type.to_string(),
+            });
+        }
+        self.size += 1;
+
+        Ok(())
+    }
+
+    pub fn extend(&mut self, r#type: Type, count: usize) -> Result<(), Error> {
+        if self.size == 0 {
+            self.r#type = r#type;
+        } else if r#type != self.r#type {
+            return Err(Error::PushingInvalidType {
+                expected: self.r#type.to_string(),
+                found: r#type.to_string(),
+            });
+        }
+        self.size += count;
+
+        Ok(())
+    }
+
     pub fn slice_single(&self) -> AccessData {
         AccessData::new(
             0,
@@ -123,46 +163,6 @@ impl Array {
             self.r#type().size(),
             Type::array(self.r#type.to_owned(), length),
         ))
-    }
-
-    pub fn push(&mut self, r#type: Type) -> Result<(), Error> {
-        if self.size == 0 {
-            self.r#type = r#type;
-        } else if r#type != self.r#type {
-            return Err(Error::PushingInvalidType {
-                expected: self.r#type.to_string(),
-                found: r#type.to_string(),
-            });
-        }
-        self.size += 1;
-
-        Ok(())
-    }
-
-    pub fn extend(&mut self, r#type: Type, count: usize) -> Result<(), Error> {
-        if self.size == 0 {
-            self.r#type = r#type;
-        } else if r#type != self.r#type {
-            return Err(Error::PushingInvalidType {
-                expected: self.r#type.to_string(),
-                found: r#type.to_string(),
-            });
-        }
-        self.size += count;
-
-        Ok(())
-    }
-
-    pub fn len(&self) -> usize {
-        self.size
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-
-    pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        self.len() == other.len() && self.r#type == other.r#type
     }
 }
 

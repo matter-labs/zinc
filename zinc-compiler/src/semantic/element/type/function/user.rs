@@ -83,9 +83,9 @@ impl Function {
                 Some((actual_type, _is_constant)) => {
                     return Err(Error::argument_type(
                         self.identifier.to_owned(),
-                        r#type.to_string(),
-                        index + 1,
                         name,
+                        index + 1,
+                        r#type.to_string(),
                         actual_type.to_string(),
                     ))
                 }

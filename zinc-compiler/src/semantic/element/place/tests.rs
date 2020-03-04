@@ -4,13 +4,15 @@
 
 #![cfg(test)]
 
+use num_bigint::BigInt;
+
+use crate::error::Error;
 use crate::lexical::Location;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::place::error::Error as PlaceError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
-use crate::Error;
 
 #[test]
 fn error_element_place_index_1st_expected_array() {
@@ -125,7 +127,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 22),
         ElementError::Place(PlaceError::ArraySliceStartOutOfRange {
-            start: "-1".to_owned(),
+            start: BigInt::from(-1).to_string(),
         }),
     )));
 
@@ -146,7 +148,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 22),
         ElementError::Place(PlaceError::ArraySliceEndOutOfRange {
-            end: "6".to_owned(),
+            end: BigInt::from(6).to_string(),
             size: 5,
         }),
     )));
@@ -168,8 +170,8 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 22),
         ElementError::Place(PlaceError::ArraySliceEndLesserThanStart {
-            start: "2".to_owned(),
-            end: "1".to_owned(),
+            start: BigInt::from(2).to_string(),
+            end: BigInt::from(1).to_string(),
         }),
     )));
 

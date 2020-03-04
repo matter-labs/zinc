@@ -4,9 +4,10 @@
 
 #![cfg(test)]
 
+use crate::error::Error;
 use crate::lexical::Location;
+use crate::semantic::element::constant::Constant;
 use crate::semantic::Error as SemanticError;
-use crate::Error;
 
 #[test]
 fn test() {
@@ -22,7 +23,7 @@ fn main() {
     let expected = Err(Error::Semantic(
         SemanticError::LoopBoundsExpectedConstantRangeExpression {
             location: Location::new(4, 14),
-            found: "boolean constant 'true'".to_owned(),
+            found: Constant::Boolean(true).to_string(),
         },
     ));
 

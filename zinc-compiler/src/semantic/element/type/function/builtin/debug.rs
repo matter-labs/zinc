@@ -16,8 +16,8 @@ pub struct Function {
 }
 
 impl Function {
-    const ARGUMENT_INDEX_FORMAT_STRING: usize = 0;
-    const ARGUMENT_INDEX_VALUES: usize = 1;
+    pub const ARGUMENT_INDEX_FORMAT_STRING: usize = 0;
+    pub const ARGUMENT_INDEX_VALUES: usize = 1;
 
     pub fn new() -> Self {
         Self { identifier: "dbg" }

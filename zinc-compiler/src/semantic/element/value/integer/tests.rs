@@ -4,13 +4,13 @@
 
 #![cfg(test)]
 
+use crate::error::Error;
 use crate::lexical::Location;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::element::value::integer::error::Error as IntegerValueError;
 use crate::semantic::Error as SemanticError;
-use crate::Error;
 
 #[test]
 fn error_element_value_integer_types_mismatch_equals() {

@@ -123,7 +123,6 @@ impl Analyzer {
         let type_location = statement.r#type.location;
         let expression_location = statement.expression.location;
 
-        // compile the expression being assigned
         let mut rvalue = ExpressionAnalyzer::new_without_bytecode(self.scope())
             .expression(statement.expression, TranslationHint::ValueExpression)?;
 
@@ -152,7 +151,6 @@ impl Analyzer {
         let type_location = statement.r#type.location;
         let expression_location = statement.expression.location;
 
-        // compile the expression being assigned
         let mut rvalue = ExpressionAnalyzer::new_without_bytecode(self.scope())
             .expression(statement.expression, TranslationHint::ValueExpression)?;
 

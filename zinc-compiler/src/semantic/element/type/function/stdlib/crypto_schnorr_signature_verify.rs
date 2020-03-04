@@ -3,6 +3,7 @@
 //!
 
 use std::fmt;
+use std::ops::Deref;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
@@ -62,7 +63,7 @@ impl Function {
                     self.identifier.to_owned(),
                     "signature".to_owned(),
                     Self::ARGUMENT_INDEX_SIGNATURE + 1,
-                    "std::crypto::schnorr::Signature { ... }".to_owned(),
+                    "std::crypto::schnorr::Signature { r: std::crypto::ecc::Point, s: field, pk: std::crypto::ecc::Point }".to_owned(),
                     r#type.to_string(),
                 ))
             }
@@ -76,22 +77,36 @@ impl Function {
         }
 
         match actual_params.get(Self::ARGUMENT_INDEX_MESSAGE) {
-            Some(r#type) if r#type.is_bit_array() => {}
+            Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
+                (Type::Boolean, size)
+                    if size % crate::BITLENGTH_BYTE == 0
+                        && size > 0
+                        && size <= crate::BITLENGTH_BYTE * 31 => {}
+                (r#type, size) => {
+                    return Err(Error::argument_type(
+                        self.identifier.to_owned(),
+                        "message".to_owned(),
+                        Self::ARGUMENT_INDEX_MESSAGE + 1,
+                        "[bool; {N}], 0 < N <= 248, N % 8 == 0".to_owned(),
+                        format!("[{}; {}]", r#type, size),
+                    ));
+                }
+            },
             Some(r#type) => {
                 return Err(Error::argument_type(
                     self.identifier.to_owned(),
                     "message".to_owned(),
                     Self::ARGUMENT_INDEX_MESSAGE + 1,
-                    "[bool; {N}], N <= 31".to_owned(),
+                    "[bool; {N}], 0 < N <= 248, N % 8 == 0".to_owned(),
                     r#type.to_string(),
-                ))
+                ));
             }
             None => {
                 return Err(Error::argument_count(
                     self.identifier.to_owned(),
                     Self::ARGUMENT_COUNT,
                     actual_params.len(),
-                ))
+                ));
             }
         }
 

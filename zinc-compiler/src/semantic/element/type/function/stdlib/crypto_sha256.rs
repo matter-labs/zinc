@@ -55,13 +55,13 @@ impl Function {
 
         match actual_params.get(Self::ARGUMENT_INDEX_PREIMAGE) {
             Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
-                (Type::Boolean, size) if size % crate::BITLENGTH_BYTE == 0 => {}
+                (Type::Boolean, size) if size > 0 && size % crate::BITLENGTH_BYTE == 0 => {}
                 (r#type, size) => {
                     return Err(Error::argument_type(
                         self.identifier.to_owned(),
                         "preimage".to_owned(),
                         Self::ARGUMENT_INDEX_PREIMAGE + 1,
-                        "[bool; {8*N}]".to_owned(),
+                        "[bool; {N}], N > 0, N % 8 == 0".to_owned(),
                         format!("[{}; {}]", r#type, size),
                     ))
                 }
@@ -71,7 +71,7 @@ impl Function {
                     self.identifier.to_owned(),
                     "preimage".to_owned(),
                     Self::ARGUMENT_INDEX_PREIMAGE + 1,
-                    "[bool; {8*N}]".to_owned(),
+                    "[bool; {N}], N > 0, N % 8 == 0".to_owned(),
                     r#type.to_string(),
                 ))
             }

@@ -8,11 +8,12 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use crate::error::Error;
 use crate::lexical::Location;
+use crate::semantic::bytecode::Bytecode;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::scope::Scope;
 use crate::semantic::Error as SemanticError;
-use crate::Bytecode;
-use crate::Error;
-use crate::Scope;
 
 static PANIC_COMPILE_DEPENDENCY: &str = "Dependencies are compiled successfullt";
 
@@ -37,7 +38,7 @@ fn main() -> u8 {
     let expected = Err(Error::Semantic(
         SemanticError::MatchBranchPatternPathExpectedEvaluable {
             location: Location::new(7, 9),
-            found: "field".to_owned(),
+            found: Type::field().to_string(),
         },
     ));
 

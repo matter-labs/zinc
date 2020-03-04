@@ -55,13 +55,13 @@ impl Function {
 
         match actual_params.get(Self::ARGUMENT_INDEX_PREIMAGE) {
             Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
-                (Type::Boolean, _) => {}
+                (Type::Boolean, size) if 0 < size && size <= 512 => {}
                 (r#type, size) => {
                     return Err(Error::argument_type(
                         self.identifier.to_owned(),
                         "preimage".to_owned(),
                         Self::ARGUMENT_INDEX_PREIMAGE + 1,
-                        "[bool; {N}]".to_owned(),
+                        "[bool; {N}], 0 < N <= 512".to_owned(),
                         format!("[{}; {}]", r#type, size),
                     ))
                 }
@@ -71,7 +71,7 @@ impl Function {
                     self.identifier.to_owned(),
                     "preimage".to_owned(),
                     Self::ARGUMENT_INDEX_PREIMAGE + 1,
-                    "[bool; {N}]".to_owned(),
+                    "[bool; {N}], 0 < N <= 512".to_owned(),
                     r#type.to_string(),
                 ))
             }

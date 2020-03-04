@@ -99,8 +99,8 @@ impl Analyzer {
 
 #[cfg(test)]
 mod tests {
+    use crate::error::Error;
     use crate::semantic::Error as SemanticError;
-    use crate::Error;
 
     #[test]
     fn test() {
