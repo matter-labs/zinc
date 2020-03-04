@@ -1,23 +1,46 @@
-use crate::core::EvaluationStack;
-use crate::gadgets::stdlib::NativeFunction;
-use crate::gadgets::Scalar;
-use crate::{Engine, Result};
+use ff::PrimeField;
 use bellman::ConstraintSystem;
-use franklin_crypto::bellman::SynthesisError;
 use franklin_crypto::circuit::baby_eddsa::EddsaSignature;
 use franklin_crypto::circuit::ecc::EdwardsPoint;
-use franklin_crypto::circuit::num::AllocatedNum;
-use franklin_crypto::jubjub::edwards::Point;
 use franklin_crypto::jubjub::{FixedGenerators, JubjubParams};
 
-pub struct VerifyEddsaSignature;
+use crate::{Engine, MalformedBytecode, Result};
+use crate::core::EvaluationStack;
+use crate::gadgets::Scalar;
+use crate::gadgets::stdlib::NativeFunction;
 
-impl<E: Engine> NativeFunction<E> for VerifyEddsaSignature {
+pub struct VerifySchnorrSignature {
+    msg_len: usize
+}
+
+impl VerifySchnorrSignature {
+    pub fn new(args_count: usize) -> Result<Self> {
+        if args_count < 6 {
+            return Err(MalformedBytecode::InvalidArguments("schnorr::verify needs at least 6 arguments".into()).into());
+        }
+
+        Ok(Self { msg_len: args_count - 5 })
+    }
+}
+
+impl<E: Engine> NativeFunction<E> for VerifySchnorrSignature {
     fn execute<CS>(&self, mut cs: CS, stack: &mut EvaluationStack<E>) -> Result
-    where
-        CS: ConstraintSystem<E>,
+        where
+            CS: ConstraintSystem<E>,
     {
-        let message = stack.pop()?.value()?;
+        if self.msg_len > E::Fs::CAPACITY as usize {
+            return Err(MalformedBytecode::InvalidArguments(
+                format!("maximum message length for schnorr signature is {}", E::Fs::CAPACITY)
+            ).into())
+        }
+
+        let mut message = Vec::new();
+        for _ in 0..self.msg_len {
+            let bit = stack.pop()?.value()?;
+            message.push(bit);
+        }
+        // message.reverse();
+
         let pk_y = stack
             .pop()?
             .value()?
@@ -44,8 +67,8 @@ impl<E: Engine> NativeFunction<E> for VerifyEddsaSignature {
             .to_expression::<CS>()
             .into_number(cs.namespace(|| "to_number r_x"))?;
 
-        let r = edwards_point_from_witness(cs.namespace(|| "r"), r_x, r_y, E::jubjub_params())?;
-        let pk = edwards_point_from_witness(cs.namespace(|| "pk"), pk_x, pk_y, E::jubjub_params())?;
+        let r = EdwardsPoint::interpret(cs.namespace(|| "r"), &r_x, &r_y, E::jubjub_params())?;
+        let pk = EdwardsPoint::interpret(cs.namespace(|| "pk"), &pk_x, &pk_y, E::jubjub_params())?;
 
         let signature = EddsaSignature { r, s, pk };
 
@@ -62,21 +85,26 @@ impl<E: Engine> NativeFunction<E> for VerifyEddsaSignature {
 
 pub fn verify_signature<E, CS>(
     mut cs: CS,
-    message: &Scalar<E>,
+    message: &[Scalar<E>],
     signature: &EddsaSignature<E>,
     params: &E::Params,
 ) -> Result<Scalar<E>>
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
+    where
+        E: Engine,
+        CS: ConstraintSystem<E>,
 {
     let message_bits = message
-        .to_expression::<CS>()
-        .into_bits_le_strict(cs.namespace(|| "into_bits"))?;
+        .iter()
+        .enumerate()
+        .map(|(i, bit)| {
+            bit.to_boolean(cs.namespace(|| format!("message bit {}", i)))
+        })
+        .collect::<Result<Vec<_>>>()?;
 
     let public_generator = params
         .generator(FixedGenerators::SpendingKeyGenerator)
         .clone();
+
     let generator = EdwardsPoint::witness(
         cs.namespace(|| "allocate public generator"),
         Some(public_generator),
@@ -88,94 +116,84 @@ where
         params,
         &message_bits,
         generator,
-        32,
+        E::Fr::CAPACITY as usize / 8
     )?;
 
     Scalar::from_boolean(cs.namespace(|| "from_boolean"), is_verified)
 }
 
-fn edwards_point_from_witness<E, CS>(
-    mut cs: CS,
-    x: AllocatedNum<E>,
-    y: AllocatedNum<E>,
-    params: &E::Params,
-) -> std::result::Result<EdwardsPoint<E>, SynthesisError>
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-{
-    let point = match (x.get_value(), y.get_value()) {
-        (Some(xv), Some(yv)) => Point::from_xy(xv, yv, params),
-        _ => None,
-    };
-
-    let edwards_point = EdwardsPoint::witness(cs.namespace(|| "edwards point"), point, params)?;
-
-    cs.enforce(
-        || "x",
-        |zero| zero + x.get_variable(),
-        |zero| zero + CS::one(),
-        |zero| zero + edwards_point.get_x().get_variable(),
-    );
-
-    cs.enforce(
-        || "y",
-        |zero| zero + y.get_variable(),
-        |zero| zero + CS::one(),
-        |zero| zero + edwards_point.get_y().get_variable(),
-    );
-
-    Ok(edwards_point)
-}
-
 #[cfg(test)]
 mod tests {
-    use super::*;
-
-    use ff::{Field, PrimeField};
+    use ff::Field;
+    use ff::{PrimeField, PrimeFieldRepr};
     use franklin_crypto::circuit::test::TestConstraintSystem;
     use pairing::bn256::{Bn256, Fr};
+
     use zinc_bytecode::scalar::ScalarType;
+
+    use super::*;
+    use franklin_crypto::{eddsa, jubjub};
+    use rand::Rng;
+    use franklin_crypto::alt_babyjubjub::AltJubjubBn256;
+    use franklin_crypto::jubjub::JubjubEngine;
 
     #[test]
     fn test_verify() -> Result {
-        let r_x = Fr::from_str(
-            "13640612427693488274999841050634523339358198536154728841267323157043880421621",
-        )
-        .unwrap();
-        let r_y = Fr::from_str(
-            "9509884871693549865753143729935660249535333730208041183969775141915970240099",
-        )
-        .unwrap();
-        let s = Fr::from_str(
-            "494745623983833019655061946093744216550252666011167101498285355927842221703",
-        )
-        .unwrap();
-        let pk_x = Fr::from_str(
-            "20453034254071666356681228067672474579643265895584845472570305237276758169245",
-        )
-        .unwrap();
-        let pk_y = Fr::from_str(
-            "20956838306014746826052367476917828000427140731634825069188146376965741319115",
-        )
-        .unwrap();
-        let message = Fr::from_str("72034994866411393714850512529618071366").unwrap();
+        let params = AltJubjubBn256::new();
+        let p_g = jubjub::FixedGenerators::SpendingKeyGenerator;
+        let message = b"abc";
+
+        let message_bits = message
+            .iter()
+            .map(|byte| {
+                let mut bits = Vec::new();
+
+                for i in 0..8 {
+                    bits.push(byte & (1 << i) != 0);
+                }
+
+                bits
+            })
+            .flatten()
+            .map(|b| Scalar::new_constant_bool(b))
+            .collect::<Vec<_>>();
+
+        let mut rng = rand::thread_rng();
+        let key = eddsa::PrivateKey::<Bn256>(rng.gen());
+        let pub_key = eddsa::PublicKey::from_private(&key, p_g, &params);
+        let seed = eddsa::Seed::random_seed(&mut rng, message);
+
+        let signature = key.sign_raw_message(message, &seed, p_g, &params, <Bn256 as JubjubEngine>::Fs::CAPACITY as usize / 8);
 
         let mut stack = EvaluationStack::<Bn256>::new();
+
+        let mut sigs_bytes = [0u8; 32];
+        signature.s.into_repr().write_le(& mut sigs_bytes[..]).expect("get LE bytes of signature S");
+        let mut sigs_repr = <Fr as PrimeField>::Repr::from(0);
+        sigs_repr.read_le(&sigs_bytes[..]).expect("interpret S as field element representation");
+        let sigs_converted = Fr::from_repr(sigs_repr).unwrap();
+
+        let (r_x, r_y) = signature.r.into_xy();
+        let s = sigs_converted;
+        let (pk_x, pk_y) = pub_key.0.into_xy();
 
         stack.push(Scalar::new_constant_fr(r_x, ScalarType::Field).into())?;
         stack.push(Scalar::new_constant_fr(r_y, ScalarType::Field).into())?;
         stack.push(Scalar::new_constant_fr(s, ScalarType::Field).into())?;
         stack.push(Scalar::new_constant_fr(pk_x, ScalarType::Field).into())?;
         stack.push(Scalar::new_constant_fr(pk_y, ScalarType::Field).into())?;
-        stack.push(Scalar::new_constant_fr(message, ScalarType::Field).into())?;
+        for bit in message_bits.into_iter().rev() {
+            stack.push(bit.into())?;
+        }
 
         let mut cs = TestConstraintSystem::new();
-        VerifyEddsaSignature.execute(cs.namespace(|| "signature check"), &mut stack)?;
+        VerifySchnorrSignature::new(5 + 8 * message.len())
+            .unwrap()
+            .execute(cs.namespace(|| "signature check"), &mut stack)?;
 
         let is_valid = stack.pop()?.value()?;
 
-        assert_eq!(is_valid.get_value(), Some(Fr::one()));
+        assert_eq!(is_valid.get_value(), Some(Fr::one()), "success");
         assert!(cs.is_satisfied(), "unsatisfied");
         assert_eq!(cs.which_is_unsatisfied(), None, "unconstrained");
 

@@ -2,7 +2,7 @@ extern crate franklin_crypto;
 
 use crate::gadgets::stdlib::arrays::{ArrayPad, Reverse, Truncate};
 use crate::gadgets::stdlib::bits::*;
-use crate::gadgets::stdlib::crypto::{Pedersen, Sha256, VerifyEddsaSignature};
+use crate::gadgets::stdlib::crypto::{Pedersen, Sha256, VerifySchnorrSignature};
 
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
@@ -19,7 +19,7 @@ where
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         // TODO: Use call_native for all built-in functions
         if let BuiltinIdentifier::CryptoSchnorrVerify = self.identifier {
-            return vm.call_native(VerifyEddsaSignature);
+            return vm.call_native(VerifySchnorrSignature::new(self.inputs_count)?);
         }
 
         let mut input = Vec::new();

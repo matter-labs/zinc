@@ -7,4 +7,6 @@ members = [
     "zinc-vm",
 
     "zinc-tester",
+
+    "schnorr",
 ]
