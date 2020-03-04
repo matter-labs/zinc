@@ -8,6 +8,7 @@ install:
 	cargo install --force --path zinc-compiler
 	cargo install --force --path zargo
 	cargo install --force --path zinc-tester
+	cargo install --force --path schnorr
 
 .PHONY: test-integration
 test-integration: install
