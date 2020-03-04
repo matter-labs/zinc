@@ -5,7 +5,7 @@ use serde_json::json;
 use std::io::Read;
 use std::path::PathBuf;
 use structopt::StructOpt;
-use crate::arguments::fr_into_hex;
+use crate::arguments::{fr_into_hex, Error};
 
 #[derive(StructOpt)]
 #[structopt(name = "sign", about = "generate signature")]
@@ -22,19 +22,19 @@ pub struct SignCommand {
 }
 
 impl SignCommand {
-    pub fn execute(&self) {
+    pub fn execute(&self) -> Result<(), Error> {
         let params = AltJubjubBn256::new();
 
-        let private_key_hex = std::fs::read_to_string(&self.key).unwrap();
-        let bytes = hex::decode(private_key_hex.trim()).unwrap();
-        let private_key = eddsa::PrivateKey::<Bn256>::read(bytes.as_slice()).unwrap();
+        let private_key_hex = std::fs::read_to_string(&self.key)?;
+        let bytes = hex::decode(private_key_hex.trim())?;
+        let private_key = eddsa::PrivateKey::<Bn256>::read(bytes.as_slice())?;
 
         let message = if &self.message_path.to_string_lossy() == "-" {
             let mut message = Vec::new();
-            std::io::stdin().read_to_end(&mut message).unwrap();
+            std::io::stdin().read_to_end(&mut message)?;
             message
         } else {
-            std::fs::read(&self.message_path).unwrap()
+            std::fs::read(&self.message_path)?
         };
 
         let signature = schnorr::generate_signature(&params, &private_key, &message);
@@ -64,7 +64,9 @@ impl SignCommand {
             }
         });
 
-        let signature_json = serde_json::to_string_pretty(&value).unwrap();
-        println!("{}", signature_json)
+        let signature_json = serde_json::to_string_pretty(&value).expect("json");
+        println!("{}", signature_json);
+
+        Ok(())
     }
 }
