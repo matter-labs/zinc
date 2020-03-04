@@ -1,7 +1,7 @@
 use franklin_crypto::alt_babyjubjub::AltJubjubBn256;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::bellman::pairing::ff::{PrimeField, PrimeFieldRepr};
-use franklin_crypto::{eddsa, jubjub};
+use franklin_crypto::eddsa;
 use serde_json::json;
 use std::io::Read;
 use std::path::PathBuf;
@@ -53,9 +53,15 @@ impl SignCommand {
         };
 
         let value = json!({
-            "r": [r.0, r.1],
+            "r": {
+                "x": r.0,
+                "y": r.1
+            },
             "s": s,
-            "pk": [pk.0, pk.1]
+            "pk": {
+                "x": pk.0,
+                "y": pk.1
+            }
         });
 
         let signature_json = serde_json::to_string_pretty(&value).unwrap();
