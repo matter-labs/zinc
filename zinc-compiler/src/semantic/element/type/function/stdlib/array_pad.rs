@@ -74,9 +74,9 @@ impl Function {
                 Some((r#type, _is_constant, _is_number)) => {
                     return Err(Error::argument_type(
                         self.identifier.to_owned(),
-                        "[{scalar}; {N}]".to_owned(),
-                        Self::ARGUMENT_INDEX_ARRAY + 1,
                         "array".to_owned(),
+                        Self::ARGUMENT_INDEX_ARRAY + 1,
+                        "[{scalar}; {N}]".to_owned(),
                         r#type.to_string(),
                     ))
                 }
@@ -94,9 +94,9 @@ impl Function {
             Some((r#type, true, _number)) => {
                 return Err(Error::argument_type(
                     self.identifier.to_owned(),
-                    "{unsigned integer}".to_owned(),
-                    Self::ARGUMENT_INDEX_NEW_LENGTH + 1,
                     "new_length".to_owned(),
+                    Self::ARGUMENT_INDEX_NEW_LENGTH + 1,
+                    "{unsigned integer}".to_owned(),
                     r#type.to_string(),
                 ))
             }
@@ -123,9 +123,9 @@ impl Function {
             Some((r#type, _is_constant, _number)) => {
                 return Err(Error::argument_type(
                     self.identifier.to_owned(),
-                    "{scalar}".to_owned(),
-                    Self::ARGUMENT_INDEX_FILL_VALUE + 1,
                     "fill_value".to_owned(),
+                    Self::ARGUMENT_INDEX_FILL_VALUE + 1,
+                    "{scalar}".to_owned(),
                     r#type.to_string(),
                 ))
             }

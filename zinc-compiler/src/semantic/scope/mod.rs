@@ -252,7 +252,7 @@ impl Scope {
             ),
         );
         let std_crypto_ecc_point = StructureType::new(
-            "Signature".to_owned(),
+            "Point".to_owned(),
             Self::TYPE_ID_STD_CRYPTO_ECC_POINT,
             vec![
                 ("x".to_owned(), Type::field()),

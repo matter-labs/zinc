@@ -60,9 +60,9 @@ impl Function {
             Some(r#type) => {
                 return Err(Error::argument_type(
                     self.identifier.to_owned(),
-                    Type::field().to_string(),
+                    "signature".to_owned(),
                     Self::ARGUMENT_INDEX_SIGNATURE + 1,
-                    "r_x".to_owned(),
+                    "std::crypto::schnorr::Signature { ... }".to_owned(),
                     r#type.to_string(),
                 ))
             }
@@ -80,9 +80,9 @@ impl Function {
             Some(r#type) => {
                 return Err(Error::argument_type(
                     self.identifier.to_owned(),
-                    "[bool; {N}]".to_owned(),
-                    Self::ARGUMENT_INDEX_MESSAGE + 1,
                     "message".to_owned(),
+                    Self::ARGUMENT_INDEX_MESSAGE + 1,
+                    "[bool; {N}], N <= 31".to_owned(),
                     r#type.to_string(),
                 ))
             }

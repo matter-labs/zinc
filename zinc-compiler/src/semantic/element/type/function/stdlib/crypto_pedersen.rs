@@ -59,9 +59,9 @@ impl Function {
                 (r#type, size) => {
                     return Err(Error::argument_type(
                         self.identifier.to_owned(),
-                        "[bool; {N}]".to_owned(),
-                        Self::ARGUMENT_INDEX_PREIMAGE + 1,
                         "preimage".to_owned(),
+                        Self::ARGUMENT_INDEX_PREIMAGE + 1,
+                        "[bool; {N}]".to_owned(),
                         format!("[{}; {}]", r#type, size),
                     ))
                 }
@@ -69,9 +69,9 @@ impl Function {
             Some(r#type) => {
                 return Err(Error::argument_type(
                     self.identifier.to_owned(),
-                    "[bool; {N}]".to_owned(),
-                    Self::ARGUMENT_INDEX_PREIMAGE + 1,
                     "preimage".to_owned(),
+                    Self::ARGUMENT_INDEX_PREIMAGE + 1,
+                    "[bool; {N}]".to_owned(),
                     r#type.to_string(),
                 ))
             }

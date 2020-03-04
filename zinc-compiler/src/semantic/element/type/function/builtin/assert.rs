@@ -52,9 +52,9 @@ impl Function {
             Some((r#type, _is_constant, _string)) => {
                 return Err(Error::argument_type(
                     self.identifier.to_owned(),
-                    Type::boolean().to_string(),
-                    Self::ARGUMENT_INDEX_CONDITION + 1,
                     "condition".to_owned(),
+                    Self::ARGUMENT_INDEX_CONDITION + 1,
+                    Type::boolean().to_string(),
                     r#type.to_string(),
                 ))
             }
@@ -72,9 +72,9 @@ impl Function {
             Some((r#type, true, _string)) => {
                 return Err(Error::argument_type(
                     self.identifier.to_owned(),
-                    Type::string().to_string(),
-                    Self::ARGUMENT_INDEX_MESSAGE + 1,
                     "message".to_owned(),
+                    Self::ARGUMENT_INDEX_MESSAGE + 1,
+                    Type::string().to_string(),
                     r#type.to_string(),
                 ))
             }

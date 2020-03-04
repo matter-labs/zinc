@@ -1,6 +1,6 @@
 use std::crypto::schnorr::Signature;
 
-const MESSAGE_LENGTH: u64 = 10;
+const MESSAGE_LENGTH: u64 = 8;
 
 fn main(signature: Signature, message: [bool; MESSAGE_LENGTH]) -> bool {
     dbg!("R = [{}; {}]", signature.r.x, signature.r.y);

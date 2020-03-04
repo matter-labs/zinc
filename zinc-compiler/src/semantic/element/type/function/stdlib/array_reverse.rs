@@ -58,9 +58,9 @@ impl Function {
             Some(r#type) => {
                 return Err(Error::argument_type(
                     self.identifier.to_owned(),
-                    "[{scalar}; {N}]".to_owned(),
-                    Self::ARGUMENT_INDEX_ARRAY + 1,
                     "array".to_owned(),
+                    Self::ARGUMENT_INDEX_ARRAY + 1,
+                    "[{scalar}; {N}]".to_owned(),
                     r#type.to_string(),
                 ))
             }

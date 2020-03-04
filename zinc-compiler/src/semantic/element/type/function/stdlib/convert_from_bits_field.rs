@@ -57,9 +57,9 @@ impl Function {
                 (r#type, size) => {
                     return Err(Error::argument_type(
                         self.identifier.to_owned(),
-                        format!("[bool; {}]", crate::BITLENGTH_FIELD),
-                        Self::ARGUMENT_INDEX_BITS + 1,
                         "bits".to_owned(),
+                        Self::ARGUMENT_INDEX_BITS + 1,
+                        format!("[bool; {}]", crate::BITLENGTH_FIELD),
                         format!("[{}; {}]", r#type, size),
                     ))
                 }
@@ -67,9 +67,9 @@ impl Function {
             Some(r#type) => {
                 return Err(Error::argument_type(
                     self.identifier.to_owned(),
-                    format!("[bool; {}]", crate::BITLENGTH_FIELD),
-                    Self::ARGUMENT_INDEX_BITS + 1,
                     "bits".to_owned(),
+                    Self::ARGUMENT_INDEX_BITS + 1,
+                    format!("[bool; {}]", crate::BITLENGTH_FIELD),
                     r#type.to_string(),
                 ))
             }

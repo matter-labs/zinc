@@ -58,9 +58,9 @@ impl Function {
             Some(r#type) => {
                 return Err(Error::argument_type(
                     self.identifier.to_owned(),
-                    "integer".to_owned(),
-                    Self::ARGUMENT_INDEX_VALUE + 1,
                     "value".to_owned(),
+                    Self::ARGUMENT_INDEX_VALUE + 1,
+                    "{integer}".to_owned(),
                     r#type.to_string(),
                 ))
             }
