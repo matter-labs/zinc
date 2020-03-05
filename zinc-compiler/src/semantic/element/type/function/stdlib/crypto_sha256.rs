@@ -18,8 +18,8 @@ pub struct Function {
 }
 
 impl Function {
-    const ARGUMENT_INDEX_PREIMAGE: usize = 0;
-    const ARGUMENT_COUNT: usize = 1;
+    pub const ARGUMENT_INDEX_PREIMAGE: usize = 0;
+    pub const ARGUMENT_COUNT: usize = 1;
 
     pub fn new() -> Self {
         Self {
@@ -61,7 +61,7 @@ impl Function {
                         self.identifier.to_owned(),
                         "preimage".to_owned(),
                         Self::ARGUMENT_INDEX_PREIMAGE + 1,
-                        "[bool; {N}], N > 0, N % 8 == 0".to_owned(),
+                        format!("[bool; N], N > 0, N % {} == 0", crate::BITLENGTH_BYTE),
                         format!("[{}; {}]", r#type, size),
                     ))
                 }
@@ -71,7 +71,7 @@ impl Function {
                     self.identifier.to_owned(),
                     "preimage".to_owned(),
                     Self::ARGUMENT_INDEX_PREIMAGE + 1,
-                    "[bool; {N}], N > 0, N % 8 == 0".to_owned(),
+                    format!("[bool; N], N > 0, N % {} == 0", crate::BITLENGTH_BYTE),
                     r#type.to_string(),
                 ))
             }
@@ -100,7 +100,7 @@ impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "fn std::crypto::{}(preimage: [bool: 8*N]) -> {}",
+            "fn std::crypto::{}(preimage: [bool: N]) -> {}",
             self.identifier, self.return_type,
         )
     }

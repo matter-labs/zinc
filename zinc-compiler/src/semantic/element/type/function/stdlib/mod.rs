@@ -28,14 +28,14 @@ use self::convert_from_bits_signed::Function as FromBitsSignedFunction;
 use self::convert_from_bits_unsigned::Function as FromBitsUnsignedFunction;
 use self::convert_to_bits::Function as ToBitsFunction;
 use self::crypto_pedersen::Function as PedersenFunction;
-use self::crypto_schnorr_signature_verify::Function as SchnorrVerifyFunction;
+use self::crypto_schnorr_signature_verify::Function as SchnorrSignatureVerifyFunction;
 use self::crypto_sha256::Function as Sha256Function;
 
 #[derive(Debug, Clone)]
 pub enum Function {
     CryptoSha256(Sha256Function),
     CryptoPedersen(PedersenFunction),
-    CryptoSchnorrVerify(SchnorrVerifyFunction),
+    CryptoSchnorrSignatureVerify(SchnorrSignatureVerifyFunction),
 
     ConvertToBits(ToBitsFunction),
     ConvertFromBitsUnsigned(FromBitsUnsignedFunction),
@@ -53,7 +53,7 @@ impl Function {
             BuiltinIdentifier::CryptoSha256 => Self::CryptoSha256(Sha256Function::new()),
             BuiltinIdentifier::CryptoPedersen => Self::CryptoPedersen(PedersenFunction::new()),
             BuiltinIdentifier::CryptoSchnorrSignatureVerify => {
-                Self::CryptoSchnorrVerify(SchnorrVerifyFunction::new())
+                Self::CryptoSchnorrSignatureVerify(SchnorrSignatureVerifyFunction::new())
             }
 
             BuiltinIdentifier::ToBits => Self::ConvertToBits(ToBitsFunction::new()),
@@ -77,7 +77,7 @@ impl Function {
         match self {
             Self::CryptoSha256(inner) => inner.identifier(),
             Self::CryptoPedersen(inner) => inner.identifier(),
-            Self::CryptoSchnorrVerify(inner) => inner.identifier(),
+            Self::CryptoSchnorrSignatureVerify(inner) => inner.identifier(),
 
             Self::ConvertToBits(inner) => inner.identifier(),
             Self::ConvertFromBitsUnsigned(inner) => inner.identifier(),
@@ -94,7 +94,7 @@ impl Function {
         match self {
             Self::CryptoSha256(inner) => inner.builtin_identifier(),
             Self::CryptoPedersen(inner) => inner.builtin_identifier(),
-            Self::CryptoSchnorrVerify(inner) => inner.builtin_identifier(),
+            Self::CryptoSchnorrSignatureVerify(inner) => inner.builtin_identifier(),
 
             Self::ConvertToBits(inner) => inner.builtin_identifier(),
             Self::ConvertFromBitsUnsigned(inner) => inner.builtin_identifier(),
@@ -113,7 +113,7 @@ impl fmt::Display for Function {
         match self {
             Self::CryptoSha256(inner) => write!(f, "{}", inner),
             Self::CryptoPedersen(inner) => write!(f, "{}", inner),
-            Self::CryptoSchnorrVerify(inner) => write!(f, "{}", inner),
+            Self::CryptoSchnorrSignatureVerify(inner) => write!(f, "{}", inner),
 
             Self::ConvertToBits(inner) => write!(f, "{}", inner),
             Self::ConvertFromBitsUnsigned(inner) => write!(f, "{}", inner),

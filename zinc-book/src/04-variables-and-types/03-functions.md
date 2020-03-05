@@ -6,10 +6,10 @@ thus there is no `return` statement in Zinc. The only way to return a value is
 to specify it as the last unterminated statement of the function block.
 
 Functions consist of several parts: the name, arguments, return type, and the
-code block. The name is the function type name and it uniquely defines a function.
+code block. The function name uniquely defines the function within its namespace.
 The arguments can be only passed by value, and the function result can only be
 returned by value. If the return type is omitted, the function is considered
-to return the result of type `()`. The code block can access the global scope,
+to return a void value `()`. The code block can access the global scope,
 but it has no information about where the function has been called from.
 
 ```rust,no_run,noplaypen

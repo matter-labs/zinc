@@ -19,10 +19,10 @@ pub struct Function {
 }
 
 impl Function {
-    const ARGUMENT_INDEX_ARRAY: usize = 0;
-    const ARGUMENT_INDEX_NEW_LENGTH: usize = 1;
-    const ARGUMENT_INDEX_FILL_VALUE: usize = 2;
-    const ARGUMENT_COUNT: usize = 3;
+    pub const ARGUMENT_INDEX_ARRAY: usize = 0;
+    pub const ARGUMENT_INDEX_NEW_LENGTH: usize = 1;
+    pub const ARGUMENT_INDEX_FILL_VALUE: usize = 2;
+    pub const ARGUMENT_COUNT: usize = 3;
 
     pub fn new() -> Self {
         Self { identifier: "pad" }
@@ -76,7 +76,7 @@ impl Function {
                         self.identifier.to_owned(),
                         "array".to_owned(),
                         Self::ARGUMENT_INDEX_ARRAY + 1,
-                        "[{scalar}; {N}]".to_owned(),
+                        "[{scalar}; N]".to_owned(),
                         r#type.to_string(),
                     ))
                 }
@@ -125,7 +125,7 @@ impl Function {
                     self.identifier.to_owned(),
                     "fill_value".to_owned(),
                     Self::ARGUMENT_INDEX_FILL_VALUE + 1,
-                    "{scalar}".to_owned(),
+                    input_array_type.to_string(),
                     r#type.to_string(),
                 ))
             }
@@ -160,7 +160,7 @@ impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "fn std::array::{}(array: [{{T: scalar}}; {{N}}], new_length: {{M: unsigned integer}}, fill_value: {{T}}) -> [{{T: scalar}}; new_length]",
+            "fn std::array::{}(array: [T; N], new_length: M, fill_value: T) -> [T; M]",
             self.identifier,
         )
     }

@@ -19,9 +19,9 @@ pub struct Function {
 }
 
 impl Function {
-    const ARGUMENT_INDEX_ARRAY: usize = 0;
-    const ARGUMENT_INDEX_NEW_LENGTH: usize = 1;
-    const ARGUMENT_COUNT: usize = 2;
+    pub const ARGUMENT_INDEX_ARRAY: usize = 0;
+    pub const ARGUMENT_INDEX_NEW_LENGTH: usize = 1;
+    pub const ARGUMENT_COUNT: usize = 2;
 
     pub fn new() -> Self {
         Self {
@@ -77,7 +77,7 @@ impl Function {
                         self.identifier.to_owned(),
                         "array".to_owned(),
                         Self::ARGUMENT_INDEX_ARRAY + 1,
-                        "[{scalar}; {N}]".to_owned(),
+                        "[{scalar}; N]".to_owned(),
                         r#type.to_string(),
                     ))
                 }
@@ -140,7 +140,7 @@ impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "fn std::array::{}(array: [{{T: scalar}}; {{N}}], new_length: {{M: unsigned integer}}) -> [{{T: scalar}}; new_length]",
+            "fn std::array::{}(array: [T; N], new_length: M) -> [T; M]",
             self.identifier,
         )
     }

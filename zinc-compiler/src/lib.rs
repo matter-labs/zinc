@@ -42,6 +42,9 @@ pub const BITLENGTH_MAX_INT: usize = 248;
 pub const BITLENGTH_FIELD: usize = 254;
 
 pub const SHA256_HASH_SIZE_BITS: usize = 256;
+pub const PEDERSEN_HASH_INPUT_LIMIT_BITS: usize = 512;
+pub const SCHNORR_MESSAGE_LIMIT_BYTES: usize = 31;
+pub const SCHNORR_MESSAGE_LIMIT_BITS: usize = SCHNORR_MESSAGE_LIMIT_BYTES * BITLENGTH_BYTE;
 
 pub static PANIC_LAST_SHARED_REFERENCE: &str = "There are no other references at this point";
 pub static PANIC_MUTEX_SYNC: &str = "Mutexes never panic";

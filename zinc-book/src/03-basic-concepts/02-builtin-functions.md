@@ -24,7 +24,7 @@ fn wrong(a: u8, b: u8) -> u8 {
 This function prints data to the terminal and is used only for debugging purposes.
 
 The first argument is the format string, where each `{}` placeholder is replaced
-with a corresponding value from the next arguments. The number of placeholders
+with a corresponding value from the rest of the arguments. The number of placeholders
 must be equal to the number of the arguments not including the format string.
 
 ```rust,no_run,noplaypen

@@ -18,8 +18,8 @@ pub struct Function {
 }
 
 impl Function {
-    const ARGUMENT_INDEX_PREIMAGE: usize = 0;
-    const ARGUMENT_COUNT: usize = 1;
+    pub const ARGUMENT_INDEX_PREIMAGE: usize = 0;
+    pub const ARGUMENT_COUNT: usize = 1;
 
     pub fn new() -> Self {
         Self {
@@ -55,13 +55,17 @@ impl Function {
 
         match actual_params.get(Self::ARGUMENT_INDEX_PREIMAGE) {
             Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
-                (Type::Boolean, size) if 0 < size && size <= 512 => {}
+                (Type::Boolean, size)
+                    if 0 < size && size <= crate::PEDERSEN_HASH_INPUT_LIMIT_BITS => {}
                 (r#type, size) => {
                     return Err(Error::argument_type(
                         self.identifier.to_owned(),
                         "preimage".to_owned(),
                         Self::ARGUMENT_INDEX_PREIMAGE + 1,
-                        "[bool; {N}], 0 < N <= 512".to_owned(),
+                        format!(
+                            "[bool; N], 0 < N <= {}",
+                            crate::PEDERSEN_HASH_INPUT_LIMIT_BITS
+                        ),
                         format!("[{}; {}]", r#type, size),
                     ))
                 }
@@ -71,7 +75,10 @@ impl Function {
                     self.identifier.to_owned(),
                     "preimage".to_owned(),
                     Self::ARGUMENT_INDEX_PREIMAGE + 1,
-                    "[bool; {N}], 0 < N <= 512".to_owned(),
+                    format!(
+                        "[bool; N], 0 < N <= {}",
+                        crate::PEDERSEN_HASH_INPUT_LIMIT_BITS
+                    ),
                     r#type.to_string(),
                 ))
             }

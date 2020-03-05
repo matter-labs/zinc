@@ -130,7 +130,7 @@ mod tests {
         let input = "u248";
         let expected = (
             input.len(),
-            Lexeme::Keyword(Keyword::new_integer_unsigned(248)),
+            Lexeme::Keyword(Keyword::new_integer_unsigned(crate::BITLENGTH_MAX_INT)),
         );
         let result = parse(input);
         assert_eq!(result, expected);

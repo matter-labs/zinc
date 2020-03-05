@@ -88,7 +88,7 @@ fn main() {
 }
 
 #[test]
-fn error_debug_argument_1_expected_string() {
+fn error_debug_argument_1_format_expected_string() {
     let input = r#"
 fn main() {
     dbg!(42);
@@ -156,7 +156,7 @@ fn main() {
 }
 
 #[test]
-fn error_assert_argument_1_expected_boolean() {
+fn error_assert_argument_1_condition_expected_boolean() {
     let input = r#"
 fn main() {
     assert!(42);
@@ -180,7 +180,7 @@ fn main() {
 }
 
 #[test]
-fn error_assert_argument_2_expected_string() {
+fn error_assert_argument_2_message_expected_string() {
     let input = r#"
 fn main() {
     assert!(true, 42);

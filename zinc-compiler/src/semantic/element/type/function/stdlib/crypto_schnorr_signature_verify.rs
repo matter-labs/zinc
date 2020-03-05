@@ -19,9 +19,9 @@ pub struct Function {
 }
 
 impl Function {
-    const ARGUMENT_INDEX_SIGNATURE: usize = 0;
-    const ARGUMENT_INDEX_MESSAGE: usize = 1;
-    const ARGUMENT_COUNT: usize = 2;
+    pub const ARGUMENT_INDEX_SIGNATURE: usize = 0;
+    pub const ARGUMENT_INDEX_MESSAGE: usize = 1;
+    pub const ARGUMENT_COUNT: usize = 2;
 
     pub fn new() -> Self {
         Self {
@@ -81,13 +81,17 @@ impl Function {
                 (Type::Boolean, size)
                     if size % crate::BITLENGTH_BYTE == 0
                         && size > 0
-                        && size <= crate::BITLENGTH_BYTE * 31 => {}
+                        && size <= crate::SCHNORR_MESSAGE_LIMIT_BITS => {}
                 (r#type, size) => {
                     return Err(Error::argument_type(
                         self.identifier.to_owned(),
                         "message".to_owned(),
                         Self::ARGUMENT_INDEX_MESSAGE + 1,
-                        "[bool; {N}], 0 < N <= 248, N % 8 == 0".to_owned(),
+                        format!(
+                            "[bool; N], 0 < N <= {}, N % {} == 0",
+                            crate::BITLENGTH_MAX_INT,
+                            crate::BITLENGTH_BYTE
+                        ),
                         format!("[{}; {}]", r#type, size),
                     ));
                 }
@@ -97,7 +101,11 @@ impl Function {
                     self.identifier.to_owned(),
                     "message".to_owned(),
                     Self::ARGUMENT_INDEX_MESSAGE + 1,
-                    "[bool; {N}], 0 < N <= 248, N % 8 == 0".to_owned(),
+                    format!(
+                        "[bool; N], 0 < N <= {}, N % {} == 0",
+                        crate::BITLENGTH_MAX_INT,
+                        crate::BITLENGTH_BYTE
+                    ),
                     r#type.to_string(),
                 ));
             }

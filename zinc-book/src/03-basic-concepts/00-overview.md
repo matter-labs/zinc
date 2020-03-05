@@ -11,7 +11,7 @@ Module files may contain only declarations of types, functions, and constants.
 
 ## Examples
 
-### Entry
+### Entry point file
 
 ```rust,no_run,noplaypen
 /// 
@@ -30,7 +30,7 @@ fn main(x: field, r: field) -> field {
 }
 ```
 
-### Module
+### Module `simple_math` file
 
 ```rust,no_run,noplaypen
 /// 

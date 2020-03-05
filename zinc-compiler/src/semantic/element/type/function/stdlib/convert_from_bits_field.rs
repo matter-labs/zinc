@@ -17,8 +17,8 @@ pub struct Function {
 }
 
 impl Function {
-    const ARGUMENT_INDEX_BITS: usize = 0;
-    const ARGUMENT_COUNT: usize = 1;
+    pub const ARGUMENT_INDEX_BITS: usize = 0;
+    pub const ARGUMENT_COUNT: usize = 1;
 
     pub fn new() -> Self {
         Self {

@@ -1132,7 +1132,7 @@ impl Analyzer {
                     StandardLibraryFunctionType::CryptoPedersen(function) => function
                         .call(argument_elements)
                         .map_err(|error| Error::Function(element.location, error))?,
-                    StandardLibraryFunctionType::CryptoSchnorrVerify(function) => function
+                    StandardLibraryFunctionType::CryptoSchnorrSignatureVerify(function) => function
                         .call(argument_elements)
                         .map_err(|error| Error::Function(element.location, error))?,
                     StandardLibraryFunctionType::ConvertToBits(function) => function
@@ -1634,13 +1634,23 @@ impl Analyzer {
                         }
                     };
 
-                    for _ in 0..size {
-                        let element =
-                            self.expression(expression.clone(), TranslationHint::ValueExpression)?;
+                    if size > 0 {
+                        for _ in 0..size {
+                            let element = self
+                                .expression(expression.clone(), TranslationHint::ValueExpression)?;
+                            let element_type = Type::from_element(&element, self.scope())?;
+                            result.push(element_type).map_err(|error| {
+                                Error::Element(
+                                    location,
+                                    ElementError::Value(ValueError::Array(error)),
+                                )
+                            })?;
+                        }
+                    } else {
+                        let element = Self::new_without_bytecode(self.scope())
+                            .expression(expression, TranslationHint::ValueExpression)?;
                         let element_type = Type::from_element(&element, self.scope())?;
-                        result.push(element_type).map_err(|error| {
-                            Error::Element(location, ElementError::Value(ValueError::Array(error)))
-                        })?;
+                        result.set_type(element_type);
                     }
                     break;
                 }

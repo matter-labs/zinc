@@ -22,7 +22,7 @@ like a variable, array element, or structure field.
 
 **Accepts**
 1. Integer expression
-2. Integer expression of the same type
+2. Expression of the operand 1 type
 
 **Returns** an integer result of the same type.
 
@@ -32,7 +32,7 @@ like a variable, array element, or structure field.
 
 **Accepts**
 1. Integer expression
-2. Integer expression of the same type
+2. Expression of the operand 1 type
 
 **Returns** an integer result of the same type.
 
@@ -42,7 +42,7 @@ like a variable, array element, or structure field.
 
 **Accepts**
 1. Integer expression
-2. Integer expression of the same type
+2. Expression of the operand 1 type
 
 **Returns** an integer result of the same type.
 
@@ -51,8 +51,8 @@ like a variable, array element, or structure field.
 `/` and `/=` are binary operators.
 
 **Accepts**
-1. Integer expression (anything but `field`)
-2. Integer expression of the same type
+1. Integer expression
+2. Expression of the operand 1 type
 
 **Returns** an integer result of the same type.
 
@@ -61,8 +61,8 @@ like a variable, array element, or structure field.
 `%` and `%=` are binary operators.
 
 **Accepts**
-1. Integer expression (anything but `field`)
-2. Integer expression of the same type
+1. Integer expression (any type except `field`)
+2. Expression of the operand 1 type
 
 **Returns** an integer result of the same type.
 
@@ -71,6 +71,6 @@ like a variable, array element, or structure field.
 `-` is an unary operator.
 
 **Accepts**
-1. Integer expression (anything but `field`)
+1. Integer expression (any type except `field`)
 
 **Returns** a signed integer with same bitlength.

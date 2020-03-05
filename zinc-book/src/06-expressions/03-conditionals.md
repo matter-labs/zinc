@@ -27,7 +27,6 @@ let value = MyEnum::ValueOne;
 match value {
     MyEnum::ValueOne => { ... }
     MyEnum::ValueTen => { ... }
-    42 => { ... }
     _ => { ... }
 }
 ```

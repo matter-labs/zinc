@@ -12,7 +12,7 @@ to contain the greater range bound.
 
 **Accepts**
 1. Constant integer expression
-2. Constant integer expression
+2. Expression of the operand 1 type
 
 **Returns** a temporary range element to be used as a slice or loop range.
 
@@ -24,6 +24,6 @@ The same as the above, but the right range bound is inclusive.
 
 **Accepts**
 1. Constant integer expression
-2. Constant integer expression
+2. Expression of the operand 1 type
 
 **Returns** a temporary range element to be used as a slice or loop range.

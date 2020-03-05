@@ -16,8 +16,8 @@ pub struct Function {
 }
 
 impl Function {
-    const ARGUMENT_INDEX_VALUE: usize = 0;
-    const ARGUMENT_COUNT: usize = 1;
+    pub const ARGUMENT_INDEX_VALUE: usize = 0;
+    pub const ARGUMENT_COUNT: usize = 1;
 
     pub fn new() -> Self {
         Self {
@@ -89,7 +89,7 @@ impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "fn std::convert::{}(value: {{T: scalar}}) -> [bool: {{T bitlength}}]",
+            "fn std::convert::{}(value: T) -> [bool: bitlength(T)]",
             self.identifier,
         )
     }

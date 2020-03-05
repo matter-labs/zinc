@@ -17,8 +17,8 @@ pub struct Function {
 }
 
 impl Function {
-    const ARGUMENT_INDEX_BITS: usize = 0;
-    const ARGUMENT_COUNT: usize = 1;
+    pub const ARGUMENT_INDEX_BITS: usize = 0;
+    pub const ARGUMENT_COUNT: usize = 1;
 
     pub fn new() -> Self {
         Self {
@@ -65,7 +65,11 @@ impl Function {
                         self.identifier.to_owned(),
                         "bits".to_owned(),
                         Self::ARGUMENT_INDEX_BITS + 1,
-                        "[bool; {N}], 8 <= N <= 248, N % 8 == 0".to_owned(),
+                        format!(
+                            "[bool; N], {0} <= N <= {1}, N % {0} == 0",
+                            crate::BITLENGTH_BYTE,
+                            crate::BITLENGTH_MAX_INT
+                        ),
                         format!("[{}; {}]", r#type, size),
                     ))
                 }
@@ -75,7 +79,11 @@ impl Function {
                     self.identifier.to_owned(),
                     "bits".to_owned(),
                     Self::ARGUMENT_INDEX_BITS + 1,
-                    "[bool; {N}], 8 <= N <= 248, N % 8 == 0".to_owned(),
+                    format!(
+                        "[bool; N], {0} <= N <= {1}, N % {0} == 0",
+                        crate::BITLENGTH_BYTE,
+                        crate::BITLENGTH_MAX_INT
+                    ),
                     r#type.to_string(),
                 ))
             }
@@ -104,7 +112,7 @@ impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "fn std::convert::{}(bits: [bool; {{N}}]) -> i{{N}}",
+            "fn std::convert::{}(bits: [bool; N]) -> i{{N}}",
             self.identifier
         )
     }

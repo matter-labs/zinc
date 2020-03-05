@@ -54,6 +54,10 @@ impl Array {
         self.len() == 0
     }
 
+    pub fn set_type(&mut self, r#type: Type) {
+        self.r#type = r#type;
+    }
+
     pub fn push(&mut self, r#type: Type) -> Result<(), Error> {
         if self.size == 0 {
             self.r#type = r#type;
