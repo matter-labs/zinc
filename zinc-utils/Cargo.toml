@@ -1,0 +1,13 @@
+[package]
+name = "zinc-utils"
+version = "0.1.4"
+authors = [
+    "hedgar2017 <hedgar2017@gmail.com>",
+    "Alexander Movchan <am@matterlabs.dev>",
+]
+edition = "2018"
+description = "The Zinc common utilities"
+
+[dependencies]
+num-bigint = "0.2"
+num-traits = "0.2"

@@ -6,6 +6,7 @@ At first, you should install the following binaries into your `PATH`:
 - `zargo` - the circuit management tool
 - `znc` - the Zinc compiler
 - `zvm` - the Zinc virtual machine
+- `schnorr` - the Schnorr signature tool (optional)
 
 Then, follow the example to create and use your first circuit:
 

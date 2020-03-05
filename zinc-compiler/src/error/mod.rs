@@ -1351,7 +1351,7 @@ impl Error {
             Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::ForbiddenFieldNegation)))) => {
                 Self::format_line(
                     context,
-                    "the `field` type values cannot be negated",
+                    "the negation operator `-` is forbidden for the `field` type",
                     location,
                     Some("`field` type values cannot be negative"),
                 )
@@ -1367,7 +1367,7 @@ impl Error {
             Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::ZeroRemainder)))) => {
                 Self::format_line(
                     context,
-                    "remainder from division by zero",
+                    "remainder of division by zero",
                     location,
                     None,
                 )
@@ -1540,7 +1540,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "attempt to truncate an array from size {} to bigger size {}",
+                        "attempt to truncate an array from size `{}` to bigger size `{}`",
                         from, to,
                     )
                         .as_str(),
@@ -1552,7 +1552,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "attempt to pad an array from size {} to lesser size {}",
+                        "attempt to pad an array from size `{}` to lesser size `{}`",
                         from, to,
                     )
                         .as_str(),
@@ -1564,7 +1564,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "new array length {} cannot act as an index",
+                        "new array length `{}` cannot act as an index",
                         value,
                     )
                         .as_str(),
@@ -1612,7 +1612,7 @@ impl Error {
                     format!("expected `{}`, found `{}`", expected, found).as_str(),
                     location,
                     Some(reference),
-                    Some("all branches must return type equal to the type of the first branch"),
+                    Some("all branches must return the type returned by the first branch"),
                 )
             }
 

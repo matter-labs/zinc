@@ -20,6 +20,7 @@ use num_traits::Zero;
 use zinc_bytecode::scalar::IntegerType;
 use zinc_bytecode::scalar::ScalarType;
 use zinc_bytecode::Instruction;
+use zinc_utils::euclidean;
 
 use crate::lexical;
 use crate::semantic::element::constant::Range;
@@ -329,11 +330,8 @@ impl Integer {
             ));
         }
 
-        if other.value.is_zero() {
-            return Err(Error::ZeroDivision);
-        }
-
-        let result = self.value.to_owned() / other.value.to_owned();
+        let (result, _remainder) =
+            euclidean::div_rem(&self.value, &other.value).ok_or(Error::ZeroDivision)?;
         if result.is_negative() && !self.is_signed {
             return Err(Error::OverflowDivision {
                 value: result,
@@ -368,11 +366,8 @@ impl Integer {
             return Err(Error::ForbiddenFieldRemainder);
         }
 
-        if other.value.is_zero() {
-            return Err(Error::ZeroRemainder);
-        }
-
-        let result = self.value.to_owned() % other.value.to_owned();
+        let (_quotient, result) =
+            euclidean::div_rem(&self.value, &other.value).ok_or(Error::ZeroRemainder)?;
         if result.is_negative() && !self.is_signed {
             return Err(Error::OverflowRemainder {
                 value: result,

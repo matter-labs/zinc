@@ -1,6 +1,6 @@
 # The Zinc changelog
 
-## Version 0.1.4 (tbd)
+## Version 0.1.4 (2020-03-05)
 
 #### Language
 
@@ -17,12 +17,18 @@
 
 - implemented advanced errors with Rust-like formatting, hints, location pointers
 - added constant overflow checking at compile-time
+- the constant Euclidean division and remainder now works just like in VM
 
 #### Virtual machine
 
 - fixed 'unconstrained' variables in hash functions
-- fixed constraint generation when same variable is encountered multiple times in the same expression
+- fixed constraint generation when the same variable is encountered multiple times in the same expression
+- fixed some type errors
 - optimized constraint generation for deterministic expressions
+
+#### Overall
+
+- added the Schnorr signature tool
 
 ## Version 0.1.3 (2020-02-17)
 

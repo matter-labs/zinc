@@ -24,3 +24,4 @@ serde_json = "1.0"
 lazy_static = "1.4"
 
 zinc-bytecode = { path = "../zinc-bytecode" }
+zinc-utils = { path = "../zinc-utils" }

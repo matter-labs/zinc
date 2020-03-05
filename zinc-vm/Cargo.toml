@@ -34,6 +34,7 @@ num-traits = "0.2.8"
 num-integer = "0.1.41"
 
 zinc-bytecode = { path = "../zinc-bytecode" }
+zinc-utils = { path = "../zinc-utils" }
 
 [build-dependencies]
 clap = "2.33.0"

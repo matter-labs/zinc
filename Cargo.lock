@@ -1143,6 +1143,7 @@ dependencies = [
  "serde_json",
  "structopt",
  "zinc-bytecode",
+ "zinc-utils",
 ]
 
 [[package]]
@@ -1160,6 +1161,14 @@ dependencies = [
  "zinc-bytecode",
  "zinc-compiler",
  "zinc-vm",
+]
+
+[[package]]
+name = "zinc-utils"
+version = "0.1.4"
+dependencies = [
+ "num-bigint",
+ "num-traits 0.2.11",
 ]
 
 [[package]]
@@ -1184,4 +1193,5 @@ dependencies = [
  "serde_json",
  "structopt",
  "zinc-bytecode",
+ "zinc-utils",
 ]
