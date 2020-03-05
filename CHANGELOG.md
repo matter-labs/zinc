@@ -17,7 +17,7 @@
 
 - implemented advanced errors with Rust-like formatting, hints, location pointers
 - added constant overflow checking at compile-time
-- the constant Euclidean division and remainder now works just like in VM
+- the constant expression Euclidean division and remainder now works just like in VM
 
 #### Virtual machine
 

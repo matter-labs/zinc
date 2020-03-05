@@ -20,7 +20,7 @@ cd zircuit/
 # build the circuit
 zargo build
 
-# fill the input template JSON usually located at ./data/input.json with values
+# fill the witness input JSON usually located at ./data/witness.json with values
 
 # runs the circuit to check it without input data
 zargo run
@@ -45,5 +45,10 @@ cd zircuit/
 # write some code in the circuit
 
 # build & run & setup & prove & verify
+zargo proof-check
+
+# fill the witness input JSON usually located at ./data/witness.json with values
+
+# repeat the sequence
 zargo proof-check
 ```
