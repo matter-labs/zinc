@@ -78,8 +78,8 @@ Will cause a compile-error if either:
 - message length is greater than 248 bits
 
 Arguments:
-- the signature `std::crypto::schnorr::Signature`
-- the message
+- the signature: `std::crypto::schnorr::Signature`
+- the message: `[bool; N]`
 
 Returns: the boolean result
 
