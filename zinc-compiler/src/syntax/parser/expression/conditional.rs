@@ -11,16 +11,16 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::BlockExpression;
-use crate::syntax::BlockExpressionParser;
-use crate::syntax::ConditionalExpression;
-use crate::syntax::ConditionalExpressionBuilder;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::Expression;
-use crate::syntax::ExpressionElement;
-use crate::syntax::ExpressionObject;
-use crate::syntax::ExpressionOperand;
-use crate::syntax::ExpressionParser;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::expression::block::Parser as BlockExpressionParser;
+use crate::syntax::parser::expression::Parser as ExpressionParser;
+use crate::syntax::tree::expression::block::Expression as BlockExpression;
+use crate::syntax::tree::expression::conditional::builder::Builder as ConditionalExpressionBuilder;
+use crate::syntax::tree::expression::conditional::Expression as ConditionalExpression;
+use crate::syntax::tree::expression::element::Element as ExpressionElement;
+use crate::syntax::tree::expression::object::Object as ExpressionObject;
+use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+use crate::syntax::tree::expression::Expression;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -53,7 +53,7 @@ impl Parser {
         loop {
             match self.state {
                 State::KeywordIf => {
-                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::If),
                             location,
@@ -62,17 +62,18 @@ impl Parser {
                             self.state = State::Condition;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["if"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
                 }
                 State::Condition => {
                     let (expression, next) =
-                        ExpressionParser::default().parse(stream.clone(), None)?;
+                        ExpressionParser::default().parse(stream.clone(), self.next.take())?;
                     self.next = next;
                     self.builder.set_condition(expression);
                     self.state = State::MainBlock;
@@ -84,7 +85,7 @@ impl Parser {
                     self.state = State::ElseKeywordOrEnd;
                 }
                 State::ElseKeywordOrEnd => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Else),
                             ..
@@ -93,7 +94,10 @@ impl Parser {
                     }
                 }
                 State::KeywordIfOrElseBlock => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    return match crate::syntax::parser::take_or_next(
+                        self.next.take(),
+                        stream.clone(),
+                    )? {
                         token
                         @
                         Token {
@@ -115,7 +119,7 @@ impl Parser {
                                 )),
                             );
                             self.builder.set_else_block(block);
-                            return Ok((self.builder.finish(), next));
+                            Ok((self.builder.finish(), next))
                         }
                         token
                         @
@@ -126,16 +130,12 @@ impl Parser {
                             let block =
                                 BlockExpressionParser::default().parse(stream, Some(token))?;
                             self.builder.set_else_block(block);
-                            return Ok((self.builder.finish(), None));
+                            Ok((self.builder.finish(), None))
                         }
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["if", "{"],
-                                lexeme,
-                            )));
-                        }
-                    }
+                        Token { lexeme, location } => Err(Error::Syntax(
+                            SyntaxError::expected_one_of(location, vec!["if", "{"], lexeme, None),
+                        )),
+                    };
                 }
             }
         }
@@ -147,18 +147,22 @@ mod tests {
     use std::cell::RefCell;
     use std::rc::Rc;
 
+    use super::Error;
     use super::Parser;
     use crate::lexical;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Symbol;
     use crate::lexical::TokenStream;
-    use crate::syntax::BlockExpression;
-    use crate::syntax::BooleanLiteral;
-    use crate::syntax::ConditionalExpression;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::IntegerLiteral;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::block::Expression as BlockExpression;
+    use crate::syntax::tree::expression::conditional::Expression as ConditionalExpression;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 
     #[test]
     fn ok_nested() {
@@ -264,6 +268,22 @@ mod tests {
             ),
             None,
         ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_bracket_square_right() {
+        let input = r#"if true { 42 } else ("#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 21),
+            vec!["if", "{"],
+            Lexeme::Symbol(Symbol::ParenthesisLeft),
+            None,
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 

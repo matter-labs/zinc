@@ -1,0 +1,43 @@
+//# [ {
+//#     "case": "true",
+//#     "input": {
+//#         "signature": {
+//#             "pk": { 
+//#                 "x": "0x28fc21edd8a325c14aa8f41feb59635833b1c4658cdffeaa0fb0a92790e1494b",
+//#                 "y": "0x21d187042d2a636e920e00df065ba85b6140f33ffb33f08063be723dad92852e"
+//#             },
+//#             "r": {
+//#                 "x": "0x1b8723dd3983321bc9d0be7e96a58ba142d80abdde718d882f64955110466d4d",
+//#                 "y": "0x2df869572e7115a1daa886b2852894a7114a466b21e1a5b63f341ba6436f5c96"
+//#             },
+//#             "s": "0x558ef3cde10f05f73d27cdf30dbb1aa40adf940257e1549c239066ed21640a7"
+//#         },
+//#         "message": [false, true, false, true, false, true, false, true]
+//#     },
+//#     "expect": true
+//# }, {
+//#     "case": "false",
+//#     "input": {
+//#         "signature": {
+//#             "r": {
+//#                 "x": "13640612427693488274999841050634523339358198536154728841267323157043880421621",
+//#                 "y": "9509884871693549865753143729935660249535333730208041183969775141915970240099"
+//#             },
+//#             "s": "494745623983833019655061946093744216550252666011167101498285355927842221703",
+//#             "pk": { 
+//#                 "x": "20453034254071666356681228067672474579643265895584845472570305237276758169245",
+//#                 "y": "20956838306014746826052367476917828000427140731634825069188146376965741319115"
+//#             }
+//#         },
+//#         "message": [false, true, false, true, false, true, false, true]
+//#     },
+//#     "expect": false
+//# } ]
+
+use std::crypto::schnorr::Signature;
+
+const MESSAGE_LENGTH: u64 = 8;
+
+fn main(signature: Signature, message: [bool; MESSAGE_LENGTH]) -> bool {
+    Signature::verify(signature, message)
+}

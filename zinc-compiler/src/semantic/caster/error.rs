@@ -1,15 +1,32 @@
 //!
-//! Casting error.
+//! The type caster error.
 //!
 
-use failure::Fail;
+use crate::semantic::element::r#type::Type;
 
-#[derive(Debug, Fail, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
-    #[fail(display = "casting from invalid type: from '{}' to '{}'", _0, _1)]
-    FromInvalidType(String, String),
-    #[fail(display = "casting to invalid type: from '{}' to '{}'", _0, _1)]
-    ToInvalidType(String, String),
-    #[fail(display = "casting to lesser bitlength: from {} to {}", _0, _1)]
-    ToLesserBitlength(usize, usize),
+    CastingFromInvalidType { from: String, to: String },
+    CastingToInvalidType { from: String, to: String },
+    CastingIntegerToLesserBitlength { from: usize, to: usize },
+}
+
+impl Error {
+    pub fn casting_from_invalid_type(from: &Type, to: &Type) -> Self {
+        Self::CastingFromInvalidType {
+            from: from.to_string(),
+            to: to.to_string(),
+        }
+    }
+
+    pub fn casting_to_invalid_type(from: &Type, to: &Type) -> Self {
+        Self::CastingToInvalidType {
+            from: from.to_string(),
+            to: to.to_string(),
+        }
+    }
+
+    pub fn casting_integer_to_lesser_bitlength(from: usize, to: usize) -> Self {
+        Self::CastingIntegerToLesserBitlength { from, to }
+    }
 }

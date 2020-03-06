@@ -1,4 +1,4 @@
-use crate::gadgets::{Gadget, Gadgets, IntegerType, Primitive, ScalarType};
+use crate::gadgets::{Gadget, Gadgets, IntegerType, Scalar, ScalarType};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
@@ -8,21 +8,21 @@ use std::mem;
 pub struct ToBits;
 
 impl<E: Engine> Gadget<E> for ToBits {
-    type Input = Primitive<E>;
-    type Output = Vec<Primitive<E>>;
+    type Input = Scalar<E>;
+    type Output = Vec<Scalar<E>>;
 
     fn synthesize<CS: ConstraintSystem<E>>(
         &self,
         mut cs: CS,
         input: Self::Input,
     ) -> Result<Self::Output, RuntimeError> {
-        if let ScalarType::Integer(IntegerType { signed: true, .. }) = input.scalar_type {
+        if let ScalarType::Integer(IntegerType { signed: true, .. }) = input.get_type() {
             return signed_to_bits(cs, input);
         }
 
-        let num = input.as_allocated_num(cs.namespace(|| "as_allocated_num"))?;
+        let num = input.to_expression::<CS>();
 
-        let mut bits = match input.scalar_type {
+        let mut bits = match input.get_type() {
             ScalarType::Integer(t) => {
                 num.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), t.length)
             }
@@ -35,33 +35,31 @@ impl<E: Engine> Gadget<E> for ToBits {
 
         let scalars = bits
             .into_iter()
-            .map(|bit| Primitive {
-                value: bit.get_value_field::<E>(),
-                variable: bit
-                    .get_variable()
-                    .expect("into_bits_le_fixed must allocate")
-                    .get_variable(),
-                scalar_type: IntegerType::BOOLEAN.into(),
+            .map(|bit| {
+                Scalar::new_unchecked_variable(
+                    bit.get_value_field::<E>(),
+                    bit.get_variable()
+                        .expect("into_bits_le_fixed must allocate")
+                        .get_variable(),
+                    ScalarType::Boolean,
+                )
             })
             .collect();
 
         Ok(scalars)
     }
 
-    fn input_from_vec(input: &[Primitive<E>]) -> Result<Self::Input, RuntimeError> {
+    fn input_from_vec(input: &[Scalar<E>]) -> Result<Self::Input, RuntimeError> {
         assert_eq!(input.len(), 1);
         Ok(input[0].clone())
     }
 
-    fn output_into_vec(output: Self::Output) -> Vec<Primitive<E>> {
+    fn output_into_vec(output: Self::Output) -> Vec<Scalar<E>> {
         output
     }
 }
 
-fn signed_to_bits<E, CS>(
-    mut cs: CS,
-    scalar: Primitive<E>,
-) -> Result<Vec<Primitive<E>>, RuntimeError>
+fn signed_to_bits<E, CS>(mut cs: CS, scalar: Scalar<E>) -> Result<Vec<Scalar<E>>, RuntimeError>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
@@ -88,14 +86,14 @@ where
     mem::drop(gadgets);
 
     let bits = complement
-        .as_allocated_num(cs.namespace(|| "num"))?
+        .to_expression::<CS>()
         .into_bits_le_fixed(cs.namespace(|| "bits"), length + 1)?;
 
     Ok(bits[..length]
         .iter()
         .rev()
         .map(|b| {
-            Primitive::new(
+            Scalar::new_unchecked_variable(
                 b.get_value_field::<E>(),
                 b.get_variable().expect("must allocate").get_variable(),
                 ScalarType::Boolean,

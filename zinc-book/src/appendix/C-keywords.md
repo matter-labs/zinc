@@ -51,6 +51,7 @@ Self
 
 ## Reserved
 ```rust,no_run,noplaypen
+self
 pub
 ref
 extern

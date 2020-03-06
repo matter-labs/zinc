@@ -2,10 +2,13 @@
 //! The semantic analyzer integer value element.
 //!
 
+mod tests;
+
 pub mod error;
 
 use std::fmt;
 
+use crate::semantic::element::r#type::enumeration::Enumeration;
 use crate::semantic::element::r#type::Type;
 
 use self::error::Error;
@@ -14,6 +17,7 @@ use self::error::Error;
 pub struct Integer {
     pub is_signed: bool,
     pub bitlength: usize,
+    pub enumeration: Option<Enumeration>,
 }
 
 impl Integer {
@@ -21,18 +25,29 @@ impl Integer {
         Self {
             is_signed,
             bitlength,
+            enumeration: None,
         }
     }
 
+    pub fn set_enumeration(&mut self, enumeration: Enumeration) {
+        self.enumeration = Some(enumeration);
+    }
+
     pub fn r#type(&self) -> Type {
-        match (self.is_signed, self.bitlength) {
-            (false, crate::BITLENGTH_FIELD) => Type::Field,
-            (is_signed, bitlength) => Type::integer(is_signed, bitlength),
+        match self.enumeration {
+            Some(ref enumeration) => Type::Enumeration(enumeration.to_owned()),
+            None => Type::scalar(self.is_signed, self.bitlength),
         }
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        self.is_signed == other.is_signed && self.bitlength == other.bitlength
+        self.is_signed == other.is_signed
+            && self.bitlength == other.bitlength
+            && match (self.enumeration.as_ref(), other.enumeration.as_ref()) {
+                (Some(enumeration_1), Some(enumeration_2)) => enumeration_1 == enumeration_2,
+                (None, None) => true,
+                _ => false,
+            }
     }
 
     pub fn equals(&self, other: &Self) -> Result<(), Error> {
@@ -65,10 +80,6 @@ impl Integer {
             ));
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldGreaterEquals);
-        }
-
         Ok(())
     }
 
@@ -78,10 +89,6 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
-        }
-
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldLesserEquals);
         }
 
         Ok(())
@@ -95,10 +102,6 @@ impl Integer {
             ));
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldGreater);
-        }
-
         Ok(())
     }
 
@@ -108,10 +111,6 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
-        }
-
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldLesser);
         }
 
         Ok(())
@@ -158,10 +157,6 @@ impl Integer {
             ));
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldDivision);
-        }
-
         Ok(())
     }
 
@@ -183,6 +178,7 @@ impl Integer {
     pub fn cast(&mut self, is_signed: bool, bitlength: usize) -> Result<(), Error> {
         self.is_signed = is_signed;
         self.bitlength = bitlength;
+        self.enumeration = None;
         Ok(())
     }
 
@@ -197,6 +193,6 @@ impl Integer {
 
 impl fmt::Display for Integer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.r#type())
+        write!(f, "integer of type '{}'", self.r#type())
     }
 }

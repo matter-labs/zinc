@@ -10,10 +10,10 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::Type;
-use crate::syntax::TypeBuilder;
-use crate::syntax::TypeParser;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::r#type::Parser as TypeParser;
+use crate::syntax::tree::r#type::builder::Builder as TypeBuilder;
+use crate::syntax::tree::r#type::Type;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -44,7 +44,7 @@ impl Parser {
         loop {
             match self.state {
                 State::ParenthesisLeft => {
-                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                             location,
@@ -53,16 +53,17 @@ impl Parser {
                             self.state = State::TypeOrParenthesisRight;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["("],
                                 lexeme,
+                                None,
                             )))
                         }
                     }
                 }
                 State::TypeOrParenthesisRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                             ..
@@ -80,28 +81,152 @@ impl Parser {
                     }
                 }
                 State::CommaOrParenthesisRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
-                        } => {
-                            self.builder.set_tuple_comma();
-                            self.state = State::TypeOrParenthesisRight;
-                        }
+                        } => self.state = State::TypeOrParenthesisRight,
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                             ..
                         } => return Ok(self.builder.finish()),
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec![",", ")"],
                                 lexeme,
+                                None,
                             )))
                         }
                     }
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    use super::Parser;
+    use crate::error::Error;
+    use crate::lexical;
+    use crate::lexical::Lexeme;
+    use crate::lexical::Location;
+    use crate::lexical::Symbol;
+    use crate::lexical::TokenStream;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+    use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
+    use crate::syntax::tree::r#type::Type;
+
+    #[test]
+    fn ok_unit() {
+        let input = "()";
+
+        let expected = Ok(Type::new(Location::new(1, 1), TypeVariant::unit()));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_single() {
+        let input = "(field)";
+
+        let expected = Ok(Type::new(
+            Location::new(1, 1),
+            TypeVariant::tuple(vec![TypeVariant::Field]),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_single_with_comma() {
+        let input = "(field,)";
+
+        let expected = Ok(Type::new(
+            Location::new(1, 1),
+            TypeVariant::tuple(vec![TypeVariant::Field]),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_multiple() {
+        let input = "(field, (), [u8; 4])";
+
+        let expected = Ok(Type::new(
+            Location::new(1, 1),
+            TypeVariant::tuple(vec![
+                TypeVariant::Field,
+                TypeVariant::Unit,
+                TypeVariant::array(
+                    TypeVariant::integer_unsigned(8),
+                    Expression::new(
+                        Location::new(1, 18),
+                        vec![ExpressionElement::new(
+                            Location::new(1, 18),
+                            ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                                IntegerLiteral::new(
+                                    Location::new(1, 18),
+                                    lexical::IntegerLiteral::new_decimal("4".to_owned()),
+                                ),
+                            )),
+                        )],
+                    ),
+                ),
+            ]),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_nested() {
+        let input = "((field, field),)";
+
+        let expected = Ok(Type::new(
+            Location::new(1, 1),
+            TypeVariant::tuple(vec![TypeVariant::tuple(vec![
+                TypeVariant::Field,
+                TypeVariant::Field,
+            ])]),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_comma_or_parenthesis_right() {
+        let input = "(field;)";
+
+        let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 7),
+            vec![",", ")"],
+            Lexeme::Symbol(Symbol::Semicolon),
+            None,
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
     }
 }

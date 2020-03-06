@@ -2,14 +2,18 @@
 //! The semantic analyzer scope error.
 //!
 
-use failure::Fail;
+use crate::lexical::Location;
 
-#[derive(Debug, Fail, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
-    #[fail(display = "undeclared item '{}'", _0)]
-    ItemUndeclared(String),
-    #[fail(display = "redeclared item '{}'", _0)]
-    ItemRedeclared(String),
-    #[fail(display = "item is not a namespace '{}'", _0)]
-    ItemIsNotNamespace(String),
+    ItemUndeclared {
+        name: String,
+    },
+    ItemRedeclared {
+        name: String,
+        reference: Option<Location>,
+    },
+    ItemIsNotNamespace {
+        name: String,
+    },
 }

@@ -2,6 +2,8 @@
 //! The semantic analyzer scope.
 //!
 
+mod tests;
+
 pub mod error;
 pub mod item;
 
@@ -16,13 +18,16 @@ use crate::lexical::Keyword;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::r#type::function::Function as FunctionType;
+use crate::semantic::element::r#type::structure::Structure as StructureType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
+use crate::syntax::Identifier;
 
 use self::error::Error;
 use self::item::r#static::Static as StaticItem;
 use self::item::variable::Variable as VariableItem;
 use self::item::Item;
+use self::item::Variant as ItemVariant;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Scope {
@@ -51,73 +56,116 @@ impl Scope {
         }
     }
 
-    pub fn declare_item(&mut self, identifier: String, item: Item) -> Result<(), Error> {
-        if self.is_item_declared(&identifier) {
-            return Err(Error::ItemRedeclared(identifier));
+    pub fn declare_item(
+        scope: Rc<RefCell<Scope>>,
+        identifier: Identifier,
+        item: Item,
+    ) -> Result<(), Error> {
+        if let Ok(item) = Self::resolve_item(scope.clone(), &identifier.name) {
+            return Err(Error::ItemRedeclared {
+                name: identifier.name,
+                reference: item.location,
+            });
         }
-        self.items.insert(identifier, item);
+        scope.borrow_mut().items.insert(identifier.name, item);
         Ok(())
     }
 
     pub fn declare_variable(
-        &mut self,
-        identifier: String,
+        scope: Rc<RefCell<Scope>>,
+        identifier: Identifier,
         variable: VariableItem,
     ) -> Result<(), Error> {
-        if self.is_item_declared(&identifier) {
-            return Err(Error::ItemRedeclared(identifier));
+        if let Ok(item) = Self::resolve_item(scope.clone(), &identifier.name) {
+            return Err(Error::ItemRedeclared {
+                name: identifier.name,
+                reference: item.location,
+            });
         }
-        self.items.insert(identifier, Item::Variable(variable));
+        scope.borrow_mut().items.insert(
+            identifier.name,
+            Item::new(ItemVariant::Variable(variable), Some(identifier.location)),
+        );
         Ok(())
     }
 
     pub fn declare_constant(
-        &mut self,
-        identifier: String,
+        scope: Rc<RefCell<Scope>>,
+        identifier: Identifier,
         constant: Constant,
     ) -> Result<(), Error> {
-        if self.is_item_declared(&identifier) {
-            return Err(Error::ItemRedeclared(identifier));
+        if let Ok(item) = Self::resolve_item(scope.clone(), &identifier.name) {
+            return Err(Error::ItemRedeclared {
+                name: identifier.name,
+                reference: item.location,
+            });
         }
-        self.items.insert(identifier, Item::Constant(constant));
+        scope.borrow_mut().items.insert(
+            identifier.name,
+            Item::new(ItemVariant::Constant(constant), Some(identifier.location)),
+        );
         Ok(())
     }
 
     pub fn declare_static(
-        &mut self,
-        identifier: String,
+        scope: Rc<RefCell<Scope>>,
+        identifier: Identifier,
         r#static: StaticItem,
     ) -> Result<(), Error> {
-        if self.is_item_declared(&identifier) {
-            return Err(Error::ItemRedeclared(identifier));
+        if let Ok(item) = Self::resolve_item(scope.clone(), &identifier.name) {
+            return Err(Error::ItemRedeclared {
+                name: identifier.name,
+                reference: item.location,
+            });
         }
-        self.items.insert(identifier, Item::Static(r#static));
+        scope.borrow_mut().items.insert(
+            identifier.name,
+            Item::new(ItemVariant::Static(r#static), Some(identifier.location)),
+        );
         Ok(())
     }
 
-    pub fn declare_type(&mut self, identifier: String, r#type: Type) -> Result<(), Error> {
-        if self.is_item_declared(&identifier) {
-            return Err(Error::ItemRedeclared(identifier));
+    pub fn declare_type(
+        scope: Rc<RefCell<Scope>>,
+        identifier: Identifier,
+        r#type: Type,
+    ) -> Result<(), Error> {
+        if let Ok(item) = Self::resolve_item(scope.clone(), &identifier.name) {
+            return Err(Error::ItemRedeclared {
+                name: identifier.name,
+                reference: item.location,
+            });
         }
-        self.items.insert(identifier, Item::Type(r#type));
+        scope.borrow_mut().items.insert(
+            identifier.name,
+            Item::new(ItemVariant::Type(r#type), Some(identifier.location)),
+        );
         Ok(())
     }
 
     pub fn declare_module(
-        &mut self,
-        identifier: String,
         scope: Rc<RefCell<Scope>>,
+        identifier: Identifier,
+        module: Rc<RefCell<Scope>>,
     ) -> Result<(), Error> {
-        if self.is_item_declared(&identifier) {
-            return Err(Error::ItemRedeclared(identifier));
+        if let Ok(item) = Self::resolve_item(scope.clone(), &identifier.name) {
+            return Err(Error::ItemRedeclared {
+                name: identifier.name,
+                reference: item.location,
+            });
         }
-        self.items.insert(identifier, Item::Module(scope));
+        scope.borrow_mut().items.insert(
+            identifier.name,
+            Item::new(ItemVariant::Module(module), Some(identifier.location)),
+        );
         Ok(())
     }
 
     pub fn declare_self(&mut self, r#type: Type) {
-        self.items
-            .insert(Keyword::AliasSelf.to_string(), Item::Type(r#type));
+        self.items.insert(
+            Keyword::AliasSelf.to_string(),
+            Item::new(ItemVariant::Type(r#type), None),
+        );
     }
 
     pub fn resolve_path(scope: Rc<RefCell<Scope>>, path: &Path) -> Result<Item, SemanticError> {
@@ -131,24 +179,28 @@ impl Scope {
                 return Ok(item);
             }
 
-            match item {
-                Item::Module(ref scope) => current_scope = scope.to_owned(),
-                Item::Type(Type::Enumeration { ref scope, .. }) => current_scope = scope.to_owned(),
-                Item::Type(Type::Structure(ref structure)) => {
-                    current_scope = structure.scope.to_owned()
+            current_scope = match item.variant {
+                ItemVariant::Module(ref scope) => scope.to_owned(),
+                ItemVariant::Type(Type::Enumeration(ref enumeration)) => {
+                    enumeration.scope.to_owned()
                 }
+                ItemVariant::Type(Type::Structure(ref structure)) => structure.scope.to_owned(),
                 _ => {
                     return Err(SemanticError::Scope(
                         identifier.location,
-                        Error::ItemIsNotNamespace(identifier.name.to_owned()),
+                        Error::ItemIsNotNamespace {
+                            name: identifier.name.to_owned(),
+                        },
                     ))
                 }
-            }
+            };
         }
 
         Err(SemanticError::Scope(
             path.location,
-            Error::ItemUndeclared(path.to_string()),
+            Error::ItemUndeclared {
+                name: path.to_string(),
+            },
         ))
     }
 
@@ -157,7 +209,9 @@ impl Scope {
             Some(item) => Ok(item.to_owned()),
             None => match scope.borrow().parent {
                 Some(ref parent) => Self::resolve_item(parent.to_owned(), identifier),
-                None => Err(Error::ItemUndeclared(identifier.to_owned())),
+                None => Err(Error::ItemUndeclared {
+                    name: identifier.to_owned(),
+                }),
             },
         }
     }
@@ -177,17 +231,89 @@ impl Scope {
         Rc::new(RefCell::new(Scope::new(Some(parent))))
     }
 
+    pub const TYPE_ID_STD_CRYPTO_ECC_POINT: usize = 0;
+    pub const TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE: usize = 1;
+    pub const TYPE_ID_FIRST_AVAILABLE: usize = 2;
+
     fn default_items() -> HashMap<String, Item> {
         let mut std_crypto_scope = Scope::default();
         let std_crypto_sha256 = FunctionType::new_std(BuiltinIdentifier::CryptoSha256);
         let std_crypto_pedersen = FunctionType::new_std(BuiltinIdentifier::CryptoPedersen);
+
+        let mut std_crypto_schnorr = Scope::default();
+        let mut std_crypto_schnorr_signature_scope = Scope::default();
+        let std_crypto_schnorr_verify =
+            FunctionType::new_std(BuiltinIdentifier::CryptoSchnorrSignatureVerify);
+        std_crypto_schnorr_signature_scope.items.insert(
+            std_crypto_schnorr_verify.identifier(),
+            Item::new(
+                ItemVariant::Type(Type::Function(std_crypto_schnorr_verify)),
+                None,
+            ),
+        );
+        let std_crypto_ecc_point = StructureType::new(
+            "Point".to_owned(),
+            Self::TYPE_ID_STD_CRYPTO_ECC_POINT,
+            vec![
+                ("x".to_owned(), Type::field()),
+                ("y".to_owned(), Type::field()),
+            ],
+            None,
+        );
+        let std_crypto_schnorr_signature = StructureType::new(
+            "Signature".to_owned(),
+            Self::TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE,
+            vec![
+                (
+                    "r".to_owned(),
+                    Type::Structure(std_crypto_ecc_point.clone()),
+                ),
+                ("s".to_owned(), Type::field()),
+                (
+                    "pk".to_owned(),
+                    Type::Structure(std_crypto_ecc_point.clone()),
+                ),
+            ],
+            Some(Rc::new(RefCell::new(std_crypto_schnorr_signature_scope))),
+        );
+        std_crypto_schnorr.items.insert(
+            "Signature".to_owned(),
+            Item::new(
+                ItemVariant::Type(Type::Structure(std_crypto_schnorr_signature)),
+                None,
+            ),
+        );
+
+        let mut std_crypto_ecc = Scope::default();
+        std_crypto_ecc.items.insert(
+            "Point".to_owned(),
+            Item::new(
+                ItemVariant::Type(Type::Structure(std_crypto_ecc_point)),
+                None,
+            ),
+        );
+
         std_crypto_scope.items.insert(
             std_crypto_sha256.identifier(),
-            Item::Type(Type::Function(std_crypto_sha256)),
+            Item::new(ItemVariant::Type(Type::Function(std_crypto_sha256)), None),
         );
         std_crypto_scope.items.insert(
             std_crypto_pedersen.identifier(),
-            Item::Type(Type::Function(std_crypto_pedersen)),
+            Item::new(ItemVariant::Type(Type::Function(std_crypto_pedersen)), None),
+        );
+        std_crypto_scope.items.insert(
+            "ecc".to_owned(),
+            Item::new(
+                ItemVariant::Module(Rc::new(RefCell::new(std_crypto_ecc))),
+                None,
+            ),
+        );
+        std_crypto_scope.items.insert(
+            "schnorr".to_owned(),
+            Item::new(
+                ItemVariant::Module(Rc::new(RefCell::new(std_crypto_schnorr))),
+                None,
+            ),
         );
 
         let mut std_convert_scope = Scope::default();
@@ -198,19 +324,28 @@ impl Scope {
         let std_convert_from_bits_field = FunctionType::new_std(BuiltinIdentifier::FieldFromBits);
         std_convert_scope.items.insert(
             std_convert_to_bits.identifier(),
-            Item::Type(Type::Function(std_convert_to_bits)),
+            Item::new(ItemVariant::Type(Type::Function(std_convert_to_bits)), None),
         );
         std_convert_scope.items.insert(
             std_convert_from_bits_unsigned.identifier(),
-            Item::Type(Type::Function(std_convert_from_bits_unsigned)),
+            Item::new(
+                ItemVariant::Type(Type::Function(std_convert_from_bits_unsigned)),
+                None,
+            ),
         );
         std_convert_scope.items.insert(
             std_convert_from_bits_signed.identifier(),
-            Item::Type(Type::Function(std_convert_from_bits_signed)),
+            Item::new(
+                ItemVariant::Type(Type::Function(std_convert_from_bits_signed)),
+                None,
+            ),
         );
         std_convert_scope.items.insert(
             std_convert_from_bits_field.identifier(),
-            Item::Type(Type::Function(std_convert_from_bits_field)),
+            Item::new(
+                ItemVariant::Type(Type::Function(std_convert_from_bits_field)),
+                None,
+            ),
         );
 
         let mut std_array_scope = Scope::default();
@@ -219,29 +354,38 @@ impl Scope {
         let std_array_pad = FunctionType::new_std(BuiltinIdentifier::ArrayPad);
         std_array_scope.items.insert(
             std_array_reverse.identifier(),
-            Item::Type(Type::Function(std_array_reverse)),
+            Item::new(ItemVariant::Type(Type::Function(std_array_reverse)), None),
         );
         std_array_scope.items.insert(
             std_array_truncate.identifier(),
-            Item::Type(Type::Function(std_array_truncate)),
+            Item::new(ItemVariant::Type(Type::Function(std_array_truncate)), None),
         );
         std_array_scope.items.insert(
             std_array_pad.identifier(),
-            Item::Type(Type::Function(std_array_pad)),
+            Item::new(ItemVariant::Type(Type::Function(std_array_pad)), None),
         );
 
         let mut std_scope = Scope::default();
         std_scope.items.insert(
             "crypto".to_owned(),
-            Item::Module(Rc::new(RefCell::new(std_crypto_scope))),
+            Item::new(
+                ItemVariant::Module(Rc::new(RefCell::new(std_crypto_scope))),
+                None,
+            ),
         );
         std_scope.items.insert(
             "convert".to_owned(),
-            Item::Module(Rc::new(RefCell::new(std_convert_scope))),
+            Item::new(
+                ItemVariant::Module(Rc::new(RefCell::new(std_convert_scope))),
+                None,
+            ),
         );
         std_scope.items.insert(
             "array".to_owned(),
-            Item::Module(Rc::new(RefCell::new(std_array_scope))),
+            Item::new(
+                ItemVariant::Module(Rc::new(RefCell::new(std_array_scope))),
+                None,
+            ),
         );
 
         let mut items = HashMap::with_capacity(3);
@@ -249,15 +393,21 @@ impl Scope {
         let builtin_function_assert = FunctionType::new_assert();
         items.insert(
             builtin_function_dbg.identifier(),
-            Item::Type(Type::Function(builtin_function_dbg)),
+            Item::new(
+                ItemVariant::Type(Type::Function(builtin_function_dbg)),
+                None,
+            ),
         );
         items.insert(
             builtin_function_assert.identifier(),
-            Item::Type(Type::Function(builtin_function_assert)),
+            Item::new(
+                ItemVariant::Type(Type::Function(builtin_function_assert)),
+                None,
+            ),
         );
         items.insert(
             "std".to_owned(),
-            Item::Module(Rc::new(RefCell::new(std_scope))),
+            Item::new(ItemVariant::Module(Rc::new(RefCell::new(std_scope))), None),
         );
         items
     }

@@ -11,11 +11,14 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::BindingPattern;
-use crate::syntax::BindingPatternBuilder;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::Identifier;
-use crate::syntax::TypeParser;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::r#type::Parser as TypeParser;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::pattern_binding::builder::Builder as BindingPatternBuilder;
+use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
+
+static HINT_EXPECTED_TYPE: &str =
+    "function argument must have a type, e.g. `fn sum(a: u8, b: u8) {}`";
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -47,7 +50,7 @@ impl Parser {
         loop {
             match self.state {
                 State::KeywordMutOrIdentifierOrWildcard => {
-                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Mut),
                             location,
@@ -64,7 +67,7 @@ impl Parser {
                     }
                 }
                 State::IdentifierOrWildcard => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
@@ -81,26 +84,24 @@ impl Parser {
                             self.state = State::Colon;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{identifier}", "_"],
-                                lexeme,
-                            )))
+                            return Err(Error::Syntax(SyntaxError::expected_binding_pattern(
+                                location, lexeme,
+                            )));
                         }
                     }
                 }
                 State::Colon => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Colon),
                             ..
                         } => self.state = State::Type,
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_type(
                                 location,
-                                vec![":"],
                                 lexeme,
-                            )))
+                                Some(HINT_EXPECTED_TYPE),
+                            )));
                         }
                     }
                 }
@@ -120,13 +121,17 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::error::Error;
+    use crate::lexical::Keyword;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
     use crate::lexical::TokenStream;
-    use crate::syntax::BindingPattern;
-    use crate::syntax::BindingPatternVariant;
-    use crate::syntax::Identifier;
-    use crate::syntax::Type;
-    use crate::syntax::TypeVariant;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;
+    use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
+    use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
+    use crate::syntax::tree::r#type::Type;
 
     #[test]
     fn ok_binding() {
@@ -182,6 +187,35 @@ mod tests {
             ),
             None,
         ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_binding_pattern() {
+        let input = "mut bool: bool";
+
+        let expected = Err(Error::Syntax(SyntaxError::expected_binding_pattern(
+            Location::new(1, 5),
+            Lexeme::Keyword(Keyword::Bool),
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_type() {
+        let input = "mut value";
+
+        let expected = Err(Error::Syntax(SyntaxError::expected_type(
+            Location::new(1, 10),
+            Lexeme::Eof,
+            Some(super::HINT_EXPECTED_TYPE),
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 

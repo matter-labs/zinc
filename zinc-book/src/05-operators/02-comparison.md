@@ -1,15 +1,12 @@
 # Comparison operators
 
-> The operators `>=`, `>`, `<=`, `<` are temporarily forbidden for the
-> type `field`, but will probably become available soon.
-
 #### Equality
 
 `==` is a binary operator.
 
 **Accepts**
 1. Integer **or** boolean expression
-2. Integer **or** boolean expression
+2. Expression of the operand 1 type
 
 **Returns** the boolean result.
 
@@ -19,7 +16,7 @@
 
 **Accepts**
 1. Integer **or** boolean expression
-2. Integer **or** boolean expression
+2. Expression of the operand 1 type
 
 **Returns** the boolean result.
 
@@ -28,8 +25,8 @@
 `<=` is a binary operator.
 
 **Accepts**
-1. Integer expression (anything but `field`)
-2. Integer expression of the same type
+1. Integer expression
+2. Expression of the operand 1 type
 
 **Returns** the boolean result.
 
@@ -38,8 +35,8 @@
 `>=` is a binary operator.
 
 **Accepts**
-1. Integer expression (anything but `field`)
-2. Integer expression of the same type
+1. Integer expression
+2. Expression of the operand 1 type
 
 **Returns** the boolean result.
 
@@ -48,8 +45,8 @@
 `<` is a binary operator.
 
 **Accepts**
-1. Integer expression (anything but `field`)
-2. Integer expression of the same type
+1. Integer expression
+2. Expression of the operand 1 type
 
 **Returns** the boolean result.
 
@@ -58,7 +55,7 @@
 `>` is a binary operator.
 
 **Accepts**
-1. Integer expression (anything but `field`)
-2. Integer expression of the same type
+1. Integer expression
+2. Expression of the operand 1 type
 
 **Returns** the boolean result.

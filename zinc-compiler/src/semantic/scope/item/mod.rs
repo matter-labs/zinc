@@ -9,6 +9,7 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
+use crate::lexical::Location;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::scope::Scope;
@@ -17,7 +18,25 @@ use self::r#static::Static;
 use self::variable::Variable;
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Item {
+pub struct Item {
+    pub variant: Variant,
+    pub location: Option<Location>,
+}
+
+impl Item {
+    pub fn new(variant: Variant, location: Option<Location>) -> Self {
+        Self { variant, location }
+    }
+}
+
+impl fmt::Display for Item {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.variant)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Variant {
     Variable(Variable),
     Constant(Constant),
     Static(Static),
@@ -25,7 +44,7 @@ pub enum Item {
     Module(Rc<RefCell<Scope>>),
 }
 
-impl Item {
+impl Variant {
     pub fn is_namespace(&self) -> bool {
         match self {
             Self::Variable(_) => false,
@@ -38,7 +57,7 @@ impl Item {
     }
 }
 
-impl fmt::Display for Item {
+impl fmt::Display for Variant {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Variable(variable) => write!(f, "{:?}", variable),

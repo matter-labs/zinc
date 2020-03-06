@@ -1,0 +1,38 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {
+//#         "preimage": "0x558ef3cde10f05f73d27cdf30dbb1aa40adf940257e1549c239066ed21640a7"
+//#     },
+//#     "expect": [
+//#         false,true,true,true,true,true,true,true,true,true,true,true,true,true,true,false,
+//#         true,false,false,false,true,true,true,true,true,false,false,false,false,false,false,true,
+//#         false,false,true,false,false,false,true,true,true,false,true,true,false,false,true,true,
+//#         false,true,false,true,false,true,true,false,true,false,false,true,false,true,false,true,
+//#         true,true,false,false,true,false,true,true,false,true,false,true,false,true,false,false,
+//#         false,false,false,true,true,false,true,false,true,false,true,true,true,false,true,true,
+//#         true,true,true,false,false,true,true,true,false,false,false,false,true,false,true,true,
+//#         false,true,false,true,true,false,false,true,false,false,false,false,false,false,true,true,
+//#         false,false,false,false,false,true,true,false,true,true,false,true,true,false,true,true,
+//#         true,true,true,false,true,false,false,true,true,false,true,false,true,true,true,true,
+//#         true,false,true,true,true,false,false,false,false,true,false,false,false,true,false,false,
+//#         false,false,false,true,false,false,true,true,false,true,false,false,true,false,false,false,
+//#         false,false,true,true,true,true,true,true,true,false,false,false,false,true,true,true,
+//#         false,true,false,false,true,false,true,false,false,true,false,true,true,false,true,true,
+//#         true,false,true,false,true,false,true,true,false,true,true,false,true,false,true,false,
+//#         false,true,false,false,true,false,true,false,false,true,true,false,true,false,true,true
+//#     ]
+//# } ]
+
+use std::crypto::sha256;
+use std::convert::to_bits;
+use std::array::pad;
+
+const FIELD_SIZE: u64 = 254;
+const FIELD_SIZE_PADDED: u64 = FIELD_SIZE + 2 as u64;
+const SHA256_HASH_SIZE: u64 = 256;
+
+fn main(preimage: field) -> [bool; SHA256_HASH_SIZE] {
+    let preimage_bits: [bool; FIELD_SIZE] = to_bits(preimage);
+    let preimage_bits_padded: [bool; FIELD_SIZE_PADDED] = pad(preimage_bits, 256, false);
+    sha256(preimage_bits_padded)
+}

@@ -21,12 +21,11 @@ concept, since the syntax and semantics are almost identical. However, pattern
 matching and destructuring are not implemented yet.
 
 Immutable variables are similar to constants. Like with constants, you cannot
-change the immutable variable value. However, constants have some further
-restrictions: they cannot infer their type, can be declared only in the global
-scope, and obviously cannot be marked as mutable.
+change the immutable variable value. However, constants cannot infer their type
+and you must specify it explicitly.
 
 > In contrast to Rust, variables can only be declared in functions. If you need a
-> global variable, you should declare a constant. This limitation is devised to
+> global variable, you should declare a constant or static. This limitation is devised to
 > prevent unwanted side effects, polluting the global namespace, and bad design.
 
 ```rust,no_run,noplaypen
@@ -39,7 +38,7 @@ fn test() {
 
 Variable shadowing can be a convenient feature, but Zinc is going to enforce
 warning-as-error development workflow, forbidding shadowing as a potentially
-unsafe trick. You should use mutable variables and type suffixes if you have
+unsafe trick. You should use mutable variables and type suffixes if you want
 several variables with similar logical meaning.
 
 ```rust,no_run,noplaypen

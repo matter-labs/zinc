@@ -37,7 +37,16 @@ impl<'a> TokenStream<'a> {
         Self {
             input,
             offset: 0,
-            location: Location::new_beginning(),
+            location: Location::new_beginning(None),
+            look_ahead: VecDeque::with_capacity(Self::DEQUE_LOOK_AHEAD_INITIAL_CAPACITY),
+        }
+    }
+
+    pub fn new_with_file(input: &'a str, file: usize) -> Self {
+        Self {
+            input,
+            offset: 0,
+            location: Location::new_beginning(Some(file)),
             look_ahead: VecDeque::with_capacity(Self::DEQUE_LOOK_AHEAD_INITIAL_CAPACITY),
         }
     }
@@ -53,22 +62,17 @@ impl<'a> TokenStream<'a> {
 
     ///
     /// Advances the iterator until there is `distance` elements in the look-ahead queue.
-    /// Is used where there is a need to resolve an ambiguity like
-    /// ```
-    /// let identifier = true;
-    /// if identifier {
-    ///     // value: 42, a structure literal field
-    ///     let value = 42; // a statement within the block
-    /// }
-    /// ```
-    /// where `identifier` can be both a variable or structure literal type name.
+    /// Is used where there is a need to resolve an ambiguity like `if value {}`,
+    /// where `value` can be both a variable or structure literal type name.
     ///
     pub fn look_ahead(&mut self, distance: usize) -> Result<&Token, Error> {
         while self.look_ahead.len() < distance {
             let token = self.advance()?;
             self.look_ahead.push_back(token);
         }
-        Ok(&self.look_ahead[self.look_ahead.len() - 1])
+        self.look_ahead
+            .back()
+            .ok_or_else(|| Error::unexpected_end(self.location))
     }
 
     ///
@@ -104,18 +108,20 @@ impl<'a> TokenStream<'a> {
                         self.offset += size;
                         continue;
                     }
-                    Err(CommentParserError::UnexpectedEnd) => {
-                        let location = Location::new(self.location.line, self.location.column);
-                        return Err(Error::UnexpectedEnd(location));
-                    }
                     Err(CommentParserError::NotAComment) => {}
+                    Err(CommentParserError::UnterminatedBlock { lines, column }) => {
+                        return Err(Error::unterminated_block_comment(
+                            self.location,
+                            self.location.shifted_down(lines, column),
+                        ));
+                    }
                 }
             }
 
             if character == '\"' {
                 match self::string::parse(&self.input[self.offset..]) {
                     Ok((size, value)) => {
-                        let location = Location::new(self.location.line, self.location.column);
+                        let location = self.location;
                         self.location.column += size;
                         self.offset += size;
                         return Ok(Token::new(
@@ -123,18 +129,20 @@ impl<'a> TokenStream<'a> {
                             location,
                         ));
                     }
-                    Err(StringParserError::UnexpectedEnd) => {
-                        let location = Location::new(self.location.line, self.location.column);
-                        return Err(Error::UnexpectedEnd(location));
-                    }
                     Err(StringParserError::NotAString) => {}
+                    Err(StringParserError::UnterminatedDoubleQuote { lines, column }) => {
+                        return Err(Error::unterminated_double_quote_string(
+                            self.location,
+                            self.location.shifted_down(lines, column),
+                        ));
+                    }
                 }
             }
 
             if character.is_ascii_digit() {
                 match self::integer::parse(&self.input[self.offset..]) {
                     Ok((size, integer)) => {
-                        let location = Location::new(self.location.line, self.location.column);
+                        let location = self.location;
                         self.location.column += size;
                         self.offset += size;
                         return Ok(Token::new(
@@ -142,50 +150,60 @@ impl<'a> TokenStream<'a> {
                             location,
                         ));
                     }
-                    Err(IntegerParserError::UnexpectedEnd) => {
-                        let location = Location::new(self.location.line, self.location.column);
-                        return Err(Error::UnexpectedEnd(location));
-                    }
                     Err(IntegerParserError::NotAnInteger) => {}
-                    Err(error) => {
-                        let location = Location::new(self.location.line, self.location.column);
-                        return Err(Error::InvalidInteger(location, error));
+                    Err(IntegerParserError::EmptyHexadecimalBody) => {
+                        return Err(Error::unexpected_end(self.location));
+                    }
+                    Err(IntegerParserError::ExpectedOneOfDecimal { found, offset }) => {
+                        return Err(Error::expected_one_of_decimal(
+                            self.location.shifted_right(offset),
+                            found,
+                        ))
+                    }
+                    Err(IntegerParserError::ExpectedOneOfHexadecimal { found, offset }) => {
+                        return Err(Error::expected_one_of_hexadecimal(
+                            self.location.shifted_right(offset),
+                            found,
+                        ))
+                    }
+                    Err(IntegerParserError::UnexpectedEnd) => {
+                        return Err(Error::unexpected_end(self.location))
                     }
                 }
             }
 
             if Identifier::can_start_with(character) {
-                return match self::word::parse(&self.input[self.offset..]) {
-                    Ok((size, lexeme)) => {
-                        let location = Location::new(self.location.line, self.location.column);
-                        self.location.column += size;
-                        self.offset += size;
-                        Ok(Token::new(lexeme, location))
-                    }
-                    Err(error) => {
-                        let location = Location::new(self.location.line, self.location.column);
-                        Err(Error::InvalidWord(location, error))
-                    }
-                };
+                let (size, lexeme) = self::word::parse(&self.input[self.offset..]);
+                let location = self.location;
+                self.location.column += size;
+                self.offset += size;
+                return Ok(Token::new(lexeme, location));
             }
 
-            match self::symbol::parse(&self.input[self.offset..]) {
+            return match self::symbol::parse(&self.input[self.offset..]) {
                 Ok((size, symbol)) => {
-                    let location = Location::new(self.location.line, self.location.column);
+                    let location = self.location;
                     self.location.column += size;
                     self.offset += size;
-                    return Ok(Token::new(Lexeme::Symbol(symbol), location));
+                    Ok(Token::new(Lexeme::Symbol(symbol), location))
                 }
+                Err(SymbolParserError::ExpectedOneOf {
+                    expected,
+                    found,
+                    offset,
+                    ..
+                }) => Err(Error::expected_one_of(
+                    self.location.shifted_right(offset),
+                    expected,
+                    found,
+                )),
+                Err(SymbolParserError::InvalidCharacter { found, offset }) => Err(
+                    Error::invalid_character(self.location.shifted_right(offset), found),
+                ),
                 Err(SymbolParserError::UnexpectedEnd) => {
-                    let location = Location::new(self.location.line, self.location.column);
-                    return Err(Error::UnexpectedEnd(location));
+                    Err(Error::unexpected_end(self.location.shifted_right(1)))
                 }
-                Err(SymbolParserError::NotASymbol) => {}
-                Err(error) => {
-                    let location = Location::new(self.location.line, self.location.column);
-                    return Err(Error::InvalidSymbol(location, error));
-                }
-            }
+            };
         }
 
         Ok(Token::new(Lexeme::Eof, self.location))

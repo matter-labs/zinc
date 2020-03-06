@@ -40,17 +40,14 @@ impl Structure {
     }
 }
 
+impl PartialEq<Self> for Structure {
+    fn eq(&self, other: &Self) -> bool {
+        self.unique_id == other.unique_id
+    }
+}
+
 impl fmt::Display for Structure {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "struct {} {{ {} }}",
-            self.identifier,
-            self.fields
-                .iter()
-                .map(|(name, r#type)| format!("{}: {}", name, r#type))
-                .collect::<Vec<String>>()
-                .join(", "),
-        )
+        write!(f, "struct {}", self.identifier)
     }
 }

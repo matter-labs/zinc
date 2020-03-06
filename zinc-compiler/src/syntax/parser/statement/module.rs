@@ -11,10 +11,10 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::Identifier;
-use crate::syntax::ModStatement;
-use crate::syntax::ModStatementBuilder;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::statement::module::builder::Builder as ModStatementBuilder;
+use crate::syntax::tree::statement::module::Statement as ModStatement;
 
 #[derive(Default)]
 pub struct Parser {
@@ -28,7 +28,7 @@ impl Parser {
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
     ) -> Result<(ModStatement, Option<Token>), Error> {
-        match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+        match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
             Token {
                 lexeme: Lexeme::Keyword(Keyword::Mod),
                 location,
@@ -36,15 +36,16 @@ impl Parser {
                 self.builder.set_location(location);
             }
             Token { lexeme, location } => {
-                return Err(Error::Syntax(SyntaxError::Expected(
+                return Err(Error::Syntax(SyntaxError::expected_one_of(
                     location,
                     vec!["mod"],
                     lexeme,
+                    None,
                 )));
             }
         }
 
-        match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+        match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
             Token {
                 lexeme: Lexeme::Identifier(identifier),
                 location,
@@ -53,23 +54,22 @@ impl Parser {
                 self.builder.set_identifier(identifier);
             }
             Token { lexeme, location } => {
-                return Err(Error::Syntax(SyntaxError::Expected(
-                    location,
-                    vec!["{identifier}"],
-                    lexeme,
+                return Err(Error::Syntax(SyntaxError::expected_identifier(
+                    location, lexeme, None,
                 )))
             }
         }
 
-        match crate::syntax::take_or_next(self.next.take(), stream)? {
+        match crate::syntax::parser::take_or_next(self.next.take(), stream)? {
             Token {
                 lexeme: Lexeme::Symbol(Symbol::Semicolon),
                 ..
             } => Ok((self.builder.finish(), None)),
-            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
+            Token { lexeme, location } => Err(Error::Syntax(SyntaxError::expected_one_of(
                 location,
                 vec![";"],
                 lexeme,
+                None,
             ))),
         }
     }
@@ -81,10 +81,14 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
+    use crate::error::Error;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Symbol;
     use crate::lexical::TokenStream;
-    use crate::syntax::Identifier;
-    use crate::syntax::ModStatement;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::statement::module::Statement as ModStatement;
 
     #[test]
     fn ok() {
@@ -97,6 +101,37 @@ mod tests {
             ),
             None,
         ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_identifier() {
+        let input = "mod;";
+
+        let expected = Err(Error::Syntax(SyntaxError::expected_identifier(
+            Location::new(1, 4),
+            Lexeme::Symbol(Symbol::Semicolon),
+            None,
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_semicolon() {
+        let input = "mod jabberwocky";
+
+        let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 16),
+            vec![";"],
+            Lexeme::Eof,
+            None,
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 

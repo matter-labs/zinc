@@ -11,12 +11,12 @@ use crate::lexical::Location;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::Expression;
-use crate::syntax::ExpressionBuilder;
-use crate::syntax::ExpressionOperand;
-use crate::syntax::ExpressionOperator;
-use crate::syntax::Identifier;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::tree::expression::builder::Builder as ExpressionBuilder;
+use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
+use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::identifier::Identifier;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -47,7 +47,7 @@ impl Parser {
         loop {
             match self.state {
                 State::Identifier => {
-                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
@@ -62,16 +62,14 @@ impl Parser {
                             self.state = State::DoubleColonOrEnd;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{identifier}"],
-                                lexeme,
+                            return Err(Error::Syntax(SyntaxError::expected_identifier(
+                                location, lexeme, None,
                             )));
                         }
                     }
                 }
                 State::DoubleColonOrEnd => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::DoubleColon),
                             location,
@@ -98,15 +96,41 @@ mod tests {
     use crate::lexical::Symbol;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::ExpressionOperator;
-    use crate::syntax::Identifier;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::identifier::Identifier;
 
     #[test]
-    fn ok() {
+    fn ok_single() {
+        let input = r#"id;"#;
+
+        let expected = Ok((
+            Expression::new(
+                Location::new(1, 1),
+                vec![ExpressionElement::new(
+                    Location::new(1, 1),
+                    ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
+                        Location::new(1, 1),
+                        "id".to_owned(),
+                    ))),
+                )],
+            ),
+            Some(Token::new(
+                Lexeme::Symbol(Symbol::Semicolon),
+                Location::new(1, 3),
+            )),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_multiple() {
         let input = r#"mega::ultra::namespace;"#;
 
         let expected =

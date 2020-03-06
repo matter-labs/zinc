@@ -27,7 +27,11 @@ impl Range {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::range(Type::scalar(self.is_signed, self.bitlength))
+        Type::range(self.bounds_type())
+    }
+
+    pub fn bounds_type(&self) -> Type {
+        Type::scalar(self.is_signed, self.bitlength)
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
@@ -37,6 +41,12 @@ impl Range {
 
 impl fmt::Display for Range {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} .. {}", self.start, self.end)
+        write!(
+            f,
+            "range '{} .. {}' of type '{}'",
+            self.start,
+            self.end,
+            self.bounds_type()
+        )
     }
 }

@@ -4,7 +4,10 @@ members = [
 
     "zinc-compiler",
     "zinc-bytecode",
+    "zinc-utils",
     "zinc-vm",
 
     "zinc-tester",
+
+    "schnorr",
 ]

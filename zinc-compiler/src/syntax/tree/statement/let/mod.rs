@@ -2,17 +2,15 @@
 //! The let statement.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax::Expression;
-use crate::syntax::Identifier;
-use crate::syntax::Type;
+use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::r#type::Type;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Let {
+pub struct Statement {
     pub location: Location,
     pub identifier: Identifier,
     pub is_mutable: bool,
@@ -20,7 +18,7 @@ pub struct Let {
     pub expression: Expression,
 }
 
-impl Let {
+impl Statement {
     pub fn new(
         location: Location,
         identifier: Identifier,

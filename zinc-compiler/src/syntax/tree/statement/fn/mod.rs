@@ -2,31 +2,29 @@
 //! The fn statement.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax::BindingPattern;
-use crate::syntax::BlockExpression;
-use crate::syntax::Identifier;
-use crate::syntax::Type;
+use crate::syntax::tree::expression::block::Expression as BlockExpression;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
+use crate::syntax::tree::r#type::Type;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Fn {
+pub struct Statement {
     pub location: Location,
     pub identifier: Identifier,
     pub argument_bindings: Vec<BindingPattern>,
-    pub return_type: Type,
+    pub return_type: Option<Type>,
     pub body: BlockExpression,
 }
 
-impl Fn {
+impl Statement {
     pub fn new(
         location: Location,
         identifier: Identifier,
         argument_bindings: Vec<BindingPattern>,
-        return_type: Type,
+        return_type: Option<Type>,
         body: BlockExpression,
     ) -> Self {
         Self {

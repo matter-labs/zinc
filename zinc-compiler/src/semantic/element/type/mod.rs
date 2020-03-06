@@ -2,69 +2,68 @@
 //! The semantic analyzer type element.
 //!
 
+pub mod enumeration;
 pub mod function;
 pub mod structure;
 
 use std::cell::RefCell;
-use std::convert::TryFrom;
+use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
+use std::sync::RwLock;
 
-use num_bigint::BigInt;
+use lazy_static::lazy_static;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
-use crate::semantic::analyzer::error::Error;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::translation_hint::TranslationHint;
-use crate::semantic::element::constant::integer::Integer as IntegerConstant;
+use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::Constant;
+use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::Element;
-use crate::semantic::scope::item::Item as ScopeItem;
+use crate::semantic::error::Error;
+use crate::semantic::scope::item::Variant as ScopeItemVariant;
 use crate::semantic::scope::Scope;
 use crate::syntax::Identifier;
 use crate::syntax::TypeVariant;
 use crate::syntax::Variant;
 
+use self::enumeration::Enumeration;
 use self::function::Function;
 use self::structure::Structure;
+
+lazy_static! {
+    pub static ref TYPE_INDEX: RwLock<HashMap<usize, String>> = {
+        let mut index = HashMap::with_capacity(Scope::TYPE_ID_FIRST_AVAILABLE);
+        index.insert(
+            Scope::TYPE_ID_STD_CRYPTO_ECC_POINT,
+            "struct std::crypto::ecc::Point".to_owned(),
+        );
+        index.insert(
+            Scope::TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE,
+            "struct std::crypto::schnorr::Signature".to_owned(),
+        );
+        RwLock::new(index)
+    };
+}
 
 #[derive(Debug, Clone)]
 pub enum Type {
     Unit,
     Boolean,
-    IntegerUnsigned {
-        bitlength: usize,
-    },
-    IntegerSigned {
-        bitlength: usize,
-    },
+    IntegerUnsigned { bitlength: usize },
+    IntegerSigned { bitlength: usize },
     Field,
     String,
-    Range {
-        r#type: Box<Self>,
-    },
-    RangeInclusive {
-        r#type: Box<Self>,
-    },
-    Array {
-        r#type: Box<Self>,
-        size: usize,
-    },
-    Tuple {
-        types: Vec<Self>,
-    },
+    Range { r#type: Box<Self> },
+    RangeInclusive { r#type: Box<Self> },
+    Array { r#type: Box<Self>, size: usize },
+    Tuple { types: Vec<Self> },
     Structure(Structure),
-    Enumeration {
-        identifier: String,
-        unique_id: usize,
-        bitlength: usize,
-        scope: Rc<RefCell<Scope>>,
-    },
+    Enumeration(Enumeration),
     Function(Function),
 }
-
-pub static mut UNIQUE_ID: usize = 0;
 
 impl Default for Type {
     fn default() -> Self {
@@ -155,45 +154,7 @@ impl Type {
         variants: Vec<Variant>,
         scope_parent: Option<Rc<RefCell<Scope>>>,
     ) -> Result<Self, Error> {
-        let scope = Rc::new(RefCell::new(Scope::new(scope_parent)));
-
-        let mut variants_bigint = Vec::with_capacity(variants.len());
-        for variant in variants.into_iter() {
-            let value = IntegerConstant::try_from(&variant.literal)
-                .map_err(|error| Error::InferenceConstant(variant.identifier.location, error))?;
-            variants_bigint.push((variant.identifier, value.value));
-        }
-        let bigints: Vec<&BigInt> = variants_bigint.iter().map(|variant| &variant.1).collect();
-        let minimal_bitlength =
-            IntegerConstant::minimal_bitlength_bigints(bigints.as_slice(), false)
-                .map_err(|error| Error::InferenceConstant(identifier.location, error))?;
-
-        for (identifier, value) in variants_bigint.into_iter() {
-            let location = identifier.location;
-            let constant = IntegerConstant::new(value, false, minimal_bitlength);
-            scope
-                .borrow_mut()
-                .declare_constant(identifier.name, Constant::Integer(constant))
-                .map_err(|error| Error::Scope(location, error))?;
-        }
-
-        let enumeration = Self::Enumeration {
-            identifier: identifier.name,
-            unique_id,
-            bitlength: minimal_bitlength,
-            scope: scope.clone(),
-        };
-        scope.borrow_mut().declare_self(enumeration.clone());
-
-        Ok(enumeration)
-    }
-
-    pub fn new_assert_function() -> Self {
-        Self::Function(Function::new_assert())
-    }
-
-    pub fn new_dbg_function() -> Self {
-        Self::Function(Function::new_dbg())
+        Enumeration::new(identifier, unique_id, variants, scope_parent).map(Self::Enumeration)
     }
 
     pub fn new_std_function(builtin_identifier: BuiltinIdentifier) -> Self {
@@ -293,13 +254,29 @@ impl Type {
             TypeVariant::IntegerSigned { bitlength } => Self::integer_signed(*bitlength),
             TypeVariant::Field => Self::field(),
             TypeVariant::Array { inner, size } => {
-                Self::array(Self::from_type_variant(&*inner, scope)?, {
-                    let location = size.location;
-                    IntegerConstant::try_from(size)
-                        .map_err(|error| Error::InferenceConstant(location, error))?
-                        .to_usize()
-                        .map_err(|error| Error::InferenceConstant(location, error))?
-                })
+                let r#type = Self::from_type_variant(&*inner, scope.clone())?;
+
+                let size_location = size.location;
+                let size = match ExpressionAnalyzer::new_without_bytecode(scope)
+                    .expression(size.to_owned(), TranslationHint::ValueExpression)?
+                {
+                    Element::Constant(Constant::Integer(integer)) => {
+                        integer.to_usize().map_err(|error| {
+                            Error::Element(
+                                size_location,
+                                ElementError::Constant(ConstantError::Integer(error)),
+                            )
+                        })?
+                    }
+                    element => {
+                        return Err(Error::ConstantExpressionHasNonConstantElement {
+                            location: size_location,
+                            found: element.to_string(),
+                        });
+                    }
+                };
+
+                Self::array(r#type, size)
             }
             TypeVariant::Tuple { inners } => {
                 let mut types = Vec::with_capacity(inners.len());
@@ -315,10 +292,10 @@ impl Type {
                 {
                     Element::Type(r#type) => r#type,
                     element => {
-                        return Err(Error::TypeAliasDoesNotPointToType(
+                        return Err(Error::TypeAliasDoesNotPointToType {
                             location,
-                            element.to_string(),
-                        ))
+                            found: element.to_string(),
+                        });
                     }
                 }
             }
@@ -330,10 +307,10 @@ impl Type {
             Element::Value(value) => value.r#type(),
             Element::Constant(constant) => constant.r#type(),
             Element::Type(r#type) => r#type.to_owned(),
-            Element::Path(path) => match Scope::resolve_path(scope, &path)? {
-                ScopeItem::Variable(variable) => variable.r#type,
-                ScopeItem::Constant(constant) => constant.r#type(),
-                ScopeItem::Static(r#static) => r#static.data.r#type(),
+            Element::Path(path) => match Scope::resolve_path(scope, &path)?.variant {
+                ScopeItemVariant::Variable(variable) => variable.r#type,
+                ScopeItemVariant::Constant(constant) => constant.r#type(),
+                ScopeItemVariant::Static(r#static) => r#static.data.r#type(),
                 _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
             },
             Element::Place(place) => place.r#type.to_owned(),
@@ -372,36 +349,11 @@ impl PartialEq<Type> for Type {
             ) => type_1 == type_2 && size_1 == size_2,
             (Self::Tuple { types: types_1 }, Self::Tuple { types: types_2 }) => types_1 == types_2,
             (Self::Structure(structure_1), Self::Structure(structure_2)) => {
-                structure_1.unique_id == structure_2.unique_id
+                structure_1 == structure_2
             }
-            (
-                Self::Enumeration {
-                    bitlength: bitlength_1,
-                    ..
-                },
-                Self::Enumeration {
-                    bitlength: bitlength_2,
-                    ..
-                },
-            ) => bitlength_1 == bitlength_2,
-            (
-                Self::Enumeration {
-                    bitlength: bitlength_1,
-                    ..
-                },
-                Self::IntegerUnsigned {
-                    bitlength: bitlength_2,
-                },
-            ) => bitlength_1 == bitlength_2,
-            (
-                Self::IntegerUnsigned {
-                    bitlength: bitlength_1,
-                },
-                Self::Enumeration {
-                    bitlength: bitlength_2,
-                    ..
-                },
-            ) => bitlength_1 == bitlength_2,
+            (Self::Enumeration(enumeration_1), Self::Enumeration(enumeration_2)) => {
+                enumeration_1 == enumeration_2
+            }
             _ => false,
         }
     }
@@ -416,8 +368,8 @@ impl fmt::Display for Type {
             Self::IntegerSigned { bitlength } => write!(f, "i{}", bitlength),
             Self::Field => write!(f, "field"),
             Self::String => write!(f, "str"),
-            Self::Range { r#type } => write!(f, "{0} .. {0}", r#type),
-            Self::RangeInclusive { r#type } => write!(f, "{0} ..= {0}", r#type),
+            Self::Range { r#type } => write!(f, "{0}..{0}", r#type),
+            Self::RangeInclusive { r#type } => write!(f, "{0}..={0}", r#type),
             Self::Array { r#type, size } => write!(f, "[{}; {}]", r#type, size),
             Self::Tuple { types } => write!(
                 f,
@@ -429,11 +381,7 @@ impl fmt::Display for Type {
                     .join(", ")
             ),
             Self::Structure(inner) => write!(f, "{}", inner),
-            Self::Enumeration {
-                identifier,
-                unique_id,
-                ..
-            } => write!(f, "enum <{}> {}", unique_id, identifier),
+            Self::Enumeration(inner) => write!(f, "{}", inner),
             Self::Function(inner) => write!(f, "{}", inner),
         }
     }

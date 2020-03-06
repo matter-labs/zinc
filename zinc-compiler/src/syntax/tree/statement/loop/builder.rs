@@ -3,10 +3,10 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::BlockExpression;
-use crate::syntax::Expression;
-use crate::syntax::Identifier;
-use crate::syntax::LoopStatement;
+use crate::syntax::tree::expression::block::Expression as BlockExpression;
+use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::statement::r#loop::Statement as LoopStatement;
 
 #[derive(Default)]
 pub struct Builder {

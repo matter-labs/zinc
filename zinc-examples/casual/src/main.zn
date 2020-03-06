@@ -1,16 +1,3 @@
-//!
-//! The casual example used to test some cases.
-//!
-
-fn main() -> u64 {// {{}}}asdf}} {{asd{
-    let mut sum: u64 = 0;// {{}}safasd}}}
-// {{}}sadf}}}
-    for i in -2147483648..=-2147483639 {// {{}}}}}
-        sum = sum + 1 as u64;// {{}}}}} {{{
-    };;;// {{}}}}asdf} {{asfd{
-// {{}}asdf}}}
-    sum// {asdf{}asfd}}}} {asdf{asdf{
-// {{}asfd}}}}
-}// {{}}asdf}}asfd} {sdaf{asfd{
-
-// {asfd{}}}asfd}}
+fn main() -> u8 {
+    42
+}

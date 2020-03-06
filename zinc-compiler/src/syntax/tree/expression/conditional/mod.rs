@@ -2,18 +2,16 @@
 //! The conditional expression.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax;
-use crate::syntax::BlockExpression;
+use crate::syntax::tree::expression::block::Expression as BlockExpression;
+use crate::syntax::tree::expression::Expression as SyntaxExpression;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
     pub location: Location,
-    pub condition: Box<syntax::Expression>,
+    pub condition: Box<SyntaxExpression>,
     pub main_block: BlockExpression,
     pub else_block: Option<BlockExpression>,
 }
@@ -21,7 +19,7 @@ pub struct Expression {
 impl Expression {
     pub fn new(
         location: Location,
-        condition: syntax::Expression,
+        condition: SyntaxExpression,
         main_block: BlockExpression,
         else_block: Option<BlockExpression>,
     ) -> Self {

@@ -8,60 +8,61 @@ Both operands of a binary operator must always be of the same type, e.g.:
 - `i64` and `i64`
 - `field` and `field`
 
-> The operators `/` and `%` are temporarily forbidden for the
-> type `field`, but will probably become available soon.
-
-> When is comes to the division of negative numbers, Zinc follows the Euclidean
+> When it comes to the division of negative numbers, Zinc follows the Euclidean
 > division concept. It means that `-45 % 7 == 4`. To get the detailed explanation
 > and some examples, see the [article](https://en.wikipedia.org/wiki/Euclidean_division).
 
+The `+=`, `-=`, `*=`, `/=`, `%=` shortcut operators performs the operation
+and assign the result to the first operand. The first operand must be a mutable memory location
+like a variable, array element, or structure field.
+
 #### Addition
 
-`+` is a binary operator.
+`+` and `+=` are binary operators.
 
 **Accepts**
 1. Integer expression
-2. Integer expression of the same type
+2. Expression of the operand 1 type
 
 **Returns** an integer result of the same type.
 
 #### Subtraction
 
-`-` is a binary operator.
+`-` and `-=` are binary operators.
 
 **Accepts**
 1. Integer expression
-2. Integer expression of the same type
+2. Expression of the operand 1 type
 
 **Returns** an integer result of the same type.
 
 #### Multiplication
 
-`*` is a binary operator.
+`*` and `*=` are binary operators.
 
 **Accepts**
 1. Integer expression
-2. Integer expression of the same type
+2. Expression of the operand 1 type
 
 **Returns** an integer result of the same type.
 
 #### Division
 
-`/` is a binary operator.
+`/` and `/=` are binary operators.
 
 **Accepts**
-1. Integer expression (anything but `field`)
-2. Integer expression of the same type
+1. Integer expression
+2. Expression of the operand 1 type
 
 **Returns** an integer result of the same type.
 
 #### Remainder
 
-`%` is a binary operator.
+`%` and `%=` are binary operators.
 
 **Accepts**
-1. Integer expression (anything but `field`)
-2. Integer expression of the same type
+1. Integer expression (any type except `field`)
+2. Expression of the operand 1 type
 
 **Returns** an integer result of the same type.
 
@@ -70,6 +71,6 @@ Both operands of a binary operator must always be of the same type, e.g.:
 `-` is an unary operator.
 
 **Accepts**
-1. Integer expression (anything but `field`)
+1. Integer expression (any type except `field`)
 
 **Returns** a signed integer with same bitlength.

@@ -2,13 +2,12 @@
 //! The match pattern.
 //!
 
-mod builder;
-mod variant;
-
-pub use self::builder::Builder;
-pub use self::variant::Variant;
+pub mod builder;
+pub mod variant;
 
 use crate::lexical::Location;
+
+use self::variant::Variant;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Pattern {

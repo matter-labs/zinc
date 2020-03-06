@@ -11,12 +11,17 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::ExpressionParser;
-use crate::syntax::Identifier;
-use crate::syntax::StaticStatement;
-use crate::syntax::StaticStatementBuilder;
-use crate::syntax::TypeParser;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::expression::Parser as ExpressionParser;
+use crate::syntax::parser::r#type::Parser as TypeParser;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::statement::r#static::builder::Builder as StaticStatementBuilder;
+use crate::syntax::tree::statement::r#static::Statement as StaticStatement;
+
+static HINT_EXPECTED_IDENTIFIER: &str =
+    "static data must have an identifier, e.g. `static DATA: u8 = 42;`";
+static HINT_EXPECTED_TYPE: &str = "static data must have a type, e.g. `static DATA: u8 = 42;`";
+static HINT_EXPECTED_VALUE: &str = "static data must be initialized, e.g. `static DATA: u8 = 42;`";
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -51,7 +56,7 @@ impl Parser {
         loop {
             match self.state {
                 State::KeywordStatic => {
-                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Static),
                             location,
@@ -60,16 +65,17 @@ impl Parser {
                             self.state = State::Identifier;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["static"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
                 }
                 State::Identifier => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
@@ -79,25 +85,25 @@ impl Parser {
                             self.state = State::Colon;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_identifier(
                                 location,
-                                vec!["{identifier}"],
                                 lexeme,
+                                Some(HINT_EXPECTED_IDENTIFIER),
                             )));
                         }
                     }
                 }
                 State::Colon => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Colon),
                             ..
                         } => self.state = State::Type,
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_type(
                                 location,
-                                vec![":"],
                                 lexeme,
+                                Some(HINT_EXPECTED_TYPE),
                             )));
                         }
                     }
@@ -109,16 +115,16 @@ impl Parser {
                     self.state = State::Equals;
                 }
                 State::Equals => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Equals),
                             ..
                         } => self.state = State::Expression,
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_value(
                                 location,
-                                vec!["="],
                                 lexeme,
+                                Some(HINT_EXPECTED_VALUE),
                             )));
                         }
                     }
@@ -131,16 +137,19 @@ impl Parser {
                     self.state = State::Semicolon;
                 }
                 State::Semicolon => {
-                    return match crate::syntax::take_or_next(self.next.take(), stream)? {
+                    return match crate::syntax::parser::take_or_next(self.next.take(), stream)? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Semicolon),
                             ..
                         } => Ok((self.builder.finish(), None)),
-                        Token { lexeme, location } => Err(Error::Syntax(SyntaxError::Expected(
-                            location,
-                            vec![";"],
-                            lexeme,
-                        ))),
+                        Token { lexeme, location } => {
+                            Err(Error::Syntax(SyntaxError::expected_one_of_or_operator(
+                                location,
+                                vec![";"],
+                                lexeme,
+                                None,
+                            )))
+                        }
                     }
                 }
             }
@@ -160,16 +169,16 @@ mod tests {
     use crate::lexical::Location;
     use crate::lexical::Symbol;
     use crate::lexical::TokenStream;
-    use crate::syntax::Error as SyntaxError;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::Identifier;
-    use crate::syntax::IntegerLiteral;
-    use crate::syntax::StaticStatement;
-    use crate::syntax::Type;
-    use crate::syntax::TypeVariant;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+    use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
+    use crate::syntax::tree::r#type::Type;
+    use crate::syntax::tree::statement::r#static::Statement as StaticStatement;
 
     #[test]
     fn ok() {
@@ -202,13 +211,59 @@ mod tests {
     }
 
     #[test]
-    fn err_no_value() {
+    fn error_expected_identifier() {
+        let input = r#"static = 42;"#;
+
+        let expected = Err(Error::Syntax(SyntaxError::expected_identifier(
+            Location::new(1, 8),
+            Lexeme::Symbol(Symbol::Equals),
+            Some(super::HINT_EXPECTED_IDENTIFIER),
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_type() {
+        let input = r#"static VALUE = 42;"#;
+
+        let expected = Err(Error::Syntax(SyntaxError::expected_type(
+            Location::new(1, 14),
+            Lexeme::Symbol(Symbol::Equals),
+            Some(super::HINT_EXPECTED_TYPE),
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_value() {
         let input = r#"static A: u64;"#;
 
-        let expected = Err(Error::Syntax(SyntaxError::Expected(
+        let expected = Err(Error::Syntax(SyntaxError::expected_value(
             Location::new(1, 14),
-            vec!["="],
             Lexeme::Symbol(Symbol::Semicolon),
+            Some(super::HINT_EXPECTED_VALUE),
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_semicolon() {
+        let input = "static A: u64 = 42";
+
+        let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 19),
+            vec![";"],
+            Lexeme::Eof,
+            None,
         )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);

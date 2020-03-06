@@ -2,20 +2,18 @@
 //! The use statement.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax::Expression;
+use crate::syntax::tree::expression::Expression;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Use {
+pub struct Statement {
     pub location: Location,
     pub path: Expression,
 }
 
-impl Use {
+impl Statement {
     pub fn new(location: Location, path: Expression) -> Self {
         Self { location, path }
     }

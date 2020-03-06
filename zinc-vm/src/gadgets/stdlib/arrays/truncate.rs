@@ -1,5 +1,5 @@
 use crate::errors::MalformedBytecode;
-use crate::gadgets::{Gadget, Primitive};
+use crate::gadgets::{Gadget, Scalar};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
@@ -10,8 +10,8 @@ use bellman::ConstraintSystem;
 pub struct Truncate;
 
 impl<E: Engine> Gadget<E> for Truncate {
-    type Input = (Primitive<E>, Vec<Primitive<E>>);
-    type Output = Vec<Primitive<E>>;
+    type Input = (Scalar<E>, Vec<Scalar<E>>);
+    type Output = Vec<Scalar<E>>;
 
     fn synthesize<CS: ConstraintSystem<E>>(
         &self,
@@ -35,7 +35,7 @@ impl<E: Engine> Gadget<E> for Truncate {
         Ok(array)
     }
 
-    fn input_from_vec(input: &[Primitive<E>]) -> Result<Self::Input, RuntimeError> {
+    fn input_from_vec(input: &[Scalar<E>]) -> Result<Self::Input, RuntimeError> {
         let (new_len, array) = input.split_last().ok_or_else(|| {
             MalformedBytecode::InvalidArguments("truncate expects at least one argument".into())
         })?;
@@ -43,7 +43,7 @@ impl<E: Engine> Gadget<E> for Truncate {
         Ok((new_len.clone(), Vec::from(array)))
     }
 
-    fn output_into_vec(output: Self::Output) -> Vec<Primitive<E>> {
+    fn output_into_vec(output: Self::Output) -> Vec<Scalar<E>> {
         output
     }
 }

@@ -3,16 +3,18 @@
 //! of a given hash digest.
 //!
 //! Note that we truncate one byte from digest since u256 type is not supported.
-//! 
+//!
 
-use std::convert;
-use std::array::truncate;
 use std::crypto::sha256;
+use std::convert::to_bits;
+use std::array::pad;
 
-fn main(preimage: u248) -> u248 {
-    let preimage_bits = convert::to_bits(preimage);
-    let digest_bits = sha256(preimage_bits);
-    let truncated_bits = truncate(digest_bits, 248); 
-    
-    convert::from_bits_unsigned(truncated_bits)
+const FIELD_SIZE: u64 = 254;
+const FIELD_SIZE_PADDED: u64 = FIELD_SIZE + 2 as u64;
+const SHA256_HASH_SIZE: u64 = 256;
+
+fn main(preimage: field) -> [bool; SHA256_HASH_SIZE] {
+    let preimage_bits: [bool; FIELD_SIZE] = to_bits(preimage);
+    let preimage_bits_padded: [bool; FIELD_SIZE_PADDED] = pad(preimage_bits, 256, false);
+    sha256(preimage_bits_padded)
 }

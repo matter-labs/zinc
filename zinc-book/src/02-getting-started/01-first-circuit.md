@@ -43,9 +43,17 @@ Let's replace the `main.zn` contents with the following code:
 
 ```rust,no_run,noplaypen
 use std::crypto::sha256;
+use std::convert::to_bits;
+use std::array::pad;
 
-fn main(preimage: [bool; 256]) -> [bool; 256] {
-    sha256(preimage)
+const FIELD_SIZE: u64 = 254;
+const FIELD_SIZE_PADDED: u64 = FIELD_SIZE + 2 as u64;
+const SHA256_HASH_SIZE: u64 = 256;
+
+fn main(preimage: field) -> [bool; SHA256_HASH_SIZE] {
+    let preimage_bits: [bool; FIELD_SIZE] = to_bits(preimage);
+    let preimage_bits_padded: [bool; FIELD_SIZE_PADDED] = pad(preimage_bits, 256, false);
+    sha256(preimage_bits_padded)
 }
 ```
 

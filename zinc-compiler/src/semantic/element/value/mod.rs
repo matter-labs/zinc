@@ -2,6 +2,8 @@
 //! The semantic analyzer value element.
 //!
 
+mod tests;
+
 pub mod array;
 pub mod error;
 pub mod integer;
@@ -303,7 +305,7 @@ impl Value {
 
     pub fn cast(&mut self, to: &Type) -> Result<Option<(bool, usize)>, Error> {
         let from = self.r#type();
-        Caster::validate(&from, &to).map_err(Error::Casting)?;
+        Caster::cast(&from, &to).map_err(Error::Casting)?;
 
         let (is_signed, bitlength) = match to {
             Type::IntegerUnsigned { bitlength } => (false, *bitlength),
@@ -389,29 +391,6 @@ impl Value {
     }
 }
 
-impl TryFrom<Type> for Value {
-    type Error = Error;
-
-    fn try_from(r#type: Type) -> Result<Self, Self::Error> {
-        Ok(match r#type {
-            Type::Unit => Self::Unit,
-            Type::Boolean => Self::Boolean,
-            Type::IntegerUnsigned { bitlength } => Self::Integer(Integer::new(false, bitlength)),
-            Type::IntegerSigned { bitlength } => Self::Integer(Integer::new(true, bitlength)),
-            Type::Field => Self::Integer(Integer::new(false, crate::BITLENGTH_FIELD)),
-            Type::Array { r#type, size } => Self::Array(Array::new(*r#type, size)),
-            Type::Tuple { types } => Self::Tuple(Tuple::new(types)),
-            Type::Structure(structure) => Self::Structure(Structure::new(
-                structure.identifier,
-                structure.unique_id,
-                structure.fields,
-            )),
-            Type::Enumeration { bitlength, .. } => Self::Integer(Integer::new(false, bitlength)),
-            r#type => return Err(Error::ConvertingFromType(r#type.to_string())),
-        })
-    }
-}
-
 impl TryFrom<&Type> for Value {
     type Error = Error;
 
@@ -424,22 +403,14 @@ impl TryFrom<&Type> for Value {
             Type::Field => Self::Integer(Integer::new(false, crate::BITLENGTH_FIELD)),
             Type::Array { r#type, size } => Self::Array(Array::new(*r#type.to_owned(), *size)),
             Type::Tuple { types } => Self::Tuple(Tuple::new(types.to_owned())),
-            Type::Structure(structure) => Self::Structure(Structure::new(
-                structure.identifier.to_owned(),
-                structure.unique_id,
-                structure.fields.to_owned(),
-            )),
-            Type::Enumeration { bitlength, .. } => Self::Integer(Integer::new(false, *bitlength)),
+            Type::Structure(structure) => Self::Structure(Structure::new(structure.to_owned())),
+            Type::Enumeration(enumeration) => {
+                let mut integer = Integer::new(false, enumeration.bitlength);
+                integer.set_enumeration(enumeration.to_owned());
+                Self::Integer(integer)
+            }
             r#type => return Err(Error::ConvertingFromType(r#type.to_string())),
         })
-    }
-}
-
-impl TryFrom<Constant> for Value {
-    type Error = Error;
-
-    fn try_from(constant: Constant) -> Result<Self, Self::Error> {
-        Self::try_from(constant.r#type())
     }
 }
 
@@ -447,12 +418,19 @@ impl TryFrom<&Constant> for Value {
     type Error = Error;
 
     fn try_from(constant: &Constant) -> Result<Self, Self::Error> {
-        Self::try_from(constant.r#type())
+        Self::try_from(&constant.r#type())
     }
 }
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.r#type())
+        match self {
+            Self::Unit => write!(f, "unit value"),
+            Self::Boolean => write!(f, "boolean value"),
+            Self::Integer(inner) => write!(f, "{}", inner),
+            Self::Array(inner) => write!(f, "{}", inner),
+            Self::Tuple(inner) => write!(f, "{}", inner),
+            Self::Structure(inner) => write!(f, "{}", inner),
+        }
     }
 }

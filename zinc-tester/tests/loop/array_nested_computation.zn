@@ -1,0 +1,19 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {
+//#         "array": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+//#     },
+//#     "expect": "3025"
+//# } ]
+
+const ARRAY_SIZE: u8 = 10;
+
+fn main(array: [u8; ARRAY_SIZE]) -> u32 {
+    let mut sum: u32 = 0;
+    for i in 0..ARRAY_SIZE {
+        for j in 0..ARRAY_SIZE {
+            sum += (array[i] * array[j]) as u32;
+        }
+    }
+    sum
+}

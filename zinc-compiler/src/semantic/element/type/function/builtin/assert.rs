@@ -1,13 +1,12 @@
 //!
-//! The semantic analyzer `assert!` built-in function type element.
+//! The semantic analyzer `assert!` built-in function element.
 //!
 
 use std::fmt;
 
 use crate::semantic::element::constant::Constant;
-use crate::semantic::element::r#type::function::builtin::error::Error;
+use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 
 #[derive(Debug, Default, Clone)]
@@ -16,9 +15,10 @@ pub struct Function {
 }
 
 impl Function {
-    const ARGUMENT_INDEX_CONDITION: usize = 0;
-    const ARGUMENT_INDEX_MESSAGE: usize = 1;
-    const ARGUMENT_COUNT: usize = 2;
+    pub const ARGUMENT_INDEX_CONDITION: usize = 0;
+    pub const ARGUMENT_INDEX_MESSAGE: usize = 1;
+    pub const ARGUMENT_COUNT_MANDATORY: usize = 1;
+    pub const ARGUMENT_COUNT_OPTIONAL: usize = 2;
 
     pub fn new() -> Self {
         Self {
@@ -30,74 +30,71 @@ impl Function {
         self.identifier
     }
 
-    pub fn validate(&self, inputs: &[Element]) -> Result<(Type, Option<String>), Error> {
-        match inputs.get(Self::ARGUMENT_INDEX_CONDITION) {
-            Some(Element::Constant(Constant::Boolean(_))) => {}
-            Some(Element::Value(Value::Boolean)) => {}
-            Some(Element::Constant(constant)) => {
-                return Err(Error::ArgumentType(
-                    self.identifier,
+    pub fn call(self, actual_elements: Vec<Element>) -> Result<(Type, Option<String>), Error> {
+        let mut actual_params = Vec::with_capacity(actual_elements.len());
+        for (index, element) in actual_elements.into_iter().enumerate() {
+            let (r#type, is_constant, string) = match element {
+                Element::Value(value) => (value.r#type(), false, None),
+                Element::Constant(Constant::String(string)) => (Type::string(), true, Some(string)),
+                Element::Constant(constant) => (constant.r#type(), true, None),
+                element => {
+                    return Err(Error::argument_not_evaluable(
+                        self.identifier.to_owned(),
+                        index + 1,
+                        element.to_string(),
+                    ))
+                }
+            };
+            actual_params.push((r#type, is_constant, string));
+        }
+
+        match actual_params.get(Self::ARGUMENT_INDEX_CONDITION) {
+            Some((Type::Boolean, _is_constant, _string)) => {}
+            Some((r#type, _is_constant, _string)) => {
+                return Err(Error::argument_type(
+                    self.identifier.to_owned(),
+                    "condition".to_owned(),
+                    Self::ARGUMENT_INDEX_CONDITION + 1,
                     Type::boolean().to_string(),
-                    Self::ARGUMENT_INDEX_CONDITION + 1,
-                    constant.r#type().to_string(),
-                ))
-            }
-            Some(Element::Value(value)) => {
-                return Err(Error::ArgumentType(
-                    self.identifier,
-                    Type::boolean().to_string(),
-                    Self::ARGUMENT_INDEX_CONDITION + 1,
-                    value.r#type().to_string(),
-                ))
-            }
-            Some(element) => {
-                return Err(Error::ArgumentNotEvaluable(
-                    self.identifier,
-                    Self::ARGUMENT_INDEX_CONDITION + 1,
-                    element.to_string(),
+                    r#type.to_string(),
                 ))
             }
             None => {
-                return Err(Error::ArgumentCount(
-                    self.identifier,
-                    Self::ARGUMENT_INDEX_CONDITION + 1,
-                    inputs.len(),
+                return Err(Error::argument_count(
+                    self.identifier.to_owned(),
+                    Self::ARGUMENT_COUNT_MANDATORY,
+                    actual_params.len(),
                 ))
             }
         }
 
-        let string = match inputs.get(Self::ARGUMENT_INDEX_MESSAGE) {
-            Some(Element::Constant(Constant::String(string))) => Some(string.to_owned()),
-            Some(Element::Constant(constant)) => {
-                return Err(Error::ArgumentType(
-                    self.identifier,
+        let string = match actual_params.get(Self::ARGUMENT_INDEX_MESSAGE) {
+            Some((Type::String, true, string)) => string.to_owned(),
+            Some((r#type, true, _string)) => {
+                return Err(Error::argument_type(
+                    self.identifier.to_owned(),
+                    "message".to_owned(),
+                    Self::ARGUMENT_INDEX_MESSAGE + 1,
                     Type::string().to_string(),
-                    Self::ARGUMENT_INDEX_MESSAGE + 1,
-                    constant.r#type().to_string(),
+                    r#type.to_string(),
                 ))
             }
-            Some(Element::Value(value)) => {
-                return Err(Error::ArgumentConstantness(
-                    self.identifier,
+            Some((r#type, false, _string)) => {
+                return Err(Error::argument_constantness(
+                    self.identifier.to_owned(),
+                    "message".to_owned(),
                     Self::ARGUMENT_INDEX_MESSAGE + 1,
-                    value.to_string(),
-                ))
-            }
-            Some(element) => {
-                return Err(Error::ArgumentNotEvaluable(
-                    self.identifier,
-                    Self::ARGUMENT_INDEX_MESSAGE + 1,
-                    element.to_string(),
+                    r#type.to_string(),
                 ))
             }
             None => None,
         };
 
-        if inputs.get(Self::ARGUMENT_COUNT).is_some() {
-            return Err(Error::ArgumentCount(
-                self.identifier,
-                Self::ARGUMENT_COUNT,
-                inputs.len(),
+        if actual_params.len() > Self::ARGUMENT_COUNT_OPTIONAL {
+            return Err(Error::argument_count(
+                self.identifier.to_owned(),
+                Self::ARGUMENT_COUNT_OPTIONAL,
+                actual_params.len(),
             ));
         }
 
@@ -107,6 +104,6 @@ impl Function {
 
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}!(condition: bool, message: &str)", self.identifier)
+        write!(f, "{}!(condition: bool, [message: str])", self.identifier)
     }
 }

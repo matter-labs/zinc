@@ -16,20 +16,28 @@ system, but `std` makes an exception to simplify development for now.
 - `i{N}` - a signed integer of bitlength `N`
 - `field` - a field element of bitlength `254`
 
-## `crypto` module
+## `std::crypto` module
 
 ### `std::crypto::sha256`
 
 Computes the `sha256` hash of a given bit array.
 
+Will cause a compile-error if either:
+- preimage length is zero
+- preimage length is not multiple of 8
+
 Arguments:
-- preimage bit array `[bool; 8*N]` (the size must be multiple of 8)
+- preimage bit array `[bool; N]`
 
 Returns: 256-bit hash `[bool; 256]`
 
 ### `std::crypto::pedersen`
 
 Maps a bit array to a point on an elliptic curve.
+
+Will cause a compile-error if either:
+- preimage length is zero
+- preimage length is greater than 512 bits
 
 To understand what is under the hood, see [this article](https://iden3-docs.readthedocs.io/en/latest/iden3_repos/research/publications/zkproof-standards-workshop-2/pedersen-hash/pedersen.html).
 
@@ -38,7 +46,44 @@ Arguments:
 
 Returns: elliptic curve point coordinates `(field, field)`
 
-## `convert` module
+### `std::crypto::ecc::Point`
+
+The elliptic curve point.
+
+```rust
+struct Point {
+    x: field,
+    y: field,
+}
+```
+
+### `std::crypto::schnorr::Signature`
+
+The Schnorr EDDSA signature structure.
+
+```rust
+struct Signature {
+    r: std::crypto::ecc::Point,
+    s: field,
+    pk: std::crypto::ecc::Point,
+}
+```
+
+### `std::crypto::schnorr::Signature::verify`
+
+Verifies the EDDSA signature.
+
+Will cause a compile-error if either:
+- message length is zero
+- message length is greater than 248 bits
+
+Arguments:
+- the signature: `std::crypto::schnorr::Signature`
+- the message: `[bool; N]`
+
+Returns: the boolean result
+
+## `std::convert` module
 
 ### `std::convert::to_bits`
 
@@ -53,6 +98,11 @@ Returns: `[bool; N]`
 
 Converts a bit array to an unsigned integer of the array's bitlength.
 
+Will cause a compile-error if either:
+- bit array size is zero
+- bit array size is greater than 248 bits
+- bit array size is not multiple of 8
+
 Arguments:
 - bit array: `[bool; N]`
 
@@ -61,6 +111,11 @@ Returns: `u{N}`
 ### `std::convert::from_bits_signed`
 
 Converts a bit array to a signed integer of the array's bitlength.
+
+Will cause a compile-error if either:
+- bit array size is zero
+- bit array size is greater than 248 bits
+- bit array size is not multiple of 8
 
 Arguments:
 - bit array: `[bool; N]`
@@ -76,7 +131,7 @@ Arguments:
 
 Returns: `field`
 
-## `array` module
+## `std::array` module
 
 ### `std::array::reverse`
 
@@ -92,8 +147,8 @@ Returns: `[{scalar}; N]`
 Truncates an array of size `N` to an array of size `new_length`.
 
 Will cause a compile-error if either:
-- `N` < `new_length`.
-- `new_length` is not a constant expression
+- array size is lesser than new length
+- new length is not a constant expression
 
 Arguments:
 - array: `[{scalar}; N]`
@@ -103,11 +158,11 @@ Returns: `[{scalar}; new_length]`
 
 ### `std::array::pad`
 
-Pads a given array with given values.
+Pads a given array with the given values.
 
 Will cause a compile-error if either:
-- `N` < `new_length`.
-- `new_length` is not a constant expression
+- array size is greater than new length
+- new length is not a constant expression
 
 Arguments:
 - array: `[{scalar}; N]`

@@ -1,31 +1,34 @@
 use crate::core::{Block, Branch, Cell, FunctionFrame, Loop, VirtualMachine};
 use crate::errors::MalformedBytecode;
+use crate::gadgets::stdlib::NativeFunction;
 use crate::gadgets::Gadgets;
-use crate::Engine;
+use crate::Result;
 use crate::RuntimeError;
+use crate::{gadgets, Engine};
 use franklin_crypto::bellman::ConstraintSystem;
 
 /// This is an internal interface to virtual machine used by instructions.
 pub trait InternalVM<E: Engine> {
-    fn push(&mut self, cell: Cell<E>) -> Result<(), RuntimeError>;
-    fn pop(&mut self) -> Result<Cell<E>, RuntimeError>;
+    fn push(&mut self, cell: Cell<E>) -> Result;
+    fn pop(&mut self) -> Result<Cell<E>>;
 
-    fn load(&mut self, address: usize) -> Result<Cell<E>, RuntimeError>;
-    fn load_global(&mut self, address: usize) -> Result<Cell<E>, RuntimeError>;
-    fn store(&mut self, address: usize, cell: Cell<E>) -> Result<(), RuntimeError>;
-    fn store_global(&mut self, address: usize, cell: Cell<E>) -> Result<(), RuntimeError>;
+    fn load(&mut self, address: usize) -> Result<Cell<E>>;
+    fn load_global(&mut self, address: usize) -> Result<Cell<E>>;
+    fn store(&mut self, address: usize, cell: Cell<E>) -> Result;
+    fn store_global(&mut self, address: usize, cell: Cell<E>) -> Result;
 
-    fn loop_begin(&mut self, iter_count: usize) -> Result<(), RuntimeError>;
-    fn loop_end(&mut self) -> Result<(), RuntimeError>;
+    fn loop_begin(&mut self, iter_count: usize) -> Result;
+    fn loop_end(&mut self) -> Result;
 
-    fn call(&mut self, address: usize, inputs_count: usize) -> Result<(), RuntimeError>;
-    fn ret(&mut self, outputs_count: usize) -> Result<(), RuntimeError>;
+    fn call(&mut self, address: usize, inputs_count: usize) -> Result;
+    fn ret(&mut self, outputs_count: usize) -> Result;
 
-    fn branch_then(&mut self) -> Result<(), RuntimeError>;
-    fn branch_else(&mut self) -> Result<(), RuntimeError>;
-    fn branch_end(&mut self) -> Result<(), RuntimeError>;
+    fn branch_then(&mut self) -> Result;
+    fn branch_else(&mut self) -> Result;
+    fn branch_end(&mut self) -> Result;
 
-    fn exit(&mut self, values_count: usize) -> Result<(), RuntimeError>;
+    fn exit(&mut self, values_count: usize) -> Result;
+    fn call_native<F: NativeFunction<E>>(&mut self, function: F) -> Result;
 }
 
 impl<E, CS> InternalVM<E> for VirtualMachine<E, CS>
@@ -33,24 +36,24 @@ where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    fn push(&mut self, cell: Cell<E>) -> Result<(), RuntimeError> {
+    fn push(&mut self, cell: Cell<E>) -> Result {
         self.state.evaluation_stack.push(cell)
     }
 
-    fn pop(&mut self) -> Result<Cell<E>, RuntimeError> {
+    fn pop(&mut self) -> Result<Cell<E>> {
         self.state.evaluation_stack.pop()
     }
 
-    fn load(&mut self, address: usize) -> Result<Cell<E>, RuntimeError> {
+    fn load(&mut self, address: usize) -> Result<Cell<E>> {
         let offset = self.top_frame()?.stack_frame_begin;
         self.state.data_stack.get(offset + address)
     }
 
-    fn load_global(&mut self, address: usize) -> Result<Cell<E>, RuntimeError> {
+    fn load_global(&mut self, address: usize) -> Result<Cell<E>> {
         self.state.data_stack.get(address)
     }
 
-    fn store(&mut self, address: usize, cell: Cell<E>) -> Result<(), RuntimeError> {
+    fn store(&mut self, address: usize, cell: Cell<E>) -> Result {
         {
             let frame = self.top_frame()?;
             frame.stack_frame_end =
@@ -60,11 +63,11 @@ where
         self.state.data_stack.set(offset + address, cell)
     }
 
-    fn store_global(&mut self, address: usize, cell: Cell<E>) -> Result<(), RuntimeError> {
+    fn store_global(&mut self, address: usize, cell: Cell<E>) -> Result {
         self.state.data_stack.set(address, cell)
     }
 
-    fn loop_begin(&mut self, iterations: usize) -> Result<(), RuntimeError> {
+    fn loop_begin(&mut self, iterations: usize) -> Result {
         let frame = self
             .state
             .frames_stack
@@ -79,7 +82,7 @@ where
         Ok(())
     }
 
-    fn loop_end(&mut self) -> Result<(), RuntimeError> {
+    fn loop_end(&mut self) -> Result {
         let frame = self.state.frames_stack.last_mut().unwrap();
 
         match frame.blocks.pop() {
@@ -95,7 +98,7 @@ where
         }
     }
 
-    fn call(&mut self, address: usize, inputs_count: usize) -> Result<(), RuntimeError> {
+    fn call(&mut self, address: usize, inputs_count: usize) -> Result {
         let offset = self.top_frame()?.stack_frame_end;
         self.state
             .frames_stack
@@ -110,7 +113,7 @@ where
         Ok(())
     }
 
-    fn ret(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
+    fn ret(&mut self, outputs_count: usize) -> Result {
         let mut outputs = Vec::new();
         for _ in 0..outputs_count {
             let output = self.pop()?;
@@ -132,7 +135,7 @@ where
         Ok(())
     }
 
-    fn branch_then(&mut self) -> Result<(), RuntimeError> {
+    fn branch_then(&mut self) -> Result {
         let condition = self.pop()?.value()?;
 
         let prev = self.condition_top()?;
@@ -153,7 +156,7 @@ where
         Ok(())
     }
 
-    fn branch_else(&mut self) -> Result<(), RuntimeError> {
+    fn branch_else(&mut self) -> Result {
         let frame = self
             .state
             .frames_stack
@@ -179,7 +182,8 @@ where
 
         self.condition_pop()?;
         let prev = self.condition_top()?;
-        let not_cond = self.operations().not(condition)?;
+        let cs = self.constraint_system();
+        let not_cond = gadgets::not(cs.namespace(|| "not"), &condition)?;
         let next = self.operations().and(prev, not_cond)?;
         self.condition_push(next)?;
 
@@ -189,7 +193,7 @@ where
         Ok(())
     }
 
-    fn branch_end(&mut self) -> Result<(), RuntimeError> {
+    fn branch_end(&mut self) -> Result {
         self.condition_pop()?;
 
         let frame = self
@@ -204,10 +208,9 @@ where
         }?;
 
         if branch.is_full {
-            self.state.evaluation_stack.merge(
-                branch.condition.clone(),
-                &mut Gadgets::new(self.cs.namespace()),
-            )?;
+            self.state
+                .evaluation_stack
+                .merge(self.cs.namespace(), &branch.condition)?;
         } else {
             self.state.evaluation_stack.revert()?;
         }
@@ -219,7 +222,7 @@ where
         Ok(())
     }
 
-    fn exit(&mut self, outputs_count: usize) -> Result<(), RuntimeError> {
+    fn exit(&mut self, outputs_count: usize) -> Result {
         for _ in 0..outputs_count {
             let value = self.pop()?.value()?;
             self.outputs.push(value);
@@ -228,5 +231,12 @@ where
 
         self.state.instruction_counter = std::usize::MAX;
         Ok(())
+    }
+
+    fn call_native<F: NativeFunction<E>>(&mut self, function: F) -> Result {
+        let stack = &mut self.state.evaluation_stack;
+        let cs = &mut self.cs.cs;
+
+        function.execute(cs.namespace(|| "native function"), stack)
     }
 }

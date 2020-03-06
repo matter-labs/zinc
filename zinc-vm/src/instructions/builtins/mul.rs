@@ -1,10 +1,12 @@
 extern crate franklin_crypto;
 
 use self::franklin_crypto::bellman::ConstraintSystem;
+use crate::auto_const;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
+use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::{ScalarType, ScalarTypeExpectation};
-use crate::Engine;
+use crate::{gadgets, Engine};
 use zinc_bytecode::instructions::Mul;
 
 impl<E, CS> VMInstruction<E, CS> for Mul
@@ -16,15 +18,26 @@ where
         let right = vm.pop()?.value()?;
         let left = vm.pop()?.value()?;
 
-        let unchecked_prod = vm.operations().mul(left.clone(), right.clone())?;
+        let mul_type = ScalarType::expect_same(left.get_type(), right.get_type())?;
+
         let condition = vm.condition_top()?;
-        let prod = vm.operations().assert_type(
-            condition,
-            unchecked_prod,
-            ScalarType::expect_same(left.get_type(), right.get_type())?,
+        let cs = vm.constraint_system();
+
+        let unchecked_mul = auto_const!(
+            gadgets::arithmetic::mul,
+            cs.namespace(|| "mul"),
+            &left,
+            &right
         )?;
 
-        vm.push(Cell::Value(prod))
+        let mul = gadgets::types::conditional_type_check(
+            cs.namespace(|| "type check"),
+            &condition,
+            &unchecked_mul,
+            mul_type,
+        )?;
+
+        vm.push(Cell::Value(mul))
     }
 }
 

@@ -2,20 +2,18 @@
 //! The module statement.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax::Identifier;
+use crate::syntax::tree::identifier::Identifier;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Mod {
+pub struct Statement {
     pub location: Location,
     pub identifier: Identifier,
 }
 
-impl Mod {
+impl Statement {
     pub fn new(location: Location, identifier: Identifier) -> Self {
         Self {
             location,

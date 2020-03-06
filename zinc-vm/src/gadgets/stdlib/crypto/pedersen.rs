@@ -1,15 +1,13 @@
-use crate::gadgets::{Gadget, Primitive, ScalarType};
+use crate::gadgets::{Gadget, Scalar, ScalarType};
 use crate::{Engine, RuntimeError};
 use bellman::ConstraintSystem;
-use ff::Field;
-use franklin_crypto::circuit::boolean::AllocatedBit;
 use franklin_crypto::circuit::ecc::EdwardsPoint;
 use franklin_crypto::circuit::pedersen_hash::{pedersen_hash, Personalization};
 
 pub struct Pedersen;
 
 impl<E: Engine> Gadget<E> for Pedersen {
-    type Input = Vec<Primitive<E>>;
+    type Input = Vec<Scalar<E>>;
     type Output = EdwardsPoint<E>;
 
     fn synthesize<CS: ConstraintSystem<E>>(
@@ -19,12 +17,8 @@ impl<E: Engine> Gadget<E> for Pedersen {
     ) -> Result<Self::Output, RuntimeError> {
         let mut bits = Vec::new();
         for (i, bit_scalar) in input.into_iter().enumerate() {
-            let allocated_bit = AllocatedBit::alloc(
-                cs.namespace(|| format!("AllocatedBit {}", i)),
-                bit_scalar.value.map(|fr| !fr.is_zero()),
-            )?;
-
-            bits.push(allocated_bit.into());
+            let boolean = bit_scalar.to_boolean(cs.namespace(|| format!("to_boolean {}", i)))?;
+            bits.push(boolean);
         }
 
         let digest = pedersen_hash(
@@ -37,17 +31,19 @@ impl<E: Engine> Gadget<E> for Pedersen {
         Ok(digest)
     }
 
-    fn input_from_vec(input: &[Primitive<E>]) -> Result<Self::Input, RuntimeError> {
+    fn input_from_vec(input: &[Scalar<E>]) -> Result<Self::Input, RuntimeError> {
         Ok(Vec::from(input))
     }
 
-    fn output_into_vec(output: Self::Output) -> Vec<Primitive<E>> {
+    fn output_into_vec(output: Self::Output) -> Vec<Scalar<E>> {
         [output.get_x(), output.get_y()]
             .iter()
-            .map(|&num| Primitive {
-                value: num.get_value(),
-                variable: num.get_variable(),
-                scalar_type: ScalarType::Field,
+            .map(|&num| {
+                Scalar::new_unchecked_variable(
+                    num.get_value(),
+                    num.get_variable(),
+                    ScalarType::Field,
+                )
             })
             .collect()
     }

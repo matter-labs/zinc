@@ -2,33 +2,41 @@
 //! The semantic analyzer constant integer element.
 //!
 
+mod tests;
+
 pub mod error;
 
+use std::cmp;
 use std::convert::TryFrom;
 use std::fmt;
 
 use num_bigint::BigInt;
 use num_traits::Num;
 use num_traits::One;
+use num_traits::Signed;
 use num_traits::ToPrimitive;
 use num_traits::Zero;
 
+use zinc_bytecode::scalar::IntegerType;
+use zinc_bytecode::scalar::ScalarType;
 use zinc_bytecode::Instruction;
+use zinc_utils::euclidean;
 
 use crate::lexical;
 use crate::semantic::element::constant::Range;
 use crate::semantic::element::constant::RangeInclusive;
+use crate::semantic::element::r#type::enumeration::Enumeration;
 use crate::semantic::element::r#type::Type;
 use crate::syntax::IntegerLiteral;
 
 use self::error::Error;
-use zinc_bytecode::scalar::{IntegerType, ScalarType};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Integer {
     pub value: BigInt,
     pub is_signed: bool,
     pub bitlength: usize,
+    pub enumeration: Option<Enumeration>,
 }
 
 impl Integer {
@@ -37,6 +45,20 @@ impl Integer {
             value,
             is_signed,
             bitlength,
+            enumeration: None,
+        }
+    }
+
+    pub fn set_enumeration(&mut self, enumeration: Enumeration) {
+        self.enumeration = Some(enumeration);
+    }
+
+    pub fn new_from_usize(value: usize, bitlength: usize) -> Self {
+        Self {
+            value: BigInt::from(value),
+            is_signed: false,
+            bitlength,
+            enumeration: None,
         }
     }
 
@@ -45,6 +67,7 @@ impl Integer {
             value: BigInt::zero(),
             is_signed,
             bitlength,
+            enumeration: None,
         }
     }
 
@@ -53,6 +76,7 @@ impl Integer {
             value: BigInt::one(),
             is_signed,
             bitlength,
+            enumeration: None,
         }
     }
 
@@ -66,6 +90,7 @@ impl Integer {
             value,
             is_signed,
             bitlength,
+            enumeration: None,
         }
     }
 
@@ -79,6 +104,7 @@ impl Integer {
             value,
             is_signed,
             bitlength,
+            enumeration: None,
         }
     }
 
@@ -87,42 +113,47 @@ impl Integer {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::scalar(self.is_signed, self.bitlength)
+        match self.enumeration {
+            Some(ref enumeration) => Type::Enumeration(enumeration.to_owned()),
+            None => Type::scalar(self.is_signed, self.bitlength),
+        }
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        self.is_signed == other.is_signed && self.bitlength == other.bitlength
+        self.is_signed == other.is_signed
+            && self.bitlength == other.bitlength
+            && match (self.enumeration.as_ref(), other.enumeration.as_ref()) {
+                (Some(enumeration_1), Some(enumeration_2)) => enumeration_1 == enumeration_2,
+                (None, None) => true,
+                _ => false,
+            }
     }
 
     pub fn range_inclusive(&self, other: &Self) -> Result<RangeInclusive, Error> {
-        if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchRangeInclusive(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
-        }
-
+        let is_signed = self.is_signed || other.is_signed;
+        let bitlength = cmp::max(
+            cmp::max(self.bitlength, other.bitlength),
+            Self::minimal_bitlength_bigints(&[&self.value, &other.value], is_signed)?,
+        );
         Ok(RangeInclusive::new(
             self.value.to_owned(),
             other.value.to_owned(),
-            self.is_signed,
-            self.bitlength,
+            is_signed,
+            bitlength,
         ))
     }
 
     pub fn range(&self, other: &Self) -> Result<Range, Error> {
-        if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchRange(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
-        }
-
+        let is_signed = self.is_signed || other.is_signed;
+        let bitlength = cmp::max(
+            cmp::max(self.bitlength, other.bitlength),
+            Self::minimal_bitlength_bigints(&[&self.value, &other.value], is_signed)?,
+        );
         Ok(Range::new(
             self.value.to_owned(),
             other.value.to_owned(),
-            self.is_signed,
-            self.bitlength,
+            self.is_signed || other.is_signed,
+            bitlength,
         ))
     }
 
@@ -158,10 +189,6 @@ impl Integer {
             ));
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldGreaterEquals);
-        }
-
         let result = self.value >= other.value;
         Ok(result)
     }
@@ -172,10 +199,6 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
-        }
-
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldLesserEquals);
         }
 
         let result = self.value <= other.value;
@@ -190,10 +213,6 @@ impl Integer {
             ));
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldGreater);
-        }
-
         let result = self.value > other.value;
         Ok(result)
     }
@@ -204,10 +223,6 @@ impl Integer {
                 self.r#type().to_string(),
                 other.r#type().to_string(),
             ));
-        }
-
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldLesser);
         }
 
         let result = self.value < other.value;
@@ -223,10 +238,25 @@ impl Integer {
         }
 
         let result = self.value.to_owned() + other.value.to_owned();
+        if result.is_negative() && !self.is_signed {
+            return Err(Error::OverflowAddition {
+                value: result,
+                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+            });
+        }
+
+        if Self::minimal_bitlength(&result, self.is_signed)? > self.bitlength {
+            return Err(Error::OverflowAddition {
+                value: result,
+                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+            });
+        }
+
         Ok(Self {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
         })
     }
 
@@ -239,10 +269,25 @@ impl Integer {
         }
 
         let result = self.value.to_owned() - other.value.to_owned();
+        if result.is_negative() && !self.is_signed {
+            return Err(Error::OverflowSubtraction {
+                value: result,
+                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+            });
+        }
+
+        if Self::minimal_bitlength(&result, self.is_signed)? > self.bitlength {
+            return Err(Error::OverflowSubtraction {
+                value: result,
+                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+            });
+        }
+
         Ok(Self {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
         })
     }
 
@@ -255,10 +300,25 @@ impl Integer {
         }
 
         let result = self.value.to_owned() * other.value.to_owned();
+        if result.is_negative() && !self.is_signed {
+            return Err(Error::OverflowMultiplication {
+                value: result,
+                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+            });
+        }
+
+        if Self::minimal_bitlength(&result, self.is_signed)? > self.bitlength {
+            return Err(Error::OverflowMultiplication {
+                value: result,
+                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+            });
+        }
+
         Ok(Self {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
         })
     }
 
@@ -270,19 +330,27 @@ impl Integer {
             ));
         }
 
-        if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldDivision);
+        let (result, _remainder) =
+            euclidean::div_rem(&self.value, &other.value).ok_or(Error::ZeroDivision)?;
+        if result.is_negative() && !self.is_signed {
+            return Err(Error::OverflowDivision {
+                value: result,
+                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+            });
         }
 
-        if other.value.is_zero() {
-            return Err(Error::DivisionZero);
+        if Self::minimal_bitlength(&result, self.is_signed)? > self.bitlength {
+            return Err(Error::OverflowDivision {
+                value: result,
+                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+            });
         }
 
-        let result = self.value.to_owned() / other.value.to_owned();
         Ok(Self {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
         })
     }
 
@@ -298,21 +366,49 @@ impl Integer {
             return Err(Error::ForbiddenFieldRemainder);
         }
 
-        if other.value.is_zero() {
-            return Err(Error::RemainderZero);
+        let (_quotient, result) =
+            euclidean::div_rem(&self.value, &other.value).ok_or(Error::ZeroRemainder)?;
+        if result.is_negative() && !self.is_signed {
+            return Err(Error::OverflowRemainder {
+                value: result,
+                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+            });
         }
 
-        let result = self.value.to_owned() % other.value.to_owned();
+        if Self::minimal_bitlength(&result, self.is_signed)? > self.bitlength {
+            return Err(Error::OverflowRemainder {
+                value: result,
+                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+            });
+        }
+
         Ok(Self {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
         })
     }
 
-    pub fn cast(&mut self, is_signed: bool, bitlength: usize) {
+    pub fn cast(&mut self, is_signed: bool, bitlength: usize) -> Result<(), Error> {
+        if self.value.is_negative() && !is_signed {
+            return Err(Error::OverflowCasting {
+                value: self.value.to_owned(),
+                r#type: Type::integer(is_signed, bitlength).to_string(),
+            });
+        }
+
+        if Self::minimal_bitlength(&self.value, is_signed)? > bitlength {
+            return Err(Error::OverflowCasting {
+                value: self.value.to_owned(),
+                r#type: Type::integer(is_signed, bitlength).to_string(),
+            });
+        }
+
         self.is_signed = is_signed;
         self.bitlength = bitlength;
+        self.enumeration = None;
+        Ok(())
     }
 
     pub fn negate(&self) -> Result<Self, Error> {
@@ -320,16 +416,28 @@ impl Integer {
             return Err(Error::ForbiddenFieldNegation);
         }
 
+        let is_signed = true;
+
+        let result = -self.value.to_owned();
+        if Self::minimal_bitlength(&result, is_signed)? > self.bitlength {
+            return Err(Error::OverflowNegation {
+                value: result,
+                r#type: Type::integer(is_signed, self.bitlength).to_string(),
+            });
+        }
+
         Ok(Self {
-            value: -self.value.to_owned(),
-            is_signed: true,
+            value: result,
+            is_signed,
             bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
         })
     }
 
     pub fn to_usize(&self) -> Result<usize, Error> {
-        self.value.to_usize().ok_or_else(|| {
-            Error::LiteralTooLargeForIndex(self.value.to_string(), crate::BITLENGTH_BYTE)
+        self.value.to_usize().ok_or_else(|| Error::IntegerTooLarge {
+            value: self.value.to_owned(),
+            bitlength: crate::BITLENGTH_INDEX,
         })
     }
 
@@ -355,12 +463,21 @@ impl Integer {
         Ok(max)
     }
 
-    fn minimal_bitlength(value: &BigInt, is_signed: bool) -> Result<usize, Error> {
+    ///
+    /// Infers the minimal bitlength enough to represent the value.
+    ///
+    pub fn minimal_bitlength(value: &BigInt, is_signed: bool) -> Result<usize, Error> {
         let mut bitlength = crate::BITLENGTH_BYTE;
         let mut exponent = BigInt::from(1 << crate::BITLENGTH_BYTE);
 
         while if is_signed {
-            value >= &(exponent.clone() / BigInt::from(2) - BigInt::one())
+            if value.is_negative() {
+                let bound = -(exponent.clone() / BigInt::from(2));
+                value < &bound
+            } else {
+                let bound = exponent.clone() / BigInt::from(2);
+                value >= &bound
+            }
         } else {
             value >= &exponent
         } {
@@ -368,15 +485,23 @@ impl Integer {
                 exponent <<= crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
                 bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
             } else if bitlength == crate::BITLENGTH_FIELD {
-                return Err(Error::IntegerTooLargeForField(
-                    value.to_string(),
-                    crate::BITLENGTH_FIELD,
-                ));
+                return Err(Error::IntegerTooLarge {
+                    value: value.to_owned(),
+                    bitlength: crate::BITLENGTH_FIELD,
+                });
             } else {
                 exponent <<= crate::BITLENGTH_BYTE;
                 bitlength += crate::BITLENGTH_BYTE;
             }
         }
+
+        if value.is_negative() && !is_signed {
+            return Err(Error::UnsignedNegative {
+                value: value.to_owned(),
+                r#type: Type::integer(is_signed, bitlength).to_string(),
+            });
+        }
+
         Ok(bitlength)
     }
 
@@ -389,16 +514,6 @@ impl Integer {
             self.value.to_owned(),
             scalar_type,
         ))
-    }
-}
-
-impl From<(usize, usize)> for Integer {
-    fn from((value, bitlength): (usize, usize)) -> Self {
-        Self {
-            value: BigInt::from(value),
-            is_signed: false,
-            bitlength,
-        }
     }
 }
 
@@ -427,6 +542,11 @@ impl TryFrom<&IntegerLiteral> for Integer {
 
 impl fmt::Display for Integer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}: {}", self.value, self.r#type())
+        write!(
+            f,
+            "constant integer '{}' of type '{}'",
+            self.value,
+            self.r#type()
+        )
     }
 }

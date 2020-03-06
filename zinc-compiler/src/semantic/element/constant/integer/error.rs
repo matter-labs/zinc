@@ -1,78 +1,37 @@
 //!
-//! The semantic analyzer constant integer element error.
+//! The semantic analyzer integer constant element error.
 //!
 
-use failure::Fail;
+use num_bigint::BigInt;
 
-#[derive(Debug, Fail, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
-    #[fail(
-        display = "'..=' operator operand types mismatch: '{}' and '{}'",
-        _0, _1
-    )]
-    TypesMismatchRangeInclusive(String, String),
-    #[fail(
-        display = "'..' operator operand types mismatch: '{}' and '{}'",
-        _0, _1
-    )]
-    TypesMismatchRange(String, String),
-    #[fail(
-        display = "'==' operator operand types mismatch: '{}' and '{}'",
-        _0, _1
-    )]
     TypesMismatchEquals(String, String),
-    #[fail(
-        display = "'!=' operator operand types mismatch: '{}' and '{}'",
-        _0, _1
-    )]
     TypesMismatchNotEquals(String, String),
-    #[fail(
-        display = "'>=' operator operand types mismatch: '{}' and '{}'",
-        _0, _1
-    )]
     TypesMismatchGreaterEquals(String, String),
-    #[fail(
-        display = "'<=' operator operand types mismatch: '{}' and '{}'",
-        _0, _1
-    )]
     TypesMismatchLesserEquals(String, String),
-    #[fail(display = "'>' operator operand types mismatch: '{}' and '{}'", _0, _1)]
     TypesMismatchGreater(String, String),
-    #[fail(display = "'<' operator operand types mismatch: '{}' and '{}'", _0, _1)]
     TypesMismatchLesser(String, String),
-    #[fail(display = "'+' operator operand types mismatch: '{}' and '{}'", _0, _1)]
     TypesMismatchAddition(String, String),
-    #[fail(display = "'-' operator operand types mismatch: '{}' and '{}'", _0, _1)]
     TypesMismatchSubtraction(String, String),
-    #[fail(display = "'*' operator operand types mismatch: '{}' and '{}'", _0, _1)]
     TypesMismatchMultiplication(String, String),
-    #[fail(display = "'/' operator operand types mismatch: '{}' and '{}'", _0, _1)]
     TypesMismatchDivision(String, String),
-    #[fail(display = "'%' operator operand types mismatch: '{}' and '{}'", _0, _1)]
     TypesMismatchRemainder(String, String),
 
-    #[fail(display = "'/' operator division by zero")]
-    DivisionZero,
-    #[fail(display = "'%' operator division by zero")]
-    RemainderZero,
+    OverflowAddition { value: BigInt, r#type: String },
+    OverflowSubtraction { value: BigInt, r#type: String },
+    OverflowMultiplication { value: BigInt, r#type: String },
+    OverflowDivision { value: BigInt, r#type: String },
+    OverflowRemainder { value: BigInt, r#type: String },
+    OverflowCasting { value: BigInt, r#type: String },
+    OverflowNegation { value: BigInt, r#type: String },
 
-    #[fail(display = "literal '{}' is larger than {} bits", _0, _1)]
-    LiteralTooLargeForIndex(String, usize),
-    #[fail(display = "literal '{}' is larger than {} bits", _0, _1)]
-    IntegerTooLargeForField(String, usize),
-
-    #[fail(display = "'>=' operator is temporarily forbidden for field elements")]
-    ForbiddenFieldGreaterEquals,
-    #[fail(display = "'<=' operator is temporarily forbidden for field elements")]
-    ForbiddenFieldLesserEquals,
-    #[fail(display = "'>' operator is temporarily forbidden for field elements")]
-    ForbiddenFieldGreater,
-    #[fail(display = "'<' operator is temporarily forbidden for field elements")]
-    ForbiddenFieldLesser,
-    #[fail(display = "'/' operator is temporarily forbidden for field elements")]
-    ForbiddenFieldDivision,
-    #[fail(display = "'%' operator is temporarily forbidden for field elements")]
     ForbiddenFieldRemainder,
-    #[fail(display = "unary '-' operator is forbidden for field elements")]
     ForbiddenFieldNegation,
+
+    ZeroDivision,
+    ZeroRemainder,
+
+    IntegerTooLarge { value: BigInt, bitlength: usize },
+    UnsignedNegative { value: BigInt, r#type: String },
 }

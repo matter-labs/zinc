@@ -38,6 +38,7 @@
     - [Control](07-statements/03-control.md)
 - [Virtual machine](08-virtual-machine/00-overview.md)
 - [Zargo circuit manager](09-zargo-circuit-manager/00-overview.md)
+- [Schnorr signature tool](10-schnorr-signature-tool/00-overview.md)
 - [Appendix](appendix/_overview.md)
     - [A - Lexical grammar](appendix/A-grammar-lexical.md)
     - [B - Syntax grammar](appendix/B-grammar-syntax.md)

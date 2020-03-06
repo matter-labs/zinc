@@ -2,6 +2,8 @@
 //! The semantic analyzer array element value.
 //!
 
+mod tests;
+
 pub mod error;
 
 use std::fmt;
@@ -40,6 +42,50 @@ impl Array {
         Type::array(self.r#type.to_owned(), self.size)
     }
 
+    pub fn has_the_same_type_as(&self, other: &Self) -> bool {
+        self.len() == other.len() && self.r#type == other.r#type
+    }
+
+    pub fn len(&self) -> usize {
+        self.size
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    pub fn set_type(&mut self, r#type: Type) {
+        self.r#type = r#type;
+    }
+
+    pub fn push(&mut self, r#type: Type) -> Result<(), Error> {
+        if self.size == 0 {
+            self.r#type = r#type;
+        } else if r#type != self.r#type {
+            return Err(Error::PushingInvalidType {
+                expected: self.r#type.to_string(),
+                found: r#type.to_string(),
+            });
+        }
+        self.size += 1;
+
+        Ok(())
+    }
+
+    pub fn extend(&mut self, r#type: Type, count: usize) -> Result<(), Error> {
+        if self.size == 0 {
+            self.r#type = r#type;
+        } else if r#type != self.r#type {
+            return Err(Error::PushingInvalidType {
+                expected: self.r#type.to_string(),
+                found: r#type.to_string(),
+            });
+        }
+        self.size += count;
+
+        Ok(())
+    }
+
     pub fn slice_single(&self) -> AccessData {
         AccessData::new(
             0,
@@ -51,26 +97,33 @@ impl Array {
 
     pub fn slice_range(&self, start: &BigInt, end: &BigInt) -> Result<AccessData, Error> {
         if start.is_negative() {
-            return Err(Error::SliceStartOutOfRange(start.to_string()));
+            return Err(Error::SliceStartOutOfRange {
+                start: start.to_string(),
+            });
         }
         if end > &BigInt::from(self.size) {
-            return Err(Error::SliceEndOutOfRange(
-                end.to_string(),
-                self.size.to_string(),
-            ));
+            return Err(Error::SliceEndOutOfRange {
+                end: end.to_string(),
+                size: self.size,
+            });
         }
         if end < start {
-            return Err(Error::SliceEndLesserThanStart(
-                end.to_string(),
-                start.to_string(),
-            ));
+            return Err(Error::SliceEndLesserThanStart {
+                start: start.to_string(),
+                end: end.to_string(),
+            });
         }
         let start = start
             .to_usize()
-            .ok_or_else(|| Error::SliceStartOutOfRange(start.to_string()))?;
+            .ok_or_else(|| Error::SliceStartOutOfRange {
+                start: start.to_string(),
+            })?;
         let length = (end - start)
             .to_usize()
-            .ok_or_else(|| Error::SliceEndLesserThanStart(end.to_string(), start.to_string()))?;
+            .ok_or_else(|| Error::SliceEndLesserThanStart {
+                start: start.to_string(),
+                end: end.to_string(),
+            })?;
         Ok(AccessData::new(
             self.r#type.size() * start,
             self.r#type.size() * length,
@@ -81,26 +134,33 @@ impl Array {
 
     pub fn slice_range_inclusive(&self, start: &BigInt, end: &BigInt) -> Result<AccessData, Error> {
         if start.is_negative() {
-            return Err(Error::SliceStartOutOfRange(start.to_string()));
+            return Err(Error::SliceStartOutOfRange {
+                start: start.to_string(),
+            });
         }
         if end >= &BigInt::from(self.size) {
-            return Err(Error::SliceEndOutOfRange(
-                end.to_string(),
-                self.size.to_string(),
-            ));
+            return Err(Error::SliceEndOutOfRange {
+                end: end.to_string(),
+                size: self.size,
+            });
         }
         if end < start {
-            return Err(Error::SliceEndLesserThanStart(
-                end.to_string(),
-                start.to_string(),
-            ));
+            return Err(Error::SliceEndLesserThanStart {
+                start: start.to_string(),
+                end: end.to_string(),
+            });
         }
         let start = start
             .to_usize()
-            .ok_or_else(|| Error::SliceStartOutOfRange(start.to_string()))?;
-        let length = (end - start + BigInt::one())
-            .to_usize()
-            .ok_or_else(|| Error::SliceEndLesserThanStart(end.to_string(), start.to_string()))?;
+            .ok_or_else(|| Error::SliceStartOutOfRange {
+                start: start.to_string(),
+            })?;
+        let length = (end - start + BigInt::one()).to_usize().ok_or_else(|| {
+            Error::SliceEndLesserThanStart {
+                start: start.to_string(),
+                end: end.to_string(),
+            }
+        })?;
         Ok(AccessData::new(
             self.r#type.size() * start,
             self.r#type.size() * length,
@@ -108,50 +168,10 @@ impl Array {
             Type::array(self.r#type.to_owned(), length),
         ))
     }
-
-    pub fn push(&mut self, r#type: Type) -> Result<(), Error> {
-        if self.size == 0 {
-            self.r#type = r#type;
-        } else if r#type != self.r#type {
-            return Err(Error::PushingInvalidType(
-                r#type.to_string(),
-                self.r#type.to_string(),
-            ));
-        }
-        self.size += 1;
-
-        Ok(())
-    }
-
-    pub fn extend(&mut self, r#type: Type, count: usize) -> Result<(), Error> {
-        if self.size == 0 {
-            self.r#type = r#type;
-        } else if r#type != self.r#type {
-            return Err(Error::PushingInvalidType(
-                r#type.to_string(),
-                self.r#type.to_string(),
-            ));
-        }
-        self.size += count;
-
-        Ok(())
-    }
-
-    pub fn len(&self) -> usize {
-        self.size
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-
-    pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        self.len() == other.len() && self.r#type == other.r#type
-    }
 }
 
 impl fmt::Display for Array {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.r#type())
+        write!(f, "array of '{}'s", self.r#type)
     }
 }

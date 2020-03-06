@@ -1,8 +1,9 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use crate::core::Cell;
 use crate::errors::MalformedBytecode;
-use crate::gadgets::{Gadgets, Primitive};
+use crate::gadgets;
+use crate::gadgets::{Gadgets, Scalar};
 use crate::Engine;
 use crate::RuntimeError;
 use franklin_crypto::bellman::ConstraintSystem;
@@ -14,7 +15,7 @@ struct CellDelta<E: Engine> {
     new: Cell<E>,
 }
 
-type DataStackDelta<E> = HashMap<usize, CellDelta<E>>;
+type DataStackDelta<E> = BTreeMap<usize, CellDelta<E>>;
 
 #[derive(Debug)]
 enum DataStackBranch<E: Engine> {
@@ -24,7 +25,7 @@ enum DataStackBranch<E: Engine> {
 
 impl<E: Engine> DataStackBranch<E> {
     fn new() -> Self {
-        DataStackBranch::IfThen(HashMap::new())
+        DataStackBranch::IfThen(DataStackDelta::new())
     }
 
     fn active_delta(&mut self) -> &mut DataStackDelta<E> {
@@ -36,7 +37,9 @@ impl<E: Engine> DataStackBranch<E> {
 
     fn switch(self) -> Option<Self> {
         match self {
-            DataStackBranch::IfThen(t) => Some(DataStackBranch::IfThenElse(t, HashMap::new())),
+            DataStackBranch::IfThen(t) => {
+                Some(DataStackBranch::IfThenElse(t, DataStackDelta::new()))
+            }
             DataStackBranch::IfThenElse(_, _) => None,
         }
     }
@@ -111,7 +114,7 @@ impl<E: Engine> DataStack<E> {
     /// Merge top-level branch or branches into parent branch.
     pub fn merge<CS: ConstraintSystem<E>>(
         &mut self,
-        condition: Primitive<E>,
+        condition: Scalar<E>,
         ops: &mut Gadgets<E, CS>,
     ) -> Result<(), RuntimeError> {
         let mut branch = self
@@ -137,7 +140,7 @@ impl<E: Engine> DataStack<E> {
     /// Conditionally apply delta
     fn merge_single<CS: ConstraintSystem<E>>(
         &mut self,
-        condition: Primitive<E>,
+        condition: Scalar<E>,
         delta: &DataStackDelta<E>,
         ops: &mut Gadgets<E, CS>,
     ) -> Result<(), RuntimeError> {
@@ -145,12 +148,12 @@ impl<E: Engine> DataStack<E> {
             match (&self.memory[addr], &diff.new) {
                 (None, _) => {}
                 (Some(Cell::Value(old)), Cell::Value(new)) => {
-                    let value =
-                        ops.conditional_select(condition.clone(), new.clone(), old.clone())?;
+                    let cs = ops
+                        .constraint_system()
+                        .namespace(|| format!("merge address {}", addr));
+                    let value = gadgets::conditional_select(cs, &condition, new, old)?;
                     self.set(addr, Cell::Value(value))?;
-                } //                (Some(old), new) => {
-                  //                    log::warn!("Merging {:?} into {:?}, ignoring...", new, old);
-                  //                }
+                }
             }
         }
 
@@ -160,7 +163,7 @@ impl<E: Engine> DataStack<E> {
     /// Conditionally apply one of two deltas.
     fn merge_pair<CS>(
         &mut self,
-        condition: Primitive<E>,
+        condition: Scalar<E>,
         delta_then: &DataStackDelta<E>,
         delta_else: &DataStackDelta<E>,
         ops: &mut Gadgets<E, CS>,
@@ -178,12 +181,12 @@ impl<E: Engine> DataStack<E> {
             match (&alt, &diff.new) {
                 (None, _) => {}
                 (Some(Cell::Value(old)), Cell::Value(new)) => {
-                    let value =
-                        ops.conditional_select(condition.clone(), new.clone(), old.clone())?;
+                    let cs = ops
+                        .constraint_system()
+                        .namespace(|| format!("merge address {}", addr));
+                    let value = gadgets::conditional_select(cs, &condition, new, old)?;
                     self.set(*addr, Cell::Value(value))?;
-                } //                (Some(old), new) => {
-                  //                    log::warn!("Merging {:?} into {:?}, ignoring...", new, old);
-                  //                }
+                }
             }
         }
 
@@ -210,7 +213,7 @@ mod tests {
     fn test_get_set() {
         let mut ds = DataStack::new();
         let mut cs = TestConstraintSystem::<Bn256>::new();
-        let mut op = Gadgets::new(&mut cs);
+        let op = Gadgets::new(&mut cs);
         let value = op.constant_bigint(&42.into(), ScalarType::Field).unwrap();
         ds.set(4, Cell::Value(value)).unwrap();
 
@@ -233,7 +236,7 @@ mod tests {
         ds.set(4, Cell::Value(value2)).unwrap();
         assert_cell_eq(ds.get(4).unwrap(), 13.into());
 
-        let condition = ops.constant_bigint(&1.into(), ScalarType::Field).unwrap();
+        let condition = Scalar::new_constant_bool(true);
         ds.merge(condition, &mut ops).unwrap();
         assert_cell_eq(ds.get(4).unwrap(), 13.into());
     }
@@ -254,7 +257,7 @@ mod tests {
         ds.set(4, Cell::Value(value2)).unwrap();
         assert_cell_eq(ds.get(4).unwrap(), 13.into());
 
-        let condition = ops.constant_bigint(&0.into(), ScalarType::Field).unwrap();
+        let condition = Scalar::new_constant_bool(false);
         ds.merge(condition, &mut ops).unwrap();
         assert_cell_eq(ds.get(4).unwrap(), 42.into());
     }

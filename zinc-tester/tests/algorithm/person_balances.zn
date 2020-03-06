@@ -1,0 +1,114 @@
+//# [ {
+//#     "case": "bitcoin",
+//#     "input": {
+//#         "token_id": "0"
+//#     },
+//#     "expect": {
+//#         "id": "42",
+//#         "sum": "1",
+//#         "date_of_birth": {"year": "1994", "month": "3", "day": "16"}
+//#     }
+//# }, {
+//#     "case": "ethereum",
+//#     "input": {
+//#         "token_id": "1"
+//#     },
+//#     "expect": {
+//#         "id": "42",
+//#         "sum": "10",
+//#         "date_of_birth": {"year": "1994", "month": "3", "day": "16"}
+//#     }
+//# }, {
+//#     "case": "litecoin",
+//#     "input": {
+//#         "token_id": "2"
+//#     },
+//#     "expect": {
+//#         "id": "42",
+//#         "sum": "50",
+//#         "date_of_birth": {"year": "1994", "month": "3", "day": "16"}
+//#     }
+//# }, {
+//#     "case": "zcash",
+//#     "input": {
+//#         "token_id": "3"
+//#     },
+//#     "expect": {
+//#         "id": "42",
+//#         "sum": "100",
+//#         "date_of_birth": {"year": "1994", "month": "3", "day": "16"}
+//#     }
+//# } ]
+
+enum Month {
+    January = 1,
+    February = 2,
+    March = 3,
+    April = 4,
+    May = 5,
+    June = 6,
+    July = 7,
+    August = 8,
+    September = 9,
+    October = 10,
+    November = 11,
+    December = 12,
+}
+
+struct Date {
+    year: u16,
+    month: Month,
+    day: u8,
+}
+
+enum TokenId {
+    Bitcoin = 0,
+    Ethereum = 1,
+    Litecoin = 2,
+    Zcash = 3,
+}
+
+const TOKENS_COUNT: u8 = 4;
+
+struct Person {
+    id: field,
+    date_of_birth: Date,
+    balances: [(TokenId, field); TOKENS_COUNT],
+}
+
+struct Result {
+    id: field,
+    sum: field,
+    date_of_birth: Date,
+}
+
+fn main(token_id: TokenId) -> Result {
+    let person = Person {
+        id: 42 as field,
+        date_of_birth: Date {
+            year: 1994,
+            month: Month::March,
+            day: 16,
+        },
+        balances: [
+            (TokenId::Bitcoin, 1 as field),
+            (TokenId::Ethereum, 10 as field),
+            (TokenId::Litecoin, 50 as field),
+            (TokenId::Zcash, 100 as field),
+        ],
+    };
+
+    let mut result = Result {
+        id: person.id,
+        sum: 0 as field,
+        date_of_birth: person.date_of_birth,
+    };
+
+    for id in 0..TOKENS_COUNT {
+        if person.balances[id].0 == token_id {
+            result.sum += person.balances[id].1;
+        };
+    }
+
+    result
+}

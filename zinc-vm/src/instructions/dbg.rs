@@ -19,17 +19,18 @@ where
         for arg_type in self.arg_types.iter().rev() {
             let size = Value::default_from_type(arg_type).to_flat_values().len();
 
-            let mut flat = Vec::with_capacity(size);
-            for _ in 0..size {
-                let value = vm.pop()?.value()?.to_bigint().ok_or_else(|| {
-                    RuntimeError::SynthesisError(SynthesisError::AssignmentMissing)
-                })?;
-                flat.push(value);
-            }
-            flat.reverse();
-            let value = Value::from_flat_values(arg_type, &flat).expect("value size is known");
-
-            values.push(value);
+            if vm.debugging {
+                let mut flat = Vec::with_capacity(size);
+                for _ in 0..size {
+                    let value = vm.pop()?.value()?.to_bigint().ok_or_else(|| {
+                        RuntimeError::SynthesisError(SynthesisError::AssignmentMissing)
+                    })?;
+                    flat.push(value);
+                }
+                flat.reverse();
+                let value = Value::from_flat_values(arg_type, &flat).expect("value size is known");
+                values.push(value);
+            };
         }
 
         if let Some(condition) = vm.condition_top()?.to_bigint() {

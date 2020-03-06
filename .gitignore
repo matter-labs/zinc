@@ -1,13 +1,12 @@
 # IDE
 /.idea/
 /.vscode/
-/.cargo/
 
 # Rust build
 /target/
 
 # Book build
-/zinc-book/build/*
+/zinc-book/build/
 
 # Zinc build
 /zinc-examples/*/build/

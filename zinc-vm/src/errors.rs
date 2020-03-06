@@ -3,6 +3,8 @@ use failure::Fail;
 use franklin_crypto::bellman::SynthesisError;
 use num_bigint::BigInt;
 
+pub type Result<T = ()> = std::result::Result<T, RuntimeError>;
+
 #[derive(Debug, Fail)]
 pub enum TypeSizeError {
     #[fail(display = "expected input value of size {}, got {}", expected, actual)]
@@ -76,7 +78,10 @@ pub enum RuntimeError {
     UnsatisfiedConstraint,
 
     #[fail(display = "division by zero")]
-    ZeroDivisionError,
+    DivisionByZero,
+
+    #[fail(display = "inverting zero")]
+    ZeroInversion,
 
     #[fail(display = "type size mismatch: {}", _0)]
     TypeSize(TypeSizeError),
@@ -90,8 +95,8 @@ pub enum RuntimeError {
         scalar_type: ScalarType,
     },
 
-    #[fail(display = "feature is not implemented: {}", _0)]
-    Unimplemented(String),
+    #[fail(display = "using witness as array index is not yet supported")]
+    WitnessArrayIndex,
 }
 
 impl From<SynthesisError> for RuntimeError {

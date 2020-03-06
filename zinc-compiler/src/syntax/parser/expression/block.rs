@@ -10,11 +10,11 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::BlockExpression;
-use crate::syntax::BlockExpressionBuilder;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::FunctionLocalStatement;
-use crate::syntax::FunctionLocalStatementParser;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::statement::local_fn::Parser as FunctionLocalStatementParser;
+use crate::syntax::tree::expression::block::builder::Builder as BlockExpressionBuilder;
+use crate::syntax::tree::expression::block::Expression as BlockExpression;
+use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatement;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -45,7 +45,7 @@ impl Parser {
         loop {
             match self.state {
                 State::BracketCurlyLeft => {
-                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             location,
@@ -54,16 +54,17 @@ impl Parser {
                             self.state = State::StatementOrBracketCurlyRight;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["{"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
                 }
                 State::StatementOrBracketCurlyRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
@@ -91,17 +92,18 @@ impl Parser {
                     }
                 }
                 State::BracketCurlyRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream)? {
+                    return match crate::syntax::parser::take_or_next(self.next.take(), stream)? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
-                        } => return Ok(self.builder.finish()),
+                        } => Ok(self.builder.finish()),
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            Err(Error::Syntax(SyntaxError::expected_one_of_or_operator(
                                 location,
                                 vec!["}"],
                                 lexeme,
-                            )));
+                                None,
+                            )))
                         }
                     }
                 }
@@ -115,17 +117,32 @@ mod tests {
     use std::cell::RefCell;
     use std::rc::Rc;
 
+    use super::Error;
     use super::Parser;
     use crate::lexical;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Symbol;
     use crate::lexical::TokenStream;
-    use crate::syntax::BlockExpression;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::ExpressionOperator;
-    use crate::syntax::IntegerLiteral;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::block::Expression as BlockExpression;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+
+    #[test]
+    fn ok_empty() {
+        let input = r#"{}"#;
+
+        let expected = Ok(BlockExpression::new(Location::new(1, 1), vec![], None));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
 
     #[test]
     fn ok_statements_with_expression() {
@@ -169,10 +186,15 @@ mod tests {
     }
 
     #[test]
-    fn ok_empty() {
-        let input = r#"{}"#;
+    fn error_expected_bracket_square_right() {
+        let input = r#"{ 42 )"#;
 
-        let expected = Ok(BlockExpression::new(Location::new(1, 1), vec![], None));
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 6),
+            vec!["}"],
+            Lexeme::Symbol(Symbol::ParenthesisRight),
+            None,
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 

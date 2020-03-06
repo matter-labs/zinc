@@ -10,8 +10,8 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Expression;
-use crate::syntax::ExpressionParser;
+use crate::syntax::parser::expression::Parser as ExpressionParser;
+use crate::syntax::tree::expression::Expression;
 
 #[derive(Default)]
 pub struct Parser {
@@ -26,7 +26,7 @@ impl Parser {
         mut initial: Option<Token>,
     ) -> Result<(Vec<Expression>, Option<Token>), Error> {
         loop {
-            match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+            match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                 token
                 @
                 Token {
@@ -47,7 +47,7 @@ impl Parser {
                 }
             }
 
-            match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+            match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                 Token {
                     lexeme: Lexeme::Symbol(Symbol::Comma),
                     ..
@@ -69,15 +69,15 @@ mod tests {
     use crate::lexical::Location;
     use crate::lexical::Token;
     use crate::lexical::TokenStream;
-    use crate::syntax::BooleanLiteral;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::ExpressionOperator;
-    use crate::syntax::IntegerLiteral;
-    use crate::syntax::Type;
-    use crate::syntax::TypeVariant;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+    use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
+    use crate::syntax::tree::r#type::Type;
 
     #[test]
     fn ok_single() {

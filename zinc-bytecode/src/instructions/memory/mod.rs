@@ -2,6 +2,7 @@ mod pop;
 mod push_const;
 mod slice;
 mod swap;
+mod tee;
 
 mod load;
 mod load_by_index;
@@ -38,6 +39,7 @@ pub use pop::Pop;
 pub use push_const::PushConst;
 pub use slice::Slice;
 pub use swap::Swap;
+pub use tee::Tee;
 
 pub use load::Load;
 pub use load_by_index::LoadByIndex;

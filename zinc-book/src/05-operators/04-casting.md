@@ -3,8 +3,8 @@
 `as` is a binary operator.
 
 **Accepts**
-1. Integer expression (anything but `field`)
-2. Integer type of the equal or greater bitlength
+1. Expression of any type
+2. Expression of the same type or integer type with equal or greater bitlength
 
 **Returns** the integer result.
 
@@ -12,9 +12,14 @@ Casting allowed:
 
 - from integers to types of equal or greater bitlength
 - from enums to integers of enough or greater bitlength
+- to the same type (no effect, no errors)
 
 ```rust,no_run,noplaypen
-let a = -1; // inference
-let b: u16 = a as u16; // ok, casted to the opposite sign with greater bitlength 
-let c: u8 = Order::First; // casting to an integer of enough bitlength
+enum Order {
+    First = 1,
+}
+
+let a = 1; // inferred as u8
+let b = a as i8; // explicit casting to the opposite sign with the same bitlength 
+let c: u8 = Order::First; // implicit casting to an integer of enough bitlength
 ```

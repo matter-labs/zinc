@@ -2,17 +2,27 @@
 //! The semantic analyzer structure value element error.
 //!
 
-use failure::Fail;
-
-#[derive(Debug, Fail, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Error {
-    #[fail(display = "field '{}' already exists in '{}'", _0, _1)]
-    FieldAlreadyExists(String, String),
-    #[fail(display = "structure field '{}' does not exist in '{}'", _0, _1)]
-    FieldDoesNotExist(String, String),
-    #[fail(
-        display = "structure field '{}' expected type '{}', but got '{}'",
-        _0, _1, _2
-    )]
-    FieldInvalidType(String, String, String),
+    FieldDoesNotExist {
+        type_identifier: String,
+        field_name: String,
+    },
+    FieldExpected {
+        type_identifier: String,
+        position: usize,
+        expected: String,
+        found: String,
+    },
+    FieldInvalidType {
+        type_identifier: String,
+        field_name: String,
+        expected: String,
+        found: String,
+    },
+    FieldOutOfRange {
+        type_identifier: String,
+        expected: usize,
+        found: usize,
+    },
 }

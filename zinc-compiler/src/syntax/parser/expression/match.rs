@@ -11,21 +11,16 @@ use crate::lexical::Lexeme;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::Error as SyntaxError;
-use crate::syntax::Expression;
-use crate::syntax::ExpressionElement;
-use crate::syntax::ExpressionObject;
-use crate::syntax::ExpressionOperand;
-use crate::syntax::ExpressionParser;
-use crate::syntax::Identifier;
-use crate::syntax::MatchExpression;
-use crate::syntax::MatchExpressionBuilder;
-use crate::syntax::MatchPatternParser;
+use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::expression::Parser as ExpressionParser;
+use crate::syntax::parser::pattern_match::Parser as MatchPatternParser;
+use crate::syntax::tree::expression::r#match::builder::Builder as MatchExpressionBuilder;
+use crate::syntax::tree::expression::r#match::Expression as MatchExpression;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    MatchKeyword,
-    MatchExpression,
+    KeywordMatch,
+    ScrutineeExpression,
     BracketCurlyLeft,
     BracketCurlyRightOrBranchPattern,
     Select,
@@ -35,7 +30,7 @@ pub enum State {
 
 impl Default for State {
     fn default() -> Self {
-        State::MatchKeyword
+        State::KeywordMatch
     }
 }
 
@@ -54,69 +49,50 @@ impl Parser {
     ) -> Result<MatchExpression, Error> {
         loop {
             match self.state {
-                State::MatchKeyword => {
-                    match crate::syntax::take_or_next(initial.take(), stream.clone())? {
+                State::KeywordMatch => {
+                    match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Match),
                             location,
                         } => {
                             self.builder.set_location(location);
-                            self.state = State::MatchExpression;
+                            self.state = State::ScrutineeExpression;
                         }
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["match"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
                 }
-                State::MatchExpression => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
-                        Token {
-                            lexeme: Lexeme::Identifier(identifier),
-                            location,
-                        } => {
-                            let identifier = Identifier::new(location, identifier.name);
-                            let scrutinee_expression = Expression::new(
-                                location,
-                                vec![ExpressionElement::new(
-                                    location,
-                                    ExpressionObject::Operand(ExpressionOperand::Identifier(
-                                        identifier,
-                                    )),
-                                )],
-                            );
-                            self.builder.set_scrutinee(scrutinee_expression);
-                            self.state = State::BracketCurlyLeft;
-                        }
-                        Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
-                                location,
-                                vec!["{identifier}"],
-                                lexeme,
-                            )));
-                        }
-                    }
+                State::ScrutineeExpression => {
+                    let (expression, next) =
+                        ExpressionParser::default().parse(stream.clone(), self.next.take())?;
+                    self.next = next;
+                    self.builder.set_scrutinee_expression(expression);
+                    self.state = State::BracketCurlyLeft;
                 }
                 State::BracketCurlyLeft => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
                         } => self.state = State::BracketCurlyRightOrBranchPattern,
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of_or_operator(
                                 location,
                                 vec!["{"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
                 }
                 State::BracketCurlyRightOrBranchPattern => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyRight),
                             ..
@@ -131,16 +107,17 @@ impl Parser {
                     }
                 }
                 State::Select => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::EqualsGreater),
                             ..
                         } => self.state = State::BranchExpression,
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
                                 vec!["=>"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
@@ -153,7 +130,7 @@ impl Parser {
                     self.state = State::CommaOrBracketCurlyRight;
                 }
                 State::CommaOrBracketCurlyRight => {
-                    match crate::syntax::take_or_next(self.next.take(), stream.clone())? {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Comma),
                             ..
@@ -163,10 +140,11 @@ impl Parser {
                             ..
                         } => return Ok(self.builder.finish()),
                         Token { lexeme, location } => {
-                            return Err(Error::Syntax(SyntaxError::Expected(
+                            return Err(Error::Syntax(SyntaxError::expected_one_of_or_operator(
                                 location,
                                 vec![",", "}"],
                                 lexeme,
+                                None,
                             )));
                         }
                     }
@@ -181,20 +159,50 @@ mod tests {
     use std::cell::RefCell;
     use std::rc::Rc;
 
+    use super::Error;
     use super::Parser;
     use crate::lexical;
+    use crate::lexical::Lexeme;
     use crate::lexical::Location;
+    use crate::lexical::Symbol;
     use crate::lexical::TokenStream;
-    use crate::syntax::BooleanLiteral;
-    use crate::syntax::Expression;
-    use crate::syntax::ExpressionElement;
-    use crate::syntax::ExpressionObject;
-    use crate::syntax::ExpressionOperand;
-    use crate::syntax::Identifier;
-    use crate::syntax::IntegerLiteral;
-    use crate::syntax::MatchExpression;
-    use crate::syntax::MatchPattern;
-    use crate::syntax::MatchPatternVariant;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::element::Element as ExpressionElement;
+    use crate::syntax::tree::expression::object::Object as ExpressionObject;
+    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::r#match::Expression as MatchExpression;
+    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+    use crate::syntax::tree::pattern_match::variant::Variant as MatchPatternVariant;
+    use crate::syntax::tree::pattern_match::Pattern as MatchPattern;
+
+    #[test]
+    fn ok_empty() {
+        let input = r#"
+    match test {}
+"#;
+
+        let expected = Ok(MatchExpression::new(
+            Location::new(2, 5),
+            Expression::new(
+                Location::new(2, 11),
+                vec![ExpressionElement::new(
+                    Location::new(2, 11),
+                    ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
+                        Location::new(2, 11),
+                        "test".to_owned(),
+                    ))),
+                )],
+            ),
+            vec![],
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
 
     #[test]
     fn ok_single() {
@@ -332,25 +340,47 @@ mod tests {
     }
 
     #[test]
-    fn ok_empty() {
-        let input = r#"
-    match test {}
-"#;
+    fn error_expected_bracket_curly_left() {
+        let input = r#"match 42 * 2 )"#;
 
-        let expected = Ok(MatchExpression::new(
-            Location::new(2, 5),
-            Expression::new(
-                Location::new(2, 11),
-                vec![ExpressionElement::new(
-                    Location::new(2, 11),
-                    ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-                        Location::new(2, 11),
-                        "test".to_owned(),
-                    ))),
-                )],
-            ),
-            vec![],
-        ));
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 14),
+            vec!["{"],
+            Lexeme::Symbol(Symbol::ParenthesisRight),
+            None,
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_select() {
+        let input = r#"match 42 * 2 { value ->"#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 22),
+            vec!["=>"],
+            Lexeme::Symbol(Symbol::MinusGreater),
+            None,
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_comma_or_bracket_curly_right() {
+        let input = r#"match 42 * 2 { value => 42 )"#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 28),
+            vec![",", "}"],
+            Lexeme::Symbol(Symbol::ParenthesisRight),
+            None,
+        )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 

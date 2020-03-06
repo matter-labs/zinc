@@ -1,5 +1,5 @@
 //!
-//! The semantic translation hint.
+//! The semantic analyzer translation hint.
 //!
 
 #[derive(Debug)]

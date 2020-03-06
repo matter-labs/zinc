@@ -45,7 +45,7 @@ impl_statement = 'impl', identifier, '{', { implementation_local_statement }, '}
 empty_statement = ';' ;
 
 (* Expressions *)
-expression = operand_assignment, [ '=', operand_assignment ] ;
+expression = operand_assignment, [ '=' | '+=' | '-=' | '*=' | '/=' | '%=', operand_assignment ] ;
 operand_assignment = operand_range, [ '..' | '..=', operand_range ] ;
 operand_range = operand_or, { '||', operand_or } ;
 operand_or = operand_xor, { '^^', operand_xor } ;
@@ -78,7 +78,7 @@ block_expression = '{', { function_local_statement }, [ expression ], '}' ;
 
 conditional_expression = 'if', expression, block_expression, [ 'else', conditional_expression | block_expression ] ;
 
-match_expression = 'match', identifier, '{', { pattern_match, '=>', expression, ',' }, '}' ;
+match_expression = 'match', expression, '{', { pattern_match, '=>', expression, ',' }, '}' ;
 
 array_expression =
     '[', [ expression, { ',', expression } ] ']'
@@ -95,7 +95,8 @@ struct_expression = identifier, '{', field_list, '}';
 
 (* Parts *)
 type =
-    'bool'
+    '(', ')'
+  | 'bool'
   | 'u8' | 'u16' | 'u24' | 'u32' | 'u40' | 'u48' | 'u56' | 'u64'
   | 'u72' | 'u80' | 'u88' | 'u96' | 'u104' | 'u112' | 'u120' | 'u128'
   | 'u136' | 'u144' | 'u152' | 'u160' | 'u168' | 'u176' | 'u184' | 'u192'
@@ -104,9 +105,10 @@ type =
   | 'i72' | 'i80' | 'i88' | 'i96' | 'i104' | 'i112' | 'i120' | 'i128'
   | 'i136' | 'i144' | 'i152' | 'i160' | 'i168' | 'i176' | 'i184' | 'i192'
   | 'i200' | 'i208' | 'i216' | 'i224' | 'i232' | 'i240' | 'i248'
-  | '[', type, ';', integer, ']'
-  | '(', { type }, ')'
-  | identifier
+  | 'field'
+  | '[', type, ';', expression, ']'
+  | '(', type, { ',', type }, ')'
+  | expression
 ;
 
 pattern_match =

@@ -1,16 +1,15 @@
-use crate::gadgets::{Gadget, IntegerType, Primitive};
+use crate::gadgets::{Gadget, Scalar};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
-use ff::Field;
-use franklin_crypto::circuit::boolean::AllocatedBit;
 use franklin_crypto::circuit::sha256::sha256;
+use zinc_bytecode::scalar::ScalarType;
 
 pub struct Sha256;
 
 impl<E: Engine> Gadget<E> for Sha256 {
-    type Input = Vec<Primitive<E>>;
-    type Output = Vec<Primitive<E>>;
+    type Input = Vec<Scalar<E>>;
+    type Output = Vec<Scalar<E>>;
 
     fn synthesize<CS: ConstraintSystem<E>>(
         &self,
@@ -19,12 +18,8 @@ impl<E: Engine> Gadget<E> for Sha256 {
     ) -> Result<Self::Output, RuntimeError> {
         let mut bits = Vec::new();
         for (i, bit_scalar) in input.into_iter().enumerate() {
-            let allocated_bit = AllocatedBit::alloc(
-                cs.namespace(|| format!("AllocatedBit {}", i)),
-                bit_scalar.value.map(|fr| !fr.is_zero()),
-            )?;
-
-            bits.push(allocated_bit.into());
+            let boolean = bit_scalar.to_boolean(cs.namespace(|| format!("to_boolean {}", i)))?;
+            bits.push(boolean);
         }
 
         let digest_bits = sha256(cs.namespace(|| "sha256"), &bits)?;
@@ -33,31 +28,32 @@ impl<E: Engine> Gadget<E> for Sha256 {
 
         let digest = digest_bits
             .into_iter()
-            .map(|bit| Primitive {
-                value: bit.get_value_field::<E>(),
-                variable: bit
-                    .get_variable()
-                    .expect("sha256 must allocate")
-                    .get_variable(),
-                scalar_type: IntegerType::BOOLEAN.into(),
+            .map(|bit| {
+                Scalar::new_unchecked_variable(
+                    bit.get_value_field::<E>(),
+                    bit.get_variable()
+                        .expect("sha256 must allocate")
+                        .get_variable(),
+                    ScalarType::Boolean,
+                )
             })
             .collect();
 
         Ok(digest)
     }
 
-    fn input_from_vec(input: &[Primitive<E>]) -> Result<Self::Input, RuntimeError> {
+    fn input_from_vec(input: &[Scalar<E>]) -> Result<Self::Input, RuntimeError> {
         Ok(Vec::from(input))
     }
 
-    fn output_into_vec(output: Self::Output) -> Vec<Primitive<E>> {
+    fn output_into_vec(output: Self::Output) -> Vec<Scalar<E>> {
         output
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::debug_constraint_system::DebugConstraintSystem;
+    use crate::constraint_systems::DebugConstraintSystem;
     use franklin_crypto::bellman::ConstraintSystem;
     use franklin_crypto::circuit::boolean::{AllocatedBit, Boolean};
     use franklin_crypto::circuit::sha256::sha256;

@@ -2,17 +2,15 @@
 //! The loop statement.
 //!
 
-mod builder;
-
-pub use self::builder::Builder;
+pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax::BlockExpression;
-use crate::syntax::Expression;
-use crate::syntax::Identifier;
+use crate::syntax::tree::expression::block::Expression as BlockExpression;
+use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::identifier::Identifier;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Loop {
+pub struct Statement {
     pub location: Location,
     pub index_identifier: Identifier,
     pub bounds_expression: Expression,
@@ -20,7 +18,7 @@ pub struct Loop {
     pub block: BlockExpression,
 }
 
-impl Loop {
+impl Statement {
     pub fn new(
         location: Location,
         index_identifier: Identifier,

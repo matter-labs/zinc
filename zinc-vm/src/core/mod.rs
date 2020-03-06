@@ -8,7 +8,7 @@ pub use state::*;
 
 use crate::core::location::CodeLocation;
 use crate::errors::MalformedBytecode;
-use crate::gadgets::{Gadgets, IntegerType, Primitive, ScalarType};
+use crate::gadgets::{Gadgets, Scalar, ScalarType};
 use crate::Engine;
 use colored::Colorize;
 use franklin_crypto::bellman::ConstraintSystem;
@@ -52,7 +52,7 @@ pub struct VirtualMachine<E: Engine, CS: ConstraintSystem<E>> {
     pub(crate) debugging: bool,
     state: State<E>,
     cs: CounterNamespace<E, CS>,
-    outputs: Vec<Primitive<E>>,
+    outputs: Vec<Scalar<E>>,
     pub(crate) location: CodeLocation,
 }
 
@@ -88,9 +88,15 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         CB: FnMut(&CS) -> (),
         F: FnMut(&CS) -> Result<(), RuntimeError>,
     {
+        self.cs.cs.enforce(
+            || "ONE * ONE = ONE (do this to avoid `unconstrained` error)",
+            |zero| zero + CS::one(),
+            |zero| zero + CS::one(),
+            |zero| zero + CS::one(),
+        );
         let one = self
             .operations()
-            .constant_bigint(&1.into(), IntegerType::BOOLEAN.into())?;
+            .constant_bigint(&1.into(), ScalarType::Boolean)?;
         self.condition_push(one)?;
 
         self.init_root_frame(&program.input, inputs)?;
@@ -133,29 +139,15 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
 
         let types = data_type_into_scalar_types(&input_type);
 
-        match inputs {
-            None => {
-                for t in types {
-                    let variable = self.operations().variable_none(t)?;
-                    if let ScalarType::Field = t {
-                        // Add constraint so circuit doesn't fail if argument is not used.
-                        // TODO: Refactor this.
-                        self.operations().neg(variable.clone())?;
-                    }
-                    self.push(Cell::Value(variable))?;
-                }
-            }
-            Some(values) => {
-                for (value, dtype) in values.iter().zip(types) {
-                    let variable = self.operations().variable_bigint(value, dtype)?;
-                    if let ScalarType::Field = dtype {
-                        // Add constraint so circuit doesn't fail if argument is not used.
-                        // TODO: Refactor this.
-                        self.operations().neg(variable.clone())?;
-                    }
-                    self.push(Cell::Value(variable))?;
-                }
-            }
+        // Convert Option<&[BigInt]> to iterator of Option<&BigInt> and zip with types.
+        let value_type_pairs: Vec<_> = match inputs {
+            Some(values) => values.iter().map(Some).zip(types).collect(),
+            None => std::iter::repeat(None).zip(types).collect(),
+        };
+
+        for (value, dtype) in value_type_pairs {
+            let variable = self.operations().allocate_witness(value, dtype)?;
+            self.push(Cell::Value(variable))?;
         }
 
         Ok(())
@@ -177,19 +169,19 @@ impl<E: Engine, CS: ConstraintSystem<E>> VirtualMachine<E, CS> {
         Gadgets::new(self.cs.namespace())
     }
 
-    pub fn condition_push(&mut self, element: Primitive<E>) -> Result<(), RuntimeError> {
+    pub fn condition_push(&mut self, element: Scalar<E>) -> Result<(), RuntimeError> {
         self.state.conditions_stack.push(element);
         Ok(())
     }
 
-    pub fn condition_pop(&mut self) -> Result<Primitive<E>, RuntimeError> {
+    pub fn condition_pop(&mut self) -> Result<Scalar<E>, RuntimeError> {
         self.state
             .conditions_stack
             .pop()
             .ok_or_else(|| MalformedBytecode::StackUnderflow.into())
     }
 
-    pub fn condition_top(&mut self) -> Result<Primitive<E>, RuntimeError> {
+    pub fn condition_top(&mut self) -> Result<Scalar<E>, RuntimeError> {
         self.state
             .conditions_stack
             .last()
