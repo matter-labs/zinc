@@ -70,6 +70,7 @@ impl Function {
             BuiltinIdentifier::ArrayReverse => Self::ArrayReverse(ArrayReverseFunction::new()),
             BuiltinIdentifier::ArrayTruncate => Self::ArrayTruncate(ArrayTruncateFunction::new()),
             BuiltinIdentifier::ArrayPad => Self::ArrayPad(ArrayPadFunction::new()),
+            _ => unimplemented!()
         }
     }
 

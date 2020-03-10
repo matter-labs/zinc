@@ -2,14 +2,15 @@ extern crate franklin_crypto;
 
 use crate::gadgets::stdlib::arrays::{ArrayPad, Reverse, Truncate};
 use crate::gadgets::stdlib::bits::*;
-use crate::gadgets::stdlib::crypto::{Pedersen, Sha256, VerifySchnorrSignature};
+use crate::gadgets::stdlib::crypto::{Pedersen, Sha256};
 
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::Engine;
+use crate::{Engine, stdlib};
 use zinc_bytecode::builtins::BuiltinIdentifier;
 use zinc_bytecode::instructions::CallBuiltin;
+use crate::stdlib::crypto::VerifySchnorrSignature;
 
 impl<E, CS> VMInstruction<E, CS> for CallBuiltin
 where
@@ -18,8 +19,14 @@ where
 {
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         // TODO: Use call_native for all built-in functions
-        if let BuiltinIdentifier::CryptoSchnorrSignatureVerify = self.identifier {
-            return vm.call_native(VerifySchnorrSignature::new(self.inputs_count)?);
+        match self.identifier {
+            BuiltinIdentifier::CryptoSchnorrSignatureVerify => {
+                return vm.call_native(VerifySchnorrSignature::new(self.inputs_count)?);
+            }
+            BuiltinIdentifier::FieldInverse => {
+                return vm.call_native(stdlib::ff::Inverse);
+            }
+            _ => {}
         }
 
         let mut input = Vec::new();
@@ -42,7 +49,7 @@ where
             BuiltinIdentifier::ArrayPad => vm.operations().execute(ArrayPad, &input),
             BuiltinIdentifier::ArrayTruncate => vm.operations().execute(Truncate, &input),
             BuiltinIdentifier::ArrayReverse => vm.operations().execute(Reverse, &input),
-            f => unimplemented!("Builtin function {} is not implemented.", f),
+            f => unimplemented!("Builtin function {:?} is not implemented.", f),
         }?;
 
         for value in output.into_iter() {
