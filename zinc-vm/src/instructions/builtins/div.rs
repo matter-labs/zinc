@@ -31,7 +31,7 @@ where
                     &right,
                     &one,
                 )?;
-                let inverse = gadgets::inverse(vm.constraint_system(), denom)?;
+                let inverse = gadgets::inverse(vm.constraint_system(), &denom)?;
                 vm.operations().mul(left, inverse)?
             }
             ScalarType::Integer(_) => {

@@ -3,6 +3,7 @@ mod core;
 mod errors;
 pub mod gadgets;
 mod instructions;
+pub mod stdlib;
 
 #[cfg(test)]
 mod tests;
@@ -18,6 +19,7 @@ use std::fmt::Debug;
 pub trait Engine: JubjubEngine + Debug {
     fn jubjub_params<'a>() -> &'a Self::Params;
 }
+
 lazy_static! {
     static ref JUBJUB_BN256_PARAMS: AltJubjubBn256 = AltJubjubBn256::new();
 }
