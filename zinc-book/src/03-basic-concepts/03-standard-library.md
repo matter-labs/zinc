@@ -7,6 +7,7 @@ The library contains three modules for now:
     - `schnorr` - EDDSA signatyre verification
 - `convert` - bit array conversion functions
 - `array` - array processing functions
+- `ff` - finite field functions
 
 All the function signatures are listed in [Appendix E](../appendix/E-standard-library.md).
 

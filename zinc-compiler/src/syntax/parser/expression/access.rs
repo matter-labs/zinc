@@ -28,6 +28,7 @@ use crate::syntax::tree::member_string::builder::Builder as MemberStringBuilder;
 #[derive(Debug, Clone, Copy)]
 pub enum State {
     PathOperand,
+    ExclamationMarkOrNext,
     AccessOrCallOrEnd,
     IndexExpression,
     BracketSquareRight,
@@ -47,6 +48,7 @@ pub struct Parser {
     state: State,
     builder: ExpressionBuilder,
     operator: Option<(Location, ExpressionOperator)>,
+    auxiliary: Option<(Location, ExpressionAuxiliary)>,
     next: Option<Token>,
     is_indexed: bool,
 }
@@ -65,6 +67,20 @@ impl Parser {
                     self.next = next;
                     self.builder.set_location(expression.location);
                     self.builder.extend_with_expression(expression);
+                    self.state = State::ExclamationMarkOrNext;
+                }
+                State::ExclamationMarkOrNext => {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
+                            location,
+                        } => {
+                            self.auxiliary = Some((location, ExpressionAuxiliary::CallBuiltIn));
+                        }
+                        token => {
+                            self.next = Some(token);
+                        }
+                    }
                     self.state = State::AccessOrCallOrEnd;
                 }
                 State::AccessOrCallOrEnd => {
@@ -197,6 +213,9 @@ impl Parser {
                             location,
                             ExpressionOperand::ExpressionList(expression_list),
                         );
+                        if let Some((location, auxiliary)) = self.auxiliary.take() {
+                            self.builder.push_auxiliary(location, auxiliary);
+                        }
                         self.builder.push_operator(location, operator);
                     }
                     self.state = State::ParenthesisRight;

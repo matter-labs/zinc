@@ -159,10 +159,10 @@ impl Integer {
 
     pub fn equals(&self, other: &Self) -> Result<bool, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchEquals(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
+            return Err(Error::TypesMismatchEquals {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
         }
 
         let result = self.value == other.value;
@@ -171,10 +171,10 @@ impl Integer {
 
     pub fn not_equals(&self, other: &Self) -> Result<bool, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchNotEquals(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
+            return Err(Error::TypesMismatchNotEquals {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
         }
 
         let result = self.value != other.value;
@@ -183,10 +183,10 @@ impl Integer {
 
     pub fn greater_equals(&self, other: &Self) -> Result<bool, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchGreaterEquals(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
+            return Err(Error::TypesMismatchGreaterEquals {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
         }
 
         let result = self.value >= other.value;
@@ -195,10 +195,10 @@ impl Integer {
 
     pub fn lesser_equals(&self, other: &Self) -> Result<bool, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchLesserEquals(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
+            return Err(Error::TypesMismatchLesserEquals {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
         }
 
         let result = self.value <= other.value;
@@ -207,10 +207,10 @@ impl Integer {
 
     pub fn greater(&self, other: &Self) -> Result<bool, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchGreater(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
+            return Err(Error::TypesMismatchGreater {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
         }
 
         let result = self.value > other.value;
@@ -219,10 +219,10 @@ impl Integer {
 
     pub fn lesser(&self, other: &Self) -> Result<bool, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchLesser(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
+            return Err(Error::TypesMismatchLesser {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
         }
 
         let result = self.value < other.value;
@@ -231,10 +231,10 @@ impl Integer {
 
     pub fn add(&self, other: &Self) -> Result<Self, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchAddition(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
+            return Err(Error::TypesMismatchAddition {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
         }
 
         let result = self.value.to_owned() + other.value.to_owned();
@@ -262,10 +262,10 @@ impl Integer {
 
     pub fn subtract(&self, other: &Self) -> Result<Self, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchSubtraction(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
+            return Err(Error::TypesMismatchSubtraction {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
         }
 
         let result = self.value.to_owned() - other.value.to_owned();
@@ -293,10 +293,10 @@ impl Integer {
 
     pub fn multiply(&self, other: &Self) -> Result<Self, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchMultiplication(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
+            return Err(Error::TypesMismatchMultiplication {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
         }
 
         let result = self.value.to_owned() * other.value.to_owned();
@@ -324,10 +324,10 @@ impl Integer {
 
     pub fn divide(&self, other: &Self) -> Result<Self, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchDivision(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
+            return Err(Error::TypesMismatchDivision {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
@@ -360,10 +360,10 @@ impl Integer {
 
     pub fn remainder(&self, other: &Self) -> Result<Self, Error> {
         if !self.has_the_same_type_as(&other) {
-            return Err(Error::TypesMismatchRemainder(
-                self.r#type().to_string(),
-                other.r#type().to_string(),
-            ));
+            return Err(Error::TypesMismatchRemainder {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {

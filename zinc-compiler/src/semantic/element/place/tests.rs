@@ -25,9 +25,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 22),
-        ElementError::Place(PlaceError::OperatorIndexFirstOperandExpectedArray(
-            Type::tuple(vec![Type::boolean(); 3]).to_string(),
-        )),
+        ElementError::Place(PlaceError::OperatorIndexFirstOperandExpectedArray {
+            found: Type::tuple(vec![Type::boolean(); 3]).to_string(),
+        }),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -47,9 +47,9 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 22),
         ElementError::Place(
-            PlaceError::OperatorIndexSecondOperandExpectedIntegerOrRange(
-                Constant::Boolean(true).to_string(),
-            ),
+            PlaceError::OperatorIndexSecondOperandExpectedIntegerOrRange {
+                found: Constant::Boolean(true).to_string(),
+            },
         ),
     )));
 
@@ -75,8 +75,8 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(10, 21),
-        ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedTuple(
-            Type::structure(
+        ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedTuple {
+            found: Type::structure(
                 "Data".to_owned(),
                 1,
                 vec![(
@@ -86,7 +86,7 @@ fn main() {
                 None,
             )
             .to_string(),
-        )),
+        }),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -105,9 +105,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 22),
-        ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedStructure(
-            Type::tuple(vec![Type::boolean(); 3]).to_string(),
-        )),
+        ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedStructure {
+            found: Type::tuple(vec![Type::boolean(); 3]).to_string(),
+        }),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);

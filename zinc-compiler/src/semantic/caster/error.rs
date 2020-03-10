@@ -8,7 +8,6 @@ use crate::semantic::element::r#type::Type;
 pub enum Error {
     CastingFromInvalidType { from: String, to: String },
     CastingToInvalidType { from: String, to: String },
-    CastingIntegerToLesserBitlength { from: usize, to: usize },
 }
 
 impl Error {
@@ -24,9 +23,5 @@ impl Error {
             from: from.to_string(),
             to: to.to_string(),
         }
-    }
-
-    pub fn casting_integer_to_lesser_bitlength(from: usize, to: usize) -> Self {
-        Self::CastingIntegerToLesserBitlength { from, to }
     }
 }

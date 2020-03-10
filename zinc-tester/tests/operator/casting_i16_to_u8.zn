@@ -28,8 +28,20 @@
 //#         "a": "-42"
 //#     },
 //#     "expect": null
+//# }, {
+//#     "case": "overflow_positive_minimal", "should_panic": true,
+//#     "input": {
+//#         "a": "256"
+//#     },
+//#     "expect": null
+//# }, {
+//#     "case": "overflow_positive", "should_panic": true,
+//#     "input": {
+//#         "a": "1000"
+//#     },
+//#     "expect": null
 //# } ]
 
-fn main(a: i8) -> u8 {
+fn main(a: i16) -> u8 {
     a as u8
 }

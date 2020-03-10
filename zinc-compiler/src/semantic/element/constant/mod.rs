@@ -71,13 +71,13 @@ impl Constant {
                     .range_inclusive(integer_2)
                     .map(Self::RangeInclusive)
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorRangeInclusiveSecondOperandExpectedInteger(
-                    value.to_string(),
-                )),
+                value => Err(Error::OperatorRangeInclusiveSecondOperandExpectedInteger {
+                    found: value.to_string(),
+                }),
             },
-            value => Err(Error::OperatorRangeInclusiveFirstOperandExpectedInteger(
-                value.to_string(),
-            )),
+            value => Err(Error::OperatorRangeInclusiveFirstOperandExpectedInteger {
+                found: value.to_string(),
+            }),
         }
     }
 
@@ -88,13 +88,13 @@ impl Constant {
                     .range(integer_2)
                     .map(Self::Range)
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorRangeSecondOperandExpectedInteger(
-                    value.to_string(),
-                )),
+                value => Err(Error::OperatorRangeSecondOperandExpectedInteger {
+                    found: value.to_string(),
+                }),
             },
-            value => Err(Error::OperatorRangeFirstOperandExpectedInteger(
-                value.to_string(),
-            )),
+            value => Err(Error::OperatorRangeFirstOperandExpectedInteger {
+                found: value.to_string(),
+            }),
         }
     }
 
@@ -105,13 +105,13 @@ impl Constant {
                     let result = *value_1 || *value_2;
                     Ok(Self::Boolean(result))
                 }
-                constant => Err(Error::OperatorOrSecondOperandExpectedBoolean(
-                    constant.to_string(),
-                )),
+                constant => Err(Error::OperatorOrSecondOperandExpectedBoolean {
+                    found: constant.to_string(),
+                }),
             },
-            constant => Err(Error::OperatorOrFirstOperandExpectedBoolean(
-                constant.to_string(),
-            )),
+            constant => Err(Error::OperatorOrFirstOperandExpectedBoolean {
+                found: constant.to_string(),
+            }),
         }
     }
 
@@ -122,13 +122,13 @@ impl Constant {
                     let result = !*value_1 && *value_2 || *value_1 && !*value_2;
                     Ok(Self::Boolean(result))
                 }
-                constant => Err(Error::OperatorXorSecondOperandExpectedBoolean(
-                    constant.to_string(),
-                )),
+                constant => Err(Error::OperatorXorSecondOperandExpectedBoolean {
+                    found: constant.to_string(),
+                }),
             },
-            constant => Err(Error::OperatorXorFirstOperandExpectedBoolean(
-                constant.to_string(),
-            )),
+            constant => Err(Error::OperatorXorFirstOperandExpectedBoolean {
+                found: constant.to_string(),
+            }),
         }
     }
 
@@ -139,65 +139,69 @@ impl Constant {
                     let result = *value_1 && *value_2;
                     Ok(Self::Boolean(result))
                 }
-                constant => Err(Error::OperatorAndSecondOperandExpectedBoolean(
-                    constant.to_string(),
-                )),
+                constant => Err(Error::OperatorAndSecondOperandExpectedBoolean {
+                    found: constant.to_string(),
+                }),
             },
-            constant => Err(Error::OperatorAndFirstOperandExpectedBoolean(
-                constant.to_string(),
-            )),
+            constant => Err(Error::OperatorAndFirstOperandExpectedBoolean {
+                found: constant.to_string(),
+            }),
         }
     }
 
     pub fn equals(&self, other: &Self) -> Result<Self, Error> {
         match (self, other) {
             (Self::Unit, Self::Unit) => Ok(Self::Boolean(true)),
-            (Self::Unit, value_2) => Err(Error::OperatorEqualsSecondOperandExpectedUnit(
-                value_2.to_string(),
-            )),
+            (Self::Unit, value_2) => Err(Error::OperatorEqualsSecondOperandExpectedUnit {
+                found: value_2.to_string(),
+            }),
             (Self::Boolean(value_1), Self::Boolean(value_2)) => {
                 let result = value_1 == value_2;
                 Ok(Self::Boolean(result))
             }
-            (Self::Boolean(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedBoolean(
-                value_2.to_string(),
-            )),
+            (Self::Boolean(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedBoolean {
+                found: value_2.to_string(),
+            }),
             (Self::Integer(value_1), Self::Integer(value_2)) => {
                 let result = value_1.equals(value_2).map_err(Error::Integer)?;
                 Ok(Self::Boolean(result))
             }
-            (Self::Integer(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedInteger(
-                value_2.to_string(),
-            )),
-            (value_1, _) => Err(Error::OperatorEqualsFirstOperandExpectedPrimitiveType(
-                value_1.to_string(),
-            )),
+            (Self::Integer(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedInteger {
+                found: value_2.to_string(),
+            }),
+            (value_1, _) => Err(Error::OperatorEqualsFirstOperandExpectedPrimitiveType {
+                found: value_1.to_string(),
+            }),
         }
     }
 
     pub fn not_equals(&self, other: &Self) -> Result<Self, Error> {
         match (self, other) {
             (Self::Unit, Self::Unit) => Ok(Self::Boolean(true)),
-            (Self::Unit, value_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedUnit(
-                value_2.to_string(),
-            )),
+            (Self::Unit, value_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedUnit {
+                found: value_2.to_string(),
+            }),
             (Self::Boolean(value_1), Self::Boolean(value_2)) => {
                 let result = value_1 != value_2;
                 Ok(Self::Boolean(result))
             }
-            (Self::Boolean(_), value_2) => Err(
-                Error::OperatorNotEqualsSecondOperandExpectedBoolean(value_2.to_string()),
-            ),
+            (Self::Boolean(_), value_2) => {
+                Err(Error::OperatorNotEqualsSecondOperandExpectedBoolean {
+                    found: value_2.to_string(),
+                })
+            }
             (Self::Integer(value_1), Self::Integer(value_2)) => {
                 let result = value_1.not_equals(value_2).map_err(Error::Integer)?;
                 Ok(Self::Boolean(result))
             }
-            (Self::Integer(_), value_2) => Err(
-                Error::OperatorNotEqualsSecondOperandExpectedInteger(value_2.to_string()),
-            ),
-            (value_1, _) => Err(Error::OperatorNotEqualsFirstOperandExpectedPrimitiveType(
-                value_1.to_string(),
-            )),
+            (Self::Integer(_), value_2) => {
+                Err(Error::OperatorNotEqualsSecondOperandExpectedInteger {
+                    found: value_2.to_string(),
+                })
+            }
+            (value_1, _) => Err(Error::OperatorNotEqualsFirstOperandExpectedPrimitiveType {
+                found: value_1.to_string(),
+            }),
         }
     }
 
@@ -208,13 +212,13 @@ impl Constant {
                     .greater_equals(integer_2)
                     .map(Self::Boolean)
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorGreaterEqualsSecondOperandExpectedInteger(
-                    value.to_string(),
-                )),
+                value => Err(Error::OperatorGreaterEqualsSecondOperandExpectedInteger {
+                    found: value.to_string(),
+                }),
             },
-            value => Err(Error::OperatorGreaterEqualsFirstOperandExpectedInteger(
-                value.to_string(),
-            )),
+            value => Err(Error::OperatorGreaterEqualsFirstOperandExpectedInteger {
+                found: value.to_string(),
+            }),
         }
     }
 
@@ -225,13 +229,13 @@ impl Constant {
                     .lesser_equals(integer_2)
                     .map(Self::Boolean)
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorLesserEqualsSecondOperandExpectedInteger(
-                    value.to_string(),
-                )),
+                value => Err(Error::OperatorLesserEqualsSecondOperandExpectedInteger {
+                    found: value.to_string(),
+                }),
             },
-            value => Err(Error::OperatorLesserEqualsFirstOperandExpectedInteger(
-                value.to_string(),
-            )),
+            value => Err(Error::OperatorLesserEqualsFirstOperandExpectedInteger {
+                found: value.to_string(),
+            }),
         }
     }
 
@@ -242,13 +246,13 @@ impl Constant {
                     .greater(integer_2)
                     .map(Self::Boolean)
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorGreaterSecondOperandExpectedInteger(
-                    value.to_string(),
-                )),
+                value => Err(Error::OperatorGreaterSecondOperandExpectedInteger {
+                    found: value.to_string(),
+                }),
             },
-            value => Err(Error::OperatorGreaterFirstOperandExpectedInteger(
-                value.to_string(),
-            )),
+            value => Err(Error::OperatorGreaterFirstOperandExpectedInteger {
+                found: value.to_string(),
+            }),
         }
     }
 
@@ -259,13 +263,13 @@ impl Constant {
                     .lesser(integer_2)
                     .map(Self::Boolean)
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorLesserSecondOperandExpectedInteger(
-                    value.to_string(),
-                )),
+                value => Err(Error::OperatorLesserSecondOperandExpectedInteger {
+                    found: value.to_string(),
+                }),
             },
-            value => Err(Error::OperatorLesserFirstOperandExpectedInteger(
-                value.to_string(),
-            )),
+            value => Err(Error::OperatorLesserFirstOperandExpectedInteger {
+                found: value.to_string(),
+            }),
         }
     }
 
@@ -276,13 +280,13 @@ impl Constant {
                     .add(integer_2)
                     .map(Self::Integer)
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorAdditionSecondOperandExpectedInteger(
-                    value.to_string(),
-                )),
+                value => Err(Error::OperatorAdditionSecondOperandExpectedInteger {
+                    found: value.to_string(),
+                }),
             },
-            value => Err(Error::OperatorAdditionFirstOperandExpectedInteger(
-                value.to_string(),
-            )),
+            value => Err(Error::OperatorAdditionFirstOperandExpectedInteger {
+                found: value.to_string(),
+            }),
         }
     }
 
@@ -293,13 +297,13 @@ impl Constant {
                     .subtract(integer_2)
                     .map(Self::Integer)
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorSubtractionSecondOperandExpectedInteger(
-                    value.to_string(),
-                )),
+                value => Err(Error::OperatorSubtractionSecondOperandExpectedInteger {
+                    found: value.to_string(),
+                }),
             },
-            value => Err(Error::OperatorSubtractionFirstOperandExpectedInteger(
-                value.to_string(),
-            )),
+            value => Err(Error::OperatorSubtractionFirstOperandExpectedInteger {
+                found: value.to_string(),
+            }),
         }
     }
 
@@ -310,13 +314,13 @@ impl Constant {
                     .multiply(integer_2)
                     .map(Self::Integer)
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorMultiplicationSecondOperandExpectedInteger(
-                    value.to_string(),
-                )),
+                value => Err(Error::OperatorMultiplicationSecondOperandExpectedInteger {
+                    found: value.to_string(),
+                }),
             },
-            value => Err(Error::OperatorMultiplicationFirstOperandExpectedInteger(
-                value.to_string(),
-            )),
+            value => Err(Error::OperatorMultiplicationFirstOperandExpectedInteger {
+                found: value.to_string(),
+            }),
         }
     }
 
@@ -327,13 +331,13 @@ impl Constant {
                     .divide(integer_2)
                     .map(Self::Integer)
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorDivisionSecondOperandExpectedInteger(
-                    value.to_string(),
-                )),
+                value => Err(Error::OperatorDivisionSecondOperandExpectedInteger {
+                    found: value.to_string(),
+                }),
             },
-            value => Err(Error::OperatorDivisionFirstOperandExpectedInteger(
-                value.to_string(),
-            )),
+            value => Err(Error::OperatorDivisionFirstOperandExpectedInteger {
+                found: value.to_string(),
+            }),
         }
     }
 
@@ -344,20 +348,22 @@ impl Constant {
                     .remainder(integer_2)
                     .map(Self::Integer)
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorRemainderSecondOperandExpectedInteger(
-                    value.to_string(),
-                )),
+                value => Err(Error::OperatorRemainderSecondOperandExpectedInteger {
+                    found: value.to_string(),
+                }),
             },
-            value => Err(Error::OperatorRemainderFirstOperandExpectedInteger(
-                value.to_string(),
-            )),
+            value => Err(Error::OperatorRemainderFirstOperandExpectedInteger {
+                found: value.to_string(),
+            }),
         }
     }
 
     pub fn negate(&self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer) => integer.negate().map(Self::Integer).map_err(Error::Integer),
-            value => Err(Error::OperatorNegationExpectedInteger(value.to_string())),
+            value => Err(Error::OperatorNegationExpectedInteger {
+                found: value.to_string(),
+            }),
         }
     }
 
@@ -367,7 +373,9 @@ impl Constant {
                 let result = !value;
                 Ok(Self::Boolean(result))
             }
-            value => Err(Error::OperatorNotExpectedBoolean(value.to_string())),
+            value => Err(Error::OperatorNotExpectedBoolean {
+                found: value.to_string(),
+            }),
         }
     }
 

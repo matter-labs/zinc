@@ -77,24 +77,3 @@ fn main() {
 
     assert_eq!(result, expected);
 }
-
-#[test]
-fn casting_integer_to_lesser_bitlength() {
-    let input = r#"
-fn main() {
-    let value: u128 = 0;
-    let result = value as u64;
-}
-"#;
-
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 24),
-        ElementError::Value(ValueError::Casting(
-            CasterError::casting_integer_to_lesser_bitlength(128, 64),
-        )),
-    )));
-
-    let result = crate::semantic::tests::compile_entry_point(input);
-
-    assert_eq!(result, expected);
-}

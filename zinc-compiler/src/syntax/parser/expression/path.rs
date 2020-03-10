@@ -12,7 +12,6 @@ use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
 use crate::syntax::parser::expression::terminal::Parser as TerminalOperandParser;
-use crate::syntax::tree::expression::auxiliary::Auxiliary as ExpressionAuxiliary;
 use crate::syntax::tree::expression::builder::Builder as ExpressionBuilder;
 use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
 use crate::syntax::tree::expression::Expression;
@@ -20,7 +19,7 @@ use crate::syntax::tree::expression::Expression;
 #[derive(Debug, Clone, Copy)]
 pub enum State {
     Terminal,
-    DoubleColonOrExclamationMarkOrEnd,
+    DoubleColonOrEnd,
 }
 
 impl Default for State {
@@ -56,11 +55,11 @@ impl Parser {
                             if let Some((location, operator)) = self.operator.take() {
                                 self.builder.push_operator(location, operator);
                             }
-                            self.state = State::DoubleColonOrExclamationMarkOrEnd;
+                            self.state = State::DoubleColonOrEnd;
                         }
                     }
                 }
-                State::DoubleColonOrExclamationMarkOrEnd => {
+                State::DoubleColonOrEnd => {
                     match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::DoubleColon),
@@ -68,14 +67,6 @@ impl Parser {
                         } => {
                             self.operator = Some((location, ExpressionOperator::Path));
                             self.state = State::Terminal;
-                        }
-                        Token {
-                            lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
-                            location,
-                        } => {
-                            self.builder
-                                .push_auxiliary(location, ExpressionAuxiliary::CallBuiltIn);
-                            return Ok((self.builder.finish(), None));
                         }
                         token => return Ok((self.builder.finish(), Some(token))),
                     }

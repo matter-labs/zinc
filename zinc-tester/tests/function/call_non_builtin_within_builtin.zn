@@ -1,0 +1,11 @@
+//# [ {
+//#     "case": "default",
+//#     "input": {
+//#         "value": "42"
+//#     },
+//#     "expect": "unit"
+//# } ]
+
+fn main(value: field) {
+    assert!(std::ff::invert(std::ff::invert(value)) == 42 as field, "fixed bug with '!'");
+}

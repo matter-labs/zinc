@@ -4,10 +4,18 @@
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    OperatorIndexFirstOperandExpectedArray(String),
-    OperatorIndexSecondOperandExpectedIntegerOrRange(String),
-    OperatorFieldFirstOperandExpectedTuple(String),
-    OperatorFieldFirstOperandExpectedStructure(String),
+    OperatorIndexFirstOperandExpectedArray {
+        found: String,
+    },
+    OperatorIndexSecondOperandExpectedIntegerOrRange {
+        found: String,
+    },
+    OperatorFieldFirstOperandExpectedTuple {
+        found: String,
+    },
+    OperatorFieldFirstOperandExpectedStructure {
+        found: String,
+    },
 
     ArraySliceStartOutOfRange {
         start: String,

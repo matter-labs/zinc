@@ -24,10 +24,12 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 28),
-        ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchEquals(
-            Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-        ))),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::TypesMismatchEquals {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
+        )),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -48,10 +50,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::TypesMismatchNotEquals(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerValueError::TypesMismatchNotEquals {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -73,10 +75,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::TypesMismatchGreaterEquals(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerValueError::TypesMismatchGreaterEquals {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -98,10 +100,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::TypesMismatchLesserEquals(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerValueError::TypesMismatchLesserEquals {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -123,10 +125,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::TypesMismatchGreater(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerValueError::TypesMismatchGreater {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -147,10 +149,12 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 28),
-        ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchLesser(
-            Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-        ))),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::TypesMismatchLesser {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
+        )),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -171,10 +175,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::TypesMismatchAddition(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerValueError::TypesMismatchAddition {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -196,10 +200,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::TypesMismatchSubtraction(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerValueError::TypesMismatchSubtraction {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -221,10 +225,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::TypesMismatchMultiplication(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerValueError::TypesMismatchMultiplication {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -246,10 +250,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::TypesMismatchDivision(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerValueError::TypesMismatchDivision {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -271,10 +275,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::TypesMismatchRemainder(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerValueError::TypesMismatchRemainder {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 

@@ -1004,6 +1004,8 @@ impl Analyzer {
 
     pub fn operator_call(&mut self, element: ExpressionElement) -> Result<(), Error> {
         let location = element.location;
+        let is_next_call_builtin = self.is_next_call_builtin;
+        self.is_next_call_builtin = false;
 
         let (operand_1, operand_2) = self.evaluate_binary_operands(
             TranslationHint::TypeExpression,
@@ -1037,7 +1039,7 @@ impl Analyzer {
 
         let return_type = match function {
             FunctionType::UserDefined(function) => {
-                if self.is_next_call_builtin {
+                if is_next_call_builtin {
                     return Err(Error::Function(
                         element.location,
                         FunctionError::BuiltIn(BuiltInFunctionError::unknown(
@@ -1067,7 +1069,7 @@ impl Analyzer {
                 return_type
             }
             FunctionType::BuiltInFunction(function) => {
-                if !self.is_next_call_builtin {
+                if !is_next_call_builtin {
                     return Err(Error::Function(
                         element.location,
                         FunctionError::BuiltIn(BuiltInFunctionError::specifier_missing(
@@ -1109,7 +1111,7 @@ impl Analyzer {
                 }
             }
             FunctionType::StandardLibrary(function) => {
-                if self.is_next_call_builtin {
+                if is_next_call_builtin {
                     return Err(Error::Function(
                         element.location,
                         FunctionError::BuiltIn(BuiltInFunctionError::unknown(
@@ -1174,7 +1176,6 @@ impl Analyzer {
             }
         };
 
-        self.is_next_call_builtin = false;
         self.push_operand(StackElement::Evaluated(Element::Value(
             Value::try_from(&return_type)
                 .map_err(ElementError::Value)

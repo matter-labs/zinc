@@ -227,7 +227,7 @@ impl Error {
                 )
             }
 
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentFirstOperandExpectedPlace(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentFirstOperandExpectedPlace{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -239,7 +239,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentSecondOperandExpectedEvaluable(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentSecondOperandExpectedEvaluable{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -251,7 +251,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentAdditionFirstOperandExpectedPlace(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentAdditionFirstOperandExpectedPlace{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -263,7 +263,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentAdditionSecondOperandExpectedEvaluable(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentAdditionSecondOperandExpectedEvaluable{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -275,7 +275,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentSubtractionFirstOperandExpectedPlace(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentSubtractionFirstOperandExpectedPlace{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -287,7 +287,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentSubtractionSecondOperandExpectedEvaluable(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentSubtractionSecondOperandExpectedEvaluable{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -299,7 +299,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentMultiplicationFirstOperandExpectedPlace(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentMultiplicationFirstOperandExpectedPlace{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -311,7 +311,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentMultiplicationSecondOperandExpectedEvaluable(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentMultiplicationSecondOperandExpectedEvaluable{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -323,7 +323,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentDivisionFirstOperandExpectedPlace(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentDivisionFirstOperandExpectedPlace{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -335,7 +335,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentDivisionSecondOperandExpectedEvaluable(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentDivisionSecondOperandExpectedEvaluable{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -347,7 +347,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentRemainderFirstOperandExpectedPlace(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentRemainderFirstOperandExpectedPlace{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -359,7 +359,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentRemainderSecondOperandExpectedEvaluable(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentRemainderSecondOperandExpectedEvaluable{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -371,8 +371,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorRangeInclusiveFirstOperandExpectedConstant(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorRangeInclusiveFirstOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorRangeInclusiveFirstOperandExpectedConstant{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorRangeInclusiveFirstOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -384,8 +384,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorRangeInclusiveSecondOperandExpectedConstant(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorRangeInclusiveSecondOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorRangeInclusiveSecondOperandExpectedConstant{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorRangeInclusiveSecondOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -397,8 +397,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorRangeFirstOperandExpectedConstant(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorRangeFirstOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorRangeFirstOperandExpectedConstant{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorRangeFirstOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -410,8 +410,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorRangeSecondOperandExpectedConstant(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorRangeSecondOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorRangeSecondOperandExpectedConstant{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorRangeSecondOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -423,9 +423,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorOrFirstOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorOrFirstOperandExpectedBoolean(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorOrFirstOperandExpectedBoolean(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorOrFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorOrFirstOperandExpectedBoolean{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorOrFirstOperandExpectedBoolean{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -437,9 +437,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorOrSecondOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorOrSecondOperandExpectedBoolean(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorOrSecondOperandExpectedBoolean(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorOrSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorOrSecondOperandExpectedBoolean{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorOrSecondOperandExpectedBoolean{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -451,9 +451,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorXorFirstOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorXorFirstOperandExpectedBoolean(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorXorFirstOperandExpectedBoolean(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorXorFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorXorFirstOperandExpectedBoolean{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorXorFirstOperandExpectedBoolean{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -465,9 +465,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorXorSecondOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorXorSecondOperandExpectedBoolean(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorXorSecondOperandExpectedBoolean(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorXorSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorXorSecondOperandExpectedBoolean{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorXorSecondOperandExpectedBoolean{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -479,9 +479,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAndFirstOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorAndFirstOperandExpectedBoolean(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorAndFirstOperandExpectedBoolean(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAndFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorAndFirstOperandExpectedBoolean{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorAndFirstOperandExpectedBoolean{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -493,9 +493,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAndSecondOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorAndSecondOperandExpectedBoolean(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorAndSecondOperandExpectedBoolean(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAndSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorAndSecondOperandExpectedBoolean{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorAndSecondOperandExpectedBoolean{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -507,9 +507,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorEqualsFirstOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorEqualsFirstOperandExpectedPrimitiveType(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorEqualsFirstOperandExpectedPrimitiveType(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorEqualsFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorEqualsFirstOperandExpectedPrimitiveType{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorEqualsFirstOperandExpectedPrimitiveType{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -521,13 +521,13 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorEqualsSecondOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorEqualsSecondOperandExpectedUnit(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorEqualsSecondOperandExpectedBoolean(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorEqualsSecondOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorEqualsSecondOperandExpectedUnit(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorEqualsSecondOperandExpectedBoolean(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorEqualsSecondOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorEqualsSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorEqualsSecondOperandExpectedUnit{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorEqualsSecondOperandExpectedBoolean{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorEqualsSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorEqualsSecondOperandExpectedUnit{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorEqualsSecondOperandExpectedBoolean{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorEqualsSecondOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -539,9 +539,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorNotEqualsFirstOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorNotEqualsFirstOperandExpectedPrimitiveType(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorNotEqualsFirstOperandExpectedPrimitiveType(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorNotEqualsFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorNotEqualsFirstOperandExpectedPrimitiveType{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorNotEqualsFirstOperandExpectedPrimitiveType{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -553,13 +553,13 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorNotEqualsSecondOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorNotEqualsSecondOperandExpectedUnit(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorNotEqualsSecondOperandExpectedBoolean(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorNotEqualsSecondOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorNotEqualsSecondOperandExpectedUnit(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorNotEqualsSecondOperandExpectedBoolean(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorNotEqualsSecondOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorNotEqualsSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorNotEqualsSecondOperandExpectedUnit{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorNotEqualsSecondOperandExpectedBoolean{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorNotEqualsSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorNotEqualsSecondOperandExpectedUnit{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorNotEqualsSecondOperandExpectedBoolean{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorNotEqualsSecondOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -571,9 +571,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorGreaterEqualsFirstOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorGreaterEqualsFirstOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorGreaterEqualsFirstOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorGreaterEqualsFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorGreaterEqualsFirstOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorGreaterEqualsFirstOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -585,9 +585,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorGreaterEqualsSecondOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorGreaterEqualsSecondOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorGreaterEqualsSecondOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorGreaterEqualsSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorGreaterEqualsSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorGreaterEqualsSecondOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -599,9 +599,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorLesserEqualsFirstOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorLesserEqualsFirstOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorLesserEqualsFirstOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorLesserEqualsFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorLesserEqualsFirstOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorLesserEqualsFirstOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -613,9 +613,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorLesserEqualsSecondOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorLesserEqualsSecondOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorLesserEqualsSecondOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorLesserEqualsSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorLesserEqualsSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorLesserEqualsSecondOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -627,9 +627,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorGreaterFirstOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorGreaterFirstOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorGreaterFirstOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorGreaterFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorGreaterFirstOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorGreaterFirstOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -641,9 +641,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorGreaterSecondOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorGreaterSecondOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorGreaterSecondOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorGreaterSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorGreaterSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorGreaterSecondOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -655,9 +655,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorLesserFirstOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorLesserFirstOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorLesserFirstOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorLesserFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorLesserFirstOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorLesserFirstOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -669,9 +669,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorLesserSecondOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorLesserSecondOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorLesserSecondOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorLesserSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorLesserSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorLesserSecondOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -683,9 +683,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAdditionFirstOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorAdditionFirstOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorAdditionFirstOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAdditionFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorAdditionFirstOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorAdditionFirstOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -697,9 +697,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAdditionSecondOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorAdditionSecondOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorAdditionSecondOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAdditionSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorAdditionSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorAdditionSecondOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -711,9 +711,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorSubtractionFirstOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorSubtractionFirstOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorSubtractionFirstOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorSubtractionFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorSubtractionFirstOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorSubtractionFirstOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -725,9 +725,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorSubtractionSecondOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorSubtractionSecondOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorSubtractionSecondOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorSubtractionSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorSubtractionSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorSubtractionSecondOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -739,9 +739,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorMultiplicationFirstOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorMultiplicationFirstOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorMultiplicationFirstOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorMultiplicationFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorMultiplicationFirstOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorMultiplicationFirstOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -753,9 +753,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorMultiplicationSecondOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorMultiplicationSecondOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorMultiplicationSecondOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorMultiplicationSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorMultiplicationSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorMultiplicationSecondOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -767,9 +767,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorDivisionFirstOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorDivisionFirstOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorDivisionFirstOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorDivisionFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorDivisionFirstOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorDivisionFirstOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -781,9 +781,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorDivisionSecondOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorDivisionSecondOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorDivisionSecondOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorDivisionSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorDivisionSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorDivisionSecondOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -795,9 +795,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorRemainderFirstOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorRemainderFirstOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorRemainderFirstOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorRemainderFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorRemainderFirstOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorRemainderFirstOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -809,9 +809,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorRemainderSecondOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorRemainderSecondOperandExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorRemainderSecondOperandExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorRemainderSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorRemainderSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorRemainderSecondOperandExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -823,7 +823,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorCastingFirstOperandExpectedEvaluable(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorCastingFirstOperandExpectedEvaluable{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -835,7 +835,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorCastingSecondOperandExpectedType(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorCastingSecondOperandExpectedType{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -862,22 +862,9 @@ impl Error {
                     Some("only integer values can be casted to greater or equal bitlength"),
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Casting(CasterError::CastingIntegerToLesserBitlength { from, to })))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Casting(CasterError::CastingIntegerToLesserBitlength { from, to })))) => {
-                Self::format_line(
-                    context,
-                    format!(
-                        "cannot cast an integer with bitlength `{}` to an integer with bitlength `{}`",
-                        from, to,
-                    )
-                        .as_str(),
-                    location,
-                    Some("integer values can only be casted to greater or equal bitlength"),
-                )
-            }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorNegationExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorNegationExpectedInteger(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorNegationExpectedInteger(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorNegationExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorNegationExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorNegationExpectedInteger{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -889,9 +876,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorNotExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorNotExpectedBoolean(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorNotExpectedBoolean(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorNotExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorNotExpectedBoolean{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorNotExpectedBoolean{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -903,9 +890,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorIndexFirstOperandExpectedPlaceOrEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::OperatorIndexFirstOperandExpectedArray(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorIndexFirstOperandExpectedArray(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorIndexFirstOperandExpectedPlaceOrEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::OperatorIndexFirstOperandExpectedArray{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorIndexFirstOperandExpectedArray{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -917,9 +904,9 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorIndexSecondOperandExpectedEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::OperatorIndexSecondOperandExpectedIntegerOrRange(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorIndexSecondOperandExpectedIntegerOrRange(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorIndexSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::OperatorIndexSecondOperandExpectedIntegerOrRange{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorIndexSecondOperandExpectedIntegerOrRange{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -931,11 +918,11 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorFieldFirstOperandExpectedPlaceOrEvaluable(found))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedTuple(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedStructure(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorFieldFirstOperandExpectedTuple(found)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorFieldFirstOperandExpectedStructure(found)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorFieldFirstOperandExpectedPlaceOrEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedTuple{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedStructure{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorFieldFirstOperandExpectedTuple{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorFieldFirstOperandExpectedStructure{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -947,7 +934,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorFieldSecondOperandExpectedMember(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorFieldSecondOperandExpectedMember{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -959,7 +946,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorPathFirstOperandExpectedPath(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorPathFirstOperandExpectedPath{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -971,7 +958,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorPathSecondOperandExpectedMemberString(found))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorPathSecondOperandExpectedMemberString{ found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1099,7 +1086,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::ConvertingFromType(r#type)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::ConvertingFromType{ r#type }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1111,8 +1098,8 @@ impl Error {
                     Some("strings, ranges, and functions cannot be used as values or stored as variables"),
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchEquals(first, second))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchEquals(first, second))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchEquals{ first, second })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchEquals{ first, second })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1124,8 +1111,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchNotEquals(first, second))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchNotEquals(first, second))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchNotEquals{ first, second })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchNotEquals{ first, second })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1137,8 +1124,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchGreaterEquals(first, second))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchGreaterEquals(first, second))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchGreaterEquals{ first, second })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchGreaterEquals{ first, second })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1150,8 +1137,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchLesserEquals(first, second))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchLesserEquals(first, second))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchLesserEquals{ first, second })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchLesserEquals{ first, second })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1163,8 +1150,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchGreater(first, second))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchGreater(first, second))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchGreater{ first, second })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchGreater{ first, second })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1176,8 +1163,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchLesser(first, second))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchLesser(first, second))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchLesser{ first, second })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchLesser{ first, second })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1189,8 +1176,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchAddition(first, second))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchAddition(first, second))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchAddition{ first, second })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchAddition{ first, second })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1202,8 +1189,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchSubtraction(first, second))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchSubtraction(first, second))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchSubtraction{ first, second })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchSubtraction{ first, second })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1215,8 +1202,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchMultiplication(first, second))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchMultiplication(first, second))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchMultiplication{ first, second })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchMultiplication{ first, second })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1228,8 +1215,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchDivision(first, second))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchDivision(first, second))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchDivision{ first, second })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchDivision{ first, second })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1241,8 +1228,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchRemainder(first, second))))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchRemainder(first, second))))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchRemainder{ first, second })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchRemainder{ first, second })))) => {
                 Self::format_line(
                     context,
                     format!(

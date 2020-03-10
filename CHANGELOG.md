@@ -1,5 +1,17 @@
 # The Zinc changelog
 
+## Version 0.1.5 (TODO)
+
+#### Language
+
+- forbidden the division operator `/` for `field` inversion
+- implemented `std::ff::invert` for `field` inversion
+- allowed casting to types with lesser bitlength (runtime error on overflow)
+
+#### Compiler
+
+- fixed the bug with `!` while passing a non-builtin function call as a built-in one's argument
+
 ## Version 0.1.4 (2020-03-05)
 
 #### Language

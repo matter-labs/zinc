@@ -190,10 +190,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchGreaterEquals(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchGreaterEquals {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -217,10 +217,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchGreaterEquals(
-                "enum Default".to_owned(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchGreaterEquals {
+                first: "enum Default".to_owned(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -248,10 +248,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchGreaterEquals(
-                "enum One".to_owned(),
-                "enum Two".to_owned(),
-            ),
+            IntegerConstantError::TypesMismatchGreaterEquals {
+                first: "enum One".to_owned(),
+                second: "enum Two".to_owned(),
+            },
         )),
     )));
 
@@ -271,10 +271,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchLesserEquals(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchLesserEquals {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -298,10 +298,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchLesserEquals(
-                "enum Default".to_owned(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchLesserEquals {
+                first: "enum Default".to_owned(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -329,10 +329,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchLesserEquals(
-                "enum One".to_owned(),
-                "enum Two".to_owned(),
-            ),
+            IntegerConstantError::TypesMismatchLesserEquals {
+                first: "enum One".to_owned(),
+                second: "enum Two".to_owned(),
+            },
         )),
     )));
 
@@ -352,10 +352,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchGreater(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchGreater {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -379,10 +379,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchGreater(
-                "enum Default".to_owned(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchGreater {
+                first: "enum Default".to_owned(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -410,10 +410,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchGreater(
-                "enum One".to_owned(),
-                "enum Two".to_owned(),
-            ),
+            IntegerConstantError::TypesMismatchGreater {
+                first: "enum One".to_owned(),
+                second: "enum Two".to_owned(),
+            },
         )),
     )));
 
@@ -433,10 +433,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchLesser(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchLesser {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -460,10 +460,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchLesser(
-                "enum Default".to_owned(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchLesser {
+                first: "enum Default".to_owned(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -491,7 +491,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchLesser("enum One".to_owned(), "enum Two".to_owned()),
+            IntegerConstantError::TypesMismatchLesser {
+                first: "enum One".to_owned(),
+                second: "enum Two".to_owned(),
+            },
         )),
     )));
 
@@ -511,10 +514,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchAddition(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchAddition {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -538,10 +541,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchAddition(
-                "enum Default".to_owned(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchAddition {
+                first: "enum Default".to_owned(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -569,10 +572,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchAddition(
-                "enum One".to_owned(),
-                "enum Two".to_owned(),
-            ),
+            IntegerConstantError::TypesMismatchAddition {
+                first: "enum One".to_owned(),
+                second: "enum Two".to_owned(),
+            },
         )),
     )));
 
@@ -592,10 +595,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchSubtraction(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchSubtraction {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -619,10 +622,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchSubtraction(
-                "enum Default".to_owned(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchSubtraction {
+                first: "enum Default".to_owned(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -650,10 +653,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchSubtraction(
-                "enum One".to_owned(),
-                "enum Two".to_owned(),
-            ),
+            IntegerConstantError::TypesMismatchSubtraction {
+                first: "enum One".to_owned(),
+                second: "enum Two".to_owned(),
+            },
         )),
     )));
 
@@ -673,10 +676,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchMultiplication(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchMultiplication {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -700,10 +703,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchMultiplication(
-                "enum Default".to_owned(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchMultiplication {
+                first: "enum Default".to_owned(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -731,10 +734,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchMultiplication(
-                "enum One".to_owned(),
-                "enum Two".to_owned(),
-            ),
+            IntegerConstantError::TypesMismatchMultiplication {
+                first: "enum One".to_owned(),
+                second: "enum Two".to_owned(),
+            },
         )),
     )));
 
@@ -754,10 +757,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchDivision(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchDivision {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -781,10 +784,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchDivision(
-                "enum Default".to_owned(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchDivision {
+                first: "enum Default".to_owned(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -812,10 +815,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchDivision(
-                "enum One".to_owned(),
-                "enum Two".to_owned(),
-            ),
+            IntegerConstantError::TypesMismatchDivision {
+                first: "enum One".to_owned(),
+                second: "enum Two".to_owned(),
+            },
         )),
     )));
 
@@ -835,10 +838,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 27),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchRemainder(
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchRemainder {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
         )),
     )));
 
@@ -862,10 +865,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(7, 32),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchRemainder(
-                "enum Default".to_owned(),
-                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            ),
+            IntegerConstantError::TypesMismatchRemainder {
+                first: "enum Default".to_owned(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            },
         )),
     )));
 
@@ -893,10 +896,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(11, 28),
         ElementError::Constant(ConstantError::Integer(
-            IntegerConstantError::TypesMismatchRemainder(
-                "enum One".to_owned(),
-                "enum Two".to_owned(),
-            ),
+            IntegerConstantError::TypesMismatchRemainder {
+                first: "enum One".to_owned(),
+                second: "enum Two".to_owned(),
+            },
         )),
     )));
 

@@ -65,9 +65,9 @@ impl Place {
         let (inner_type, array_size) = match self.r#type {
             Type::Array { ref r#type, size } => (r#type.deref().to_owned(), r#type.size() * size),
             ref r#type => {
-                return Err(Error::OperatorIndexFirstOperandExpectedArray(
-                    r#type.to_string(),
-                ))
+                return Err(Error::OperatorIndexFirstOperandExpectedArray {
+                    found: r#type.to_string(),
+                })
             }
         };
 
@@ -166,9 +166,9 @@ impl Place {
                     self.r#type.to_owned(),
                 ))
             }
-            value => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange(
-                value.to_string(),
-            )),
+            value => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange {
+                found: value.to_string(),
+            }),
         }
     }
 
@@ -202,9 +202,9 @@ impl Place {
                     self.r#type.to_owned(),
                 ))
             }
-            ref r#type => Err(Error::OperatorFieldFirstOperandExpectedTuple(
-                r#type.to_string(),
-            )),
+            ref r#type => Err(Error::OperatorFieldFirstOperandExpectedTuple {
+                found: r#type.to_string(),
+            }),
         }
     }
 
@@ -236,9 +236,9 @@ impl Place {
                     field_name: field_name.to_owned(),
                 })
             }
-            ref r#type => Err(Error::OperatorFieldFirstOperandExpectedStructure(
-                r#type.to_string(),
-            )),
+            ref r#type => Err(Error::OperatorFieldFirstOperandExpectedStructure {
+                found: r#type.to_string(),
+            }),
         }
     }
 }

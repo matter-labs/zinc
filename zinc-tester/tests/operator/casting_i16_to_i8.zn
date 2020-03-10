@@ -19,17 +19,29 @@
 //# }, {
 //#     "case": "overflow_negative_minimal", "should_panic": true,
 //#     "input": {
-//#         "a": "-1"
+//#         "a": "-129"
 //#     },
 //#     "expect": null
 //# }, {
 //#     "case": "overflow_negative", "should_panic": true,
 //#     "input": {
-//#         "a": "-42"
+//#         "a": "-1000"
+//#     },
+//#     "expect": null
+//# }, {
+//#     "case": "overflow_positive_minimal", "should_panic": true,
+//#     "input": {
+//#         "a": "128"
+//#     },
+//#     "expect": null
+//# }, {
+//#     "case": "overflow_positive", "should_panic": true,
+//#     "input": {
+//#         "a": "1000"
 //#     },
 //#     "expect": null
 //# } ]
 
-fn main(a: i8) -> u8 {
-    a as u8
+fn main(a: i16) -> i8 {
+    a as i8
 }

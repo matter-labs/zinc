@@ -28,14 +28,14 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 7),
-        ElementError::OperatorAssignmentFirstOperandExpectedPlace(
-            Element::Constant(Constant::Integer(IntegerConstant::new(
+        ElementError::OperatorAssignmentFirstOperandExpectedPlace {
+            found: Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
             )))
             .to_string(),
-        ),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -56,9 +56,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(6, 11),
-        ElementError::OperatorAssignmentSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorAssignmentSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -76,14 +76,14 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 7),
-        ElementError::OperatorAssignmentAdditionFirstOperandExpectedPlace(
-            Element::Constant(Constant::Integer(IntegerConstant::new(
+        ElementError::OperatorAssignmentAdditionFirstOperandExpectedPlace {
+            found: Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
             )))
             .to_string(),
-        ),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -104,9 +104,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(6, 11),
-        ElementError::OperatorAssignmentAdditionSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorAssignmentAdditionSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -124,14 +124,14 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 7),
-        ElementError::OperatorAssignmentSubtractionFirstOperandExpectedPlace(
-            Element::Constant(Constant::Integer(IntegerConstant::new(
+        ElementError::OperatorAssignmentSubtractionFirstOperandExpectedPlace {
+            found: Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
             )))
             .to_string(),
-        ),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -152,9 +152,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(6, 11),
-        ElementError::OperatorAssignmentSubtractionSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorAssignmentSubtractionSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -172,14 +172,14 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 7),
-        ElementError::OperatorAssignmentMultiplicationFirstOperandExpectedPlace(
-            Element::Constant(Constant::Integer(IntegerConstant::new(
+        ElementError::OperatorAssignmentMultiplicationFirstOperandExpectedPlace {
+            found: Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
             )))
             .to_string(),
-        ),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -200,9 +200,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(6, 11),
-        ElementError::OperatorAssignmentMultiplicationSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorAssignmentMultiplicationSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -220,14 +220,14 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 7),
-        ElementError::OperatorAssignmentDivisionFirstOperandExpectedPlace(
-            Element::Constant(Constant::Integer(IntegerConstant::new(
+        ElementError::OperatorAssignmentDivisionFirstOperandExpectedPlace {
+            found: Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
             )))
             .to_string(),
-        ),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -248,9 +248,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(6, 11),
-        ElementError::OperatorAssignmentDivisionSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorAssignmentDivisionSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -268,14 +268,14 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 7),
-        ElementError::OperatorAssignmentRemainderFirstOperandExpectedPlace(
-            Element::Constant(Constant::Integer(IntegerConstant::new(
+        ElementError::OperatorAssignmentRemainderFirstOperandExpectedPlace {
+            found: Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
             )))
             .to_string(),
-        ),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -296,9 +296,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(6, 11),
-        ElementError::OperatorAssignmentRemainderSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorAssignmentRemainderSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -317,11 +317,11 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 7),
-        ElementError::OperatorRangeFirstOperandExpectedConstant(
-            Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
+        ElementError::OperatorRangeFirstOperandExpectedConstant {
+            found: Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
                 .expect(crate::semantic::tests::PANIC_TEST_DATA)
                 .to_string(),
-        ),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -340,11 +340,11 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 7),
-        ElementError::OperatorRangeSecondOperandExpectedConstant(
-            Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
+        ElementError::OperatorRangeSecondOperandExpectedConstant {
+            found: Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
                 .expect(crate::semantic::tests::PANIC_TEST_DATA)
                 .to_string(),
-        ),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -363,11 +363,11 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 7),
-        ElementError::OperatorRangeInclusiveFirstOperandExpectedConstant(
-            Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
+        ElementError::OperatorRangeInclusiveFirstOperandExpectedConstant {
+            found: Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
                 .expect(crate::semantic::tests::PANIC_TEST_DATA)
                 .to_string(),
-        ),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -386,11 +386,11 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 7),
-        ElementError::OperatorRangeInclusiveSecondOperandExpectedConstant(
-            Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
+        ElementError::OperatorRangeInclusiveSecondOperandExpectedConstant {
+            found: Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
                 .expect(crate::semantic::tests::PANIC_TEST_DATA)
                 .to_string(),
-        ),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -410,9 +410,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 19),
-        ElementError::OperatorOrFirstOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorOrFirstOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -432,9 +432,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 22),
-        ElementError::OperatorOrSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorOrSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -454,9 +454,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 19),
-        ElementError::OperatorXorFirstOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorXorFirstOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -476,9 +476,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 22),
-        ElementError::OperatorXorSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorXorSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -498,9 +498,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 19),
-        ElementError::OperatorAndFirstOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorAndFirstOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -520,9 +520,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 22),
-        ElementError::OperatorAndSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorAndSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -542,9 +542,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 19),
-        ElementError::OperatorEqualsFirstOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorEqualsFirstOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -564,9 +564,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 22),
-        ElementError::OperatorEqualsSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorEqualsSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -586,9 +586,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 19),
-        ElementError::OperatorNotEqualsFirstOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorNotEqualsFirstOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -608,9 +608,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 22),
-        ElementError::OperatorNotEqualsSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorNotEqualsSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -630,9 +630,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 19),
-        ElementError::OperatorGreaterEqualsFirstOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorGreaterEqualsFirstOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -652,9 +652,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 20),
-        ElementError::OperatorGreaterEqualsSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorGreaterEqualsSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -674,9 +674,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 19),
-        ElementError::OperatorLesserEqualsFirstOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorLesserEqualsFirstOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -696,9 +696,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 20),
-        ElementError::OperatorLesserEqualsSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorLesserEqualsSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -718,9 +718,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 19),
-        ElementError::OperatorGreaterFirstOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorGreaterFirstOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -740,9 +740,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 20),
-        ElementError::OperatorGreaterSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorGreaterSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -762,9 +762,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 19),
-        ElementError::OperatorLesserFirstOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorLesserFirstOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -784,9 +784,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 20),
-        ElementError::OperatorLesserSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorLesserSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -806,9 +806,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 19),
-        ElementError::OperatorAdditionFirstOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorAdditionFirstOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -828,9 +828,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 20),
-        ElementError::OperatorAdditionSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorAdditionSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -850,9 +850,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 19),
-        ElementError::OperatorSubtractionFirstOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorSubtractionFirstOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -872,9 +872,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 20),
-        ElementError::OperatorSubtractionSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorSubtractionSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -894,9 +894,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 19),
-        ElementError::OperatorMultiplicationFirstOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorMultiplicationFirstOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -916,9 +916,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 20),
-        ElementError::OperatorMultiplicationSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorMultiplicationSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -938,9 +938,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 19),
-        ElementError::OperatorDivisionFirstOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorDivisionFirstOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -960,9 +960,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 20),
-        ElementError::OperatorDivisionSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorDivisionSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -982,9 +982,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 19),
-        ElementError::OperatorRemainderFirstOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorRemainderFirstOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -1004,9 +1004,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 20),
-        ElementError::OperatorRemainderSecondOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorRemainderSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -1026,9 +1026,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 19),
-        ElementError::OperatorCastingFirstOperandExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorCastingFirstOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -1048,9 +1048,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 17),
-        ElementError::OperatorNotExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorNotExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -1070,9 +1070,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 17),
-        ElementError::OperatorNegationExpectedEvaluable(
-            Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
-        ),
+        ElementError::OperatorNegationExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -1090,14 +1090,14 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 6),
-        ElementError::OperatorIndexFirstOperandExpectedPlaceOrEvaluable(
-            Element::Constant(Constant::Integer(IntegerConstant::new(
+        ElementError::OperatorIndexFirstOperandExpectedPlaceOrEvaluable {
+            found: Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
             )))
             .to_string(),
-        ),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -1118,9 +1118,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(6, 23),
-        ElementError::OperatorIndexSecondOperandExpectedEvaluable(
-            Element::Type(Type::field()).to_string(),
-        ),
+        ElementError::OperatorIndexSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::field()).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -1138,14 +1138,14 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 6),
-        ElementError::OperatorFieldFirstOperandExpectedPlaceOrEvaluable(
-            Element::Constant(Constant::Integer(IntegerConstant::new(
+        ElementError::OperatorFieldFirstOperandExpectedPlaceOrEvaluable {
+            found: Element::Constant(Constant::Integer(IntegerConstant::new(
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
             )))
             .to_string(),
-        ),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -1163,9 +1163,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 18),
-        ElementError::OperatorPathFirstOperandExpectedPath(
-            IntegerConstant::new(BigInt::from(5), false, crate::BITLENGTH_BYTE).to_string(),
-        ),
+        ElementError::OperatorPathFirstOperandExpectedPath {
+            found: IntegerConstant::new(BigInt::from(5), false, crate::BITLENGTH_BYTE).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -1187,9 +1187,9 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(7, 22),
-        ElementError::OperatorPathSecondOperandExpectedMemberString(
-            IntegerConstant::new(BigInt::from(5), false, crate::BITLENGTH_BYTE).to_string(),
-        ),
+        ElementError::OperatorPathSecondOperandExpectedMemberString {
+            found: IntegerConstant::new(BigInt::from(5), false, crate::BITLENGTH_BYTE).to_string(),
+        },
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
