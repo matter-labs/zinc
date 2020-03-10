@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer standard library `std::crypto::schnorr::verify` function element.
+//! The semantic analyzer standard library `std::crypto::schnorr::Signature::verify` function element.
 //!
 
 use std::fmt;
@@ -12,8 +12,9 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::scope::Scope;
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct Function {
+    builtin_identifier: BuiltinIdentifier,
     identifier: &'static str,
     return_type: Box<Type>,
 }
@@ -23,8 +24,9 @@ impl Function {
     pub const ARGUMENT_INDEX_MESSAGE: usize = 1;
     pub const ARGUMENT_COUNT: usize = 2;
 
-    pub fn new() -> Self {
+    pub fn new(builtin_identifier: BuiltinIdentifier) -> Self {
         Self {
+            builtin_identifier,
             identifier: "verify",
             return_type: Box::new(Type::boolean()),
         }
@@ -35,7 +37,7 @@ impl Function {
     }
 
     pub fn builtin_identifier(&self) -> BuiltinIdentifier {
-        BuiltinIdentifier::CryptoSchnorrSignatureVerify
+        self.builtin_identifier
     }
 
     pub fn call(self, actual_elements: Vec<Element>) -> Result<Type, Error> {

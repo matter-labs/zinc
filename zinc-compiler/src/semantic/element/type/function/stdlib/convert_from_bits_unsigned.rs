@@ -11,8 +11,9 @@ use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct Function {
+    builtin_identifier: BuiltinIdentifier,
     identifier: &'static str,
 }
 
@@ -20,8 +21,9 @@ impl Function {
     pub const ARGUMENT_INDEX_BITS: usize = 0;
     pub const ARGUMENT_COUNT: usize = 1;
 
-    pub fn new() -> Self {
+    pub fn new(builtin_identifier: BuiltinIdentifier) -> Self {
         Self {
+            builtin_identifier,
             identifier: "from_bits_unsigned",
         }
     }
@@ -31,7 +33,7 @@ impl Function {
     }
 
     pub fn builtin_identifier(&self) -> BuiltinIdentifier {
-        BuiltinIdentifier::UnsignedFromBits
+        self.builtin_identifier
     }
 
     pub fn call(self, actual_elements: Vec<Element>) -> Result<Type, Error> {

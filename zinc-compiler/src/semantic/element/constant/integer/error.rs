@@ -26,6 +26,7 @@ pub enum Error {
     OverflowCasting { value: BigInt, r#type: String },
     OverflowNegation { value: BigInt, r#type: String },
 
+    ForbiddenFieldDivision,
     ForbiddenFieldRemainder,
     ForbiddenFieldNegation,
 

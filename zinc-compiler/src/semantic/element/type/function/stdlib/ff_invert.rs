@@ -1,9 +1,8 @@
 //!
-//! The semantic analyzer standard library `std::convert::from_bits_field` function element.
+//! The semantic analyzer standard library `std::ff::invert` function element.
 //!
 
 use std::fmt;
-use std::ops::Deref;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
@@ -15,16 +14,18 @@ use crate::semantic::element::Element;
 pub struct Function {
     builtin_identifier: BuiltinIdentifier,
     identifier: &'static str,
+    return_type: Box<Type>,
 }
 
 impl Function {
-    pub const ARGUMENT_INDEX_BITS: usize = 0;
+    pub const ARGUMENT_INDEX_VALUE: usize = 0;
     pub const ARGUMENT_COUNT: usize = 1;
 
     pub fn new(builtin_identifier: BuiltinIdentifier) -> Self {
         Self {
             builtin_identifier,
-            identifier: "from_bits_field",
+            identifier: "invert",
+            return_type: Box::new(Type::field()),
         }
     }
 
@@ -53,25 +54,14 @@ impl Function {
             actual_params.push(r#type);
         }
 
-        let return_type = match actual_params.get(Self::ARGUMENT_INDEX_BITS) {
-            Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
-                (Type::Boolean, crate::BITLENGTH_FIELD) => Type::field(),
-                (r#type, size) => {
-                    return Err(Error::argument_type(
-                        self.identifier.to_owned(),
-                        "bits".to_owned(),
-                        Self::ARGUMENT_INDEX_BITS + 1,
-                        format!("[bool; {}]", crate::BITLENGTH_FIELD),
-                        format!("[{}; {}]", r#type, size),
-                    ))
-                }
-            },
+        match actual_params.get(Self::ARGUMENT_INDEX_VALUE) {
+            Some(Type::Field) => {}
             Some(r#type) => {
                 return Err(Error::argument_type(
                     self.identifier.to_owned(),
-                    "bits".to_owned(),
-                    Self::ARGUMENT_INDEX_BITS + 1,
-                    format!("[bool; {}]", crate::BITLENGTH_FIELD),
+                    "value".to_owned(),
+                    Self::ARGUMENT_INDEX_VALUE + 1,
+                    Type::field().to_string(),
                     r#type.to_string(),
                 ))
             }
@@ -82,7 +72,7 @@ impl Function {
                     actual_params.len(),
                 ))
             }
-        };
+        }
 
         if actual_params.len() > Self::ARGUMENT_COUNT {
             return Err(Error::argument_count(
@@ -92,17 +82,12 @@ impl Function {
             ));
         }
 
-        Ok(return_type)
+        Ok(*self.return_type)
     }
 }
 
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "fn std::convert::{}(bits: [bool; {}]) -> field",
-            self.identifier,
-            crate::BITLENGTH_FIELD,
-        )
+        write!(f, "fn std::ff::{}(value: field) -> field", self.identifier,)
     }
 }

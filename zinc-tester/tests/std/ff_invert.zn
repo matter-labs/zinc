@@ -36,7 +36,5 @@
 //# } ]
 
 fn main(a: field, b: field) -> field {
-    let mut c = a;
-    c /= b;
-    c
+    a * std::ff::invert(b)
 }

@@ -1156,6 +1156,9 @@ impl Analyzer {
                     StandardLibraryFunctionType::ArrayPad(function) => function
                         .call(argument_elements)
                         .map_err(|error| Error::Function(element.location, error))?,
+                    StandardLibraryFunctionType::FfInvert(function) => function
+                        .call(argument_elements)
+                        .map_err(|error| Error::Function(element.location, error))?,
                 };
 
                 self.bytecode.borrow_mut().push_instruction(

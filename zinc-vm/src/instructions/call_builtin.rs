@@ -7,10 +7,10 @@ use crate::gadgets::stdlib::crypto::{Pedersen, Sha256};
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::{Engine, stdlib};
+use crate::stdlib::crypto::VerifySchnorrSignature;
+use crate::{stdlib, Engine};
 use zinc_bytecode::builtins::BuiltinIdentifier;
 use zinc_bytecode::instructions::CallBuiltin;
-use crate::stdlib::crypto::VerifySchnorrSignature;
 
 impl<E, CS> VMInstruction<E, CS> for CallBuiltin
 where

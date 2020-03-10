@@ -1228,6 +1228,66 @@ fn main() {
 }
 
 #[test]
+fn error_element_constant_forbidden_field_division() {
+    let input = r#"
+fn main() {
+    let value = 42 as field / 1 as field;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 29),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::ForbiddenFieldDivision,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_forbidden_field_remainder() {
+    let input = r#"
+fn main() {
+    let value = 42 as field % 1 as field;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 29),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::ForbiddenFieldRemainder,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_forbidden_field_negation() {
+    let input = r#"
+fn main() {
+    let value = -(42 as field);
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 17),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::ForbiddenFieldNegation,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_element_constant_integer_zero_division() {
     let input = r#"
 fn main() {

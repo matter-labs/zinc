@@ -1338,6 +1338,15 @@ impl Error {
                     None,
                 )
             }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::ForbiddenFieldDivision)))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::ForbiddenFieldDivision)))) => {
+                Self::format_line(
+                    context,
+                    "the division operator `/` is forbidden for the `field` type",
+                    location,
+                    Some("for inversion consider using `std::ff::invert`"),
+                )
+            }
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::ForbiddenFieldRemainder)))) |
             Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::ForbiddenFieldRemainder)))) => {
                 Self::format_line(

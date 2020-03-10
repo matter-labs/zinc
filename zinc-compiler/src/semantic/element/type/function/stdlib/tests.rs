@@ -23,6 +23,7 @@ use crate::semantic::element::r#type::function::stdlib::crypto_pedersen::Functio
 use crate::semantic::element::r#type::function::stdlib::crypto_schnorr_signature_verify::Function as CryptoSchnorrSignatureVerifyFunction;
 use crate::semantic::element::r#type::function::stdlib::crypto_sha256::Function as CryptoSha256Function;
 use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionError;
+use crate::semantic::element::r#type::function::stdlib::ff_invert::Function as FfInvertFunction;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
 
@@ -1408,6 +1409,74 @@ fn main() -> [u8; 4] {
             )
             .to_string(),
         )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_ff_invert_argument_count_lesser() {
+    let input = r#"
+fn main() {
+    std::ff::invert();
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Function(
+        Location::new(3, 20),
+        FunctionError::argument_count(
+            "invert".to_owned(),
+            FfInvertFunction::ARGUMENT_COUNT,
+            FfInvertFunction::ARGUMENT_COUNT - 1,
+        ),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_ff_invert_argument_count_greater() {
+    let input = r#"
+fn main() {
+    std::ff::invert(42 as field, true);
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Function(
+        Location::new(3, 20),
+        FunctionError::argument_count(
+            "invert".to_owned(),
+            FfInvertFunction::ARGUMENT_COUNT,
+            FfInvertFunction::ARGUMENT_COUNT + 1,
+        ),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_ff_invert_argument_1_value_expected_field() {
+    let input = r#"
+fn main() {
+    std::ff::invert(true);
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Function(
+        Location::new(3, 20),
+        FunctionError::argument_type(
+            "invert".to_owned(),
+            "value".to_owned(),
+            FfInvertFunction::ARGUMENT_INDEX_VALUE + 1,
+            Type::field().to_string(),
+            Type::boolean().to_string(),
+        ),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);

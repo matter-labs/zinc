@@ -365,6 +365,13 @@ impl Scope {
             Item::new(ItemVariant::Type(Type::Function(std_array_pad)), None),
         );
 
+        let mut std_ff_scope = Scope::default();
+        let std_ff_invert = FunctionType::new_std(BuiltinIdentifier::FieldInverse);
+        std_ff_scope.items.insert(
+            std_ff_invert.identifier(),
+            Item::new(ItemVariant::Type(Type::Function(std_ff_invert)), None),
+        );
+
         let mut std_scope = Scope::default();
         std_scope.items.insert(
             "crypto".to_owned(),
@@ -384,6 +391,13 @@ impl Scope {
             "array".to_owned(),
             Item::new(
                 ItemVariant::Module(Rc::new(RefCell::new(std_array_scope))),
+                None,
+            ),
+        );
+        std_scope.items.insert(
+            "ff".to_owned(),
+            Item::new(
+                ItemVariant::Module(Rc::new(RefCell::new(std_ff_scope))),
                 None,
             ),
         );

@@ -330,6 +330,10 @@ impl Integer {
             ));
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldDivision);
+        }
+
         let (result, _remainder) =
             euclidean::div_rem(&self.value, &other.value).ok_or(Error::ZeroDivision)?;
         if result.is_negative() && !self.is_signed {

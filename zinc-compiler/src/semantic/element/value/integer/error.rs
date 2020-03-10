@@ -16,6 +16,7 @@ pub enum Error {
     TypesMismatchDivision(String, String),
     TypesMismatchRemainder(String, String),
 
+    ForbiddenFieldDivision,
     ForbiddenFieldRemainder,
     ForbiddenFieldNegation,
 }

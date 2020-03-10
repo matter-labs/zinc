@@ -157,6 +157,10 @@ impl Integer {
             ));
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldDivision);
+        }
+
         Ok(())
     }
 
