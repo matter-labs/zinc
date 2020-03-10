@@ -13,6 +13,7 @@
 /zinc-examples/*/data/
 
 # Builds
+/osxcross
 *.tar.gz
 
 # Mac
