@@ -33,7 +33,6 @@ pub struct Place {
     pub address: usize,
     pub total_size: usize,
     pub is_mutable: bool,
-    pub is_global: bool,
     pub is_indexed: bool,
 }
 
@@ -44,7 +43,6 @@ impl Place {
         r#type: Type,
         address: usize,
         is_mutable: bool,
-        is_global: bool,
     ) -> Self {
         let total_size = r#type.size();
         Self {
@@ -54,7 +52,6 @@ impl Place {
             address,
             total_size,
             is_mutable,
-            is_global,
             is_indexed: false,
         }
     }

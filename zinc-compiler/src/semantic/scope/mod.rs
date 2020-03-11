@@ -24,7 +24,6 @@ use crate::semantic::Error as SemanticError;
 use crate::syntax::Identifier;
 
 use self::error::Error;
-use self::item::r#static::Static as StaticItem;
 use self::item::variable::Variable as VariableItem;
 use self::item::Item;
 use self::item::Variant as ItemVariant;
@@ -103,24 +102,6 @@ impl Scope {
         scope.borrow_mut().items.insert(
             identifier.name,
             Item::new(ItemVariant::Constant(constant), Some(identifier.location)),
-        );
-        Ok(())
-    }
-
-    pub fn declare_static(
-        scope: Rc<RefCell<Scope>>,
-        identifier: Identifier,
-        r#static: StaticItem,
-    ) -> Result<(), Error> {
-        if let Ok(item) = Self::resolve_item(scope.clone(), &identifier.name) {
-            return Err(Error::ItemRedeclared {
-                name: identifier.name,
-                reference: item.location,
-            });
-        }
-        scope.borrow_mut().items.insert(
-            identifier.name,
-            Item::new(ItemVariant::Static(r#static), Some(identifier.location)),
         );
         Ok(())
     }

@@ -4,14 +4,14 @@
 
 **Accepts**
 1. Expression of any type
-2. Expression of the same type or integer type with equal or greater bitlength
+2. Expression of the same or integer type
 
-**Returns** the integer result.
+**Returns** the casted value.
 
 Casting allowed:
 
-- from integers to types of equal or greater bitlength
-- from enums to integers of enough or greater bitlength
+- from integer to integer
+- from enum to integer
 - to the same type (no effect, no errors)
 
 ```rust,no_run,noplaypen
@@ -20,6 +20,6 @@ enum Order {
 }
 
 let a = 1; // inferred as u8
-let b = a as i8; // explicit casting to the opposite sign with the same bitlength 
-let c: u8 = Order::First; // implicit casting to an integer of enough bitlength
+let b = a as i8; // explicit casting to the opposite sign
+let c: u8 = Order::First; // implicit casting to an integer
 ```

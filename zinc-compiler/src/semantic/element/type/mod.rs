@@ -310,7 +310,6 @@ impl Type {
             Element::Path(path) => match Scope::resolve_path(scope, &path)?.variant {
                 ScopeItemVariant::Variable(variable) => variable.r#type,
                 ScopeItemVariant::Constant(constant) => constant.r#type(),
-                ScopeItemVariant::Static(r#static) => r#static.data.r#type(),
                 _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
             },
             Element::Place(place) => place.r#type.to_owned(),

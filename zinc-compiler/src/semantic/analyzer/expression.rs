@@ -153,7 +153,6 @@ impl Analyzer {
                         } else {
                             None
                         },
-                        false,
                         element.location,
                     );
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
@@ -204,7 +203,6 @@ impl Analyzer {
                         } else {
                             None
                         },
-                        false,
                         element.location,
                     );
                     self.bytecode
@@ -221,7 +219,6 @@ impl Analyzer {
                         } else {
                             None
                         },
-                        false,
                         element.location,
                     );
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
@@ -272,7 +269,6 @@ impl Analyzer {
                         } else {
                             None
                         },
-                        false,
                         element.location,
                     );
                     self.bytecode
@@ -289,7 +285,6 @@ impl Analyzer {
                         } else {
                             None
                         },
-                        false,
                         element.location,
                     );
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
@@ -340,7 +335,6 @@ impl Analyzer {
                         } else {
                             None
                         },
-                        false,
                         element.location,
                     );
                     self.bytecode
@@ -357,7 +351,6 @@ impl Analyzer {
                         } else {
                             None
                         },
-                        false,
                         element.location,
                     );
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
@@ -408,7 +401,6 @@ impl Analyzer {
                         } else {
                             None
                         },
-                        false,
                         element.location,
                     );
                     self.bytecode
@@ -425,7 +417,6 @@ impl Analyzer {
                         } else {
                             None
                         },
-                        false,
                         element.location,
                     );
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
@@ -476,7 +467,6 @@ impl Analyzer {
                         } else {
                             None
                         },
-                        false,
                         element.location,
                     );
                     self.bytecode
@@ -493,7 +483,6 @@ impl Analyzer {
                         } else {
                             None
                         },
-                        false,
                         element.location,
                     );
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
@@ -1359,7 +1348,6 @@ impl Analyzer {
             scrutinee_address,
             scrutinee_size,
             None,
-            false,
             scrutinee_location,
         );
 
@@ -1403,7 +1391,6 @@ impl Analyzer {
                         scrutinee_address,
                         scrutinee_size,
                         None,
-                        false,
                         scrutinee_location,
                     );
                     self.bytecode
@@ -1448,7 +1435,6 @@ impl Analyzer {
                         scrutinee_address,
                         scrutinee_size,
                         None,
-                        false,
                         scrutinee_location,
                     );
                     self.bytecode
@@ -1514,7 +1500,6 @@ impl Analyzer {
                         scrutinee_address,
                         scrutinee_size,
                         None,
-                        false,
                         scrutinee_location,
                     );
                     match Scope::resolve_path(self.scope(), &path)?.variant {
@@ -1523,16 +1508,6 @@ impl Analyzer {
                                 variable.address,
                                 variable.r#type.size(),
                                 None,
-                                false,
-                                location,
-                            )
-                        }
-                        ScopeItem::Static(r#static) => {
-                            self.bytecode.borrow_mut().push_instruction_load(
-                                r#static.address,
-                                r#static.data.r#type().size(),
-                                None,
-                                true,
                                 location,
                             )
                         }
@@ -1743,15 +1718,6 @@ impl Analyzer {
                         variable.r#type,
                         variable.address,
                         variable.is_mutable,
-                        false,
-                    ))),
-                    ScopeItem::Static(r#static) => Ok(Element::Place(Place::new(
-                        location,
-                        identifier,
-                        r#static.data.r#type(),
-                        r#static.address,
-                        false,
-                        true,
                     ))),
                     ScopeItem::Constant(constant) => Ok(Element::Constant(constant)),
                     ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
@@ -1766,7 +1732,6 @@ impl Analyzer {
                             variable.address,
                             size,
                             None,
-                            false,
                             location,
                         );
                         self.loads += 1;
@@ -1781,19 +1746,6 @@ impl Analyzer {
                             .push_instruction(constant.to_instruction(), location);
                         self.pushes += 1;
                         Ok(Element::Constant(constant))
-                    }
-                    ScopeItem::Static(r#static) => {
-                        let r#type = r#static.data.r#type();
-                        let size = r#type.size();
-                        self.bytecode.borrow_mut().push_instruction_load(
-                            r#static.address,
-                            size,
-                            None,
-                            true,
-                            location,
-                        );
-                        self.loads += 1;
-                        Ok(Element::Constant(r#static.data))
                     }
                     ScopeItem::Type(r#type) => Ok(Element::Type(r#type)),
                     ScopeItem::Module(_) => Ok(Element::Module(path_last.name.to_owned())),
@@ -1829,7 +1781,6 @@ impl Analyzer {
                     } else {
                         None
                     },
-                    place.is_global,
                     place.location,
                 );
                 self.loads += 1;

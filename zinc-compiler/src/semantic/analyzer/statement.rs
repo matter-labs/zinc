@@ -453,7 +453,7 @@ impl Analyzer {
         let address = self.bytecode.borrow_mut().allocate_data_stack_space(size);
         self.bytecode
             .borrow_mut()
-            .push_instruction_store(address, size, None, false, location);
+            .push_instruction_store(address, size, None, location);
         Scope::declare_variable(
             self.scope(),
             statement.identifier,
@@ -520,7 +520,6 @@ impl Analyzer {
             index_address,
             index_size,
             None,
-            false,
             bounds_expression_location,
         );
 
@@ -600,7 +599,6 @@ impl Analyzer {
                 while_allowed_address,
                 Type::boolean().size(),
                 None,
-                false,
                 location,
             );
             self.bytecode
@@ -611,7 +609,6 @@ impl Analyzer {
                 while_allowed_address,
                 Type::boolean().size(),
                 None,
-                false,
                 location,
             );
             self.bytecode
