@@ -1,6 +1,6 @@
 # Lexical grammar
 
-These are the Zinc lexical grammar rules in the EWBF notation.
+These are the Zinc lexical grammar rules in the EBNF notation.
 
 ```
 lexeme = comment | identifier | keyword | literal | symbol | EOF ;
@@ -57,7 +57,7 @@ boolean = 'true' | 'false' ;
 integer =
     '0'
   | digit - '0', { digit }
-  | '0x', hex_digit, { hex_digit}
+  | '0x', hex_digit, { hex_digit }
 ;
 string = '"', { ANY - '"' | '\', ANY }, '"' ;
 

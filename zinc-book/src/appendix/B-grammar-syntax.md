@@ -1,6 +1,6 @@
 # Syntax grammar
 
-These are the Zinc syntax grammar rules in the EWBF notation.
+These are the Zinc syntax grammar rules in the EBNF notation.
 
 ```
 file = { module_local_statement } ;
