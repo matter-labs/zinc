@@ -52,13 +52,31 @@ impl Error {
                     None,
                 )
             }
-            Self::Lexical(LexicalError::ExpectedOneOf {
-                location,
-                expected,
-                found,
-            }) => Self::format_line(
+            Self::Lexical(LexicalError::ExpectedOneOfBinary {
+                              location,
+                              expected,
+                              found,
+                          }) => Self::format_line(
                 context,
-                format!("expected one of {}, found `{}`", expected, found).as_str(),
+                format!(
+                    "expected one of binary symbols {} or '_', found `{}`",
+                    expected, found
+                )
+                    .as_str(),
+                location,
+                None,
+            ),
+            Self::Lexical(LexicalError::ExpectedOneOfOctal {
+                              location,
+                              expected,
+                              found,
+                          }) => Self::format_line(
+                context,
+                format!(
+                    "expected one of octal symbols {} or '_', found `{}`",
+                    expected, found
+                )
+                    .as_str(),
                 location,
                 None,
             ),
@@ -69,7 +87,7 @@ impl Error {
             }) => Self::format_line(
                 context,
                 format!(
-                    "expected one of decimal symbols {}, found `{}`",
+                    "expected one of decimal symbols {} or '_', found `{}`",
                     expected, found
                 )
                 .as_str(),
@@ -83,7 +101,7 @@ impl Error {
             }) => Self::format_line(
                 context,
                 format!(
-                    "expected one of hexadecimal symbols {}, found `{}`",
+                    "expected one of hexadecimal symbols {} or '_', found `{}`",
                     expected, found
                 )
                 .as_str(),
@@ -683,6 +701,146 @@ impl Error {
                     None,
                 )
             }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorBitwiseOrFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorBitwiseOrFirstOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorBitwiseOrFirstOperandExpectedInteger{ found }))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the bitwise OR operator `|` expected an integer as the first operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorBitwiseOrSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorBitwiseOrSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorBitwiseOrSecondOperandExpectedInteger{ found }))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the bitwise OR operator `|` expected an integer as the second operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorBitwiseXorFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorBitwiseXorFirstOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorBitwiseXorFirstOperandExpectedInteger{ found }))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the bitwise XOR operator `^` expected an integer as the first operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorBitwiseXorSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorBitwiseXorSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorBitwiseXorSecondOperandExpectedInteger{ found }))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the bitwise XOR operator `^` expected an integer as the second operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorBitwiseAndFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorBitwiseAndFirstOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorBitwiseAndFirstOperandExpectedInteger{ found }))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the bitwise AND operator `&` expected an integer as the first operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorBitwiseAndSecondOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorBitwiseAndSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorBitwiseAndSecondOperandExpectedInteger{ found }))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the bitwise AND operator `&` expected an integer as the second operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorBitwiseShiftLeftFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorBitwiseShiftLeftFirstOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorBitwiseShiftLeftFirstOperandExpectedInteger{ found }))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the bitwise shift left operator `<<` expected an integer as the first operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorBitwiseShiftLeftSecondOperandExpectedConstant{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorBitwiseShiftLeftSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorBitwiseShiftLeftSecondOperandExpectedInteger{ found }))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the bitwise shift left operator `<<` expected an integer constant as the second operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorBitwiseShiftRightFirstOperandExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorBitwiseShiftRightFirstOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorBitwiseShiftRightFirstOperandExpectedInteger{ found }))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the bitwise shift right operator `>>` expected an integer as the first operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorBitwiseShiftRightSecondOperandExpectedConstant{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorBitwiseShiftRightSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorBitwiseShiftRightSecondOperandExpectedInteger{ found }))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the bitwise shift right operator `>>` expected an integer constant as the second operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
             Self::Semantic(SemanticError::Element(location, ElementError::OperatorAdditionFirstOperandExpectedEvaluable{ found })) |
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorAdditionFirstOperandExpectedInteger{ found }))) |
             Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorAdditionFirstOperandExpectedInteger{ found }))) => {
@@ -862,20 +1020,6 @@ impl Error {
                     Some("only integer values can be casted to greater or equal bitlength"),
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::OperatorNegationExpectedEvaluable{ found })) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorNegationExpectedInteger{ found }))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorNegationExpectedInteger{ found }))) => {
-                Self::format_line(
-                    context,
-                    format!(
-                        "the negation operator `-` expected an integer, found `{}`",
-                        found,
-                    )
-                        .as_str(),
-                    location,
-                    None,
-                )
-            }
             Self::Semantic(SemanticError::Element(location, ElementError::OperatorNotExpectedEvaluable{ found })) |
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorNotExpectedBoolean{ found }))) |
             Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorNotExpectedBoolean{ found }))) => {
@@ -883,6 +1027,34 @@ impl Error {
                     context,
                     format!(
                         "the NOT operator `!` expected a boolean, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorBitwiseNotExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorBitwiseNotExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorBitwiseNotExpectedInteger{ found }))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the bitwise NOT operator `~` expected an integer, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorNegationExpectedEvaluable{ found })) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorNegationExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorNegationExpectedInteger{ found }))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the negation operator `-` expected an integer, found `{}`",
                         found,
                     )
                         .as_str(),
@@ -1103,7 +1275,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the equals operator `==` operator expected two integers of the same type, found `{}` and `{}`",
+                        "the equals operator `==` expected two integers of the same type, found `{}` and `{}`",
                         first, second,
                     )
                         .as_str(),
@@ -1116,7 +1288,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the not equals operator `!=` operator expected two integers of the same type, found `{}` and `{}`",
+                        "the not equals operator `!=` expected two integers of the same type, found `{}` and `{}`",
                         first, second,
                     )
                         .as_str(),
@@ -1129,7 +1301,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the greater equals operator `>=` operator expected two integers of the same type, found `{}` and `{}`",
+                        "the greater equals operator `>=` expected two integers of the same type, found `{}` and `{}`",
                         first, second,
                     )
                         .as_str(),
@@ -1142,7 +1314,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the lesser equals operator `<=` operator expected two integers of the same type, found `{}` and `{}`",
+                        "the lesser equals operator `<=` expected two integers of the same type, found `{}` and `{}`",
                         first, second,
                     )
                         .as_str(),
@@ -1155,7 +1327,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the greater operator `>` operator expected two integers of the same type, found `{}` and `{}`",
+                        "the greater operator `>` expected two integers of the same type, found `{}` and `{}`",
                         first, second,
                     )
                         .as_str(),
@@ -1168,7 +1340,46 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the lesser operator `<` operator expected two integers of the same type, found `{}` and `{}`",
+                        "the lesser operator `<` expected two integers of the same type, found `{}` and `{}`",
+                        first, second,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchBitwiseOr{ first, second })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchBitwiseOr{ first, second })))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the bitwise OR operator `|` expected two integers of the same type, found `{}` and `{}`",
+                        first, second,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchBitwiseXor{ first, second })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchBitwiseXor{ first, second })))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the bitwise XOR operator `^` expected two integers of the same type, found `{}` and `{}`",
+                        first, second,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::TypesMismatchBitwiseAnd{ first, second })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::TypesMismatchBitwiseAnd{ first, second })))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the bitwise AND operator `&` expected two integers of the same type, found `{}` and `{}`",
                         first, second,
                     )
                         .as_str(),
@@ -1181,7 +1392,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the addition operator `+` operator expected two integers of the same type, found `{}` and `{}`",
+                        "the addition operator `+` expected two integers of the same type, found `{}` and `{}`",
                         first, second,
                     )
                         .as_str(),
@@ -1194,7 +1405,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the subtraction operator `-` operator expected two integers of the same type, found `{}` and `{}`",
+                        "the subtraction operator `-` expected two integers of the same type, found `{}` and `{}`",
                         first, second,
                     )
                         .as_str(),
@@ -1207,7 +1418,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the multiplication operator `*` operator expected two integers of the same type, found `{}` and `{}`",
+                        "the multiplication operator `*` expected two integers of the same type, found `{}` and `{}`",
                         first, second,
                     )
                         .as_str(),
@@ -1220,7 +1431,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the division operator `/` operator expected two integers of the same type, found `{}` and `{}`",
+                        "the division operator `/` expected two integers of the same type, found `{}` and `{}`",
                         first, second,
                     )
                         .as_str(),
@@ -1233,7 +1444,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the remainder operator `%` operator expected two integers of the same type, found `{}` and `{}`",
+                        "the remainder operator `%` expected two integers of the same type, found `{}` and `{}`",
                         first, second,
                     )
                         .as_str(),
@@ -1245,7 +1456,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the operator addition `+` overflow, as the value `{}` cannot be represeneted by type `{}`",
+                        "the addition operator `+` overflow, as the value `{}` cannot be represeneted by type `{}`",
                         value, r#type,
                     )
                         .as_str(),
@@ -1257,7 +1468,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the operator subtraction `-` overflow, as the value `{}` cannot be represeneted by type `{}`",
+                        "the subtraction operator `-` overflow, as the value `{}` cannot be represeneted by type `{}`",
                         value, r#type,
                     )
                         .as_str(),
@@ -1269,7 +1480,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the operator multiplication `*` overflow, as the value `{}` cannot be represeneted by type `{}`",
+                        "the multiplication operator `*` overflow, as the value `{}` cannot be represeneted by type `{}`",
                         value, r#type,
                     )
                         .as_str(),
@@ -1281,7 +1492,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the operator division `/` overflow, as the value `{}` cannot be represeneted by type `{}`",
+                        "the division operator `/` overflow, as the value `{}` cannot be represeneted by type `{}`",
                         value, r#type,
                     )
                         .as_str(),
@@ -1293,7 +1504,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the operator remainder `%` overflow, as the value `{}` cannot be represeneted by type `{}`",
+                        "the remainder operator `%` overflow, as the value `{}` cannot be represeneted by type `{}`",
                         value, r#type,
                     )
                         .as_str(),
@@ -1305,7 +1516,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the operator casting `as` overflow, as the value `{}` cannot be represeneted by type `{}`",
+                        "the casting operator `as` overflow, as the value `{}` cannot be represeneted by type `{}`",
                         value, r#type,
                     )
                         .as_str(),
@@ -1317,7 +1528,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the operator negation `-` overflow, as the value `{}` cannot be represeneted by type `{}`",
+                        "the negation operator `-` overflow, as the value `{}` cannot be represeneted by type `{}`",
                         value, r#type,
                     )
                         .as_str(),
@@ -1341,6 +1552,15 @@ impl Error {
                     "the remainder operator `%` is forbidden for the `field` type",
                     location,
                     Some("`field` type values cannot be used to get a remainder"),
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::ForbiddenFieldBitwiseNot)))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::ForbiddenFieldBitwiseNot)))) => {
+                Self::format_line(
+                    context,
+                    "the bitwise NOT operator `~` is forbidden for the `field` type",
+                    location,
+                    Some("`field` type values cannot be logically negated"),
                 )
             }
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::ForbiddenFieldNegation)))) |
@@ -1389,7 +1609,7 @@ impl Error {
                 Self::format_line_with_reference(
                     context,
                     format!(
-                        "item `{}` redeclared here",
+                        "item `{}` already declared here",
                         name
                     )
                         .as_str(),
@@ -1574,7 +1794,7 @@ impl Error {
                     context,
                     "match expression must be exhaustive",
                     location,
-                    Some("consider covering all possible cases or adding an irrefutable branch with a binding or `_` wildcard"),
+                    Some("ensure that all possible cases are being handled, possibly by adding wildcards or more match arms"),
                 )
             }
             Self::Semantic(SemanticError::MatchBranchUnreachable { location }) => {
@@ -1582,7 +1802,7 @@ impl Error {
                     context,
                     "match expression branch is unreachable",
                     location,
-                    Some("consider removing the branch or moving it above the branch with irrefutable pattern"),
+                    Some("consider removing the branch or moving it above the branch with a wildcard or irrefutable binding"),
                 )
             }
             Self::Semantic(SemanticError::MatchBranchPatternPathExpectedEvaluable { location, found }) => {

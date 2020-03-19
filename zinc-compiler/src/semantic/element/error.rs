@@ -53,6 +53,21 @@ pub enum Error {
     OperatorLesserFirstOperandExpectedEvaluable { found: String },
     OperatorLesserSecondOperandExpectedEvaluable { found: String },
 
+    OperatorBitwiseOrFirstOperandExpectedEvaluable { found: String },
+    OperatorBitwiseOrSecondOperandExpectedEvaluable { found: String },
+
+    OperatorBitwiseXorFirstOperandExpectedEvaluable { found: String },
+    OperatorBitwiseXorSecondOperandExpectedEvaluable { found: String },
+
+    OperatorBitwiseAndFirstOperandExpectedEvaluable { found: String },
+    OperatorBitwiseAndSecondOperandExpectedEvaluable { found: String },
+
+    OperatorBitwiseShiftLeftFirstOperandExpectedEvaluable { found: String },
+    OperatorBitwiseShiftLeftSecondOperandExpectedConstant { found: String },
+
+    OperatorBitwiseShiftRightFirstOperandExpectedEvaluable { found: String },
+    OperatorBitwiseShiftRightSecondOperandExpectedConstant { found: String },
+
     OperatorAdditionFirstOperandExpectedEvaluable { found: String },
     OperatorAdditionSecondOperandExpectedEvaluable { found: String },
 
@@ -71,9 +86,11 @@ pub enum Error {
     OperatorCastingFirstOperandExpectedEvaluable { found: String },
     OperatorCastingSecondOperandExpectedType { found: String },
 
-    OperatorNegationExpectedEvaluable { found: String },
-
     OperatorNotExpectedEvaluable { found: String },
+
+    OperatorBitwiseNotExpectedEvaluable { found: String },
+
+    OperatorNegationExpectedEvaluable { found: String },
 
     OperatorIndexFirstOperandExpectedPlaceOrEvaluable { found: String },
     OperatorIndexSecondOperandExpectedEvaluable { found: String },

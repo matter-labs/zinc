@@ -116,6 +116,47 @@ impl Integer {
         Ok(())
     }
 
+    pub fn bitwise_or(&self, other: &Self) -> Result<(), Error> {
+        if !self.has_the_same_type_as(&other) {
+            return Err(Error::TypesMismatchBitwiseOr {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
+        }
+
+        Ok(())
+    }
+
+    pub fn bitwise_xor(&self, other: &Self) -> Result<(), Error> {
+        if !self.has_the_same_type_as(&other) {
+            return Err(Error::TypesMismatchBitwiseXor {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
+        }
+
+        Ok(())
+    }
+
+    pub fn bitwise_and(&self, other: &Self) -> Result<(), Error> {
+        if !self.has_the_same_type_as(&other) {
+            return Err(Error::TypesMismatchBitwiseAnd {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
+        }
+
+        Ok(())
+    }
+
+    pub fn bitwise_shift_left(&self, _other: &Self) -> Result<(), Error> {
+        Ok(())
+    }
+
+    pub fn bitwise_shift_right(&self, _other: &Self) -> Result<(), Error> {
+        Ok(())
+    }
+
     pub fn add(&self, other: &Self) -> Result<(), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchAddition {
@@ -183,6 +224,14 @@ impl Integer {
         self.is_signed = is_signed;
         self.bitlength = bitlength;
         self.enumeration = None;
+        Ok(())
+    }
+
+    pub fn bitwise_not(&self) -> Result<(), Error> {
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldBitwiseNot);
+        }
+
         Ok(())
     }
 

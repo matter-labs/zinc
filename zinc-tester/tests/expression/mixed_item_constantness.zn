@@ -3,15 +3,13 @@
 //#     "input": {
 //#         "witness": "25"
 //#     },
-//#     "expect": "141"
+//#     "expect": "136"
 //# } ]
-
-static STATIC: field = 5;
 
 const CONST: field = 42;
 
 fn main(witness: field) -> field {
     let local: field = 69;
 
-    STATIC + CONST + local + witness
+    CONST + local + witness
 }

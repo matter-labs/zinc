@@ -6,7 +6,7 @@ to easily build complex data types and pass them around your code with as little
 verbosity as possible.
 
 Structure fields can be accessed via the dot operator, which is explained in
-detail [here](../../05-operators/05-access.md).
+detail [here](../../05-operators/06-access.md).
 
 ```rust,no_run,noplaypen
 struct Person {

@@ -151,8 +151,22 @@ impl<'a> TokenStream<'a> {
                         ));
                     }
                     Err(IntegerParserError::NotAnInteger) => {}
-                    Err(IntegerParserError::EmptyHexadecimalBody) => {
-                        return Err(Error::unexpected_end(self.location));
+                    Err(IntegerParserError::EmptyBinaryBody { offset })
+                    | Err(IntegerParserError::EmptyOctalBody { offset })
+                    | Err(IntegerParserError::EmptyHexadecimalBody { offset }) => {
+                        return Err(Error::unexpected_end(self.location.shifted_right(offset)));
+                    }
+                    Err(IntegerParserError::ExpectedOneOfBinary { found, offset }) => {
+                        return Err(Error::expected_one_of_binary(
+                            self.location.shifted_right(offset),
+                            found,
+                        ))
+                    }
+                    Err(IntegerParserError::ExpectedOneOfOctal { found, offset }) => {
+                        return Err(Error::expected_one_of_octal(
+                            self.location.shifted_right(offset),
+                            found,
+                        ))
                     }
                     Err(IntegerParserError::ExpectedOneOfDecimal { found, offset }) => {
                         return Err(Error::expected_one_of_decimal(
@@ -187,16 +201,6 @@ impl<'a> TokenStream<'a> {
                     self.offset += size;
                     Ok(Token::new(Lexeme::Symbol(symbol), location))
                 }
-                Err(SymbolParserError::ExpectedOneOf {
-                    expected,
-                    found,
-                    offset,
-                    ..
-                }) => Err(Error::expected_one_of(
-                    self.location.shifted_right(offset),
-                    expected,
-                    found,
-                )),
                 Err(SymbolParserError::InvalidCharacter { found, offset }) => Err(
                     Error::invalid_character(self.location.shifted_right(offset), found),
                 ),

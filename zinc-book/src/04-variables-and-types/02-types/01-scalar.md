@@ -19,7 +19,7 @@ The unit type can exist as a standalone value:
 let x = (); // ()
 ```
 
-It can be returned by blocks or functions:
+It is implicitly returned by blocks or functions:
 
 ```rust,no_run,noplaypen
 fn check(value: bool) {

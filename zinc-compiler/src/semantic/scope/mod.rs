@@ -144,7 +144,7 @@ impl Scope {
 
     pub fn declare_self(&mut self, r#type: Type) {
         self.items.insert(
-            Keyword::AliasSelf.to_string(),
+            Keyword::SelfUppercase.to_string(),
             Item::new(ItemVariant::Type(r#type), None),
         );
     }

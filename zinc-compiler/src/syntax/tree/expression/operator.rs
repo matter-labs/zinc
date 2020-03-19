@@ -11,6 +11,11 @@ pub enum Operator {
     AssignmentMultiplication,
     AssignmentDivision,
     AssignmentRemainder,
+    AssignmentBitwiseOr,
+    AssignmentBitwiseXor,
+    AssignmentBitwiseAnd,
+    AssignmentBitwiseShiftLeft,
+    AssignmentBitwiseShiftRight,
 
     // range
     Range,
@@ -29,6 +34,13 @@ pub enum Operator {
     Greater,
     Lesser,
 
+    // binary bitwise
+    BitwiseOr,
+    BitwiseXor,
+    BitwiseAnd,
+    BitwiseShiftLeft,
+    BitwiseShiftRight,
+
     // binary arithmetic
     Addition,
     Subtraction,
@@ -42,14 +54,19 @@ pub enum Operator {
     // unary logical
     Not,
 
+    // unary bitwise
+    BitwiseNot,
+
     // unary arithmetic
     Negation,
 
-    // access
+    // runtime access
     Index,
     Field,
-    Path,
 
     // call
     Call,
+
+    // compile-time access
+    Path,
 }

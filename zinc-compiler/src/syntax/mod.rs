@@ -43,7 +43,6 @@ pub use self::tree::statement::r#fn::Statement as FnStatement;
 pub use self::tree::statement::r#impl::Statement as ImplStatement;
 pub use self::tree::statement::r#let::Statement as LetStatement;
 pub use self::tree::statement::r#loop::Statement as LoopStatement;
-pub use self::tree::statement::r#static::Statement as StaticStatement;
 pub use self::tree::statement::r#struct::Statement as StructStatement;
 pub use self::tree::statement::r#type::Statement as TypeStatement;
 pub use self::tree::statement::r#use::Statement as UseStatement;

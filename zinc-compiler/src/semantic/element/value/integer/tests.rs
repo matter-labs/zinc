@@ -163,6 +163,81 @@ fn main() {
 }
 
 #[test]
+fn error_element_value_integer_types_mismatch_bitwise_or() {
+    let input = r#"
+fn main() {
+    let integer_64: u64 = 42;
+    let integer_128: u128 = 69;
+    let value = integer_64 | integer_128;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 28),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::TypesMismatchBitwiseOr {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_value_integer_types_mismatch_bitwise_xor() {
+    let input = r#"
+fn main() {
+    let integer_64: u64 = 42;
+    let integer_128: u128 = 69;
+    let value = integer_64 ^ integer_128;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 28),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::TypesMismatchBitwiseXor {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_value_integer_types_mismatch_bitwise_and() {
+    let input = r#"
+fn main() {
+    let integer_64: u64 = 42;
+    let integer_128: u128 = 69;
+    let value = integer_64 & integer_128;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 28),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::TypesMismatchBitwiseAnd {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_element_value_integer_types_mismatch_addition() {
     let input = r#"
 fn main() {
@@ -323,6 +398,27 @@ fn main() {
         Location::new(5, 25),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::ForbiddenFieldRemainder,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_value_integer_forbidden_field_bitwise_not() {
+    let input = r#"
+fn main() {
+    let value: field = 42;
+    let value = ~value;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(4, 17),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenFieldBitwiseNot,
         )),
     )));
 

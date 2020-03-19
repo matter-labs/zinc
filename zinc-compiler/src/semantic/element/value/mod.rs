@@ -220,6 +220,97 @@ impl Value {
         }
     }
 
+    pub fn bitwise_or(&self, other: &Self) -> Result<Self, Error> {
+        match self {
+            Self::Integer(integer_1) => match other {
+                Self::Integer(integer_2) => integer_1
+                    .bitwise_or(integer_2)
+                    .map(|_| Self::Integer(integer_1.to_owned()))
+                    .map_err(Error::Integer),
+                value => Err(Error::OperatorBitwiseOrSecondOperandExpectedInteger {
+                    found: value.r#type().to_string(),
+                }),
+            },
+            value => Err(Error::OperatorBitwiseOrFirstOperandExpectedInteger {
+                found: value.r#type().to_string(),
+            }),
+        }
+    }
+
+    pub fn bitwise_xor(&self, other: &Self) -> Result<Self, Error> {
+        match self {
+            Self::Integer(integer_1) => match other {
+                Self::Integer(integer_2) => integer_1
+                    .bitwise_xor(integer_2)
+                    .map(|_| Self::Integer(integer_1.to_owned()))
+                    .map_err(Error::Integer),
+                value => Err(Error::OperatorBitwiseXorSecondOperandExpectedInteger {
+                    found: value.r#type().to_string(),
+                }),
+            },
+            value => Err(Error::OperatorBitwiseXorFirstOperandExpectedInteger {
+                found: value.r#type().to_string(),
+            }),
+        }
+    }
+
+    pub fn bitwise_and(&self, other: &Self) -> Result<Self, Error> {
+        match self {
+            Self::Integer(integer_1) => match other {
+                Self::Integer(integer_2) => integer_1
+                    .bitwise_and(integer_2)
+                    .map(|_| Self::Integer(integer_1.to_owned()))
+                    .map_err(Error::Integer),
+                value => Err(Error::OperatorBitwiseAndSecondOperandExpectedInteger {
+                    found: value.r#type().to_string(),
+                }),
+            },
+            value => Err(Error::OperatorBitwiseAndFirstOperandExpectedInteger {
+                found: value.r#type().to_string(),
+            }),
+        }
+    }
+
+    pub fn bitwise_shift_left(&self, other: &Self) -> Result<Self, Error> {
+        match self {
+            Self::Integer(integer_1) => match other {
+                Self::Integer(integer_2) => integer_1
+                    .bitwise_shift_left(integer_2)
+                    .map(|_| Self::Integer(integer_1.to_owned()))
+                    .map_err(Error::Integer),
+                value => Err(
+                    Error::OperatorBitwiseShiftLeftSecondOperandExpectedInteger {
+                        found: value.r#type().to_string(),
+                    },
+                ),
+            },
+            value => Err(Error::OperatorBitwiseShiftLeftFirstOperandExpectedInteger {
+                found: value.r#type().to_string(),
+            }),
+        }
+    }
+
+    pub fn bitwise_shift_right(&self, other: &Self) -> Result<Self, Error> {
+        match self {
+            Self::Integer(integer_1) => match other {
+                Self::Integer(integer_2) => integer_1
+                    .bitwise_shift_right(integer_2)
+                    .map(|_| Self::Integer(integer_1.to_owned()))
+                    .map_err(Error::Integer),
+                value => Err(
+                    Error::OperatorBitwiseShiftRightSecondOperandExpectedInteger {
+                        found: value.r#type().to_string(),
+                    },
+                ),
+            },
+            value => Err(
+                Error::OperatorBitwiseShiftRightFirstOperandExpectedInteger {
+                    found: value.r#type().to_string(),
+                },
+            ),
+        }
+    }
+
     pub fn add(&self, other: &Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
@@ -322,19 +413,31 @@ impl Value {
         Ok(Some((is_signed, bitlength)))
     }
 
-    pub fn negate(&self) -> Result<Self, Error> {
+    pub fn not(&self) -> Result<Self, Error> {
         match self {
-            Self::Integer(integer) => integer.negate().map(Self::Integer).map_err(Error::Integer),
-            value => Err(Error::OperatorNegationExpectedInteger {
+            Self::Boolean => Ok(Self::Boolean),
+            value => Err(Error::OperatorNotExpectedBoolean {
                 found: value.r#type().to_string(),
             }),
         }
     }
 
-    pub fn not(&self) -> Result<Self, Error> {
+    pub fn bitwise_not(&self) -> Result<Self, Error> {
         match self {
-            Self::Boolean => Ok(Self::Boolean),
-            value => Err(Error::OperatorNotExpectedBoolean {
+            Self::Integer(integer) => integer
+                .bitwise_not()
+                .map(|_| Self::Integer(integer.to_owned()))
+                .map_err(Error::Integer),
+            value => Err(Error::OperatorBitwiseNotExpectedInteger {
+                found: value.r#type().to_string(),
+            }),
+        }
+    }
+
+    pub fn negate(&self) -> Result<Self, Error> {
+        match self {
+            Self::Integer(integer) => integer.negate().map(Self::Integer).map_err(Error::Integer),
+            value => Err(Error::OperatorNegationExpectedInteger {
                 found: value.r#type().to_string(),
             }),
         }

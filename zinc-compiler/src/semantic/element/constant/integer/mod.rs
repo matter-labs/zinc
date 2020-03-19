@@ -22,6 +22,8 @@ use zinc_bytecode::scalar::ScalarType;
 use zinc_bytecode::Instruction;
 use zinc_utils::euclidean;
 
+use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
+use crate::generator::expression::operand::Operand as GeneratorOperand;
 use crate::lexical;
 use crate::semantic::element::constant::Range;
 use crate::semantic::element::constant::RangeInclusive;
@@ -229,6 +231,96 @@ impl Integer {
         Ok(result)
     }
 
+    pub fn bitwise_or(&self, other: &Self) -> Result<Self, Error> {
+        if !self.has_the_same_type_as(&other) {
+            return Err(Error::TypesMismatchBitwiseOr {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
+        }
+
+        let result = self.value.to_owned() | &other.value;
+
+        Ok(Self {
+            value: result,
+            is_signed: self.is_signed,
+            bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
+        })
+    }
+
+    pub fn bitwise_xor(&self, other: &Self) -> Result<Self, Error> {
+        if !self.has_the_same_type_as(&other) {
+            return Err(Error::TypesMismatchBitwiseXor {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
+        }
+
+        let result = self.value.to_owned() ^ &other.value;
+
+        Ok(Self {
+            value: result,
+            is_signed: self.is_signed,
+            bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
+        })
+    }
+
+    pub fn bitwise_and(&self, other: &Self) -> Result<Self, Error> {
+        if !self.has_the_same_type_as(&other) {
+            return Err(Error::TypesMismatchBitwiseAnd {
+                first: self.r#type().to_string(),
+                second: other.r#type().to_string(),
+            });
+        }
+
+        let result = self.value.to_owned() & &other.value;
+
+        Ok(Self {
+            value: result,
+            is_signed: self.is_signed,
+            bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
+        })
+    }
+
+    pub fn bitwise_shift_left(&self, other: &Self) -> Result<Self, Error> {
+        let result = self.value.to_owned()
+            << other
+                .value
+                .to_usize()
+                .ok_or_else(|| Error::IntegerTooLarge {
+                    value: self.value.to_owned(),
+                    bitlength: self.bitlength,
+                })?;
+
+        Ok(Self {
+            value: result,
+            is_signed: self.is_signed,
+            bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
+        })
+    }
+
+    pub fn bitwise_shift_right(&self, other: &Self) -> Result<Self, Error> {
+        let result = self.value.to_owned()
+            >> other
+                .value
+                .to_usize()
+                .ok_or_else(|| Error::IntegerTooLarge {
+                    value: self.value.to_owned(),
+                    bitlength: self.bitlength,
+                })?;
+
+        Ok(Self {
+            value: result,
+            is_signed: self.is_signed,
+            bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
+        })
+    }
+
     pub fn add(&self, other: &Self) -> Result<Self, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchAddition {
@@ -415,6 +507,21 @@ impl Integer {
         Ok(())
     }
 
+    pub fn bitwise_not(&self) -> Result<Self, Error> {
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldBitwiseNot);
+        }
+
+        let result = !self.value.to_owned();
+
+        Ok(Self {
+            value: result,
+            is_signed: self.is_signed,
+            bitlength: self.bitlength,
+            enumeration: self.enumeration.to_owned(),
+        })
+    }
+
     pub fn negate(&self) -> Result<Self, Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldNegation);
@@ -509,6 +616,14 @@ impl Integer {
         Ok(bitlength)
     }
 
+    pub fn to_intermediate(&self) -> GeneratorOperand {
+        GeneratorOperand::Constant(GeneratorConstant::new(
+            self.value.to_owned(),
+            self.is_signed,
+            self.bitlength,
+        ))
+    }
+
     pub fn to_instruction(&self) -> Instruction {
         let scalar_type = match (self.is_signed, self.bitlength) {
             (false, crate::BITLENGTH_FIELD) => ScalarType::Field,
@@ -530,6 +645,8 @@ impl TryFrom<&IntegerLiteral> for Integer {
     ///
     fn try_from(literal: &IntegerLiteral) -> Result<Self, Self::Error> {
         let (string, base) = match literal.data {
+            lexical::IntegerLiteral::Binary { ref value } => (value, crate::BASE_BINARY as u32),
+            lexical::IntegerLiteral::Octal { ref value } => (value, crate::BASE_OCTAL as u32),
             lexical::IntegerLiteral::Decimal { ref value } => (value, crate::BASE_DECIMAL as u32),
             lexical::IntegerLiteral::Hexadecimal { ref value } => {
                 (value, crate::BASE_HEXADECIMAL as u32)

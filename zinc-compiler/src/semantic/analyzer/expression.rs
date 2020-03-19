@@ -15,6 +15,8 @@ use zinc_bytecode::scalar::IntegerType;
 use zinc_bytecode::scalar::ScalarType;
 use zinc_bytecode::Instruction;
 
+use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
+use crate::generator::expression::Expression as GeneratorExpression;
 use crate::lexical::Location;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
 use crate::semantic::analyzer::translation_hint::TranslationHint;
@@ -66,6 +68,7 @@ pub struct Analyzer {
     scope_stack: Vec<Rc<RefCell<Scope>>>,
     bytecode: Rc<RefCell<Bytecode>>,
     operands: Vec<StackElement>,
+    intermediate: GeneratorExpression,
 
     // will be removed when IR is implemented
     is_next_call_builtin: bool,
@@ -94,6 +97,7 @@ impl Analyzer {
             },
             bytecode,
             operands: Vec::with_capacity(Self::STACK_OPERAND_INITIAL_CAPACITY),
+            intermediate: GeneratorExpression::new(),
 
             is_next_call_builtin: false,
             loads: 0,
@@ -109,7 +113,7 @@ impl Analyzer {
         &mut self,
         expression: Expression,
         translation_hint: TranslationHint,
-    ) -> Result<Element, Error> {
+    ) -> Result<(Element, GeneratorExpression), Error> {
         for element in expression.into_iter() {
             match element.object {
                 ExpressionObject::Operand(operand) => {
@@ -155,6 +159,8 @@ impl Analyzer {
                         },
                         element.location,
                     );
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::Assignment);
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::AssignmentAddition) => {
@@ -221,6 +227,8 @@ impl Analyzer {
                         },
                         element.location,
                     );
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::AssignmentAddition);
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::AssignmentSubtraction) => {
@@ -287,6 +295,8 @@ impl Analyzer {
                         },
                         element.location,
                     );
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::AssignmentSubtraction);
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::AssignmentMultiplication) => {
@@ -353,6 +363,8 @@ impl Analyzer {
                         },
                         element.location,
                     );
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::AssignmentMultiplication);
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::AssignmentDivision) => {
@@ -419,6 +431,8 @@ impl Analyzer {
                         },
                         element.location,
                     );
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::AssignmentDivision);
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
                 }
                 ExpressionObject::Operator(ExpressionOperator::AssignmentRemainder) => {
@@ -485,7 +499,18 @@ impl Analyzer {
                         },
                         element.location,
                     );
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::AssignmentRemainder);
                     self.push_operand(StackElement::Evaluated(Element::Value(Value::Unit)));
+                }
+                ExpressionObject::Operator(ExpressionOperator::AssignmentBitwiseOr) => todo!(),
+                ExpressionObject::Operator(ExpressionOperator::AssignmentBitwiseXor) => todo!(),
+                ExpressionObject::Operator(ExpressionOperator::AssignmentBitwiseAnd) => todo!(),
+                ExpressionObject::Operator(ExpressionOperator::AssignmentBitwiseShiftLeft) => {
+                    todo!()
+                }
+                ExpressionObject::Operator(ExpressionOperator::AssignmentBitwiseShiftRight) => {
+                    todo!()
                 }
                 ExpressionObject::Operator(ExpressionOperator::RangeInclusive) => {
                     let (operand_1, operand_2) = self.evaluate_binary_operands(
@@ -532,6 +557,8 @@ impl Analyzer {
                     let result = operand_1
                         .or(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::Or);
                     self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Xor) => {
@@ -547,6 +574,8 @@ impl Analyzer {
                     let result = operand_1
                         .xor(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::Xor);
                     self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::And) => {
@@ -562,6 +591,8 @@ impl Analyzer {
                     let result = operand_1
                         .and(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::And);
                     self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Equals) => {
@@ -577,6 +608,8 @@ impl Analyzer {
                     let result = operand_1
                         .equals(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::Equals);
                     self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::NotEquals) => {
@@ -592,6 +625,8 @@ impl Analyzer {
                     let result = operand_1
                         .not_equals(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::NotEquals);
                     self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::GreaterEquals) => {
@@ -607,6 +642,8 @@ impl Analyzer {
                     let result = operand_1
                         .greater_equals(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::GreaterEquals);
                     self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::LesserEquals) => {
@@ -622,6 +659,8 @@ impl Analyzer {
                     let result = operand_1
                         .lesser_equals(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::LesserEquals);
                     self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Greater) => {
@@ -637,6 +676,8 @@ impl Analyzer {
                     let result = operand_1
                         .greater(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::Greater);
                     self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Lesser) => {
@@ -652,6 +693,98 @@ impl Analyzer {
                     let result = operand_1
                         .lesser(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::Lesser);
+                    self.push_operand(StackElement::Evaluated(result));
+                }
+                ExpressionObject::Operator(ExpressionOperator::BitwiseOr) => {
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        true,
+                    )?;
+                    self.bytecode.borrow_mut().push_instruction(
+                        Instruction::BitOr(zinc_bytecode::BitOr),
+                        element.location,
+                    );
+
+                    let result = operand_1
+                        .bitwise_or(&operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::BitwiseOr);
+                    self.push_operand(StackElement::Evaluated(result));
+                }
+                ExpressionObject::Operator(ExpressionOperator::BitwiseXor) => {
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        true,
+                    )?;
+                    self.bytecode.borrow_mut().push_instruction(
+                        Instruction::BitXor(zinc_bytecode::BitXor),
+                        element.location,
+                    );
+
+                    let result = operand_1
+                        .bitwise_xor(&operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::BitwiseXor);
+                    self.push_operand(StackElement::Evaluated(result));
+                }
+                ExpressionObject::Operator(ExpressionOperator::BitwiseAnd) => {
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        true,
+                    )?;
+                    self.bytecode.borrow_mut().push_instruction(
+                        Instruction::BitAnd(zinc_bytecode::BitAnd),
+                        element.location,
+                    );
+
+                    let result = operand_1
+                        .bitwise_and(&operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::BitwiseAnd);
+                    self.push_operand(StackElement::Evaluated(result));
+                }
+                ExpressionObject::Operator(ExpressionOperator::BitwiseShiftLeft) => {
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        true,
+                    )?;
+                    self.bytecode.borrow_mut().push_instruction(
+                        Instruction::BitShiftLeft(zinc_bytecode::BitShiftLeft),
+                        element.location,
+                    );
+
+                    let result = operand_1
+                        .bitwise_shift_left(&operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::BitwiseShiftLeft);
+                    self.push_operand(StackElement::Evaluated(result));
+                }
+                ExpressionObject::Operator(ExpressionOperator::BitwiseShiftRight) => {
+                    let (operand_1, operand_2) = self.evaluate_binary_operands(
+                        TranslationHint::ValueExpression,
+                        TranslationHint::ValueExpression,
+                        true,
+                    )?;
+                    self.bytecode.borrow_mut().push_instruction(
+                        Instruction::BitShiftRight(zinc_bytecode::BitShiftRight),
+                        element.location,
+                    );
+
+                    let result = operand_1
+                        .bitwise_shift_right(&operand_2)
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::BitwiseShiftRight);
                     self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Addition) => {
@@ -667,6 +800,8 @@ impl Analyzer {
                     let result = operand_1
                         .add(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::Addition);
                     self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Subtraction) => {
@@ -682,6 +817,8 @@ impl Analyzer {
                     let result = operand_1
                         .subtract(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::Subtraction);
                     self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Multiplication) => {
@@ -697,6 +834,8 @@ impl Analyzer {
                     let result = operand_1
                         .multiply(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::Multiplication);
                     self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Division) => {
@@ -712,6 +851,8 @@ impl Analyzer {
                     let result = operand_1
                         .divide(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::Division);
                     self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Remainder) => {
@@ -727,6 +868,8 @@ impl Analyzer {
                     let result = operand_1
                         .remainder(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::Remainder);
                     self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Casting) => {
@@ -750,19 +893,9 @@ impl Analyzer {
                         );
                     }
 
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::Casting);
                     self.push_operand(StackElement::Evaluated(operand_1));
-                }
-                ExpressionObject::Operator(ExpressionOperator::Negation) => {
-                    let operand_1 =
-                        self.evaluate_unary_operand(TranslationHint::ValueExpression)?;
-                    self.bytecode
-                        .borrow_mut()
-                        .push_instruction(Instruction::Neg(zinc_bytecode::Neg), element.location);
-
-                    let result = operand_1
-                        .negate()
-                        .map_err(|error| Error::Element(element.location, error))?;
-                    self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Not) => {
                     let operand_1 =
@@ -774,6 +907,37 @@ impl Analyzer {
                     let result = operand_1
                         .not()
                         .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::Not);
+                    self.push_operand(StackElement::Evaluated(result));
+                }
+                ExpressionObject::Operator(ExpressionOperator::BitwiseNot) => {
+                    let operand_1 =
+                        self.evaluate_unary_operand(TranslationHint::ValueExpression)?;
+                    self.bytecode.borrow_mut().push_instruction(
+                        Instruction::BitNot(zinc_bytecode::BitNot),
+                        element.location,
+                    );
+
+                    let result = operand_1
+                        .bitwise_not()
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::BitwiseNot);
+                    self.push_operand(StackElement::Evaluated(result));
+                }
+                ExpressionObject::Operator(ExpressionOperator::Negation) => {
+                    let operand_1 =
+                        self.evaluate_unary_operand(TranslationHint::ValueExpression)?;
+                    self.bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Neg(zinc_bytecode::Neg), element.location);
+
+                    let result = operand_1
+                        .negate()
+                        .map_err(|error| Error::Element(element.location, error))?;
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::Negation);
                     self.push_operand(StackElement::Evaluated(result));
                 }
                 ExpressionObject::Operator(ExpressionOperator::Index) => {
@@ -791,6 +955,9 @@ impl Analyzer {
                     let result = operand_1
                         .index(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
+
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::ArrayIndex);
 
                     match operand_1 {
                         operand @ Element::Place(_) => {
@@ -908,6 +1075,9 @@ impl Analyzer {
                         .field(&operand_2)
                         .map_err(|error| Error::Element(element.location, error))?;
 
+                    self.intermediate
+                        .push_operator(GeneratorExpressionOperator::Slice);
+
                     match operand_1 {
                         operand @ Element::Place(_) => {
                             if !is_place_indexed {
@@ -988,7 +1158,10 @@ impl Analyzer {
             }
         }
 
-        self.evaluate_operand(translation_hint)
+        Ok((
+            self.evaluate_operand(translation_hint)?,
+            self.intermediate.clone(),
+        ))
     }
 
     pub fn operator_call(&mut self, element: ExpressionElement) -> Result<(), Error> {
@@ -1170,6 +1343,8 @@ impl Analyzer {
                 .map_err(ElementError::Value)
                 .map_err(|error| Error::Element(location, error))?,
         )));
+        self.intermediate
+            .push_operator(GeneratorExpressionOperator::Call);
         Ok(())
     }
 
@@ -1179,7 +1354,9 @@ impl Analyzer {
                 .function_local_statement(statement)?;
         }
         match block.expression {
-            Some(expression) => self.expression(*expression, TranslationHint::ValueExpression),
+            Some(expression) => Ok(self
+                .expression(*expression, TranslationHint::ValueExpression)?
+                .0),
             None => Ok(Element::Value(Value::Unit)),
         }
     }
@@ -1192,6 +1369,9 @@ impl Analyzer {
             .borrow_mut()
             .push_instruction(constant.to_instruction(), location);
         self.pushes += 1;
+
+        self.intermediate.push_operand(constant.to_intermediate());
+
         Ok(Element::Constant(constant))
     }
 
@@ -1208,6 +1388,9 @@ impl Analyzer {
             .borrow_mut()
             .push_instruction(integer.to_instruction(), location);
         self.pushes += 1;
+
+        self.intermediate.push_operand(integer.to_intermediate());
+
         Ok(Element::Constant(Constant::Integer(integer)))
     }
 
@@ -1279,8 +1462,9 @@ impl Analyzer {
             .unwrap_or(conditional.location);
 
         // compile the condition and check if it is boolean
-        let condition_result =
-            self.expression(*conditional.condition, TranslationHint::ValueExpression)?;
+        let condition_result = self
+            .expression(*conditional.condition, TranslationHint::ValueExpression)?
+            .0;
         match Type::from_element(&condition_result, self.scope())? {
             Type::Boolean => {}
             r#type => {
@@ -1336,8 +1520,9 @@ impl Analyzer {
         let location = r#match.location;
 
         let scrutinee_location = r#match.scrutinee.location;
-        let scrutinee_result =
-            self.expression(r#match.scrutinee, TranslationHint::ValueExpression)?;
+        let scrutinee_result = self
+            .expression(r#match.scrutinee, TranslationHint::ValueExpression)?
+            .0;
         let scrutinee_type = Type::from_element(&scrutinee_result, self.scope())?;
         let scrutinee_size = scrutinee_type.size();
         let scrutinee_address = self
@@ -1404,6 +1589,7 @@ impl Analyzer {
                         .push_instruction(Instruction::If(zinc_bytecode::If), location);
 
                     self.expression(expression, TranslationHint::ValueExpression)?
+                        .0
                 }
                 MatchPatternVariant::IntegerLiteral(integer) => {
                     let location = integer.location;
@@ -1448,6 +1634,7 @@ impl Analyzer {
                         .push_instruction(Instruction::If(zinc_bytecode::If), location);
 
                     self.expression(expression, TranslationHint::ValueExpression)?
+                        .0
                 }
                 MatchPatternVariant::Binding(identifier) => {
                     let location = identifier.location;
@@ -1465,7 +1652,9 @@ impl Analyzer {
                         ScopeVariableItem::new(scrutinee_type.clone(), false, scrutinee_address),
                     )
                     .map_err(|error| Error::Scope(location, error))?;
-                    let result = self.expression(expression, TranslationHint::ValueExpression)?;
+                    let result = self
+                        .expression(expression, TranslationHint::ValueExpression)?
+                        .0;
                     self.pop_scope();
 
                     if index > 0 {
@@ -1486,7 +1675,7 @@ impl Analyzer {
                         endifs += 1;
                     }
 
-                    let path = match self.expression(path, TranslationHint::PathExpression)? {
+                    let path = match self.expression(path, TranslationHint::PathExpression)?.0 {
                         Element::Path(path) => path,
                         element => {
                             return Err(Error::MatchBranchPatternPathExpectedEvaluable {
@@ -1530,6 +1719,7 @@ impl Analyzer {
                         .push_instruction(Instruction::If(zinc_bytecode::If), location);
 
                     self.expression(expression, TranslationHint::ValueExpression)?
+                        .0
                 }
                 MatchPatternVariant::Wildcard => {
                     let location = expression.location;
@@ -1541,7 +1731,9 @@ impl Analyzer {
                             .push_instruction(Instruction::Else(zinc_bytecode::Else), location);
                     }
 
-                    let result = self.expression(expression, TranslationHint::ValueExpression)?;
+                    let result = self
+                        .expression(expression, TranslationHint::ValueExpression)?
+                        .0;
 
                     if index > 0 {
                         self.bytecode
@@ -1596,6 +1788,7 @@ impl Analyzer {
                     let size_location = size_expression.location;
                     let size = match Self::new_without_bytecode(self.scope())
                         .expression(size_expression.to_owned(), TranslationHint::ValueExpression)?
+                        .0
                     {
                         Element::Constant(Constant::Integer(integer)) => {
                             integer.to_usize().map_err(|error| {
@@ -1616,7 +1809,8 @@ impl Analyzer {
                     if size > 0 {
                         for _ in 0..size {
                             let element = self
-                                .expression(expression.clone(), TranslationHint::ValueExpression)?;
+                                .expression(expression.clone(), TranslationHint::ValueExpression)?
+                                .0;
                             let element_type = Type::from_element(&element, self.scope())?;
                             result.push(element_type).map_err(|error| {
                                 Error::Element(
@@ -1627,14 +1821,17 @@ impl Analyzer {
                         }
                     } else {
                         let element = Self::new_without_bytecode(self.scope())
-                            .expression(expression, TranslationHint::ValueExpression)?;
+                            .expression(expression, TranslationHint::ValueExpression)?
+                            .0;
                         let element_type = Type::from_element(&element, self.scope())?;
                         result.set_type(element_type);
                     }
                     break;
                 }
                 None => {
-                    let element = self.expression(expression, TranslationHint::ValueExpression)?;
+                    let element = self
+                        .expression(expression, TranslationHint::ValueExpression)?
+                        .0;
                     let element_type = Type::from_element(&element, self.scope())?;
                     result.push(element_type).map_err(|error| {
                         Error::Element(location, ElementError::Value(ValueError::Array(error)))
@@ -1649,7 +1846,9 @@ impl Analyzer {
     fn tuple_expression(&mut self, tuple: TupleExpression) -> Result<Element, Error> {
         let mut result = Tuple::default();
         for expression in tuple.elements.into_iter() {
-            let element = self.expression(expression, TranslationHint::ValueExpression)?;
+            let element = self
+                .expression(expression, TranslationHint::ValueExpression)?
+                .0;
             let element_type = Type::from_element(&element, self.scope())?;
             result.push(element_type);
         }
@@ -1675,7 +1874,9 @@ impl Analyzer {
         let mut result = Structure::new(structure_type);
         for (identifier, expression) in structure.fields.into_iter() {
             let identifier_location = identifier.location;
-            let element = self.expression(expression, TranslationHint::ValueExpression)?;
+            let element = self
+                .expression(expression, TranslationHint::ValueExpression)?
+                .0;
             let element_type = Type::from_element(&element, self.scope())?;
 
             result
@@ -1694,7 +1895,9 @@ impl Analyzer {
     fn list_expression(&mut self, list: Vec<Expression>) -> Result<Element, Error> {
         let mut elements = Vec::with_capacity(list.len());
         for expression in list.into_iter() {
-            let element = self.expression(expression, TranslationHint::ValueExpression)?;
+            let element = self
+                .expression(expression, TranslationHint::ValueExpression)?
+                .0;
             elements.push(element);
         }
         Ok(Element::ArgumentList(elements))

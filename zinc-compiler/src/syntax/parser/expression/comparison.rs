@@ -11,20 +11,20 @@ use crate::lexical::Location;
 use crate::lexical::Symbol;
 use crate::lexical::Token;
 use crate::lexical::TokenStream;
-use crate::syntax::parser::expression::add_sub::Parser as AddSubOperandParser;
+use crate::syntax::parser::expression::bitwise_or::Parser as BitwiseOrOperandParser;
 use crate::syntax::tree::expression::builder::Builder as ExpressionBuilder;
 use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
 use crate::syntax::tree::expression::Expression;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    AddSubOperand,
-    AddSubOperator,
+    BitwiseOrOperand,
+    BitwiseOrOperator,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::AddSubOperand
+        State::BitwiseOrOperand
     }
 }
 
@@ -44,32 +44,25 @@ impl Parser {
     ) -> Result<(Expression, Option<Token>), Error> {
         loop {
             match self.state {
-                State::AddSubOperand => {
+                State::BitwiseOrOperand => {
                     let (expression, next) =
-                        AddSubOperandParser::default().parse(stream.clone(), initial.take())?;
+                        BitwiseOrOperandParser::default().parse(stream.clone(), initial.take())?;
                     self.next = next;
                     self.builder.set_location_if_unset(expression.location);
                     self.builder.extend_with_expression(expression);
                     if let Some((location, operator)) = self.operator.take() {
                         self.builder.push_operator(location, operator);
                     }
-                    self.state = State::AddSubOperator;
+                    self.state = State::BitwiseOrOperator;
                 }
-                State::AddSubOperator => {
+                State::BitwiseOrOperator => {
                     match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
-                            lexeme: Lexeme::Symbol(Symbol::Plus),
+                            lexeme: Lexeme::Symbol(Symbol::VerticalBar),
                             location,
                         } => {
-                            self.operator = Some((location, ExpressionOperator::Addition));
-                            self.state = State::AddSubOperand;
-                        }
-                        Token {
-                            lexeme: Lexeme::Symbol(Symbol::Minus),
-                            location,
-                        } => {
-                            self.operator = Some((location, ExpressionOperator::Subtraction));
-                            self.state = State::AddSubOperand;
+                            self.operator = Some((location, ExpressionOperator::BitwiseOr));
+                            self.state = State::BitwiseOrOperand;
                         }
                         token => return Ok((self.builder.finish(), Some(token))),
                     }
@@ -99,7 +92,7 @@ mod tests {
 
     #[test]
     fn ok() {
-        let input = r#"42 + 228"#;
+        let input = r#"42 | 228"#;
 
         let expected = Ok((
             Expression::new(
@@ -125,7 +118,7 @@ mod tests {
                     ),
                     ExpressionElement::new(
                         Location::new(1, 4),
-                        ExpressionObject::Operator(ExpressionOperator::Addition),
+                        ExpressionObject::Operator(ExpressionOperator::BitwiseOr),
                     ),
                 ],
             ),

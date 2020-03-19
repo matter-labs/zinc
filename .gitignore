@@ -4,6 +4,7 @@
 
 # Rust build
 /target/
+/osxcross/
 
 # Book build
 /zinc-book/build/
@@ -12,9 +13,6 @@
 /zinc-examples/*/build/
 /zinc-examples/*/data/
 
-# Builds
-/osxcross
+# Other
 *.tar.gz
-
-# Mac
 .DS_Store

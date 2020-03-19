@@ -2,29 +2,34 @@
 
 Operators of the Zinc language can be divided into several groups:
 
-1. [Arithmetic](./01-arithmetic.md)
-2. [Comparison](./02-comparison.md)
-3. [Logical](03-logical.md)
-4. [Casting](04-casting.md)
-5. [Access](05-access.md)
-6. [Assignment](06-assignment.md)
-7. [Range](07-range.md)
+- [Arithmetic](./01-arithmetic.md)
+- [Bitwise](./02-bitwise.md)
+- [Comparison](./03-comparison.md)
+- [Logical](./04-logical.md)
+- [Casting](./05-casting.md)
+- [Access](./06-access.md)
+- [Range](./07-range.md)
+- [Assignment](./08-assignment.md)
 
 #№ Precedence
 
 The top one is executed first.
 
-|    Operator      |  Associativity  |
-|----------------- |-----------------|
-|        ::        |  left to right  |
-|       [] .       |  left to right  |
-|        - !       |      unary      |
-|        as        |  left to right  |
-|       * / %      |  left to right  |
-|        + -       |  left to right  |
-|  == != <= >= < > |   parenthesis   |
-|        &&        |  left to right  |
-|        ^^        |  left to right  |
-|        ⎮⎮        |  left to right  |
-|      .. ..=      |     single      |
-| = += -= *= /= %= |     single      |
+|              Operator              |    Associativity    |
+|------------------------------------|---------------------|
+| ::                                 | left to right       |
+| [] .                               | left to right       |
+| - ~ !                              | unary               |
+| as                                 | left to right       |
+| * / %                              | left to right       |
+| + -                                | left to right       |
+| << >>                              | left to right       |
+| &                                  | left to right       |
+| ^                                  | left to right       |
+| ⎮                                 | left to right       |
+| == != <= >= < >                    | require parentheses |
+| &&                                 | left to right       |
+| ^^                                 | left to right       |
+| ⎮⎮                               | left to right       |
+| .. ..=                             | require parentheses |
+| = += -= *= /= %= ⎮= ^= &= <<= >>= | require parentheses |

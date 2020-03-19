@@ -39,6 +39,17 @@ impl Parser {
                 Ok((self.builder.finish(), next))
             }
             Token {
+                lexeme: Lexeme::Symbol(Symbol::Tilde),
+                location,
+            } => {
+                self.builder.set_location(location);
+                let (expression, next) = Self::default().parse(stream, None)?;
+                self.builder.extend_with_expression(expression);
+                self.builder
+                    .push_operator(location, ExpressionOperator::BitwiseNot);
+                Ok((self.builder.finish(), next))
+            }
+            Token {
                 lexeme: Lexeme::Symbol(Symbol::Minus),
                 location,
             } => {

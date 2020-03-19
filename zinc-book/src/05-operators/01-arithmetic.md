@@ -1,18 +1,13 @@
 # Arithmetic operators
 
-Arithmetic operators do not perform any kind of overflow checking in
-compile time. If an overflow happens, the Zinc VM will fail in runtime.
-
-Both operands of a binary operator must always be of the same type, e.g.:
-- `u8` and `u8`
-- `i64` and `i64`
-- `field` and `field`
+Arithmetic operators do not perform any kind of overflow checking at
+compile time. If an overflow happens, the Zinc VM will fail at runtime.
 
 > When it comes to the division of negative numbers, Zinc follows the Euclidean
 > division concept. It means that `-45 % 7 == 4`. To get the detailed explanation
 > and some examples, see the [article](https://en.wikipedia.org/wiki/Euclidean_division).
 
-The `+=`, `-=`, `*=`, `/=`, `%=` shortcut operators performs the operation
+The `+=`, `-=`, `*=`, `/=`, `%=` shortcut operators perform the operation
 and assign the result to the first operand. The first operand must be a mutable memory location
 like a variable, array element, or structure field.
 
@@ -73,4 +68,4 @@ like a variable, array element, or structure field.
 **Accepts**
 1. Integer expression (any type except `field`)
 
-**Returns** a signed integer with same bitlength.
+**Returns** a signed integer with the same bitlength.

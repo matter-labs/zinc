@@ -19,8 +19,8 @@ use crate::semantic::Error as SemanticError;
 fn error_element_value_or_1st_expected_boolean() {
     let input = r#"
 fn main() {
-    let boolean = true;
     let integer = 42;
+    let boolean = true;
     let value = integer || boolean;
 }
 "#;
@@ -63,8 +63,8 @@ fn main() {
 fn error_element_value_xor_1st_expected_boolean() {
     let input = r#"
 fn main() {
-    let boolean = true;
     let integer = 42;
+    let boolean = true;
     let value = integer ^^ boolean;
 }
 "#;
@@ -107,8 +107,8 @@ fn main() {
 fn error_element_value_and_1st_expected_boolean() {
     let input = r#"
 fn main() {
-    let boolean = true;
     let integer = 42;
+    let boolean = true;
     let value = integer && boolean;
 }
 "#;
@@ -175,8 +175,8 @@ fn main() {
 fn error_element_value_equals_2nd_expected_unit() {
     let input = r#"
 fn main() {
-    let integer = 42;
     let unit = ();
+    let integer = 42;
     let value = unit == integer;
 }
 "#;
@@ -197,8 +197,8 @@ fn main() {
 fn error_element_value_equals_2nd_expected_boolean() {
     let input = r#"
 fn main() {
-    let integer = 42;
     let boolean = true;
+    let integer = 42;
     let value = boolean == integer;
 }
 "#;
@@ -265,8 +265,8 @@ fn main() {
 fn error_element_value_not_equals_2nd_expected_unit() {
     let input = r#"
 fn main() {
-    let integer = 42;
     let unit = ();
+    let integer = 42;
     let value = unit != integer;
 }
 "#;
@@ -287,8 +287,8 @@ fn main() {
 fn error_element_value_not_equals_2nd_expected_boolean() {
     let input = r#"
 fn main() {
-    let integer = 42;
     let boolean = true;
+    let integer = 42;
     let value = boolean != integer;
 }
 "#;
@@ -355,8 +355,8 @@ fn main() {
 fn error_element_value_greater_equals_2nd_expected_integer() {
     let input = r#"
 fn main() {
-    let boolean = true;
     let integer = 42;
+    let boolean = true;
     let value = integer >= boolean;
 }
 "#;
@@ -403,8 +403,8 @@ fn main() {
 fn error_element_value_lesser_equals_2nd_expected_integer() {
     let input = r#"
 fn main() {
-    let boolean = true;
     let integer = 42;
+    let boolean = true;
     let value = integer <= boolean;
 }
 "#;
@@ -449,8 +449,8 @@ fn main() {
 fn error_element_value_greater_2nd_expected_integer() {
     let input = r#"
 fn main() {
-    let boolean = true;
     let integer = 42;
+    let boolean = true;
     let value = integer > boolean;
 }
 "#;
@@ -493,8 +493,8 @@ fn main() {
 fn error_element_value_lesser_2nd_expected_integer() {
     let input = r#"
 fn main() {
-    let boolean = true;
     let integer = 42;
+    let boolean = true;
     let value = integer < boolean;
 }
 "#;
@@ -504,6 +504,234 @@ fn main() {
         ElementError::Value(ValueError::OperatorLesserSecondOperandExpectedInteger {
             found: Type::boolean().to_string(),
         }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_value_bitwise_or_1st_expected_integer() {
+    let input = r#"
+fn main() {
+    let boolean = true;
+    let integer = 42;
+    let value = boolean | integer;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 25),
+        ElementError::Value(ValueError::OperatorBitwiseOrFirstOperandExpectedInteger {
+            found: Type::boolean().to_string(),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_value_bitwise_or_2nd_expected_integer() {
+    let input = r#"
+fn main() {
+    let integer = 42;
+    let boolean = true;
+    let value = integer | boolean;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 25),
+        ElementError::Value(ValueError::OperatorBitwiseOrSecondOperandExpectedInteger {
+            found: Type::boolean().to_string(),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_value_bitwise_xor_1st_expected_integer() {
+    let input = r#"
+fn main() {
+    let boolean = true;
+    let integer = 42;
+    let value = boolean ^ integer;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 25),
+        ElementError::Value(ValueError::OperatorBitwiseXorFirstOperandExpectedInteger {
+            found: Type::boolean().to_string(),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_value_bitwise_xor_2nd_expected_integer() {
+    let input = r#"
+fn main() {
+    let integer = 42;
+    let boolean = true;
+    let value = integer ^ boolean;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 25),
+        ElementError::Value(ValueError::OperatorBitwiseXorSecondOperandExpectedInteger {
+            found: Type::boolean().to_string(),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_value_bitwise_and_1st_expected_integer() {
+    let input = r#"
+fn main() {
+    let boolean = true;
+    let integer = 42;
+    let value = boolean & integer;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 25),
+        ElementError::Value(ValueError::OperatorBitwiseAndFirstOperandExpectedInteger {
+            found: Type::boolean().to_string(),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_value_bitwise_and_2nd_expected_integer() {
+    let input = r#"
+fn main() {
+    let integer = 42;
+    let boolean = true;
+    let value = integer & boolean;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 25),
+        ElementError::Value(ValueError::OperatorBitwiseAndSecondOperandExpectedInteger {
+            found: Type::boolean().to_string(),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_value_bitwise_shift_left_1st_expected_integer() {
+    let input = r#"
+fn main() {
+    let boolean = true;
+    const INTEGER: u8 = 42;
+    let value = boolean << INTEGER;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 25),
+        ElementError::Value(
+            ValueError::OperatorBitwiseShiftLeftFirstOperandExpectedInteger {
+                found: Type::boolean().to_string(),
+            },
+        ),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_value_bitwise_shift_left_2nd_expected_integer() {
+    let input = r#"
+fn main() {
+    let integer = 42;
+    const BOOLEAN: bool = true;
+    let value = integer << BOOLEAN;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 25),
+        ElementError::Value(
+            ValueError::OperatorBitwiseShiftLeftSecondOperandExpectedInteger {
+                found: Type::boolean().to_string(),
+            },
+        ),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_value_bitwise_shift_right_1st_expected_integer() {
+    let input = r#"
+fn main() {
+    let boolean = true;
+    const INTEGER: u8 = 42;
+    let value = boolean >> INTEGER;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 25),
+        ElementError::Value(
+            ValueError::OperatorBitwiseShiftRightFirstOperandExpectedInteger {
+                found: Type::boolean().to_string(),
+            },
+        ),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_value_bitwise_shift_right_2nd_expected_integer() {
+    let input = r#"
+fn main() {
+    let integer = 42;
+    const BOOLEAN: bool = true;
+    let value = integer >> BOOLEAN;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 25),
+        ElementError::Value(
+            ValueError::OperatorBitwiseShiftRightSecondOperandExpectedInteger {
+                found: Type::boolean().to_string(),
+            },
+        ),
     )));
 
     let result = crate::semantic::tests::compile_entry_point(input);
@@ -537,8 +765,8 @@ fn main() {
 fn error_element_value_addition_2nd_expected_integer() {
     let input = r#"
 fn main() {
-    let boolean = true;
     let integer = 42;
+    let boolean = true;
     let value = integer + boolean;
 }
 "#;
@@ -581,8 +809,8 @@ fn main() {
 fn error_element_value_subtraction_2nd_expected_integer() {
     let input = r#"
 fn main() {
-    let boolean = true;
     let integer = 42;
+    let boolean = true;
     let value = integer - boolean;
 }
 "#;
@@ -629,8 +857,8 @@ fn main() {
 fn error_element_value_multiplication_2nd_expected_integer() {
     let input = r#"
 fn main() {
-    let boolean = true;
     let integer = 42;
+    let boolean = true;
     let value = integer * boolean;
 }
 "#;
@@ -675,8 +903,8 @@ fn main() {
 fn error_element_value_division_2nd_expected_integer() {
     let input = r#"
 fn main() {
-    let boolean = true;
     let integer = 42;
+    let boolean = true;
     let value = integer / boolean;
 }
 "#;
@@ -719,8 +947,8 @@ fn main() {
 fn error_element_value_remainder_2nd_expected_integer() {
     let input = r#"
 fn main() {
-    let boolean = true;
     let integer = 42;
+    let boolean = true;
     let value = integer % boolean;
 }
 "#;
@@ -728,27 +956,6 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(5, 25),
         ElementError::Value(ValueError::OperatorRemainderSecondOperandExpectedInteger {
-            found: Type::boolean().to_string(),
-        }),
-    )));
-
-    let result = crate::semantic::tests::compile_entry_point(input);
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn error_element_value_negation_expected_integer() {
-    let input = r#"
-fn main() {
-    let boolean = true;
-    let value = -boolean;
-}
-"#;
-
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 17),
-        ElementError::Value(ValueError::OperatorNegationExpectedInteger {
             found: Type::boolean().to_string(),
         }),
     )));
@@ -771,6 +978,48 @@ fn main() {
         Location::new(4, 17),
         ElementError::Value(ValueError::OperatorNotExpectedBoolean {
             found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_value_bitwise_not_expected_integer() {
+    let input = r#"
+fn main() {
+    let boolean = true;
+    let value = ~boolean;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(4, 17),
+        ElementError::Value(ValueError::OperatorBitwiseNotExpectedInteger {
+            found: Type::boolean().to_string(),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_value_negation_expected_integer() {
+    let input = r#"
+fn main() {
+    let boolean = true;
+    let value = -boolean;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(4, 17),
+        ElementError::Value(ValueError::OperatorNegationExpectedInteger {
+            found: Type::boolean().to_string(),
         }),
     )));
 

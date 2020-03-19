@@ -12,7 +12,6 @@ pub mod local_impl;
 pub mod local_mod;
 pub mod r#loop;
 pub mod module;
-pub mod r#static;
 pub mod r#struct;
 pub mod r#type;
 pub mod r#use;

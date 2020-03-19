@@ -44,7 +44,7 @@ pub struct Command {
 
 #[derive(Debug, Fail)]
 pub enum Error {
-    #[fail(display = "virtual machine: {}", _0)]
+    #[fail(display = "virtual machine {}", _0)]
     VirtualMachine(VirtualMachineError),
 }
 

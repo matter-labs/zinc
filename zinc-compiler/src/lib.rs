@@ -8,6 +8,7 @@
 #![allow(clippy::cognitive_complexity)]
 
 mod error;
+mod generator;
 mod lexical;
 mod semantic;
 mod syntax;
@@ -32,6 +33,8 @@ use lazy_static::lazy_static;
 
 use self::error::file::Error as FileError;
 
+pub const BASE_BINARY: usize = 2;
+pub const BASE_OCTAL: usize = 8;
 pub const BASE_DECIMAL: usize = 10;
 pub const BASE_HEXADECIMAL: usize = 16;
 

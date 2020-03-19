@@ -15,8 +15,11 @@ use num_bigint::BigInt;
 use num_traits::One;
 use num_traits::Zero;
 
+use zinc_bytecode::scalar::ScalarType;
 use zinc_bytecode::Instruction;
 
+use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
+use crate::generator::expression::operand::Operand as GeneratorOperand;
 use crate::semantic::caster::Caster;
 use crate::semantic::element::r#type::Type;
 use crate::syntax::BooleanLiteral;
@@ -25,7 +28,6 @@ use self::error::Error;
 use self::integer::Integer;
 use self::range::Range;
 use self::range_inclusive::RangeInclusive;
-use zinc_bytecode::scalar::ScalarType;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Constant {
@@ -273,6 +275,97 @@ impl Constant {
         }
     }
 
+    pub fn bitwise_or(&self, other: &Self) -> Result<Self, Error> {
+        match self {
+            Self::Integer(integer_1) => match other {
+                Self::Integer(integer_2) => integer_1
+                    .bitwise_or(integer_2)
+                    .map(|_| Self::Integer(integer_1.to_owned()))
+                    .map_err(Error::Integer),
+                value => Err(Error::OperatorBitwiseOrSecondOperandExpectedInteger {
+                    found: value.to_string(),
+                }),
+            },
+            value => Err(Error::OperatorBitwiseOrFirstOperandExpectedInteger {
+                found: value.to_string(),
+            }),
+        }
+    }
+
+    pub fn bitwise_xor(&self, other: &Self) -> Result<Self, Error> {
+        match self {
+            Self::Integer(integer_1) => match other {
+                Self::Integer(integer_2) => integer_1
+                    .bitwise_xor(integer_2)
+                    .map(|_| Self::Integer(integer_1.to_owned()))
+                    .map_err(Error::Integer),
+                value => Err(Error::OperatorBitwiseXorSecondOperandExpectedInteger {
+                    found: value.to_string(),
+                }),
+            },
+            value => Err(Error::OperatorBitwiseXorFirstOperandExpectedInteger {
+                found: value.to_string(),
+            }),
+        }
+    }
+
+    pub fn bitwise_and(&self, other: &Self) -> Result<Self, Error> {
+        match self {
+            Self::Integer(integer_1) => match other {
+                Self::Integer(integer_2) => integer_1
+                    .bitwise_and(integer_2)
+                    .map(|_| Self::Integer(integer_1.to_owned()))
+                    .map_err(Error::Integer),
+                value => Err(Error::OperatorBitwiseAndSecondOperandExpectedInteger {
+                    found: value.to_string(),
+                }),
+            },
+            value => Err(Error::OperatorBitwiseAndFirstOperandExpectedInteger {
+                found: value.to_string(),
+            }),
+        }
+    }
+
+    pub fn bitwise_shift_left(&self, other: &Self) -> Result<Self, Error> {
+        match self {
+            Self::Integer(integer_1) => match other {
+                Self::Integer(integer_2) => integer_1
+                    .bitwise_shift_left(integer_2)
+                    .map(|_| Self::Integer(integer_1.to_owned()))
+                    .map_err(Error::Integer),
+                value => Err(
+                    Error::OperatorBitwiseShiftLeftSecondOperandExpectedInteger {
+                        found: value.to_string(),
+                    },
+                ),
+            },
+            value => Err(Error::OperatorBitwiseShiftLeftFirstOperandExpectedInteger {
+                found: value.to_string(),
+            }),
+        }
+    }
+
+    pub fn bitwise_shift_right(&self, other: &Self) -> Result<Self, Error> {
+        match self {
+            Self::Integer(integer_1) => match other {
+                Self::Integer(integer_2) => integer_1
+                    .bitwise_shift_right(integer_2)
+                    .map(|_| Self::Integer(integer_1.to_owned()))
+                    .map_err(Error::Integer),
+                value => Err(
+                    Error::OperatorBitwiseShiftRightSecondOperandExpectedInteger {
+                        found: value.to_string(),
+                    },
+                ),
+            },
+            value => Err(
+                Error::OperatorBitwiseShiftRightFirstOperandExpectedInteger {
+                    found: value.to_string(),
+                },
+            ),
+        }
+    }
+
     pub fn add(&self, other: &Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
@@ -358,15 +451,6 @@ impl Constant {
         }
     }
 
-    pub fn negate(&self) -> Result<Self, Error> {
-        match self {
-            Self::Integer(integer) => integer.negate().map(Self::Integer).map_err(Error::Integer),
-            value => Err(Error::OperatorNegationExpectedInteger {
-                found: value.to_string(),
-            }),
-        }
-    }
-
     pub fn not(&self) -> Result<Self, Error> {
         match self {
             Self::Boolean(value) => {
@@ -374,6 +458,27 @@ impl Constant {
                 Ok(Self::Boolean(result))
             }
             value => Err(Error::OperatorNotExpectedBoolean {
+                found: value.to_string(),
+            }),
+        }
+    }
+
+    pub fn bitwise_not(&self) -> Result<Self, Error> {
+        match self {
+            Self::Integer(integer) => integer
+                .bitwise_not()
+                .map(Self::Integer)
+                .map_err(Error::Integer),
+            value => Err(Error::OperatorBitwiseNotExpectedInteger {
+                found: value.to_string(),
+            }),
+        }
+    }
+
+    pub fn negate(&self) -> Result<Self, Error> {
+        match self {
+            Self::Integer(integer) => integer.negate().map(Self::Integer).map_err(Error::Integer),
+            value => Err(Error::OperatorNegationExpectedInteger {
                 found: value.to_string(),
             }),
         }
@@ -394,6 +499,25 @@ impl Constant {
             integer.cast(is_signed, bitlength).map_err(Error::Integer)?;
         }
         Ok(Some((is_signed, bitlength)))
+    }
+
+    pub fn to_intermediate(&self) -> GeneratorOperand {
+        match self {
+            Self::Boolean(boolean) => GeneratorOperand::Constant(GeneratorConstant::new(
+                if *boolean {
+                    BigInt::one()
+                } else {
+                    BigInt::zero()
+                },
+                false,
+                crate::BITLENGTH_BOOLEAN,
+            )),
+            Self::Integer(integer) => integer.to_intermediate(),
+            Self::Unit => unreachable!(),
+            Self::Range(_) => unreachable!(),
+            Self::RangeInclusive(_) => unreachable!(),
+            Self::String(_) => unreachable!(),
+        }
     }
 
     pub fn to_instruction(&self) -> Instruction {

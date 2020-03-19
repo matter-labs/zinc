@@ -7,6 +7,10 @@ pub mod add_sub;
 pub mod and;
 pub mod array;
 pub mod assignment;
+pub mod bitwise_and;
+pub mod bitwise_or;
+pub mod bitwise_shift;
+pub mod bitwise_xor;
 pub mod block;
 pub mod casting;
 pub mod comparison;
@@ -120,6 +124,46 @@ impl Parser {
                         } => {
                             self.operator =
                                 Some((location, ExpressionOperator::AssignmentRemainder));
+                            self.state = State::AssignmentSecondOperand;
+                        }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::VerticalBarEquals),
+                            location,
+                        } => {
+                            self.operator =
+                                Some((location, ExpressionOperator::AssignmentBitwiseOr));
+                            self.state = State::AssignmentSecondOperand;
+                        }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::CircumflexEquals),
+                            location,
+                        } => {
+                            self.operator =
+                                Some((location, ExpressionOperator::AssignmentBitwiseXor));
+                            self.state = State::AssignmentSecondOperand;
+                        }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::AmpersandEquals),
+                            location,
+                        } => {
+                            self.operator =
+                                Some((location, ExpressionOperator::AssignmentBitwiseAnd));
+                            self.state = State::AssignmentSecondOperand;
+                        }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::DoubleLesserEquals),
+                            location,
+                        } => {
+                            self.operator =
+                                Some((location, ExpressionOperator::AssignmentBitwiseShiftLeft));
+                            self.state = State::AssignmentSecondOperand;
+                        }
+                        Token {
+                            lexeme: Lexeme::Symbol(Symbol::DoubleGreaterEquals),
+                            location,
+                        } => {
+                            self.operator =
+                                Some((location, ExpressionOperator::AssignmentBitwiseShiftRight));
                             self.state = State::AssignmentSecondOperand;
                         }
                         token => return Ok((self.builder.finish(), Some(token))),

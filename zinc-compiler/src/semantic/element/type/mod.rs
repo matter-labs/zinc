@@ -259,6 +259,7 @@ impl Type {
                 let size_location = size.location;
                 let size = match ExpressionAnalyzer::new_without_bytecode(scope)
                     .expression(size.to_owned(), TranslationHint::ValueExpression)?
+                    .0
                 {
                     Element::Constant(Constant::Integer(integer)) => {
                         integer.to_usize().map_err(|error| {
@@ -289,6 +290,7 @@ impl Type {
                 let location = path.location;
                 match ExpressionAnalyzer::new_without_bytecode(scope)
                     .expression(path.to_owned(), TranslationHint::TypeExpression)?
+                    .0
                 {
                     Element::Type(r#type) => r#type,
                     element => {

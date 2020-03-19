@@ -504,6 +504,249 @@ fn main() {
 }
 
 #[test]
+fn error_element_constant_integer_types_mismatch_bitwise_or() {
+    let input = r#"
+fn main() {
+    let value = 42 as u64 | 69 as u128;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 27),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchBitwiseOr {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_bitwise_or_enumeration() {
+    let input = r#"
+enum Default {
+    Value = 42,
+}
+
+fn main() {
+    let value = Default::Value | 69;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(7, 32),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchBitwiseOr {
+                first: "enum Default".to_owned(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_bitwise_or_two_enumerations() {
+    let input = r#"
+enum One {
+    Value = 42,
+}
+
+enum Two {
+    Value = 69,
+}
+
+fn main() {
+    let value = One::Value | Two::Value;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(11, 28),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchBitwiseOr {
+                first: "enum One".to_owned(),
+                second: "enum Two".to_owned(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_bitwise_xor() {
+    let input = r#"
+fn main() {
+    let value = 42 as u64 ^ 69 as u128;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 27),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchBitwiseXor {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_bitwise_xor_enumeration() {
+    let input = r#"
+enum Default {
+    Value = 42,
+}
+
+fn main() {
+    let value = Default::Value ^ 69;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(7, 32),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchBitwiseXor {
+                first: "enum Default".to_owned(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_bitwise_xor_two_enumerations() {
+    let input = r#"
+enum One {
+    Value = 42,
+}
+
+enum Two {
+    Value = 69,
+}
+
+fn main() {
+    let value = One::Value ^ Two::Value;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(11, 28),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchBitwiseXor {
+                first: "enum One".to_owned(),
+                second: "enum Two".to_owned(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_bitwise_and() {
+    let input = r#"
+fn main() {
+    let value = 42 as u64 & 69 as u128;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 27),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchBitwiseAnd {
+                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_bitwise_and_enumeration() {
+    let input = r#"
+enum Default {
+    Value = 42,
+}
+
+fn main() {
+    let value = Default::Value & 69;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(7, 32),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchBitwiseAnd {
+                first: "enum Default".to_owned(),
+                second: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_integer_types_mismatch_bitwise_and_two_enumerations() {
+    let input = r#"
+enum One {
+    Value = 42,
+}
+
+enum Two {
+    Value = 69,
+}
+
+fn main() {
+    let value = One::Value & Two::Value;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(11, 28),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::TypesMismatchBitwiseAnd {
+                first: "enum One".to_owned(),
+                second: "enum Two".to_owned(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_element_constant_integer_types_mismatch_addition() {
     let input = r#"
 fn main() {
@@ -1262,6 +1505,26 @@ fn main() {
         Location::new(3, 29),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::ForbiddenFieldRemainder,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_forbidden_field_bitwise_not() {
+    let input = r#"
+fn main() {
+    let value = ~(42 as field);
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 17),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::ForbiddenFieldBitwiseNot,
         )),
     )));
 

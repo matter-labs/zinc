@@ -12,6 +12,9 @@ pub enum Error {
     TypesMismatchLesserEquals { first: String, second: String },
     TypesMismatchGreater { first: String, second: String },
     TypesMismatchLesser { first: String, second: String },
+    TypesMismatchBitwiseOr { first: String, second: String },
+    TypesMismatchBitwiseXor { first: String, second: String },
+    TypesMismatchBitwiseAnd { first: String, second: String },
     TypesMismatchAddition { first: String, second: String },
     TypesMismatchSubtraction { first: String, second: String },
     TypesMismatchMultiplication { first: String, second: String },
@@ -28,6 +31,7 @@ pub enum Error {
 
     ForbiddenFieldDivision,
     ForbiddenFieldRemainder,
+    ForbiddenFieldBitwiseNot,
     ForbiddenFieldNegation,
 
     ZeroDivision,

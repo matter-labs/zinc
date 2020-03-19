@@ -8,7 +8,7 @@ types in places where they are highly obvious.
 ## Explicit
 
 Type conversions can be only performed on the integer and enumeration types with
-the casting operator. [This chapter](../../05-operators/04-casting.md) explains
+the casting operator. [This chapter](../../05-operators/05-casting.md) explains
 the operator's behavior in detail.
 
 ## Implicit

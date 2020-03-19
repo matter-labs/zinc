@@ -45,7 +45,6 @@ use crate::syntax::LetStatement;
 use crate::syntax::LoopStatement;
 use crate::syntax::ModStatement;
 use crate::syntax::ModuleLocalStatement;
-use crate::syntax::StaticStatement;
 use crate::syntax::StructStatement;
 use crate::syntax::TypeStatement;
 use crate::syntax::UseStatement;
@@ -78,7 +77,6 @@ impl Analyzer {
     pub fn module_local_statement(&mut self, statement: ModuleLocalStatement) -> Result<(), Error> {
         match statement {
             ModuleLocalStatement::Const(statement) => self.const_statement(statement),
-            ModuleLocalStatement::Static(statement) => self.static_statement(statement),
             ModuleLocalStatement::Type(statement) => self.type_statement(statement),
             ModuleLocalStatement::Struct(statement) => self.struct_statement(statement),
             ModuleLocalStatement::Enum(statement) => self.enum_statement(statement),
@@ -124,35 +122,8 @@ impl Analyzer {
         let expression_location = statement.expression.location;
 
         let mut rvalue = ExpressionAnalyzer::new_without_bytecode(self.scope())
-            .expression(statement.expression, TranslationHint::ValueExpression)?;
-
-        let const_type = Type::from_type_variant(&statement.r#type.variant, self.scope())?;
-        rvalue
-            .cast(&Element::Type(const_type))
-            .map_err(|error| Error::Element(type_location, error))?;
-        let constant = match rvalue {
-            Element::Constant(constant) => constant,
-            element => {
-                return Err(Error::ConstantExpressionHasNonConstantElement {
-                    location: expression_location,
-                    found: element.to_string(),
-                });
-            }
-        };
-
-        Scope::declare_constant(self.scope(), statement.identifier, constant)
-            .map_err(|error| Error::Scope(location, error))?;
-
-        Ok(())
-    }
-
-    fn static_statement(&mut self, statement: StaticStatement) -> Result<(), Error> {
-        let location = statement.location;
-        let type_location = statement.r#type.location;
-        let expression_location = statement.expression.location;
-
-        let mut rvalue = ExpressionAnalyzer::new_without_bytecode(self.scope())
-            .expression(statement.expression, TranslationHint::ValueExpression)?;
+            .expression(statement.expression, TranslationHint::ValueExpression)?
+            .0;
 
         let const_type = Type::from_type_variant(&statement.r#type.variant, self.scope())?;
         rvalue
@@ -294,6 +265,7 @@ impl Analyzer {
                 BindingPatternVariant::MutableBinding(identifier) => (identifier, true),
                 BindingPatternVariant::Wildcard => continue,
             };
+            let identifier_location = identifier.location;
             let r#type = Type::from_type_variant(&argument_binding.r#type.variant, self.scope())?;
             let address = self
                 .bytecode
@@ -304,7 +276,7 @@ impl Analyzer {
                 identifier,
                 ScopeVariableItem::new(r#type, is_mutable, address),
             )
-            .map_err(|error| Error::Scope(location, error))?;
+            .map_err(|error| Error::Scope(identifier_location, error))?;
         }
 
         // compile the function block
@@ -373,6 +345,7 @@ impl Analyzer {
 
         let path = match ExpressionAnalyzer::new_without_bytecode(self.scope())
             .expression(statement.path, TranslationHint::PathExpression)?
+            .0
         {
             Element::Path(path) => path,
             element => {
@@ -425,7 +398,8 @@ impl Analyzer {
 
         // compile the expression being assigned
         let mut rvalue = ExpressionAnalyzer::new(self.scope(), self.bytecode.clone())
-            .expression(statement.expression, TranslationHint::ValueExpression)?;
+            .expression(statement.expression, TranslationHint::ValueExpression)?
+            .0;
 
         let r#type = if let Some(r#type) = statement.r#type {
             let type_location = r#type.location;
@@ -469,10 +443,13 @@ impl Analyzer {
         let bounds_expression_location = statement.bounds_expression.location;
 
         let (range_start, range_end, bitlength, is_signed, is_inclusive) =
-            match ExpressionAnalyzer::new_without_bytecode(self.scope()).expression(
-                statement.bounds_expression,
-                TranslationHint::ValueExpression,
-            )? {
+            match ExpressionAnalyzer::new_without_bytecode(self.scope())
+                .expression(
+                    statement.bounds_expression,
+                    TranslationHint::ValueExpression,
+                )?
+                .0
+            {
                 Element::Constant(Constant::RangeInclusive(range)) => (
                     range.start,
                     range.end,
@@ -574,7 +551,8 @@ impl Analyzer {
         {
             let location = expression.location;
             let while_result = ExpressionAnalyzer::new(self.scope(), self.bytecode.clone())
-                .expression(expression, TranslationHint::ValueExpression)?;
+                .expression(expression, TranslationHint::ValueExpression)?
+                .0;
 
             match Type::from_element(&while_result, self.scope())? {
                 Type::Boolean => {}

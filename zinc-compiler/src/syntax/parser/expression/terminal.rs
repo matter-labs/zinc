@@ -160,7 +160,7 @@ impl Parser {
                 Ok((self.builder.finish(), None))
             }
             Token {
-                lexeme: Lexeme::Keyword(keyword @ Keyword::AliasSelf),
+                lexeme: Lexeme::Keyword(keyword @ Keyword::SelfUppercase),
                 location,
             } => {
                 self.builder.set_location(location);

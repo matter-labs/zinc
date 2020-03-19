@@ -1,3 +1,11 @@
-fn main() -> u8 {
-    42
+const witness: u8 = 42;
+
+struct ZkSyncWitness {
+    old_root: field,
+    block_number: field,
+    validator_address: field,
+}
+
+fn main(witness: ZkSyncWitness) -> field {
+    0 as field
 }

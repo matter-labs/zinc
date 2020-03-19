@@ -5,7 +5,6 @@
 let
 mut
 const
-static
 type
 struct
 enum
@@ -52,6 +51,7 @@ Self
 ## Reserved
 ```rust,no_run,noplaypen
 self
+static
 pub
 ref
 extern

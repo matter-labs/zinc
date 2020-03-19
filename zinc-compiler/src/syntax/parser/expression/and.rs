@@ -70,28 +70,28 @@ impl Parser {
                             self.state = State::ComparisonSecondOperand;
                         }
                         Token {
-                            lexeme: Lexeme::Symbol(Symbol::GreaterThanEquals),
+                            lexeme: Lexeme::Symbol(Symbol::GreaterEquals),
                             location,
                         } => {
                             self.operator = Some((location, ExpressionOperator::GreaterEquals));
                             self.state = State::ComparisonSecondOperand;
                         }
                         Token {
-                            lexeme: Lexeme::Symbol(Symbol::LesserThanEquals),
+                            lexeme: Lexeme::Symbol(Symbol::LesserEquals),
                             location,
                         } => {
                             self.operator = Some((location, ExpressionOperator::LesserEquals));
                             self.state = State::ComparisonSecondOperand;
                         }
                         Token {
-                            lexeme: Lexeme::Symbol(Symbol::GreaterThan),
+                            lexeme: Lexeme::Symbol(Symbol::Greater),
                             location,
                         } => {
                             self.operator = Some((location, ExpressionOperator::Greater));
                             self.state = State::ComparisonSecondOperand;
                         }
                         Token {
-                            lexeme: Lexeme::Symbol(Symbol::LesserThan),
+                            lexeme: Lexeme::Symbol(Symbol::Lesser),
                             location,
                         } => {
                             self.operator = Some((location, ExpressionOperator::Lesser));

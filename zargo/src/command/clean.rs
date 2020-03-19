@@ -35,11 +35,11 @@ pub struct Command {
 
 #[derive(Debug, Fail)]
 pub enum Error {
-    #[fail(display = "manifest file: {}", _0)]
+    #[fail(display = "manifest file {}", _0)]
     ManifestFile(ManifestError),
-    #[fail(display = "build directory: {}", _0)]
+    #[fail(display = "build directory {}", _0)]
     BuildDirectory(BuildDirectoryError),
-    #[fail(display = "data directory: {}", _0)]
+    #[fail(display = "data directory {}", _0)]
     DataDirectory(DataDirectoryError),
 }
 

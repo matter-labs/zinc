@@ -607,6 +607,226 @@ fn main() {
 }
 
 #[test]
+fn error_element_constant_bitwise_or_1st_expected_integer() {
+    let input = r#"
+fn main() {
+    let value = true | 42;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 22),
+        ElementError::Constant(
+            ConstantError::OperatorBitwiseOrFirstOperandExpectedInteger {
+                found: Constant::Boolean(true).to_string(),
+            },
+        ),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_bitwise_or_2nd_expected_integer() {
+    let input = r#"
+fn main() {
+    let value = 42 | true;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 20),
+        ElementError::Constant(
+            ConstantError::OperatorBitwiseOrSecondOperandExpectedInteger {
+                found: Constant::Boolean(true).to_string(),
+            },
+        ),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_bitwise_xor_1st_expected_integer() {
+    let input = r#"
+fn main() {
+    let value = true ^ 42;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 22),
+        ElementError::Constant(
+            ConstantError::OperatorBitwiseXorFirstOperandExpectedInteger {
+                found: Constant::Boolean(true).to_string(),
+            },
+        ),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_bitwise_xor_2nd_expected_integer() {
+    let input = r#"
+fn main() {
+    let value = 42 ^ true;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 20),
+        ElementError::Constant(
+            ConstantError::OperatorBitwiseXorSecondOperandExpectedInteger {
+                found: Constant::Boolean(true).to_string(),
+            },
+        ),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_bitwise_and_1st_expected_integer() {
+    let input = r#"
+fn main() {
+    let value = true & 42;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 22),
+        ElementError::Constant(
+            ConstantError::OperatorBitwiseAndFirstOperandExpectedInteger {
+                found: Constant::Boolean(true).to_string(),
+            },
+        ),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_bitwise_and_2nd_expected_integer() {
+    let input = r#"
+fn main() {
+    let value = 42 & true;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 20),
+        ElementError::Constant(
+            ConstantError::OperatorBitwiseAndSecondOperandExpectedInteger {
+                found: Constant::Boolean(true).to_string(),
+            },
+        ),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_bitwise_shift_left_1st_expected_integer() {
+    let input = r#"
+fn main() {
+    let value = true << 42;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 22),
+        ElementError::Constant(
+            ConstantError::OperatorBitwiseShiftLeftFirstOperandExpectedInteger {
+                found: Constant::Boolean(true).to_string(),
+            },
+        ),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_bitwise_shift_left_2nd_expected_integer() {
+    let input = r#"
+fn main() {
+    let value = 42 << true;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 20),
+        ElementError::Constant(
+            ConstantError::OperatorBitwiseShiftLeftSecondOperandExpectedInteger {
+                found: Constant::Boolean(true).to_string(),
+            },
+        ),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_bitwise_shift_right_1st_expected_integer() {
+    let input = r#"
+fn main() {
+    let value = true >> 42;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 22),
+        ElementError::Constant(
+            ConstantError::OperatorBitwiseShiftRightFirstOperandExpectedInteger {
+                found: Constant::Boolean(true).to_string(),
+            },
+        ),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_bitwise_shift_right_2nd_expected_integer() {
+    let input = r#"
+fn main() {
+    let value = 42 >> true;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 20),
+        ElementError::Constant(
+            ConstantError::OperatorBitwiseShiftRightSecondOperandExpectedInteger {
+                found: Constant::Boolean(true).to_string(),
+            },
+        ),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_element_constant_addition_1st_expected_integer() {
     let input = r#"
 fn main() {
@@ -845,28 +1065,6 @@ fn main() {
 }
 
 #[test]
-fn error_element_constant_casting_to_invalid_type_static() {
-    let input = r#"
-static VALUE: u8 = 42;
-static RESULT: bool = VALUE;
-
-fn main() {}
-"#;
-
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 16),
-        ElementError::Constant(ConstantError::Casting(CasterError::CastingToInvalidType {
-            from: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            to: Type::boolean().to_string(),
-        })),
-    )));
-
-    let result = crate::semantic::tests::compile_entry_point(input);
-
-    assert_eq!(result, expected);
-}
-
-#[test]
 fn error_element_constant_not_expected_boolean() {
     let input = r#"
 fn main() {
@@ -883,6 +1081,26 @@ fn main() {
                 crate::BITLENGTH_BYTE,
             ))
             .to_string(),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_constant_bitwise_not_expected_integer() {
+    let input = r#"
+fn main() {
+    let value = ~true;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 17),
+        ElementError::Constant(ConstantError::OperatorBitwiseNotExpectedInteger {
+            found: Constant::Boolean(true).to_string(),
         }),
     )));
 

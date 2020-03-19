@@ -19,23 +19,17 @@ pub enum State {
     Percent,
     Dot,
     Colon,
-    DoubleDot,
     Ampersand,
     VerticalBar,
     Circumflex,
+    DoubleDot,
+    DoubleLesser,
+    DoubleGreater,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Error {
-    ExpectedOneOf {
-        expected: Vec<char>,
-        found: char,
-        offset: usize,
-    },
-    InvalidCharacter {
-        found: char,
-        offset: usize,
-    },
+    InvalidCharacter { found: char, offset: usize },
     UnexpectedEnd,
 }
 
@@ -56,6 +50,8 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
 
                 Some(';') => return Ok((size + 1, Symbol::Semicolon)),
                 Some(',') => return Ok((size + 1, Symbol::Comma)),
+
+                Some('~') => return Ok((size + 1, Symbol::Tilde)),
 
                 Some('+') => {
                     size += 1;
@@ -134,18 +130,22 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                     _ => Ok((size, Symbol::ExclamationMark)),
                 }
             }
-            State::Lesser => {
-                return match character {
-                    Some('=') => Ok((size + 1, Symbol::LesserThanEquals)),
-                    _ => Ok((size, Symbol::LesserThan)),
+            State::Lesser => match character {
+                Some('=') => return Ok((size + 1, Symbol::LesserEquals)),
+                Some('<') => {
+                    size += 1;
+                    state = State::DoubleLesser;
                 }
-            }
-            State::Greater => {
-                return match character {
-                    Some('=') => Ok((size + 1, Symbol::GreaterThanEquals)),
-                    _ => Ok((size, Symbol::GreaterThan)),
+                _ => return Ok((size, Symbol::Lesser)),
+            },
+            State::Greater => match character {
+                Some('=') => return Ok((size + 1, Symbol::GreaterEquals)),
+                Some('>') => {
+                    size += 1;
+                    state = State::DoubleGreater;
                 }
-            }
+                _ => return Ok((size, Symbol::Greater)),
+            },
             State::Plus => {
                 return match character {
                     Some('=') => Ok((size + 1, Symbol::PlusEquals)),
@@ -177,6 +177,27 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                     _ => Ok((size, Symbol::Percent)),
                 }
             }
+            State::Ampersand => {
+                return match character {
+                    Some('=') => Ok((size + 1, Symbol::AmpersandEquals)),
+                    Some('&') => Ok((size + 1, Symbol::DoubleAmpersand)),
+                    _ => Ok((size, Symbol::Ampersand)),
+                }
+            }
+            State::VerticalBar => {
+                return match character {
+                    Some('=') => Ok((size + 1, Symbol::VerticalBarEquals)),
+                    Some('|') => Ok((size + 1, Symbol::DoubleVerticalBar)),
+                    _ => Ok((size, Symbol::VerticalBar)),
+                }
+            }
+            State::Circumflex => {
+                return match character {
+                    Some('=') => Ok((size + 1, Symbol::CircumflexEquals)),
+                    Some('^') => Ok((size + 1, Symbol::DoubleCircumflex)),
+                    _ => Ok((size, Symbol::Circumflex)),
+                }
+            }
             State::Dot => match character {
                 Some('.') => {
                     size += 1;
@@ -196,37 +217,16 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
                     _ => Ok((size, Symbol::DoubleDot)),
                 }
             }
-            State::Ampersand => {
+            State::DoubleLesser => {
                 return match character {
-                    Some('&') => Ok((size + 1, Symbol::DoubleAmpersand)),
-                    Some(character) => Err(Error::ExpectedOneOf {
-                        expected: vec!['&'],
-                        found: character,
-                        offset: size,
-                    }),
-                    None => return Err(Error::UnexpectedEnd),
+                    Some('=') => Ok((size + 1, Symbol::DoubleLesserEquals)),
+                    _ => Ok((size, Symbol::DoubleLesser)),
                 }
             }
-            State::VerticalBar => {
+            State::DoubleGreater => {
                 return match character {
-                    Some('|') => Ok((size + 1, Symbol::DoubleVerticalBar)),
-                    Some(character) => Err(Error::ExpectedOneOf {
-                        expected: vec!['|'],
-                        found: character,
-                        offset: size,
-                    }),
-                    None => return Err(Error::UnexpectedEnd),
-                }
-            }
-            State::Circumflex => {
-                return match character {
-                    Some('^') => Ok((size + 1, Symbol::DoubleCircumflex)),
-                    Some(character) => Err(Error::ExpectedOneOf {
-                        expected: vec!['^'],
-                        found: character,
-                        offset: size,
-                    }),
-                    None => return Err(Error::UnexpectedEnd),
+                    Some('=') => Ok((size + 1, Symbol::DoubleGreaterEquals)),
+                    _ => Ok((size, Symbol::DoubleGreater)),
                 }
             }
         }
@@ -248,18 +248,6 @@ mod tests {
     }
 
     #[test]
-    fn error_expected_one_of() {
-        let input = "|5";
-        let expected = Err(Error::ExpectedOneOf {
-            expected: vec!['|'],
-            found: '5',
-            offset: 1,
-        });
-        let result = parse(input);
-        assert_eq!(result, expected);
-    }
-
-    #[test]
     fn error_invalid_character() {
         let input = "#";
         let expected = Err(Error::InvalidCharacter {
@@ -272,7 +260,7 @@ mod tests {
 
     #[test]
     fn error_unexpected_end() {
-        let input = "|";
+        let input = "";
         let expected = Err(Error::UnexpectedEnd);
         let result = parse(input);
         assert_eq!(result, expected);

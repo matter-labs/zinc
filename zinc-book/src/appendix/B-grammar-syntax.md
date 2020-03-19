@@ -8,7 +8,6 @@ file = { module_local_statement } ;
 (* Statements *)
 module_local_statement =
     const_statement
-  | static_statement
   | type_statement
   | struct_statement
   | enum_statement
@@ -33,8 +32,6 @@ implementation_local_statement =
   | empty_statement
 ;
 
-let_statement = 'let', [ 'mut' ], identifier, [ ':', type ], '=', expression ;
-loop_statement = 'for', identifier, 'in', expression, [ 'while', expression ], block_expression ;
 type_statement = 'type', identifier, '=', type ;
 struct_statement = 'struct', '{', field_list, '}' ;
 enum_statement = 'enum', '{', variant_list, '}' ;
@@ -42,19 +39,26 @@ fn_statement = 'fn', identifier, '(', field_list, ')', [ '->', type ], block_exp
 mod_statement = 'mod', identifier ;
 use_statement = 'use', path_expression ;
 impl_statement = 'impl', identifier, '{', { implementation_local_statement }, '}' ;
+const_statement = 'const', identifier, ':', type, '=', expression ;
+let_statement = 'let', [ 'mut' ], identifier, [ ':', type ], '=', expression ;
+loop_statement = 'for', identifier, 'in', expression, [ 'while', expression ], block_expression ;
 empty_statement = ';' ;
 
 (* Expressions *)
-expression = operand_assignment, [ '=' | '+=' | '-=' | '*=' | '/=' | '%=', operand_assignment ] ;
+expression = operand_assignment, [ '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '|=' | '^=' | '&=', operand_assignment ] ;
 operand_assignment = operand_range, [ '..' | '..=', operand_range ] ;
 operand_range = operand_or, { '||', operand_or } ;
 operand_or = operand_xor, { '^^', operand_xor } ;
 operand_xor = operand_and, { '&&', operand_and } ;
 operand_and = operand_comparison, [ '==' | '!=' | '>=' | '<=' | '>' | '<', operand_comparison ] ;
-operand_comparison = operand_add_sub, { '+' | '-', operand_add_sub } ;
+operand_comparison = operand_bitwise_or, { '|', operand_bitwise_or } ;
+operand_bitwise_or = operand_bitwise_xor, { '^', operand_bitwise_xor } ;
+operand_bitwise_xor = operand_bitwise_and, { '&', operand_bitwise_and } ;
+operand_bitwise_and = operand_bitwise_shift, { '<<' | '>>', operand_bitwise_shift } ;
+operand_bitwise_shift = operand_add_sub, { '+' | '-', operand_add_sub } ;
 operand_add_sub = operand_mul_div_rem, { '*' | '/' | '%', operand_mul_div_rem } ;
 operand_mul_div_rem = operand_as, { 'as', type } ;
-operand_as = { '-' | '!', '&', '*' }, operand_access ;
+operand_as = { '-' | '~' | '!' }, operand_access ;
 operand_access = operand_path, {
     '[', expression, ']'
   | '.', integer | member_name
