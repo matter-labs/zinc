@@ -25,8 +25,12 @@ pub trait InstructionInfo: PartialEq + fmt::Debug + Sized {
     fn decode(_bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
         unimplemented!()
     }
-    fn inputs_count(&self) -> usize;
-    fn outputs_count(&self) -> usize;
+    fn inputs_count(&self) -> usize {
+        unimplemented!()
+    }
+    fn outputs_count(&self) -> usize {
+        unimplemented!()
+    }
     fn wrap(&self) -> Instruction;
 }
 
@@ -102,6 +106,14 @@ pub enum InstructionCode {
     Ne,
     Ge,
     Gt,
+
+    // Bit Operations
+    BitShiftLeft,
+    BitShiftRight,
+    BitAnd,
+    BitOr,
+    BitXor,
+    BitNot,
 
     Cast,
 
@@ -191,6 +203,14 @@ pub enum Instruction {
     Ne(Ne),
     Ge(Ge),
     Gt(Gt),
+
+    // Bit operations
+    BitShiftLeft(BitShiftLeft),
+    BitShiftRight(BitShiftRight),
+    BitAnd(BitAnd),
+    BitOr(BitOr),
+    BitXor(BitXor),
+    BitNot(BitNot),
 
     Cast(Cast),
 
@@ -287,6 +307,13 @@ macro_rules! dispatch_instruction {
             Instruction::Ne($pattern) => $expression,
             Instruction::Ge($pattern) => $expression,
             Instruction::Gt($pattern) => $expression,
+
+            Instruction::BitShiftLeft($pattern) => $expression,
+            Instruction::BitShiftRight($pattern) => $expression,
+            Instruction::BitAnd($pattern) => $expression,
+            Instruction::BitOr($pattern) => $expression,
+            Instruction::BitXor($pattern) => $expression,
+            Instruction::BitNot($pattern) => $expression,
 
             Instruction::Cast($pattern) => $expression,
 
