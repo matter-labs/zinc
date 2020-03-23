@@ -49,6 +49,6 @@ where
                 num.get_variable(),
                 scalar_type,
             ))
-        },
+        }
     }
 }

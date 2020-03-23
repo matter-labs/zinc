@@ -1,10 +1,10 @@
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
+use crate::gadgets::Scalar;
 use crate::{gadgets, Engine};
 use franklin_crypto::bellman::ConstraintSystem;
-use zinc_bytecode::LoadSequenceByIndexGlobal;
-use crate::gadgets::Scalar;
 use std::mem;
+use zinc_bytecode::LoadSequenceByIndexGlobal;
 
 impl<E, CS> VMInstruction<E, CS> for LoadSequenceByIndexGlobal
 where

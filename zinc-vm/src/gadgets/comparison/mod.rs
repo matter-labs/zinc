@@ -1,7 +1,7 @@
 use crate::auto_const;
-use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets;
-use crate::gadgets::{Scalar, ScalarTypeExpectation, utils};
+use crate::gadgets::auto_const::prelude::*;
+use crate::gadgets::{utils, Scalar, ScalarTypeExpectation};
 use crate::{Engine, Result, RuntimeError};
 use ff::PrimeField;
 use franklin_crypto::bellman::{ConstraintSystem, SynthesisError};
@@ -150,14 +150,14 @@ fn boolean_or<E: Engine, CS: ConstraintSystem<E>>(
 }
 
 pub fn eq<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
+{
+    fn add_inner<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
     where
         E: Engine,
         CS: ConstraintSystem<E>,
-{
-    fn add_inner<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
-        where
-            E: Engine,
-            CS: ConstraintSystem<E>,
     {
         let le = left.to_expression::<CS>();
         let re = right.to_expression::<CS>();
@@ -171,9 +171,9 @@ pub fn eq<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E
 }
 
 pub fn ne<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
-    where
-        E: Engine,
-        CS: ConstraintSystem<E>,
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
     let t = eq(cs.namespace(|| "eq"), left, right)?;
     gadgets::not(cs.namespace(|| "not"), &t)

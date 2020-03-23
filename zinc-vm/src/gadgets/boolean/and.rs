@@ -7,27 +7,23 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::num::AllocatedNum;
 
 pub fn and<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
+{
+    fn inner<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
     where
         E: Engine,
         CS: ConstraintSystem<E>,
-{
-    fn inner<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
-        where
-            E: Engine,
-            CS: ConstraintSystem<E>,
     {
         left.get_type().assert_type(ScalarType::Boolean)?;
         right.get_type().assert_type(ScalarType::Boolean)?;
 
-
-        let num = AllocatedNum::alloc(
-            cs.namespace(|| "value"),
-            || {
-                let mut conj = left.grab_value()?;
-                conj.mul_assign(&right.grab_value()?);
-                Ok(conj)
-            }
-        )?;
+        let num = AllocatedNum::alloc(cs.namespace(|| "value"), || {
+            let mut conj = left.grab_value()?;
+            conj.mul_assign(&right.grab_value()?);
+            Ok(conj)
+        })?;
 
         cs.enforce(
             || "equality",

@@ -1,4 +1,3 @@
-
 use crate::{Instruction, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
 

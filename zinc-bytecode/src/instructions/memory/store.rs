@@ -1,6 +1,5 @@
 use crate::{Instruction, InstructionInfo};
 
-
 use serde_derive::{Deserialize, Serialize};
 
 /// Stores value from evaluation stack in data stack.

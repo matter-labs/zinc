@@ -6,14 +6,14 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::expression::Expression;
 
 pub fn not<E, CS>(cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
+{
+    fn inner<E, CS>(mut cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
     where
         E: Engine,
         CS: ConstraintSystem<E>,
-{
-    fn inner<E, CS>(mut cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
-        where
-            E: Engine,
-            CS: ConstraintSystem<E>,
     {
         scalar.get_type().assert_type(ScalarType::Boolean)?;
 

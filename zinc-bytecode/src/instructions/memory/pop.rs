@@ -1,6 +1,5 @@
 use crate::{Instruction, InstructionInfo};
 
-
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]

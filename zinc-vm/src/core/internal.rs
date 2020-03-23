@@ -1,7 +1,7 @@
 use crate::core::{Block, Branch, Cell, FunctionFrame, Loop, VirtualMachine};
 use crate::errors::MalformedBytecode;
-use crate::gadgets::stdlib::NativeFunction;
 use crate::gadgets::Gadgets;
+use crate::stdlib::NativeFunction;
 use crate::Result;
 use crate::RuntimeError;
 use crate::{gadgets, Engine};

@@ -73,7 +73,7 @@ impl<E: Engine> Scalar<E> {
     pub fn new_constant_bigint(value: &BigInt, scalar_type: ScalarType) -> Result<Self> {
         let fr = utils::bigint_to_fr::<E>(value).ok_or(RuntimeError::ValueOverflow {
             value: value.clone(),
-            scalar_type
+            scalar_type,
         })?;
         Ok(Self::new_constant_fr(fr, scalar_type))
     }
@@ -256,6 +256,19 @@ impl<E: Engine> ToBigInt for Scalar<E> {
     fn to_bigint(&self) -> Option<BigInt> {
         self.get_value()
             .map(|fr| utils::fr_to_bigint(&fr, self.is_signed()))
+    }
+}
+
+impl<E: Engine> From<&AllocatedNum<E>> for Scalar<E> {
+    fn from(num: &AllocatedNum<E>) -> Self {
+        Self {
+            variant: ScalarVariable {
+                value: num.get_value(),
+                variable: num.get_variable(),
+            }
+            .into(),
+            scalar_type: ScalarType::Field,
+        }
     }
 }
 

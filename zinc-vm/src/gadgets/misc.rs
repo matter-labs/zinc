@@ -6,7 +6,7 @@ use ff::Field;
 use num_bigint::BigInt;
 
 use crate::core::RuntimeError;
-use crate::gadgets::{Gadget, Scalar, ScalarType, ScalarTypeExpectation, ScalarVariant, utils};
+use crate::gadgets::{utils, Gadget, Scalar, ScalarType, ScalarTypeExpectation, ScalarVariant};
 use crate::{gadgets, Engine};
 use franklin_crypto::circuit::expression::Expression;
 use franklin_crypto::circuit::Assignment;

@@ -3,8 +3,8 @@ extern crate franklin_crypto;
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::Engine;
 use crate::gadgets;
+use crate::Engine;
 use zinc_bytecode::instructions::Not;
 
 impl<E, CS> VMInstruction<E, CS> for Not
