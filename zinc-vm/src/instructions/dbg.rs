@@ -57,7 +57,7 @@ mod tests {
     #[test]
     fn test() {
         VMTestRunner::new()
-            .add(PushConst::new_untyped(42.into()))
+            .add(PushConst::new_field(42.into()))
             .add(Dbg::new("Value: {}".into(), vec![]))
             .test::<u32>(&[])
             .unwrap();

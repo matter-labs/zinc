@@ -14,7 +14,7 @@ impl PushConst {
         Self { value, scalar_type }
     }
 
-    pub fn new_untyped(value: BigInt) -> Self {
+    pub fn new_field(value: BigInt) -> Self {
         Self::new(value, ScalarType::Field)
     }
 }
