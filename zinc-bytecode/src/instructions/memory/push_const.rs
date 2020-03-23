@@ -1,5 +1,5 @@
 use crate::scalar::ScalarType;
-use crate::{Instruction, InstructionCode, InstructionInfo};
+use crate::{Instruction, InstructionInfo};
 use num_bigint::BigInt;
 use serde_derive::{Deserialize, Serialize};
 
@@ -22,18 +22,6 @@ impl PushConst {
 impl InstructionInfo for PushConst {
     fn to_assembly(&self) -> String {
         format!("push {} as {}", self.value, self.scalar_type)
-    }
-
-    fn code() -> InstructionCode {
-        InstructionCode::PushConst
-    }
-
-    fn inputs_count(&self) -> usize {
-        0
-    }
-
-    fn outputs_count(&self) -> usize {
-        1
     }
 
     fn wrap(&self) -> Instruction {

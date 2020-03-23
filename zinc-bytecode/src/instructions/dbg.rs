@@ -1,5 +1,5 @@
 use crate::data::types::DataType;
-use crate::{Instruction, InstructionCode, InstructionInfo};
+use crate::{Instruction, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
@@ -17,18 +17,6 @@ impl Dbg {
 impl InstructionInfo for Dbg {
     fn to_assembly(&self) -> String {
         "dbg".into()
-    }
-
-    fn code() -> InstructionCode {
-        InstructionCode::Dbg
-    }
-
-    fn inputs_count(&self) -> usize {
-        0
-    }
-
-    fn outputs_count(&self) -> usize {
-        0
     }
 
     fn wrap(&self) -> Instruction {

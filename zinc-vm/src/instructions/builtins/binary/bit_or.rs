@@ -1,4 +1,4 @@
-use crate::core::{VMInstruction, VirtualMachine};
+use crate::core::{VMInstruction, VirtualMachine, InternalVM};
 use crate::{Engine, Result, RuntimeError};
 
 use franklin_crypto::bellman::ConstraintSystem;
@@ -11,7 +11,7 @@ where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    fn execute(&self, _vm: &mut VirtualMachine<E, CS>) -> Result {
+    fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result {
         let left = vm.pop()?.value()?;
         let right = vm.pop()?.value()?;
 

@@ -3,7 +3,7 @@ use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::expression::Expression;
 use num_bigint::BigInt;
 
-use crate::gadgets::{utils, IntegerType, Scalar, ScalarType, ScalarTypeExpectation};
+use crate::gadgets::{IntegerType, Scalar, ScalarType, ScalarTypeExpectation, utils};
 use crate::{Engine, Result, RuntimeError};
 
 pub fn conditional_type_check<E, CS>(

@@ -3,7 +3,7 @@ use crate::{Engine, Result, RuntimeError};
 
 use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::instructions::BitNot;
-use crate::gadgets::{ScalarType, Scalar, ScalarTypeExpectation};
+use crate::gadgets::{Scalar};
 use crate::gadgets::utils::{fr_to_bigint, bigint_to_fr};
 
 impl<E, CS> VMInstruction<E, CS> for BitNot

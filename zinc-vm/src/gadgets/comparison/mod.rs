@@ -1,7 +1,7 @@
 use crate::auto_const;
 use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::boolean::not;
-use crate::gadgets::{utils, Scalar, ScalarTypeExpectation};
+use crate::gadgets::{Scalar, ScalarTypeExpectation, utils};
 use crate::{Engine, Result, RuntimeError};
 use ff::PrimeField;
 use franklin_crypto::bellman::{ConstraintSystem, SynthesisError};
