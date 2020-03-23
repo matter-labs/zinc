@@ -18,7 +18,6 @@ where
     CS: ConstraintSystem<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
-        // TODO: Use call_native for all built-in functions
         match self.identifier {
             BuiltinIdentifier::CryptoSchnorrSignatureVerify => {
                 return vm.call_native(VerifySchnorrSignature::new(self.inputs_count)?);

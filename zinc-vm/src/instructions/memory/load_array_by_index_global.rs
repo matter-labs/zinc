@@ -1,8 +1,10 @@
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::Engine;
+use crate::{gadgets, Engine};
 use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::LoadSequenceByIndexGlobal;
+use crate::gadgets::Scalar;
+use std::mem;
 
 impl<E, CS> VMInstruction<E, CS> for LoadSequenceByIndexGlobal
 where
@@ -20,10 +22,10 @@ where
 
         let mut values = Vec::with_capacity(self.value_len);
         for i in 0..self.value_len {
-            let offset = vm
-                .operations()
-                .constant_bigint(&i.into(), index.get_type())?;
-            let address = vm.operations().add(index.clone(), offset)?;
+            let cs = vm.constraint_system();
+            let offset = Scalar::new_constant_bigint(&i.into(), index.get_type())?;
+            let address = gadgets::add(cs.namespace(|| format!("address {}", i)), &index, &offset)?;
+            mem::drop(cs);
 
             let condition = vm.condition_top()?;
             let value =

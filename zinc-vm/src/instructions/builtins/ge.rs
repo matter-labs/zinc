@@ -3,7 +3,7 @@ extern crate franklin_crypto;
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::Engine;
+use crate::{Engine, gadgets};
 use zinc_bytecode::instructions::Ge;
 
 impl<E, CS> VMInstruction<E, CS> for Ge
@@ -15,7 +15,8 @@ where
         let right = vm.pop()?.value()?;
         let left = vm.pop()?.value()?;
 
-        let ge = vm.operations().ge(left, right)?;
+        let cs = vm.constraint_system();
+        let ge = gadgets::ge(cs.namespace(|| "ge"), &left, &right)?;
 
         vm.push(Cell::Value(ge))
     }

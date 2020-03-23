@@ -1,9 +1,9 @@
-use crate::gadgets::{Gadget, Gadgets, IntegerType, Scalar, ScalarType};
+use crate::gadgets;
+use crate::gadgets::{Gadget, IntegerType, Scalar, ScalarType};
 use crate::Engine;
 use crate::RuntimeError;
 use bellman::ConstraintSystem;
 pub use num_bigint::BigInt;
-use std::mem;
 
 pub struct ToBits;
 
@@ -77,13 +77,11 @@ where
         }
     };
 
-    let mut gadgets = Gadgets::new(cs.namespace(|| "gadgets"));
-
     let base_value = BigInt::from(1) << length;
-    let base = gadgets.constant_bigint(&base_value, ScalarType::Field)?;
-    let complement = gadgets.add(scalar, base)?;
+    let base = Scalar::new_constant_bigint(&base_value, ScalarType::Field)?;
 
-    mem::drop(gadgets);
+    let complement = gadgets::add(cs.namespace(|| "complement"), &scalar, &base)?;
+
 
     let bits = complement
         .to_expression::<CS>()

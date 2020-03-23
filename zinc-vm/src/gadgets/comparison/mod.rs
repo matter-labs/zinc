@@ -1,6 +1,6 @@
 use crate::auto_const;
 use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::boolean::not;
+use crate::gadgets;
 use crate::gadgets::{Scalar, ScalarTypeExpectation, utils};
 use crate::{Engine, Result, RuntimeError};
 use ff::PrimeField;
@@ -33,7 +33,7 @@ where
     CS: ConstraintSystem<E>,
 {
     let is_gt = gt(cs.namespace(|| "gt"), left, right)?;
-    not(cs.namespace(|| "not"), &is_gt)
+    gadgets::not(cs.namespace(|| "not"), &is_gt)
 }
 
 pub fn lt<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
@@ -147,4 +147,34 @@ fn boolean_or<E: Engine, CS: ConstraintSystem<E>>(
     right: &Boolean,
 ) -> std::result::Result<Boolean, SynthesisError> {
     Ok(Boolean::and(cs.namespace(|| "and"), &left.not(), &right.not())?.not())
+}
+
+pub fn eq<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+    where
+        E: Engine,
+        CS: ConstraintSystem<E>,
+{
+    fn add_inner<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+        where
+            E: Engine,
+            CS: ConstraintSystem<E>,
+    {
+        let le = left.to_expression::<CS>();
+        let re = right.to_expression::<CS>();
+
+        let eq = Expression::equals(cs.namespace(|| "equals"), le, re)?;
+
+        Scalar::from_boolean(cs.namespace(|| "scalar"), Boolean::from(eq))
+    }
+
+    auto_const!(add_inner, cs, left, right)
+}
+
+pub fn ne<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+    where
+        E: Engine,
+        CS: ConstraintSystem<E>,
+{
+    let t = eq(cs.namespace(|| "eq"), left, right)?;
+    gadgets::not(cs.namespace(|| "not"), &t)
 }

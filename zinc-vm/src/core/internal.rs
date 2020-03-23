@@ -140,7 +140,8 @@ where
 
         let prev = self.condition_top()?;
 
-        let next = self.operations().and(condition.clone(), prev)?;
+        let cs = self.constraint_system();
+        let next = gadgets::boolean::and(cs.namespace(|| "branch"), &condition, &prev)?;
         self.state.conditions_stack.push(next);
 
         let branch = Branch {

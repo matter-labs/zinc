@@ -1,8 +1,10 @@
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::Engine;
+use crate::{gadgets, Engine};
 use franklin_crypto::bellman::ConstraintSystem;
 use zinc_bytecode::StoreSequenceByIndex;
+use crate::gadgets::Scalar;
+use std::mem;
 
 impl<E, CS> VMInstruction<E, CS> for StoreSequenceByIndex
 where
@@ -26,10 +28,10 @@ where
         let index = vm.pop()?.value()?;
 
         for (i, value) in values.into_iter().enumerate() {
-            let offset = vm
-                .operations()
-                .constant_bigint(&i.into(), index.get_type())?;
-            let address = vm.operations().add(index.clone(), offset)?;
+            let cs = vm.constraint_system();
+            let offset = Scalar::new_constant_bigint(&i.into(), index.get_type())?;
+            let address = gadgets::add(cs.namespace(|| format!("address {}", i)), &index, &offset)?;
+            mem::drop(cs);
             array = vm
                 .operations()
                 .array_set(array.as_slice(), address, value)?;

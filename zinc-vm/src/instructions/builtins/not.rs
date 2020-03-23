@@ -4,6 +4,7 @@ use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
 use crate::Engine;
+use crate::gadgets;
 use zinc_bytecode::instructions::Not;
 
 impl<E, CS> VMInstruction<E, CS> for Not
@@ -14,7 +15,8 @@ where
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         let value = vm.pop()?.value()?;
 
-        let not = vm.operations().not(value)?;
+        let cs = vm.constraint_system();
+        let not = gadgets::not(cs.namespace(|| "not"), &value)?;
 
         vm.push(Cell::Value(not))
     }
