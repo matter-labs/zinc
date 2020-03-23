@@ -16,7 +16,10 @@ impl<E: Engine> Gadget<E> for ToBits {
         mut cs: CS,
         input: Self::Input,
     ) -> Result<Self::Output, RuntimeError> {
-        if let ScalarType::Integer(IntegerType { signed: true, .. }) = input.get_type() {
+        if let ScalarType::Integer(IntegerType {
+            is_signed: true, ..
+        }) = input.get_type()
+        {
             return signed_to_bits(cs, input);
         }
 
@@ -24,7 +27,7 @@ impl<E: Engine> Gadget<E> for ToBits {
 
         let mut bits = match input.get_type() {
             ScalarType::Integer(t) => {
-                num.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), t.length)
+                num.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), t.bitlength)
             }
             ScalarType::Boolean => num.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), 1),
             ScalarType::Field => num.into_bits_le_strict(cs.namespace(|| "into_bits_le_strict")),
@@ -66,8 +69,8 @@ where
 {
     let length = match scalar.get_type() {
         ScalarType::Integer(IntegerType {
-            length,
-            signed: true,
+            bitlength: length,
+            is_signed: true,
         }) => length,
         t => {
             return Err(RuntimeError::TypeError {

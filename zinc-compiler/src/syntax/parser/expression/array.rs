@@ -198,7 +198,7 @@ mod tests {
     fn ok_empty() {
         let input = r#"[]"#;
 
-        let expected = Ok(ArrayExpression::new(Location::new(1, 1), vec![], None));
+        let expected = Ok(ArrayExpression::new_list(Location::new(1, 1), vec![]));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
@@ -209,7 +209,7 @@ mod tests {
     fn ok_single() {
         let input = r#"[1]"#;
 
-        let expected = Ok(ArrayExpression::new(
+        let expected = Ok(ArrayExpression::new_list(
             Location::new(1, 1),
             vec![Expression::new(
                 Location::new(1, 2),
@@ -223,7 +223,6 @@ mod tests {
                     )),
                 )],
             )],
-            None,
         ));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
@@ -235,7 +234,7 @@ mod tests {
     fn ok_multiple() {
         let input = r#"[1, 2, 3]"#;
 
-        let expected = Ok(ArrayExpression::new(
+        let expected = Ok(ArrayExpression::new_list(
             Location::new(1, 1),
             vec![
                 Expression::new(
@@ -275,7 +274,6 @@ mod tests {
                     )],
                 ),
             ],
-            None,
         ));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
@@ -287,9 +285,9 @@ mod tests {
     fn ok_with_size_expression() {
         let input = r#"[1; 10]"#;
 
-        let expected = Ok(ArrayExpression::new(
+        let expected = Ok(ArrayExpression::new_repeated(
             Location::new(1, 1),
-            vec![Expression::new(
+            Expression::new(
                 Location::new(1, 2),
                 vec![ExpressionElement::new(
                     Location::new(1, 2),
@@ -300,8 +298,8 @@ mod tests {
                         ),
                     )),
                 )],
-            )],
-            Some(Expression::new(
+            ),
+            Expression::new(
                 Location::new(1, 5),
                 vec![ExpressionElement::new(
                     Location::new(1, 5),
@@ -312,7 +310,7 @@ mod tests {
                         ),
                     )),
                 )],
-            )),
+            ),
         ));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);

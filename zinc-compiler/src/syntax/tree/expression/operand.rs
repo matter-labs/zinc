@@ -27,7 +27,7 @@ pub enum Operand {
     MemberString(MemberString),
     Identifier(Identifier),
     Type(Type),
-    ExpressionList(Vec<Expression>),
+    List(Vec<Expression>),
     Block(BlockExpression),
     Conditional(ConditionalExpression),
     Match(MatchExpression),

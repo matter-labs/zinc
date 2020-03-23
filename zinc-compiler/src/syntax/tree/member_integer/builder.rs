@@ -22,21 +22,15 @@ impl Builder {
     }
 
     pub fn finish(mut self) -> MemberInteger {
-        let location = self.location.take().unwrap_or_else(|| {
-            panic!(
-                "{}{}",
-                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                "location"
-            )
-        });
+        let location = self
+            .location
+            .take()
+            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
 
-        let literal = self.literal.take().unwrap_or_else(|| {
-            panic!(
-                "{}{}",
-                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                "literal"
-            )
-        });
+        let literal = self
+            .literal
+            .take()
+            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "literal"));
 
         MemberInteger::new(location, literal)
     }

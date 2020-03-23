@@ -35,11 +35,7 @@ impl Builder {
             (0, false) => {
                 let mut builder = ExpressionBuilder::default();
                 let location = self.location.take().unwrap_or_else(|| {
-                    panic!(
-                        "{}{}",
-                        crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                        "location"
-                    )
+                    panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")
                 });
                 builder.set_location(location);
                 builder.push_operand(location, ExpressionOperand::Unit);
@@ -48,11 +44,7 @@ impl Builder {
             (1, false) => {
                 let mut builder = ExpressionBuilder::default();
                 let location = self.location.take().unwrap_or_else(|| {
-                    panic!(
-                        "{}{}",
-                        crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                        "location"
-                    )
+                    panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")
                 });
                 builder.set_location(location);
                 builder.extend_with_expressions(self.elements);
@@ -60,11 +52,7 @@ impl Builder {
             }
             (_size, _has_comma) => {
                 let location = self.location.take().unwrap_or_else(|| {
-                    panic!(
-                        "{}{}",
-                        crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                        "location"
-                    )
+                    panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")
                 });
                 Expression::new(
                     location,

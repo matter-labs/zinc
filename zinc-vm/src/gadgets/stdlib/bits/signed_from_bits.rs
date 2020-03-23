@@ -28,8 +28,8 @@ impl<E: Engine> Gadget<E> for SignedFromBits {
 
         let length = input.len();
         let scalar_type = ScalarType::Integer(IntegerType {
-            signed: true,
-            length,
+            is_signed: true,
+            bitlength: length,
         });
 
         let mut bits: Vec<Boolean> = Vec::with_capacity(length);

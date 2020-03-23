@@ -10,9 +10,9 @@ use self::element::Element;
 use self::operand::Operand;
 use self::operator::Operator;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Expression {
-    elements: Vec<Element>,
+    pub elements: Vec<Element>,
 }
 
 impl Expression {

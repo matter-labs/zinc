@@ -19,13 +19,13 @@ where
             ScalarType::Field | ScalarType::Boolean => Ok(scalar.clone()),
 
             ScalarType::Integer(int_type) => {
-                if !int_type.signed {
+                if !int_type.is_signed {
                     return Ok(scalar.clone());
                 }
 
                 let extended_type = IntegerType {
-                    signed: true,
-                    length: int_type.length + 1,
+                    is_signed: true,
+                    bitlength: int_type.bitlength + 1,
                 }
                 .into();
 

@@ -47,6 +47,7 @@ impl Structure {
                         found: name,
                     });
                 }
+
                 if &r#type != expected_type {
                     return Err(Error::FieldInvalidType {
                         type_identifier: self.r#type.identifier.to_owned(),
@@ -66,28 +67,26 @@ impl Structure {
         }
 
         self.field_index += 1;
+
         Ok(())
     }
 
-    pub fn slice(&self, field_name: &str) -> Result<AccessData, Error> {
+    pub fn slice(self, field_name: String) -> Result<(Self, AccessData), Error> {
         let mut offset = 0;
         let total_size = self.r#type().size();
 
         for (name, r#type) in self.r#type.fields.iter() {
-            if name == field_name {
-                return Ok(AccessData::new(
-                    offset,
-                    r#type.size(),
-                    total_size,
-                    r#type.to_owned(),
-                ));
+            if name == field_name.as_str() {
+                let access = AccessData::new(offset, r#type.size(), total_size, r#type.to_owned());
+
+                return Ok((self, access));
             }
             offset += r#type.size();
         }
 
         Err(Error::FieldDoesNotExist {
-            type_identifier: self.r#type.identifier.to_string(),
-            field_name: field_name.to_owned(),
+            type_identifier: self.r#type.identifier,
+            field_name,
         })
     }
 }

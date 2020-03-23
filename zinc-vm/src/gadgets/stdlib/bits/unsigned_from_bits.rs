@@ -21,8 +21,8 @@ impl<E: Engine> Gadget<E> for UnsignedFromBits {
             (ScalarType::Field, E::Fr::NUM_BITS as usize)
         } else {
             let data_type = ScalarType::Integer(IntegerType {
-                signed: false,
-                length: input.len(),
+                is_signed: false,
+                bitlength: input.len(),
             });
             (data_type, input.len())
         };

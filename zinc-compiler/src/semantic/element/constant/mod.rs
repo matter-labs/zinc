@@ -11,15 +11,6 @@ pub mod range_inclusive;
 
 use std::fmt;
 
-use num_bigint::BigInt;
-use num_traits::One;
-use num_traits::Zero;
-
-use zinc_bytecode::scalar::ScalarType;
-use zinc_bytecode::Instruction;
-
-use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
-use crate::generator::expression::operand::Operand as GeneratorOperand;
 use crate::semantic::caster::Caster;
 use crate::semantic::element::r#type::Type;
 use crate::syntax::BooleanLiteral;
@@ -66,7 +57,7 @@ impl Constant {
         }
     }
 
-    pub fn range_inclusive(&self, other: &Self) -> Result<Self, Error> {
+    pub fn range_inclusive(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
@@ -83,7 +74,7 @@ impl Constant {
         }
     }
 
-    pub fn range(&self, other: &Self) -> Result<Self, Error> {
+    pub fn range(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
@@ -100,11 +91,11 @@ impl Constant {
         }
     }
 
-    pub fn or(&self, other: &Self) -> Result<Self, Error> {
+    pub fn or(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Boolean(value_1) => match other {
                 Self::Boolean(value_2) => {
-                    let result = *value_1 || *value_2;
+                    let result = value_1 || value_2;
                     Ok(Self::Boolean(result))
                 }
                 constant => Err(Error::OperatorOrSecondOperandExpectedBoolean {
@@ -117,11 +108,11 @@ impl Constant {
         }
     }
 
-    pub fn xor(&self, other: &Self) -> Result<Self, Error> {
+    pub fn xor(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Boolean(value_1) => match other {
                 Self::Boolean(value_2) => {
-                    let result = !*value_1 && *value_2 || *value_1 && !*value_2;
+                    let result = !value_1 && value_2 || value_1 && !value_2;
                     Ok(Self::Boolean(result))
                 }
                 constant => Err(Error::OperatorXorSecondOperandExpectedBoolean {
@@ -134,11 +125,11 @@ impl Constant {
         }
     }
 
-    pub fn and(&self, other: &Self) -> Result<Self, Error> {
+    pub fn and(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Boolean(value_1) => match other {
                 Self::Boolean(value_2) => {
-                    let result = *value_1 && *value_2;
+                    let result = value_1 && value_2;
                     Ok(Self::Boolean(result))
                 }
                 constant => Err(Error::OperatorAndSecondOperandExpectedBoolean {
@@ -151,7 +142,7 @@ impl Constant {
         }
     }
 
-    pub fn equals(&self, other: &Self) -> Result<Self, Error> {
+    pub fn equals(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Self::Unit, Self::Unit) => Ok(Self::Boolean(true)),
             (Self::Unit, value_2) => Err(Error::OperatorEqualsSecondOperandExpectedUnit {
@@ -164,10 +155,10 @@ impl Constant {
             (Self::Boolean(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedBoolean {
                 found: value_2.to_string(),
             }),
-            (Self::Integer(value_1), Self::Integer(value_2)) => {
-                let result = value_1.equals(value_2).map_err(Error::Integer)?;
-                Ok(Self::Boolean(result))
-            }
+            (Self::Integer(value_1), Self::Integer(value_2)) => value_1
+                .equals(value_2)
+                .map(Self::Boolean)
+                .map_err(Error::Integer),
             (Self::Integer(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedInteger {
                 found: value_2.to_string(),
             }),
@@ -177,7 +168,7 @@ impl Constant {
         }
     }
 
-    pub fn not_equals(&self, other: &Self) -> Result<Self, Error> {
+    pub fn not_equals(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Self::Unit, Self::Unit) => Ok(Self::Boolean(true)),
             (Self::Unit, value_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedUnit {
@@ -192,10 +183,10 @@ impl Constant {
                     found: value_2.to_string(),
                 })
             }
-            (Self::Integer(value_1), Self::Integer(value_2)) => {
-                let result = value_1.not_equals(value_2).map_err(Error::Integer)?;
-                Ok(Self::Boolean(result))
-            }
+            (Self::Integer(value_1), Self::Integer(value_2)) => value_1
+                .not_equals(value_2)
+                .map(Self::Boolean)
+                .map_err(Error::Integer),
             (Self::Integer(_), value_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedInteger {
                     found: value_2.to_string(),
@@ -207,7 +198,7 @@ impl Constant {
         }
     }
 
-    pub fn greater_equals(&self, other: &Self) -> Result<Self, Error> {
+    pub fn greater_equals(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
@@ -224,7 +215,7 @@ impl Constant {
         }
     }
 
-    pub fn lesser_equals(&self, other: &Self) -> Result<Self, Error> {
+    pub fn lesser_equals(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
@@ -241,7 +232,7 @@ impl Constant {
         }
     }
 
-    pub fn greater(&self, other: &Self) -> Result<Self, Error> {
+    pub fn greater(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
@@ -258,7 +249,7 @@ impl Constant {
         }
     }
 
-    pub fn lesser(&self, other: &Self) -> Result<Self, Error> {
+    pub fn lesser(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
@@ -275,12 +266,12 @@ impl Constant {
         }
     }
 
-    pub fn bitwise_or(&self, other: &Self) -> Result<Self, Error> {
+    pub fn bitwise_or(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitwise_or(integer_2)
-                    .map(|_| Self::Integer(integer_1.to_owned()))
+                    .map(Self::Integer)
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorBitwiseOrSecondOperandExpectedInteger {
                     found: value.to_string(),
@@ -292,12 +283,12 @@ impl Constant {
         }
     }
 
-    pub fn bitwise_xor(&self, other: &Self) -> Result<Self, Error> {
+    pub fn bitwise_xor(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitwise_xor(integer_2)
-                    .map(|_| Self::Integer(integer_1.to_owned()))
+                    .map(Self::Integer)
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorBitwiseXorSecondOperandExpectedInteger {
                     found: value.to_string(),
@@ -309,12 +300,12 @@ impl Constant {
         }
     }
 
-    pub fn bitwise_and(&self, other: &Self) -> Result<Self, Error> {
+    pub fn bitwise_and(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitwise_and(integer_2)
-                    .map(|_| Self::Integer(integer_1.to_owned()))
+                    .map(Self::Integer)
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorBitwiseAndSecondOperandExpectedInteger {
                     found: value.to_string(),
@@ -326,12 +317,12 @@ impl Constant {
         }
     }
 
-    pub fn bitwise_shift_left(&self, other: &Self) -> Result<Self, Error> {
+    pub fn bitwise_shift_left(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitwise_shift_left(integer_2)
-                    .map(|_| Self::Integer(integer_1.to_owned()))
+                    .map(Self::Integer)
                     .map_err(Error::Integer),
                 value => Err(
                     Error::OperatorBitwiseShiftLeftSecondOperandExpectedInteger {
@@ -345,12 +336,12 @@ impl Constant {
         }
     }
 
-    pub fn bitwise_shift_right(&self, other: &Self) -> Result<Self, Error> {
+    pub fn bitwise_shift_right(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitwise_shift_right(integer_2)
-                    .map(|_| Self::Integer(integer_1.to_owned()))
+                    .map(Self::Integer)
                     .map_err(Error::Integer),
                 value => Err(
                     Error::OperatorBitwiseShiftRightSecondOperandExpectedInteger {
@@ -366,7 +357,7 @@ impl Constant {
         }
     }
 
-    pub fn add(&self, other: &Self) -> Result<Self, Error> {
+    pub fn add(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
@@ -383,7 +374,7 @@ impl Constant {
         }
     }
 
-    pub fn subtract(&self, other: &Self) -> Result<Self, Error> {
+    pub fn subtract(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
@@ -400,7 +391,7 @@ impl Constant {
         }
     }
 
-    pub fn multiply(&self, other: &Self) -> Result<Self, Error> {
+    pub fn multiply(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
@@ -417,7 +408,7 @@ impl Constant {
         }
     }
 
-    pub fn divide(&self, other: &Self) -> Result<Self, Error> {
+    pub fn divide(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
@@ -434,7 +425,7 @@ impl Constant {
         }
     }
 
-    pub fn remainder(&self, other: &Self) -> Result<Self, Error> {
+    pub fn remainder(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
@@ -451,7 +442,7 @@ impl Constant {
         }
     }
 
-    pub fn not(&self) -> Result<Self, Error> {
+    pub fn not(self) -> Result<Self, Error> {
         match self {
             Self::Boolean(value) => {
                 let result = !value;
@@ -463,7 +454,7 @@ impl Constant {
         }
     }
 
-    pub fn bitwise_not(&self) -> Result<Self, Error> {
+    pub fn bitwise_not(self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer) => integer
                 .bitwise_not()
@@ -475,7 +466,7 @@ impl Constant {
         }
     }
 
-    pub fn negate(&self) -> Result<Self, Error> {
+    pub fn negate(self) -> Result<Self, Error> {
         match self {
             Self::Integer(integer) => integer.negate().map(Self::Integer).map_err(Error::Integer),
             value => Err(Error::OperatorNegationExpectedInteger {
@@ -484,58 +475,24 @@ impl Constant {
         }
     }
 
-    pub fn cast(&mut self, to: &Type) -> Result<Option<(bool, usize)>, Error> {
+    pub fn cast(self, to: Type) -> Result<Self, Error> {
         let from = self.r#type();
         Caster::cast(&from, &to).map_err(Error::Casting)?;
 
         let (is_signed, bitlength) = match to {
-            Type::IntegerUnsigned { bitlength } => (false, *bitlength),
-            Type::IntegerSigned { bitlength } => (true, *bitlength),
+            Type::IntegerUnsigned { bitlength } => (false, bitlength),
+            Type::IntegerSigned { bitlength } => (true, bitlength),
             Type::Field => (false, crate::BITLENGTH_FIELD),
-            _ => return Ok(None),
+            _ => return Ok(self),
         };
 
-        if let Self::Integer(integer) = self {
-            integer.cast(is_signed, bitlength).map_err(Error::Integer)?;
-        }
-        Ok(Some((is_signed, bitlength)))
-    }
-
-    pub fn to_intermediate(&self) -> GeneratorOperand {
-        match self {
-            Self::Boolean(boolean) => GeneratorOperand::Constant(GeneratorConstant::new(
-                if *boolean {
-                    BigInt::one()
-                } else {
-                    BigInt::zero()
-                },
-                false,
-                crate::BITLENGTH_BOOLEAN,
-            )),
-            Self::Integer(integer) => integer.to_intermediate(),
-            Self::Unit => unreachable!(),
-            Self::Range(_) => unreachable!(),
-            Self::RangeInclusive(_) => unreachable!(),
-            Self::String(_) => unreachable!(),
-        }
-    }
-
-    pub fn to_instruction(&self) -> Instruction {
-        match self {
-            Self::Boolean(boolean) => Instruction::PushConst(zinc_bytecode::PushConst::new(
-                if *boolean {
-                    BigInt::one()
-                } else {
-                    BigInt::zero()
-                },
-                ScalarType::Boolean,
-            )),
-            Self::Integer(integer) => integer.to_instruction(),
-            Self::Unit => unreachable!(),
-            Self::Range(_) => unreachable!(),
-            Self::RangeInclusive(_) => unreachable!(),
-            Self::String(_) => unreachable!(),
-        }
+        Ok(match self {
+            Self::Integer(integer) => integer
+                .cast(is_signed, bitlength)
+                .map(Self::Integer)
+                .map_err(Error::Integer)?,
+            operand => operand,
+        })
     }
 }
 

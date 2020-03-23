@@ -8,6 +8,7 @@ mod tree;
 
 pub use self::error::Error;
 pub use self::parser::Parser;
+pub use self::tree::expression::array::variant::Variant as ArrayExpressionVariant;
 pub use self::tree::expression::array::Expression as ArrayExpression;
 pub use self::tree::expression::auxiliary::Auxiliary as ExpressionAuxiliary;
 pub use self::tree::expression::block::Expression as BlockExpression;
@@ -48,5 +49,3 @@ pub use self::tree::statement::r#type::Statement as TypeStatement;
 pub use self::tree::statement::r#use::Statement as UseStatement;
 pub use self::tree::variant::Variant;
 pub use self::tree::Tree;
-
-static PANIC_BUILDER_REQUIRES_VALUE: &str = "The builder requires a value: ";

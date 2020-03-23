@@ -257,11 +257,10 @@ impl Type {
                 let r#type = Self::from_type_variant(&*inner, scope.clone())?;
 
                 let size_location = size.location;
-                let size = match ExpressionAnalyzer::new_without_bytecode(scope)
+                let size = match ExpressionAnalyzer::new(scope)
                     .expression(size.to_owned(), TranslationHint::ValueExpression)?
-                    .0
                 {
-                    Element::Constant(Constant::Integer(integer)) => {
+                    (Element::Constant(Constant::Integer(integer)), _intermediate) => {
                         integer.to_usize().map_err(|error| {
                             Error::Element(
                                 size_location,
@@ -269,7 +268,7 @@ impl Type {
                             )
                         })?
                     }
-                    element => {
+                    (element, _intermediate) => {
                         return Err(Error::ConstantExpressionHasNonConstantElement {
                             location: size_location,
                             found: element.to_string(),
@@ -288,12 +287,11 @@ impl Type {
             }
             TypeVariant::Alias { path } => {
                 let location = path.location;
-                match ExpressionAnalyzer::new_without_bytecode(scope)
+                match ExpressionAnalyzer::new(scope)
                     .expression(path.to_owned(), TranslationHint::TypeExpression)?
-                    .0
                 {
-                    Element::Type(r#type) => r#type,
-                    element => {
+                    (Element::Type(r#type), _intermediate) => r#type,
+                    (element, _intermediate) => {
                         return Err(Error::TypeAliasDoesNotPointToType {
                             location,
                             found: element.to_string(),

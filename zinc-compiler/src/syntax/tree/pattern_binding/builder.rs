@@ -39,13 +39,10 @@ impl Builder {
     }
 
     pub fn finish(mut self) -> BindingPattern {
-        let location = self.location.take().unwrap_or_else(|| {
-            panic!(
-                "{}{}",
-                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                "location"
-            )
-        });
+        let location = self
+            .location
+            .take()
+            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
 
         let variant = if self.wildcard {
             BindingPatternVariant::Wildcard
@@ -58,7 +55,7 @@ impl Builder {
         } else {
             panic!(
                 "{}{}",
-                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                crate::PANIC_BUILDER_REQUIRES_VALUE,
                 "binding | wildcard"
             );
         };
@@ -66,7 +63,7 @@ impl Builder {
         let r#type = self
             .r#type
             .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::syntax::PANIC_BUILDER_REQUIRES_VALUE, "type"));
+            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "type"));
 
         BindingPattern::new(location, variant, r#type)
     }

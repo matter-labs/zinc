@@ -6,17 +6,12 @@ use crate::semantic::element::r#type::Type;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Variable {
-    pub r#type: Type,
     pub is_mutable: bool,
-    pub address: usize,
+    pub r#type: Type,
 }
 
 impl Variable {
-    pub fn new(r#type: Type, is_mutable: bool, address: usize) -> Self {
-        Self {
-            r#type,
-            is_mutable,
-            address,
-        }
+    pub fn new(is_mutable: bool, r#type: Type) -> Self {
+        Self { is_mutable, r#type }
     }
 }

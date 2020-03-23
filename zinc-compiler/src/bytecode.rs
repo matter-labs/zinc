@@ -13,7 +13,12 @@ use zinc_bytecode::Instruction;
 use zinc_bytecode::Program;
 
 use crate::lexical::Location;
-use crate::semantic::element::r#type::Type;
+use crate::semantic::Type;
+
+static PANIC_THERE_MUST_ALWAYS_BE_A_CALL_STACK_POINTER: &str =
+    "Call stack balance is kept by the evaluation logic";
+static PANIC_JSON_TEMPLATE_SERIALIZATION: &str =
+    "JSON templates serialization must be always successful: ";
 
 #[derive(Debug, Default, PartialEq)]
 pub struct Bytecode {
@@ -197,7 +202,7 @@ impl Bytecode {
         self.data_stack_pointer = self
             .address_stack
             .pop()
-            .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_CALL_STACK_POINTER);
+            .expect(PANIC_THERE_MUST_ALWAYS_BE_A_CALL_STACK_POINTER);
     }
 
     pub fn input_template_bytes(&self) -> Vec<u8> {
@@ -205,10 +210,9 @@ impl Bytecode {
         let input_template_value = TemplateValue::default_from_type(&input_type);
         match serde_json::to_string_pretty(&input_template_value.to_json()) {
             Ok(json) => json.into_bytes(),
-            Err(error) => panic!(
-                crate::semantic::PANIC_JSON_TEMPLATE_SERIALIZATION.to_owned()
-                    + error.to_string().as_str()
-            ),
+            Err(error) => {
+                panic!(PANIC_JSON_TEMPLATE_SERIALIZATION.to_owned() + error.to_string().as_str())
+            }
         }
     }
 
@@ -217,10 +221,9 @@ impl Bytecode {
         let output_value_template = TemplateValue::default_from_type(&output_bytecode_type);
         match serde_json::to_string_pretty(&output_value_template.to_json()) {
             Ok(json) => (json + "\n").into_bytes(),
-            Err(error) => panic!(
-                crate::semantic::PANIC_JSON_TEMPLATE_SERIALIZATION.to_owned()
-                    + error.to_string().as_str()
-            ),
+            Err(error) => {
+                panic!(PANIC_JSON_TEMPLATE_SERIALIZATION.to_owned() + error.to_string().as_str())
+            }
         }
     }
 
@@ -263,20 +266,20 @@ impl Into<DataType> for &Type {
             Type::Boolean => DataType::Scalar(ScalarType::Boolean),
             Type::IntegerUnsigned { bitlength } => {
                 DataType::Scalar(ScalarType::Integer(IntegerType {
-                    signed: false,
-                    length: *bitlength,
+                    is_signed: false,
+                    bitlength: *bitlength,
                 }))
             }
             Type::IntegerSigned { bitlength } => {
                 DataType::Scalar(ScalarType::Integer(IntegerType {
-                    signed: true,
-                    length: *bitlength,
+                    is_signed: true,
+                    bitlength: *bitlength,
                 }))
             }
             Type::Field => DataType::Scalar(ScalarType::Field),
             Type::Enumeration(enumeration) => DataType::Scalar(ScalarType::Integer(IntegerType {
-                signed: false,
-                length: enumeration.bitlength,
+                is_signed: false,
+                bitlength: enumeration.bitlength,
             })),
             Type::Array { r#type, size } => {
                 let element_type: DataType = r#type.deref().into();
@@ -297,10 +300,14 @@ impl Into<DataType> for &Type {
                 }
                 DataType::Struct(new_fields)
             }
-            Type::String => unreachable!(),
-            Type::Range { .. } => unreachable!(),
-            Type::RangeInclusive { .. } => unreachable!(),
-            Type::Function(_) => unreachable!(),
+            Type::String => panic!(crate::generator::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS),
+            Type::Range { .. } => {
+                panic!(crate::generator::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS)
+            }
+            Type::RangeInclusive { .. } => {
+                panic!(crate::generator::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS)
+            }
+            Type::Function(_) => panic!(crate::generator::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS),
         }
     }
 }

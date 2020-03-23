@@ -38,7 +38,7 @@ impl Builder {
             .unwrap_or_else(|| {
                 panic!(
                     "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    crate::PANIC_BUILDER_REQUIRES_VALUE,
                     "field identifier"
                 )
             })
@@ -47,17 +47,12 @@ impl Builder {
 
     pub fn finish(mut self) -> StructureExpression {
         StructureExpression::new(
-            self.location.unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "location"
-                )
-            }),
+            self.location
+                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")),
             self.identifier.take().unwrap_or_else(|| {
                 panic!(
                     "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    crate::PANIC_BUILDER_REQUIRES_VALUE,
                     "path expression"
                 )
             }),
@@ -70,7 +65,7 @@ impl Builder {
                         expression.unwrap_or_else(|| {
                             panic!(
                                 "{}{}",
-                                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                                crate::PANIC_BUILDER_REQUIRES_VALUE,
                                 "field expression"
                             )
                         }),

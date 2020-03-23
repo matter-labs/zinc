@@ -35,29 +35,17 @@ impl Builder {
 
     pub fn finish(mut self) -> ConstStatement {
         ConstStatement::new(
-            self.location.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "location"
-                )
-            }),
+            self.location
+                .take()
+                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")),
             self.identifier.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "identifier"
-                )
+                panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "identifier")
             }),
-            self.r#type.take().unwrap_or_else(|| {
-                panic!("{}{}", crate::syntax::PANIC_BUILDER_REQUIRES_VALUE, "type")
-            }),
+            self.r#type
+                .take()
+                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "type")),
             self.expression.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "expression"
-                )
+                panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "expression")
             }),
         )
     }

@@ -57,7 +57,7 @@ where
             ScalarType::Integer(int_type) => {
                 let boolean = less_than_integer(
                     cs.namespace(|| "less_than_integer"),
-                    int_type.length,
+                    int_type.bitlength,
                     left,
                     right,
                 )?;

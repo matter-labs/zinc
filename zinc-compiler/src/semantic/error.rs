@@ -16,10 +16,13 @@ pub enum Error {
     MatchNotExhausted {
         location: Location,
     },
+    MatchLessThanTwoBranches {
+        location: Location,
+    },
     MatchBranchUnreachable {
         location: Location,
     },
-    MatchBranchPatternPathExpectedEvaluable {
+    MatchBranchPatternPathExpectedConstant {
         location: Location,
         found: String,
     },

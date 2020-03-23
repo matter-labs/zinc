@@ -67,6 +67,246 @@ fn main() {
 }
 
 #[test]
+fn error_element_assignment_bitwise_or_1st_expected_place() {
+    let input = r#"
+fn main() {
+    5 |= 5;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 7),
+        ElementError::OperatorAssignmentBitwiseOrFirstOperandExpectedPlace {
+            found: Element::Constant(Constant::Integer(IntegerConstant::new(
+                BigInt::from(5),
+                false,
+                crate::BITLENGTH_BYTE,
+            )))
+            .to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_assignment_bitwise_or_2nd_expected_evaluable() {
+    let input = r#"
+type X = u8;
+
+fn main() {
+    let mut value = 0;
+    value |= X;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(6, 11),
+        ElementError::OperatorAssignmentBitwiseOrSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_assignment_bitwise_xor_1st_expected_place() {
+    let input = r#"
+fn main() {
+    5 ^= 5;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 7),
+        ElementError::OperatorAssignmentBitwiseXorFirstOperandExpectedPlace {
+            found: Element::Constant(Constant::Integer(IntegerConstant::new(
+                BigInt::from(5),
+                false,
+                crate::BITLENGTH_BYTE,
+            )))
+            .to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_assignment_bitwise_xor_2nd_expected_evaluable() {
+    let input = r#"
+type X = u8;
+
+fn main() {
+    let mut value = 0;
+    value ^= X;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(6, 11),
+        ElementError::OperatorAssignmentBitwiseXorSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_assignment_bitwise_and_1st_expected_place() {
+    let input = r#"
+fn main() {
+    5 &= 5;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 7),
+        ElementError::OperatorAssignmentBitwiseAndFirstOperandExpectedPlace {
+            found: Element::Constant(Constant::Integer(IntegerConstant::new(
+                BigInt::from(5),
+                false,
+                crate::BITLENGTH_BYTE,
+            )))
+            .to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_assignment_bitwise_and_2nd_expected_evaluable() {
+    let input = r#"
+type X = u8;
+
+fn main() {
+    let mut value = 0;
+    value &= X;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(6, 11),
+        ElementError::OperatorAssignmentBitwiseAndSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_assignment_bitwise_shift_left_1st_expected_place() {
+    let input = r#"
+fn main() {
+    5 <<= 5;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 7),
+        ElementError::OperatorAssignmentBitwiseShiftLeftFirstOperandExpectedPlace {
+            found: Element::Constant(Constant::Integer(IntegerConstant::new(
+                BigInt::from(5),
+                false,
+                crate::BITLENGTH_BYTE,
+            )))
+            .to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_assignment_bitwise_shift_left_2nd_expected_evaluable() {
+    let input = r#"
+type X = u8;
+
+fn main() {
+    let mut value = 0;
+    value <<= X;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(6, 11),
+        ElementError::OperatorAssignmentBitwiseShiftLeftSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_assignment_bitwise_shift_right_1st_expected_place() {
+    let input = r#"
+fn main() {
+    5 >>= 5;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 7),
+        ElementError::OperatorAssignmentBitwiseShiftRightFirstOperandExpectedPlace {
+            found: Element::Constant(Constant::Integer(IntegerConstant::new(
+                BigInt::from(5),
+                false,
+                crate::BITLENGTH_BYTE,
+            )))
+            .to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_element_assignment_bitwise_shift_right_2nd_expected_evaluable() {
+    let input = r#"
+type X = u8;
+
+fn main() {
+    let mut value = 0;
+    value >>= X;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(6, 11),
+        ElementError::OperatorAssignmentBitwiseShiftRightSecondOperandExpectedEvaluable {
+            found: Element::Type(Type::integer_unsigned(crate::BITLENGTH_BYTE)).to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry_point(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_element_assignment_addition_1st_expected_place() {
     let input = r#"
 fn main() {

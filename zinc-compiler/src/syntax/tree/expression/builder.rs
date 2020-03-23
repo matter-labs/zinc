@@ -60,13 +60,9 @@ impl Builder {
 
     pub fn finish(mut self) -> Expression {
         Expression::new(
-            self.location.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "location"
-                )
-            }),
+            self.location
+                .take()
+                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")),
             self.elements,
         )
     }

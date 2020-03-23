@@ -49,7 +49,7 @@ pub enum Element {
 }
 
 impl Element {
-    pub fn assign(self, other: &Self) -> Result<Place, Error> {
+    pub fn assign(self, other: Self) -> Result<Place, Error> {
         match other {
             Self::Value(_) => {}
             Self::Constant(_) => {}
@@ -68,7 +68,177 @@ impl Element {
         }
     }
 
-    pub fn assign_add(self, other: &Self) -> Result<Place, Error> {
+    pub fn assign_bitwise_or(self, other: Self) -> Result<Place, Error> {
+        match self {
+            Self::Place(place) => {
+                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                match other {
+                    Self::Value(value_2) => {
+                        value_1
+                            .bitwise_or(value_2)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    Self::Constant(value_2) => {
+                        value_1
+                            .bitwise_or(Value::try_from(value_2).map_err(Error::Value)?)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    element => Err(
+                        Error::OperatorAssignmentBitwiseOrSecondOperandExpectedEvaluable {
+                            found: element.to_string(),
+                        },
+                    ),
+                }
+            }
+            element => Err(
+                Error::OperatorAssignmentBitwiseOrFirstOperandExpectedPlace {
+                    found: element.to_string(),
+                },
+            ),
+        }
+    }
+
+    pub fn assign_bitwise_xor(self, other: Self) -> Result<Place, Error> {
+        match self {
+            Self::Place(place) => {
+                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                match other {
+                    Self::Value(value_2) => {
+                        value_1
+                            .bitwise_xor(value_2)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    Self::Constant(value_2) => {
+                        value_1
+                            .bitwise_xor(Value::try_from(value_2).map_err(Error::Value)?)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    element => Err(
+                        Error::OperatorAssignmentBitwiseXorSecondOperandExpectedEvaluable {
+                            found: element.to_string(),
+                        },
+                    ),
+                }
+            }
+            element => Err(
+                Error::OperatorAssignmentBitwiseXorFirstOperandExpectedPlace {
+                    found: element.to_string(),
+                },
+            ),
+        }
+    }
+
+    pub fn assign_bitwise_and(self, other: Self) -> Result<Place, Error> {
+        match self {
+            Self::Place(place) => {
+                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                match other {
+                    Self::Value(value_2) => {
+                        value_1
+                            .bitwise_and(value_2)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    Self::Constant(value_2) => {
+                        value_1
+                            .bitwise_and(Value::try_from(value_2).map_err(Error::Value)?)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    element => Err(
+                        Error::OperatorAssignmentBitwiseAndSecondOperandExpectedEvaluable {
+                            found: element.to_string(),
+                        },
+                    ),
+                }
+            }
+            element => Err(
+                Error::OperatorAssignmentBitwiseAndFirstOperandExpectedPlace {
+                    found: element.to_string(),
+                },
+            ),
+        }
+    }
+
+    pub fn assign_bitwise_shift_left(self, other: Self) -> Result<Place, Error> {
+        match self {
+            Self::Place(place) => {
+                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                match other {
+                    Self::Value(value_2) => {
+                        value_1
+                            .bitwise_shift_left(value_2)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    Self::Constant(value_2) => {
+                        value_1
+                            .bitwise_shift_left(Value::try_from(value_2).map_err(Error::Value)?)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    element => Err(
+                        Error::OperatorAssignmentBitwiseShiftLeftSecondOperandExpectedEvaluable {
+                            found: element.to_string(),
+                        },
+                    ),
+                }
+            }
+            element => Err(
+                Error::OperatorAssignmentBitwiseShiftLeftFirstOperandExpectedPlace {
+                    found: element.to_string(),
+                },
+            ),
+        }
+    }
+
+    pub fn assign_bitwise_shift_right(self, other: Self) -> Result<Place, Error> {
+        match self {
+            Self::Place(place) => {
+                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                match other {
+                    Self::Value(value_2) => {
+                        value_1
+                            .bitwise_shift_right(value_2)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    Self::Constant(value_2) => {
+                        value_1
+                            .bitwise_shift_right(Value::try_from(value_2).map_err(Error::Value)?)
+                            .map(Self::Value)
+                            .map_err(Error::Value)?;
+                        Ok(place)
+                    }
+                    element => Err(
+                        Error::OperatorAssignmentBitwiseShiftRightSecondOperandExpectedEvaluable {
+                            found: element.to_string(),
+                        },
+                    ),
+                }
+            }
+            element => Err(
+                Error::OperatorAssignmentBitwiseShiftRightFirstOperandExpectedPlace {
+                    found: element.to_string(),
+                },
+            ),
+        }
+    }
+
+    pub fn assign_add(self, other: Self) -> Result<Place, Error> {
         match self {
             Self::Place(place) => {
                 let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
@@ -82,7 +252,7 @@ impl Element {
                     }
                     Self::Constant(value_2) => {
                         value_1
-                            .add(&Value::try_from(value_2).map_err(Error::Value)?)
+                            .add(Value::try_from(value_2).map_err(Error::Value)?)
                             .map(Self::Value)
                             .map_err(Error::Value)?;
                         Ok(place)
@@ -100,7 +270,7 @@ impl Element {
         }
     }
 
-    pub fn assign_subtract(self, other: &Self) -> Result<Place, Error> {
+    pub fn assign_subtract(self, other: Self) -> Result<Place, Error> {
         match self {
             Self::Place(place) => {
                 let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
@@ -114,7 +284,7 @@ impl Element {
                     }
                     Self::Constant(value_2) => {
                         value_1
-                            .subtract(&Value::try_from(value_2).map_err(Error::Value)?)
+                            .subtract(Value::try_from(value_2).map_err(Error::Value)?)
                             .map(Self::Value)
                             .map_err(Error::Value)?;
                         Ok(place)
@@ -134,7 +304,7 @@ impl Element {
         }
     }
 
-    pub fn assign_multiply(self, other: &Self) -> Result<Place, Error> {
+    pub fn assign_multiply(self, other: Self) -> Result<Place, Error> {
         match self {
             Self::Place(place) => {
                 let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
@@ -148,7 +318,7 @@ impl Element {
                     }
                     Self::Constant(value_2) => {
                         value_1
-                            .multiply(&Value::try_from(value_2).map_err(Error::Value)?)
+                            .multiply(Value::try_from(value_2).map_err(Error::Value)?)
                             .map(Self::Value)
                             .map_err(Error::Value)?;
                         Ok(place)
@@ -168,7 +338,7 @@ impl Element {
         }
     }
 
-    pub fn assign_divide(self, other: &Self) -> Result<Place, Error> {
+    pub fn assign_divide(self, other: Self) -> Result<Place, Error> {
         match self {
             Self::Place(place) => {
                 let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
@@ -182,7 +352,7 @@ impl Element {
                     }
                     Self::Constant(value_2) => {
                         value_1
-                            .divide(&Value::try_from(value_2).map_err(Error::Value)?)
+                            .divide(Value::try_from(value_2).map_err(Error::Value)?)
                             .map(Self::Value)
                             .map_err(Error::Value)?;
                         Ok(place)
@@ -200,7 +370,7 @@ impl Element {
         }
     }
 
-    pub fn assign_remainder(self, other: &Self) -> Result<Place, Error> {
+    pub fn assign_remainder(self, other: Self) -> Result<Place, Error> {
         match self {
             Self::Place(place) => {
                 let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
@@ -214,7 +384,7 @@ impl Element {
                     }
                     Self::Constant(value_2) => {
                         value_1
-                            .remainder(&Value::try_from(value_2).map_err(Error::Value)?)
+                            .remainder(Value::try_from(value_2).map_err(Error::Value)?)
                             .map(Self::Value)
                             .map_err(Error::Value)?;
                         Ok(place)
@@ -234,7 +404,7 @@ impl Element {
         }
     }
 
-    pub fn range_inclusive(&self, other: &Self) -> Result<Self, Error> {
+    pub fn range_inclusive(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .range_inclusive(value_2)
@@ -251,7 +421,7 @@ impl Element {
         }
     }
 
-    pub fn range(&self, other: &Self) -> Result<Self, Error> {
+    pub fn range(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .range(value_2)
@@ -268,13 +438,13 @@ impl Element {
         }
     }
 
-    pub fn or(&self, other: &Self) -> Result<Self, Error> {
+    pub fn or(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => {
                 value_1.or(value_2).map(Self::Value).map_err(Error::Value)
             }
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .or(&Value::try_from(value_2).map_err(Error::Value)?)
+                .or(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
@@ -284,7 +454,7 @@ impl Element {
             }
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .or(&value_2)
+                .or(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -302,13 +472,13 @@ impl Element {
         }
     }
 
-    pub fn xor(&self, other: &Self) -> Result<Self, Error> {
+    pub fn xor(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => {
                 value_1.xor(value_2).map(Self::Value).map_err(Error::Value)
             }
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .xor(&Value::try_from(value_2).map_err(Error::Value)?)
+                .xor(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
@@ -318,7 +488,7 @@ impl Element {
             }
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .xor(&value_2)
+                .xor(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -336,13 +506,13 @@ impl Element {
         }
     }
 
-    pub fn and(&self, other: &Self) -> Result<Self, Error> {
+    pub fn and(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => {
                 value_1.and(value_2).map(Self::Value).map_err(Error::Value)
             }
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .and(&Value::try_from(value_2).map_err(Error::Value)?)
+                .and(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
@@ -352,7 +522,7 @@ impl Element {
             }
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .and(&value_2)
+                .and(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -370,14 +540,14 @@ impl Element {
         }
     }
 
-    pub fn equals(&self, other: &Self) -> Result<Self, Error> {
+    pub fn equals(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => value_1
                 .equals(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .equals(&Value::try_from(value_2).map_err(Error::Value)?)
+                .equals(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
@@ -387,7 +557,7 @@ impl Element {
             }
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .equals(&value_2)
+                .equals(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -405,14 +575,14 @@ impl Element {
         }
     }
 
-    pub fn not_equals(&self, other: &Self) -> Result<Self, Error> {
+    pub fn not_equals(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => value_1
                 .not_equals(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .not_equals(&Value::try_from(value_2).map_err(Error::Value)?)
+                .not_equals(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
@@ -422,7 +592,7 @@ impl Element {
             }
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .not_equals(&value_2)
+                .not_equals(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -440,14 +610,14 @@ impl Element {
         }
     }
 
-    pub fn greater_equals(&self, other: &Self) -> Result<Self, Error> {
+    pub fn greater_equals(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => value_1
                 .greater_equals(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .greater_equals(&Value::try_from(value_2).map_err(Error::Value)?)
+                .greater_equals(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
@@ -457,7 +627,7 @@ impl Element {
             }
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .greater_equals(&value_2)
+                .greater_equals(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -475,14 +645,14 @@ impl Element {
         }
     }
 
-    pub fn lesser_equals(&self, other: &Self) -> Result<Self, Error> {
+    pub fn lesser_equals(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => value_1
                 .lesser_equals(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .lesser_equals(&Value::try_from(value_2).map_err(Error::Value)?)
+                .lesser_equals(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
@@ -492,7 +662,7 @@ impl Element {
             }
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .lesser_equals(&value_2)
+                .lesser_equals(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -510,14 +680,14 @@ impl Element {
         }
     }
 
-    pub fn greater(&self, other: &Self) -> Result<Self, Error> {
+    pub fn greater(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => value_1
                 .greater(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .greater(&Value::try_from(value_2).map_err(Error::Value)?)
+                .greater(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
@@ -527,7 +697,7 @@ impl Element {
             }
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .greater(&value_2)
+                .greater(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -545,14 +715,14 @@ impl Element {
         }
     }
 
-    pub fn lesser(&self, other: &Self) -> Result<Self, Error> {
+    pub fn lesser(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => value_1
                 .lesser(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .lesser(&Value::try_from(value_2).map_err(Error::Value)?)
+                .lesser(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
@@ -562,7 +732,7 @@ impl Element {
             }
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .lesser(&value_2)
+                .lesser(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -580,14 +750,14 @@ impl Element {
         }
     }
 
-    pub fn bitwise_or(&self, other: &Self) -> Result<Self, Error> {
+    pub fn bitwise_or(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => value_1
                 .bitwise_or(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .bitwise_or(&Value::try_from(value_2).map_err(Error::Value)?)
+                .bitwise_or(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
@@ -597,7 +767,7 @@ impl Element {
             }
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .bitwise_or(&value_2)
+                .bitwise_or(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -615,14 +785,14 @@ impl Element {
         }
     }
 
-    pub fn bitwise_xor(&self, other: &Self) -> Result<Self, Error> {
+    pub fn bitwise_xor(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => value_1
                 .bitwise_xor(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .bitwise_xor(&Value::try_from(value_2).map_err(Error::Value)?)
+                .bitwise_xor(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
@@ -632,7 +802,7 @@ impl Element {
             }
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .bitwise_xor(&value_2)
+                .bitwise_xor(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -650,14 +820,14 @@ impl Element {
         }
     }
 
-    pub fn bitwise_and(&self, other: &Self) -> Result<Self, Error> {
+    pub fn bitwise_and(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => value_1
                 .bitwise_and(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .bitwise_and(&Value::try_from(value_2).map_err(Error::Value)?)
+                .bitwise_and(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
@@ -667,7 +837,7 @@ impl Element {
             }
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .bitwise_and(&value_2)
+                .bitwise_and(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -685,10 +855,10 @@ impl Element {
         }
     }
 
-    pub fn bitwise_shift_left(&self, other: &Self) -> Result<Self, Error> {
+    pub fn bitwise_shift_left(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .bitwise_shift_left(&Value::try_from(value_2).map_err(Error::Value)?)
+                .bitwise_shift_left(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => Err(
@@ -713,10 +883,10 @@ impl Element {
         }
     }
 
-    pub fn bitwise_shift_right(&self, other: &Self) -> Result<Self, Error> {
+    pub fn bitwise_shift_right(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .bitwise_shift_right(&Value::try_from(value_2).map_err(Error::Value)?)
+                .bitwise_shift_right(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => Err(
@@ -741,13 +911,13 @@ impl Element {
         }
     }
 
-    pub fn add(&self, other: &Self) -> Result<Self, Error> {
+    pub fn add(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => {
                 value_1.add(value_2).map(Self::Value).map_err(Error::Value)
             }
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .add(&Value::try_from(value_2).map_err(Error::Value)?)
+                .add(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
@@ -757,7 +927,7 @@ impl Element {
             }
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .add(&value_2)
+                .add(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -775,14 +945,14 @@ impl Element {
         }
     }
 
-    pub fn subtract(&self, other: &Self) -> Result<Self, Error> {
+    pub fn subtract(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => value_1
                 .subtract(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .subtract(&Value::try_from(value_2).map_err(Error::Value)?)
+                .subtract(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
@@ -792,7 +962,7 @@ impl Element {
             }
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .subtract(&value_2)
+                .subtract(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -810,14 +980,14 @@ impl Element {
         }
     }
 
-    pub fn multiply(&self, other: &Self) -> Result<Self, Error> {
+    pub fn multiply(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => value_1
                 .multiply(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .multiply(&Value::try_from(value_2).map_err(Error::Value)?)
+                .multiply(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => Err(
@@ -827,7 +997,7 @@ impl Element {
             ),
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .multiply(&value_2)
+                .multiply(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -845,14 +1015,14 @@ impl Element {
         }
     }
 
-    pub fn divide(&self, other: &Self) -> Result<Self, Error> {
+    pub fn divide(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => value_1
                 .divide(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .divide(&Value::try_from(value_2).map_err(Error::Value)?)
+                .divide(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
@@ -862,7 +1032,7 @@ impl Element {
             }
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .divide(&value_2)
+                .divide(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -880,14 +1050,14 @@ impl Element {
         }
     }
 
-    pub fn remainder(&self, other: &Self) -> Result<Self, Error> {
+    pub fn remainder(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Value(value_2)) => value_1
                 .remainder(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .remainder(&Value::try_from(value_2).map_err(Error::Value)?)
+                .remainder(Value::try_from(value_2).map_err(Error::Value)?)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
@@ -897,7 +1067,7 @@ impl Element {
             }
             (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
                 .map_err(Error::Value)?
-                .remainder(&value_2)
+                .remainder(value_2)
                 .map(Self::Value)
                 .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
@@ -915,7 +1085,7 @@ impl Element {
         }
     }
 
-    pub fn cast(&mut self, other: &Self) -> Result<Option<(bool, usize)>, Error> {
+    pub fn cast(self, other: Self) -> Result<Self, Error> {
         let r#type = match other {
             Self::Type(r#type) => r#type,
             element => {
@@ -926,15 +1096,18 @@ impl Element {
         };
 
         match self {
-            Element::Value(value) => value.cast(r#type).map_err(Error::Value),
-            Element::Constant(constant) => constant.cast(r#type).map_err(Error::Constant),
+            Element::Value(value) => value.cast(r#type).map(Self::Value).map_err(Error::Value),
+            Element::Constant(constant) => constant
+                .cast(r#type)
+                .map(Self::Constant)
+                .map_err(Error::Constant),
             element => Err(Error::OperatorCastingFirstOperandExpectedEvaluable {
                 found: element.to_string(),
             }),
         }
     }
 
-    pub fn not(&self) -> Result<Self, Error> {
+    pub fn not(self) -> Result<Self, Error> {
         match self {
             Element::Value(value) => value.not().map(Self::Value).map_err(Error::Value),
             Element::Constant(constant) => {
@@ -946,7 +1119,7 @@ impl Element {
         }
     }
 
-    pub fn bitwise_not(&self) -> Result<Self, Error> {
+    pub fn bitwise_not(self) -> Result<Self, Error> {
         match self {
             Element::Value(value) => value.bitwise_not().map(Self::Value).map_err(Error::Value),
             Element::Constant(constant) => constant
@@ -959,7 +1132,7 @@ impl Element {
         }
     }
 
-    pub fn negate(&self) -> Result<Self, Error> {
+    pub fn negate(self) -> Result<Self, Error> {
         match self {
             Element::Value(value) => value.negate().map(Self::Value).map_err(Error::Value),
             Element::Constant(constant) => constant
@@ -972,18 +1145,30 @@ impl Element {
         }
     }
 
-    pub fn index(&mut self, other: &Self) -> Result<AccessData, Error> {
+    pub fn index(self, other: Self) -> Result<(Self, AccessData), Error> {
         match self {
             Self::Place(place) => match other {
-                element @ Self::Value(_) => place.index(element).map_err(Error::Place),
-                element @ Self::Constant(_) => place.index(element).map_err(Error::Place),
+                element @ Self::Value(_) => place
+                    .index(element)
+                    .map(|(place, access)| (Element::Place(place), access))
+                    .map_err(Error::Place),
+                element @ Self::Constant(_) => place
+                    .index(element)
+                    .map(|(place, access)| (Element::Place(place), access))
+                    .map_err(Error::Place),
                 element => Err(Error::OperatorIndexSecondOperandExpectedEvaluable {
                     found: element.to_string(),
                 }),
             },
             Self::Value(value) => match other {
-                Self::Value(index) => value.index_value(index).map_err(Error::Value),
-                Self::Constant(index) => value.index_constant(index).map_err(Error::Value),
+                Self::Value(index) => value
+                    .index_value(index)
+                    .map(|(value, access)| (Element::Value(value), access))
+                    .map_err(Error::Value),
+                Self::Constant(index) => value
+                    .index_constant(index)
+                    .map(|(value, access)| (Element::Value(value), access))
+                    .map_err(Error::Value),
                 element => Err(Error::OperatorIndexSecondOperandExpectedEvaluable {
                     found: element.to_string(),
                 }),
@@ -994,22 +1179,30 @@ impl Element {
         }
     }
 
-    pub fn field(&mut self, other: &Self) -> Result<AccessData, Error> {
+    pub fn field(self, other: Self) -> Result<(Self, AccessData), Error> {
         match self {
             Self::Place(place) => match other {
-                Self::MemberInteger(member) => place.field_tuple(*member).map_err(Error::Place),
-                Self::MemberString(member) => {
-                    place.field_structure(&member.name).map_err(Error::Place)
-                }
+                Self::MemberInteger(member) => place
+                    .field_tuple(member)
+                    .map(|(place, access)| (Element::Place(place), access))
+                    .map_err(Error::Place),
+                Self::MemberString(member) => place
+                    .field_structure(member.name)
+                    .map(|(place, access)| (Element::Place(place), access))
+                    .map_err(Error::Place),
                 element => Err(Error::OperatorFieldSecondOperandExpectedMember {
                     found: element.to_string(),
                 }),
             },
             Self::Value(value) => match other {
-                Self::MemberInteger(member) => value.field_tuple(*member).map_err(Error::Value),
-                Self::MemberString(member) => {
-                    value.field_structure(&member.name).map_err(Error::Value)
-                }
+                Self::MemberInteger(member) => value
+                    .field_tuple(member)
+                    .map(|(value, access)| (Element::Value(value), access))
+                    .map_err(Error::Value),
+                Self::MemberString(member) => value
+                    .field_structure(member.name)
+                    .map(|(value, access)| (Element::Value(value), access))
+                    .map_err(Error::Value),
                 element => Err(Error::OperatorFieldSecondOperandExpectedMember {
                     found: element.to_string(),
                 }),
@@ -1020,8 +1213,8 @@ impl Element {
         }
     }
 
-    pub fn path(&mut self, other: &Self) -> Result<(), Error> {
-        let path = match self {
+    pub fn path(self, other: Self) -> Result<Self, Error> {
+        let mut path = match self {
             Self::Path(path) => path,
             element => {
                 return Err(Error::OperatorPathFirstOperandExpectedPath {
@@ -1039,8 +1232,9 @@ impl Element {
             }
         };
 
-        path.push_element(member.to_owned());
-        Ok(())
+        path.push_element(member);
+
+        Ok(Self::Path(path))
     }
 }
 

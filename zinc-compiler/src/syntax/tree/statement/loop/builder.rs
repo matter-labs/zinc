@@ -40,31 +40,27 @@ impl Builder {
 
     pub fn finish(mut self) -> LoopStatement {
         LoopStatement::new(
-            self.location.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "location"
-                )
-            }),
+            self.location
+                .take()
+                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")),
             self.index_identifier.take().unwrap_or_else(|| {
                 panic!(
                     "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    crate::PANIC_BUILDER_REQUIRES_VALUE,
                     "index identifier"
                 )
             }),
             self.bounds_expression.take().unwrap_or_else(|| {
                 panic!(
                     "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    crate::PANIC_BUILDER_REQUIRES_VALUE,
                     "range start expression"
                 )
             }),
             self.while_condition.take(),
-            self.block.take().unwrap_or_else(|| {
-                panic!("{}{}", crate::syntax::PANIC_BUILDER_REQUIRES_VALUE, "block")
-            }),
+            self.block
+                .take()
+                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "block")),
         )
     }
 }

@@ -259,13 +259,17 @@ where
                 })
             }
             t @ ScalarType::Field => t,
-            t @ ScalarType::Integer(IntegerType { signed: true, .. }) => t,
+            t
+            @
             ScalarType::Integer(IntegerType {
-                signed: false,
-                length,
+                is_signed: true, ..
+            }) => t,
+            ScalarType::Integer(IntegerType {
+                is_signed: false,
+                bitlength: length,
             }) => IntegerType {
-                signed: true,
-                length: length + 1,
+                is_signed: true,
+                bitlength: length + 1,
             }
             .into(),
         };

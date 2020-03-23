@@ -34,26 +34,14 @@ impl Builder {
 
     pub fn finish(mut self) -> ConditionalExpression {
         ConditionalExpression::new(
-            self.location.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "location"
-                )
-            }),
+            self.location
+                .take()
+                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")),
             self.condition.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "condition"
-                )
+                panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "condition")
             }),
             self.main_block.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "main block"
-                )
+                panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "main block")
             }),
             self.else_block.take(),
         )

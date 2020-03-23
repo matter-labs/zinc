@@ -56,13 +56,10 @@ impl Builder {
         static PANIC_VALIDATED_BY_THE_TYPE_PARSER: &str =
             "Unreachable as long as the type parser works correctly";
 
-        let location = self.location.take().unwrap_or_else(|| {
-            panic!(
-                "{}{}",
-                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                "location"
-            )
-        });
+        let location = self
+            .location
+            .take()
+            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
 
         let variant = if let Some(path) = self.path_expression.take() {
             TypeVariant::alias(path)
@@ -78,11 +75,7 @@ impl Builder {
             TypeVariant::array(
                 array_type,
                 self.array_size.take().unwrap_or_else(|| {
-                    panic!(
-                        "{}{}",
-                        crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                        "array size"
-                    )
+                    panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "array size")
                 }),
             )
         } else if !self.tuple_element_types.is_empty() {

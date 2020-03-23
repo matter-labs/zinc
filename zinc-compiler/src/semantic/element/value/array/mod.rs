@@ -54,10 +54,6 @@ impl Array {
         self.len() == 0
     }
 
-    pub fn set_type(&mut self, r#type: Type) {
-        self.r#type = r#type;
-    }
-
     pub fn push(&mut self, r#type: Type) -> Result<(), Error> {
         if self.size == 0 {
             self.r#type = r#type;
@@ -86,87 +82,108 @@ impl Array {
         Ok(())
     }
 
-    pub fn slice_single(&self) -> AccessData {
-        AccessData::new(
+    pub fn slice_single(self) -> (Self, AccessData) {
+        let access = AccessData::new(
             0,
             self.r#type.size(),
             self.r#type().size(),
             self.r#type.to_owned(),
-        )
+        );
+
+        (self, access)
     }
 
-    pub fn slice_range(&self, start: &BigInt, end: &BigInt) -> Result<AccessData, Error> {
+    pub fn slice_range(self, start: BigInt, end: BigInt) -> Result<(Self, AccessData), Error> {
         if start.is_negative() {
             return Err(Error::SliceStartOutOfRange {
                 start: start.to_string(),
             });
         }
-        if end > &BigInt::from(self.size) {
+
+        if end > BigInt::from(self.size) {
             return Err(Error::SliceEndOutOfRange {
                 end: end.to_string(),
                 size: self.size,
             });
         }
+
         if end < start {
             return Err(Error::SliceEndLesserThanStart {
                 start: start.to_string(),
                 end: end.to_string(),
             });
         }
+
         let start = start
             .to_usize()
             .ok_or_else(|| Error::SliceStartOutOfRange {
                 start: start.to_string(),
             })?;
-        let length = (end - start)
+
+        let length =
+            (end.clone() - start)
+                .to_usize()
+                .ok_or_else(|| Error::SliceEndLesserThanStart {
+                    start: start.to_string(),
+                    end: end.to_string(),
+                })?;
+
+        let access = AccessData::new(
+            self.r#type.size() * start,
+            self.r#type.size() * length,
+            self.r#type().size(),
+            Type::array(self.r#type.to_owned(), length),
+        );
+
+        Ok((self, access))
+    }
+
+    pub fn slice_range_inclusive(
+        self,
+        start: BigInt,
+        end: BigInt,
+    ) -> Result<(Self, AccessData), Error> {
+        if start.is_negative() {
+            return Err(Error::SliceStartOutOfRange {
+                start: start.to_string(),
+            });
+        }
+
+        if end >= BigInt::from(self.size) {
+            return Err(Error::SliceEndOutOfRange {
+                end: end.to_string(),
+                size: self.size,
+            });
+        }
+
+        if end < start {
+            return Err(Error::SliceEndLesserThanStart {
+                start: start.to_string(),
+                end: end.to_string(),
+            });
+        }
+
+        let start = start
+            .to_usize()
+            .ok_or_else(|| Error::SliceStartOutOfRange {
+                start: start.to_string(),
+            })?;
+
+        let length = (end.clone() - start + BigInt::one())
             .to_usize()
             .ok_or_else(|| Error::SliceEndLesserThanStart {
                 start: start.to_string(),
                 end: end.to_string(),
             })?;
-        Ok(AccessData::new(
-            self.r#type.size() * start,
-            self.r#type.size() * length,
-            self.r#type().size(),
-            Type::array(self.r#type.to_owned(), length),
-        ))
-    }
 
-    pub fn slice_range_inclusive(&self, start: &BigInt, end: &BigInt) -> Result<AccessData, Error> {
-        if start.is_negative() {
-            return Err(Error::SliceStartOutOfRange {
-                start: start.to_string(),
-            });
-        }
-        if end >= &BigInt::from(self.size) {
-            return Err(Error::SliceEndOutOfRange {
-                end: end.to_string(),
-                size: self.size,
-            });
-        }
-        if end < start {
-            return Err(Error::SliceEndLesserThanStart {
-                start: start.to_string(),
-                end: end.to_string(),
-            });
-        }
-        let start = start
-            .to_usize()
-            .ok_or_else(|| Error::SliceStartOutOfRange {
-                start: start.to_string(),
-            })?;
-        let length = (end - start + BigInt::one()).to_usize().ok_or_else(|| {
-            Error::SliceEndLesserThanStart {
-                start: start.to_string(),
-                end: end.to_string(),
-            }
-        })?;
-        Ok(AccessData::new(
+        let access = AccessData::new(
             self.r#type.size() * start,
             self.r#type.size() * length,
             self.r#type().size(),
             Type::array(self.r#type.to_owned(), length),
-        ))
+        );
+
+        Ok((self, access))
     }
 }
 

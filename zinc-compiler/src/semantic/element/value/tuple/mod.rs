@@ -49,7 +49,7 @@ impl Tuple {
         self.element_types.push(r#type);
     }
 
-    pub fn slice(&self, index: usize) -> Result<AccessData, Error> {
+    pub fn slice(self, index: usize) -> Result<(Self, AccessData), Error> {
         let mut offset = 0;
         let total_size = self.r#type().size();
 
@@ -66,12 +66,11 @@ impl Tuple {
             tuple_index += 1;
         }
 
-        Ok(AccessData::new(
-            offset,
-            self.element_types[tuple_index].size(),
-            total_size,
-            self.element_types[tuple_index].to_owned(),
-        ))
+        let sliced_type = self.element_types[tuple_index].clone();
+
+        let access = AccessData::new(offset, sliced_type.size(), total_size, sliced_type);
+
+        Ok((self, access))
     }
 }
 

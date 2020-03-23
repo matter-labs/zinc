@@ -3,7 +3,6 @@
 //!
 
 mod analyzer;
-mod bytecode;
 mod caster;
 mod element;
 mod error;
@@ -12,7 +11,9 @@ mod tests;
 
 pub use self::analyzer::entry_point::Analyzer as EntryPointAnalyzer;
 pub use self::analyzer::module::Analyzer as ModuleAnalyzer;
-pub use self::bytecode::Bytecode;
+pub use self::element::constant::Constant;
+pub use self::element::r#type::Type;
+pub use self::element::value::Value;
 pub use self::error::Error;
 pub use self::scope::Scope;
 
@@ -38,10 +39,3 @@ static PANIC_THERE_MUST_ALWAYS_BE_A_SCOPE: &str =
     "Scope stack balance is kept by the evaluation logic";
 static PANIC_THERE_MUST_ALWAYS_BE_AN_OPERAND: &str =
     "Operand stack balance is kept by the evaluation logic";
-static PANIC_THERE_MUST_ALWAYS_BE_A_CALL_STACK_POINTER: &str =
-    "Call stack balance is kept by the evaluation logic";
-
-static PANIC_FUNCTION_ADDRESS_ALWAYS_EXISTS: &str =
-    "Function address exists because the function type has been resolved above";
-static PANIC_JSON_TEMPLATE_SERIALIZATION: &str =
-    "JSON templates serialization must be always successful: ";

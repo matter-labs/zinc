@@ -269,6 +269,126 @@ impl Error {
                     None,
                 )
             }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentBitwiseOrFirstOperandExpectedPlace{ found })) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment bitwise OR operator `|=` expected a memory place as the first operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentBitwiseOrSecondOperandExpectedEvaluable{ found })) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment bitwise OR operator `|=` expected a value as the second operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentBitwiseXorFirstOperandExpectedPlace{ found })) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment bitwise XOR operator `^=` expected a memory place as the first operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentBitwiseXorSecondOperandExpectedEvaluable{ found })) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment bitwise XOR operator `^=` expected a value as the second operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentBitwiseAndFirstOperandExpectedPlace{ found })) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment bitwise AND operator `&=` expected a memory place as the first operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentBitwiseAndSecondOperandExpectedEvaluable{ found })) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment bitwise AND operator `&=` expected a value as the second operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentBitwiseShiftLeftFirstOperandExpectedPlace{ found })) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment bitwise shift left operator `<<=` expected a memory place as the first operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentBitwiseShiftLeftSecondOperandExpectedEvaluable{ found })) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment bitwise shift left operator `<<=` expected a value as the second operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentBitwiseShiftRightFirstOperandExpectedPlace{ found })) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment bitwise shift right operator `>>=` expected a memory place as the first operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentBitwiseShiftRightSecondOperandExpectedEvaluable{ found })) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "the assignment bitwise shift right operator `>>=` expected a value as the second operand, found `{}`",
+                        found,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
             Self::Semantic(SemanticError::Element(location, ElementError::OperatorAssignmentAdditionFirstOperandExpectedPlace{ found })) => {
                 Self::format_line(
                     context,
@@ -1797,6 +1917,14 @@ impl Error {
                     Some("ensure that all possible cases are being handled, possibly by adding wildcards or more match arms"),
                 )
             }
+            Self::Semantic(SemanticError::MatchLessThanTwoBranches { location }) => {
+                Self::format_line(
+                    context,
+                    "match expression must have at least two branches",
+                    location,
+                    Some("consider adding some branches to make the expression useful"),
+                )
+            }
             Self::Semantic(SemanticError::MatchBranchUnreachable { location }) => {
                 Self::format_line(
                     context,
@@ -1805,12 +1933,12 @@ impl Error {
                     Some("consider removing the branch or moving it above the branch with a wildcard or irrefutable binding"),
                 )
             }
-            Self::Semantic(SemanticError::MatchBranchPatternPathExpectedEvaluable { location, found }) => {
+            Self::Semantic(SemanticError::MatchBranchPatternPathExpectedConstant { location, found }) => {
                 Self::format_line(
                     context,
-                    format!("expected value, found `{}`", found).as_str(),
+                    format!("expected path to a constant, found `{}`", found).as_str(),
                     location,
-                    Some("consider specifying a path to an evaluable item"),
+                    None,
                 )
             }
             Self::Semantic(SemanticError::MatchBranchPatternInvalidType { location, expected, found, reference }) => {

@@ -209,10 +209,8 @@ impl Parser {
                         ExpressionListParser::default().parse(stream.clone(), None)?;
                     self.next = next;
                     if let Some((location, operator)) = self.operator.take() {
-                        self.builder.push_operand(
-                            location,
-                            ExpressionOperand::ExpressionList(expression_list),
-                        );
+                        self.builder
+                            .push_operand(location, ExpressionOperand::List(expression_list));
                         if let Some((location, auxiliary)) = self.auxiliary.take() {
                             self.builder.push_auxiliary(location, auxiliary);
                         }

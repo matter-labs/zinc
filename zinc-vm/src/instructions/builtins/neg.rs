@@ -22,7 +22,7 @@ where
             ScalarType::Integer(mut int_type) => {
                 let condition = vm.condition_top()?;
                 let cs = vm.constraint_system();
-                int_type.signed = true;
+                int_type.is_signed = true;
                 let neg = gadgets::types::conditional_type_check(
                     cs.namespace(|| "neg"),
                     &condition,

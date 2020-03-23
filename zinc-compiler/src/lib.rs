@@ -2,19 +2,15 @@
 //! The Zinc compiler library.
 //!
 
-#![allow(clippy::implicit_hasher)]
-#![allow(clippy::should_implement_trait)]
-#![allow(clippy::large_enum_variant)]
-#![allow(clippy::cognitive_complexity)]
-
+mod bytecode;
 mod error;
 mod generator;
 mod lexical;
 mod semantic;
 mod syntax;
 
+pub use self::bytecode::Bytecode;
 pub use self::error::Error;
-pub use self::semantic::Bytecode;
 pub use self::semantic::EntryPointAnalyzer;
 pub use self::semantic::ModuleAnalyzer;
 pub use self::semantic::Scope;
@@ -30,6 +26,8 @@ use std::rc::Rc;
 use std::sync::RwLock;
 
 use lazy_static::lazy_static;
+
+use crate::generator::Representation;
 
 use self::error::file::Error as FileError;
 
@@ -52,16 +50,17 @@ pub const SCHNORR_MESSAGE_LIMIT_BITS: usize = SCHNORR_MESSAGE_LIMIT_BYTES * BITL
 pub static PANIC_LAST_SHARED_REFERENCE: &str = "There are no other references at this point";
 pub static PANIC_MUTEX_SYNC: &str = "Mutexes never panic";
 pub static PANIC_FILE_INDEX: &str = "File record always exists";
+pub static PANIC_BUILDER_REQUIRES_VALUE: &str = "The builder requires a value: ";
 
 lazy_static! {
     static ref FILE_INDEX: RwLock<HashMap<usize, PathBuf>> = RwLock::new(HashMap::new());
 }
 
+#[allow(clippy::implicit_hasher)]
 pub fn compile_entry(
     path: PathBuf,
-    bytecode: Rc<RefCell<Bytecode>>,
     dependencies: HashMap<String, Rc<RefCell<Scope>>>,
-) -> Result<(), String> {
+) -> Result<Representation, String> {
     let code = read(&path)?;
     let lines = code.lines().collect::<Vec<&str>>();
 
@@ -75,15 +74,12 @@ pub fn compile_entry(
         .parse(&code, Some(next_file_id))
         .map_err(|error| error.format(&lines))?;
 
-    EntryPointAnalyzer::new(bytecode)
+    EntryPointAnalyzer::new()
         .compile(syntax_tree, dependencies)
         .map_err(|error| error.format(&lines))
 }
 
-pub fn compile_module(
-    path: PathBuf,
-    bytecode: Rc<RefCell<Bytecode>>,
-) -> Result<Rc<RefCell<Scope>>, String> {
+pub fn compile_module(path: PathBuf) -> Result<(Rc<RefCell<Scope>>, Representation), String> {
     let code = read(&path)?;
     let lines = code.lines().collect::<Vec<&str>>();
 
@@ -97,7 +93,7 @@ pub fn compile_module(
         .parse(&code, Some(next_file_id))
         .map_err(|error| error.format(&lines))?;
 
-    ModuleAnalyzer::new(bytecode)
+    ModuleAnalyzer::new()
         .compile(syntax_tree)
         .map_err(|error| error.format(&lines))
 }
@@ -110,7 +106,7 @@ pub fn compile_test(code: &str) -> Result<Bytecode, String> {
         .map_err(|error| error.format(&lines))?;
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));
 
-    EntryPointAnalyzer::new(bytecode.clone())
+    EntryPointAnalyzer::new()
         .compile(syntax_tree, HashMap::new())
         .map_err(|error| error.format(&lines))?;
 

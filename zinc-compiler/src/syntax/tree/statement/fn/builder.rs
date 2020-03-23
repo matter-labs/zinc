@@ -40,27 +40,20 @@ impl Builder {
     }
 
     pub fn finish(mut self) -> FnStatement {
-        let location = self.location.take().unwrap_or_else(|| {
-            panic!(
-                "{}{}",
-                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                "location"
-            )
-        });
+        let location = self
+            .location
+            .take()
+            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
         FnStatement::new(
             location,
             self.identifier.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "identifier"
-                )
+                panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "identifier")
             }),
             self.argument_bindings,
             self.return_type.take(),
-            self.body.take().unwrap_or_else(|| {
-                panic!("{}{}", crate::syntax::PANIC_BUILDER_REQUIRES_VALUE, "body")
-            }),
+            self.body
+                .take()
+                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "body")),
         )
     }
 }
