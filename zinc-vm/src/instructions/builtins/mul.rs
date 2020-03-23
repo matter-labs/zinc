@@ -50,8 +50,8 @@ mod test {
     #[test]
     fn test_mul() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new_untyped(3.into()))
-            .add(PushConst::new_untyped(4.into()))
+            .add(PushConst::new_field(3.into()))
+            .add(PushConst::new_field(4.into()))
             .add(Mul)
             .test(&[12])
     }

@@ -25,7 +25,7 @@ where
         }
         ScalarType::Boolean => {
             // Check as u1 integer, then changet type to Boolean
-            let checked = conditional_type_check(cs, condition, scalar, IntegerType::BIT.into())?;
+            let checked = conditional_type_check(cs, condition, scalar, IntegerType::U1.into())?;
             Ok(checked.with_type_unchecked(scalar_type))
         }
         ScalarType::Integer(int_type) => {

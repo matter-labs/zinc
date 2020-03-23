@@ -3,12 +3,10 @@ pub mod scalar;
 
 pub mod builtins;
 pub mod data;
-mod decode;
 pub mod instructions;
 pub mod program;
 pub mod vlq;
 
-pub use decode::*;
 pub use instructions::*;
 pub use program::*;
 
@@ -18,19 +16,6 @@ use std::fmt;
 
 pub trait InstructionInfo: PartialEq + fmt::Debug + Sized {
     fn to_assembly(&self) -> String;
-    fn code() -> InstructionCode;
-    fn encode(&self) -> Vec<u8> {
-        unimplemented!()
-    }
-    fn decode(_bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
-        unimplemented!()
-    }
-    fn inputs_count(&self) -> usize {
-        unimplemented!()
-    }
-    fn outputs_count(&self) -> usize {
-        unimplemented!()
-    }
     fn wrap(&self) -> Instruction;
 }
 
@@ -40,103 +25,6 @@ pub enum DecodingError {
     UnknownInstructionCode(u8),
     ConstantTooLong,
     UTF8Error,
-}
-
-#[derive(Debug)]
-pub enum InstructionCode {
-    NoOperation,
-
-    // Evalution Stack
-    PushConst,
-    Pop,
-    Slice,
-    Swap,
-    Tee,
-
-    // Data Stack
-    Load,
-    LoadSequence,
-    LoadByIndex,
-    LoadSequenceByIndex,
-
-    Store,
-    StoreSequence,
-    StoreByIndex,
-    StoreSequenceByIndex,
-
-    LoadGlobal,
-    LoadSequenceGlobal,
-    LoadByIndexGlobal,
-    LoadSequenceByIndexGlobal,
-
-    StoreGlobal,
-    StoreSequenceGlobal,
-
-    Ref,
-    RefGlobal,
-
-    LoadByRef,
-    LoadSequenceByRef,
-    LoadByIndexByRef,
-    LoadSequenceByIndexByRef,
-
-    StoreByRef,
-    StoreSequenceByRef,
-    StoreByIndexByRef,
-    StoreSequenceByIndexByRef,
-
-    // Arithmetic
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Rem,
-    Neg,
-
-    // Boolean
-    Not,
-    And,
-    Or,
-    Xor,
-
-    // Comparison
-    Lt,
-    Le,
-    Eq,
-    Ne,
-    Ge,
-    Gt,
-
-    // Bit Operations
-    BitShiftLeft,
-    BitShiftRight,
-    BitAnd,
-    BitOr,
-    BitXor,
-    BitNot,
-
-    Cast,
-
-    // Flow control
-    If,
-    Else,
-    EndIf,
-    LoopBegin,
-    LoopEnd,
-    Call,
-    Return,
-
-    CallBuiltin,
-
-    Assert,
-    Dbg,
-
-    Exit,
-
-    FileMarker,
-    FunctionMarker,
-    LineMarker,
-    ColumnMarker,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -168,19 +56,6 @@ pub enum Instruction {
 
     StoreGlobal(StoreGlobal),
     StoreSequenceGlobal(StoreSequenceGlobal),
-
-    Ref(Ref),
-    RefGlobal(RefGlobal),
-
-    LoadByRef(LoadByRef),
-    LoadSequenceByRef(LoadSequenceByRef),
-    LoadByIndexByRef(LoadByIndexByRef),
-    LoadSequenceByIndexByRef(LoadSequenceByIndexByRef),
-
-    StoreByRef(StoreByRef),
-    StoreSequenceByRef(StoreSequenceByRef),
-    StoreByIndexByRef(StoreByIndexByRef),
-    StoreSequenceByIndexByRef(StoreSequenceByIndexByRef),
 
     // Arithmetic
     Add(Add),
@@ -275,19 +150,6 @@ macro_rules! dispatch_instruction {
 
             Instruction::StoreGlobal($pattern) => $expression,
             Instruction::StoreSequenceGlobal($pattern) => $expression,
-
-            Instruction::Ref($pattern) => $expression,
-            Instruction::RefGlobal($pattern) => $expression,
-
-            Instruction::LoadByRef($pattern) => $expression,
-            Instruction::LoadSequenceByRef($pattern) => $expression,
-            Instruction::LoadByIndexByRef($pattern) => $expression,
-            Instruction::LoadSequenceByIndexByRef($pattern) => $expression,
-
-            Instruction::StoreByRef($pattern) => $expression,
-            Instruction::StoreSequenceByRef($pattern) => $expression,
-            Instruction::StoreByIndexByRef($pattern) => $expression,
-            Instruction::StoreSequenceByIndexByRef($pattern) => $expression,
 
             Instruction::Add($pattern) => $expression,
             Instruction::Sub($pattern) => $expression,

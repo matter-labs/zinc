@@ -4,7 +4,7 @@ use zinc_bytecode::instructions::*;
 use zinc_bytecode::scalar::IntegerType;
 
 #[test]
-fn unsigned_overflow_fail() {
+fn unsigned_positive_overflow_fail() {
     let res = VMTestRunner::new()
         .add(PushConst::new(255.into(), IntegerType::U8.into()))
         .add(PushConst::new(1.into(), IntegerType::U8.into()))
@@ -18,7 +18,7 @@ fn unsigned_overflow_fail() {
 }
 
 #[test]
-fn unsigned_underflow_fail() {
+fn unsigned_negative_overflow_fail() {
     let res = VMTestRunner::new()
         .add(PushConst::new(254.into(), IntegerType::U8.into()))
         .add(PushConst::new(255.into(), IntegerType::U8.into()))
@@ -32,7 +32,7 @@ fn unsigned_underflow_fail() {
 }
 
 #[test]
-fn signed_overflow_fail() {
+fn signed_positive_overflow_fail() {
     let res = VMTestRunner::new()
         .add(PushConst::new(127.into(), IntegerType::I8.into()))
         .add(PushConst::new(1.into(), IntegerType::I8.into()))
@@ -46,7 +46,7 @@ fn signed_overflow_fail() {
 }
 
 #[test]
-fn signed_underflow_fail() {
+fn signed_negative_overflow_fail() {
     let res = VMTestRunner::new()
         .add(PushConst::new((-128).into(), IntegerType::I8.into()))
         .add(PushConst::new(1.into(), IntegerType::I8.into()))
@@ -60,7 +60,7 @@ fn signed_underflow_fail() {
 }
 
 #[test]
-fn unsigned_overflow_ok() -> Result<(), TestingError> {
+fn unsigned_positive_overflow_ok() -> Result<(), TestingError> {
     VMTestRunner::new()
         .add(PushConst::new(254.into(), IntegerType::U8.into()))
         .add(PushConst::new(1.into(), IntegerType::U8.into()))
@@ -69,7 +69,7 @@ fn unsigned_overflow_ok() -> Result<(), TestingError> {
 }
 
 #[test]
-fn unsigned_underflow_ok() -> Result<(), TestingError> {
+fn unsigned_negative_overflow_ok() -> Result<(), TestingError> {
     VMTestRunner::new()
         .add(PushConst::new(255.into(), IntegerType::U8.into()))
         .add(PushConst::new(255.into(), IntegerType::U8.into()))
@@ -78,7 +78,7 @@ fn unsigned_underflow_ok() -> Result<(), TestingError> {
 }
 
 #[test]
-fn signed_overflow_ok() -> Result<(), TestingError> {
+fn signed_positive_overflow_ok() -> Result<(), TestingError> {
     VMTestRunner::new()
         .add(PushConst::new(126.into(), IntegerType::I8.into()))
         .add(PushConst::new(1.into(), IntegerType::I8.into()))
@@ -87,7 +87,7 @@ fn signed_overflow_ok() -> Result<(), TestingError> {
 }
 
 #[test]
-fn signed_underflow_ok() -> Result<(), TestingError> {
+fn signed_negative_overflow_ok() -> Result<(), TestingError> {
     VMTestRunner::new()
         .add(PushConst::new((-127).into(), IntegerType::I8.into()))
         .add(PushConst::new(1.into(), IntegerType::I8.into()))

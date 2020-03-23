@@ -1,7 +1,7 @@
 use bellman::ConstraintSystem;
 
 use crate::core::EvaluationStack;
-use crate::gadgets::stdlib::NativeFunction;
+use crate::stdlib::NativeFunction;
 use crate::{gadgets, Engine, Result};
 
 pub struct Inverse;

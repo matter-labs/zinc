@@ -1,4 +1,4 @@
-use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
+use crate::{Instruction, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
 
 /// Takes `index` and several values from evaluation stack, stores values in data stack at `address + index`.
@@ -25,31 +25,6 @@ impl InstructionInfo for StoreSequenceByIndex {
             "store_array_by_index {} {} {}",
             self.address, self.array_len, self.value_len
         )
-    }
-
-    fn code() -> InstructionCode {
-        InstructionCode::StoreSequenceByIndex
-    }
-
-    fn encode(&self) -> Vec<u8> {
-        utils::encode_with_args(
-            Self::code(),
-            &[self.address, self.array_len, self.value_len],
-        )
-    }
-
-    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
-        let (args, len) = utils::decode_with_usize_args(Self::code(), bytes, 3)?;
-
-        Ok((Self::new(args[0], args[1], args[2]), len))
-    }
-
-    fn inputs_count(&self) -> usize {
-        1 + self.value_len
-    }
-
-    fn outputs_count(&self) -> usize {
-        0
     }
 
     fn wrap(&self) -> Instruction {

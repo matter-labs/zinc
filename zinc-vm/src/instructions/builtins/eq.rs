@@ -30,14 +30,14 @@ mod test {
     #[test]
     fn test_eq() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new_untyped(1.into()))
-            .add(PushConst::new_untyped(2.into()))
+            .add(PushConst::new_field(1.into()))
+            .add(PushConst::new_field(2.into()))
             .add(Eq)
-            .add(PushConst::new_untyped(2.into()))
-            .add(PushConst::new_untyped(2.into()))
+            .add(PushConst::new_field(2.into()))
+            .add(PushConst::new_field(2.into()))
             .add(Eq)
-            .add(PushConst::new_untyped(2.into()))
-            .add(PushConst::new_untyped(1.into()))
+            .add(PushConst::new_field(2.into()))
+            .add(PushConst::new_field(1.into()))
             .add(Eq)
             .test(&[0, 1, 0])
     }

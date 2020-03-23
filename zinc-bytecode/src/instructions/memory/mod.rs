@@ -22,19 +22,6 @@ mod load_sequence_global;
 mod store_global;
 mod store_sequence_global;
 
-mod load_by_index_by_ref;
-mod load_by_ref;
-mod load_sequence_by_index_by_ref;
-mod load_sequence_by_ref;
-
-mod store_by_index_by_ref;
-mod store_by_ref;
-mod store_sequence_by_index_by_ref;
-mod store_sequence_by_ref;
-
-mod ref_global;
-mod ref_local;
-
 pub use pop::Pop;
 pub use push_const::PushConst;
 pub use slice::Slice;
@@ -58,16 +45,3 @@ pub use load_sequence_global::LoadSequenceGlobal;
 
 pub use store_global::StoreGlobal;
 pub use store_sequence_global::StoreSequenceGlobal;
-
-pub use load_by_index_by_ref::LoadByIndexByRef;
-pub use load_by_ref::LoadByRef;
-pub use load_sequence_by_index_by_ref::LoadSequenceByIndexByRef;
-pub use load_sequence_by_ref::LoadSequenceByRef;
-
-pub use store_by_index_by_ref::StoreByIndexByRef;
-pub use store_by_ref::StoreByRef;
-pub use store_sequence_by_index_by_ref::StoreSequenceByIndexByRef;
-pub use store_sequence_by_ref::StoreSequenceByRef;
-
-pub use ref_global::RefGlobal;
-pub use ref_local::Ref;
