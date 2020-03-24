@@ -6,6 +6,7 @@ mod tests;
 
 pub mod error;
 pub mod item;
+pub mod stack;
 
 use std::cell::RefCell;
 use std::collections::HashMap;

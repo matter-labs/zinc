@@ -9,7 +9,7 @@ mod error;
 mod scope;
 mod tests;
 
-pub use self::analyzer::entry_point::Analyzer as EntryPointAnalyzer;
+pub use self::analyzer::entry::Analyzer as EntryPointAnalyzer;
 pub use self::analyzer::module::Analyzer as ModuleAnalyzer;
 pub use self::element::constant::Constant;
 pub use self::element::r#type::Type;
@@ -34,8 +34,3 @@ pub(crate) use self::scope::error::Error as ScopeError;
 
 static PANIC_VALIDATED_DURING_LEXICAL_ANALYSIS: &str = "Validated during the lexical analysis";
 static PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS: &str = "Validated during the syntax analysis";
-
-static PANIC_THERE_MUST_ALWAYS_BE_A_SCOPE: &str =
-    "Scope stack balance is kept by the evaluation logic";
-static PANIC_THERE_MUST_ALWAYS_BE_AN_OPERAND: &str =
-    "Operand stack balance is kept by the evaluation logic";

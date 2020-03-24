@@ -16,8 +16,8 @@ use lazy_static::lazy_static;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
+use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
-use crate::semantic::analyzer::translation_hint::TranslationHint;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
@@ -258,7 +258,7 @@ impl Type {
 
                 let size_location = size.location;
                 let size = match ExpressionAnalyzer::new(scope)
-                    .expression(size.to_owned(), TranslationHint::ValueExpression)?
+                    .analyze(size.to_owned(), TranslationHint::ValueExpression)?
                 {
                     (Element::Constant(Constant::Integer(integer)), _intermediate) => {
                         integer.to_usize().map_err(|error| {
@@ -288,7 +288,7 @@ impl Type {
             TypeVariant::Alias { path } => {
                 let location = path.location;
                 match ExpressionAnalyzer::new(scope)
-                    .expression(path.to_owned(), TranslationHint::TypeExpression)?
+                    .analyze(path.to_owned(), TranslationHint::TypeExpression)?
                 {
                     (Element::Type(r#type), _intermediate) => r#type,
                     (element, _intermediate) => {

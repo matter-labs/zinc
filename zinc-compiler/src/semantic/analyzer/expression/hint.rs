@@ -1,9 +1,9 @@
 //!
-//! The semantic analyzer translation hint.
+//! The expression translation hint.
 //!
 
 #[derive(Debug)]
-pub enum TranslationHint {
+pub enum Hint {
     // runtime
     PlaceExpression,
     ValueExpression,

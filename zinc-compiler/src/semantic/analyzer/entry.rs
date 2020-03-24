@@ -10,11 +10,12 @@ use crate::error::Error as CompilerError;
 use crate::generator::Representation;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
 use crate::semantic::error::Error;
+use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 use crate::syntax::Tree as SyntaxTree;
 
 pub struct Analyzer {
-    scope_stack: Vec<Rc<RefCell<Scope>>>,
+    scope_stack: ScopeStack,
 }
 
 impl Default for Analyzer {
@@ -24,15 +25,9 @@ impl Default for Analyzer {
 }
 
 impl Analyzer {
-    const STACK_SCOPE_INITIAL_CAPACITY: usize = 16;
-
     pub fn new() -> Self {
         Self {
-            scope_stack: {
-                let mut scopes = Vec::with_capacity(Self::STACK_SCOPE_INITIAL_CAPACITY);
-                scopes.push(Rc::new(RefCell::new(Scope::new_global())));
-                scopes
-            },
+            scope_stack: ScopeStack::new_global(),
         }
     }
 
@@ -44,7 +39,7 @@ impl Analyzer {
         let mut intermediate = Representation::new();
 
         // compile all the outer statements which generally only declare new items
-        let mut analyzer = StatementAnalyzer::new(self.scope(), dependencies);
+        let mut analyzer = StatementAnalyzer::new(self.scope_stack.top(), dependencies);
         for statement in program.statements.into_iter() {
             if let Some(statement) = analyzer
                 .module_local_statement(statement)
@@ -54,18 +49,11 @@ impl Analyzer {
             }
         }
 
-        Scope::resolve_item(self.scope(), "main")
+        Scope::resolve_item(self.scope_stack.top(), "main")
             .map_err(|_| Error::EntryPointMissing)
             .map_err(CompilerError::Semantic)?;
 
         Ok(intermediate)
-    }
-
-    fn scope(&self) -> Rc<RefCell<Scope>> {
-        self.scope_stack
-            .last()
-            .cloned()
-            .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_SCOPE)
     }
 }
 
