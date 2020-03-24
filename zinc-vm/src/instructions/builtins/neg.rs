@@ -16,7 +16,8 @@ where
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         let value = vm.pop()?.value()?;
 
-        let unchecked_neg = vm.operations().neg(value.clone())?;
+        let cs = vm.constraint_system();
+        let unchecked_neg = gadgets::neg(cs.namespace(|| "unchecked_neg"), &value)?;
 
         match value.get_type() {
             ScalarType::Integer(mut int_type) => {

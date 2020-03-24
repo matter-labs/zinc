@@ -110,12 +110,12 @@ impl Bytecode {
         self.push_instruction(
             match data_size {
                 0 => return,
-                1 => match array_size {
-                    Some(array_size) => Instruction::StoreByIndex(
-                        zinc_bytecode::StoreByIndex::new(address, array_size),
-                    ),
-                    None => Instruction::Store(zinc_bytecode::Store::new(address)),
-                },
+                // 1 => match array_size {
+                //     Some(array_size) => Instruction::StoreByIndex(
+                //         zinc_bytecode::StoreByIndex::new(address, array_size),
+                //     ),
+                //     None => Instruction::Store(zinc_bytecode::Store::new(address)),
+                // },
                 data_size => match array_size {
                     Some(array_size) => Instruction::StoreSequenceByIndex(
                         zinc_bytecode::StoreSequenceByIndex::new(address, array_size, data_size),
@@ -139,12 +139,12 @@ impl Bytecode {
         self.push_instruction(
             match data_size {
                 0 => return,
-                1 => match array_size {
-                    Some(array_size) => Instruction::LoadByIndex(zinc_bytecode::LoadByIndex::new(
-                        address, array_size,
-                    )),
-                    None => Instruction::Load(zinc_bytecode::Load::new(address)),
-                },
+                // 1 => match array_size {
+                //     Some(array_size) => Instruction::LoadByIndex(zinc_bytecode::LoadByIndex::new(
+                //         address, array_size,
+                //     )),
+                //     None => Instruction::Load(zinc_bytecode::Load::new(address)),
+                // },
                 data_size => match array_size {
                     Some(array_size) => Instruction::LoadSequenceByIndex(
                         zinc_bytecode::LoadSequenceByIndex::new(address, array_size, data_size),

@@ -1,5 +1,5 @@
 use crate::scalar::{IntegerType, ScalarType};
-use crate::{Instruction, InstructionCode, InstructionInfo};
+use crate::{Instruction, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -27,18 +27,6 @@ impl Cast {
 impl InstructionInfo for Cast {
     fn to_assembly(&self) -> String {
         format!("cast {}", self.scalar_type)
-    }
-
-    fn code() -> InstructionCode {
-        InstructionCode::Cast
-    }
-
-    fn inputs_count(&self) -> usize {
-        1
-    }
-
-    fn outputs_count(&self) -> usize {
-        1
     }
 
     fn wrap(&self) -> Instruction {

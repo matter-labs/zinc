@@ -5,8 +5,8 @@ use franklin_crypto::circuit::ecc::EdwardsPoint;
 use franklin_crypto::jubjub::{FixedGenerators, JubjubParams};
 
 use crate::core::EvaluationStack;
-use crate::gadgets::stdlib::NativeFunction;
 use crate::gadgets::Scalar;
+use crate::stdlib::NativeFunction;
 use crate::{Engine, MalformedBytecode, Result};
 
 pub struct VerifySchnorrSignature {

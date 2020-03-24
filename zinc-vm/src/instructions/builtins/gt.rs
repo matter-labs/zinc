@@ -3,7 +3,7 @@ extern crate franklin_crypto;
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::Engine;
+use crate::{gadgets, Engine};
 use zinc_bytecode::instructions::Gt;
 
 impl<E, CS> VMInstruction<E, CS> for Gt
@@ -15,7 +15,8 @@ where
         let right = vm.pop()?.value()?;
         let left = vm.pop()?.value()?;
 
-        let gt = vm.operations().gt(left, right)?;
+        let cs = vm.constraint_system();
+        let gt = gadgets::gt(cs.namespace(|| "gt"), &left, &right)?;
 
         vm.push(Cell::Value(gt))
     }

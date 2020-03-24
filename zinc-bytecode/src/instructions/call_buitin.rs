@@ -1,5 +1,5 @@
 use crate::builtins::BuiltinIdentifier;
-use crate::{Instruction, InstructionCode, InstructionInfo};
+use crate::{Instruction, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -25,18 +25,6 @@ impl InstructionInfo for CallBuiltin {
             "call_builtin {:?}({}) -> {}",
             self.identifier, self.inputs_count, self.outputs_count
         )
-    }
-
-    fn code() -> InstructionCode {
-        InstructionCode::CallBuiltin
-    }
-
-    fn inputs_count(&self) -> usize {
-        self.inputs_count
-    }
-
-    fn outputs_count(&self) -> usize {
-        self.outputs_count
     }
 
     fn wrap(&self) -> Instruction {

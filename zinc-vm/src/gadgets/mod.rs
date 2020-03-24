@@ -15,7 +15,6 @@ pub use types::*;
 
 mod misc;
 mod scalar;
-pub mod stdlib;
 pub mod utils;
 pub use scalar::*;
 

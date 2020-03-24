@@ -1,4 +1,4 @@
-use crate::{Instruction, InstructionCode, InstructionInfo};
+use crate::{Instruction, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
@@ -18,18 +18,6 @@ impl InstructionInfo for Assert {
             None => "assert".to_owned(),
             Some(text) => format!("assert \"{}\"", text),
         }
-    }
-
-    fn code() -> InstructionCode {
-        InstructionCode::Assert
-    }
-
-    fn inputs_count(&self) -> usize {
-        1
-    }
-
-    fn outputs_count(&self) -> usize {
-        0
     }
 
     fn wrap(&self) -> Instruction {

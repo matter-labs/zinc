@@ -3,7 +3,7 @@ extern crate franklin_crypto;
 use self::franklin_crypto::bellman::ConstraintSystem;
 use crate::core::{Cell, InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::Engine;
+use crate::{gadgets, Engine};
 use zinc_bytecode::instructions::Ge;
 
 impl<E, CS> VMInstruction<E, CS> for Ge
@@ -15,7 +15,8 @@ where
         let right = vm.pop()?.value()?;
         let left = vm.pop()?.value()?;
 
-        let ge = vm.operations().ge(left, right)?;
+        let cs = vm.constraint_system();
+        let ge = gadgets::ge(cs.namespace(|| "ge"), &left, &right)?;
 
         vm.push(Cell::Value(ge))
     }
@@ -30,14 +31,14 @@ mod test {
     #[test]
     fn test_ge() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new_untyped(2.into()))
-            .add(PushConst::new_untyped(1.into()))
+            .add(PushConst::new_field(2.into()))
+            .add(PushConst::new_field(1.into()))
             .add(Ge)
-            .add(PushConst::new_untyped(2.into()))
-            .add(PushConst::new_untyped(2.into()))
+            .add(PushConst::new_field(2.into()))
+            .add(PushConst::new_field(2.into()))
             .add(Ge)
-            .add(PushConst::new_untyped(1.into()))
-            .add(PushConst::new_untyped(2.into()))
+            .add(PushConst::new_field(1.into()))
+            .add(PushConst::new_field(2.into()))
             .add(Ge)
             .test(&[0, 1, 1])
     }

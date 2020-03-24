@@ -27,7 +27,8 @@ impl ScalarType {
 }
 
 impl IntegerType {
-    pub const BIT: Self = IntegerType {
+    /// Auxiliary internal type
+    pub const U1: Self = IntegerType {
         is_signed: false,
         bitlength: 1,
     };

@@ -31,8 +31,8 @@ where
                     &right,
                     &one,
                 )?;
-                let inverse = gadgets::inverse(vm.constraint_system(), &denom)?;
-                vm.operations().mul(left, inverse)?
+                let inverse = gadgets::inverse(cs.namespace(|| "inverse"), &denom)?;
+                gadgets::mul(cs.namespace(|| "div"), &left, &inverse)?
             }
             ScalarType::Integer(_) => {
                 let (unchecked_div, _rem) = gadgets::div_rem_conditional(

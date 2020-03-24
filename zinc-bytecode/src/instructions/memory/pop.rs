@@ -1,6 +1,5 @@
-use crate::{utils, DecodingError, Instruction, InstructionCode, InstructionInfo};
-use num_bigint::ToBigInt;
-use num_traits::ToPrimitive;
+use crate::{Instruction, InstructionInfo};
+
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Default, Clone, Serialize, Deserialize)]
@@ -17,28 +16,6 @@ impl Pop {
 impl InstructionInfo for Pop {
     fn to_assembly(&self) -> String {
         format!("pop {}", self.count)
-    }
-
-    fn code() -> InstructionCode {
-        InstructionCode::Pop
-    }
-
-    fn encode(&self) -> Vec<u8> {
-        utils::encode_with_bigint(InstructionCode::Pop, &self.count.to_bigint().unwrap())
-    }
-
-    fn decode(bytes: &[u8]) -> Result<(Self, usize), DecodingError> {
-        let (value, len) = utils::decode_with_bigint(InstructionCode::Pop, bytes)?;
-        let count = value.to_usize().ok_or(DecodingError::ConstantTooLong)?;
-        Ok((Pop { count }, len))
-    }
-
-    fn inputs_count(&self) -> usize {
-        1
-    }
-
-    fn outputs_count(&self) -> usize {
-        0
     }
 
     fn wrap(&self) -> Instruction {
