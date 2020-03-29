@@ -4,7 +4,7 @@
 
 use crate::lexical::Location;
 use crate::syntax::tree::expression::block::Expression as BlockExpression;
-use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#loop::Statement as LoopStatement;
 
@@ -12,8 +12,8 @@ use crate::syntax::tree::statement::r#loop::Statement as LoopStatement;
 pub struct Builder {
     location: Option<Location>,
     index_identifier: Option<Identifier>,
-    bounds_expression: Option<Expression>,
-    while_condition: Option<Expression>,
+    bounds_expression: Option<ExpressionTree>,
+    while_condition: Option<ExpressionTree>,
     block: Option<BlockExpression>,
 }
 
@@ -26,11 +26,11 @@ impl Builder {
         self.index_identifier = Some(value);
     }
 
-    pub fn set_bounds_expression(&mut self, value: Expression) {
+    pub fn set_bounds_expression(&mut self, value: ExpressionTree) {
         self.bounds_expression = Some(value);
     }
 
-    pub fn set_while_condition(&mut self, value: Expression) {
+    pub fn set_while_condition(&mut self, value: ExpressionTree) {
         self.while_condition = Some(value);
     }
 

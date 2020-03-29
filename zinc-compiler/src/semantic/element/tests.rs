@@ -19,7 +19,7 @@ use crate::semantic::element::Element;
 use crate::semantic::Error as SemanticError;
 
 #[test]
-fn error_element_assignment_1st_expected_place() {
+fn error_operator_assignment_1st_operand_expected_place() {
     let input = r#"
 fn main() {
     5 = 5;
@@ -38,13 +38,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_2nd_expected_evaluable() {
+fn error_operator_assignment_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -61,13 +61,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_bitwise_or_1st_expected_place() {
+fn error_operator_assignment_bitwise_or_1st_operand_expected_place() {
     let input = r#"
 fn main() {
     5 |= 5;
@@ -86,13 +86,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_bitwise_or_2nd_expected_evaluable() {
+fn error_operator_assignment_bitwise_or_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -109,13 +109,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_bitwise_xor_1st_expected_place() {
+fn error_operator_assignment_bitwise_xor_1st_operand_expected_place() {
     let input = r#"
 fn main() {
     5 ^= 5;
@@ -134,13 +134,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_bitwise_xor_2nd_expected_evaluable() {
+fn error_operator_assignment_bitwise_xor_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -157,13 +157,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_bitwise_and_1st_expected_place() {
+fn error_operator_assignment_bitwise_and_1st_operand_expected_place() {
     let input = r#"
 fn main() {
     5 &= 5;
@@ -182,13 +182,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_bitwise_and_2nd_expected_evaluable() {
+fn error_operator_assignment_bitwise_and_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -205,13 +205,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_bitwise_shift_left_1st_expected_place() {
+fn error_operator_assignment_bitwise_shift_left_1st_operand_expected_place() {
     let input = r#"
 fn main() {
     5 <<= 5;
@@ -230,13 +230,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_bitwise_shift_left_2nd_expected_evaluable() {
+fn error_operator_assignment_bitwise_shift_left_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -253,13 +253,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_bitwise_shift_right_1st_expected_place() {
+fn error_operator_assignment_bitwise_shift_right_1st_operand_expected_place() {
     let input = r#"
 fn main() {
     5 >>= 5;
@@ -278,13 +278,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_bitwise_shift_right_2nd_expected_evaluable() {
+fn error_operator_assignment_bitwise_shift_right_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -301,13 +301,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_addition_1st_expected_place() {
+fn error_operator_assignment_addition_1st_operand_expected_place() {
     let input = r#"
 fn main() {
     5 += 5;
@@ -326,13 +326,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_addition_2nd_expected_evaluable() {
+fn error_operator_assignment_addition_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -349,13 +349,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_subtraction_1st_expected_place() {
+fn error_operator_assignment_subtraction_1st_operand_expected_place() {
     let input = r#"
 fn main() {
     5 -= 5;
@@ -374,13 +374,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_subtraction_2nd_expected_evaluable() {
+fn error_operator_assignment_subtraction_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -397,13 +397,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_multiplication_1st_expected_place() {
+fn error_operator_assignment_multiplication_1st_operand_expected_place() {
     let input = r#"
 fn main() {
     5 *= 5;
@@ -422,13 +422,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_multiplication_2nd_expected_evaluable() {
+fn error_operator_assignment_multiplication_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -445,13 +445,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_division_1st_expected_place() {
+fn error_operator_assignment_division_1st_operand_expected_place() {
     let input = r#"
 fn main() {
     5 /= 5;
@@ -470,13 +470,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_division_2nd_expected_evaluable() {
+fn error_operator_assignment_division_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -493,13 +493,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_remainder_1st_expected_place() {
+fn error_operator_assignment_remainder_1st_operand_expected_place() {
     let input = r#"
 fn main() {
     5 %= 5;
@@ -518,13 +518,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_assignment_remainder_2nd_expected_evaluable() {
+fn error_operator_assignment_remainder_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -541,13 +541,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_range_1st_expected_constant() {
+fn error_operator_range_1st_operand_expected_constant() {
     let input = r#"
 fn main() {
     let a = 0;
@@ -564,13 +564,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_range_2nd_expected_constant() {
+fn error_operator_range_2nd_operand_expected_constant() {
     let input = r#"
 fn main() {
     let b = 42;
@@ -587,13 +587,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_range_inclusive_1st_expected_constant() {
+fn error_operator_range_inclusive_1st_operand_expected_constant() {
     let input = r#"
 fn main() {
     let a = 0;
@@ -610,13 +610,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_range_inclusive_2nd_expected_constant() {
+fn error_operator_range_inclusive_2nd_operand_expected_constant() {
     let input = r#"
 fn main() {
     let b = 42;
@@ -633,13 +633,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_or_1st_expected_evaluable() {
+fn error_operator_or_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -655,13 +655,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_or_2nd_expected_evaluable() {
+fn error_operator_or_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -677,13 +677,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_xor_1st_expected_evaluable() {
+fn error_operator_xor_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -699,13 +699,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_xor_2nd_expected_evaluable() {
+fn error_operator_xor_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -721,13 +721,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_and_1st_expected_evaluable() {
+fn error_operator_and_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -743,13 +743,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_and_2nd_expected_evaluable() {
+fn error_operator_and_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -765,13 +765,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_equals_1st_expected_evaluable() {
+fn error_operator_equals_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -787,13 +787,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_equals_2nd_expected_evaluable() {
+fn error_operator_equals_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -809,13 +809,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_not_equals_1st_expected_evaluable() {
+fn error_operator_not_equals_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -831,13 +831,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_not_equals_2nd_expected_evaluable() {
+fn error_operator_not_equals_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -853,13 +853,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_greater_equals_1st_expected_evaluable() {
+fn error_operator_greater_equals_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -875,13 +875,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_greater_equals_2nd_expected_evaluable() {
+fn error_operator_greater_equals_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -897,13 +897,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_lesser_equals_1st_expected_evaluable() {
+fn error_operator_lesser_equals_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -919,13 +919,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_lesser_equals_2nd_expected_evaluable() {
+fn error_operator_lesser_equals_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -941,13 +941,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_greater_1st_expected_evaluable() {
+fn error_operator_greater_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -963,13 +963,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_greater_2nd_expected_evaluable() {
+fn error_operator_greater_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -985,13 +985,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_lesser_1st_expected_evaluable() {
+fn error_operator_lesser_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1007,13 +1007,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_lesser_2nd_expected_evaluable() {
+fn error_operator_lesser_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1029,13 +1029,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_bitwise_or_1st_expected_evaluable() {
+fn error_operator_bitwise_or_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1051,13 +1051,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_bitwise_or_2nd_expected_evaluable() {
+fn error_operator_bitwise_or_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1073,13 +1073,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_bitwise_xor_1st_expected_evaluable() {
+fn error_operator_bitwise_xor_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1095,13 +1095,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_bitwise_xor_2nd_expected_evaluable() {
+fn error_operator_bitwise_xor_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1117,13 +1117,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_bitwise_and_1st_expected_evaluable() {
+fn error_operator_bitwise_and_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1139,13 +1139,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_bitwise_and_2nd_expected_evaluable() {
+fn error_operator_bitwise_and_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1161,13 +1161,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_bitwise_shift_left_1st_expected_evaluable() {
+fn error_operator_bitwise_shift_left_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1183,13 +1183,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_bitwise_shift_left_2nd_expected_constant() {
+fn error_operator_bitwise_shift_left_2nd_operand_expected_constant() {
     let input = r#"
 fn main() {
     let offset = 2;
@@ -1206,13 +1206,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_bitwise_shift_right_1st_expected_evaluable() {
+fn error_operator_bitwise_shift_right_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1228,13 +1228,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_bitwise_shift_right_2nd_expected_constant() {
+fn error_operator_bitwise_shift_right_2nd_operand_expected_constant() {
     let input = r#"
 fn main() {
     let offset = 2;
@@ -1251,13 +1251,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_addition_1st_expected_evaluable() {
+fn error_operator_addition_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1273,13 +1273,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_addition_2nd_expected_evaluable() {
+fn error_operator_addition_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1295,13 +1295,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_subtraction_1st_expected_evaluable() {
+fn error_operator_subtraction_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1317,13 +1317,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_subtraction_2nd_expected_evaluable() {
+fn error_operator_subtraction_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1339,13 +1339,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_multiplication_1st_expected_evaluable() {
+fn error_operator_multiplication_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1361,13 +1361,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_multiplication_2nd_expected_evaluable() {
+fn error_operator_multiplication_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1383,13 +1383,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_division_1st_expected_evaluable() {
+fn error_operator_division_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1405,13 +1405,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_division_2nd_expected_evaluable() {
+fn error_operator_division_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1427,13 +1427,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_remainder_1st_expected_evaluable() {
+fn error_operator_remainder_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1449,13 +1449,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_remainder_2nd_expected_evaluable() {
+fn error_operator_remainder_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1471,13 +1471,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_casting_1st_expected_evaluable() {
+fn error_operator_casting_1st_operand_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1493,13 +1493,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_not_expected_evaluable() {
+fn error_operator_not_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1515,13 +1515,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_bitwise_not_expected_evaluable() {
+fn error_operator_bitwise_not_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1537,13 +1537,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_negation_expected_evaluable() {
+fn error_operator_negation_expected_evaluable() {
     let input = r#"
 type X = u8;
 
@@ -1559,13 +1559,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_index_1st_expected_place_or_evaluable() {
+fn error_operator_index_1st_operand_expected_place_or_evaluable() {
     let input = r#"
 fn main() {
     5[42];
@@ -1584,13 +1584,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_index_2nd_expected_evaluable() {
+fn error_operator_index_2nd_operand_expected_evaluable() {
     let input = r#"
 type X = field;
 
@@ -1607,13 +1607,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_field_1st_expected_place_or_evaluable() {
+fn error_operator_field_1st_operand_expected_place_or_evaluable() {
     let input = r#"
 fn main() {
     5.data;
@@ -1632,13 +1632,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_path_1st_expected_path() {
+fn error_operator_path_1st_operand_expected_path() {
     let input = r#"
 fn main() {
     let value = 5::UNDEFINED;
@@ -1652,13 +1652,13 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_path_2nd_expected_member_string() {
+fn error_operator_path_2nd_operand_expected_member_string() {
     let input = r#"
 enum Value {
     FIRST = 1,
@@ -1676,7 +1676,7 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }

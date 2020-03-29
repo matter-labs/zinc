@@ -4,9 +4,10 @@
 
 #### Language
 
-- forbidden the division operator `/` for `field` inversion
-- implemented `std::ff::invert` for `field` inversion
+- forbidden the division operator `/` and implemented `std::ff::invert` for `field` inversion
 - allowed casting to types with lesser bitlength (runtime error on overflow)
+- added the bitwise operators `|`, `^`, `&`, `<<`, `>>`, `|=`, `^=`, `&=`, `<<=`, `>>=`
+- added the binary and octal integer literals (e.g. `0b101010` or `0o42`)
 
 #### Compiler
 

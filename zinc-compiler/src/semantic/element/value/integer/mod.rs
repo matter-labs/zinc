@@ -124,6 +124,10 @@ impl Integer {
             });
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldBitwise);
+        }
+
         Ok(self)
     }
 
@@ -133,6 +137,10 @@ impl Integer {
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
+        }
+
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldBitwise);
         }
 
         Ok(self)
@@ -146,14 +154,26 @@ impl Integer {
             });
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldBitwise);
+        }
+
         Ok(self)
     }
 
     pub fn bitwise_shift_left(self, _other: Self) -> Result<Self, Error> {
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldBitwise);
+        }
+
         Ok(self)
     }
 
     pub fn bitwise_shift_right(self, _other: Self) -> Result<Self, Error> {
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldBitwise);
+        }
+
         Ok(self)
     }
 
@@ -230,7 +250,7 @@ impl Integer {
 
     pub fn bitwise_not(self) -> Result<Self, Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwiseNot);
+            return Err(Error::ForbiddenFieldBitwise);
         }
 
         Ok(self)

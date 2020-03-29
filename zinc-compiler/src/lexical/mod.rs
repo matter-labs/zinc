@@ -9,10 +9,10 @@
 //! a b c d e f g h i j k l m n o p q r s t u v w x y z { | }
 //!
 
-mod error;
-mod stream;
-mod tests;
-mod token;
+pub mod error;
+pub mod stream;
+pub mod tests;
+pub mod token;
 
 pub use self::error::Error;
 pub use self::stream::TokenStream;

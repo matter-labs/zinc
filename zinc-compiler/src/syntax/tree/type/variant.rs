@@ -2,18 +2,29 @@
 //! The type variant.
 //!
 
-use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Variant {
     Unit,
     Boolean,
-    IntegerUnsigned { bitlength: usize },
-    IntegerSigned { bitlength: usize },
+    IntegerUnsigned {
+        bitlength: usize,
+    },
+    IntegerSigned {
+        bitlength: usize,
+    },
     Field,
-    Array { inner: Box<Self>, size: Expression },
-    Tuple { inners: Vec<Self> },
-    Alias { path: Expression },
+    Array {
+        inner: Box<Self>,
+        size: ExpressionTree,
+    },
+    Tuple {
+        inners: Vec<Self>,
+    },
+    Alias {
+        path: ExpressionTree,
+    },
 }
 
 impl Variant {
@@ -45,7 +56,7 @@ impl Variant {
         Self::Field
     }
 
-    pub fn array(inner: Self, size: Expression) -> Self {
+    pub fn array(inner: Self, size: ExpressionTree) -> Self {
         Self::Array {
             inner: Box::new(inner),
             size,
@@ -56,7 +67,7 @@ impl Variant {
         Self::Tuple { inners }
     }
 
-    pub fn alias(path: Expression) -> Self {
+    pub fn alias(path: ExpressionTree) -> Self {
         Self::Alias { path }
     }
 }

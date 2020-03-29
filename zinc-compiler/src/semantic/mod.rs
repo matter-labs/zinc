@@ -2,12 +2,12 @@
 //! The semantic analysis.
 //!
 
-mod analyzer;
-mod caster;
-mod element;
-mod error;
-mod scope;
-mod tests;
+pub mod analyzer;
+pub mod caster;
+pub mod element;
+pub mod error;
+pub mod scope;
+pub mod tests;
 
 pub use self::analyzer::entry::Analyzer as EntryPointAnalyzer;
 pub use self::analyzer::module::Analyzer as ModuleAnalyzer;

@@ -134,8 +134,8 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
             .borrow_mut()
             .start_new_file(source_file_path.to_string_lossy().as_ref());
         log::info!("Compiling {:?}", source_file_path);
-        let (module, intermediate) =
-            zinc_compiler::compile_module(source_file_path).map_err(Error::Compiler)?;
+        let module = zinc_compiler::compile_module(source_file_path, bytecode.clone())
+            .map_err(Error::Compiler)?;
 
         modules.insert(module_name, module);
     }
@@ -146,7 +146,8 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
                 .borrow_mut()
                 .start_new_file(entry_file_path.to_string_lossy().as_ref());
             log::info!("Compiling {:?}", entry_file_path);
-            zinc_compiler::compile_entry(entry_file_path, modules).map_err(Error::Compiler)?;
+            zinc_compiler::compile_entry(entry_file_path, bytecode.clone(), modules)
+                .map_err(Error::Compiler)?;
         }
         None => return Err(Error::EntrySourceFileNotFound),
     }

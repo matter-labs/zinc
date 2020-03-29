@@ -6,7 +6,7 @@ pub mod builder;
 pub mod variant;
 
 use crate::lexical::Location;
-use crate::syntax::tree::expression::Expression as SyntaxExpression;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
 use self::variant::Variant;
 
@@ -17,7 +17,7 @@ pub struct Expression {
 }
 
 impl Expression {
-    pub fn new_list(location: Location, elements: Vec<SyntaxExpression>) -> Self {
+    pub fn new_list(location: Location, elements: Vec<ExpressionTree>) -> Self {
         Self {
             location,
             variant: Variant::new_list(elements),
@@ -26,8 +26,8 @@ impl Expression {
 
     pub fn new_repeated(
         location: Location,
-        expression: SyntaxExpression,
-        size_expression: SyntaxExpression,
+        expression: ExpressionTree,
+        size_expression: ExpressionTree,
     ) -> Self {
         Self {
             location,

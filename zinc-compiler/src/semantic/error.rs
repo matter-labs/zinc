@@ -13,6 +13,10 @@ pub enum Error {
     Scope(Location, ScopeError),
     Function(Location, FunctionError),
 
+    MatchScrutineeInvalidType {
+        location: Location,
+        found: String,
+    },
     MatchNotExhausted {
         location: Location,
     },

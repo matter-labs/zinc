@@ -12,16 +12,14 @@ use std::fmt;
 
 use num_bigint::BigInt;
 use num_traits::Num;
-use num_traits::One;
 use num_traits::Signed;
 use num_traits::ToPrimitive;
-use num_traits::Zero;
 
 use zinc_utils::euclidean;
 
 use crate::lexical;
-use crate::semantic::element::constant::Range;
-use crate::semantic::element::constant::RangeInclusive;
+use crate::semantic::element::constant::range::Range;
+use crate::semantic::element::constant::range_inclusive::RangeInclusive;
 use crate::semantic::element::r#type::enumeration::Enumeration;
 use crate::semantic::element::r#type::Type;
 use crate::syntax::IntegerLiteral;
@@ -48,61 +46,6 @@ impl Integer {
 
     pub fn set_enumeration(&mut self, enumeration: Enumeration) {
         self.enumeration = Some(enumeration);
-    }
-
-    pub fn new_from_usize(value: usize, bitlength: usize) -> Self {
-        Self {
-            value: BigInt::from(value),
-            is_signed: false,
-            bitlength,
-            enumeration: None,
-        }
-    }
-
-    pub fn new_zero(is_signed: bool, bitlength: usize) -> Self {
-        Self {
-            value: BigInt::zero(),
-            is_signed,
-            bitlength,
-            enumeration: None,
-        }
-    }
-
-    pub fn new_one(is_signed: bool, bitlength: usize) -> Self {
-        Self {
-            value: BigInt::one(),
-            is_signed,
-            bitlength,
-            enumeration: None,
-        }
-    }
-
-    pub fn new_min(is_signed: bool, bitlength: usize) -> Self {
-        let value = match (is_signed, bitlength) {
-            (false, _bitlength) => BigInt::zero(),
-            (true, bitlength) => -(BigInt::one() << (bitlength - 1)),
-        };
-
-        Self {
-            value,
-            is_signed,
-            bitlength,
-            enumeration: None,
-        }
-    }
-
-    pub fn new_max(is_signed: bool, bitlength: usize) -> Self {
-        let value = match (is_signed, bitlength) {
-            (false, bitlength) => (BigInt::one() << bitlength) - BigInt::one(),
-            (true, bitlength) => (BigInt::one() << (bitlength - 1)) - BigInt::one(),
-        };
-
-        Self {
-            value,
-            is_signed,
-            bitlength,
-            enumeration: None,
-        }
     }
 
     pub fn to_bigint(&self) -> BigInt {
@@ -234,6 +177,10 @@ impl Integer {
             });
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldBitwise);
+        }
+
         let result = self.value | other.value;
 
         Ok(Self {
@@ -250,6 +197,10 @@ impl Integer {
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
+        }
+
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldBitwise);
         }
 
         let result = self.value ^ other.value;
@@ -270,6 +221,10 @@ impl Integer {
             });
         }
 
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldBitwise);
+        }
+
         let result = self.value & other.value;
 
         Ok(Self {
@@ -281,6 +236,10 @@ impl Integer {
     }
 
     pub fn bitwise_shift_left(self, other: Self) -> Result<Self, Error> {
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldBitwise);
+        }
+
         let other = other
             .value
             .to_usize()
@@ -299,6 +258,10 @@ impl Integer {
     }
 
     pub fn bitwise_shift_right(self, other: Self) -> Result<Self, Error> {
+        if self.bitlength == crate::BITLENGTH_FIELD {
+            return Err(Error::ForbiddenFieldBitwise);
+        }
+
         let other = other
             .value
             .to_usize()
@@ -505,7 +468,7 @@ impl Integer {
 
     pub fn bitwise_not(self) -> Result<Self, Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwiseNot);
+            return Err(Error::ForbiddenFieldBitwise);
         }
 
         let result = !self.value;

@@ -2,19 +2,21 @@
 //! The generator type.
 //!
 
+use zinc_bytecode::data::types::DataType;
 use zinc_bytecode::scalar::IntegerType;
 use zinc_bytecode::scalar::ScalarType;
 
 use crate::semantic::Type as SemanticType;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     Boolean,
     IntegerUnsigned { bitlength: usize },
     IntegerSigned { bitlength: usize },
     Field,
     Array { r#type: Box<Self>, size: usize },
-    Group { types: Vec<Self> },
+    Tuple { types: Vec<Self> },
+    Structure { fields: Vec<(String, Self)> },
 }
 
 impl Type {
@@ -30,6 +32,14 @@ impl Type {
         Self::IntegerSigned { bitlength }
     }
 
+    pub fn integer(is_signed: bool, bitlength: usize) -> Self {
+        if is_signed {
+            Self::IntegerSigned { bitlength }
+        } else {
+            Self::IntegerUnsigned { bitlength }
+        }
+    }
+
     pub fn field() -> Self {
         Self::Field
     }
@@ -41,8 +51,12 @@ impl Type {
         }
     }
 
-    pub fn group(types: Vec<Self>) -> Self {
-        Self::Group { types }
+    pub fn tuple(types: Vec<Self>) -> Self {
+        Self::Tuple { types }
+    }
+
+    pub fn structure(fields: Vec<(String, Self)>) -> Self {
+        Self::Structure { fields }
     }
 
     pub fn size(&self) -> usize {
@@ -52,7 +66,8 @@ impl Type {
             Self::IntegerSigned { .. } => 1,
             Self::Field => 1,
             Self::Array { r#type, size } => r#type.size() * size,
-            Self::Group { types } => types.iter().map(|r#type| r#type.size()).sum(),
+            Self::Tuple { types } => types.iter().map(|r#type| r#type.size()).sum(),
+            Self::Structure { fields } => fields.iter().map(|(_name, r#type)| r#type.size()).sum(),
         }
     }
 
@@ -71,7 +86,7 @@ impl Type {
                     .filter_map(Self::try_from_semantic)
                     .collect::<Vec<Type>>()
                 {
-                    types if !types.is_empty() => Some(Self::group(types)),
+                    types if !types.is_empty() => Some(Self::tuple(types)),
                     _ => None,
                 }
             }
@@ -79,10 +94,12 @@ impl Type {
                 match structure
                     .fields
                     .iter()
-                    .filter_map(|(_name, r#type)| Self::try_from_semantic(r#type))
-                    .collect::<Vec<Type>>()
+                    .filter_map(|(name, r#type)| {
+                        Self::try_from_semantic(r#type).map(|r#type| (name.to_owned(), r#type))
+                    })
+                    .collect::<Vec<(String, Type)>>()
                 {
-                    types if !types.is_empty() => Some(Self::group(types)),
+                    fields if !fields.is_empty() => Some(Self::structure(fields)),
                     _ => None,
                 }
             }
@@ -91,25 +108,54 @@ impl Type {
     }
 }
 
-impl Into<ScalarType> for Type {
-    fn into(self) -> ScalarType {
+impl Into<DataType> for Type {
+    fn into(self) -> DataType {
         match self {
-            Self::Boolean => ScalarType::Boolean,
-            Self::IntegerUnsigned { bitlength } => ScalarType::Integer(IntegerType {
+            Self::Boolean => DataType::Scalar(ScalarType::Boolean),
+            Self::IntegerUnsigned { bitlength } => {
+                DataType::Scalar(ScalarType::Integer(IntegerType {
+                    is_signed: false,
+                    bitlength,
+                }))
+            }
+            Self::IntegerSigned { bitlength } => {
+                DataType::Scalar(ScalarType::Integer(IntegerType {
+                    is_signed: true,
+                    bitlength,
+                }))
+            }
+            Self::Field => DataType::Scalar(ScalarType::Field),
+            Self::Array { r#type, size } => {
+                let element_type: DataType = (*r#type).into();
+                DataType::Array(Box::new(element_type), size)
+            }
+            Self::Tuple { types } => {
+                DataType::Tuple(types.into_iter().map(|r#type| r#type.into()).collect())
+            }
+            Self::Structure { fields } => DataType::Struct(
+                fields
+                    .into_iter()
+                    .map(|(name, r#type)| (name, r#type.into()))
+                    .collect(),
+            ),
+        }
+    }
+}
+
+impl Into<Option<ScalarType>> for Type {
+    fn into(self) -> Option<ScalarType> {
+        match self {
+            Self::Boolean => Some(ScalarType::Boolean),
+            Self::IntegerUnsigned { bitlength } => Some(ScalarType::Integer(IntegerType {
                 is_signed: false,
                 bitlength,
-            }),
-            Self::IntegerSigned { bitlength } => ScalarType::Integer(IntegerType {
+            })),
+            Self::IntegerSigned { bitlength } => Some(ScalarType::Integer(IntegerType {
                 is_signed: true,
                 bitlength,
-            }),
-            Self::Field => ScalarType::Field,
-            Self::Array { .. } => {
-                panic!(crate::generator::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS)
-            }
-            Self::Group { .. } => {
-                panic!(crate::generator::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS)
-            }
+            })),
+            Self::Field => Some(ScalarType::Field),
+            _ => None,
         }
     }
 }

@@ -2,6 +2,8 @@
 //! The semantic analyzer type element.
 //!
 
+mod tests;
+
 pub mod enumeration;
 pub mod function;
 pub mod structure;
@@ -203,6 +205,7 @@ impl Type {
             Self::IntegerUnsigned { .. } => true,
             Self::IntegerSigned { .. } => true,
             Self::Field => true,
+            Self::Enumeration { .. } => true,
             _ => false,
         }
     }
@@ -211,6 +214,7 @@ impl Type {
         match self {
             Self::IntegerUnsigned { .. } => true,
             Self::Field => true,
+            Self::Enumeration { .. } => true,
             _ => false,
         }
     }

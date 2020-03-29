@@ -3,13 +3,13 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::statement::r#use::Statement as UseStatement;
 
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
-    path: Option<Expression>,
+    path: Option<ExpressionTree>,
 }
 
 impl Builder {
@@ -17,7 +17,7 @@ impl Builder {
         self.location = Some(value);
     }
 
-    pub fn set_path(&mut self, value: Expression) {
+    pub fn set_path(&mut self, value: ExpressionTree) {
         self.path = Some(value);
     }
 

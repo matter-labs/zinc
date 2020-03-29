@@ -2,205 +2,219 @@
 //! The generator for-loop statement.
 //!
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
+use zinc_bytecode::Instruction;
+
+use crate::bytecode::Bytecode;
 use crate::generator::expression::operand::block::Expression as BlockExpression;
+use crate::generator::expression::operand::constant::Constant;
 use crate::generator::expression::Expression as GeneratorExpression;
+use crate::generator::r#type::Type;
 
 use num_bigint::BigInt;
+use num_traits::One;
 
 #[derive(Debug, Clone)]
 pub struct Statement {
-    pub start: BigInt,
-    pub end: BigInt,
-    pub is_inclusive: bool,
+    pub initial_value: BigInt,
+    pub iterations_count: usize,
+    pub is_reversed: bool,
+    pub index_variable_name: String,
+    pub index_variable_is_signed: bool,
+    pub index_variable_bitlength: usize,
     pub while_condition: Option<GeneratorExpression>,
     pub body: BlockExpression,
 }
 
 impl Statement {
     pub fn new(
-        start: BigInt,
-        end: BigInt,
-        is_inclusive: bool,
+        initial_value: BigInt,
+        iterations_count: usize,
+        is_reversed: bool,
+        index_variable_name: String,
+        index_variable_is_signed: bool,
+        index_variable_bitlength: usize,
         while_condition: Option<GeneratorExpression>,
         body: BlockExpression,
     ) -> Self {
         Self {
-            start,
-            end,
-            is_inclusive,
+            initial_value,
+            iterations_count,
+            is_reversed,
+            index_variable_name,
+            index_variable_is_signed,
+            index_variable_bitlength,
             while_condition,
             body,
         }
     }
 
-    fn _temp() {
-        // create the index value and get its address
-        // let index = IntegerConstant::new(range_start.clone(), is_signed, bitlength);
-        // let index_type = index.r#type();
-        // let index_size = index_type.size();
-        // let index_address = self
-        //     .bytecode
-        //     .borrow_mut()
-        //     .allocate_data_stack_space(index_size);
-        // self.bytecode
-        //     .borrow_mut()
-        //     .push_instruction(index.to_instruction(), bounds_expression_location);
-        // self.bytecode.borrow_mut().push_instruction_store(
-        //     index_address,
-        //     index_size,
-        //     None,
-        //     bounds_expression_location,
-        // );
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+        let index_type =
+            Type::integer(self.index_variable_is_signed, self.index_variable_bitlength);
+        let index_size = index_type.size();
+        let index_address = bytecode
+            .borrow_mut()
+            .declare_variable(Some(self.index_variable_name), index_type);
+        Constant::new_integer(
+            self.initial_value.clone(),
+            self.index_variable_is_signed,
+            self.index_variable_bitlength,
+        )
+        .write_all_to_bytecode(bytecode.clone());
+        bytecode.borrow_mut().push_instruction(
+            Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
+                index_address,
+                index_size,
+            )),
+            crate::lexical::Location::default(),
+        );
 
-        // create the while allowed condition
-        // let while_allowed_address = match statement.while_condition {
-        //     Some(ref condition) => {
-        //         let while_allowed = Constant::Boolean(true);
-        //         let while_allowed_address = self
-        //             .bytecode
-        //             .borrow_mut()
-        //             .allocate_data_stack_space(while_allowed.r#type().size());
-        //         self.bytecode
-        //             .borrow_mut()
-        //             .push_instruction(while_allowed.to_instruction(), condition.location);
-        //         self.bytecode.borrow_mut().push_instruction(
-        //             Instruction::Store(zinc_bytecode::Store::new(while_allowed_address)),
-        //             condition.location,
-        //         );
-        //         Some(while_allowed_address)
-        //     }
-        //     None => None,
-        // };
+        let while_allowed_address = if self.while_condition.is_some() {
+            let while_allowed = Constant::new_boolean(true);
+            let while_allowed_address = bytecode
+                .borrow_mut()
+                .declare_variable(None, while_allowed.r#type());
+            while_allowed.write_all_to_bytecode(bytecode.clone());
+            bytecode.borrow_mut().push_instruction(
+                Instruction::Store(zinc_bytecode::Store::new(while_allowed_address)),
+                crate::lexical::Location::default(),
+            );
+            Some(while_allowed_address)
+        } else {
+            None
+        };
 
-        // calculate the iterations number and if the loop is reverse
-        // let iterations_count = cmp::max(&range_start, &range_end)
-        //     - cmp::min(&range_start, &range_end)
-        //     + if is_inclusive {
-        //     BigInt::one()
-        // } else {
-        //     BigInt::zero()
-        // };
-        // let is_reverse = range_start > range_end;
-        //
-        // let iterations_count = iterations_count.to_usize().ok_or_else(|| {
-        //     Error::Element(
-        //         location,
-        //         ElementError::Constant(ConstantError::Integer(
-        //             IntegerConstantError::IntegerTooLarge {
-        //                 value: iterations_count.to_owned(),
-        //                 bitlength: crate::BITLENGTH_INDEX,
-        //             },
-        //         )),
-        //     )
-        // })?;
-        // self.bytecode.borrow_mut().push_instruction(
-        //     Instruction::LoopBegin(zinc_bytecode::LoopBegin::new(iterations_count)),
-        //     bounds_expression_location,
-        // );
+        bytecode.borrow_mut().push_instruction(
+            Instruction::LoopBegin(zinc_bytecode::LoopBegin::new(self.iterations_count)),
+            crate::lexical::Location::default(),
+        );
 
-        // self.bytecode
-        //     .borrow_mut()
-        //     .push_instruction(Instruction::Not(zinc_bytecode::Not), location);
-        // self.bytecode
-        //     .borrow_mut()
-        //     .push_instruction(Instruction::If(zinc_bytecode::If), location);
-        // self.bytecode
-        //     .borrow_mut()
-        //     .push_instruction(Constant::Boolean(false).to_instruction(), location);
-        // self.bytecode.borrow_mut().push_instruction_store(
-        //     while_allowed_address,
-        //     Type::boolean().size(),
-        //     None,
-        //     location,
-        // );
-        // self.bytecode
-        //     .borrow_mut()
-        //     .push_instruction(Instruction::EndIf(zinc_bytecode::EndIf), location);
-        //
-        // self.bytecode.borrow_mut().push_instruction_load(
-        //     while_allowed_address,
-        //     Type::boolean().size(),
-        //     None,
-        //     location,
-        // );
-        // self.bytecode
-        //     .borrow_mut()
-        //     .push_instruction(Instruction::If(zinc_bytecode::If), location);
+        if let (Some(while_condition), Some(while_allowed_address)) =
+            (self.while_condition, while_allowed_address)
+        {
+            while_condition.write_all_to_bytecode(bytecode.clone());
+            bytecode.borrow_mut().push_instruction(
+                Instruction::Not(zinc_bytecode::Not),
+                crate::lexical::Location::default(),
+            );
+            bytecode.borrow_mut().push_instruction(
+                Instruction::If(zinc_bytecode::If),
+                crate::lexical::Location::default(),
+            );
+            Constant::new_boolean(false).write_all_to_bytecode(bytecode.clone());
+            bytecode.borrow_mut().push_instruction(
+                Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
+                    while_allowed_address,
+                    Type::boolean().size(),
+                )),
+                crate::lexical::Location::default(),
+            );
+            bytecode.borrow_mut().push_instruction(
+                Instruction::EndIf(zinc_bytecode::EndIf),
+                crate::lexical::Location::default(),
+            );
 
-        // self.bytecode
-        //     .borrow_mut()
-        //     .push_instruction(Instruction::EndIf(zinc_bytecode::EndIf), location);
+            bytecode.borrow_mut().push_instruction(
+                Instruction::LoadSequence(zinc_bytecode::LoadSequence::new(
+                    while_allowed_address,
+                    Type::boolean().size(),
+                )),
+                crate::lexical::Location::default(),
+            );
+            bytecode.borrow_mut().push_instruction(
+                Instruction::If(zinc_bytecode::If),
+                crate::lexical::Location::default(),
+            );
+            self.body.write_all_to_bytecode(bytecode.clone());
+            bytecode.borrow_mut().push_instruction(
+                Instruction::EndIf(zinc_bytecode::EndIf),
+                crate::lexical::Location::default(),
+            );
+        } else {
+            self.body.write_all_to_bytecode(bytecode.clone());
+        }
 
-        // increment or decrement the loop counter
-        // if is_reverse {
-        //     self.bytecode.borrow_mut().push_instruction(
-        //         Instruction::Load(zinc_bytecode::Load::new(index_address)),
-        //         location,
-        //     );
-        //     self.bytecode.borrow_mut().push_instruction(
-        //         IntegerConstant::new_min(is_signed, bitlength).to_instruction(),
-        //         location,
-        //     );
-        //     self.bytecode
-        //         .borrow_mut()
-        //         .push_instruction(Instruction::Gt(zinc_bytecode::Gt), location);
-        //     self.bytecode
-        //         .borrow_mut()
-        //         .push_instruction(Instruction::If(zinc_bytecode::If), location);
-        //     self.bytecode.borrow_mut().push_instruction(
-        //         Instruction::Load(zinc_bytecode::Load::new(index_address)),
-        //         location,
-        //     );
-        //     self.bytecode.borrow_mut().push_instruction(
-        //         IntegerConstant::new_one(is_signed, bitlength).to_instruction(),
-        //         location,
-        //     );
-        //     self.bytecode
-        //         .borrow_mut()
-        //         .push_instruction(Instruction::Sub(zinc_bytecode::Sub), location);
-        //     self.bytecode.borrow_mut().push_instruction(
-        //         Instruction::Store(zinc_bytecode::Store::new(index_address)),
-        //         location,
-        //     );
-        //     self.bytecode
-        //         .borrow_mut()
-        //         .push_instruction(Instruction::EndIf(zinc_bytecode::EndIf), location);
-        // } else {
-        //     self.bytecode.borrow_mut().push_instruction(
-        //         Instruction::Load(zinc_bytecode::Load::new(index_address)),
-        //         location,
-        //     );
-        //     self.bytecode.borrow_mut().push_instruction(
-        //         IntegerConstant::new_max(is_signed, bitlength).to_instruction(),
-        //         location,
-        //     );
-        //     self.bytecode
-        //         .borrow_mut()
-        //         .push_instruction(Instruction::Lt(zinc_bytecode::Lt), location);
-        //     self.bytecode
-        //         .borrow_mut()
-        //         .push_instruction(Instruction::If(zinc_bytecode::If), location);
-        //     self.bytecode.borrow_mut().push_instruction(
-        //         Instruction::Load(zinc_bytecode::Load::new(index_address)),
-        //         location,
-        //     );
-        //     self.bytecode.borrow_mut().push_instruction(
-        //         IntegerConstant::new_one(is_signed, bitlength).to_instruction(),
-        //         location,
-        //     );
-        //     self.bytecode
-        //         .borrow_mut()
-        //         .push_instruction(Instruction::Add(zinc_bytecode::Add), location);
-        //     self.bytecode.borrow_mut().push_instruction(
-        //         Instruction::Store(zinc_bytecode::Store::new(index_address)),
-        //         location,
-        //     );
-        //     self.bytecode
-        //         .borrow_mut()
-        //         .push_instruction(Instruction::EndIf(zinc_bytecode::EndIf), location);
-        // };
-        // self.bytecode
-        //     .borrow_mut()
-        //     .push_instruction(Instruction::LoopEnd(zinc_bytecode::LoopEnd), location);
+        if self.is_reversed {
+            bytecode.borrow_mut().push_instruction(
+                Instruction::Load(zinc_bytecode::Load::new(index_address)),
+                crate::lexical::Location::default(),
+            );
+            Constant::new_min(self.index_variable_is_signed, self.index_variable_bitlength)
+                .write_all_to_bytecode(bytecode.clone());
+            bytecode.borrow_mut().push_instruction(
+                Instruction::Gt(zinc_bytecode::Gt),
+                crate::lexical::Location::default(),
+            );
+            bytecode.borrow_mut().push_instruction(
+                Instruction::If(zinc_bytecode::If),
+                crate::lexical::Location::default(),
+            );
+            bytecode.borrow_mut().push_instruction(
+                Instruction::Load(zinc_bytecode::Load::new(index_address)),
+                crate::lexical::Location::default(),
+            );
+            Constant::new_integer(
+                BigInt::one(),
+                self.index_variable_is_signed,
+                self.index_variable_bitlength,
+            )
+            .write_all_to_bytecode(bytecode.clone());
+            bytecode.borrow_mut().push_instruction(
+                Instruction::Sub(zinc_bytecode::Sub),
+                crate::lexical::Location::default(),
+            );
+            bytecode.borrow_mut().push_instruction(
+                Instruction::Store(zinc_bytecode::Store::new(index_address)),
+                crate::lexical::Location::default(),
+            );
+            bytecode.borrow_mut().push_instruction(
+                Instruction::EndIf(zinc_bytecode::EndIf),
+                crate::lexical::Location::default(),
+            );
+        } else {
+            bytecode.borrow_mut().push_instruction(
+                Instruction::Load(zinc_bytecode::Load::new(index_address)),
+                crate::lexical::Location::default(),
+            );
+            Constant::new_max(self.index_variable_is_signed, self.index_variable_bitlength)
+                .write_all_to_bytecode(bytecode.clone());
+            bytecode.borrow_mut().push_instruction(
+                Instruction::Lt(zinc_bytecode::Lt),
+                crate::lexical::Location::default(),
+            );
+            bytecode.borrow_mut().push_instruction(
+                Instruction::If(zinc_bytecode::If),
+                crate::lexical::Location::default(),
+            );
+            bytecode.borrow_mut().push_instruction(
+                Instruction::Load(zinc_bytecode::Load::new(index_address)),
+                crate::lexical::Location::default(),
+            );
+            Constant::new_integer(
+                BigInt::one(),
+                self.index_variable_is_signed,
+                self.index_variable_bitlength,
+            )
+            .write_all_to_bytecode(bytecode.clone());
+            bytecode.borrow_mut().push_instruction(
+                Instruction::Add(zinc_bytecode::Add),
+                crate::lexical::Location::default(),
+            );
+            bytecode.borrow_mut().push_instruction(
+                Instruction::Store(zinc_bytecode::Store::new(index_address)),
+                crate::lexical::Location::default(),
+            );
+            bytecode.borrow_mut().push_instruction(
+                Instruction::EndIf(zinc_bytecode::EndIf),
+                crate::lexical::Location::default(),
+            );
+        };
+        bytecode.borrow_mut().push_instruction(
+            Instruction::LoopEnd(zinc_bytecode::LoopEnd),
+            crate::lexical::Location::default(),
+        );
     }
 }

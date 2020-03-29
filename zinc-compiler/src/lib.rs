@@ -2,12 +2,17 @@
 //! The Zinc compiler library.
 //!
 
-mod bytecode;
-mod error;
-mod generator;
-mod lexical;
-mod semantic;
-mod syntax;
+#![allow(clippy::large_enum_variant)]
+#![allow(clippy::implicit_hasher)]
+#![allow(clippy::should_implement_trait)]
+#![allow(clippy::too_many_arguments)]
+
+pub(crate) mod bytecode;
+pub(crate) mod error;
+pub(crate) mod generator;
+pub(crate) mod lexical;
+pub(crate) mod semantic;
+pub(crate) mod syntax;
 
 pub use self::bytecode::Bytecode;
 pub use self::error::Error;
@@ -26,8 +31,6 @@ use std::rc::Rc;
 use std::sync::RwLock;
 
 use lazy_static::lazy_static;
-
-use crate::generator::Representation;
 
 use self::error::file::Error as FileError;
 
@@ -56,11 +59,11 @@ lazy_static! {
     static ref FILE_INDEX: RwLock<HashMap<usize, PathBuf>> = RwLock::new(HashMap::new());
 }
 
-#[allow(clippy::implicit_hasher)]
 pub fn compile_entry(
     path: PathBuf,
+    bytecode: Rc<RefCell<Bytecode>>,
     dependencies: HashMap<String, Rc<RefCell<Scope>>>,
-) -> Result<Representation, String> {
+) -> Result<(), String> {
     let code = read(&path)?;
     let lines = code.lines().collect::<Vec<&str>>();
 
@@ -76,10 +79,16 @@ pub fn compile_entry(
 
     EntryPointAnalyzer::new()
         .compile(syntax_tree, dependencies)
-        .map_err(|error| error.format(&lines))
+        .map_err(|error| error.format(&lines))?
+        .write_all_to_bytecode(bytecode);
+
+    Ok(())
 }
 
-pub fn compile_module(path: PathBuf) -> Result<(Rc<RefCell<Scope>>, Representation), String> {
+pub fn compile_module(
+    path: PathBuf,
+    bytecode: Rc<RefCell<Bytecode>>,
+) -> Result<Rc<RefCell<Scope>>, String> {
     let code = read(&path)?;
     let lines = code.lines().collect::<Vec<&str>>();
 
@@ -93,9 +102,13 @@ pub fn compile_module(path: PathBuf) -> Result<(Rc<RefCell<Scope>>, Representati
         .parse(&code, Some(next_file_id))
         .map_err(|error| error.format(&lines))?;
 
-    ModuleAnalyzer::new()
+    let (scope, intermediate) = ModuleAnalyzer::new()
         .compile(syntax_tree)
-        .map_err(|error| error.format(&lines))
+        .map_err(|error| error.format(&lines))?;
+
+    intermediate.write_all_to_bytecode(bytecode);
+
+    Ok(scope)
 }
 
 pub fn compile_test(code: &str) -> Result<Bytecode, String> {
@@ -106,9 +119,11 @@ pub fn compile_test(code: &str) -> Result<Bytecode, String> {
         .map_err(|error| error.format(&lines))?;
     let bytecode = Rc::new(RefCell::new(Bytecode::new()));
 
-    EntryPointAnalyzer::new()
+    let intermediate = EntryPointAnalyzer::new()
         .compile(syntax_tree, HashMap::new())
         .map_err(|error| error.format(&lines))?;
+
+    intermediate.write_all_to_bytecode(bytecode.clone());
 
     Ok(Rc::try_unwrap(bytecode)
         .expect(PANIC_LAST_SHARED_REFERENCE)

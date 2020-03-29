@@ -26,7 +26,7 @@ fn main() {
         FunctionError::BuiltIn(BuiltInFunctionError::specifier_missing("assert")),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
@@ -46,7 +46,7 @@ fn main() {
         FunctionError::BuiltIn(BuiltInFunctionError::unknown("unknown".to_owned())),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
@@ -64,7 +64,7 @@ fn main() {
         FunctionError::BuiltIn(BuiltInFunctionError::debug_argument_count(3, 2)),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
@@ -82,7 +82,7 @@ fn main() {
         FunctionError::BuiltIn(BuiltInFunctionError::debug_argument_count(2, 3)),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
@@ -106,7 +106,7 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
@@ -128,7 +128,7 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
@@ -150,7 +150,7 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
@@ -174,7 +174,7 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
@@ -198,7 +198,7 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }

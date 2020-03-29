@@ -2,7 +2,7 @@
 //! The match pattern variant.
 //!
 
-use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
 use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
@@ -12,7 +12,7 @@ pub enum Variant {
     BooleanLiteral(BooleanLiteral),
     IntegerLiteral(IntegerLiteral),
     Binding(Identifier),
-    Path(Expression),
+    Path(ExpressionTree),
     Wildcard,
 }
 
@@ -29,7 +29,7 @@ impl Variant {
         Self::Binding(identifier)
     }
 
-    pub fn new_path(expression: Expression) -> Self {
+    pub fn new_path(expression: ExpressionTree) -> Self {
         Self::Path(expression)
     }
 

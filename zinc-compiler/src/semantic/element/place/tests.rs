@@ -15,7 +15,7 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
 
 #[test]
-fn error_element_place_index_1st_expected_array() {
+fn error_operator_index_1st_operand_expected_array() {
     let input = r#"
 fn main() {
     let tuple = (true, false, true);
@@ -30,13 +30,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_place_index_2nd_expected_integer() {
+fn error_operator_index_2nd_operand_expected_integer_or_range() {
     let input = r#"
 fn main() {
     let array = [1, 2, 3];
@@ -53,13 +53,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_place_field_1st_expected_tuple() {
+fn error_operator_field_1st_operand_expected_tuple() {
     let input = r#"
 struct Data {
     a: u8,
@@ -89,13 +89,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_place_field_1st_expected_structure() {
+fn error_operator_field_1st_operand_expected_structure() {
     let input = r#"
 fn main() {
     let tuple = (true, true, false);
@@ -110,13 +110,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_place_index_slice_start_out_of_range() {
+fn error_array_slice_start_out_of_range() {
     let input = r#"
 fn main() {
     let array = [1, 2, 3, 4, 5];
@@ -131,13 +131,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_place_index_slice_end_out_of_range() {
+fn error_array_slice_end_out_of_range() {
     let input = r#"
 fn main() {
     let array = [1, 2, 3, 4, 5];
@@ -153,13 +153,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_place_index_slice_end_lesser_than_start() {
+fn error_array_slice_end_lesser_than_start() {
     let input = r#"
 fn main() {
     let array = [1, 2, 3, 4, 5];
@@ -175,13 +175,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_place_field_does_not_exist_in_tuple() {
+fn error_tuple_field_does_not_exist() {
     let input = r#"
 fn main() {
     let tuple = (1, 2, 3);
@@ -198,13 +198,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_place_field_does_not_exist_in_structure() {
+fn error_structure_field_does_not_exist() {
     let input = r#"
 struct Data {
     a: u8,
@@ -226,7 +226,7 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }

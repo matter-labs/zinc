@@ -3,11 +3,9 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::tree::expression::element::Element as ExpressionElement;
-use crate::syntax::tree::expression::object::Object as ExpressionObject;
-use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
-use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
-use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::expression::tree::builder::Builder as ExpressionTreeBuilder;
+use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
 use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
@@ -20,7 +18,7 @@ pub struct Builder {
     boolean_literal: Option<BooleanLiteral>,
     integer_literal: Option<IntegerLiteral>,
     binding: Option<Identifier>,
-    path: Expression,
+    path_builder: ExpressionTreeBuilder,
     is_wildcard: bool,
 }
 
@@ -41,20 +39,17 @@ impl Builder {
         self.binding = Some(value);
     }
 
-    pub fn extend_with_expression(&mut self, expression: Expression) {
+    pub fn push_path_operand(&mut self, operand: ExpressionOperand, location: Location) {
         self.move_binding_to_path();
-        self.path.elements.extend(expression);
+        self.path_builder.eat_operand(operand, location);
     }
 
-    pub fn push_path_operator(&mut self, location: Location, operator: ExpressionOperator) {
+    pub fn push_path_operator(&mut self, operator: ExpressionOperator, location: Location) {
         self.move_binding_to_path();
-        self.path.elements.push(ExpressionElement::new(
-            location,
-            ExpressionObject::Operator(operator),
-        ));
+        self.path_builder.eat_operator(operator, location);
     }
 
-    pub fn set_wildcard(&mut self) {
+    pub fn set_is_wildcard(&mut self) {
         self.is_wildcard = true;
     }
 
@@ -72,8 +67,8 @@ impl Builder {
             MatchPatternVariant::IntegerLiteral(integer_literal)
         } else if let Some(identifier) = self.binding.take() {
             MatchPatternVariant::Binding(identifier)
-        } else if !self.path.elements.is_empty() {
-            MatchPatternVariant::Path(self.path)
+        } else if !self.path_builder.is_empty() {
+            MatchPatternVariant::Path(self.path_builder.finish())
         } else {
             panic!(
                 "{}{}",
@@ -87,11 +82,9 @@ impl Builder {
 
     fn move_binding_to_path(&mut self) {
         if let Some(binding) = self.binding.take() {
-            self.path.location = binding.location;
-            self.path.elements.push(ExpressionElement::new(
-                binding.location,
-                ExpressionObject::Operand(ExpressionOperand::Identifier(binding)),
-            ));
+            let location = binding.location;
+            self.path_builder
+                .eat_operand(ExpressionOperand::Identifier(binding), location);
         }
     }
 }

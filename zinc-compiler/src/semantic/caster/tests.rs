@@ -13,7 +13,7 @@ use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::Error as SemanticError;
 
 #[test]
-fn casting_from_invalid_type() {
+fn error_casting_from_invalid_type() {
     let input = r#"
 fn main() {
     let value: field = 0;
@@ -29,13 +29,13 @@ fn main() {
         ))),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn casting_to_invalid_type() {
+fn error_casting_to_invalid_type() {
     let input = r#"
 fn main() {
     let value: u8 = 0;
@@ -51,13 +51,13 @@ fn main() {
         ))),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn casting_to_invalid_type_let_implicit() {
+fn error_casting_to_invalid_type_let_implicit() {
     let input = r#"
 fn main() {
     let value = 42;
@@ -73,7 +73,7 @@ fn main() {
         ))),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }

@@ -4,6 +4,7 @@
 
 use crate::semantic::element::r#type::Type;
 
+#[derive(Debug, Clone)]
 pub struct AccessData {
     pub offset: usize,
     pub element_size: usize,

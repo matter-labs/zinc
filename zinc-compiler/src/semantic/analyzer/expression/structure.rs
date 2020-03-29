@@ -5,8 +5,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::generator::expression::operand::group::builder::Builder as GeneratorGroupExpressionBuilder;
-use crate::generator::expression::operand::group::Expression as GeneratorGroupExpression;
+use crate::generator::expression::operand::structure::builder::Builder as GeneratorStructureExpressionBuilder;
+use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::element::error::Error as ElementError;
@@ -26,10 +26,10 @@ impl Analyzer {
     pub fn analyze(
         scope: Rc<RefCell<Scope>>,
         structure: StructureExpression,
-    ) -> Result<(Element, GeneratorGroupExpression), Error> {
+    ) -> Result<(Element, GeneratorExpressionOperand), Error> {
         let identifier_location = structure.identifier.location;
 
-        let mut builder = GeneratorGroupExpressionBuilder::default();
+        let mut builder = GeneratorStructureExpressionBuilder::default();
 
         let structure_type = match Scope::resolve_item(scope.clone(), &structure.identifier.name)
             .map_err(|error| Error::Scope(identifier_location, error))?
@@ -52,7 +52,7 @@ impl Analyzer {
                 .analyze(expression, TranslationHint::ValueExpression)?;
             let element_type = Type::from_element(&element, scope.clone())?;
             result
-                .push(identifier.name.clone(), element_type)
+                .push(identifier.name.clone(), element_type.clone())
                 .map_err(|error| {
                     Error::Element(
                         identifier_location,
@@ -60,11 +60,12 @@ impl Analyzer {
                     )
                 })?;
 
-            builder.push_expression(expression);
+            builder.push_field(identifier.name, element_type, expression);
         }
 
-        let result = Element::Value(Value::Structure(result));
+        let element = Element::Value(Value::Structure(result));
+        let intermediate = GeneratorExpressionOperand::Structure(builder.finish());
 
-        Ok((result, builder.finish()))
+        Ok((element, intermediate))
     }
 }

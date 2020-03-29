@@ -5,8 +5,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::generator::expression::operand::group::builder::Builder as GeneratorGroupExpressionBuilder;
-use crate::generator::expression::operand::group::Expression as GeneratorGroupExpression;
+use crate::generator::expression::operand::tuple::builder::Builder as GeneratorTupleExpressionBuilder;
+use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::element::r#type::Type;
@@ -23,21 +23,22 @@ impl Analyzer {
     pub fn analyze(
         scope: Rc<RefCell<Scope>>,
         tuple: TupleExpression,
-    ) -> Result<(Element, GeneratorGroupExpression), Error> {
+    ) -> Result<(Element, GeneratorExpressionOperand), Error> {
         let mut result = Tuple::default();
-        let mut builder = GeneratorGroupExpressionBuilder::default();
+        let mut builder = GeneratorTupleExpressionBuilder::default();
 
         for expression in tuple.elements.into_iter() {
             let (element, expression) = ExpressionAnalyzer::new(scope.clone())
                 .analyze(expression, TranslationHint::ValueExpression)?;
             let element_type = Type::from_element(&element, scope.clone())?;
-            result.push(element_type);
+            result.push(element_type.clone());
 
-            builder.push_expression(expression);
+            builder.push_expression(element_type, expression);
         }
 
-        let result = Element::Value(Value::Tuple(result));
+        let element = Element::Value(Value::Tuple(result));
+        let intermediate = GeneratorExpressionOperand::Tuple(builder.finish());
 
-        Ok((result, builder.finish()))
+        Ok((element, intermediate))
     }
 }

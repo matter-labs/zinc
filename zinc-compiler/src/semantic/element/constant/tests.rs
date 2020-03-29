@@ -17,7 +17,7 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::Error as SemanticError;
 
 #[test]
-fn error_element_constant_range_1st_expected_integer() {
+fn error_operator_range_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true .. 42;
@@ -31,13 +31,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_range_2nd_expected_integer() {
+fn error_operator_range_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 .. true;
@@ -51,13 +51,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_range_inclusive_1st_expected_integer() {
+fn error_operator_range_inclusive_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true ..= 42;
@@ -73,13 +73,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_range_inclusive_2nd_expected_integer() {
+fn error_operator_range_inclusive_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 ..= true;
@@ -95,13 +95,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_or_1st_expected_boolean() {
+fn error_operator_or_1st_expected_boolean() {
     let input = r#"
 fn main() {
     let value = 42 || true;
@@ -120,13 +120,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_or_2nd_expected_boolean() {
+fn error_operator_or_2nd_expected_boolean() {
     let input = r#"
 fn main() {
     let value = true || 42;
@@ -145,13 +145,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_xor_1st_expected_boolean() {
+fn error_operator_xor_1st_expected_boolean() {
     let input = r#"
 fn main() {
     let value = 42 ^^ true;
@@ -170,13 +170,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_xor_2nd_expected_boolean() {
+fn error_operator_xor_2nd_expected_boolean() {
     let input = r#"
 fn main() {
     let value = true ^^ 42;
@@ -195,13 +195,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_and_1st_expected_boolean() {
+fn error_operator_and_1st_expected_boolean() {
     let input = r#"
 fn main() {
     let value = 42 && true;
@@ -220,13 +220,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_and_2nd_expected_boolean() {
+fn error_operator_and_2nd_expected_boolean() {
     let input = r#"
 fn main() {
     let value = true && 42;
@@ -245,13 +245,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_equals_1st_expected_primitive() {
+fn error_operator_equals_1st_expected_primitive() {
     let input = r#"
 fn main() {
     let value = "string" == 42;
@@ -267,13 +267,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_equals_2nd_expected_unit() {
+fn error_operator_equals_2nd_expected_unit() {
     let input = r#"
 fn main() {
     let value = () == 42;
@@ -292,13 +292,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_equals_2nd_expected_boolean() {
+fn error_operator_equals_2nd_expected_boolean() {
     let input = r#"
 fn main() {
     let value = true == 42;
@@ -317,13 +317,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_equals_2nd_expected_integer() {
+fn error_operator_equals_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 == true;
@@ -337,13 +337,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_not_equals_1st_expected_primitive() {
+fn error_operator_not_equals_1st_expected_primitive() {
     let input = r#"
 fn main() {
     let value = "string" != 42;
@@ -359,13 +359,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_not_equals_2nd_expected_unit() {
+fn error_operator_not_equals_2nd_expected_unit() {
     let input = r#"
 fn main() {
     let value = () != 42;
@@ -384,13 +384,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_not_equals_2nd_expected_boolean() {
+fn error_operator_not_equals_2nd_expected_boolean() {
     let input = r#"
 fn main() {
     let value = true != 42;
@@ -411,13 +411,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_not_equals_2nd_expected_integer() {
+fn error_operator_not_equals_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 != true;
@@ -433,13 +433,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_greater_equals_1st_expected_integer() {
+fn error_operator_greater_equals_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true >= 42;
@@ -455,13 +455,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_greater_equals_2nd_expected_integer() {
+fn error_operator_greater_equals_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 >= true;
@@ -477,13 +477,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_lesser_equals_1st_expected_integer() {
+fn error_operator_lesser_equals_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true <= 42;
@@ -499,13 +499,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_lesser_equals_2nd_expected_integer() {
+fn error_operator_lesser_equals_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 <= true;
@@ -521,13 +521,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_greater_1st_expected_integer() {
+fn error_operator_greater_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true > 42;
@@ -541,13 +541,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_greater_2nd_expected_integer() {
+fn error_operator_greater_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 > true;
@@ -561,13 +561,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_lesser_1st_expected_integer() {
+fn error_operator_lesser_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true < 42;
@@ -581,13 +581,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_lesser_2nd_expected_integer() {
+fn error_operator_lesser_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 < true;
@@ -601,13 +601,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_bitwise_or_1st_expected_integer() {
+fn error_operator_bitwise_or_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true | 42;
@@ -623,13 +623,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_bitwise_or_2nd_expected_integer() {
+fn error_operator_bitwise_or_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 | true;
@@ -645,13 +645,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_bitwise_xor_1st_expected_integer() {
+fn error_operator_bitwise_xor_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true ^ 42;
@@ -667,13 +667,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_bitwise_xor_2nd_expected_integer() {
+fn error_operator_bitwise_xor_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 ^ true;
@@ -689,13 +689,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_bitwise_and_1st_expected_integer() {
+fn error_operator_bitwise_and_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true & 42;
@@ -711,13 +711,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_bitwise_and_2nd_expected_integer() {
+fn error_operator_bitwise_and_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 & true;
@@ -733,13 +733,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_bitwise_shift_left_1st_expected_integer() {
+fn error_operator_bitwise_shift_left_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true << 42;
@@ -755,13 +755,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_bitwise_shift_left_2nd_expected_integer() {
+fn error_operator_bitwise_shift_left_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 << true;
@@ -777,13 +777,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_bitwise_shift_right_1st_expected_integer() {
+fn error_operator_bitwise_shift_right_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true >> 42;
@@ -799,13 +799,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_bitwise_shift_right_2nd_expected_integer() {
+fn error_operator_bitwise_shift_right_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 >> true;
@@ -821,13 +821,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_addition_1st_expected_integer() {
+fn error_operator_addition_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true + 42;
@@ -841,13 +841,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_addition_2nd_expected_integer() {
+fn error_operator_addition_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 + true;
@@ -863,13 +863,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_subtraction_1st_expected_integer() {
+fn error_operator_subtraction_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true - 42;
@@ -885,13 +885,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_subtraction_2nd_expected_integer() {
+fn error_operator_subtraction_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 - true;
@@ -907,13 +907,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_multiplication_1st_expected_integer() {
+fn error_operator_multiplication_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true * 42;
@@ -929,13 +929,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_multiplication_2nd_expected_integer() {
+fn error_operator_multiplication_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 * true;
@@ -951,13 +951,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_division_1st_expected_integer() {
+fn error_operator_division_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true / 42;
@@ -971,13 +971,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_division_2nd_expected_integer() {
+fn error_operator_division_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 / true;
@@ -993,13 +993,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_remainder_1st_expected_integer() {
+fn error_operator_remainder_1st_expected_integer() {
     let input = r#"
 fn main() {
     let value = true % 42;
@@ -1015,13 +1015,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_remainder_2nd_expected_integer() {
+fn error_operator_remainder_2nd_expected_integer() {
     let input = r#"
 fn main() {
     let value = 42 % true;
@@ -1037,13 +1037,13 @@ fn main() {
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_casting_to_invalid_type_const() {
+fn error_operator_casting_to_invalid_type_const() {
     let input = r#"
 fn main() {
     const VALUE: u8 = 42;
@@ -1059,13 +1059,13 @@ fn main() {
         })),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_not_expected_boolean() {
+fn error_operator_not_expected_boolean() {
     let input = r#"
 fn main() {
     let value = !42;
@@ -1084,13 +1084,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_bitwise_not_expected_integer() {
+fn error_operator_bitwise_not_expected_integer() {
     let input = r#"
 fn main() {
     let value = ~true;
@@ -1104,13 +1104,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_constant_negation_expected_integer() {
+fn error_operator_negation_expected_integer() {
     let input = r#"
 fn main() {
     let value = -true;
@@ -1124,7 +1124,7 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }

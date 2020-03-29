@@ -1,5 +1,5 @@
 //!
-//! The block semantic analyzer.
+//! The block expression semantic analyzer.
 //!
 
 use std::cell::RefCell;
@@ -31,14 +31,14 @@ impl Analyzer {
         scope_stack.push();
 
         for statement in block.statements.into_iter() {
-            if let Some(statement) = StatementAnalyzer::new(scope_stack.top(), HashMap::new())
-                .function_local_statement(statement)?
+            if let Some(statement) =
+                StatementAnalyzer::new(scope_stack.top(), HashMap::new()).local_fn(statement)?
             {
                 builder.push_statement(statement);
             }
         }
 
-        let result = match block.expression {
+        let element = match block.expression {
             Some(expression) => {
                 let (element, expression) = ExpressionAnalyzer::new(scope_stack.top())
                     .analyze(*expression, TranslationHint::ValueExpression)?;
@@ -50,6 +50,6 @@ impl Analyzer {
 
         scope_stack.pop();
 
-        Ok((result, builder.finish()))
+        Ok((element, builder.finish()))
     }
 }

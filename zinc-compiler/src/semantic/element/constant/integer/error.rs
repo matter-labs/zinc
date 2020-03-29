@@ -31,7 +31,7 @@ pub enum Error {
 
     ForbiddenFieldDivision,
     ForbiddenFieldRemainder,
-    ForbiddenFieldBitwiseNot,
+    ForbiddenFieldBitwise,
     ForbiddenFieldNegation,
 
     ZeroDivision,

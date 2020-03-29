@@ -5,21 +5,21 @@
 pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax::tree::expression::Expression as SyntaxExpression;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatement;
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Expression {
     pub location: Location,
     pub statements: Vec<FunctionLocalStatement>,
-    pub expression: Option<Box<SyntaxExpression>>,
+    pub expression: Option<Box<ExpressionTree>>,
 }
 
 impl Expression {
     pub fn new(
         location: Location,
         statements: Vec<FunctionLocalStatement>,
-        expression: Option<SyntaxExpression>,
+        expression: Option<ExpressionTree>,
     ) -> Self {
         Self {
             location,

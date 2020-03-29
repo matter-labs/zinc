@@ -115,110 +115,110 @@ impl Parser {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
-    use super::Parser;
-    use crate::error::Error;
-    use crate::lexical::Keyword;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::TokenStream;
-    use crate::syntax::error::Error as SyntaxError;
-    use crate::syntax::tree::identifier::Identifier;
-    use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;
-    use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
-    use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
-    use crate::syntax::tree::r#type::Type;
-
-    #[test]
-    fn ok_binding() {
-        let input = "value: u8";
-
-        let expected = Ok((
-            BindingPattern::new(
-                Location::new(1, 1),
-                BindingPatternVariant::Binding(Identifier::new(
-                    Location::new(1, 1),
-                    "value".to_owned(),
-                )),
-                Type::new(Location::new(1, 8), TypeVariant::integer_unsigned(8)),
-            ),
-            None,
-        ));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn ok_mutable_binding() {
-        let input = "mut value: u8";
-
-        let expected = Ok((
-            BindingPattern::new(
-                Location::new(1, 1),
-                BindingPatternVariant::MutableBinding(Identifier::new(
-                    Location::new(1, 5),
-                    "value".to_owned(),
-                )),
-                Type::new(Location::new(1, 12), TypeVariant::integer_unsigned(8)),
-            ),
-            None,
-        ));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn ok_wildcard() {
-        let input = "_: u8";
-
-        let expected = Ok((
-            BindingPattern::new(
-                Location::new(1, 1),
-                BindingPatternVariant::Wildcard,
-                Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(8)),
-            ),
-            None,
-        ));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn error_expected_binding_pattern() {
-        let input = "mut bool: bool";
-
-        let expected = Err(Error::Syntax(SyntaxError::expected_binding_pattern(
-            Location::new(1, 5),
-            Lexeme::Keyword(Keyword::Bool),
-        )));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn error_expected_type() {
-        let input = "mut value";
-
-        let expected = Err(Error::Syntax(SyntaxError::expected_type(
-            Location::new(1, 10),
-            Lexeme::Eof,
-            Some(super::HINT_EXPECTED_TYPE),
-        )));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     use std::cell::RefCell;
+//     use std::rc::Rc;
+//
+//     use super::Parser;
+//     use crate::error::Error;
+//     use crate::lexical::Keyword;
+//     use crate::lexical::Lexeme;
+//     use crate::lexical::Location;
+//     use crate::lexical::TokenStream;
+//     use crate::syntax::error::Error as SyntaxError;
+//     use crate::syntax::tree::identifier::Identifier;
+//     use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;
+//     use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
+//     use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
+//     use crate::syntax::tree::r#type::Type;
+//
+//     #[test]
+//     fn ok_binding() {
+//         let input = "value: u8";
+//
+//         let expected = Ok((
+//             BindingPattern::new(
+//                 Location::new(1, 1),
+//                 BindingPatternVariant::Binding(Identifier::new(
+//                     Location::new(1, 1),
+//                     "value".to_owned(),
+//                 )),
+//                 Type::new(Location::new(1, 8), TypeVariant::integer_unsigned(8)),
+//             ),
+//             None,
+//         ));
+//
+//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+//
+//         assert_eq!(result, expected);
+//     }
+//
+//     #[test]
+//     fn ok_mutable_binding() {
+//         let input = "mut value: u8";
+//
+//         let expected = Ok((
+//             BindingPattern::new(
+//                 Location::new(1, 1),
+//                 BindingPatternVariant::MutableBinding(Identifier::new(
+//                     Location::new(1, 5),
+//                     "value".to_owned(),
+//                 )),
+//                 Type::new(Location::new(1, 12), TypeVariant::integer_unsigned(8)),
+//             ),
+//             None,
+//         ));
+//
+//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+//
+//         assert_eq!(result, expected);
+//     }
+//
+//     #[test]
+//     fn ok_wildcard() {
+//         let input = "_: u8";
+//
+//         let expected = Ok((
+//             BindingPattern::new(
+//                 Location::new(1, 1),
+//                 BindingPatternVariant::Wildcard,
+//                 Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(8)),
+//             ),
+//             None,
+//         ));
+//
+//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+//
+//         assert_eq!(result, expected);
+//     }
+//
+//     #[test]
+//     fn error_expected_binding_pattern() {
+//         let input = "mut bool: bool";
+//
+//         let expected = Err(Error::Syntax(SyntaxError::expected_binding_pattern(
+//             Location::new(1, 5),
+//             Lexeme::Keyword(Keyword::Bool),
+//         )));
+//
+//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+//
+//         assert_eq!(result, expected);
+//     }
+//
+//     #[test]
+//     fn error_expected_type() {
+//         let input = "mut value";
+//
+//         let expected = Err(Error::Syntax(SyntaxError::expected_type(
+//             Location::new(1, 10),
+//             Lexeme::Eof,
+//             Some(super::HINT_EXPECTED_TYPE),
+//         )));
+//
+//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+//
+//         assert_eq!(result, expected);
+//     }
+// }

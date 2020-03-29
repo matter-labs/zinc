@@ -4,6 +4,10 @@
 
 pub mod builder;
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
+use crate::bytecode::Bytecode;
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::statement::Statement;
 
@@ -18,6 +22,15 @@ impl Expression {
         Self {
             statements,
             expression,
+        }
+    }
+
+    pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
+        for statement in self.statements.into_iter() {
+            statement.write_all_to_bytecode(bytecode.clone());
+        }
+        if let Some(expression) = self.expression {
+            expression.write_all_to_bytecode(bytecode);
         }
     }
 }

@@ -13,7 +13,6 @@ use crate::syntax::tree::statement::r#type::Statement as TypeStatement;
 use crate::syntax::tree::statement::r#use::Statement as UseStatement;
 
 #[derive(Debug, Clone, PartialEq)]
-#[allow(clippy::large_enum_variant)]
 pub enum Statement {
     Const(ConstStatement),
     Type(TypeStatement),

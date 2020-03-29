@@ -6,7 +6,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::generator::expression::operand::array::builder::Builder as GeneratorArrayExpressionBuilder;
-use crate::generator::expression::operand::array::Expression as GeneratorArrayExpression;
+use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::element::constant::error::Error as ConstantError;
@@ -28,7 +28,7 @@ impl Analyzer {
     pub fn analyze(
         scope: Rc<RefCell<Scope>>,
         array: ArrayExpression,
-    ) -> Result<(Element, GeneratorArrayExpression), Error> {
+    ) -> Result<(Element, GeneratorExpressionOperand), Error> {
         let mut result = Array::default();
         let mut builder = GeneratorArrayExpressionBuilder::default();
 
@@ -91,8 +91,9 @@ impl Analyzer {
             }
         }
 
-        let result = Element::Value(Value::Array(result));
+        let intermediate = GeneratorExpressionOperand::Array(builder.finish());
+        let element = Element::Value(Value::Array(result));
 
-        Ok((result, builder.finish()))
+        Ok((element, intermediate))
     }
 }

@@ -81,66 +81,66 @@ impl Parser {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
-    use super::Parser;
-    use crate::error::Error;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::TokenStream;
-    use crate::syntax::error::Error as SyntaxError;
-    use crate::syntax::tree::identifier::Identifier;
-    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
-    use crate::syntax::tree::variant::Variant;
-
-    #[test]
-    fn ok() {
-        let input = "A = 1";
-
-        let expected = Ok(Variant::new(
-            Location::new(1, 1),
-            Identifier::new(Location::new(1, 1), "A".to_owned()),
-            IntegerLiteral::new(
-                Location::new(1, 5),
-                lexical::IntegerLiteral::new_decimal("1".to_owned()),
-            ),
-        ));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn error_expected_value() {
-        let input = "A";
-
-        let expected = Err(Error::Syntax(SyntaxError::expected_value(
-            Location::new(1, 2),
-            Lexeme::Eof,
-            Some(super::HINT_EXPECTED_VALUE),
-        )));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn error_expected_integer_literal() {
-        let input = "A = id";
-
-        let expected = Err(Error::Syntax(SyntaxError::expected_integer_literal(
-            Location::new(1, 5),
-            Lexeme::Identifier(lexical::Identifier::new("id".to_owned())),
-        )));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     use std::cell::RefCell;
+//     use std::rc::Rc;
+//
+//     use super::Parser;
+//     use crate::error::Error;
+//     use crate::lexical;
+//     use crate::lexical::Lexeme;
+//     use crate::lexical::Location;
+//     use crate::lexical::TokenStream;
+//     use crate::syntax::error::Error as SyntaxError;
+//     use crate::syntax::tree::identifier::Identifier;
+//     use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+//     use crate::syntax::tree::variant::Variant;
+//
+//     #[test]
+//     fn ok() {
+//         let input = "A = 1";
+//
+//         let expected = Ok(Variant::new(
+//             Location::new(1, 1),
+//             Identifier::new(Location::new(1, 1), "A".to_owned()),
+//             IntegerLiteral::new(
+//                 Location::new(1, 5),
+//                 lexical::IntegerLiteral::new_decimal("1".to_owned()),
+//             ),
+//         ));
+//
+//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+//
+//         assert_eq!(result, expected);
+//     }
+//
+//     #[test]
+//     fn error_expected_value() {
+//         let input = "A";
+//
+//         let expected = Err(Error::Syntax(SyntaxError::expected_value(
+//             Location::new(1, 2),
+//             Lexeme::Eof,
+//             Some(super::HINT_EXPECTED_VALUE),
+//         )));
+//
+//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+//
+//         assert_eq!(result, expected);
+//     }
+//
+//     #[test]
+//     fn error_expected_integer_literal() {
+//         let input = "A = id";
+//
+//         let expected = Err(Error::Syntax(SyntaxError::expected_integer_literal(
+//             Location::new(1, 5),
+//             Lexeme::Identifier(lexical::Identifier::new("id".to_owned())),
+//         )));
+//
+//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+//
+//         assert_eq!(result, expected);
+//     }
+// }

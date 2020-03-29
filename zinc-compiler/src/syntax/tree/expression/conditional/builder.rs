@@ -5,12 +5,12 @@
 use crate::lexical::Location;
 use crate::syntax::tree::expression::block::Expression as BlockExpression;
 use crate::syntax::tree::expression::conditional::Expression as ConditionalExpression;
-use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
-    condition: Option<Expression>,
+    condition: Option<ExpressionTree>,
     main_block: Option<BlockExpression>,
     else_block: Option<BlockExpression>,
 }
@@ -20,7 +20,7 @@ impl Builder {
         self.location = Some(value);
     }
 
-    pub fn set_condition(&mut self, value: Expression) {
+    pub fn set_condition(&mut self, value: ExpressionTree) {
         self.condition = Some(value);
     }
 

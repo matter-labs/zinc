@@ -4,7 +4,7 @@
 
 use crate::lexical::Keyword;
 use crate::lexical::Location;
-use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
 use crate::syntax::tree::r#type::Type;
 
@@ -14,9 +14,9 @@ pub struct Builder {
     is_unit: bool,
     keyword: Option<Keyword>,
     array_type_variant: Option<TypeVariant>,
-    array_size: Option<Expression>,
+    array_size: Option<ExpressionTree>,
     tuple_element_types: Vec<TypeVariant>,
-    path_expression: Option<Expression>,
+    path_expression: Option<ExpressionTree>,
 }
 
 impl Builder {
@@ -38,7 +38,7 @@ impl Builder {
         self.array_type_variant = Some(value);
     }
 
-    pub fn set_array_size_expression(&mut self, value: Expression) {
+    pub fn set_array_size_expression(&mut self, value: ExpressionTree) {
         self.array_size = Some(value);
     }
 
@@ -46,7 +46,7 @@ impl Builder {
         self.tuple_element_types.push(value)
     }
 
-    pub fn set_path_expression(&mut self, value: Expression) {
+    pub fn set_path_expression(&mut self, value: ExpressionTree) {
         self.path_expression = Some(value);
     }
 

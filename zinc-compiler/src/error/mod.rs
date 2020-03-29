@@ -1674,13 +1674,13 @@ impl Error {
                     Some("`field` type values cannot be used to get a remainder"),
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::ForbiddenFieldBitwiseNot)))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::ForbiddenFieldBitwiseNot)))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::ForbiddenFieldBitwise)))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::ForbiddenFieldBitwise)))) => {
                 Self::format_line(
                     context,
-                    "the bitwise NOT operator `~` is forbidden for the `field` type",
+                    "the bitwise operators are forbidden for the `field` type",
                     location,
-                    Some("`field` type values cannot be logically negated"),
+                    None,
                 )
             }
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::ForbiddenFieldNegation)))) |
@@ -1909,6 +1909,14 @@ impl Error {
                 )
             }
 
+            Self::Semantic(SemanticError::MatchScrutineeInvalidType { location, found }) => {
+                Self::format_line(
+                    context,
+                    format!("match scrutinee expected a boolean or integer expression, found `{}`", found).as_str(),
+                    location,
+                    None,
+                )
+            }
             Self::Semantic(SemanticError::MatchNotExhausted { location }) => {
                 Self::format_line(
                     context,

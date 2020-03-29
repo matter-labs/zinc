@@ -94,114 +94,114 @@ impl Parser {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
-    use super::Parser;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Token;
-    use crate::lexical::TokenStream;
-    use crate::syntax::tree::identifier::Identifier;
-    use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;
-    use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
-    use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
-    use crate::syntax::tree::r#type::Type;
-
-    #[test]
-    fn ok_empty() {
-        let input = r#""#;
-
-        let expected = Ok((
-            Vec::<BindingPattern>::new(),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 1))),
-        ));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn ok_single() {
-        let input = r#"a: u232"#;
-
-        let expected = Ok((
-            vec![BindingPattern::new(
-                Location::new(1, 1),
-                BindingPatternVariant::Binding(Identifier::new(
-                    Location::new(1, 1),
-                    "a".to_owned(),
-                )),
-                Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
-            )],
-            Some(Token::new(Lexeme::Eof, Location::new(1, 8))),
-        ));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn ok_single_with_comma() {
-        let input = r#"a: u232,"#;
-
-        let expected = Ok((
-            vec![BindingPattern::new(
-                Location::new(1, 1),
-                BindingPatternVariant::Binding(Identifier::new(
-                    Location::new(1, 1),
-                    "a".to_owned(),
-                )),
-                Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
-            )],
-            Some(Token::new(Lexeme::Eof, Location::new(1, 9))),
-        ));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn ok_multiple() {
-        let input = r#"a: u232, b: u8, c: field"#;
-
-        let expected = Ok((
-            vec![
-                BindingPattern::new(
-                    Location::new(1, 1),
-                    BindingPatternVariant::Binding(Identifier::new(
-                        Location::new(1, 1),
-                        "a".to_owned(),
-                    )),
-                    Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
-                ),
-                BindingPattern::new(
-                    Location::new(1, 10),
-                    BindingPatternVariant::Binding(Identifier::new(
-                        Location::new(1, 10),
-                        "b".to_owned(),
-                    )),
-                    Type::new(Location::new(1, 13), TypeVariant::integer_unsigned(8)),
-                ),
-                BindingPattern::new(
-                    Location::new(1, 17),
-                    BindingPatternVariant::Binding(Identifier::new(
-                        Location::new(1, 17),
-                        "c".to_owned(),
-                    )),
-                    Type::new(Location::new(1, 20), TypeVariant::field()),
-                ),
-            ],
-            Some(Token::new(Lexeme::Eof, Location::new(1, 25))),
-        ));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     use std::cell::RefCell;
+//     use std::rc::Rc;
+//
+//     use super::Parser;
+//     use crate::lexical::Lexeme;
+//     use crate::lexical::Location;
+//     use crate::lexical::Token;
+//     use crate::lexical::TokenStream;
+//     use crate::syntax::tree::identifier::Identifier;
+//     use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;
+//     use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
+//     use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
+//     use crate::syntax::tree::r#type::Type;
+//
+//     #[test]
+//     fn ok_empty() {
+//         let input = r#""#;
+//
+//         let expected = Ok((
+//             Vec::<BindingPattern>::new(),
+//             Some(Token::new(Lexeme::Eof, Location::new(1, 1))),
+//         ));
+//
+//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+//
+//         assert_eq!(result, expected);
+//     }
+//
+//     #[test]
+//     fn ok_single() {
+//         let input = r#"a: u232"#;
+//
+//         let expected = Ok((
+//             vec![BindingPattern::new(
+//                 Location::new(1, 1),
+//                 BindingPatternVariant::Binding(Identifier::new(
+//                     Location::new(1, 1),
+//                     "a".to_owned(),
+//                 )),
+//                 Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
+//             )],
+//             Some(Token::new(Lexeme::Eof, Location::new(1, 8))),
+//         ));
+//
+//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+//
+//         assert_eq!(result, expected);
+//     }
+//
+//     #[test]
+//     fn ok_single_with_comma() {
+//         let input = r#"a: u232,"#;
+//
+//         let expected = Ok((
+//             vec![BindingPattern::new(
+//                 Location::new(1, 1),
+//                 BindingPatternVariant::Binding(Identifier::new(
+//                     Location::new(1, 1),
+//                     "a".to_owned(),
+//                 )),
+//                 Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
+//             )],
+//             Some(Token::new(Lexeme::Eof, Location::new(1, 9))),
+//         ));
+//
+//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+//
+//         assert_eq!(result, expected);
+//     }
+//
+//     #[test]
+//     fn ok_multiple() {
+//         let input = r#"a: u232, b: u8, c: field"#;
+//
+//         let expected = Ok((
+//             vec![
+//                 BindingPattern::new(
+//                     Location::new(1, 1),
+//                     BindingPatternVariant::Binding(Identifier::new(
+//                         Location::new(1, 1),
+//                         "a".to_owned(),
+//                     )),
+//                     Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
+//                 ),
+//                 BindingPattern::new(
+//                     Location::new(1, 10),
+//                     BindingPatternVariant::Binding(Identifier::new(
+//                         Location::new(1, 10),
+//                         "b".to_owned(),
+//                     )),
+//                     Type::new(Location::new(1, 13), TypeVariant::integer_unsigned(8)),
+//                 ),
+//                 BindingPattern::new(
+//                     Location::new(1, 17),
+//                     BindingPatternVariant::Binding(Identifier::new(
+//                         Location::new(1, 17),
+//                         "c".to_owned(),
+//                     )),
+//                     Type::new(Location::new(1, 20), TypeVariant::field()),
+//                 ),
+//             ],
+//             Some(Token::new(Lexeme::Eof, Location::new(1, 25))),
+//         ));
+//
+//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+//
+//         assert_eq!(result, expected);
+//     }
+// }

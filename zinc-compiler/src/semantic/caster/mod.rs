@@ -21,6 +21,7 @@ impl Caster {
     /// i<b1> -> i<b2>
     /// i<b1> -> u<b2>
     /// i<b1> -> field
+    /// enum<b1> -> i<b2>
     /// enum<b1> -> u<b2>
     /// enum<b1> -> field
     /// x -> y, where x == y
@@ -42,6 +43,7 @@ impl Caster {
             (from @ Type::IntegerSigned { .. }, to) => {
                 Err(Error::casting_to_invalid_type(from, to))
             }
+            (Type::Enumeration(_), Type::IntegerSigned { .. }) => Ok(()),
             (Type::Enumeration(_), Type::IntegerUnsigned { .. }) => Ok(()),
             (Type::Enumeration(_), Type::Field) => Ok(()),
             (from, to) => {

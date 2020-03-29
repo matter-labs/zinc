@@ -5,7 +5,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::generator::expression::operand::Operand as GeneratorOperand;
+use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::analyzer::expression::path::Translator as PathTranslator;
 use crate::semantic::element::path::Path;
@@ -21,7 +21,7 @@ impl Analyzer {
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
         translation_hint: TranslationHint,
-    ) -> Result<(Element, Option<GeneratorOperand>), Error> {
+    ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
         let location = identifier.location;
 
         let path = Path::new(location, identifier.into());

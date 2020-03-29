@@ -13,7 +13,7 @@ use crate::semantic::element::value::integer::error::Error as IntegerValueError;
 use crate::semantic::Error as SemanticError;
 
 #[test]
-fn error_element_value_integer_types_mismatch_equals() {
+fn error_types_mismatch_equals() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -32,13 +32,13 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_types_mismatch_not_equals() {
+fn error_types_mismatch_not_equals() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -57,13 +57,13 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_types_mismatch_greater_equals() {
+fn error_types_mismatch_greater_equals() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -82,13 +82,13 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_types_mismatch_lesser_equals() {
+fn error_types_mismatch_lesser_equals() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -107,13 +107,13 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_types_mismatch_greater() {
+fn error_types_mismatch_greater() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -132,13 +132,13 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_types_mismatch_lesser() {
+fn error_types_mismatch_lesser() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -157,13 +157,13 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_types_mismatch_bitwise_or() {
+fn error_types_mismatch_bitwise_or() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -182,13 +182,13 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_types_mismatch_bitwise_xor() {
+fn error_types_mismatch_bitwise_xor() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -207,13 +207,13 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_types_mismatch_bitwise_and() {
+fn error_types_mismatch_bitwise_and() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -232,13 +232,13 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_types_mismatch_addition() {
+fn error_types_mismatch_addition() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -257,13 +257,13 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_types_mismatch_subtraction() {
+fn error_types_mismatch_subtraction() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -282,13 +282,13 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_types_mismatch_multiplication() {
+fn error_types_mismatch_multiplication() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -307,13 +307,13 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_types_mismatch_division() {
+fn error_types_mismatch_division() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -332,13 +332,13 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_types_mismatch_remainder() {
+fn error_types_mismatch_remainder() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
@@ -357,13 +357,13 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_forbidden_field_division() {
+fn error_forbidden_field_division() {
     let input = r#"
 fn main() {
     let field_1: field = 42;
@@ -379,13 +379,13 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_forbidden_field_remainder() {
+fn error_forbidden_field_remainder() {
     let input = r#"
 fn main() {
     let field_1: field = 42;
@@ -401,13 +401,229 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_forbidden_field_bitwise_not() {
+fn error_forbidden_field_bitwise_assignment_or() {
+    let input = r#"
+fn main() {
+    let mut field_1: field = 42;
+    let field_2: field = 1;
+    field_1 |= field_2;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 13),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenFieldBitwise,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_field_bitwise_assignment_xor() {
+    let input = r#"
+fn main() {
+    let mut field_1: field = 42;
+    let field_2: field = 1;
+    field_1 ^= field_2;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 13),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenFieldBitwise,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_field_bitwise_assignment_and() {
+    let input = r#"
+fn main() {
+    let mut field_1: field = 42;
+    let field_2: field = 1;
+    field_1 &= field_2;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 13),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenFieldBitwise,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_field_bitwise_assignment_shift_left() {
+    let input = r#"
+fn main() {
+    let mut field_1: field = 42;
+    field_1 <<= 1;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(4, 13),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenFieldBitwise,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_field_bitwise_assignment_shift_right() {
+    let input = r#"
+fn main() {
+    let mut field_1: field = 42;
+    field_1 >>= 1;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(4, 13),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenFieldBitwise,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_field_bitwise_or() {
+    let input = r#"
+fn main() {
+    let field_1: field = 42;
+    let field_2: field = 1;
+    let value = field_1 | field_2;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 25),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenFieldBitwise,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_field_bitwise_xor() {
+    let input = r#"
+fn main() {
+    let field_1: field = 42;
+    let field_2: field = 1;
+    let value = field_1 ^ field_2;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 25),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenFieldBitwise,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_field_bitwise_and() {
+    let input = r#"
+fn main() {
+    let field_1: field = 42;
+    let field_2: field = 1;
+    let value = field_1 & field_2;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 25),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenFieldBitwise,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_field_bitwise_shift_left() {
+    let input = r#"
+fn main() {
+    let field_1: field = 42;
+    let value = field_1 << 1;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(4, 25),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenFieldBitwise,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_field_bitwise_shift_right() {
+    let input = r#"
+fn main() {
+    let field_1: field = 42;
+    let value = field_1 >> 1;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(4, 25),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenFieldBitwise,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_field_bitwise_not() {
     let input = r#"
 fn main() {
     let value: field = 42;
@@ -418,17 +634,17 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 17),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenFieldBitwiseNot,
+            IntegerValueError::ForbiddenFieldBitwise,
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_value_integer_forbidden_field_negation() {
+fn error_forbidden_field_negation() {
     let input = r#"
 fn main() {
     let value: field = 42;
@@ -443,7 +659,7 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }

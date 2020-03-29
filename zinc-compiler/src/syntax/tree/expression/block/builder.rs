@@ -4,14 +4,14 @@
 
 use crate::lexical::Location;
 use crate::syntax::tree::expression::block::Expression as BlockExpression;
-use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatement;
 
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
     statements: Vec<FunctionLocalStatement>,
-    expression: Option<Expression>,
+    expression: Option<ExpressionTree>,
 }
 
 impl Builder {
@@ -23,7 +23,7 @@ impl Builder {
         self.statements.push(value);
     }
 
-    pub fn set_expression(&mut self, value: Expression) {
+    pub fn set_expression(&mut self, value: ExpressionTree) {
         self.expression = Some(value);
     }
 

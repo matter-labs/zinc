@@ -69,53 +69,53 @@ impl Parser {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
-    use super::Parser;
-    use crate::error::Error;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::TokenStream;
-    use crate::syntax::error::Error as SyntaxError;
-    use crate::syntax::parser::field::HINT_EXPECTED_TYPE;
-    use crate::syntax::tree::field::Field;
-    use crate::syntax::tree::identifier::Identifier;
-    use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
-    use crate::syntax::tree::r#type::Type;
-
-    #[test]
-    fn ok() {
-        let input = "id: u232";
-
-        let expected = Ok((
-            Field::new(
-                Location::new(1, 1),
-                Identifier::new(Location::new(1, 1), "id".to_owned()),
-                Type::new(Location::new(1, 5), TypeVariant::integer_unsigned(232)),
-            ),
-            None,
-        ));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn error_expected_type() {
-        let input = "id";
-
-        let expected = Err(Error::Syntax(SyntaxError::expected_type(
-            Location::new(1, 3),
-            Lexeme::Eof,
-            Some(HINT_EXPECTED_TYPE),
-        )));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     use std::cell::RefCell;
+//     use std::rc::Rc;
+//
+//     use super::Parser;
+//     use crate::error::Error;
+//     use crate::lexical::Lexeme;
+//     use crate::lexical::Location;
+//     use crate::lexical::TokenStream;
+//     use crate::syntax::error::Error as SyntaxError;
+//     use crate::syntax::parser::field::HINT_EXPECTED_TYPE;
+//     use crate::syntax::tree::field::Field;
+//     use crate::syntax::tree::identifier::Identifier;
+//     use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
+//     use crate::syntax::tree::r#type::Type;
+//
+//     #[test]
+//     fn ok() {
+//         let input = "id: u232";
+//
+//         let expected = Ok((
+//             Field::new(
+//                 Location::new(1, 1),
+//                 Identifier::new(Location::new(1, 1), "id".to_owned()),
+//                 Type::new(Location::new(1, 5), TypeVariant::integer_unsigned(232)),
+//             ),
+//             None,
+//         ));
+//
+//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+//
+//         assert_eq!(result, expected);
+//     }
+//
+//     #[test]
+//     fn error_expected_type() {
+//         let input = "id";
+//
+//         let expected = Err(Error::Syntax(SyntaxError::expected_type(
+//             Location::new(1, 3),
+//             Lexeme::Eof,
+//             Some(HINT_EXPECTED_TYPE),
+//         )));
+//
+//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+//
+//         assert_eq!(result, expected);
+//     }
+// }

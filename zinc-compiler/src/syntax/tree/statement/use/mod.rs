@@ -5,16 +5,16 @@
 pub mod builder;
 
 use crate::lexical::Location;
-use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Statement {
     pub location: Location,
-    pub path: Expression,
+    pub path: ExpressionTree,
 }
 
 impl Statement {
-    pub fn new(location: Location, path: Expression) -> Self {
+    pub fn new(location: Location, path: ExpressionTree) -> Self {
         Self { location, path }
     }
 }

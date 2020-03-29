@@ -3,7 +3,7 @@
 //!
 
 use crate::lexical::Location;
-use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::r#type::Type;
 use crate::syntax::tree::statement::r#let::Statement as LetStatement;
@@ -14,7 +14,7 @@ pub struct Builder {
     identifier: Option<Identifier>,
     is_mutable: bool,
     r#type: Option<Type>,
-    expression: Option<Expression>,
+    expression: Option<ExpressionTree>,
 }
 
 impl Builder {
@@ -34,7 +34,7 @@ impl Builder {
         self.r#type = Some(value);
     }
 
-    pub fn set_expression(&mut self, value: Expression) {
+    pub fn set_expression(&mut self, value: ExpressionTree) {
         self.expression = Some(value);
     }
 

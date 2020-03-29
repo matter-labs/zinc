@@ -4,13 +4,13 @@
 
 use crate::lexical::Location;
 use crate::syntax::tree::expression::array::Expression as ArrayExpression;
-use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
-    elements: Vec<Expression>,
-    size_expression: Option<Expression>,
+    elements: Vec<ExpressionTree>,
+    size_expression: Option<ExpressionTree>,
 }
 
 impl Builder {
@@ -18,11 +18,11 @@ impl Builder {
         self.location = Some(value);
     }
 
-    pub fn push_expression(&mut self, expression: Expression) {
+    pub fn push_expression(&mut self, expression: ExpressionTree) {
         self.elements.push(expression);
     }
 
-    pub fn set_size_expression(&mut self, value: Expression) {
+    pub fn set_size_expression(&mut self, value: ExpressionTree) {
         self.size_expression = Some(value);
     }
 

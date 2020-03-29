@@ -5,6 +5,7 @@
 use std::convert::TryFrom;
 
 use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
+use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
@@ -18,15 +19,21 @@ use crate::syntax::StringLiteral;
 pub struct Analyzer {}
 
 impl Analyzer {
-    pub fn boolean(literal: BooleanLiteral) -> Result<(Element, Option<GeneratorConstant>), Error> {
+    pub fn boolean(
+        literal: BooleanLiteral,
+    ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
         let constant = Constant::from(literal);
-        let intermediate = GeneratorConstant::try_from_semantic(&constant);
+
+        let intermediate = GeneratorConstant::try_from_semantic(&constant)
+            .map(GeneratorExpressionOperand::Constant);
         let element = Element::Constant(constant);
 
         Ok((element, intermediate))
     }
 
-    pub fn integer(literal: IntegerLiteral) -> Result<(Element, Option<GeneratorConstant>), Error> {
+    pub fn integer(
+        literal: IntegerLiteral,
+    ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
         let location = literal.location;
 
         let constant = IntegerConstant::try_from(&literal)
@@ -37,7 +44,9 @@ impl Analyzer {
                     ElementError::Constant(ConstantError::Integer(error)),
                 )
             })?;
-        let intermediate = GeneratorConstant::try_from_semantic(&constant);
+
+        let intermediate = GeneratorConstant::try_from_semantic(&constant)
+            .map(GeneratorExpressionOperand::Constant);
         let element = Element::Constant(constant);
 
         Ok((element, intermediate))

@@ -32,7 +32,7 @@ impl TestRunner for ProofCheckRunner {
             Err(error) => {
                 summary.lock().expect(crate::PANIC_SYNC).invalid += 1;
                 println!(
-                    "[INTEGRATION] {} {} (compiler: {})", // TODO
+                    "[INTEGRATION] {} {} (compiler: {})",
                     "INVALID".red(),
                     test_file_path.to_string_lossy(),
                     error
@@ -68,7 +68,7 @@ impl TestRunner for ProofCheckRunner {
                 Err(error) => {
                     summary.lock().expect(crate::PANIC_SYNC).invalid += 1;
                     println!(
-                        "[INTEGRATION] {} {} ({})",
+                        "[INTEGRATION] {} {} (input data: {})",
                         "INVALID".red(),
                         case_name,
                         error
@@ -131,7 +131,7 @@ impl TestRunner for ProofCheckRunner {
                     } else {
                         summary.lock().expect(crate::PANIC_SYNC).failed += 1;
                         println!(
-                            "[INTEGRATION] {} {} (verification unsuccessful)",
+                            "[INTEGRATION] {} {} (verification failed)",
                             "FAILED".bright_red(),
                             case_name
                         );

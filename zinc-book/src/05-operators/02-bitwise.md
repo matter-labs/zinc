@@ -12,7 +12,7 @@ like a variable, array element, or structure field.
 `|` and `|=` are binary operators.
 
 **Accepts**
-1. Integer expression
+1. Integer expression (any type except `field`)
 2. Expression of the operand 1 type
 
 **Returns** an integer result of the same type.
@@ -22,7 +22,7 @@ like a variable, array element, or structure field.
 `^` and `^=` are binary operators.
 
 **Accepts**
-1. Integer expression
+1. Integer expression (any type except `field`)
 2. Expression of the operand 1 type
 
 **Returns** an integer result of the same type.
@@ -32,7 +32,7 @@ like a variable, array element, or structure field.
 `&` and `&=` are binary operators.
 
 **Accepts**
-1. Integer expression
+1. Integer expression (any type except `field`)
 2. Expression of the operand 1 type
 
 **Returns** an integer result of the same type.
@@ -42,7 +42,7 @@ like a variable, array element, or structure field.
 `<<` and `<<=` are binary operators.
 
 **Accepts**
-1. Integer expression
+1. Integer expression (any type except `field`)
 2. Constant integer expression
 
 **Returns** an integer result of the operand 1 type.
@@ -52,7 +52,7 @@ like a variable, array element, or structure field.
 `>>` and `>>=` are binary operators.
 
 **Accepts**
-1. Integer expression
+1. Integer expression (any type except `field`)
 2. Constant integer expression
 
 **Returns** an integer result of the operand 1 type.

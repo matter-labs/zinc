@@ -42,16 +42,19 @@ impl Analyzer {
         let mut analyzer = StatementAnalyzer::new(self.scope_stack.top(), dependencies);
         for statement in program.statements.into_iter() {
             if let Some(statement) = analyzer
-                .module_local_statement(statement)
+                .local_mod(statement)
                 .map_err(CompilerError::Semantic)?
             {
                 intermediate.statements.push(statement);
             }
         }
 
-        Scope::resolve_item(self.scope_stack.top(), "main")
-            .map_err(|_| Error::EntryPointMissing)
-            .map_err(CompilerError::Semantic)?;
+        Scope::resolve_item(
+            self.scope_stack.top(),
+            crate::semantic::element::r#type::function::user::FUNCTION_MAIN_IDENTIFIER,
+        )
+        .map_err(|_| Error::EntryPointMissing)
+        .map_err(CompilerError::Semantic)?;
 
         Ok(intermediate)
     }
@@ -63,7 +66,7 @@ mod tests {
     use crate::semantic::Error as SemanticError;
 
     #[test]
-    fn test() {
+    fn error_test() {
         let input = r#"
 fn another() -> u8 {
     42
@@ -72,7 +75,7 @@ fn another() -> u8 {
 
         let expected = Err(Error::Semantic(SemanticError::EntryPointMissing));
 
-        let result = crate::semantic::tests::compile_entry_point(input);
+        let result = crate::semantic::tests::compile_entry(input);
 
         assert_eq!(result, expected);
     }

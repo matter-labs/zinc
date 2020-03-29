@@ -40,7 +40,7 @@ impl Analyzer {
         let mut analyzer = StatementAnalyzer::new(self.scope_stack.top(), HashMap::new());
         for statement in program.statements.into_iter() {
             if let Some(statement) = analyzer
-                .module_local_statement(statement)
+                .local_mod(statement)
                 .map_err(CompilerError::Semantic)?
             {
                 intermediate.statements.push(statement);
