@@ -5,7 +5,6 @@
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
 use crate::generator::r#type::Type;
-use crate::semantic::element::access::AccessData;
 use crate::semantic::Type as SemanticType;
 
 #[derive(Debug, Clone)]
@@ -64,14 +63,6 @@ pub enum Operator {
     // unary arithmetic
     Negation,
 
-    // access
-    Index {
-        data: AccessData,
-    },
-    Slice {
-        data: AccessData,
-    },
-
     // call
     Call {
         unique_id: usize,
@@ -94,14 +85,6 @@ pub enum Operator {
 impl Operator {
     pub fn casting(r#type: &SemanticType) -> Option<Self> {
         Type::try_from_semantic(r#type).map(|r#type| Self::Casting { r#type })
-    }
-
-    pub fn index(data: AccessData) -> Self {
-        Self::Index { data }
-    }
-
-    pub fn slice(data: AccessData) -> Self {
-        Self::Slice { data }
     }
 
     pub fn call(unique_id: usize, input_size: usize) -> Self {

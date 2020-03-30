@@ -75,9 +75,10 @@ impl Structure {
         let mut offset = 0;
         let total_size = self.r#type().size();
 
-        for (name, r#type) in self.r#type.fields.iter() {
+        for (index, (name, r#type)) in self.r#type.fields.iter().enumerate() {
             if name == field_name.as_str() {
-                let access = AccessData::new(offset, r#type.size(), total_size, r#type.to_owned());
+                let access =
+                    AccessData::new(index, offset, r#type.size(), total_size, r#type.to_owned());
 
                 return Ok((self, access));
             }

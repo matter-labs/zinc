@@ -6,6 +6,7 @@ pub mod element;
 
 use self::element::Element;
 
+#[derive(Debug)]
 pub struct Stack {
     elements: Vec<Element>,
 }
@@ -28,8 +29,8 @@ impl Stack {
         }
     }
 
-    pub fn push(&mut self, operand: Element) {
-        self.elements.push(operand)
+    pub fn push(&mut self, element: Element) {
+        self.elements.push(element);
     }
 
     pub fn pop(&mut self) -> Element {

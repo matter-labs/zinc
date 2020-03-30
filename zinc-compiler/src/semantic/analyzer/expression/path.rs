@@ -7,8 +7,8 @@ use std::convert::TryFrom;
 use std::rc::Rc;
 
 use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
-use crate::generator::expression::operand::variable::Variable as GeneratorVariable;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
+use crate::generator::r#type::Type as GeneratorType;
 use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::path::Path;
@@ -52,9 +52,17 @@ impl Translator {
                     let value = Value::try_from(&variable.r#type)
                         .map_err(ElementError::Value)
                         .map_err(|error| Error::Element(location, error))?;
-                    let intermediate =
-                        GeneratorVariable::try_from_semantic(path_last_element_name, &value)
-                            .map(GeneratorExpressionOperand::Variable);
+                    let r#type = value.r#type();
+                    let intermediate = GeneratorType::try_from_semantic(&r#type)
+                        .map(|_| {
+                            Place::new(
+                                path.location,
+                                path_last_element_name,
+                                r#type,
+                                variable.is_mutable,
+                            )
+                        })
+                        .map(GeneratorExpressionOperand::Place);
                     let element = Element::Value(value);
                     Ok((element, intermediate))
                 }

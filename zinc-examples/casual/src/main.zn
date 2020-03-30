@@ -1,5 +1,7 @@
-fn foo(bar: ()) {}
+fn main(witness: u8) -> u8 {
+    let local_1 = 3;
+    let local_2 = 5;
+    let local_3 = 2;
 
-fn main(value: field) {
-    foo(assert!(value == 42 as field, "fixed bug with '!'"));
+    19 * 3 - 8 / local_1 + (witness / (local_2 - 3) + 5) * (8 / local_3 / 2)
 }

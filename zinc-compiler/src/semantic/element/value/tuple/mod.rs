@@ -68,7 +68,7 @@ impl Tuple {
 
         let sliced_type = self.element_types[tuple_index].clone();
 
-        let access = AccessData::new(offset, sliced_type.size(), total_size, sliced_type);
+        let access = AccessData::new(index, offset, sliced_type.size(), total_size, sliced_type);
 
         Ok((self, access))
     }

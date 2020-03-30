@@ -47,7 +47,6 @@ impl Parser {
                     let (statement, next) =
                         ModuleLocalStatementParser::default().parse(stream.clone(), Some(token))?;
                     self.next = next;
-                    log::debug!("Module statement: {:?}", statement);
                     statements.push(statement);
                 }
             }

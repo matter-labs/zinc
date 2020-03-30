@@ -25,7 +25,7 @@ use self::place::Place;
 use self::r#type::Type;
 use self::value::Value;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum Element {
     /// Runtime value, which is unknown at compile time (`rvalue`)
     Value(Value),

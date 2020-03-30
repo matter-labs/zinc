@@ -6,19 +6,25 @@ use crate::semantic::element::r#type::Type;
 
 #[derive(Debug, Clone)]
 pub struct AccessData {
+    pub position: usize,
     pub offset: usize,
     pub element_size: usize,
     pub total_size: usize,
-    pub sliced_type: Type,
 }
 
 impl AccessData {
-    pub fn new(offset: usize, element_size: usize, total_size: usize, sliced_type: Type) -> Self {
+    pub fn new(
+        position: usize,
+        offset: usize,
+        element_size: usize,
+        total_size: usize,
+        _sliced_type: Type,
+    ) -> Self {
         Self {
+            position,
             offset,
             element_size,
             total_size,
-            sliced_type,
         }
     }
 }

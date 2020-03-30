@@ -108,7 +108,6 @@ impl Parser {
                             let (statement, next) = ImplementationLocalStatementParser::default()
                                 .parse(stream.clone(), Some(token))?;
                             self.next = next;
-                            log::debug!("Implementation statement: {:?}", statement);
                             self.builder.push_statement(statement);
                         }
                     }

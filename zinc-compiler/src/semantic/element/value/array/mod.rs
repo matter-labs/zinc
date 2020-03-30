@@ -85,6 +85,7 @@ impl Array {
     pub fn slice_single(self) -> (Self, AccessData) {
         let access = AccessData::new(
             0,
+            0,
             self.r#type.size(),
             self.r#type().size(),
             self.r#type.to_owned(),
@@ -129,6 +130,7 @@ impl Array {
                 })?;
 
         let access = AccessData::new(
+            start,
             self.r#type.size() * start,
             self.r#type.size() * length,
             self.r#type().size(),
@@ -177,6 +179,7 @@ impl Array {
             })?;
 
         let access = AccessData::new(
+            start,
             self.r#type.size() * start,
             self.r#type.size() * length,
             self.r#type().size(),
