@@ -112,89 +112,96 @@ impl Parser {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use std::cell::RefCell;
-//     use std::rc::Rc;
-//
-//     use super::Error;
-//     use super::Parser;
-//     use crate::lexical;
-//     use crate::lexical::Lexeme;
-//     use crate::lexical::Location;
-//     use crate::lexical::Symbol;
-//     use crate::lexical::TokenStream;
-//     use crate::syntax::error::Error as SyntaxError;
-//     use crate::syntax::tree::expression::block::Expression as BlockExpression;
-//     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
-//     use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
-//     use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
-//
-//     #[test]
-//     fn ok_empty() {
-//         let input = r#"{}"#;
-//
-//         let expected = Ok(BlockExpression::new(Location::new(1, 1), vec![], None));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn ok_statements_with_expression() {
-//         let input = r#"{ 2 + 1 }"#;
-//
-//         let expected = Ok(BlockExpression::new(
-//             Location::new(1, 1),
-//             vec![],
-//             Some(Expression::new(
-//                 Location::new(1, 3),
-//                 vec![
-//                     ExpressionElement::new(
-//                         Location::new(1, 3),
-//                         ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-//                             IntegerLiteral::new(
-//                                 Location::new(1, 3),
-//                                 lexical::IntegerLiteral::new_decimal("2".to_owned()),
-//                             ),
-//                         )),
-//                     ),
-//                     ExpressionElement::new(
-//                         Location::new(1, 7),
-//                         ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-//                             IntegerLiteral::new(
-//                                 Location::new(1, 7),
-//                                 lexical::IntegerLiteral::new_decimal("1".to_owned()),
-//                             ),
-//                         )),
-//                     ),
-//                     ExpressionElement::new(
-//                         Location::new(1, 5),
-//                         ExpressionObject::Operator(ExpressionOperator::Addition),
-//                     ),
-//                 ],
-//             )),
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn error_expected_bracket_square_right() {
-//         let input = r#"{ 42 )"#;
-//
-//         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
-//             Location::new(1, 6),
-//             vec!["}"],
-//             Lexeme::Symbol(Symbol::ParenthesisRight),
-//             None,
-//         )));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    use super::Error;
+    use super::Parser;
+    use crate::lexical;
+    use crate::lexical::Lexeme;
+    use crate::lexical::Location;
+    use crate::lexical::Symbol;
+    use crate::lexical::TokenStream;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::block::Expression as BlockExpression;
+    use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
+    use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
+    use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+
+    #[test]
+    fn ok_empty() {
+        let input = r#"{}"#;
+
+        let expected = Ok((
+            BlockExpression::new(Location::new(1, 1), vec![], None),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_statements_with_expression() {
+        let input = r#"{ 2 + 1 }"#;
+
+        let expected = Ok((
+            BlockExpression::new(
+                Location::new(1, 1),
+                vec![],
+                Some(ExpressionTree::new(
+                    Location::new(1, 5),
+                    ExpressionTreeNode::operator(ExpressionOperator::Addition),
+                    Some(ExpressionTree::new(
+                        Location::new(1, 3),
+                        ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 3),
+                                lexical::IntegerLiteral::new_decimal("2".to_owned()),
+                            ),
+                        )),
+                        None,
+                        None,
+                    )),
+                    Some(ExpressionTree::new(
+                        Location::new(1, 7),
+                        ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 7),
+                                lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                            ),
+                        )),
+                        None,
+                        None,
+                    )),
+                )),
+            ),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_bracket_square_right() {
+        let input = r#"{ 42 )"#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 6),
+            vec!["}"],
+            Lexeme::Symbol(Symbol::ParenthesisRight),
+            None,
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+}

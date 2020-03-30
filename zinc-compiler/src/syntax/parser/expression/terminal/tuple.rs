@@ -115,161 +115,151 @@ impl Parser {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use std::cell::RefCell;
-//     use std::rc::Rc;
-//
-//     use super::Error;
-//     use super::Parser;
-//     use crate::lexical;
-//     use crate::lexical::Lexeme;
-//     use crate::lexical::Location;
-//     use crate::lexical::Symbol;
-//     use crate::lexical::TokenStream;
-//     use crate::syntax::error::Error as SyntaxError;
-//     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
-//     use crate::syntax::tree::expression::tuple::Expression as TupleExpression;
-//     use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
-//
-//     #[test]
-//     fn ok_unit() {
-//         let input = r#"()"#;
-//
-//         let expected = Ok(Expression::new(
-//             Location::new(1, 1),
-//             vec![ExpressionElement::new(
-//                 Location::new(1, 1),
-//                 ExpressionObject::Operand(ExpressionOperand::Unit),
-//             )],
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn ok_expression() {
-//         let input = r#"(1)"#;
-//
-//         let expected = Ok(Expression::new(
-//             Location::new(1, 1),
-//             vec![ExpressionElement::new(
-//                 Location::new(1, 2),
-//                 ExpressionObject::Operand(ExpressionOperand::LiteralInteger(IntegerLiteral::new(
-//                     Location::new(1, 2),
-//                     lexical::IntegerLiteral::new_decimal("1".to_owned()),
-//                 ))),
-//             )],
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn ok_single() {
-//         let input = r#"(1,)"#;
-//
-//         let expected = Ok(Expression::new(
-//             Location::new(1, 1),
-//             vec![ExpressionElement::new(
-//                 Location::new(1, 1),
-//                 ExpressionObject::Operand(ExpressionOperand::Tuple(TupleExpression::new(
-//                     Location::new(1, 1),
-//                     vec![Expression::new(
-//                         Location::new(1, 2),
-//                         vec![ExpressionElement::new(
-//                             Location::new(1, 2),
-//                             ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-//                                 IntegerLiteral::new(
-//                                     Location::new(1, 2),
-//                                     lexical::IntegerLiteral::new_decimal("1".to_owned()),
-//                                 ),
-//                             )),
-//                         )],
-//                     )],
-//                 ))),
-//             )],
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn ok_multiple() {
-//         let input = r#"(1, 2, 3)"#;
-//
-//         let expected = Ok(Expression::new(
-//             Location::new(1, 1),
-//             vec![ExpressionElement::new(
-//                 Location::new(1, 1),
-//                 ExpressionObject::Operand(ExpressionOperand::Tuple(TupleExpression::new(
-//                     Location::new(1, 1),
-//                     vec![
-//                         Expression::new(
-//                             Location::new(1, 2),
-//                             vec![ExpressionElement::new(
-//                                 Location::new(1, 2),
-//                                 ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-//                                     IntegerLiteral::new(
-//                                         Location::new(1, 2),
-//                                         lexical::IntegerLiteral::new_decimal("1".to_owned()),
-//                                     ),
-//                                 )),
-//                             )],
-//                         ),
-//                         Expression::new(
-//                             Location::new(1, 5),
-//                             vec![ExpressionElement::new(
-//                                 Location::new(1, 5),
-//                                 ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-//                                     IntegerLiteral::new(
-//                                         Location::new(1, 5),
-//                                         lexical::IntegerLiteral::new_decimal("2".to_owned()),
-//                                     ),
-//                                 )),
-//                             )],
-//                         ),
-//                         Expression::new(
-//                             Location::new(1, 8),
-//                             vec![ExpressionElement::new(
-//                                 Location::new(1, 8),
-//                                 ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-//                                     IntegerLiteral::new(
-//                                         Location::new(1, 8),
-//                                         lexical::IntegerLiteral::new_decimal("3".to_owned()),
-//                                     ),
-//                                 )),
-//                             )],
-//                         ),
-//                     ],
-//                 ))),
-//             )],
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn error_expected_comma_or_parenthesis_right() {
-//         let input = r#"(42, 69]"#;
-//
-//         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
-//             Location::new(1, 8),
-//             vec![",", ")"],
-//             Lexeme::Symbol(Symbol::BracketSquareRight),
-//             None,
-//         )));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    use super::Error;
+    use super::Parser;
+    use crate::lexical;
+    use crate::lexical::Lexeme;
+    use crate::lexical::Location;
+    use crate::lexical::Symbol;
+    use crate::lexical::TokenStream;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
+    use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
+    use crate::syntax::tree::expression::tuple::Expression as TupleExpression;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+
+    #[test]
+    fn ok_unit() {
+        let input = r#"()"#;
+
+        let expected = Ok((ExpressionOperand::Unit, None));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_expression() {
+        let input = r#"(1)"#;
+
+        let expected = Ok((
+            ExpressionOperand::Parenthesized(Box::new(ExpressionTree::new(
+                Location::new(1, 2),
+                ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                    IntegerLiteral::new(
+                        Location::new(1, 2),
+                        lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                    ),
+                )),
+                None,
+                None,
+            ))),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_single() {
+        let input = r#"(1,)"#;
+
+        let expected = Ok((
+            ExpressionOperand::Tuple(TupleExpression::new(
+                Location::new(1, 1),
+                vec![ExpressionTree::new(
+                    Location::new(1, 2),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 2),
+                            lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                        ),
+                    )),
+                    None,
+                    None,
+                )],
+            )),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_multiple() {
+        let input = r#"(1, 2, 3)"#;
+
+        let expected = Ok((
+            ExpressionOperand::Tuple(TupleExpression::new(
+                Location::new(1, 1),
+                vec![
+                    ExpressionTree::new(
+                        Location::new(1, 2),
+                        ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 2),
+                                lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                            ),
+                        )),
+                        None,
+                        None,
+                    ),
+                    ExpressionTree::new(
+                        Location::new(1, 5),
+                        ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 5),
+                                lexical::IntegerLiteral::new_decimal("2".to_owned()),
+                            ),
+                        )),
+                        None,
+                        None,
+                    ),
+                    ExpressionTree::new(
+                        Location::new(1, 8),
+                        ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 8),
+                                lexical::IntegerLiteral::new_decimal("3".to_owned()),
+                            ),
+                        )),
+                        None,
+                        None,
+                    ),
+                ],
+            )),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_comma_or_parenthesis_right() {
+        let input = r#"(42, 69]"#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 8),
+            vec![",", ")"],
+            Lexeme::Symbol(Symbol::BracketSquareRight),
+            None,
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+}

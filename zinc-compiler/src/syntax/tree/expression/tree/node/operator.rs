@@ -65,6 +65,7 @@ pub enum Operator {
     Field,
 
     // call
+    CallBuiltIn,
     Call,
 
     // compile-time access

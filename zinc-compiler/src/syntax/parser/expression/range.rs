@@ -66,55 +66,56 @@ impl Parser {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use std::cell::RefCell;
-//     use std::rc::Rc;
-//
-//     use super::Parser;
-//     use crate::lexical;
-//     use crate::lexical::Lexeme;
-//     use crate::lexical::Location;
-//     use crate::lexical::Token;
-//     use crate::lexical::TokenStream;
-//     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
-//     use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
-//     use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
-//
-//     #[test]
-//     fn ok() {
-//         let input = r#"true || false"#;
-//
-//         let expected = Ok((
-//             Expression::new(
-//                 Location::new(1, 1),
-//                 vec![
-//                     ExpressionElement::new(
-//                         Location::new(1, 1),
-//                         ExpressionObject::Operand(ExpressionOperand::LiteralBoolean(
-//                             BooleanLiteral::new(Location::new(1, 1), lexical::BooleanLiteral::True),
-//                         )),
-//                     ),
-//                     ExpressionElement::new(
-//                         Location::new(1, 9),
-//                         ExpressionObject::Operand(ExpressionOperand::LiteralBoolean(
-//                             BooleanLiteral::new(
-//                                 Location::new(1, 9),
-//                                 lexical::BooleanLiteral::False,
-//                             ),
-//                         )),
-//                     ),
-//                     ExpressionElement::new(
-//                         Location::new(1, 6),
-//                         ExpressionObject::Operator(ExpressionOperator::Or),
-//                     ),
-//                 ],
-//             ),
-//             Some(Token::new(Lexeme::Eof, Location::new(1, 14))),
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    use super::Parser;
+    use crate::lexical;
+    use crate::lexical::Lexeme;
+    use crate::lexical::Location;
+    use crate::lexical::Token;
+    use crate::lexical::TokenStream;
+    use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
+    use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
+    use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
+    use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+
+    #[test]
+    fn ok() {
+        let input = r#"true || false"#;
+
+        let expected = Ok((
+            ExpressionTree::new(
+                Location::new(1, 6),
+                ExpressionTreeNode::operator(ExpressionOperator::Or),
+                Some(ExpressionTree::new(
+                    Location::new(1, 1),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
+                        BooleanLiteral::new(Location::new(1, 1), lexical::BooleanLiteral::r#true()),
+                    )),
+                    None,
+                    None,
+                )),
+                Some(ExpressionTree::new(
+                    Location::new(1, 9),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
+                        BooleanLiteral::new(
+                            Location::new(1, 9),
+                            lexical::BooleanLiteral::r#false(),
+                        ),
+                    )),
+                    None,
+                    None,
+                )),
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 14))),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+}

@@ -1,5 +1,5 @@
 //!
-//! The literal.
+//! The string literal.
 //!
 
 use crate::lexical::Location;

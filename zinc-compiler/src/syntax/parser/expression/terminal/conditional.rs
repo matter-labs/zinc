@@ -142,148 +142,138 @@ impl Parser {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use std::cell::RefCell;
-//     use std::rc::Rc;
-//
-//     use super::Error;
-//     use super::Parser;
-//     use crate::lexical;
-//     use crate::lexical::Lexeme;
-//     use crate::lexical::Location;
-//     use crate::lexical::Symbol;
-//     use crate::lexical::TokenStream;
-//     use crate::syntax::error::Error as SyntaxError;
-//     use crate::syntax::tree::expression::block::Expression as BlockExpression;
-//     use crate::syntax::tree::expression::conditional::Expression as ConditionalExpression;
-//     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
-//     use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
-//     use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
-//
-//     #[test]
-//     fn ok_nested() {
-//         let input = r#"if true { 1 } else if false { 2 } else { 3 }"#;
-//
-//         let expected = Ok((
-//             ConditionalExpression::new(
-//                 Location::new(1, 1),
-//                 Expression::new(
-//                     Location::new(1, 4),
-//                     vec![ExpressionElement::new(
-//                         Location::new(1, 4),
-//                         ExpressionObject::Operand(ExpressionOperand::LiteralBoolean(
-//                             BooleanLiteral::new(Location::new(1, 4), lexical::BooleanLiteral::True),
-//                         )),
-//                     )],
-//                 ),
-//                 BlockExpression::new(
-//                     Location::new(1, 9),
-//                     vec![],
-//                     Some(Expression::new(
-//                         Location::new(1, 11),
-//                         vec![ExpressionElement::new(
-//                             Location::new(1, 11),
-//                             ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-//                                 IntegerLiteral::new(
-//                                     Location::new(1, 11),
-//                                     lexical::IntegerLiteral::new_decimal("1".to_owned()),
-//                                 ),
-//                             )),
-//                         )],
-//                     )),
-//                 ),
-//                 Some(BlockExpression::new(
-//                     Location::new(1, 20),
-//                     vec![],
-//                     Some(Expression::new(
-//                         Location::new(1, 20),
-//                         vec![ExpressionElement::new(
-//                             Location::new(1, 20),
-//                             ExpressionObject::Operand(ExpressionOperand::Conditional(
-//                                 ConditionalExpression::new(
-//                                     Location::new(1, 20),
-//                                     Expression::new(
-//                                         Location::new(1, 23),
-//                                         vec![ExpressionElement::new(
-//                                             Location::new(1, 23),
-//                                             ExpressionObject::Operand(
-//                                                 ExpressionOperand::LiteralBoolean(
-//                                                     BooleanLiteral::new(
-//                                                         Location::new(1, 23),
-//                                                         lexical::BooleanLiteral::False,
-//                                                     ),
-//                                                 ),
-//                                             ),
-//                                         )],
-//                                     ),
-//                                     BlockExpression::new(
-//                                         Location::new(1, 29),
-//                                         vec![],
-//                                         Some(Expression::new(
-//                                             Location::new(1, 31),
-//                                             vec![ExpressionElement::new(
-//                                                 Location::new(1, 31),
-//                                                 ExpressionObject::Operand(
-//                                                     ExpressionOperand::LiteralInteger(
-//                                                         IntegerLiteral::new(
-//                                                             Location::new(1, 31),
-//                                                             lexical::IntegerLiteral::new_decimal(
-//                                                                 "2".to_owned(),
-//                                                             ),
-//                                                         ),
-//                                                     ),
-//                                                 ),
-//                                             )],
-//                                         )),
-//                                     ),
-//                                     Some(BlockExpression::new(
-//                                         Location::new(1, 40),
-//                                         vec![],
-//                                         Some(Expression::new(
-//                                             Location::new(1, 42),
-//                                             vec![ExpressionElement::new(
-//                                                 Location::new(1, 42),
-//                                                 ExpressionObject::Operand(
-//                                                     ExpressionOperand::LiteralInteger(
-//                                                         IntegerLiteral::new(
-//                                                             Location::new(1, 42),
-//                                                             lexical::IntegerLiteral::new_decimal(
-//                                                                 "3".to_owned(),
-//                                                             ),
-//                                                         ),
-//                                                     ),
-//                                                 ),
-//                                             )],
-//                                         )),
-//                                     )),
-//                                 ),
-//                             )),
-//                         )],
-//                     )),
-//                 )),
-//             ),
-//             None,
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn error_expected_bracket_square_right() {
-//         let input = r#"if true { 42 } else ("#;
-//
-//         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
-//             Location::new(1, 21),
-//             vec!["if", "{"],
-//             Lexeme::Symbol(Symbol::ParenthesisLeft),
-//             None,
-//         )));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    use super::Error;
+    use super::Parser;
+    use crate::lexical;
+    use crate::lexical::Lexeme;
+    use crate::lexical::Location;
+    use crate::lexical::Symbol;
+    use crate::lexical::TokenStream;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::block::Expression as BlockExpression;
+    use crate::syntax::tree::expression::conditional::Expression as ConditionalExpression;
+    use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
+    use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
+    use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+
+    #[test]
+    fn ok_nested() {
+        let input = r#"if true { 1 } else if false { 2 } else { 3 }"#;
+
+        let expected = Ok((
+            ConditionalExpression::new(
+                Location::new(1, 1),
+                ExpressionTree::new(
+                    Location::new(1, 4),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
+                        BooleanLiteral::new(Location::new(1, 4), lexical::BooleanLiteral::r#true()),
+                    )),
+                    None,
+                    None,
+                ),
+                BlockExpression::new(
+                    Location::new(1, 9),
+                    vec![],
+                    Some(ExpressionTree::new(
+                        Location::new(1, 11),
+                        ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 11),
+                                lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                            ),
+                        )),
+                        None,
+                        None,
+                    )),
+                ),
+                Some(BlockExpression::new(
+                    Location::new(1, 20),
+                    vec![],
+                    Some(ExpressionTree::new(
+                        Location::new(1, 20),
+                        ExpressionTreeNode::operand(ExpressionOperand::Conditional(
+                            ConditionalExpression::new(
+                                Location::new(1, 20),
+                                ExpressionTree::new(
+                                    Location::new(1, 23),
+                                    ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
+                                        BooleanLiteral::new(
+                                            Location::new(1, 23),
+                                            lexical::BooleanLiteral::r#false(),
+                                        ),
+                                    )),
+                                    None,
+                                    None,
+                                ),
+                                BlockExpression::new(
+                                    Location::new(1, 29),
+                                    vec![],
+                                    Some(ExpressionTree::new(
+                                        Location::new(1, 31),
+                                        ExpressionTreeNode::operand(
+                                            ExpressionOperand::LiteralInteger(IntegerLiteral::new(
+                                                Location::new(1, 31),
+                                                lexical::IntegerLiteral::new_decimal(
+                                                    "2".to_owned(),
+                                                ),
+                                            )),
+                                        ),
+                                        None,
+                                        None,
+                                    )),
+                                ),
+                                Some(BlockExpression::new(
+                                    Location::new(1, 40),
+                                    vec![],
+                                    Some(ExpressionTree::new(
+                                        Location::new(1, 42),
+                                        ExpressionTreeNode::operand(
+                                            ExpressionOperand::LiteralInteger(IntegerLiteral::new(
+                                                Location::new(1, 42),
+                                                lexical::IntegerLiteral::new_decimal(
+                                                    "3".to_owned(),
+                                                ),
+                                            )),
+                                        ),
+                                        None,
+                                        None,
+                                    )),
+                                )),
+                            ),
+                        )),
+                        None,
+                        None,
+                    )),
+                )),
+            ),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_bracket_square_right() {
+        let input = r#"if true { 42 } else ("#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 21),
+            vec!["if", "{"],
+            Lexeme::Symbol(Symbol::ParenthesisLeft),
+            None,
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+}

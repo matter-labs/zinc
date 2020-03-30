@@ -168,197 +168,165 @@ impl Parser {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use std::cell::RefCell;
-//     use std::rc::Rc;
-//
-//     use super::Error;
-//     use super::Parser;
-//     use crate::lexical;
-//     use crate::lexical::Lexeme;
-//     use crate::lexical::Location;
-//     use crate::lexical::Symbol;
-//     use crate::lexical::Token;
-//     use crate::lexical::TokenStream;
-//     use crate::syntax::error::Error as SyntaxError;
-//     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
-//     use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
-//     use crate::syntax::tree::identifier::Identifier;
-//     use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
-//     use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
-//     use crate::syntax::tree::literal::string::Literal as StringLiteral;
-//
-//     #[test]
-//     fn ok_literal_boolean() {
-//         let input = r#"true"#;
-//
-//         let expected = Ok((
-//             Expression::new(
-//                 Location::new(1, 1),
-//                 vec![ExpressionElement::new(
-//                     Location::new(1, 1),
-//                     ExpressionObject::Operand(ExpressionOperand::LiteralBoolean(
-//                         BooleanLiteral::new(Location::new(1, 1), lexical::BooleanLiteral::True),
-//                     )),
-//                 )],
-//             ),
-//             None,
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn ok_literal_integer() {
-//         let input = r#"42"#;
-//
-//         let expected = Ok((
-//             Expression::new(
-//                 Location::new(1, 1),
-//                 vec![ExpressionElement::new(
-//                     Location::new(1, 1),
-//                     ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-//                         IntegerLiteral::new(
-//                             Location::new(1, 1),
-//                             lexical::IntegerLiteral::new_decimal("42".to_owned()),
-//                         ),
-//                     )),
-//                 )],
-//             ),
-//             None,
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn ok_literal_string() {
-//         let input = r#""description""#;
-//
-//         let expected = Ok((
-//             Expression::new(
-//                 Location::new(1, 1),
-//                 vec![ExpressionElement::new(
-//                     Location::new(1, 1),
-//                     ExpressionObject::Operand(ExpressionOperand::LiteralString(
-//                         StringLiteral::new(
-//                             Location::new(1, 1),
-//                             lexical::StringLiteral::new("description".to_owned()),
-//                         ),
-//                     )),
-//                 )],
-//             ),
-//             None,
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn ok_identifier() {
-//         let input = r#"value"#;
-//
-//         let expected = Ok((
-//             Expression::new(
-//                 Location::new(1, 1),
-//                 vec![ExpressionElement::new(
-//                     Location::new(1, 1),
-//                     ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-//                         Location::new(1, 1),
-//                         "value".to_owned(),
-//                     ))),
-//                 )],
-//             ),
-//             Some(Token::new(Lexeme::Eof, Location::new(1, 6))),
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn ok_alias_self() {
-//         let input = r#"Self"#;
-//
-//         let expected = Ok((
-//             Expression::new(
-//                 Location::new(1, 1),
-//                 vec![ExpressionElement::new(
-//                     Location::new(1, 1),
-//                     ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-//                         Location::new(1, 1),
-//                         "Self".to_owned(),
-//                     ))),
-//                 )],
-//             ),
-//             None,
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn ok_parenthesized() {
-//         let input = r#"(2 + 2)"#;
-//
-//         let expected = Ok((
-//             Expression::new(
-//                 Location::new(1, 1),
-//                 vec![
-//                     ExpressionElement::new(
-//                         Location::new(1, 2),
-//                         ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-//                             IntegerLiteral::new(
-//                                 Location::new(1, 2),
-//                                 lexical::IntegerLiteral::new_decimal("2".to_owned()),
-//                             ),
-//                         )),
-//                     ),
-//                     ExpressionElement::new(
-//                         Location::new(1, 6),
-//                         ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-//                             IntegerLiteral::new(
-//                                 Location::new(1, 6),
-//                                 lexical::IntegerLiteral::new_decimal("2".to_owned()),
-//                             ),
-//                         )),
-//                     ),
-//                     ExpressionElement::new(
-//                         Location::new(1, 4),
-//                         ExpressionObject::Operator(ExpressionOperator::Addition),
-//                     ),
-//                 ],
-//             ),
-//             None,
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn error_expected() {
-//         let input = r#"*"#;
-//
-//         let expected: Result<_, Error> =
-//             Err(Error::Syntax(SyntaxError::expected_expression_or_operand(
-//                 Location::new(1, 1),
-//                 Lexeme::Symbol(Symbol::Asterisk),
-//             )));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    use super::Error;
+    use super::Parser;
+    use crate::lexical;
+    use crate::lexical::Lexeme;
+    use crate::lexical::Location;
+    use crate::lexical::Symbol;
+    use crate::lexical::Token;
+    use crate::lexical::TokenStream;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
+    use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
+    use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+    use crate::syntax::tree::literal::string::Literal as StringLiteral;
+
+    #[test]
+    fn ok_literal_boolean() {
+        let input = r#"true"#;
+
+        let expected = Ok((
+            ExpressionOperand::LiteralBoolean(BooleanLiteral::new(
+                Location::new(1, 1),
+                lexical::BooleanLiteral::r#true(),
+            )),
+            Location::new(1, 1),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_literal_integer() {
+        let input = r#"42"#;
+
+        let expected = Ok((
+            ExpressionOperand::LiteralInteger(IntegerLiteral::new(
+                Location::new(1, 1),
+                lexical::IntegerLiteral::new_decimal("42".to_owned()),
+            )),
+            Location::new(1, 1),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_literal_string() {
+        let input = r#""description""#;
+
+        let expected = Ok((
+            ExpressionOperand::LiteralString(StringLiteral::new(
+                Location::new(1, 1),
+                lexical::StringLiteral::new("description".to_owned()),
+            )),
+            Location::new(1, 1),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_identifier() {
+        let input = r#"value"#;
+
+        let expected = Ok((
+            ExpressionOperand::Identifier(Identifier::new(Location::new(1, 1), "value".to_owned())),
+            Location::new(1, 1),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 6))),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_alias_self() {
+        let input = r#"Self"#;
+
+        let expected = Ok((
+            ExpressionOperand::Identifier(Identifier::new(Location::new(1, 1), "Self".to_owned())),
+            Location::new(1, 1),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_parenthesized() {
+        let input = r#"(2 + 2)"#;
+
+        let expected = Ok((
+            ExpressionOperand::Parenthesized(Box::new(ExpressionTree::new(
+                Location::new(1, 4),
+                ExpressionTreeNode::operator(ExpressionOperator::Addition),
+                Some(ExpressionTree::new(
+                    Location::new(1, 2),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 2),
+                            lexical::IntegerLiteral::new_decimal("2".to_owned()),
+                        ),
+                    )),
+                    None,
+                    None,
+                )),
+                Some(ExpressionTree::new(
+                    Location::new(1, 6),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 6),
+                            lexical::IntegerLiteral::new_decimal("2".to_owned()),
+                        ),
+                    )),
+                    None,
+                    None,
+                )),
+            ))),
+            Location::new(1, 1),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected() {
+        let input = r#"*"#;
+
+        let expected: Result<_, Error> =
+            Err(Error::Syntax(SyntaxError::expected_expression_or_operand(
+                Location::new(1, 1),
+                Lexeme::Symbol(Symbol::Asterisk),
+            )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+}

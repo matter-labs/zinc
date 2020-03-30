@@ -38,6 +38,7 @@ pub enum Operand {
     Variable(Variable),
     Value(Value),
     Memory(Memory),
+    Parenthesized(Box<Expression>),
     Array(ArrayExpression),
     Tuple(TupleExpression),
     Structure(StructureExpression),
@@ -45,7 +46,6 @@ pub enum Operand {
     Block(BlockExpression),
     Conditional(ConditionalExpression),
     Match(MatchExpression),
-    Inner(Box<Expression>),
 }
 
 impl Operand {
@@ -55,6 +55,7 @@ impl Operand {
             Self::Variable(inner) => inner.write_all_to_bytecode_load(bytecode),
             Self::Value(_) => {}
             Self::Memory(inner) => inner.write_all_to_bytecode_load(bytecode),
+            Self::Parenthesized(inner) => inner.write_all_to_bytecode(bytecode),
             Self::Array(inner) => inner.write_all_to_bytecode(bytecode),
             Self::Tuple(inner) => inner.write_all_to_bytecode(bytecode),
             Self::Structure(inner) => inner.write_all_to_bytecode(bytecode),
@@ -62,7 +63,6 @@ impl Operand {
             Self::Block(inner) => inner.write_all_to_bytecode(bytecode),
             Self::Conditional(inner) => inner.write_all_to_bytecode(bytecode),
             Self::Match(inner) => inner.write_all_to_bytecode(bytecode),
-            Self::Inner(inner) => inner.write_all_to_bytecode(bytecode),
         }
     }
 }

@@ -1,5 +1,5 @@
 //!
-//! The literal.
+//! The boolean literal.
 //!
 
 use crate::lexical::BooleanLiteral;

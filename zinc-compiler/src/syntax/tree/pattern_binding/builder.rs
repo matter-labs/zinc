@@ -12,7 +12,7 @@ use crate::syntax::tree::r#type::Type;
 pub struct Builder {
     location: Option<Location>,
     binding: Option<Identifier>,
-    is_mutable: bool,
+    is_binding_mutable: bool,
     wildcard: bool,
     r#type: Option<Type>,
 }
@@ -26,11 +26,11 @@ impl Builder {
         self.binding = Some(value);
     }
 
-    pub fn set_mutable(&mut self) {
-        self.is_mutable = true;
+    pub fn set_is_binding_mutable(&mut self) {
+        self.is_binding_mutable = true;
     }
 
-    pub fn set_wildcard(&mut self) {
+    pub fn set_is_wildcard(&mut self) {
         self.wildcard = true;
     }
 
@@ -47,7 +47,7 @@ impl Builder {
         let variant = if self.wildcard {
             BindingPatternVariant::Wildcard
         } else if let Some(identifier) = self.binding.take() {
-            if self.is_mutable {
+            if self.is_binding_mutable {
                 BindingPatternVariant::MutableBinding(identifier)
             } else {
                 BindingPatternVariant::Binding(identifier)

@@ -285,23 +285,11 @@ impl Analyzer {
                 )?,
                 ExpressionTreeNode::Operator(ExpressionOperator::Index) => self.index(location)?,
                 ExpressionTreeNode::Operator(ExpressionOperator::Field) => self.field(location)?,
+                ExpressionTreeNode::Operator(ExpressionOperator::CallBuiltIn) => {
+                    self.is_next_call_builtin = true;
+                }
                 ExpressionTreeNode::Operator(ExpressionOperator::Call) => self.call(location)?,
                 ExpressionTreeNode::Operator(ExpressionOperator::Path) => self.path(location)?,
-                // ExpressionTreeNode::Auxiliary(ExpressionAuxiliary::CallBuiltIn) => {
-                //     self.is_next_call_builtin = true;
-                // }
-                // ExpressionTreeNode::Auxiliary(ExpressionAuxiliary::PlaceEnd) => {
-                //     let (element, intermediate) = Self::evaluate_operand(
-                //         self.scope_stack.top(),
-                //         self.evaluation_stack.pop(),
-                //         TranslationHint::ValueExpression,
-                //     )?;
-                //     self.evaluation_stack.push(StackElement::Evaluated(element));
-                //
-                //     if let Some(operand) = intermediate {
-                //         self.intermediate.push_operand(operand);
-                //     }
-                // }
             }
         }
 
@@ -672,12 +660,14 @@ impl Analyzer {
                 }
                 ExpressionOperand::Match(expression) => MatchAnalyzer::analyze(scope, expression)
                     .map(|(element, intermediate)| (element, Some(intermediate))),
-                ExpressionOperand::Inner(expression) => {
+                ExpressionOperand::Parenthesized(expression) => {
                     let (element, intermediate) =
                         Self::new(scope).analyze(*expression, translation_hint)?;
                     Ok((
                         element,
-                        Some(GeneratorExpressionOperand::Inner(Box::new(intermediate))),
+                        Some(GeneratorExpressionOperand::Parenthesized(Box::new(
+                            intermediate,
+                        ))),
                     ))
                 }
             },

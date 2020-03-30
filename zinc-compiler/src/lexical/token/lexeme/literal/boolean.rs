@@ -13,6 +13,16 @@ pub enum Boolean {
     True,
 }
 
+impl Boolean {
+    pub fn r#false() -> Self {
+        Self::False
+    }
+
+    pub fn r#true() -> Self {
+        Self::True
+    }
+}
+
 impl TryFrom<Keyword> for Boolean {
     type Error = Keyword;
 

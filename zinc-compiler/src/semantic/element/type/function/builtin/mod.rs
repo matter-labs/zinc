@@ -2,8 +2,7 @@
 //! The semantic analyzer built-in function element.
 //!
 
-// mod tests;
-// TODO
+mod tests;
 
 pub mod assert;
 pub mod debug;

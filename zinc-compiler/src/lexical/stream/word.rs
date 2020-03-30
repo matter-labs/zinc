@@ -141,7 +141,7 @@ mod tests {
         let input = "true";
         let expected = (
             input.len(),
-            Lexeme::Literal(Literal::Boolean(Boolean::True)),
+            Lexeme::Literal(Literal::Boolean(Boolean::r#true())),
         );
         let result = parse(input);
         assert_eq!(result, expected);

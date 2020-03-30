@@ -23,8 +23,8 @@ impl Builder {
         } else if self.right.is_none() {
             self.set_right(value);
         } else {
-            self.set_location_if_unset(value.location);
             self.left = Some(self.clone().finish());
+            self.set_location_if_unset(value.location);
             self.right = None;
             self.set_right(value);
         }
@@ -39,17 +39,18 @@ impl Builder {
         } else if self.right.is_none() {
             self.set_right_operand(value, location);
         } else {
-            self.set_location_if_unset(location);
             self.left = Some(self.clone().finish());
+            self.set_location_if_unset(location);
             self.right = None;
             self.set_right_operand(value, location);
         }
     }
 
     pub fn eat_operator(&mut self, value: ExpressionOperator, location: Location) {
-        self.set_location(location);
+        self.set_location_if_unset(location);
         if self.value.is_some() {
             self.left = Some(self.clone().finish());
+            self.location = Some(location);
             self.right = None;
         }
         self.set_value_operator(value);
@@ -85,7 +86,7 @@ impl Builder {
 
     fn set_location_if_unset(&mut self, value: Location) {
         if self.location.is_none() {
-            self.location = Some(value);
+            self.set_location(value);
         }
     }
 

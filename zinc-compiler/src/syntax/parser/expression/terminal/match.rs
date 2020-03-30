@@ -154,233 +154,237 @@ impl Parser {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use std::cell::RefCell;
-//     use std::rc::Rc;
-//
-//     use super::Error;
-//     use super::Parser;
-//     use crate::lexical;
-//     use crate::lexical::Lexeme;
-//     use crate::lexical::Location;
-//     use crate::lexical::Symbol;
-//     use crate::lexical::TokenStream;
-//     use crate::syntax::error::Error as SyntaxError;
-//     use crate::syntax::tree::expression::r#match::Expression as MatchExpression;
-//     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
-//     use crate::syntax::tree::identifier::Identifier;
-//     use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
-//     use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
-//     use crate::syntax::tree::pattern_match::variant::Variant as MatchPatternVariant;
-//     use crate::syntax::tree::pattern_match::Pattern as MatchPattern;
-//
-//     #[test]
-//     fn ok_empty() {
-//         let input = r#"
-//     match test {}
-// "#;
-//
-//         let expected = Ok(MatchExpression::new(
-//             Location::new(2, 5),
-//             Expression::new(
-//                 Location::new(2, 11),
-//                 vec![ExpressionElement::new(
-//                     Location::new(2, 11),
-//                     ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-//                         Location::new(2, 11),
-//                         "test".to_owned(),
-//                     ))),
-//                 )],
-//             ),
-//             vec![],
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn ok_single() {
-//         let input = r#"
-//     match test {
-//         false => true,
-//     }
-// "#;
-//
-//         let expected = Ok(MatchExpression::new(
-//             Location::new(2, 5),
-//             Expression::new(
-//                 Location::new(2, 11),
-//                 vec![ExpressionElement::new(
-//                     Location::new(2, 11),
-//                     ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-//                         Location::new(2, 11),
-//                         "test".to_owned(),
-//                     ))),
-//                 )],
-//             ),
-//             vec![(
-//                 MatchPattern::new(
-//                     Location::new(3, 9),
-//                     MatchPatternVariant::new_boolean_literal(BooleanLiteral::new(
-//                         Location::new(3, 9),
-//                         lexical::BooleanLiteral::False,
-//                     )),
-//                 ),
-//                 Expression::new(
-//                     Location::new(3, 18),
-//                     vec![ExpressionElement::new(
-//                         Location::new(3, 18),
-//                         ExpressionObject::Operand(ExpressionOperand::LiteralBoolean(
-//                             BooleanLiteral::new(
-//                                 Location::new(3, 18),
-//                                 lexical::BooleanLiteral::True,
-//                             ),
-//                         )),
-//                     )],
-//                 ),
-//             )],
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn ok_multiple() {
-//         let input = r#"
-//     match test {
-//         1 => 1,
-//         2 => 2,
-//         _ => 3,
-//     }
-// "#;
-//         let expected = Ok(MatchExpression::new(
-//             Location::new(2, 5),
-//             Expression::new(
-//                 Location::new(2, 11),
-//                 vec![ExpressionElement::new(
-//                     Location::new(2, 11),
-//                     ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-//                         Location::new(2, 11),
-//                         "test".to_owned(),
-//                     ))),
-//                 )],
-//             ),
-//             vec![
-//                 (
-//                     MatchPattern::new(
-//                         Location::new(3, 9),
-//                         MatchPatternVariant::new_integer_literal(IntegerLiteral::new(
-//                             Location::new(3, 9),
-//                             lexical::IntegerLiteral::new_decimal("1".to_owned()),
-//                         )),
-//                     ),
-//                     Expression::new(
-//                         Location::new(3, 14),
-//                         vec![ExpressionElement::new(
-//                             Location::new(3, 14),
-//                             ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-//                                 IntegerLiteral::new(
-//                                     Location::new(3, 14),
-//                                     lexical::IntegerLiteral::new_decimal("1".to_owned()),
-//                                 ),
-//                             )),
-//                         )],
-//                     ),
-//                 ),
-//                 (
-//                     MatchPattern::new(
-//                         Location::new(4, 9),
-//                         MatchPatternVariant::new_integer_literal(IntegerLiteral::new(
-//                             Location::new(4, 9),
-//                             lexical::IntegerLiteral::new_decimal("2".to_owned()),
-//                         )),
-//                     ),
-//                     Expression::new(
-//                         Location::new(4, 14),
-//                         vec![ExpressionElement::new(
-//                             Location::new(4, 14),
-//                             ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-//                                 IntegerLiteral::new(
-//                                     Location::new(4, 14),
-//                                     lexical::IntegerLiteral::new_decimal("2".to_owned()),
-//                                 ),
-//                             )),
-//                         )],
-//                     ),
-//                 ),
-//                 (
-//                     MatchPattern::new(Location::new(5, 9), MatchPatternVariant::new_wildcard()),
-//                     Expression::new(
-//                         Location::new(5, 14),
-//                         vec![ExpressionElement::new(
-//                             Location::new(5, 14),
-//                             ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-//                                 IntegerLiteral::new(
-//                                     Location::new(5, 14),
-//                                     lexical::IntegerLiteral::new_decimal("3".to_owned()),
-//                                 ),
-//                             )),
-//                         )],
-//                     ),
-//                 ),
-//             ],
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn error_expected_bracket_curly_left() {
-//         let input = r#"match 42 * 2 )"#;
-//
-//         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
-//             Location::new(1, 14),
-//             vec!["{"],
-//             Lexeme::Symbol(Symbol::ParenthesisRight),
-//             None,
-//         )));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn error_expected_select() {
-//         let input = r#"match 42 * 2 { value ->"#;
-//
-//         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
-//             Location::new(1, 22),
-//             vec!["=>"],
-//             Lexeme::Symbol(Symbol::MinusGreater),
-//             None,
-//         )));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn error_expected_comma_or_bracket_curly_right() {
-//         let input = r#"match 42 * 2 { value => 42 )"#;
-//
-//         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
-//             Location::new(1, 28),
-//             vec![",", "}"],
-//             Lexeme::Symbol(Symbol::ParenthesisRight),
-//             None,
-//         )));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    use super::Error;
+    use super::Parser;
+    use crate::lexical;
+    use crate::lexical::Lexeme;
+    use crate::lexical::Location;
+    use crate::lexical::Symbol;
+    use crate::lexical::TokenStream;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::r#match::Expression as MatchExpression;
+    use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
+    use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
+    use crate::syntax::tree::identifier::Identifier;
+    use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+    use crate::syntax::tree::pattern_match::variant::Variant as MatchPatternVariant;
+    use crate::syntax::tree::pattern_match::Pattern as MatchPattern;
+
+    #[test]
+    fn ok_empty() {
+        let input = r#"
+    match test {}
+"#;
+
+        let expected = Ok((
+            MatchExpression::new(
+                Location::new(2, 5),
+                ExpressionTree::new(
+                    Location::new(2, 11),
+                    ExpressionTreeNode::operand(ExpressionOperand::Identifier(Identifier::new(
+                        Location::new(2, 11),
+                        "test".to_owned(),
+                    ))),
+                    None,
+                    None,
+                ),
+                vec![],
+            ),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_single() {
+        let input = r#"
+    match test {
+        false => true,
+    }
+"#;
+
+        let expected = Ok((
+            MatchExpression::new(
+                Location::new(2, 5),
+                ExpressionTree::new(
+                    Location::new(2, 11),
+                    ExpressionTreeNode::operand(ExpressionOperand::Identifier(Identifier::new(
+                        Location::new(2, 11),
+                        "test".to_owned(),
+                    ))),
+                    None,
+                    None,
+                ),
+                vec![(
+                    MatchPattern::new(
+                        Location::new(3, 9),
+                        MatchPatternVariant::new_boolean_literal(BooleanLiteral::new(
+                            Location::new(3, 9),
+                            lexical::BooleanLiteral::r#false(),
+                        )),
+                    ),
+                    ExpressionTree::new(
+                        Location::new(3, 18),
+                        ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
+                            BooleanLiteral::new(
+                                Location::new(3, 18),
+                                lexical::BooleanLiteral::r#true(),
+                            ),
+                        )),
+                        None,
+                        None,
+                    ),
+                )],
+            ),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_multiple() {
+        let input = r#"
+    match test {
+        1 => 1,
+        2 => 2,
+        _ => 3,
+    }
+"#;
+        let expected = Ok((
+            MatchExpression::new(
+                Location::new(2, 5),
+                ExpressionTree::new(
+                    Location::new(2, 11),
+                    ExpressionTreeNode::operand(ExpressionOperand::Identifier(Identifier::new(
+                        Location::new(2, 11),
+                        "test".to_owned(),
+                    ))),
+                    None,
+                    None,
+                ),
+                vec![
+                    (
+                        MatchPattern::new(
+                            Location::new(3, 9),
+                            MatchPatternVariant::new_integer_literal(IntegerLiteral::new(
+                                Location::new(3, 9),
+                                lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                            )),
+                        ),
+                        ExpressionTree::new(
+                            Location::new(3, 14),
+                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                                IntegerLiteral::new(
+                                    Location::new(3, 14),
+                                    lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                                ),
+                            )),
+                            None,
+                            None,
+                        ),
+                    ),
+                    (
+                        MatchPattern::new(
+                            Location::new(4, 9),
+                            MatchPatternVariant::new_integer_literal(IntegerLiteral::new(
+                                Location::new(4, 9),
+                                lexical::IntegerLiteral::new_decimal("2".to_owned()),
+                            )),
+                        ),
+                        ExpressionTree::new(
+                            Location::new(4, 14),
+                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                                IntegerLiteral::new(
+                                    Location::new(4, 14),
+                                    lexical::IntegerLiteral::new_decimal("2".to_owned()),
+                                ),
+                            )),
+                            None,
+                            None,
+                        ),
+                    ),
+                    (
+                        MatchPattern::new(Location::new(5, 9), MatchPatternVariant::new_wildcard()),
+                        ExpressionTree::new(
+                            Location::new(5, 14),
+                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                                IntegerLiteral::new(
+                                    Location::new(5, 14),
+                                    lexical::IntegerLiteral::new_decimal("3".to_owned()),
+                                ),
+                            )),
+                            None,
+                            None,
+                        ),
+                    ),
+                ],
+            ),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_bracket_curly_left() {
+        let input = r#"match 42 * 2 )"#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 14),
+            vec!["{"],
+            Lexeme::Symbol(Symbol::ParenthesisRight),
+            None,
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_select() {
+        let input = r#"match 42 * 2 { value ->"#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 22),
+            vec!["=>"],
+            Lexeme::Symbol(Symbol::MinusGreater),
+            None,
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_comma_or_bracket_curly_right() {
+        let input = r#"match 42 * 2 { value => 42 )"#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 28),
+            vec![",", "}"],
+            Lexeme::Symbol(Symbol::ParenthesisRight),
+            None,
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+}

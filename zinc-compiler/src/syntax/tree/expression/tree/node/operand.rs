@@ -27,6 +27,7 @@ pub enum Operand {
     MemberString(MemberString),
     Identifier(Identifier),
     Type(Type),
+    Parenthesized(Box<ExpressionTree>),
     Array(ArrayExpression),
     Tuple(TupleExpression),
     Structure(StructureExpression),
@@ -34,5 +35,4 @@ pub enum Operand {
     Block(BlockExpression),
     Conditional(ConditionalExpression),
     Match(MatchExpression),
-    Inner(Box<ExpressionTree>),
 }

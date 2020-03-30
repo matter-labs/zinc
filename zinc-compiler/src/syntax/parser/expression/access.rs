@@ -46,8 +46,6 @@ pub struct Parser {
     state: State,
     next: Option<Token>,
     builder: ExpressionTreeBuilder,
-
-    is_indexed: bool,
 }
 
 impl Parser {
@@ -69,10 +67,10 @@ impl Parser {
                     match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ExclamationMark),
-                            ..
+                            location,
                         } => {
-                            // self.auxiliary = Some((location, ExpressionAuxiliary::CallBuiltIn));
-                            // TODO
+                            self.builder
+                                .eat_operator(ExpressionOperator::CallBuiltIn, location);
                         }
                         token => self.next = Some(token),
                     }
@@ -86,7 +84,6 @@ impl Parser {
                         } => {
                             self.builder
                                 .eat_operator(ExpressionOperator::Index, location);
-                            self.is_indexed = true;
                             self.state = State::IndexExpression;
                         }
                         Token {
@@ -103,7 +100,6 @@ impl Parser {
                         } => {
                             self.builder
                                 .eat_operator(ExpressionOperator::Field, location);
-                            self.is_indexed = true;
                             self.state = State::FieldDescriptor;
                         }
                         token => {
@@ -205,125 +201,103 @@ impl Parser {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use std::cell::RefCell;
-//     use std::rc::Rc;
-//
-//     use super::Error;
-//     use super::Parser;
-//     use crate::lexical;
-//     use crate::lexical::Lexeme;
-//     use crate::lexical::Location;
-//     use crate::lexical::Symbol;
-//     use crate::lexical::Token;
-//     use crate::lexical::TokenStream;
-//     use crate::syntax::error::Error as SyntaxError;
-//     use crate::syntax::tree::expression::auxiliary::Auxiliary as ExpressionAuxiliary;
-//     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
-//     use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
-//     use crate::syntax::tree::identifier::Identifier;
-//     use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
-//     use crate::syntax::tree::member_integer::MemberInteger;
-//     use crate::syntax::tree::member_string::MemberString;
-//
-//     #[test]
-//     fn ok() {
-//         let input = r#"array[42].25.value"#;
-//
-//         let expected = Ok((
-//             Expression::new(
-//                 Location::new(1, 1),
-//                 vec![
-//                     ExpressionElement::new(
-//                         Location::new(1, 1),
-//                         ExpressionObject::Operand(ExpressionOperand::Identifier(Identifier::new(
-//                             Location::new(1, 1),
-//                             "array".to_owned(),
-//                         ))),
-//                     ),
-//                     ExpressionElement::new(
-//                         Location::new(1, 7),
-//                         ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-//                             IntegerLiteral::new(
-//                                 Location::new(1, 7),
-//                                 lexical::IntegerLiteral::new_decimal("42".to_owned()),
-//                             ),
-//                         )),
-//                     ),
-//                     ExpressionElement::new(
-//                         Location::new(1, 6),
-//                         ExpressionObject::Operator(ExpressionOperator::Index),
-//                     ),
-//                     ExpressionElement::new(
-//                         Location::new(1, 11),
-//                         ExpressionObject::Operand(ExpressionOperand::MemberInteger(
-//                             MemberInteger::new(
-//                                 Location::new(1, 11),
-//                                 IntegerLiteral::new(
-//                                     Location::new(1, 11),
-//                                     lexical::IntegerLiteral::new_decimal("25".to_owned()),
-//                                 ),
-//                             ),
-//                         )),
-//                     ),
-//                     ExpressionElement::new(
-//                         Location::new(1, 10),
-//                         ExpressionObject::Operator(ExpressionOperator::Field),
-//                     ),
-//                     ExpressionElement::new(
-//                         Location::new(1, 14),
-//                         ExpressionObject::Operand(ExpressionOperand::MemberString(
-//                             MemberString::new(Location::new(1, 14), "value".to_owned()),
-//                         )),
-//                     ),
-//                     ExpressionElement::new(
-//                         Location::new(1, 13),
-//                         ExpressionObject::Operator(ExpressionOperator::Field),
-//                     ),
-//                     ExpressionElement::new(
-//                         Location::new(1, 19),
-//                         ExpressionObject::Auxiliary(ExpressionAuxiliary::PlaceEnd),
-//                     ),
-//                 ],
-//             ),
-//             Some(Token::new(Lexeme::Eof, Location::new(1, 19))),
-//         ));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn error_expected_bracket_square_right() {
-//         let input = r#"array[42)"#;
-//
-//         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
-//             Location::new(1, 9),
-//             vec!["]"],
-//             Lexeme::Symbol(Symbol::ParenthesisRight),
-//             None,
-//         )));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-//
-//     #[test]
-//     fn error_expected_parenthesis_right() {
-//         let input = r#"sort(42, 69]"#;
-//
-//         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
-//             Location::new(1, 12),
-//             vec![")"],
-//             Lexeme::Symbol(Symbol::BracketSquareRight),
-//             None,
-//         )));
-//
-//         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-//
-//         assert_eq!(result, expected);
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+    use std::rc::Rc;
+
+    use super::Error;
+    use super::Parser;
+    use crate::lexical::Lexeme;
+    use crate::lexical::Location;
+    use crate::lexical::Symbol;
+    use crate::lexical::Token;
+    use crate::lexical::TokenStream;
+    use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
+    use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
+    use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
+    use crate::syntax::tree::identifier::Identifier;
+
+    #[test]
+    fn ok() {
+        let input = r#"mega::ultra::namespace;"#;
+
+        let expected = Ok((
+            ExpressionTree::new(
+                Location::new(1, 12),
+                ExpressionTreeNode::operator(ExpressionOperator::Path),
+                Some(ExpressionTree::new(
+                    Location::new(1, 5),
+                    ExpressionTreeNode::operator(ExpressionOperator::Path),
+                    Some(ExpressionTree::new(
+                        Location::new(1, 1),
+                        ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                            Identifier::new(Location::new(1, 1), "mega".to_owned()),
+                        )),
+                        None,
+                        None,
+                    )),
+                    Some(ExpressionTree::new(
+                        Location::new(1, 7),
+                        ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                            Identifier::new(Location::new(1, 7), "ultra".to_owned()),
+                        )),
+                        None,
+                        None,
+                    )),
+                )),
+                Some(ExpressionTree::new(
+                    Location::new(1, 14),
+                    ExpressionTreeNode::operand(ExpressionOperand::Identifier(Identifier::new(
+                        Location::new(1, 14),
+                        "namespace".to_owned(),
+                    ))),
+                    None,
+                    None,
+                )),
+            ),
+            Some(Token::new(
+                Lexeme::Symbol(Symbol::Semicolon),
+                Location::new(1, 23),
+            )),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_bracket_square_right() {
+        let input = r#"array[42)"#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 9),
+            vec!["]"],
+            Lexeme::Symbol(Symbol::ParenthesisRight),
+            None,
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn error_expected_parenthesis_right() {
+        let input = r#"sort(42, 69]"#;
+
+        let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
+            Location::new(1, 12),
+            vec![")"],
+            Lexeme::Symbol(Symbol::BracketSquareRight),
+            None,
+        )));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+}

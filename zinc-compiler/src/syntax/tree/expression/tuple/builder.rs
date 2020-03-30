@@ -29,17 +29,9 @@ impl Builder {
 
     pub fn finish(mut self) -> ExpressionOperand {
         match (self.elements.len(), self.has_comma) {
-            (0, false) => {
-                // let location = self.location.take().unwrap_or_else(|| {
-                //     panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")
-                // });
-                ExpressionOperand::Unit
-            }
+            (0, false) => ExpressionOperand::Unit,
             (1, false) => {
-                // let location = self.location.take().unwrap_or_else(|| {
-                //     panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")
-                // });
-                ExpressionOperand::Inner(self.elements.pop().map(Box::new).unwrap())
+                ExpressionOperand::Parenthesized(self.elements.pop().map(Box::new).unwrap())
             }
             (_size, _has_comma) => {
                 let location = self.location.take().unwrap_or_else(|| {
