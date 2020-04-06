@@ -4,6 +4,7 @@
 
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::place::error::Error as PlaceError;
+use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::value::error::Error as ValueError;
 
 #[derive(Debug, PartialEq)]
@@ -106,12 +107,13 @@ pub enum Error {
     OperatorIndexSecondOperandExpectedEvaluable { found: String },
 
     OperatorFieldFirstOperandExpectedPlaceOrEvaluable { found: String },
-    OperatorFieldSecondOperandExpectedMember { found: String },
+    OperatorFieldSecondOperandExpectedIdentifier { found: String },
 
     OperatorPathFirstOperandExpectedPath { found: String },
-    OperatorPathSecondOperandExpectedMemberString { found: String },
+    OperatorPathSecondOperandExpectedIdentifier { found: String },
 
     Place(PlaceError),
     Value(ValueError),
     Constant(ConstantError),
+    Type(TypeError),
 }

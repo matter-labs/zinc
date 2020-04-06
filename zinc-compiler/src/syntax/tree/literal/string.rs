@@ -2,17 +2,17 @@
 //! The string literal.
 //!
 
-use crate::lexical::Location;
-use crate::lexical::StringLiteral;
+use crate::lexical::token::lexeme::literal::string::String as LexicalStringLiteral;
+use crate::lexical::token::location::Location;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Literal {
     pub location: Location,
-    pub data: StringLiteral,
+    pub inner: LexicalStringLiteral,
 }
 
 impl Literal {
-    pub fn new(location: Location, data: StringLiteral) -> Self {
-        Self { location, data }
+    pub fn new(location: Location, inner: LexicalStringLiteral) -> Self {
+        Self { location, inner }
     }
 }

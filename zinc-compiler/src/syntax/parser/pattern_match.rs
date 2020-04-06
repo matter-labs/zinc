@@ -6,11 +6,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::literal::Literal as LexicalLiteral;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::expression::terminal::Parser as TerminalOperandParser;
 use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
@@ -41,6 +41,15 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a match pattern.
+    ///
+    /// 'true'
+    /// '42'
+    /// 'variable'
+    /// 'Path::To::Item'
+    /// '_'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -51,7 +60,7 @@ impl Parser {
                 State::Start => {
                     match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         Token {
-                            lexeme: Lexeme::Literal(lexical::Literal::Boolean(boolean)),
+                            lexeme: Lexeme::Literal(LexicalLiteral::Boolean(boolean)),
                             location,
                         } => {
                             self.builder.set_location(location);
@@ -60,7 +69,7 @@ impl Parser {
                             return Ok((self.builder.finish(), None));
                         }
                         Token {
-                            lexeme: Lexeme::Literal(lexical::Literal::Integer(integer)),
+                            lexeme: Lexeme::Literal(LexicalLiteral::Integer(integer)),
                             location,
                         } => {
                             self.builder.set_location(location);
@@ -74,7 +83,7 @@ impl Parser {
                         } => {
                             self.builder.set_location(location);
                             self.builder
-                                .set_binding(Identifier::new(location, identifier.name));
+                                .set_binding(Identifier::new(location, identifier.inner));
                             self.state = State::PathOperatorOrEnd;
                         }
                         Token {
@@ -106,10 +115,10 @@ impl Parser {
                     }
                 }
                 State::PathOperand => {
-                    let (expression, location, next) =
+                    let (expression, next) =
                         TerminalOperandParser::default().parse(stream.clone(), self.next.take())?;
                     self.next = next;
-                    self.builder.push_path_operand(expression, location);
+                    self.builder.push_path_element(expression);
                     self.state = State::PathOperatorOrEnd;
                 }
             }
@@ -123,11 +132,12 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Token;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::literal::boolean::Boolean as LexicalBooleanLiteral;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
+    use crate::lexical::token::Token;
     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
     use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
     use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
@@ -147,7 +157,7 @@ mod tests {
                 Location::new(1, 1),
                 MatchPatternVariant::BooleanLiteral(BooleanLiteral::new(
                     Location::new(1, 1),
-                    lexical::BooleanLiteral::r#true(),
+                    LexicalBooleanLiteral::r#true(),
                 )),
             ),
             None,
@@ -167,7 +177,7 @@ mod tests {
                 Location::new(1, 1),
                 MatchPatternVariant::IntegerLiteral(IntegerLiteral::new(
                     Location::new(1, 1),
-                    lexical::IntegerLiteral::new_decimal("42".to_owned()),
+                    LexicalIntegerLiteral::new_decimal("42".to_owned()),
                 )),
             ),
             None,
@@ -205,10 +215,10 @@ mod tests {
         let expected = Ok((
             MatchPattern::new(
                 Location::new(1, 1),
-                MatchPatternVariant::Path(ExpressionTree::new(
+                MatchPatternVariant::Path(ExpressionTree::new_with_leaves(
                     Location::new(1, 12),
                     ExpressionTreeNode::operator(ExpressionOperator::Path),
-                    Some(ExpressionTree::new(
+                    Some(ExpressionTree::new_with_leaves(
                         Location::new(1, 5),
                         ExpressionTreeNode::operator(ExpressionOperator::Path),
                         Some(ExpressionTree::new(
@@ -216,16 +226,12 @@ mod tests {
                             ExpressionTreeNode::operand(ExpressionOperand::Identifier(
                                 Identifier::new(Location::new(1, 1), "data".to_owned()),
                             )),
-                            None,
-                            None,
                         )),
                         Some(ExpressionTree::new(
                             Location::new(1, 7),
                             ExpressionTreeNode::operand(ExpressionOperand::Identifier(
                                 Identifier::new(Location::new(1, 7), "Inner".to_owned()),
                             )),
-                            None,
-                            None,
                         )),
                     )),
                     Some(ExpressionTree::new(
@@ -233,8 +239,6 @@ mod tests {
                         ExpressionTreeNode::operand(ExpressionOperand::Identifier(
                             Identifier::new(Location::new(1, 14), "VALUE".to_owned()),
                         )),
-                        None,
-                        None,
                     )),
                 )),
             ),

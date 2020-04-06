@@ -6,10 +6,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::expression::Parser as ExpressionParser;
 use crate::syntax::parser::r#type::Parser as TypeParser;
@@ -39,11 +39,16 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses an array type literal.
+    ///
+    /// '[u8; 16]'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
-    ) -> Result<Type, Error> {
+    ) -> Result<(Type, Option<Token>), Error> {
         loop {
             match self.state {
                 State::BracketSquareLeft => {
@@ -101,7 +106,7 @@ impl Parser {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::BracketSquareRight),
                             ..
-                        } => Ok(self.builder.finish()),
+                        } => Ok((self.builder.finish(), self.next.take())),
                         Token { lexeme, location } => {
                             Err(Error::Syntax(SyntaxError::expected_one_of_or_operator(
                                 location,
@@ -124,11 +129,11 @@ mod tests {
 
     use super::Parser;
     use crate::error::Error;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::symbol::Symbol;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
     use crate::syntax::error::Error as SyntaxError;
     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
     use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
@@ -142,22 +147,23 @@ mod tests {
     fn ok() {
         let input = "[field; 8]";
 
-        let expected = Ok(Type::new(
-            Location::new(1, 1),
-            TypeVariant::array(
-                TypeVariant::field(),
-                ExpressionTree::new(
-                    Location::new(1, 9),
-                    ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
-                        IntegerLiteral::new(
-                            Location::new(1, 9),
-                            lexical::IntegerLiteral::new_decimal("8".to_owned()),
-                        ),
-                    )),
-                    None,
-                    None,
+        let expected = Ok((
+            Type::new(
+                Location::new(1, 1),
+                TypeVariant::array(
+                    TypeVariant::field(),
+                    ExpressionTree::new(
+                        Location::new(1, 9),
+                        ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 9),
+                                LexicalIntegerLiteral::new_decimal("8".to_owned()),
+                            ),
+                        )),
+                    ),
                 ),
             ),
+            None,
         ));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
@@ -169,37 +175,36 @@ mod tests {
     fn ok_size_expression() {
         let input = "[field; 4 * 4]";
 
-        let expected = Ok(Type::new(
-            Location::new(1, 1),
-            TypeVariant::array(
-                TypeVariant::field(),
-                ExpressionTree::new(
-                    Location::new(1, 11),
-                    ExpressionTreeNode::operator(ExpressionOperator::Multiplication),
-                    Some(ExpressionTree::new(
-                        Location::new(1, 9),
-                        ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
-                            IntegerLiteral::new(
-                                Location::new(1, 9),
-                                lexical::IntegerLiteral::new_decimal("4".to_owned()),
-                            ),
+        let expected = Ok((
+            Type::new(
+                Location::new(1, 1),
+                TypeVariant::array(
+                    TypeVariant::field(),
+                    ExpressionTree::new_with_leaves(
+                        Location::new(1, 11),
+                        ExpressionTreeNode::operator(ExpressionOperator::Multiplication),
+                        Some(ExpressionTree::new(
+                            Location::new(1, 9),
+                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                                IntegerLiteral::new(
+                                    Location::new(1, 9),
+                                    LexicalIntegerLiteral::new_decimal("4".to_owned()),
+                                ),
+                            )),
                         )),
-                        None,
-                        None,
-                    )),
-                    Some(ExpressionTree::new(
-                        Location::new(1, 13),
-                        ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
-                            IntegerLiteral::new(
-                                Location::new(1, 13),
-                                lexical::IntegerLiteral::new_decimal("4".to_owned()),
-                            ),
+                        Some(ExpressionTree::new(
+                            Location::new(1, 13),
+                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                                IntegerLiteral::new(
+                                    Location::new(1, 13),
+                                    LexicalIntegerLiteral::new_decimal("4".to_owned()),
+                                ),
+                            )),
                         )),
-                        None,
-                        None,
-                    )),
+                    ),
                 ),
             ),
+            None,
         ));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
@@ -211,35 +216,34 @@ mod tests {
     fn ok_nested() {
         let input = "[[field; 8]; 8]";
 
-        let expected = Ok(Type::new(
-            Location::new(1, 1),
-            TypeVariant::array(
+        let expected = Ok((
+            Type::new(
+                Location::new(1, 1),
                 TypeVariant::array(
-                    TypeVariant::field(),
+                    TypeVariant::array(
+                        TypeVariant::field(),
+                        ExpressionTree::new(
+                            Location::new(1, 10),
+                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                                IntegerLiteral::new(
+                                    Location::new(1, 10),
+                                    LexicalIntegerLiteral::new_decimal("8".to_owned()),
+                                ),
+                            )),
+                        ),
+                    ),
                     ExpressionTree::new(
-                        Location::new(1, 10),
+                        Location::new(1, 14),
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
-                                Location::new(1, 10),
-                                lexical::IntegerLiteral::new_decimal("8".to_owned()),
+                                Location::new(1, 14),
+                                LexicalIntegerLiteral::new_decimal("8".to_owned()),
                             ),
                         )),
-                        None,
-                        None,
                     ),
                 ),
-                ExpressionTree::new(
-                    Location::new(1, 14),
-                    ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
-                        IntegerLiteral::new(
-                            Location::new(1, 14),
-                            lexical::IntegerLiteral::new_decimal("8".to_owned()),
-                        ),
-                    )),
-                    None,
-                    None,
-                ),
             ),
+            None,
         ));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);

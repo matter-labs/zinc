@@ -15,10 +15,10 @@ use crate::lexical::token::lexeme::Lexeme;
 use crate::lexical::token::location::Location;
 use crate::lexical::token::Token;
 
-static PANIC_LEXICAL_ERROR: &str = "An unexpected lexical error";
-
 #[test]
 fn ok() {
+    static PANIC_LEXICAL_ERROR: &str = "An unexpected lexical error";
+
     let input = r#"
 /*
     This is the mega ultra test application!

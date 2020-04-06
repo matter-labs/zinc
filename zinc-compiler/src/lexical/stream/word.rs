@@ -3,6 +3,7 @@
 //!
 
 use std::convert::TryFrom;
+use std::str::FromStr;
 
 use crate::lexical::token::lexeme::identifier::Error as IdentifierError;
 use crate::lexical::token::lexeme::identifier::Identifier;
@@ -16,6 +17,26 @@ pub enum State {
     Continue,
 }
 
+///
+/// Parses a word. The word can result into several token types:
+///
+/// 1. An identifier
+/// 'value'
+/// Any valid identifier which is not a keyword.
+///
+/// 2. An underscore symbol
+/// '_'
+/// The symbol can potentially start an identifier, but if there is no alpha symbol after the
+/// underscore, it is not a valid identifier, so the underscore is treated as a symbol token.
+///
+/// 3. A boolean literal
+/// 'true'
+/// The literal is also a keyword, but is was decided to treat literals as a separate token type.
+///
+/// 4. A keyword
+/// 'for'
+/// Any keyword which is not a boolean literal.
+///
 pub fn parse(input: &str) -> (usize, Lexeme) {
     let mut state = State::Start;
     let mut size = 0;
@@ -38,13 +59,7 @@ pub fn parse(input: &str) -> (usize, Lexeme) {
         size += 1;
     }
 
-    // The result can be either of:
-    // 1. An identifier
-    // 2. A keyword
-    // 3. A boolean literal
-    // 4. An underscore symbol
-
-    let lexeme = match Identifier::try_from(&input[..size]) {
+    let lexeme = match Identifier::from_str(&input[..size]) {
         Ok(identifier) => Lexeme::Identifier(identifier),
         Err(IdentifierError::IsUnderscore) => Lexeme::Symbol(Symbol::Underscore),
         Err(IdentifierError::IsKeyword(keyword)) => match Boolean::try_from(keyword) {

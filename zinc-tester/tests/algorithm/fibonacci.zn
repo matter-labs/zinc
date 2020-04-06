@@ -1,8 +1,8 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "default",
 //#     "input": {},
 //#     "expect": "89"
-//# } ]
+//# } ] }
 
 const INDEX: u8 = 10;
 

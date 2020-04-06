@@ -2,7 +2,7 @@
 //! The semantic analyzer value element error.
 //!
 
-use crate::semantic::caster::error::Error as CasterError;
+use crate::semantic::casting::error::Error as CastingError;
 use crate::semantic::element::value::array::error::Error as ArrayValueError;
 use crate::semantic::element::value::integer::error::Error as IntegerValueError;
 use crate::semantic::element::value::structure::error::Error as StructureValueError;
@@ -83,11 +83,9 @@ pub enum Error {
     OperatorFieldFirstOperandExpectedTuple { found: String },
     OperatorFieldFirstOperandExpectedStructure { found: String },
 
-    ConvertingFromType { r#type: String },
-
     Integer(IntegerValueError),
     Array(ArrayValueError),
     Tuple(TupleValueError),
     Structure(StructureValueError),
-    Casting(CasterError),
+    Casting(CastingError),
 }

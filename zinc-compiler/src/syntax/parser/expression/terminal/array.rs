@@ -6,10 +6,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::expression::Parser as ExpressionParser;
 use crate::syntax::tree::expression::array::builder::Builder as ArrayExpressionBuilder;
@@ -40,6 +40,11 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses an array literal.
+    ///
+    /// '[1, 2, 3]'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -192,11 +197,11 @@ mod tests {
 
     use super::Error;
     use super::Parser;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::symbol::Symbol;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
     use crate::syntax::error::Error as SyntaxError;
     use crate::syntax::tree::expression::array::Expression as ArrayExpression;
     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
@@ -227,11 +232,9 @@ mod tests {
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                         IntegerLiteral::new(
                             Location::new(1, 2),
-                            lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                            LexicalIntegerLiteral::new_decimal("1".to_owned()),
                         ),
                     )),
-                    None,
-                    None,
                 )],
             ),
             None,
@@ -255,33 +258,27 @@ mod tests {
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
                                 Location::new(1, 2),
-                                lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                                LexicalIntegerLiteral::new_decimal("1".to_owned()),
                             ),
                         )),
-                        None,
-                        None,
                     ),
                     ExpressionTree::new(
                         Location::new(1, 5),
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
                                 Location::new(1, 5),
-                                lexical::IntegerLiteral::new_decimal("2".to_owned()),
+                                LexicalIntegerLiteral::new_decimal("2".to_owned()),
                             ),
                         )),
-                        None,
-                        None,
                     ),
                     ExpressionTree::new(
                         Location::new(1, 8),
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
                                 Location::new(1, 8),
-                                lexical::IntegerLiteral::new_decimal("3".to_owned()),
+                                LexicalIntegerLiteral::new_decimal("3".to_owned()),
                             ),
                         )),
-                        None,
-                        None,
                     ),
                 ],
             ),
@@ -305,22 +302,18 @@ mod tests {
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                         IntegerLiteral::new(
                             Location::new(1, 2),
-                            lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                            LexicalIntegerLiteral::new_decimal("1".to_owned()),
                         ),
                     )),
-                    None,
-                    None,
                 ),
                 ExpressionTree::new(
                     Location::new(1, 5),
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                         IntegerLiteral::new(
                             Location::new(1, 5),
-                            lexical::IntegerLiteral::new_decimal("10".to_owned()),
+                            LexicalIntegerLiteral::new_decimal("10".to_owned()),
                         ),
                     )),
-                    None,
-                    None,
                 ),
             ),
             None,

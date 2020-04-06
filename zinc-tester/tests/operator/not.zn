@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "false",
 //#     "input": {
 //#         "a": false
@@ -10,7 +10,7 @@
 //#         "a": true
 //#     },
 //#     "expect": false
-//# } ]
+//# } ] }
 
 fn main(a: bool) -> bool {
     !a

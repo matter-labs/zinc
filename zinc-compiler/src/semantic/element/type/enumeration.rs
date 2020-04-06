@@ -16,9 +16,16 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
-use crate::syntax::Identifier;
-use crate::syntax::Variant;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::variant::Variant;
 
+///
+/// Describes an enumeration type.
+///
+/// Consists of the local enumeration `identifier` within its scope, global `unique_id`,
+/// and the implementation `scope`, which contains the enumeration variants and
+/// reference to its parent scope.
+///
 #[derive(Debug, Clone)]
 pub struct Enumeration {
     pub identifier: String,

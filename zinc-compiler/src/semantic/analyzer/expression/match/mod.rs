@@ -21,15 +21,20 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
+use crate::semantic::scope::item::variant::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
-use crate::syntax::MatchExpression;
-use crate::syntax::MatchPatternVariant;
+use crate::syntax::tree::expression::r#match::Expression as MatchExpression;
+use crate::syntax::tree::pattern_match::variant::Variant as MatchPatternVariant;
 
 pub struct Analyzer {}
 
 impl Analyzer {
+    ///
+    /// Analyzes the match expression.
+    ///
+    /// Returns the semantic element and the intermediate representation.
+    ///
     pub fn analyze(
         scope: Rc<RefCell<Scope>>,
         r#match: MatchExpression,
@@ -38,18 +43,20 @@ impl Analyzer {
 
         let mut builder = GeneratorMatchExpressionBuilder::default();
 
+        builder.set_location(r#match.location);
+
         let mut scope_stack = ScopeStack::new(scope);
 
         let scrutinee_location = r#match.scrutinee.location;
         let (scrutinee_result, scrutinee_expression) =
             ExpressionAnalyzer::new(scope_stack.top())
-                .analyze(r#match.scrutinee, TranslationHint::ValueExpression)?;
+                .analyze(r#match.scrutinee, TranslationHint::Value)?;
         let scrutinee_type = Type::from_element(&scrutinee_result, scope_stack.top())?;
         if scrutinee_type.is_scalar() {
             builder.set_scrutinee(
                 scrutinee_expression,
                 GeneratorType::try_from_semantic(&scrutinee_type)
-                    .expect(crate::generator::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS),
+                    .expect(crate::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS),
             );
         } else {
             return Err(Error::MatchScrutineeInvalidType {
@@ -75,6 +82,7 @@ impl Analyzer {
                     location: pattern.location,
                 });
             }
+
             let result = match pattern.variant {
                 MatchPatternVariant::BooleanLiteral(boolean) => {
                     let constant = Constant::from(boolean);
@@ -89,9 +97,9 @@ impl Analyzer {
                     }
 
                     let constant = GeneratorConstant::try_from_semantic(&constant)
-                        .expect(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
+                        .expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
                     let (result, branch) = ExpressionAnalyzer::new(scope_stack.top())
-                        .analyze(expression, TranslationHint::ValueExpression)?;
+                        .analyze(expression, TranslationHint::Value)?;
                     builder.push_branch(constant, branch);
 
                     result
@@ -118,9 +126,9 @@ impl Analyzer {
                     }
 
                     let constant = GeneratorConstant::try_from_semantic(&constant)
-                        .expect(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
+                        .expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
                     let (result, branch) = ExpressionAnalyzer::new(scope_stack.top())
-                        .analyze(expression, TranslationHint::ValueExpression)?;
+                        .analyze(expression, TranslationHint::Value)?;
                     builder.push_branch(constant, branch);
 
                     result
@@ -129,7 +137,7 @@ impl Analyzer {
                     let location = path.location;
 
                     let constant = match ExpressionAnalyzer::new(scope_stack.top())
-                        .analyze(path, TranslationHint::ValueExpression)?
+                        .analyze(path, TranslationHint::Value)?
                     {
                         (Element::Constant(constant), _intermediate) => constant,
                         (element, _intermediate) => {
@@ -141,9 +149,9 @@ impl Analyzer {
                     };
 
                     let constant = GeneratorConstant::try_from_semantic(&constant)
-                        .expect(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
+                        .expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
                     let (result, branch) = ExpressionAnalyzer::new(scope_stack.top())
-                        .analyze(expression, TranslationHint::ValueExpression)?;
+                        .analyze(expression, TranslationHint::Value)?;
                     builder.push_branch(constant, branch);
 
                     result
@@ -160,7 +168,7 @@ impl Analyzer {
                     )
                     .map_err(|error| Error::Scope(location, error))?;
                     let (result, branch) = ExpressionAnalyzer::new(scope_stack.top())
-                        .analyze(expression, TranslationHint::ValueExpression)?;
+                        .analyze(expression, TranslationHint::Value)?;
                     builder.set_binding_branch(branch, identifier.name);
                     scope_stack.pop();
 
@@ -169,7 +177,7 @@ impl Analyzer {
                 MatchPatternVariant::Wildcard => {
                     is_exhausted = true;
                     let (result, branch) = ExpressionAnalyzer::new(scope_stack.top())
-                        .analyze(expression, TranslationHint::ValueExpression)?;
+                        .analyze(expression, TranslationHint::Value)?;
                     builder.set_wildcard_branch(branch);
                     result
                 }

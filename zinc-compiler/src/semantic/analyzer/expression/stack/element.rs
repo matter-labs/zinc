@@ -3,7 +3,7 @@
 //!
 
 use crate::semantic::element::Element as SemanticElement;
-use crate::syntax::ExpressionOperand;
+use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
 
 #[derive(Debug, Clone)]
 pub enum Element {

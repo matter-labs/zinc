@@ -2,7 +2,7 @@
 //! The use statement builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::statement::r#use::Statement as UseStatement;
 

@@ -1,6 +1,5 @@
-# Syntax grammar
 
-These are the Zinc syntax grammar rules in the EBNF notation.
+# Syntax grammar (EBNF)
 
 ```
 file = { module_local_statement } ;
@@ -61,10 +60,10 @@ operand_mul_div_rem = operand_as, { 'as', type } ;
 operand_as = { '-' | '~' | '!' }, operand_access ;
 operand_access = operand_path, {
     '[', expression, ']'
-  | '.', integer | member_name
-  | '(', expression_list, ')'
+  | '.', integer | identifier
+  | [ '!' ], '(', expression_list, ')'
 } ;
-operand_path = operand_terminal, { '::', operand_terminal }, [ '!' ] ;
+operand_path = operand_terminal, { '::', operand_terminal } ;
 operand_terminal =
     tuple_expression
   | block_expression
@@ -128,7 +127,5 @@ field_list = [ field, { ',', field } ] ;
 
 variant = identifier, '=', integer ;
 variant_list = [ variant, { ',', variant } ] ;
-
-member_name = identifier ;
 
 ```

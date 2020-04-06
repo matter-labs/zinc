@@ -5,6 +5,7 @@
 mod tests;
 
 pub mod enumeration;
+pub mod error;
 pub mod function;
 pub mod structure;
 
@@ -23,47 +24,65 @@ use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
+use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::Variant as ScopeItemVariant;
+use crate::semantic::scope::builtin::BuiltInItems;
+use crate::semantic::scope::item::variant::Variant as ScopeItemVariant;
 use crate::semantic::scope::Scope;
-use crate::syntax::Identifier;
-use crate::syntax::TypeVariant;
-use crate::syntax::Variant;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
+use crate::syntax::tree::variant::Variant;
 
 use self::enumeration::Enumeration;
 use self::function::Function;
 use self::structure::Structure;
 
 lazy_static! {
-    pub static ref TYPE_INDEX: RwLock<HashMap<usize, String>> = {
-        let mut index = HashMap::with_capacity(Scope::TYPE_ID_FIRST_AVAILABLE);
+    pub static ref INDEX: RwLock<HashMap<usize, String>> = {
+        let mut index = HashMap::with_capacity(BuiltInItems::TYPE_ID_FIRST_AVAILABLE);
         index.insert(
-            Scope::TYPE_ID_STD_CRYPTO_ECC_POINT,
+            BuiltInItems::TYPE_ID_STD_CRYPTO_ECC_POINT,
             "struct std::crypto::ecc::Point".to_owned(),
         );
         index.insert(
-            Scope::TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE,
+            BuiltInItems::TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE,
             "struct std::crypto::schnorr::Signature".to_owned(),
         );
         RwLock::new(index)
     };
 }
 
+///
+/// Describes a type.
+///
 #[derive(Debug, Clone)]
 pub enum Type {
+    /// the `()` type
     Unit,
+    /// the `bool` type
     Boolean,
+    /// the `u{N}` type
     IntegerUnsigned { bitlength: usize },
+    /// the `i{N}` type
     IntegerSigned { bitlength: usize },
+    /// the `field` type
     Field,
+    /// the compile-time only type used mostly for `dbg!` format strings and `assert!` messages
     String,
+    /// the compile-time only type used for loop bounds and array slicing
     Range { r#type: Box<Self> },
+    /// the compile-time only type used for loop bounds and array slicing
     RangeInclusive { r#type: Box<Self> },
+    /// the ordinar array type
     Array { r#type: Box<Self>, size: usize },
+    /// the ordinar tuple type
     Tuple { types: Vec<Self> },
+    /// the ordinar structure type declared with a `struct` statement
     Structure(Structure),
+    /// the ordinar enumeration type declared with an `enum` statement
     Enumeration(Enumeration),
+    /// the special function type declared with an `fn` statement
     Function(Function),
 }
 
@@ -262,7 +281,7 @@ impl Type {
 
                 let size_location = size.location;
                 let size = match ExpressionAnalyzer::new(scope)
-                    .analyze(size.to_owned(), TranslationHint::ValueExpression)?
+                    .analyze(size.to_owned(), TranslationHint::Value)?
                 {
                     (Element::Constant(Constant::Integer(integer)), _intermediate) => {
                         integer.to_usize().map_err(|error| {
@@ -292,14 +311,16 @@ impl Type {
             TypeVariant::Alias { path } => {
                 let location = path.location;
                 match ExpressionAnalyzer::new(scope)
-                    .analyze(path.to_owned(), TranslationHint::TypeExpression)?
+                    .analyze(path.to_owned(), TranslationHint::Type)?
                 {
                     (Element::Type(r#type), _intermediate) => r#type,
                     (element, _intermediate) => {
-                        return Err(Error::TypeAliasDoesNotPointToType {
+                        return Err(Error::Element(
                             location,
-                            found: element.to_string(),
-                        });
+                            ElementError::Type(TypeError::AliasDoesNotPointToType {
+                                found: element.to_string(),
+                            }),
+                        ));
                     }
                 }
             }
@@ -314,11 +335,11 @@ impl Type {
             Element::Path(path) => match Scope::resolve_path(scope, &path)?.variant {
                 ScopeItemVariant::Variable(variable) => variable.r#type,
                 ScopeItemVariant::Constant(constant) => constant.r#type(),
-                _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+                _ => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
             },
             Element::Place(place) => place.r#type.to_owned(),
 
-            _ => panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+            _ => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
         })
     }
 }

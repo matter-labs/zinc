@@ -78,6 +78,11 @@ pub enum Error {
 impl TryFrom<&str> for Keyword {
     type Error = Error;
 
+    ///
+    /// The converter checks if the number after the 'u' or 'i' symbol represents a valid
+    /// amount of bits for an integer value. If the amount is not a valid bitlength, the word is
+    /// treated as an ordinar identifier.
+    ///
     fn try_from(input: &str) -> Result<Self, Self::Error> {
         match input {
             "let" => return Ok(Self::Let),
@@ -120,12 +125,8 @@ impl TryFrom<&str> for Keyword {
             _ => {}
         }
 
-        const BITLENGTH_RANGE: RangeInclusive<usize> =
+        const INTEGER_BITLENGTH_RANGE: RangeInclusive<usize> =
             (crate::BITLENGTH_BYTE..=crate::BITLENGTH_MAX_INT);
-
-        // The following code checks if the number after the 'u' or 'i' symbol represents a valid
-        // amount of bits for an integer value. If the amount is not a valid bitlength, the word is
-        // considered as an ordinar identifier.
 
         if let Some("u") = input.get(..1) {
             let bitlength = &input[1..];
@@ -135,10 +136,10 @@ impl TryFrom<&str> for Keyword {
             let bitlength = bitlength
                 .parse::<usize>()
                 .map_err(|_| Error::IntegerBitlengthNotNumeric(bitlength.to_owned()))?;
-            if !BITLENGTH_RANGE.contains(&bitlength) {
+            if !INTEGER_BITLENGTH_RANGE.contains(&bitlength) {
                 return Err(Error::IntegerBitlengthOutOfRange(
                     bitlength,
-                    BITLENGTH_RANGE,
+                    INTEGER_BITLENGTH_RANGE,
                 ));
             }
             if bitlength % crate::BITLENGTH_BYTE != 0 {
@@ -158,10 +159,10 @@ impl TryFrom<&str> for Keyword {
             let bitlength = bitlength
                 .parse::<usize>()
                 .map_err(|_| Error::IntegerBitlengthNotNumeric(bitlength.to_owned()))?;
-            if !BITLENGTH_RANGE.contains(&bitlength) {
+            if !INTEGER_BITLENGTH_RANGE.contains(&bitlength) {
                 return Err(Error::IntegerBitlengthOutOfRange(
                     bitlength,
-                    BITLENGTH_RANGE,
+                    INTEGER_BITLENGTH_RANGE,
                 ));
             }
             if bitlength % crate::BITLENGTH_BYTE != 0 {

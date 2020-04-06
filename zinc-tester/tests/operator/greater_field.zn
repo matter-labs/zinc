@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "zero_zero",
 //#     "input": {
 //#         "a": "0",
@@ -40,7 +40,7 @@
 //#         "b": "0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593efffffff"
 //#     },
 //#     "expect": true
-//# } ]
+//# } ] }
 
 fn main(a: field, b: field) -> bool {
     a > b

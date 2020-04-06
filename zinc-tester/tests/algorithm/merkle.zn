@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "default",
 //#     "input": {
 //#         "address": "0x558ef3cde10f05f73d27cdf30dbb1aa40adf940257e1549c239066",
@@ -12,7 +12,7 @@
 //#         "balance": "1000",
 //#         "root_hash": "0x2915116a62d5c0e17357da09e10726afc8030ac60e9371fbd950b407dfabf0"
 //#     }
-//# } ]
+//# } ] }
 
 //!
 //! The merkle tree root hash validator.

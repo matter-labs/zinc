@@ -13,6 +13,11 @@ use crate::semantic::element::r#type::Type;
 
 use self::error::Error;
 
+///
+/// Integer values consist of the value, sign, and bitlength.
+/// If a value belongs to an enumeration, the enumeration type is stored in `enumeration`.
+/// Enumeration uniquely defines the value type, even if the sign and bitlength are the same.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Integer {
     pub is_signed: bool,

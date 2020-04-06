@@ -4,31 +4,35 @@
 
 use std::fmt;
 
-use crate::lexical::Location;
-use crate::syntax::MemberString;
+use crate::lexical::token::location::Location;
+use crate::syntax::tree::identifier::Identifier;
 
+///
+/// Paths are the `::` expressions which exist at compile time only.
+/// Paths are usually coerced to place, value, constant or type expressions.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Path {
     pub location: Location,
-    pub elements: Vec<MemberString>,
+    pub elements: Vec<Identifier>,
 }
 
 impl Path {
-    pub fn new(location: Location, initial: MemberString) -> Self {
+    pub fn new(location: Location, initial: Identifier) -> Self {
         Self {
             location,
             elements: vec![initial],
         }
     }
 
-    pub fn push_element(&mut self, element: MemberString) {
+    pub fn push_element(&mut self, element: Identifier) {
         self.elements.push(element);
     }
 
-    pub fn last(&self) -> &MemberString {
+    pub fn last(&self) -> &Identifier {
         self.elements
             .last()
-            .expect(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS)
+            .expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS)
     }
 }
 

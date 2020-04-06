@@ -5,12 +5,12 @@
 #![cfg(test)]
 
 use crate::error::Error;
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::element::value::integer::error::Error as IntegerValueError;
-use crate::semantic::Error as SemanticError;
+use crate::semantic::error::Error as SemanticError;
 
 #[test]
 fn error_types_mismatch_equals() {
@@ -162,6 +162,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_types_mismatch_bitwise_or() {
     let input = r#"
@@ -187,6 +188,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_types_mismatch_bitwise_xor() {
     let input = r#"
@@ -212,6 +214,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_types_mismatch_bitwise_and() {
     let input = r#"
@@ -406,6 +409,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_forbidden_field_bitwise_assignment_or() {
     let input = r#"
@@ -428,6 +432,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_forbidden_field_bitwise_assignment_xor() {
     let input = r#"
@@ -450,6 +455,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_forbidden_field_bitwise_assignment_and() {
     let input = r#"
@@ -514,6 +520,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_forbidden_field_bitwise_or() {
     let input = r#"
@@ -536,6 +543,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_forbidden_field_bitwise_xor() {
     let input = r#"
@@ -558,6 +566,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_forbidden_field_bitwise_and() {
     let input = r#"
@@ -580,6 +589,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_forbidden_field_bitwise_shift_left() {
     let input = r#"
@@ -601,6 +611,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_forbidden_field_bitwise_shift_right() {
     let input = r#"
@@ -622,6 +633,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_forbidden_field_bitwise_not() {
     let input = r#"

@@ -9,30 +9,36 @@ pub mod operator;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use num_bigint::BigInt;
+
 use zinc_bytecode::builtins::BuiltinIdentifier;
 use zinc_bytecode::data::types::DataType;
+use zinc_bytecode::data::types::ScalarType;
 use zinc_bytecode::Instruction;
 
-use crate::bytecode::Bytecode;
+use crate::generator::bytecode::Bytecode;
+use crate::generator::expression::operand::constant::Constant;
+use crate::generator::expression::operand::place::Place;
+use crate::lexical::token::location::Location;
 
 use self::element::Element;
 use self::operand::Operand;
 use self::operator::Operator;
 
+///
+/// The expression translated to the target Zinc VM bytecode.
+///
 #[derive(Debug, Default, Clone)]
 pub struct Expression {
-    pub elements: Vec<Element>,
-    pub stack: Vec<Operand>,
+    elements: Vec<Element>,
 }
 
 impl Expression {
     const VECTOR_ELEMENTS_INITIAL_CAPACITY: usize = 16;
-    const STACK_OPERAND_INITIAL_CAPACITY: usize = 16;
 
     pub fn new() -> Self {
         Self {
             elements: Vec::with_capacity(Self::VECTOR_ELEMENTS_INITIAL_CAPACITY),
-            stack: Vec::with_capacity(Self::STACK_OPERAND_INITIAL_CAPACITY),
         }
     }
 
@@ -40,373 +46,453 @@ impl Expression {
         self.elements.push(Element::Operand(operand))
     }
 
-    pub fn push_operator(&mut self, operator: Operator) {
-        self.elements.push(Element::Operator(operator))
+    pub fn push_operator(&mut self, location: Location, operator: Operator) {
+        self.elements.push(Element::Operator { location, operator })
     }
 
     pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
-        let mut stack = self.stack;
-
         for element in self.elements.into_iter() {
             match element {
                 Element::Operand(operand) => {
-                    operand.clone().write_all_to_bytecode(bytecode.clone());
-                    stack.push(operand);
+                    operand.write_all_to_bytecode(bytecode.clone());
                 }
-                Element::Operator(operator) => match operator {
-                    // Operator::Assignment => Self::assignment(&mut stack, bytecode.clone()),
-                    // Operator::AssignmentBitwiseOr => Self::assignment_with_operation(
-                    //     &mut stack,
-                    //     bytecode.clone(),
-                    //     Instruction::BitOr(zinc_bytecode::BitOr),
-                    // ),
-                    // Operator::AssignmentBitwiseXor => Self::assignment_with_operation(
-                    //     &mut stack,
-                    //     bytecode.clone(),
-                    //     Instruction::BitXor(zinc_bytecode::BitXor),
-                    // ),
-                    // Operator::AssignmentBitwiseAnd => Self::assignment_with_operation(
-                    //     &mut stack,
-                    //     bytecode.clone(),
-                    //     Instruction::BitAnd(zinc_bytecode::BitAnd),
-                    // ),
-                    // Operator::AssignmentBitwiseShiftLeft => Self::assignment_with_operation(
-                    //     &mut stack,
-                    //     bytecode.clone(),
-                    //     Instruction::BitShiftLeft(zinc_bytecode::BitShiftLeft),
-                    // ),
-                    // Operator::AssignmentBitwiseShiftRight => Self::assignment_with_operation(
-                    //     &mut stack,
-                    //     bytecode.clone(),
-                    //     Instruction::BitShiftRight(zinc_bytecode::BitShiftRight),
-                    // ),
-                    // Operator::AssignmentAddition => Self::assignment_with_operation(
-                    //     &mut stack,
-                    //     bytecode.clone(),
-                    //     Instruction::Add(zinc_bytecode::Add),
-                    // ),
-                    // Operator::AssignmentSubtraction => Self::assignment_with_operation(
-                    //     &mut stack,
-                    //     bytecode.clone(),
-                    //     Instruction::Sub(zinc_bytecode::Sub),
-                    // ),
-                    // Operator::AssignmentMultiplication => Self::assignment_with_operation(
-                    //     &mut stack,
-                    //     bytecode.clone(),
-                    //     Instruction::Mul(zinc_bytecode::Mul),
-                    // ),
-                    // Operator::AssignmentDivision => Self::assignment_with_operation(
-                    //     &mut stack,
-                    //     bytecode.clone(),
-                    //     Instruction::Div(zinc_bytecode::Div),
-                    // ),
-                    // Operator::AssignmentRemainder => Self::assignment_with_operation(
-                    //     &mut stack,
-                    //     bytecode.clone(),
-                    //     Instruction::Rem(zinc_bytecode::Rem),
-                    // ),
+                Element::Operator { location, operator } => match operator {
+                    Operator::Assignment { place, expression } => {
+                        Self::assignment(bytecode.clone(), place, expression, location)
+                    }
+
+                    Operator::AssignmentBitwiseOr { place, expression } => {
+                        Self::assignment_with_operation(
+                            bytecode.clone(),
+                            place,
+                            expression,
+                            Instruction::BitOr(zinc_bytecode::BitOr),
+                            location,
+                        )
+                    }
+                    Operator::AssignmentBitwiseXor { place, expression } => {
+                        Self::assignment_with_operation(
+                            bytecode.clone(),
+                            place,
+                            expression,
+                            Instruction::BitXor(zinc_bytecode::BitXor),
+                            location,
+                        )
+                    }
+                    Operator::AssignmentBitwiseAnd { place, expression } => {
+                        Self::assignment_with_operation(
+                            bytecode.clone(),
+                            place,
+                            expression,
+                            Instruction::BitAnd(zinc_bytecode::BitAnd),
+                            location,
+                        )
+                    }
+                    Operator::AssignmentBitwiseShiftLeft { place, expression } => {
+                        Self::assignment_with_operation(
+                            bytecode.clone(),
+                            place,
+                            expression,
+                            Instruction::BitShiftLeft(zinc_bytecode::BitShiftLeft),
+                            location,
+                        )
+                    }
+                    Operator::AssignmentBitwiseShiftRight { place, expression } => {
+                        Self::assignment_with_operation(
+                            bytecode.clone(),
+                            place,
+                            expression,
+                            Instruction::BitShiftRight(zinc_bytecode::BitShiftRight),
+                            location,
+                        )
+                    }
+                    Operator::AssignmentAddition { place, expression } => {
+                        Self::assignment_with_operation(
+                            bytecode.clone(),
+                            place,
+                            expression,
+                            Instruction::Add(zinc_bytecode::Add),
+                            location,
+                        )
+                    }
+                    Operator::AssignmentSubtraction { place, expression } => {
+                        Self::assignment_with_operation(
+                            bytecode.clone(),
+                            place,
+                            expression,
+                            Instruction::Sub(zinc_bytecode::Sub),
+                            location,
+                        )
+                    }
+                    Operator::AssignmentMultiplication { place, expression } => {
+                        Self::assignment_with_operation(
+                            bytecode.clone(),
+                            place,
+                            expression,
+                            Instruction::Mul(zinc_bytecode::Mul),
+                            location,
+                        )
+                    }
+                    Operator::AssignmentDivision { place, expression } => {
+                        Self::assignment_with_operation(
+                            bytecode.clone(),
+                            place,
+                            expression,
+                            Instruction::Div(zinc_bytecode::Div),
+                            location,
+                        )
+                    }
+                    Operator::AssignmentRemainder { place, expression } => {
+                        Self::assignment_with_operation(
+                            bytecode.clone(),
+                            place,
+                            expression,
+                            Instruction::Rem(zinc_bytecode::Rem),
+                            location,
+                        )
+                    }
+
                     Operator::Or => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::Or(zinc_bytecode::Or),
+                        location,
                     ),
                     Operator::Xor => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::Xor(zinc_bytecode::Xor),
+                        location,
                     ),
                     Operator::And => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::And(zinc_bytecode::And),
+                        location,
                     ),
 
                     Operator::Equals => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::Eq(zinc_bytecode::Eq),
+                        location,
                     ),
                     Operator::NotEquals => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::Ne(zinc_bytecode::Ne),
+                        location,
                     ),
                     Operator::GreaterEquals => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::Ge(zinc_bytecode::Ge),
+                        location,
                     ),
                     Operator::LesserEquals => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::Le(zinc_bytecode::Le),
+                        location,
                     ),
                     Operator::Greater => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::Gt(zinc_bytecode::Gt),
+                        location,
                     ),
                     Operator::Lesser => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::Lt(zinc_bytecode::Lt),
+                        location,
                     ),
 
                     Operator::BitwiseOr => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::BitOr(zinc_bytecode::BitOr),
+                        location,
                     ),
                     Operator::BitwiseXor => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::BitXor(zinc_bytecode::BitXor),
+                        location,
                     ),
                     Operator::BitwiseAnd => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::BitAnd(zinc_bytecode::BitAnd),
+                        location,
                     ),
                     Operator::BitwiseShiftLeft => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::BitShiftLeft(zinc_bytecode::BitShiftLeft),
+                        location,
                     ),
                     Operator::BitwiseShiftRight => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::BitShiftRight(zinc_bytecode::BitShiftRight),
+                        location,
                     ),
 
                     Operator::Addition => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::Add(zinc_bytecode::Add),
+                        location,
                     ),
                     Operator::Subtraction => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::Sub(zinc_bytecode::Sub),
+                        location,
                     ),
                     Operator::Multiplication => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::Mul(zinc_bytecode::Mul),
+                        location,
                     ),
                     Operator::Division => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::Div(zinc_bytecode::Div),
+                        location,
                     ),
                     Operator::Remainder => Self::binary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::Rem(zinc_bytecode::Rem),
+                        location,
                     ),
 
                     Operator::Casting { r#type } => {
                         if let Some(scalar_type) = r#type.into() {
                             Self::unary(
-                                &mut stack,
                                 bytecode.clone(),
                                 Instruction::Cast(zinc_bytecode::Cast::new(scalar_type)),
+                                location,
                             )
                         }
                     }
 
                     Operator::Not => Self::unary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::Not(zinc_bytecode::Not),
+                        location,
                     ),
                     Operator::BitwiseNot => Self::unary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::BitNot(zinc_bytecode::BitNot),
+                        location,
                     ),
                     Operator::Negation => Self::unary(
-                        &mut stack,
                         bytecode.clone(),
                         Instruction::Neg(zinc_bytecode::Neg),
+                        location,
                     ),
+
+                    Operator::Index { expression, access } => {
+                        expression.write_all_to_bytecode(bytecode.clone());
+                        bytecode.borrow_mut().push_instruction(
+                            Instruction::Cast(zinc_bytecode::Cast::new(ScalarType::Field)),
+                            Some(location),
+                        );
+                        bytecode.borrow_mut().push_instruction(
+                            Instruction::Slice(zinc_bytecode::Slice::new(
+                                access.total_size,
+                                access.element_size,
+                            )),
+                            Some(location),
+                        );
+                    }
+                    Operator::Slice { access } => {
+                        Constant::new_integer(
+                            BigInt::from(access.offset),
+                            false,
+                            crate::BITLENGTH_FIELD,
+                        )
+                        .write_all_to_bytecode(bytecode.clone());
+                        bytecode.borrow_mut().push_instruction(
+                            Instruction::Slice(zinc_bytecode::Slice::new(
+                                access.total_size,
+                                access.element_size,
+                            )),
+                            Some(location),
+                        );
+                    }
 
                     Operator::Call {
                         unique_id,
                         input_size,
-                    } => Self::call(&mut stack, bytecode.clone(), unique_id, input_size),
+                    } => Self::call(bytecode.clone(), unique_id, input_size, location),
                     Operator::CallDebug {
                         format,
                         argument_types,
                     } => Self::call_debug(
-                        &mut stack,
                         bytecode.clone(),
                         format,
                         argument_types
                             .into_iter()
                             .map(|r#type| r#type.into())
                             .collect(),
+                        location,
                     ),
                     Operator::CallAssert { message } => {
-                        Self::call_assert(&mut stack, bytecode.clone(), message)
+                        Self::call_assert(bytecode.clone(), message, location)
                     }
                     Operator::CallStandardLibrary {
                         identifier,
                         input_size,
                         output_size,
                     } => Self::call_standard_library(
-                        &mut stack,
                         bytecode.clone(),
                         identifier,
                         input_size,
                         output_size,
+                        location,
                     ),
-
-                    _ => todo!(),
                 },
             }
         }
     }
 
-    // fn assignment(stack: &mut Vec<Operand>, bytecode: Rc<RefCell<Bytecode>>) {
-    //     let _operand_2 = stack.pop().unwrap();
-    //     let operand_1 = stack.pop().unwrap();
-    //
-    //     let address = match operand_1 {
-    //         Operand::Variable(variable) => bytecode
-    //             .borrow()
-    //             .get_variable_address(variable.name.as_str())
-    //             .expect(crate::generator::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS),
-    //         Operand::Memory(memory) => memory.address,
-    //         _ => panic!(crate::generator::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS),
-    //     };
-    //
-    //     bytecode.borrow_mut().push_instruction(
-    //         Instruction::Store(zinc_bytecode::Store::new(address)),
-    //         crate::lexical::Location::default(),
-    //     );
-    // }
-    //
-    // fn assignment_with_operation(
-    //     stack: &mut Vec<Operand>,
-    //     bytecode: Rc<RefCell<Bytecode>>,
-    //     instruction: Instruction,
-    // ) {
-    //     let _operand_2 = stack.pop().unwrap();
-    //     let operand_1 = stack.pop().unwrap();
-    //
-    //     let address = match operand_1 {
-    //         Operand::Variable(variable) => bytecode
-    //             .borrow()
-    //             .get_variable_address(variable.name.as_str())
-    //             .expect(crate::generator::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS),
-    //         Operand::Memory(memory) => memory.address,
-    //         _ => panic!(crate::generator::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS),
-    //     };
-    //
-    //     bytecode.borrow_mut().push_instruction(
-    //         Instruction::Load(zinc_bytecode::Load::new(address)),
-    //         crate::lexical::Location::default(),
-    //     );
-    //     bytecode
-    //         .borrow_mut()
-    //         .push_instruction(instruction, crate::lexical::Location::default());
-    //     bytecode.borrow_mut().push_instruction(
-    //         Instruction::Store(zinc_bytecode::Store::new(address)),
-    //         crate::lexical::Location::default(),
-    //     );
-    // }
+    fn assignment(
+        bytecode: Rc<RefCell<Bytecode>>,
+        place: Place,
+        expression: Self,
+        location: Location,
+    ) {
+        let is_place_indexed = !place.elements.is_empty();
+        let address = bytecode
+            .borrow()
+            .get_variable_address(place.identifier.as_str())
+            .expect(crate::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS);
+        let element_size = place.element_size;
+        let total_size = place.total_size;
 
-    fn binary(stack: &mut Vec<Operand>, bytecode: Rc<RefCell<Bytecode>>, instruction: Instruction) {
-        let _operand_2 = stack.pop().unwrap();
-        let operand_1 = stack.pop().unwrap();
+        if is_place_indexed {
+            place.write_all_to_bytecode(bytecode.clone());
+        }
 
-        stack.push(operand_1);
+        expression.write_all_to_bytecode(bytecode.clone());
 
-        bytecode
-            .borrow_mut()
-            .push_instruction(instruction, crate::lexical::Location::default());
+        bytecode.borrow_mut().push_instruction(
+            if is_place_indexed {
+                Instruction::StoreSequenceByIndex(zinc_bytecode::StoreSequenceByIndex::new(
+                    address,
+                    total_size,
+                    element_size,
+                ))
+            } else {
+                Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(address, total_size))
+            },
+            Some(location),
+        );
     }
 
-    fn unary(stack: &mut Vec<Operand>, bytecode: Rc<RefCell<Bytecode>>, instruction: Instruction) {
-        let operand = stack.pop().unwrap();
+    fn assignment_with_operation(
+        bytecode: Rc<RefCell<Bytecode>>,
+        place: Place,
+        expression: Self,
+        operation: Instruction,
+        location: Location,
+    ) {
+        let is_place_indexed = !place.elements.is_empty();
+        let address = bytecode
+            .borrow()
+            .get_variable_address(place.identifier.as_str())
+            .expect(crate::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS);
+        let element_size = place.element_size;
+        let total_size = place.total_size;
 
-        stack.push(operand);
+        if is_place_indexed {
+            place.write_all_to_bytecode(bytecode.clone());
+            bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::Tee(zinc_bytecode::Tee), Some(location));
+        }
+
+        bytecode.borrow_mut().push_instruction(
+            if is_place_indexed {
+                Instruction::LoadSequenceByIndex(zinc_bytecode::LoadSequenceByIndex::new(
+                    address,
+                    total_size,
+                    element_size,
+                ))
+            } else {
+                Instruction::LoadSequence(zinc_bytecode::LoadSequence::new(address, total_size))
+            },
+            Some(location),
+        );
+
+        expression.write_all_to_bytecode(bytecode.clone());
 
         bytecode
             .borrow_mut()
-            .push_instruction(instruction, crate::lexical::Location::default());
+            .push_instruction(operation, Some(location));
+
+        bytecode.borrow_mut().push_instruction(
+            if is_place_indexed {
+                Instruction::StoreSequenceByIndex(zinc_bytecode::StoreSequenceByIndex::new(
+                    address,
+                    total_size,
+                    element_size,
+                ))
+            } else {
+                Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(address, total_size))
+            },
+            Some(location),
+        );
+    }
+
+    fn binary(bytecode: Rc<RefCell<Bytecode>>, instruction: Instruction, location: Location) {
+        bytecode
+            .borrow_mut()
+            .push_instruction(instruction, Some(location));
+    }
+
+    fn unary(bytecode: Rc<RefCell<Bytecode>>, instruction: Instruction, location: Location) {
+        bytecode
+            .borrow_mut()
+            .push_instruction(instruction, Some(location));
     }
 
     fn call(
-        stack: &mut Vec<Operand>,
         bytecode: Rc<RefCell<Bytecode>>,
         unique_id: usize,
         input_size: usize,
+        location: Location,
     ) {
-        let operand = stack.pop().unwrap();
-
-        stack.push(operand);
-
         let address = bytecode
             .borrow()
             .get_function_address(unique_id)
-            .expect(crate::generator::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS);
+            .expect(crate::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS);
 
         bytecode.borrow_mut().push_instruction(
             Instruction::Call(zinc_bytecode::Call::new(address, input_size)),
-            crate::lexical::Location::default(),
+            Some(location),
         );
     }
 
     fn call_debug(
-        stack: &mut Vec<Operand>,
         bytecode: Rc<RefCell<Bytecode>>,
         format: String,
         input_types: Vec<DataType>,
+        location: Location,
     ) {
-        let operand = stack.pop().unwrap();
-
-        stack.push(operand);
-
         bytecode.borrow_mut().push_instruction(
             Instruction::Dbg(zinc_bytecode::Dbg::new(format, input_types)),
-            crate::lexical::Location::default(),
+            Some(location),
         );
     }
 
-    fn call_assert(
-        stack: &mut Vec<Operand>,
-        bytecode: Rc<RefCell<Bytecode>>,
-        message: Option<String>,
-    ) {
-        let operand = stack.pop().unwrap();
-
-        stack.push(operand);
-
+    fn call_assert(bytecode: Rc<RefCell<Bytecode>>, message: Option<String>, location: Location) {
         bytecode.borrow_mut().push_instruction(
             Instruction::Assert(zinc_bytecode::Assert::new(message)),
-            crate::lexical::Location::default(),
+            Some(location),
         );
     }
 
     fn call_standard_library(
-        stack: &mut Vec<Operand>,
         bytecode: Rc<RefCell<Bytecode>>,
         identifier: BuiltinIdentifier,
         input_size: usize,
         output_size: usize,
+        location: Location,
     ) {
-        let operand = stack.pop().unwrap();
-
-        stack.push(operand);
-
         bytecode.borrow_mut().push_instruction(
             Instruction::CallBuiltin(zinc_bytecode::CallBuiltin::new(
                 identifier,
                 input_size,
                 output_size,
             )),
-            crate::lexical::Location::default(),
+            Some(location),
         );
     }
 }

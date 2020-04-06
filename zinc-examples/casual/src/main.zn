@@ -1,7 +1,3 @@
-fn main(witness: u8) -> u8 {
-    let local_1 = 3;
-    let local_2 = 5;
-    let local_3 = 2;
-
-    19 * 3 - 8 / local_1 + (witness / (local_2 - 3) + 5) * (8 / local_3 / 2)
+fn main() -> u8 {
+    42
 }

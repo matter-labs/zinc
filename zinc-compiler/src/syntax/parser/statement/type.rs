@@ -6,11 +6,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Keyword;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::r#type::Parser as TypeParser;
 use crate::syntax::tree::identifier::Identifier;
@@ -45,6 +45,11 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a 'type' statement.
+    ///
+    /// 'type ArrayIndex = u64;'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -77,7 +82,7 @@ impl Parser {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
                         } => {
-                            let identifier = Identifier::new(location, identifier.name);
+                            let identifier = Identifier::new(location, identifier.inner);
                             self.builder.set_identifier(identifier);
                             self.state = State::Equals;
                         }
@@ -134,10 +139,10 @@ mod tests {
 
     use super::Parser;
     use crate::error::Error;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::symbol::Symbol;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
     use crate::syntax::error::Error as SyntaxError;
     use crate::syntax::tree::identifier::Identifier;
     use crate::syntax::tree::r#type::variant::Variant as TypeVariant;

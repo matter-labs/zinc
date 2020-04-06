@@ -7,12 +7,56 @@
 use num_bigint::BigInt;
 
 use crate::error::Error;
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::place::error::Error as PlaceError;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::Error as SemanticError;
+use crate::semantic::error::Error as SemanticError;
+
+#[test]
+fn error_mutating_immutable_memory() {
+    let input = r#"
+fn main() {
+    let result = 42;
+    result = 69;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(4, 12),
+        ElementError::Place(PlaceError::MutatingImmutableMemory {
+            name: "result".to_string(),
+            reference: Some(Location::new(3, 9)),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_mutating_with_different_type() {
+    let input = r#"
+fn main() {
+    let mut result = 42;
+    result = false;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(4, 12),
+        ElementError::Place(PlaceError::MutatingWithDifferentType {
+            expected: Type::boolean().to_string(),
+            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
 
 #[test]
 fn error_operator_index_1st_operand_expected_array() {

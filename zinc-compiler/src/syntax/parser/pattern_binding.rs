@@ -6,11 +6,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Keyword;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::r#type::Parser as TypeParser;
 use crate::syntax::tree::identifier::Identifier;
@@ -42,6 +42,11 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a binding pattern.
+    ///
+    /// 'mut a: u8'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -73,7 +78,7 @@ impl Parser {
                             location,
                         } => {
                             self.builder
-                                .set_binding(Identifier::new(location, identifier.name));
+                                .set_binding(Identifier::new(location, identifier.inner));
                             self.state = State::Colon;
                         }
                         Token {
@@ -122,10 +127,10 @@ mod tests {
 
     use super::Parser;
     use crate::error::Error;
-    use crate::lexical::Keyword;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::keyword::Keyword;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
     use crate::syntax::error::Error as SyntaxError;
     use crate::syntax::tree::identifier::Identifier;
     use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;

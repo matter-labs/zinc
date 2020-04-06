@@ -12,6 +12,7 @@ fn
 use
 mod
 impl
+contract
 ```
 
 #### Controls
@@ -27,8 +28,8 @@ match
 #### Types
 ```rust,no_run,noplaypen
 bool
-u8 ... u248
-i8 ... i248
+u8 u16 ... u240 u248
+i8 i16 ... i240 i248
 field
 ```
 
@@ -46,6 +47,7 @@ as
 #### Special
 ```rust,no_run,noplaypen
 Self
+self
 ```
 
 ## Reserved

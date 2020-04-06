@@ -6,10 +6,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::parser::expression::bitwise_xor::Parser as BitwiseXorOperandParser;
 use crate::syntax::tree::expression::tree::builder::Builder as ExpressionTreeBuilder;
 use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
@@ -35,6 +35,12 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a bitwise OR expression operand, which is
+    /// a lower precedence bitwise XOR operator expression.
+    ///
+    /// '0b00001111 ^ 0b11110000'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -73,11 +79,11 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Token;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
+    use crate::lexical::token::Token;
     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
     use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
     use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
@@ -89,7 +95,7 @@ mod tests {
         let input = r#"42 ^ 228"#;
 
         let expected = Ok((
-            ExpressionTree::new(
+            ExpressionTree::new_with_leaves(
                 Location::new(1, 4),
                 ExpressionTreeNode::operator(ExpressionOperator::BitwiseXor),
                 Some(ExpressionTree::new(
@@ -97,22 +103,18 @@ mod tests {
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                         IntegerLiteral::new(
                             Location::new(1, 1),
-                            lexical::IntegerLiteral::new_decimal("42".to_owned()),
+                            LexicalIntegerLiteral::new_decimal("42".to_owned()),
                         ),
                     )),
-                    None,
-                    None,
                 )),
                 Some(ExpressionTree::new(
                     Location::new(1, 6),
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                         IntegerLiteral::new(
                             Location::new(1, 6),
-                            lexical::IntegerLiteral::new_decimal("228".to_owned()),
+                            LexicalIntegerLiteral::new_decimal("228".to_owned()),
                         ),
                     )),
-                    None,
-                    None,
                 )),
             ),
             Some(Token::new(Lexeme::Eof, Location::new(1, 9))),

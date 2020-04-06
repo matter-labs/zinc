@@ -2,7 +2,7 @@
 //! The conditional expression builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::expression::block::Expression as BlockExpression;
 use crate::syntax::tree::expression::conditional::Expression as ConditionalExpression;
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;

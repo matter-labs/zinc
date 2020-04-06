@@ -6,11 +6,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Keyword;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::expression::terminal::block::Parser as BlockExpressionParser;
 use crate::syntax::parser::expression::Parser as ExpressionParser;
@@ -44,6 +44,17 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a conditional expression.
+    ///
+    /// '
+    /// if a > b {
+    ///     a
+    /// } else {
+    ///     b
+    /// }
+    /// '
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -113,8 +124,6 @@ impl Parser {
                                     ExpressionTreeNode::operand(ExpressionOperand::Conditional(
                                         expression,
                                     )),
-                                    None,
-                                    None,
                                 )),
                             );
                             self.builder.set_else_block(block);
@@ -149,11 +158,12 @@ mod tests {
 
     use super::Error;
     use super::Parser;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::literal::boolean::Boolean as LexicalBooleanLiteral;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::symbol::Symbol;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
     use crate::syntax::error::Error as SyntaxError;
     use crate::syntax::tree::expression::block::Expression as BlockExpression;
     use crate::syntax::tree::expression::conditional::Expression as ConditionalExpression;
@@ -173,10 +183,8 @@ mod tests {
                 ExpressionTree::new(
                     Location::new(1, 4),
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
-                        BooleanLiteral::new(Location::new(1, 4), lexical::BooleanLiteral::r#true()),
+                        BooleanLiteral::new(Location::new(1, 4), LexicalBooleanLiteral::r#true()),
                     )),
-                    None,
-                    None,
                 ),
                 BlockExpression::new(
                     Location::new(1, 9),
@@ -186,11 +194,9 @@ mod tests {
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
                                 Location::new(1, 11),
-                                lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                                LexicalIntegerLiteral::new_decimal("1".to_owned()),
                             ),
                         )),
-                        None,
-                        None,
                     )),
                 ),
                 Some(BlockExpression::new(
@@ -206,11 +212,9 @@ mod tests {
                                     ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
                                         BooleanLiteral::new(
                                             Location::new(1, 23),
-                                            lexical::BooleanLiteral::r#false(),
+                                            LexicalBooleanLiteral::r#false(),
                                         ),
                                     )),
-                                    None,
-                                    None,
                                 ),
                                 BlockExpression::new(
                                     Location::new(1, 29),
@@ -220,13 +224,9 @@ mod tests {
                                         ExpressionTreeNode::operand(
                                             ExpressionOperand::LiteralInteger(IntegerLiteral::new(
                                                 Location::new(1, 31),
-                                                lexical::IntegerLiteral::new_decimal(
-                                                    "2".to_owned(),
-                                                ),
+                                                LexicalIntegerLiteral::new_decimal("2".to_owned()),
                                             )),
                                         ),
-                                        None,
-                                        None,
                                     )),
                                 ),
                                 Some(BlockExpression::new(
@@ -237,19 +237,13 @@ mod tests {
                                         ExpressionTreeNode::operand(
                                             ExpressionOperand::LiteralInteger(IntegerLiteral::new(
                                                 Location::new(1, 42),
-                                                lexical::IntegerLiteral::new_decimal(
-                                                    "3".to_owned(),
-                                                ),
+                                                LexicalIntegerLiteral::new_decimal("3".to_owned()),
                                             )),
                                         ),
-                                        None,
-                                        None,
                                     )),
                                 )),
                             ),
                         )),
-                        None,
-                        None,
                     )),
                 )),
             ),

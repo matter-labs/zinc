@@ -2,7 +2,7 @@
 //! The type statement builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::r#type::Type;
 use crate::syntax::tree::statement::r#type::Statement as TypeStatement;

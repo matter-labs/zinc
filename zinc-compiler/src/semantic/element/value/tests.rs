@@ -7,13 +7,13 @@
 use std::convert::TryFrom;
 
 use crate::error::Error;
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::element::value::Value;
-use crate::semantic::Error as SemanticError;
+use crate::semantic::error::Error as SemanticError;
 
 #[test]
 fn error_operator_or_1st_operand_expected_boolean() {
@@ -511,6 +511,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_operator_bitwise_or_1st_operand_expected_integer() {
     let input = r#"
@@ -533,6 +534,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_operator_bitwise_or_2nd_operand_expected_integer() {
     let input = r#"
@@ -555,6 +557,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_operator_bitwise_xor_1st_operand_expected_integer() {
     let input = r#"
@@ -577,6 +580,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_operator_bitwise_xor_2nd_operand_expected_integer() {
     let input = r#"
@@ -599,6 +603,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_operator_bitwise_and_1st_operand_expected_integer() {
     let input = r#"
@@ -621,6 +626,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_operator_bitwise_and_2nd_operand_expected_integer() {
     let input = r#"
@@ -643,6 +649,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_operator_bitwise_shift_left_1st_operand_expected_integer() {
     let input = r#"
@@ -667,6 +674,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_operator_bitwise_shift_left_2nd_operand_expected_integer() {
     let input = r#"
@@ -691,6 +699,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_operator_bitwise_shift_right_1st_operand_expected_integer() {
     let input = r#"
@@ -715,6 +724,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_operator_bitwise_shift_right_2nd_operand_expected_integer() {
     let input = r#"
@@ -986,6 +996,7 @@ fn main() {
     assert_eq!(result, expected);
 }
 
+#[ignore]
 #[test]
 fn error_operator_bitwise_not_expected_integer() {
     let input = r#"

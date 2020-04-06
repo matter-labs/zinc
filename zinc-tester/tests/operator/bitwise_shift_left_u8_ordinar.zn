@@ -1,0 +1,11 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "a": "42"
+//#     },
+//#     "expect": "168"
+//# } ], "ignore": true }
+
+fn main(a: u8) -> u8 {
+    42 << 2
+}

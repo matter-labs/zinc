@@ -6,7 +6,7 @@ pub struct BitNot;
 
 impl InstructionInfo for BitNot {
     fn to_assembly(&self) -> String {
-        "bit_shift_left".into()
+        "bit_not".into()
     }
 
     fn wrap(&self) -> Instruction {

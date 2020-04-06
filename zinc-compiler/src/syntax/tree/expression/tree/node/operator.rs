@@ -6,16 +6,16 @@
 pub enum Operator {
     // assignment
     Assignment,
-    AssignmentAddition,
-    AssignmentSubtraction,
-    AssignmentMultiplication,
-    AssignmentDivision,
-    AssignmentRemainder,
     AssignmentBitwiseOr,
     AssignmentBitwiseXor,
     AssignmentBitwiseAnd,
     AssignmentBitwiseShiftLeft,
     AssignmentBitwiseShiftRight,
+    AssignmentAddition,
+    AssignmentSubtraction,
+    AssignmentMultiplication,
+    AssignmentDivision,
+    AssignmentRemainder,
 
     // range
     Range,

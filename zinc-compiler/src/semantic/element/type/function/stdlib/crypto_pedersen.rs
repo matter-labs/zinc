@@ -58,7 +58,7 @@ impl Function {
         match actual_params.get(Self::ARGUMENT_INDEX_PREIMAGE) {
             Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
                 (Type::Boolean, size)
-                    if 0 < size && size <= crate::PEDERSEN_HASH_INPUT_LIMIT_BITS => {}
+                    if 0 < size && size <= crate::LIMIT_PEDERSEN_HASH_INPUT_BITS => {}
                 (r#type, size) => {
                     return Err(Error::argument_type(
                         self.identifier.to_owned(),
@@ -66,7 +66,7 @@ impl Function {
                         Self::ARGUMENT_INDEX_PREIMAGE + 1,
                         format!(
                             "[bool; N], 0 < N <= {}",
-                            crate::PEDERSEN_HASH_INPUT_LIMIT_BITS
+                            crate::LIMIT_PEDERSEN_HASH_INPUT_BITS
                         ),
                         format!("[{}; {}]", r#type, size),
                     ))
@@ -79,7 +79,7 @@ impl Function {
                     Self::ARGUMENT_INDEX_PREIMAGE + 1,
                     format!(
                         "[bool; N], 0 < N <= {}",
-                        crate::PEDERSEN_HASH_INPUT_LIMIT_BITS
+                        crate::LIMIT_PEDERSEN_HASH_INPUT_BITS
                     ),
                     r#type.to_string(),
                 ))

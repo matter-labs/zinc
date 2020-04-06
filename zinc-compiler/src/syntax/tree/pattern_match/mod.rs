@@ -5,7 +5,7 @@
 pub mod builder;
 pub mod variant;
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 
 use self::variant::Variant;
 

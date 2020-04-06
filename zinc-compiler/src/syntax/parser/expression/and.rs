@@ -6,10 +6,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::parser::expression::comparison::Parser as ComparisonOperandParser;
 use crate::syntax::tree::expression::tree::builder::Builder as ExpressionTreeBuilder;
 use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
@@ -36,6 +36,12 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a logical AND expression operand, which is
+    /// a lower precedence comparison operator expression.
+    ///
+    /// 'true == false'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -120,46 +126,210 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Token;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::literal::boolean::Boolean as LexicalBooleanLiteral;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
+    use crate::lexical::token::Token;
     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
     use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
     use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
     use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
     use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+    use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 
     #[test]
-    fn ok() {
+    fn ok_equals() {
         let input = r#"true == false"#;
 
         let expected = Ok((
-            ExpressionTree::new(
+            ExpressionTree::new_with_leaves(
                 Location::new(1, 6),
                 ExpressionTreeNode::operator(ExpressionOperator::Equals),
                 Some(ExpressionTree::new(
                     Location::new(1, 1),
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
-                        BooleanLiteral::new(Location::new(1, 1), lexical::BooleanLiteral::r#true()),
+                        BooleanLiteral::new(Location::new(1, 1), LexicalBooleanLiteral::r#true()),
                     )),
-                    None,
-                    None,
                 )),
                 Some(ExpressionTree::new(
                     Location::new(1, 9),
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
-                        BooleanLiteral::new(
-                            Location::new(1, 9),
-                            lexical::BooleanLiteral::r#false(),
-                        ),
+                        BooleanLiteral::new(Location::new(1, 9), LexicalBooleanLiteral::r#false()),
                     )),
-                    None,
-                    None,
                 )),
             ),
             Some(Token::new(Lexeme::Eof, Location::new(1, 14))),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_not_equals() {
+        let input = r#"true != false"#;
+
+        let expected = Ok((
+            ExpressionTree::new_with_leaves(
+                Location::new(1, 6),
+                ExpressionTreeNode::operator(ExpressionOperator::NotEquals),
+                Some(ExpressionTree::new(
+                    Location::new(1, 1),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
+                        BooleanLiteral::new(Location::new(1, 1), LexicalBooleanLiteral::r#true()),
+                    )),
+                )),
+                Some(ExpressionTree::new(
+                    Location::new(1, 9),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
+                        BooleanLiteral::new(Location::new(1, 9), LexicalBooleanLiteral::r#false()),
+                    )),
+                )),
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 14))),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_greater_equals() {
+        let input = r#"42 >= 25"#;
+
+        let expected = Ok((
+            ExpressionTree::new_with_leaves(
+                Location::new(1, 4),
+                ExpressionTreeNode::operator(ExpressionOperator::GreaterEquals),
+                Some(ExpressionTree::new(
+                    Location::new(1, 1),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 1),
+                            LexicalIntegerLiteral::new_decimal("42".to_owned()),
+                        ),
+                    )),
+                )),
+                Some(ExpressionTree::new(
+                    Location::new(1, 7),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 7),
+                            LexicalIntegerLiteral::new_decimal("25".to_owned()),
+                        ),
+                    )),
+                )),
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 9))),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_lesser_equals() {
+        let input = r#"42 <= 25"#;
+
+        let expected = Ok((
+            ExpressionTree::new_with_leaves(
+                Location::new(1, 4),
+                ExpressionTreeNode::operator(ExpressionOperator::LesserEquals),
+                Some(ExpressionTree::new(
+                    Location::new(1, 1),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 1),
+                            LexicalIntegerLiteral::new_decimal("42".to_owned()),
+                        ),
+                    )),
+                )),
+                Some(ExpressionTree::new(
+                    Location::new(1, 7),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 7),
+                            LexicalIntegerLiteral::new_decimal("25".to_owned()),
+                        ),
+                    )),
+                )),
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 9))),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_greater() {
+        let input = r#"42 > 25"#;
+
+        let expected = Ok((
+            ExpressionTree::new_with_leaves(
+                Location::new(1, 4),
+                ExpressionTreeNode::operator(ExpressionOperator::Greater),
+                Some(ExpressionTree::new(
+                    Location::new(1, 1),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 1),
+                            LexicalIntegerLiteral::new_decimal("42".to_owned()),
+                        ),
+                    )),
+                )),
+                Some(ExpressionTree::new(
+                    Location::new(1, 6),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 6),
+                            LexicalIntegerLiteral::new_decimal("25".to_owned()),
+                        ),
+                    )),
+                )),
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 8))),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_lesser() {
+        let input = r#"42 < 25"#;
+
+        let expected = Ok((
+            ExpressionTree::new_with_leaves(
+                Location::new(1, 4),
+                ExpressionTreeNode::operator(ExpressionOperator::Lesser),
+                Some(ExpressionTree::new(
+                    Location::new(1, 1),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 1),
+                            LexicalIntegerLiteral::new_decimal("42".to_owned()),
+                        ),
+                    )),
+                )),
+                Some(ExpressionTree::new(
+                    Location::new(1, 6),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 6),
+                            LexicalIntegerLiteral::new_decimal("25".to_owned()),
+                        ),
+                    )),
+                )),
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 8))),
         ));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);

@@ -2,7 +2,7 @@
 //! The binding pattern builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;
 use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;

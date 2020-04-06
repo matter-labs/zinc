@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "min",
 //#     "input": {
 //#         "value": "0"
@@ -74,7 +74,7 @@
 //#         true, true, true, true, true, true, true, true,
 //#         true, true, true, true, true, true, true, true
 //#     ]
-//# } ]
+//# } ] }
 
 fn main(value: u248) -> [bool; 248] {
     std::convert::to_bits(value)

@@ -2,7 +2,7 @@
 //! The identifier builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::identifier::Identifier;
 
 #[derive(Default)]

@@ -6,10 +6,14 @@ use zinc_bytecode::data::types::DataType;
 use zinc_bytecode::scalar::IntegerType;
 use zinc_bytecode::scalar::ScalarType;
 
-use crate::semantic::Type as SemanticType;
+use crate::semantic::element::r#type::Type as SemanticType;
 
+///
+/// The generator type, which contains only runtime values used by VM.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
+    Unit,
     Boolean,
     IntegerUnsigned { bitlength: usize },
     IntegerSigned { bitlength: usize },
@@ -20,6 +24,10 @@ pub enum Type {
 }
 
 impl Type {
+    pub fn unit() -> Self {
+        Self::Unit
+    }
+
     pub fn boolean() -> Self {
         Self::Boolean
     }
@@ -61,6 +69,7 @@ impl Type {
 
     pub fn size(&self) -> usize {
         match self {
+            Self::Unit => 0,
             Self::Boolean => 1,
             Self::IntegerUnsigned { .. } => 1,
             Self::IntegerSigned { .. } => 1,
@@ -73,6 +82,7 @@ impl Type {
 
     pub fn try_from_semantic(r#type: &SemanticType) -> Option<Self> {
         match r#type {
+            SemanticType::Unit => Some(Self::unit()),
             SemanticType::Boolean => Some(Self::boolean()),
             SemanticType::IntegerUnsigned { bitlength } => Some(Self::integer_unsigned(*bitlength)),
             SemanticType::IntegerSigned { bitlength } => Some(Self::integer_signed(*bitlength)),
@@ -103,6 +113,9 @@ impl Type {
                     _ => None,
                 }
             }
+            SemanticType::Enumeration(enumeration) => {
+                Some(Self::integer_unsigned(enumeration.bitlength))
+            }
             _ => None,
         }
     }
@@ -111,6 +124,7 @@ impl Type {
 impl Into<DataType> for Type {
     fn into(self) -> DataType {
         match self {
+            Self::Unit => DataType::Unit,
             Self::Boolean => DataType::Scalar(ScalarType::Boolean),
             Self::IntegerUnsigned { bitlength } => {
                 DataType::Scalar(ScalarType::Integer(IntegerType {

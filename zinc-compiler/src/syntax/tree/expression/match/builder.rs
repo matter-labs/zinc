@@ -2,7 +2,7 @@
 //! The match expression builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::expression::r#match::Expression as MatchExpression;
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::pattern_match::Pattern as MatchPattern;

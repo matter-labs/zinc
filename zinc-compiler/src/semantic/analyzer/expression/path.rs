@@ -16,24 +16,27 @@ use crate::semantic::element::place::Place;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::Variant as ScopeItemVariant;
+use crate::semantic::scope::item::variant::Variant as ScopeItemVariant;
 use crate::semantic::scope::Scope;
-use crate::syntax::MemberString;
+use crate::syntax::tree::identifier::Identifier;
 
 pub struct Translator {}
 
 impl Translator {
+    ///
+    /// Translates the path expression to a semantic expression type specified in `hint`.
+    ///
     pub fn translate(
         scope: Rc<RefCell<Scope>>,
-        path: &Path,
-        translation_hint: TranslationHint,
+        path: Path,
+        hint: TranslationHint,
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
         let location = path.location;
 
         let path_last_element_name = path.last().to_owned().name;
 
-        match translation_hint {
-            TranslationHint::PlaceExpression => match Scope::resolve_path(scope, path)?.variant {
+        match hint {
+            TranslationHint::Place => match Scope::resolve_path(scope, &path)?.variant {
                 ScopeItemVariant::Variable(variable) => Ok((
                     Element::Place(Place::new(
                         location,
@@ -47,7 +50,7 @@ impl Translator {
                 ScopeItemVariant::Type(r#type) => Ok((Element::Type(r#type), None)),
                 ScopeItemVariant::Module(_) => Ok((Element::Module(path_last_element_name), None)),
             },
-            TranslationHint::ValueExpression => match Scope::resolve_path(scope, path)?.variant {
+            TranslationHint::Value => match Scope::resolve_path(scope, &path)?.variant {
                 ScopeItemVariant::Variable(variable) => {
                     let value = Value::try_from(&variable.r#type)
                         .map_err(ElementError::Value)
@@ -61,6 +64,7 @@ impl Translator {
                                 r#type,
                                 variable.is_mutable,
                             )
+                            .into()
                         })
                         .map(GeneratorExpressionOperand::Place);
                     let element = Element::Value(value);
@@ -76,13 +80,13 @@ impl Translator {
                 ScopeItemVariant::Module(_) => Ok((Element::Module(path_last_element_name), None)),
             },
 
-            TranslationHint::TypeExpression => match Scope::resolve_path(scope, path)?.variant {
+            TranslationHint::Type => match Scope::resolve_path(scope, &path)?.variant {
                 ScopeItemVariant::Type(r#type) => Ok((Element::Type(r#type), None)),
-                _ => Ok((Element::Path(path.to_owned()), None)),
+                _ => Ok((Element::Path(path), None)),
             },
-            TranslationHint::PathExpression => Ok((Element::Path(path.to_owned()), None)),
-            TranslationHint::CompoundTypeMember => Ok((
-                Element::MemberString(MemberString::new(location, path_last_element_name)),
+            TranslationHint::Path => Ok((Element::Path(path), None)),
+            TranslationHint::Field => Ok((
+                Element::Identifier(Identifier::new(location, path_last_element_name)),
                 None,
             )),
         }

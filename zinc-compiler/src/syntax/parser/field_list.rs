@@ -6,10 +6,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::parser::field::Parser as FieldParser;
 use crate::syntax::tree::field::Field;
 
@@ -20,6 +20,11 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a structure field list.
+    ///
+    /// 'a: u8, b: field, c: (bool, u8)'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -58,10 +63,10 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Token;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
+    use crate::lexical::token::Token;
     use crate::syntax::tree::field::Field;
     use crate::syntax::tree::identifier::Identifier;
     use crate::syntax::tree::r#type::variant::Variant as TypeVariant;

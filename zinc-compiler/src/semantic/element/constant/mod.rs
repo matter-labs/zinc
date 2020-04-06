@@ -11,15 +11,18 @@ pub mod range_inclusive;
 
 use std::fmt;
 
-use crate::semantic::caster::Caster;
+use crate::semantic::casting::Caster;
 use crate::semantic::element::r#type::Type;
-use crate::syntax::BooleanLiteral;
+use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
 
 use self::error::Error;
 use self::integer::Integer;
 use self::range::Range;
 use self::range_inclusive::RangeInclusive;
 
+///
+/// Constants are parts of a constant expression.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Constant {
     Unit,

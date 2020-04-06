@@ -6,11 +6,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Keyword;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::expression::path::Parser as PathOperandParser;
 use crate::syntax::tree::statement::r#use::builder::Builder as UseStatementBuilder;
@@ -22,6 +22,11 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a 'use' statement.
+    ///
+    /// 'use jabberwocky::existence;'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -69,9 +74,9 @@ mod tests {
 
     use super::Parser;
     use crate::error::Error;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
     use crate::syntax::error::Error as SyntaxError;
     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
     use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
@@ -87,10 +92,10 @@ mod tests {
         let expected = Ok((
             UseStatement::new(
                 Location::new(1, 1),
-                ExpressionTree::new(
+                ExpressionTree::new_with_leaves(
                     Location::new(1, 16),
                     ExpressionTreeNode::operator(ExpressionOperator::Path),
-                    Some(ExpressionTree::new(
+                    Some(ExpressionTree::new_with_leaves(
                         Location::new(1, 9),
                         ExpressionTreeNode::operator(ExpressionOperator::Path),
                         Some(ExpressionTree::new(
@@ -98,16 +103,12 @@ mod tests {
                             ExpressionTreeNode::operand(ExpressionOperand::Identifier(
                                 Identifier::new(Location::new(1, 5), "mega".to_owned()),
                             )),
-                            None,
-                            None,
                         )),
                         Some(ExpressionTree::new(
                             Location::new(1, 11),
                             ExpressionTreeNode::operand(ExpressionOperand::Identifier(
                                 Identifier::new(Location::new(1, 11), "ultra".to_owned()),
                             )),
-                            None,
-                            None,
                         )),
                     )),
                     Some(ExpressionTree::new(
@@ -115,8 +116,6 @@ mod tests {
                         ExpressionTreeNode::operand(ExpressionOperand::Identifier(
                             Identifier::new(Location::new(1, 18), "namespace".to_owned()),
                         )),
-                        None,
-                        None,
                     )),
                 ),
             ),

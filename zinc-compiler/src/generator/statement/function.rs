@@ -7,13 +7,18 @@ use std::rc::Rc;
 
 use zinc_bytecode::Instruction;
 
-use crate::bytecode::Bytecode;
+use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::operand::block::Expression;
 use crate::generator::r#type::Type;
-use crate::semantic::Type as SemanticType;
+use crate::lexical::token::location::Location;
+use crate::semantic::element::r#type::Type as SemanticType;
 
+///
+/// The Zinc VM function statement.
+///
 #[derive(Debug, Clone)]
 pub struct Statement {
+    pub location: Location,
     pub identifier: String,
     pub input_arguments: Vec<(String, Type)>,
     pub body: Expression,
@@ -24,6 +29,7 @@ pub struct Statement {
 
 impl Statement {
     pub fn new(
+        location: Location,
         identifier: String,
         input_arguments: Vec<(String, SemanticType)>,
         body: Expression,
@@ -42,6 +48,7 @@ impl Statement {
         let output_type = Type::try_from_semantic(&output_type);
 
         Self {
+            location,
             identifier,
             input_arguments,
             body,
@@ -78,16 +85,9 @@ impl Statement {
 
         self.body.write_all_to_bytecode(bytecode.clone());
 
-        if self.is_main {
-            bytecode.borrow_mut().push_instruction(
-                Instruction::Exit(zinc_bytecode::Exit::new(output_size)),
-                crate::lexical::Location::default(),
-            );
-        } else {
-            bytecode.borrow_mut().push_instruction(
-                Instruction::Return(zinc_bytecode::Return::new(output_size)),
-                crate::lexical::Location::default(),
-            );
-        }
+        bytecode.borrow_mut().push_instruction(
+            Instruction::Return(zinc_bytecode::Return::new(output_size)),
+            Some(self.location),
+        );
     }
 }

@@ -6,11 +6,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Keyword;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::expression::Parser as ExpressionParser;
 use crate::syntax::parser::pattern_match::Parser as MatchPatternParser;
@@ -42,6 +42,17 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a match expression.
+    ///
+    /// '
+    /// match value {
+    ///     1 => value * 5,
+    ///     2 => value * 10,
+    ///     another => another - 1,
+    /// }
+    /// '
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -161,11 +172,12 @@ mod tests {
 
     use super::Error;
     use super::Parser;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::literal::boolean::Boolean as LexicalBooleanLiteral;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::symbol::Symbol;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
     use crate::syntax::error::Error as SyntaxError;
     use crate::syntax::tree::expression::r#match::Expression as MatchExpression;
     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
@@ -192,8 +204,6 @@ mod tests {
                         Location::new(2, 11),
                         "test".to_owned(),
                     ))),
-                    None,
-                    None,
                 ),
                 vec![],
             ),
@@ -222,15 +232,13 @@ mod tests {
                         Location::new(2, 11),
                         "test".to_owned(),
                     ))),
-                    None,
-                    None,
                 ),
                 vec![(
                     MatchPattern::new(
                         Location::new(3, 9),
                         MatchPatternVariant::new_boolean_literal(BooleanLiteral::new(
                             Location::new(3, 9),
-                            lexical::BooleanLiteral::r#false(),
+                            LexicalBooleanLiteral::r#false(),
                         )),
                     ),
                     ExpressionTree::new(
@@ -238,11 +246,9 @@ mod tests {
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralBoolean(
                             BooleanLiteral::new(
                                 Location::new(3, 18),
-                                lexical::BooleanLiteral::r#true(),
+                                LexicalBooleanLiteral::r#true(),
                             ),
                         )),
-                        None,
-                        None,
                     ),
                 )],
             ),
@@ -272,8 +278,6 @@ mod tests {
                         Location::new(2, 11),
                         "test".to_owned(),
                     ))),
-                    None,
-                    None,
                 ),
                 vec![
                     (
@@ -281,7 +285,7 @@ mod tests {
                             Location::new(3, 9),
                             MatchPatternVariant::new_integer_literal(IntegerLiteral::new(
                                 Location::new(3, 9),
-                                lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                                LexicalIntegerLiteral::new_decimal("1".to_owned()),
                             )),
                         ),
                         ExpressionTree::new(
@@ -289,11 +293,9 @@ mod tests {
                             ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                                 IntegerLiteral::new(
                                     Location::new(3, 14),
-                                    lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                                    LexicalIntegerLiteral::new_decimal("1".to_owned()),
                                 ),
                             )),
-                            None,
-                            None,
                         ),
                     ),
                     (
@@ -301,7 +303,7 @@ mod tests {
                             Location::new(4, 9),
                             MatchPatternVariant::new_integer_literal(IntegerLiteral::new(
                                 Location::new(4, 9),
-                                lexical::IntegerLiteral::new_decimal("2".to_owned()),
+                                LexicalIntegerLiteral::new_decimal("2".to_owned()),
                             )),
                         ),
                         ExpressionTree::new(
@@ -309,11 +311,9 @@ mod tests {
                             ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                                 IntegerLiteral::new(
                                     Location::new(4, 14),
-                                    lexical::IntegerLiteral::new_decimal("2".to_owned()),
+                                    LexicalIntegerLiteral::new_decimal("2".to_owned()),
                                 ),
                             )),
-                            None,
-                            None,
                         ),
                     ),
                     (
@@ -323,11 +323,9 @@ mod tests {
                             ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                                 IntegerLiteral::new(
                                     Location::new(5, 14),
-                                    lexical::IntegerLiteral::new_decimal("3".to_owned()),
+                                    LexicalIntegerLiteral::new_decimal("3".to_owned()),
                                 ),
                             )),
-                            None,
-                            None,
                         ),
                     ),
                 ],

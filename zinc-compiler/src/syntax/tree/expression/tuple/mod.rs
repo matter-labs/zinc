@@ -4,7 +4,7 @@
 
 pub mod builder;
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
 #[derive(Debug, Clone, PartialEq)]

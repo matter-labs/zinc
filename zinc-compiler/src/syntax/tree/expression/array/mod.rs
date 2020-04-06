@@ -5,7 +5,7 @@
 pub mod builder;
 pub mod variant;
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
 use self::variant::Variant;

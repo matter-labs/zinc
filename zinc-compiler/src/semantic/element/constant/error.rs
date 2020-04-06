@@ -2,7 +2,7 @@
 //! The semantic analyzer constant element error.
 //!
 
-use crate::semantic::caster::error::Error as CasterError;
+use crate::semantic::casting::error::Error as CastingError;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 
 #[derive(Debug, PartialEq)]
@@ -80,5 +80,5 @@ pub enum Error {
     OperatorNegationExpectedInteger { found: String },
 
     Integer(IntegerConstantError),
-    Casting(CasterError),
+    Casting(CastingError),
 }

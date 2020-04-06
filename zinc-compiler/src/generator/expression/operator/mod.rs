@@ -4,23 +4,63 @@
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
+use crate::generator::expression::operand::place::Place;
+use crate::generator::expression::Expression;
 use crate::generator::r#type::Type;
-use crate::semantic::Type as SemanticType;
+use crate::semantic::element::access::Field as FieldAccess;
+use crate::semantic::element::access::Index as IndexAccess;
+use crate::semantic::element::r#type::Type as SemanticType;
 
+///
+/// The expression operator which is translated to some specific Zinc VM instructions.
+///
 #[derive(Debug, Clone)]
 pub enum Operator {
     // assignment
-    Assignment,
-    AssignmentBitwiseOr,
-    AssignmentBitwiseXor,
-    AssignmentBitwiseAnd,
-    AssignmentBitwiseShiftLeft,
-    AssignmentBitwiseShiftRight,
-    AssignmentAddition,
-    AssignmentSubtraction,
-    AssignmentMultiplication,
-    AssignmentDivision,
-    AssignmentRemainder,
+    Assignment {
+        place: Place,
+        expression: Expression,
+    },
+    AssignmentBitwiseOr {
+        place: Place,
+        expression: Expression,
+    },
+    AssignmentBitwiseXor {
+        place: Place,
+        expression: Expression,
+    },
+    AssignmentBitwiseAnd {
+        place: Place,
+        expression: Expression,
+    },
+    AssignmentBitwiseShiftLeft {
+        place: Place,
+        expression: Expression,
+    },
+    AssignmentBitwiseShiftRight {
+        place: Place,
+        expression: Expression,
+    },
+    AssignmentAddition {
+        place: Place,
+        expression: Expression,
+    },
+    AssignmentSubtraction {
+        place: Place,
+        expression: Expression,
+    },
+    AssignmentMultiplication {
+        place: Place,
+        expression: Expression,
+    },
+    AssignmentDivision {
+        place: Place,
+        expression: Expression,
+    },
+    AssignmentRemainder {
+        place: Place,
+        expression: Expression,
+    },
 
     // binary logical
     Or,
@@ -63,6 +103,17 @@ pub enum Operator {
     // unary arithmetic
     Negation,
 
+    // array index
+    Index {
+        expression: Expression,
+        access: IndexAccess,
+    },
+
+    // tuple or structure slice
+    Slice {
+        access: FieldAccess,
+    },
+
     // call
     Call {
         unique_id: usize,
@@ -85,6 +136,14 @@ pub enum Operator {
 impl Operator {
     pub fn casting(r#type: &SemanticType) -> Option<Self> {
         Type::try_from_semantic(r#type).map(|r#type| Self::Casting { r#type })
+    }
+
+    pub fn index(expression: Expression, access: IndexAccess) -> Self {
+        Self::Index { expression, access }
+    }
+
+    pub fn slice(access: FieldAccess) -> Self {
+        Self::Slice { access }
     }
 
     pub fn call(unique_id: usize, input_size: usize) -> Self {

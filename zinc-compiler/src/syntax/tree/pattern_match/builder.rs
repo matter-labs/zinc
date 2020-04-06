@@ -2,10 +2,11 @@
 //! The match pattern builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::expression::tree::builder::Builder as ExpressionTreeBuilder;
 use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
 use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
 use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
@@ -39,14 +40,14 @@ impl Builder {
         self.binding = Some(value);
     }
 
-    pub fn push_path_operand(&mut self, operand: ExpressionOperand, location: Location) {
-        self.move_binding_to_path();
-        self.path_builder.eat_operand(operand, location);
-    }
-
     pub fn push_path_operator(&mut self, operator: ExpressionOperator, location: Location) {
         self.move_binding_to_path();
         self.path_builder.eat_operator(operator, location);
+    }
+
+    pub fn push_path_element(&mut self, tree: ExpressionTree) {
+        self.move_binding_to_path();
+        self.path_builder.eat(tree);
     }
 
     pub fn set_is_wildcard(&mut self) {

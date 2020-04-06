@@ -2,8 +2,9 @@
 //! The tuple expression builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::expression::tuple::Expression as TupleExpression;
 
@@ -27,18 +28,39 @@ impl Builder {
         self.has_comma = true;
     }
 
-    pub fn finish(mut self) -> ExpressionOperand {
-        match (self.elements.len(), self.has_comma) {
-            (0, false) => ExpressionOperand::Unit,
-            (1, false) => {
-                ExpressionOperand::Parenthesized(self.elements.pop().map(Box::new).unwrap())
+    pub fn finish(mut self) -> ExpressionTree {
+        let location = self
+            .location
+            .take()
+            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
+
+        if self.elements.is_empty() {
+            ExpressionTree::new(
+                location,
+                ExpressionTreeNode::Operand(ExpressionOperand::Unit),
+            )
+        } else if self.elements.len() > 1 {
+            ExpressionTree::new(
+                location,
+                ExpressionTreeNode::Operand(ExpressionOperand::Tuple(TupleExpression::new(
+                    location,
+                    self.elements,
+                ))),
+            )
+        } else if let Some(element) = self.elements.pop() {
+            if self.has_comma {
+                ExpressionTree::new(
+                    location,
+                    ExpressionTreeNode::Operand(ExpressionOperand::Tuple(TupleExpression::new(
+                        location,
+                        vec![element],
+                    ))),
+                )
+            } else {
+                element
             }
-            (_size, _has_comma) => {
-                let location = self.location.take().unwrap_or_else(|| {
-                    panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")
-                });
-                ExpressionOperand::Tuple(TupleExpression::new(location, self.elements))
-            }
+        } else {
+            panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "element");
         }
     }
 }

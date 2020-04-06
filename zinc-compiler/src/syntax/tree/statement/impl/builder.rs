@@ -2,7 +2,7 @@
 //! The impl statement builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::local_impl::Statement as ImplementationLocalStatement;
 use crate::syntax::tree::statement::r#impl::Statement as ImplStatement;

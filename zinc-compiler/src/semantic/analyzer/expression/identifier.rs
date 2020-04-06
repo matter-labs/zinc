@@ -12,11 +12,16 @@ use crate::semantic::element::path::Path;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
-use crate::syntax::Identifier;
+use crate::syntax::tree::identifier::Identifier;
 
 pub struct Analyzer {}
 
 impl Analyzer {
+    ///
+    /// Analyzes the identifier.
+    ///
+    /// Returns the semantic element and the intermediate representation.
+    ///
     pub fn analyze(
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
@@ -24,8 +29,8 @@ impl Analyzer {
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
         let location = identifier.location;
 
-        let path = Path::new(location, identifier.into());
+        let path = Path::new(location, identifier);
 
-        PathTranslator::translate(scope, &path, translation_hint)
+        PathTranslator::translate(scope, path, translation_hint)
     }
 }

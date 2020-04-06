@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "zero_by_zero", "should_panic": true,
 //#     "input": {
 //#         "a": "0",
@@ -124,7 +124,7 @@
 //#         "b": "63"
 //#     },
 //#     "expect": "61"
-//# } ]
+//# } ] }
 
 fn main(a: i8, b: i8) -> i8 {
     a % b

@@ -1,0 +1,23 @@
+//# { "cases": [ {
+//#     "case": "ordinar", "ignore": true,
+//#     "input": {
+//#         "a": "42"
+//#     },
+//#     "expect": "-43"
+//# }, {
+//#     "case": "min_to_max", "ignore": true,
+//#     "input": {
+//#         "a": "0"
+//#     },
+//#     "expect": "255"
+//# }, {
+//#     "case": "max_to_min", "ignore": true,
+//#     "input": {
+//#         "a": "255"
+//#     },
+//#     "expect": "0"
+//# } ] }
+
+fn main(a: u8) -> u8 {
+    ~42
+}

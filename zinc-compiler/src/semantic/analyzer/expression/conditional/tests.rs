@@ -5,9 +5,9 @@
 #![cfg(test)]
 
 use crate::error::Error;
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::Error as SemanticError;
+use crate::semantic::error::Error as SemanticError;
 
 #[test]
 fn error_conditional_branch_types_mismatch() {

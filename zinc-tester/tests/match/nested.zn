@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "first",
 //#     "input": {
 //#         "witness": "1"
@@ -22,7 +22,7 @@
 //#         "witness": "0"
 //#     },
 //#     "expect": "42"
-//# } ]
+//# } ] }
 
 fn main(witness: u8) -> u8 {
     match witness {

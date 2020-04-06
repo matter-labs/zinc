@@ -6,10 +6,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Keyword;
-use crate::lexical::Lexeme;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::parser::expression::casting::Parser as CastingOperandParser;
 use crate::syntax::parser::r#type::Parser as TypeParser;
 use crate::syntax::tree::expression::tree::builder::Builder as ExpressionTreeBuilder;
@@ -38,6 +38,12 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a binary multiplication, division or remainder expression operand, which is
+    /// a lower precedence casting operator expression.
+    ///
+    /// '42 as field'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -84,11 +90,11 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Token;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
+    use crate::lexical::token::Token;
     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
     use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
     use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
@@ -102,7 +108,7 @@ mod tests {
         let input = r#"42 as field"#;
 
         let expected = Ok((
-            ExpressionTree::new(
+            ExpressionTree::new_with_leaves(
                 Location::new(1, 4),
                 ExpressionTreeNode::operator(ExpressionOperator::Casting),
                 Some(ExpressionTree::new(
@@ -110,11 +116,9 @@ mod tests {
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                         IntegerLiteral::new(
                             Location::new(1, 1),
-                            lexical::IntegerLiteral::new_decimal("42".to_owned()),
+                            LexicalIntegerLiteral::new_decimal("42".to_owned()),
                         ),
                     )),
-                    None,
-                    None,
                 )),
                 Some(ExpressionTree::new(
                     Location::new(1, 7),
@@ -122,8 +126,6 @@ mod tests {
                         Location::new(1, 7),
                         TypeVariant::field(),
                     ))),
-                    None,
-                    None,
                 )),
             ),
             Some(Token::new(Lexeme::Eof, Location::new(1, 12))),

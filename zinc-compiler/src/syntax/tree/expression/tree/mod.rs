@@ -5,10 +5,16 @@
 pub mod builder;
 pub mod node;
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 
 use self::node::Node;
 
+///
+/// The expression tree, where each node is either an operand or operator.
+///
+/// The highest operator precedence nodes are located deeper within a tree,
+/// whereas the lowest ones are located at the top.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Tree {
     pub location: Location,
@@ -18,7 +24,27 @@ pub struct Tree {
 }
 
 impl Tree {
-    pub fn new(location: Location, value: Node, left: Option<Self>, right: Option<Self>) -> Self {
+    ///
+    /// Initializes a tree with a single node at the top.
+    ///
+    pub fn new(location: Location, value: Node) -> Self {
+        Self {
+            location,
+            value: Box::new(value),
+            left: None,
+            right: None,
+        }
+    }
+
+    ///
+    /// Initializes a tree with left and right leaves.
+    ///
+    pub fn new_with_leaves(
+        location: Location,
+        value: Node,
+        left: Option<Self>,
+        right: Option<Self>,
+    ) -> Self {
         Self {
             location,
             value: Box::new(value),

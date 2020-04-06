@@ -6,9 +6,11 @@ use crate::generator::expression::operand::constant::Constant;
 use crate::generator::expression::operand::r#match::Expression as MatchExpression;
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::r#type::Type;
+use crate::lexical::token::location::Location;
 
 #[derive(Debug, Default, Clone)]
 pub struct Builder {
+    location: Option<Location>,
     scrutinee: Option<GeneratorExpression>,
     scrutinee_type: Option<Type>,
     branches: Vec<(Constant, GeneratorExpression)>,
@@ -17,6 +19,10 @@ pub struct Builder {
 }
 
 impl Builder {
+    pub fn set_location(&mut self, location: Location) {
+        self.location = Some(location);
+    }
+
     pub fn set_scrutinee(&mut self, value: GeneratorExpression, r#type: Type) {
         self.scrutinee = Some(value);
         self.scrutinee_type = Some(r#type);
@@ -35,6 +41,11 @@ impl Builder {
     }
 
     pub fn finish(mut self) -> MatchExpression {
+        let location = self
+            .location
+            .take()
+            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
+
         let scrutinee = self
             .scrutinee
             .take()
@@ -49,6 +60,7 @@ impl Builder {
 
         match self.binding_branch.take() {
             Some(binding_branch) => MatchExpression::new(
+                location,
                 scrutinee,
                 scrutinee_type,
                 self.branches,
@@ -64,6 +76,7 @@ impl Builder {
                     )
                 });
                 MatchExpression::new(
+                    location,
                     scrutinee,
                     scrutinee_type,
                     self.branches,

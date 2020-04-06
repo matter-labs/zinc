@@ -2,7 +2,7 @@
 //! The enum statement builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#enum::Statement as EnumStatement;
 use crate::syntax::tree::variant::Variant;

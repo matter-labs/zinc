@@ -17,11 +17,16 @@ use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
-use crate::syntax::ConditionalExpression;
+use crate::syntax::tree::expression::conditional::Expression as ConditionalExpression;
 
 pub struct Analyzer {}
 
 impl Analyzer {
+    ///
+    /// Analyzes the conditional expression.
+    ///
+    /// Returns the semantic element and the intermediate representation.
+    ///
     pub fn analyze(
         scope: Rc<RefCell<Scope>>,
         conditional: ConditionalExpression,
@@ -48,10 +53,12 @@ impl Analyzer {
 
         let mut builder = GeneratorConditionalExpressionBuilder::default();
 
+        builder.set_location(conditional.location);
+
         let mut scope_stack = ScopeStack::new(scope);
 
         let (condition_result, condition) = ExpressionAnalyzer::new(scope_stack.top())
-            .analyze(*conditional.condition, TranslationHint::ValueExpression)?;
+            .analyze(*conditional.condition, TranslationHint::Value)?;
         match Type::from_element(&condition_result, scope_stack.top())? {
             Type::Boolean => {}
             r#type => {

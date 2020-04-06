@@ -2,8 +2,8 @@
 //! The type builder.
 //!
 
-use crate::lexical::Keyword;
-use crate::lexical::Location;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
 use crate::syntax::tree::r#type::Type;

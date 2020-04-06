@@ -12,13 +12,18 @@ use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::syntax::BooleanLiteral;
-use crate::syntax::IntegerLiteral;
-use crate::syntax::StringLiteral;
+use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+use crate::syntax::tree::literal::string::Literal as StringLiteral;
 
 pub struct Analyzer {}
 
 impl Analyzer {
+    ///
+    /// Analyzes the boolean literal.
+    ///
+    /// Returns the semantic element and the intermediate representation if it is available.
+    ///
     pub fn boolean(
         literal: BooleanLiteral,
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
@@ -31,6 +36,11 @@ impl Analyzer {
         Ok((element, intermediate))
     }
 
+    ///
+    /// Analyzes the integer literal.
+    ///
+    /// Returns the semantic element and the intermediate representation if it is available.
+    ///
     pub fn integer(
         literal: IntegerLiteral,
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
@@ -52,7 +62,10 @@ impl Analyzer {
         Ok((element, intermediate))
     }
 
+    ///
+    /// Converts the syntax string literal to a semantic string literal.
+    ///
     pub fn string(literal: StringLiteral) -> Result<Element, Error> {
-        Ok(Element::Constant(Constant::String(literal.data.value)))
+        Ok(Element::Constant(Constant::String(literal.inner.inner)))
     }
 }

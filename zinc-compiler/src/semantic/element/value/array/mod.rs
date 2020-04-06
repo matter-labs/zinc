@@ -6,6 +6,7 @@ mod tests;
 
 pub mod error;
 
+use std::convert::TryFrom;
 use std::fmt;
 
 use num_bigint::BigInt;
@@ -13,11 +14,15 @@ use num_traits::One;
 use num_traits::Signed;
 use num_traits::ToPrimitive;
 
-use crate::semantic::element::access::AccessData;
+use crate::semantic::element::access::Index as IndexAccess;
 use crate::semantic::element::r#type::Type;
+use crate::semantic::element::value::Value;
 
 use self::error::Error;
 
+///
+/// Arrays are collections of elements of the same type.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Array {
     r#type: Type,
@@ -82,19 +87,16 @@ impl Array {
         Ok(())
     }
 
-    pub fn slice_single(self) -> (Self, AccessData) {
-        let access = AccessData::new(
-            0,
-            0,
-            self.r#type.size(),
-            self.r#type().size(),
-            self.r#type.to_owned(),
-        );
+    pub fn slice_single(self) -> (Value, IndexAccess) {
+        let access = IndexAccess::new(self.r#type.size(), self.r#type().size());
 
-        (self, access)
+        (
+            Value::try_from(&self.r#type).expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+            access,
+        )
     }
 
-    pub fn slice_range(self, start: BigInt, end: BigInt) -> Result<(Self, AccessData), Error> {
+    pub fn slice_range(self, start: BigInt, end: BigInt) -> Result<(Value, IndexAccess), Error> {
         if start.is_negative() {
             return Err(Error::SliceStartOutOfRange {
                 start: start.to_string(),
@@ -129,22 +131,16 @@ impl Array {
                     end: end.to_string(),
                 })?;
 
-        let access = AccessData::new(
-            start,
-            self.r#type.size() * start,
-            self.r#type.size() * length,
-            self.r#type().size(),
-            Type::array(self.r#type.to_owned(), length),
-        );
+        let access = IndexAccess::new(self.r#type.size() * length, self.r#type().size());
 
-        Ok((self, access))
+        Ok((Value::Array(Self::new(self.r#type, length)), access))
     }
 
     pub fn slice_range_inclusive(
         self,
         start: BigInt,
         end: BigInt,
-    ) -> Result<(Self, AccessData), Error> {
+    ) -> Result<(Value, IndexAccess), Error> {
         if start.is_negative() {
             return Err(Error::SliceStartOutOfRange {
                 start: start.to_string(),
@@ -178,15 +174,9 @@ impl Array {
                 end: end.to_string(),
             })?;
 
-        let access = AccessData::new(
-            start,
-            self.r#type.size() * start,
-            self.r#type.size() * length,
-            self.r#type().size(),
-            Type::array(self.r#type.to_owned(), length),
-        );
+        let access = IndexAccess::new(self.r#type.size() * length, self.r#type().size());
 
-        Ok((self, access))
+        Ok((Value::Array(Self::new(self.r#type, length)), access))
     }
 }
 

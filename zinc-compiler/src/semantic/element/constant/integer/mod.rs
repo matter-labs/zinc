@@ -17,15 +17,20 @@ use num_traits::ToPrimitive;
 
 use zinc_utils::euclidean;
 
-use crate::lexical;
+use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
 use crate::semantic::element::constant::range::Range;
 use crate::semantic::element::constant::range_inclusive::RangeInclusive;
 use crate::semantic::element::r#type::enumeration::Enumeration;
 use crate::semantic::element::r#type::Type;
-use crate::syntax::IntegerLiteral;
+use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 
 use self::error::Error;
 
+///
+/// Integer constants consist of the value, sign, and bitlength.
+/// If a constant belongs to an enumeration, the enumeration type is stored in `enumeration`.
+/// Enumeration uniquely defines the constant type, even if the sign and bitlength are the same.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Integer {
     pub value: BigInt,
@@ -511,30 +516,42 @@ impl Integer {
         })
     }
 
+    ///
+    /// Calculates the minimal bitlength required to represent each element of `literals`.
+    ///
     pub fn minimal_bitlength_literals(literals: &[&IntegerLiteral]) -> Result<usize, Error> {
-        let mut max = 0;
+        let mut result = crate::BITLENGTH_BYTE;
+
         for literal in literals.iter() {
             let bitlength = Self::try_from(*literal)?.bitlength;
-            if bitlength > max {
-                max = bitlength;
+            if bitlength > result {
+                result = bitlength;
             }
         }
-        Ok(max)
-    }
 
-    pub fn minimal_bitlength_bigints(values: &[&BigInt], is_signed: bool) -> Result<usize, Error> {
-        let mut max = 0;
-        for value in values.iter() {
-            let bitlength = Self::minimal_bitlength(value, is_signed)?;
-            if bitlength > max {
-                max = bitlength;
-            }
-        }
-        Ok(max)
+        Ok(result)
     }
 
     ///
-    /// Infers the minimal bitlength enough to represent the value.
+    /// Calculates the minimal bitlength required to represent each element of `values`
+    /// with sign specified as `is_signed`.
+    ///
+    pub fn minimal_bitlength_bigints(values: &[&BigInt], is_signed: bool) -> Result<usize, Error> {
+        let mut result = crate::BITLENGTH_BYTE;
+
+        for value in values.iter() {
+            let bitlength = Self::minimal_bitlength(value, is_signed)?;
+            if bitlength > result {
+                result = bitlength;
+            }
+        }
+
+        Ok(result)
+    }
+
+    ///
+    /// Infers the minimal bitlength enough to represent the `value` with sign specified
+    /// as `is_signed`.
     ///
     pub fn minimal_bitlength(value: &BigInt, is_signed: bool) -> Result<usize, Error> {
         let mut bitlength = crate::BITLENGTH_BYTE;
@@ -584,17 +601,17 @@ impl TryFrom<&IntegerLiteral> for Integer {
     /// For now, the minimal bitlength enough to contain the number is inferred.
     ///
     fn try_from(literal: &IntegerLiteral) -> Result<Self, Self::Error> {
-        let (string, base) = match literal.data {
-            lexical::IntegerLiteral::Binary { ref value } => (value, crate::BASE_BINARY as u32),
-            lexical::IntegerLiteral::Octal { ref value } => (value, crate::BASE_OCTAL as u32),
-            lexical::IntegerLiteral::Decimal { ref value } => (value, crate::BASE_DECIMAL as u32),
-            lexical::IntegerLiteral::Hexadecimal { ref value } => {
-                (value, crate::BASE_HEXADECIMAL as u32)
+        let (string, base) = match literal.inner {
+            LexicalIntegerLiteral::Binary { ref inner } => (inner, crate::BASE_BINARY as u32),
+            LexicalIntegerLiteral::Octal { ref inner } => (inner, crate::BASE_OCTAL as u32),
+            LexicalIntegerLiteral::Decimal { ref inner } => (inner, crate::BASE_DECIMAL as u32),
+            LexicalIntegerLiteral::Hexadecimal { ref inner } => {
+                (inner, crate::BASE_HEXADECIMAL as u32)
             }
         };
 
         let value = BigInt::from_str_radix(&string, base)
-            .expect(crate::semantic::PANIC_VALIDATED_DURING_LEXICAL_ANALYSIS);
+            .expect(crate::PANIC_VALIDATED_DURING_LEXICAL_ANALYSIS);
         let bitlength = Self::minimal_bitlength(&value, false)?;
 
         Ok(Self::new(value, false, bitlength))

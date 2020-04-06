@@ -2,7 +2,7 @@
 //! The module statement builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::module::Statement as ModStatement;
 

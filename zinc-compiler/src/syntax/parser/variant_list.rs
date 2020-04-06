@@ -6,10 +6,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::parser::variant::Parser as VariantParser;
 use crate::syntax::tree::variant::Variant;
 
@@ -20,6 +20,11 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses an enum variant list.
+    ///
+    /// 'A = 1, B = 2, C = 3'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -33,7 +38,9 @@ impl Parser {
                     lexeme: Lexeme::Identifier(_),
                     ..
                 } => {
-                    let variant = VariantParser::default().parse(stream.clone(), Some(token))?;
+                    let (variant, next) =
+                        VariantParser::default().parse(stream.clone(), Some(token))?;
+                    self.next = next;
                     self.variants.push(variant);
                 }
                 token => return Ok((self.variants, Some(token))),
@@ -56,11 +63,11 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Token;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
+    use crate::lexical::token::Token;
     use crate::syntax::tree::identifier::Identifier;
     use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
     use crate::syntax::tree::variant::Variant;
@@ -89,7 +96,7 @@ mod tests {
                 Identifier::new(Location::new(1, 1), "A".to_owned()),
                 IntegerLiteral::new(
                     Location::new(1, 5),
-                    lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                    LexicalIntegerLiteral::new_decimal("1".to_owned()),
                 ),
             )],
             Some(Token::new(Lexeme::Eof, Location::new(1, 6))),
@@ -110,7 +117,7 @@ mod tests {
                 Identifier::new(Location::new(1, 1), "A".to_owned()),
                 IntegerLiteral::new(
                     Location::new(1, 5),
-                    lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                    LexicalIntegerLiteral::new_decimal("1".to_owned()),
                 ),
             )],
             Some(Token::new(Lexeme::Eof, Location::new(1, 7))),
@@ -132,7 +139,7 @@ mod tests {
                     Identifier::new(Location::new(1, 1), "A".to_owned()),
                     IntegerLiteral::new(
                         Location::new(1, 5),
-                        lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                        LexicalIntegerLiteral::new_decimal("1".to_owned()),
                     ),
                 ),
                 Variant::new(
@@ -140,7 +147,7 @@ mod tests {
                     Identifier::new(Location::new(1, 8), "B".to_owned()),
                     IntegerLiteral::new(
                         Location::new(1, 12),
-                        lexical::IntegerLiteral::new_decimal("2".to_owned()),
+                        LexicalIntegerLiteral::new_decimal("2".to_owned()),
                     ),
                 ),
                 Variant::new(
@@ -148,7 +155,7 @@ mod tests {
                     Identifier::new(Location::new(1, 15), "C".to_owned()),
                     IntegerLiteral::new(
                         Location::new(1, 19),
-                        lexical::IntegerLiteral::new_decimal("3".to_owned()),
+                        LexicalIntegerLiteral::new_decimal("3".to_owned()),
                     ),
                 ),
             ],

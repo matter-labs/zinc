@@ -7,13 +7,18 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::error::Error as CompilerError;
-use crate::generator::Representation;
+use crate::generator::Tree;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
 use crate::semantic::error::Error;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
-use crate::syntax::Tree as SyntaxTree;
+use crate::syntax::tree::Tree as SyntaxTree;
 
+///
+/// Analyzes the circuit entry, which must be located in the `main.zn` file.
+///
+/// To analyze a circuit module, use the module analyzer.
+///
 pub struct Analyzer {
     scope_stack: ScopeStack,
 }
@@ -35,10 +40,9 @@ impl Analyzer {
         self,
         program: SyntaxTree,
         dependencies: HashMap<String, Rc<RefCell<Scope>>>,
-    ) -> Result<Representation, CompilerError> {
-        let mut intermediate = Representation::new();
+    ) -> Result<Tree, CompilerError> {
+        let mut intermediate = Tree::new();
 
-        // compile all the outer statements which generally only declare new items
         let mut analyzer = StatementAnalyzer::new(self.scope_stack.top(), dependencies);
         for statement in program.statements.into_iter() {
             if let Some(statement) = analyzer
@@ -63,7 +67,7 @@ impl Analyzer {
 #[cfg(test)]
 mod tests {
     use crate::error::Error;
-    use crate::semantic::Error as SemanticError;
+    use crate::semantic::error::Error as SemanticError;
 
     #[test]
     fn error_test() {

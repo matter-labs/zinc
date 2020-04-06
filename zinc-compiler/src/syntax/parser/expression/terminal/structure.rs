@@ -6,10 +6,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::expression::Parser as ExpressionParser;
 use crate::syntax::tree::expression::structure::builder::Builder as StructureExpressionBuilder;
@@ -44,6 +44,13 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a structure literal.
+    ///
+    /// '
+    /// Data { a: 1, b: true, c: (10, 20) }
+    /// '
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -58,7 +65,7 @@ impl Parser {
                             location,
                         } => {
                             self.builder.set_location(location);
-                            let identifier = Identifier::new(location, identifier.name);
+                            let identifier = Identifier::new(location, identifier.inner);
                             self.builder.set_identifier(identifier);
                             self.state = State::BracketCurlyLeftOrEnd;
                         }
@@ -101,7 +108,7 @@ impl Parser {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
                         } => {
-                            let identifier = Identifier::new(location, identifier.name);
+                            let identifier = Identifier::new(location, identifier.inner);
                             self.builder.push_field_identifier(identifier);
                             self.state = State::Colon;
                         }
@@ -168,12 +175,12 @@ mod tests {
 
     use super::Error;
     use super::Parser;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::Token;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::symbol::Symbol;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
+    use crate::lexical::token::Token;
     use crate::syntax::error::Error as SyntaxError;
     use crate::syntax::tree::expression::structure::Expression as StructureExpression;
     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
@@ -221,11 +228,9 @@ Test {
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
                                 Location::new(3, 8),
-                                lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                                LexicalIntegerLiteral::new_decimal("1".to_owned()),
                             ),
                         )),
-                        None,
-                        None,
                     ),
                 )],
             ),
@@ -260,11 +265,9 @@ Test {
                             ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                                 IntegerLiteral::new(
                                     Location::new(3, 8),
-                                    lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                                    LexicalIntegerLiteral::new_decimal("1".to_owned()),
                                 ),
                             )),
-                            None,
-                            None,
                         ),
                     ),
                     (
@@ -274,11 +277,9 @@ Test {
                             ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                                 IntegerLiteral::new(
                                     Location::new(4, 8),
-                                    lexical::IntegerLiteral::new_decimal("2".to_owned()),
+                                    LexicalIntegerLiteral::new_decimal("2".to_owned()),
                                 ),
                             )),
-                            None,
-                            None,
                         ),
                     ),
                     (
@@ -288,11 +289,9 @@ Test {
                             ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                                 IntegerLiteral::new(
                                     Location::new(5, 8),
-                                    lexical::IntegerLiteral::new_decimal("3".to_owned()),
+                                    LexicalIntegerLiteral::new_decimal("3".to_owned()),
                                 ),
                             )),
-                            None,
-                            None,
                         ),
                     ),
                 ],

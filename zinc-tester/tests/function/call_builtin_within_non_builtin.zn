@@ -1,10 +1,10 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "default",
 //#     "input": {
 //#         "value": "42"
 //#     },
 //#     "expect": "unit"
-//# } ]
+//# } ] }
 
 fn foo(bar: ()) {}
 

@@ -9,13 +9,13 @@ use std::str::FromStr;
 use num_bigint::BigInt;
 
 use crate::error::Error;
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 use crate::semantic::element::constant::integer::Integer;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::Error as SemanticError;
+use crate::semantic::error::Error as SemanticError;
 
 #[test]
 fn ok_minimal_bitlength() {
@@ -129,7 +129,7 @@ fn main() {
 }
 
 #[test]
-fn error_integer_too_large_loop_bound() {
+fn error_integer_too_large_loop_for_bound() {
     let input = r#"
 fn main() {
     for i in 0..0xffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff_ffffffff {}

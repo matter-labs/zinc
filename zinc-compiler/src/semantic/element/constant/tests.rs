@@ -7,14 +7,14 @@
 use num_bigint::BigInt;
 
 use crate::error::Error;
-use crate::lexical::Location;
-use crate::semantic::caster::error::Error as CasterError;
+use crate::lexical::token::location::Location;
+use crate::semantic::casting::error::Error as CastingError;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::Error as SemanticError;
+use crate::semantic::error::Error as SemanticError;
 
 #[test]
 fn error_operator_range_1st_expected_integer() {
@@ -1053,7 +1053,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 19),
-        ElementError::Constant(ConstantError::Casting(CasterError::CastingToInvalidType {
+        ElementError::Constant(ConstantError::Casting(CastingError::CastingToInvalidType {
             from: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
             to: Type::boolean().to_string(),
         })),

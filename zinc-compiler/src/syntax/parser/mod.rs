@@ -17,9 +17,9 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Lexeme;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::parser::statement::local_mod::Parser as ModuleLocalStatementParser;
 use crate::syntax::tree::Tree;
 
@@ -29,6 +29,9 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// The top-level parser. Parses a list of module level statements.
+    ///
     pub fn parse(mut self, input: &str, file: Option<usize>) -> Result<Tree, Error> {
         let stream = match file {
             Some(file) => TokenStream::new_with_file(input, file),

@@ -7,9 +7,12 @@ pub mod builder;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::bytecode::Bytecode;
+use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::Expression as GeneratorExpression;
 
+///
+/// The list expression which is translated to Zinc VM data.
+///
 #[derive(Debug, Clone)]
 pub struct Expression {
     expressions: Vec<GeneratorExpression>,

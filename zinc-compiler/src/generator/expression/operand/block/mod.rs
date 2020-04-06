@@ -7,10 +7,13 @@ pub mod builder;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::bytecode::Bytecode;
+use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::statement::Statement;
 
+///
+/// The block expression which is translated to Zinc VM bytecode.
+///
 #[derive(Debug, Clone)]
 pub struct Expression {
     statements: Vec<Statement>,

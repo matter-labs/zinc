@@ -1,24 +1,21 @@
 //!
-//! The expression semantic analyzer stack.
+//! The semantic analyzer expression evaluation stack.
 //!
 
 pub mod element;
 
 use self::element::Element;
 
-#[derive(Debug)]
+///
+/// The semantic analyzer expression evaluation stack.
+///
+#[derive(Debug, Default)]
 pub struct Stack {
     elements: Vec<Element>,
 }
 
 static PANIC_THERE_MUST_ALWAYS_BE_AN_OPERAND: &str =
     "Operand stack balance is kept by the evaluation logic";
-
-impl Default for Stack {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 impl Stack {
     const DEFAULT_INITIAL_CAPACITY: usize = 16;

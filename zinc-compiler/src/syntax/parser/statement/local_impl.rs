@@ -6,11 +6,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Keyword;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::statement::r#const::Parser as ConstStatementParser;
 use crate::syntax::parser::statement::r#fn::Parser as FnStatementParser;
@@ -23,6 +23,9 @@ static HINT_ONLY_SOME_STATEMENTS: &str =
 pub struct Parser {}
 
 impl Parser {
+    ///
+    /// Parses a statement allowed in type implementations.
+    ///
     pub fn parse(
         self,
         stream: Rc<RefCell<TokenStream>>,

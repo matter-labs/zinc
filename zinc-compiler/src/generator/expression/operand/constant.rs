@@ -14,9 +14,9 @@ use zinc_bytecode::scalar::ScalarType;
 use zinc_bytecode::Instruction;
 use zinc_bytecode::PushConst;
 
-use crate::bytecode::Bytecode;
+use crate::generator::bytecode::Bytecode;
 use crate::generator::r#type::Type;
-use crate::semantic::Constant as SemanticConstant;
+use crate::semantic::element::constant::Constant as SemanticConstant;
 
 #[derive(Debug, Clone)]
 pub struct Constant {
@@ -100,7 +100,7 @@ impl Constant {
 
         bytecode.borrow_mut().push_instruction(
             Instruction::PushConst(PushConst::new(self.value, scalar_type)),
-            crate::lexical::Location::default(),
+            None,
         );
     }
 }

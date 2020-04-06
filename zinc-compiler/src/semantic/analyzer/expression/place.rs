@@ -15,17 +15,23 @@ use crate::semantic::error::Error;
 pub struct Translator {}
 
 impl Translator {
+    ///
+    /// Translates the place expression to a semantic expression type specified in `hint`.
+    ///
     pub fn translate(
         place: Place,
-        translation_hint: TranslationHint,
+        hint: TranslationHint,
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
-        match translation_hint {
-            TranslationHint::ValueExpression => {
+        match hint {
+            TranslationHint::Value => {
                 let element = Value::try_from(&place.r#type)
                     .map(Element::Value)
                     .map_err(ElementError::Value)
                     .map_err(|error| Error::Element(place.location, error))?;
-                Ok((element, Some(GeneratorExpressionOperand::Place(place))))
+                Ok((
+                    element,
+                    Some(GeneratorExpressionOperand::Place(place.into())),
+                ))
             }
             _ => Ok((Element::Place(place), None)),
         }

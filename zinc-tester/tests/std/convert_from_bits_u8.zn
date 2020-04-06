@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "min",
 //#     "input": {
 //#         "value": [
@@ -14,7 +14,7 @@
 //#         ]
 //#     },
 //#     "expect": "255"
-//# } ]
+//# } ] }
 
 fn main(value: [bool; 8]) -> u8 {
     std::convert::from_bits_unsigned(value)

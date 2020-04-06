@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "first",
 //#     "should_panic": true,
 //#     "input": {
@@ -36,7 +36,7 @@
 //#         "index": "10"
 //#     },
 //#     "expect": null
-//# } ]
+//# } ] }
 
 fn index_fn(array: [u8; 10], index: i8) -> u8 {
     array[index]

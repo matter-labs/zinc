@@ -6,10 +6,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::parser::expression::terminal::Parser as TerminalOperandParser;
 use crate::syntax::tree::expression::tree::builder::Builder as ExpressionTreeBuilder;
 use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
@@ -45,10 +45,10 @@ impl Parser {
                 State::Terminal => {
                     match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
                         token => {
-                            let (tree, location, next) = TerminalOperandParser::default()
+                            let (tree, next) = TerminalOperandParser::default()
                                 .parse(stream.clone(), Some(token))?;
                             self.next = next;
-                            self.builder.eat_operand(tree, location);
+                            self.builder.eat(tree);
                             self.state = State::DoubleColonOrEnd;
                         }
                     }

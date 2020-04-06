@@ -12,6 +12,10 @@ pub struct Location {
 }
 
 impl Location {
+    ///
+    /// Creates a location without a file identifier.
+    /// Used mostly for testing purposes.
+    ///
     pub fn new(line: usize, column: usize) -> Self {
         Self {
             file: None,
@@ -20,6 +24,10 @@ impl Location {
         }
     }
 
+    ///
+    /// Creates a location with a file identifier.
+    /// The file identifier can be used to get its path from the global type index.
+    ///
     pub fn new_beginning(file: Option<usize>) -> Self {
         Self {
             file,
@@ -28,6 +36,10 @@ impl Location {
         }
     }
 
+    ///
+    /// Creates a location by shifting the original down by `lines` and
+    /// setting the column to `column`.
+    ///
     pub fn shifted_down(&self, lines: usize, column: usize) -> Self {
         Self {
             file: self.file,
@@ -36,6 +48,9 @@ impl Location {
         }
     }
 
+    ///
+    /// Creates a location by shifting the original right by `columns`.
+    ///
     pub fn shifted_right(&self, columns: usize) -> Self {
         Self {
             file: self.file,
@@ -53,7 +68,7 @@ impl fmt::Display for Location {
                 Some(file) => write!(
                     f,
                     "{}:{}:{}",
-                    crate::FILE_INDEX
+                    crate::file::INDEX
                         .read()
                         .expect(crate::PANIC_MUTEX_SYNC)
                         .get(&file)

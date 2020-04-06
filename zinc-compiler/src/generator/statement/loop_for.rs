@@ -7,17 +7,22 @@ use std::rc::Rc;
 
 use zinc_bytecode::Instruction;
 
-use crate::bytecode::Bytecode;
+use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::operand::block::Expression as BlockExpression;
 use crate::generator::expression::operand::constant::Constant;
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::generator::r#type::Type;
+use crate::lexical::token::location::Location;
 
 use num_bigint::BigInt;
 use num_traits::One;
 
+///
+/// The Zinc VM loop statement.
+///
 #[derive(Debug, Clone)]
 pub struct Statement {
+    pub location: Location,
     pub initial_value: BigInt,
     pub iterations_count: usize,
     pub is_reversed: bool,
@@ -30,6 +35,7 @@ pub struct Statement {
 
 impl Statement {
     pub fn new(
+        location: Location,
         initial_value: BigInt,
         iterations_count: usize,
         is_reversed: bool,
@@ -40,6 +46,7 @@ impl Statement {
         body: BlockExpression,
     ) -> Self {
         Self {
+            location,
             initial_value,
             iterations_count,
             is_reversed,
@@ -69,7 +76,7 @@ impl Statement {
                 index_address,
                 index_size,
             )),
-            crate::lexical::Location::default(),
+            Some(self.location),
         );
 
         let while_allowed_address = if self.while_condition.is_some() {
@@ -80,7 +87,7 @@ impl Statement {
             while_allowed.write_all_to_bytecode(bytecode.clone());
             bytecode.borrow_mut().push_instruction(
                 Instruction::Store(zinc_bytecode::Store::new(while_allowed_address)),
-                crate::lexical::Location::default(),
+                Some(self.location),
             );
             Some(while_allowed_address)
         } else {
@@ -89,32 +96,30 @@ impl Statement {
 
         bytecode.borrow_mut().push_instruction(
             Instruction::LoopBegin(zinc_bytecode::LoopBegin::new(self.iterations_count)),
-            crate::lexical::Location::default(),
+            Some(self.location),
         );
 
         if let (Some(while_condition), Some(while_allowed_address)) =
             (self.while_condition, while_allowed_address)
         {
             while_condition.write_all_to_bytecode(bytecode.clone());
-            bytecode.borrow_mut().push_instruction(
-                Instruction::Not(zinc_bytecode::Not),
-                crate::lexical::Location::default(),
-            );
-            bytecode.borrow_mut().push_instruction(
-                Instruction::If(zinc_bytecode::If),
-                crate::lexical::Location::default(),
-            );
+            bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::Not(zinc_bytecode::Not), Some(self.location));
+            bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::If(zinc_bytecode::If), Some(self.location));
             Constant::new_boolean(false).write_all_to_bytecode(bytecode.clone());
             bytecode.borrow_mut().push_instruction(
                 Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
                     while_allowed_address,
                     Type::boolean().size(),
                 )),
-                crate::lexical::Location::default(),
+                Some(self.location),
             );
             bytecode.borrow_mut().push_instruction(
                 Instruction::EndIf(zinc_bytecode::EndIf),
-                crate::lexical::Location::default(),
+                Some(self.location),
             );
 
             bytecode.borrow_mut().push_instruction(
@@ -122,16 +127,15 @@ impl Statement {
                     while_allowed_address,
                     Type::boolean().size(),
                 )),
-                crate::lexical::Location::default(),
+                Some(self.location),
             );
-            bytecode.borrow_mut().push_instruction(
-                Instruction::If(zinc_bytecode::If),
-                crate::lexical::Location::default(),
-            );
+            bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::If(zinc_bytecode::If), Some(self.location));
             self.body.write_all_to_bytecode(bytecode.clone());
             bytecode.borrow_mut().push_instruction(
                 Instruction::EndIf(zinc_bytecode::EndIf),
-                crate::lexical::Location::default(),
+                Some(self.location),
             );
         } else {
             self.body.write_all_to_bytecode(bytecode.clone());
@@ -140,21 +144,19 @@ impl Statement {
         if self.is_reversed {
             bytecode.borrow_mut().push_instruction(
                 Instruction::Load(zinc_bytecode::Load::new(index_address)),
-                crate::lexical::Location::default(),
+                Some(self.location),
             );
             Constant::new_min(self.index_variable_is_signed, self.index_variable_bitlength)
                 .write_all_to_bytecode(bytecode.clone());
-            bytecode.borrow_mut().push_instruction(
-                Instruction::Gt(zinc_bytecode::Gt),
-                crate::lexical::Location::default(),
-            );
-            bytecode.borrow_mut().push_instruction(
-                Instruction::If(zinc_bytecode::If),
-                crate::lexical::Location::default(),
-            );
+            bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::Gt(zinc_bytecode::Gt), Some(self.location));
+            bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::If(zinc_bytecode::If), Some(self.location));
             bytecode.borrow_mut().push_instruction(
                 Instruction::Load(zinc_bytecode::Load::new(index_address)),
-                crate::lexical::Location::default(),
+                Some(self.location),
             );
             Constant::new_integer(
                 BigInt::one(),
@@ -162,36 +164,33 @@ impl Statement {
                 self.index_variable_bitlength,
             )
             .write_all_to_bytecode(bytecode.clone());
-            bytecode.borrow_mut().push_instruction(
-                Instruction::Sub(zinc_bytecode::Sub),
-                crate::lexical::Location::default(),
-            );
+            bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::Sub(zinc_bytecode::Sub), Some(self.location));
             bytecode.borrow_mut().push_instruction(
                 Instruction::Store(zinc_bytecode::Store::new(index_address)),
-                crate::lexical::Location::default(),
+                Some(self.location),
             );
             bytecode.borrow_mut().push_instruction(
                 Instruction::EndIf(zinc_bytecode::EndIf),
-                crate::lexical::Location::default(),
+                Some(self.location),
             );
         } else {
             bytecode.borrow_mut().push_instruction(
                 Instruction::Load(zinc_bytecode::Load::new(index_address)),
-                crate::lexical::Location::default(),
+                Some(self.location),
             );
             Constant::new_max(self.index_variable_is_signed, self.index_variable_bitlength)
                 .write_all_to_bytecode(bytecode.clone());
-            bytecode.borrow_mut().push_instruction(
-                Instruction::Lt(zinc_bytecode::Lt),
-                crate::lexical::Location::default(),
-            );
-            bytecode.borrow_mut().push_instruction(
-                Instruction::If(zinc_bytecode::If),
-                crate::lexical::Location::default(),
-            );
+            bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::Lt(zinc_bytecode::Lt), Some(self.location));
+            bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::If(zinc_bytecode::If), Some(self.location));
             bytecode.borrow_mut().push_instruction(
                 Instruction::Load(zinc_bytecode::Load::new(index_address)),
-                crate::lexical::Location::default(),
+                Some(self.location),
             );
             Constant::new_integer(
                 BigInt::one(),
@@ -199,22 +198,21 @@ impl Statement {
                 self.index_variable_bitlength,
             )
             .write_all_to_bytecode(bytecode.clone());
-            bytecode.borrow_mut().push_instruction(
-                Instruction::Add(zinc_bytecode::Add),
-                crate::lexical::Location::default(),
-            );
+            bytecode
+                .borrow_mut()
+                .push_instruction(Instruction::Add(zinc_bytecode::Add), Some(self.location));
             bytecode.borrow_mut().push_instruction(
                 Instruction::Store(zinc_bytecode::Store::new(index_address)),
-                crate::lexical::Location::default(),
+                Some(self.location),
             );
             bytecode.borrow_mut().push_instruction(
                 Instruction::EndIf(zinc_bytecode::EndIf),
-                crate::lexical::Location::default(),
+                Some(self.location),
             );
         };
         bytecode.borrow_mut().push_instruction(
             Instruction::LoopEnd(zinc_bytecode::LoopEnd),
-            crate::lexical::Location::default(),
+            Some(self.location),
         );
     }
 }

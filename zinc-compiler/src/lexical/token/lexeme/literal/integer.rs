@@ -6,10 +6,10 @@ use std::fmt;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Integer {
-    Binary { value: String },
-    Octal { value: String },
-    Decimal { value: String },
-    Hexadecimal { value: String },
+    Binary { inner: String },
+    Octal { inner: String },
+    Decimal { inner: String },
+    Hexadecimal { inner: String },
 }
 
 impl Integer {
@@ -27,30 +27,30 @@ impl Integer {
     pub const CHARACTER_INITIAL_HEXADECIMAL: char = 'x';
     pub const CHARACTER_DELIMITER: char = '_';
 
-    pub fn new_binary(input: String) -> Self {
-        Self::Binary { value: input }
+    pub fn new_binary(inner: String) -> Self {
+        Self::Binary { inner }
     }
 
-    pub fn new_octal(input: String) -> Self {
-        Self::Octal { value: input }
+    pub fn new_octal(inner: String) -> Self {
+        Self::Octal { inner }
     }
 
-    pub fn new_decimal(input: String) -> Self {
-        Self::Decimal { value: input }
+    pub fn new_decimal(inner: String) -> Self {
+        Self::Decimal { inner }
     }
 
-    pub fn new_hexadecimal(input: String) -> Self {
-        Self::Hexadecimal { value: input }
+    pub fn new_hexadecimal(inner: String) -> Self {
+        Self::Hexadecimal { inner }
     }
 }
 
 impl Into<String> for Integer {
     fn into(self) -> String {
         match self {
-            Self::Binary { value } => value,
-            Self::Octal { value } => value,
-            Self::Decimal { value } => value,
-            Self::Hexadecimal { value } => value,
+            Self::Binary { inner } => inner,
+            Self::Octal { inner } => inner,
+            Self::Decimal { inner } => inner,
+            Self::Hexadecimal { inner } => inner,
         }
     }
 }
@@ -58,10 +58,10 @@ impl Into<String> for Integer {
 impl fmt::Display for Integer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Binary { value } => write!(f, "{}", value),
-            Self::Octal { value } => write!(f, "{}", value),
-            Self::Decimal { value } => write!(f, "{}", value),
-            Self::Hexadecimal { value } => write!(f, "{}", value),
+            Self::Binary { inner } => write!(f, "{}", inner),
+            Self::Octal { inner } => write!(f, "{}", inner),
+            Self::Decimal { inner } => write!(f, "{}", inner),
+            Self::Hexadecimal { inner } => write!(f, "{}", inner),
         }
     }
 }

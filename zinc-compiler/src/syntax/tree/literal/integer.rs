@@ -2,17 +2,17 @@
 //! The integer literal.
 //!
 
-use crate::lexical::IntegerLiteral;
-use crate::lexical::Location;
+use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+use crate::lexical::token::location::Location;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Literal {
     pub location: Location,
-    pub data: IntegerLiteral,
+    pub inner: LexicalIntegerLiteral,
 }
 
 impl Literal {
-    pub fn new(location: Location, data: IntegerLiteral) -> Self {
-        Self { location, data }
+    pub fn new(location: Location, inner: LexicalIntegerLiteral) -> Self {
+        Self { location, inner }
     }
 }

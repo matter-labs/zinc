@@ -2,7 +2,7 @@
 //! The array expression builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::expression::array::Expression as ArrayExpression;
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 

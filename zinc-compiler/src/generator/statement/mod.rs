@@ -9,12 +9,15 @@ pub mod loop_for;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::bytecode::Bytecode;
+use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::Expression;
 use crate::generator::statement::declaration::Statement as DeclarationStatement;
 use crate::generator::statement::function::Statement as FunctionStatement;
 use crate::generator::statement::loop_for::Statement as ForLoopStatement;
 
+///
+/// Statements translated to the target Zinc VM bytecode.
+///
 #[derive(Debug, Clone)]
 pub enum Statement {
     Expression(Expression),

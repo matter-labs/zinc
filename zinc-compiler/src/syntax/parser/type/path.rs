@@ -6,10 +6,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::tree::expression::tree::builder::Builder as ExpressionTreeBuilder;
 use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
@@ -37,6 +37,11 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a path type literal.
+    ///
+    /// 'Path::To::Type`
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -50,7 +55,7 @@ impl Parser {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
                         } => {
-                            let identifier = Identifier::new(location, identifier.name);
+                            let identifier = Identifier::new(location, identifier.inner);
                             self.builder
                                 .eat_operand(ExpressionOperand::Identifier(identifier), location);
                             self.state = State::DoubleColonOrEnd;
@@ -86,11 +91,11 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::Token;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::symbol::Symbol;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
+    use crate::lexical::token::Token;
     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
     use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
     use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
@@ -108,8 +113,6 @@ mod tests {
                     Location::new(1, 1),
                     "id".to_owned(),
                 ))),
-                None,
-                None,
             ),
             Some(Token::new(
                 Lexeme::Symbol(Symbol::Semicolon),
@@ -127,10 +130,10 @@ mod tests {
         let input = r#"mega::ultra::namespace;"#;
 
         let expected = Ok((
-            ExpressionTree::new(
+            ExpressionTree::new_with_leaves(
                 Location::new(1, 12),
                 ExpressionTreeNode::operator(ExpressionOperator::Path),
-                Some(ExpressionTree::new(
+                Some(ExpressionTree::new_with_leaves(
                     Location::new(1, 5),
                     ExpressionTreeNode::operator(ExpressionOperator::Path),
                     Some(ExpressionTree::new(
@@ -138,16 +141,12 @@ mod tests {
                         ExpressionTreeNode::operand(ExpressionOperand::Identifier(
                             Identifier::new(Location::new(1, 1), "mega".to_owned()),
                         )),
-                        None,
-                        None,
                     )),
                     Some(ExpressionTree::new(
                         Location::new(1, 7),
                         ExpressionTreeNode::operand(ExpressionOperand::Identifier(
                             Identifier::new(Location::new(1, 7), "ultra".to_owned()),
                         )),
-                        None,
-                        None,
                     )),
                 )),
                 Some(ExpressionTree::new(
@@ -156,8 +155,6 @@ mod tests {
                         Location::new(1, 14),
                         "namespace".to_owned(),
                     ))),
-                    None,
-                    None,
                 )),
             ),
             Some(Token::new(

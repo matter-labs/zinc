@@ -4,7 +4,7 @@
 
 use std::str;
 
-use crate::lexical::Symbol;
+use crate::lexical::token::lexeme::symbol::Symbol;
 
 pub enum State {
     Start,
@@ -237,7 +237,7 @@ pub fn parse(input: &str) -> Result<(usize, Symbol), Error> {
 mod tests {
     use super::parse;
     use super::Error;
-    use crate::lexical::Symbol;
+    use crate::lexical::token::lexeme::symbol::Symbol;
 
     #[test]
     fn ok() {

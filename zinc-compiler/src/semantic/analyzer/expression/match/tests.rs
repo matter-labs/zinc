@@ -9,10 +9,10 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type;
+use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::Scope;
-use crate::semantic::Error as SemanticError;
 
 static PANIC_COMPILE_DEPENDENCY: &str = "Dependencies must be successfully compiled";
 

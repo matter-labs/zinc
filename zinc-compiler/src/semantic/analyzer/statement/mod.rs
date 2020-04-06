@@ -22,32 +22,40 @@ use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::r#type::function::error::Error as FunctionError;
+use crate::semantic::element::r#type::error::Error as TypeError;
+use crate::semantic::element::r#type::function::error::Error as FunctionTypeError;
 use crate::semantic::element::r#type::function::user::Function as UserDefinedFunctionType;
 use crate::semantic::element::r#type::function::Function as FunctionType;
+use crate::semantic::element::r#type::structure::error::Error as StructureTypeError;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::r#type::TYPE_INDEX;
+use crate::semantic::element::r#type::INDEX as TYPE_INDEX;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
-use crate::semantic::scope::item::Variant as ScopeItem;
+use crate::semantic::scope::item::variant::variable::Variable as ScopeVariableItem;
+use crate::semantic::scope::item::variant::Variant as ScopeItemVariant;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
-use crate::syntax::BindingPatternVariant;
-use crate::syntax::ConstStatement;
-use crate::syntax::EnumStatement;
-use crate::syntax::FnStatement;
-use crate::syntax::FunctionLocalStatement;
-use crate::syntax::ImplStatement;
-use crate::syntax::ImplementationLocalStatement;
-use crate::syntax::LetStatement;
-use crate::syntax::LoopStatement;
-use crate::syntax::ModStatement;
-use crate::syntax::ModuleLocalStatement;
-use crate::syntax::StructStatement;
-use crate::syntax::TypeStatement;
-use crate::syntax::UseStatement;
+use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;
+use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatement;
+use crate::syntax::tree::statement::local_impl::Statement as ImplementationLocalStatement;
+use crate::syntax::tree::statement::local_mod::Statement as ModuleLocalStatement;
+use crate::syntax::tree::statement::module::Statement as ModStatement;
+use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
+use crate::syntax::tree::statement::r#enum::Statement as EnumStatement;
+use crate::syntax::tree::statement::r#fn::Statement as FnStatement;
+use crate::syntax::tree::statement::r#for::Statement as ForStatement;
+use crate::syntax::tree::statement::r#impl::Statement as ImplStatement;
+use crate::syntax::tree::statement::r#let::Statement as LetStatement;
+use crate::syntax::tree::statement::r#struct::Statement as StructStatement;
+use crate::syntax::tree::statement::r#type::Statement as TypeStatement;
+use crate::syntax::tree::statement::r#use::Statement as UseStatement;
 
+///
+/// Analyzes statements.
+///
+/// An analyzer instance can be reused to analyze statements located in the same item, e.g. in the
+/// same module, function, or implementation.
+///
 pub struct Analyzer {
     scope_stack: ScopeStack,
     dependencies: HashMap<String, Rc<RefCell<Scope>>>,
@@ -64,6 +72,11 @@ impl Analyzer {
         }
     }
 
+    ///
+    /// Analyzes a statement local to a module.
+    ///
+    /// If the statement must be passed to the next compiler phase, yields its IR.
+    ///
     pub fn local_mod(
         &mut self,
         statement: ModuleLocalStatement,
@@ -105,6 +118,11 @@ impl Analyzer {
         }
     }
 
+    ///
+    /// Analyzes a statement local to a function.
+    ///
+    /// If the statement must be passed to the next compiler phase, yields its IR.
+    ///
     pub fn local_fn(
         &mut self,
         statement: FunctionLocalStatement,
@@ -117,12 +135,12 @@ impl Analyzer {
                 self.r#const(statement)?;
                 Ok(None)
             }
-            FunctionLocalStatement::Loop(statement) => {
+            FunctionLocalStatement::For(statement) => {
                 Ok(Some(GeneratorStatement::Loop(self.r#for(statement)?)))
             }
             FunctionLocalStatement::Expression(expression) => {
                 let (_result, expression) = ExpressionAnalyzer::new(self.scope_stack.top())
-                    .analyze(expression, TranslationHint::ValueExpression)?;
+                    .analyze(expression, TranslationHint::Value)?;
                 let intermediate = GeneratorStatement::Expression(expression);
                 Ok(Some(intermediate))
             }
@@ -130,6 +148,11 @@ impl Analyzer {
         }
     }
 
+    ///
+    /// Analyzes a statement local to an implementation.
+    ///
+    /// If the statement must be passed to the next compiler phase, yields its IR.
+    ///
     pub fn local_impl(
         &mut self,
         statement: ImplementationLocalStatement,
@@ -147,6 +170,9 @@ impl Analyzer {
         }
     }
 
+    ///
+    /// Analyzes a function statement and returns its IR for the next compiler phase.
+    ///
     fn r#fn(&mut self, statement: FnStatement) -> Result<GeneratorFunctionStatement, Error> {
         let location = statement.location;
 
@@ -221,9 +247,9 @@ impl Analyzer {
 
         let result_type = Type::from_element(&result, self.scope_stack.top())?;
         if expected_type != result_type {
-            return Err(Error::Function(
+            return Err(Error::Element(
                 return_expression_location,
-                FunctionError::return_type(
+                ElementError::Type(TypeError::Function(FunctionTypeError::return_type(
                     statement.identifier.name.clone(),
                     expected_type.to_string(),
                     result_type.to_string(),
@@ -231,7 +257,7 @@ impl Analyzer {
                         .return_type
                         .map(|r#type| r#type.location)
                         .unwrap_or(statement.location),
-                ),
+                ))),
             ));
         }
 
@@ -239,6 +265,7 @@ impl Analyzer {
             == crate::semantic::element::r#type::function::user::FUNCTION_MAIN_IDENTIFIER;
 
         Ok(GeneratorFunctionStatement::new(
+            location,
             statement.identifier.name,
             arguments,
             body,
@@ -248,6 +275,9 @@ impl Analyzer {
         ))
     }
 
+    ///
+    /// Analyzes an implementation statement and returns its IR for the next compiler phase.
+    ///
     fn r#impl(&mut self, statement: ImplStatement) -> Result<Vec<GeneratorStatement>, Error> {
         let identifier_location = statement.identifier.location;
 
@@ -258,8 +288,8 @@ impl Analyzer {
                 .map_err(|error| Error::Scope(identifier_location, error))?
                 .variant
             {
-                ScopeItem::Type(Type::Structure(structure)) => structure.scope,
-                ScopeItem::Type(Type::Enumeration(enumeration)) => enumeration.scope,
+                ScopeItemVariant::Type(Type::Structure(structure)) => structure.scope,
+                ScopeItemVariant::Type(Type::Enumeration(enumeration)) => enumeration.scope,
                 item => {
                     return Err(Error::ImplStatementExpectedStructureOrEnumeration {
                         location: identifier_location,
@@ -279,6 +309,9 @@ impl Analyzer {
         Ok(intermediate)
     }
 
+    ///
+    /// Analyzes a variable declaration statement and returns its IR for the next compiler phase.
+    ///
     fn r#let(
         &mut self,
         statement: LetStatement,
@@ -286,7 +319,7 @@ impl Analyzer {
         let location = statement.location;
 
         let (element, expression) = ExpressionAnalyzer::new(self.scope_stack.top())
-            .analyze(statement.expression, TranslationHint::ValueExpression)?;
+            .analyze(statement.expression, TranslationHint::Value)?;
 
         let r#type = if let Some(r#type) = statement.r#type {
             let type_location = r#type.location;
@@ -307,21 +340,24 @@ impl Analyzer {
         .map_err(|error| Error::Scope(location, error))?;
 
         Ok(GeneratorDeclarationStatement::new(
+            location,
             statement.identifier.name,
             r#type,
             expression,
         ))
     }
 
-    fn r#for(&mut self, statement: LoopStatement) -> Result<GeneratorForLoopStatement, Error> {
+    ///
+    /// Analyzes a for-loop statement and returns its IR for the next compiler phase.
+    ///
+    fn r#for(&mut self, statement: ForStatement) -> Result<GeneratorForLoopStatement, Error> {
         let location = statement.location;
         let bounds_expression_location = statement.bounds_expression.location;
 
         let (range_start, range_end, index_bitlength, is_index_signed, is_inclusive) =
-            match ExpressionAnalyzer::new(self.scope_stack.top()).analyze(
-                statement.bounds_expression,
-                TranslationHint::ValueExpression,
-            )? {
+            match ExpressionAnalyzer::new(self.scope_stack.top())
+                .analyze(statement.bounds_expression, TranslationHint::Value)?
+            {
                 (Element::Constant(Constant::RangeInclusive(range)), _intermediate) => (
                     range.start,
                     range.end,
@@ -358,7 +394,7 @@ impl Analyzer {
             let location = expression.location;
             let (while_result, while_intermediate) =
                 ExpressionAnalyzer::new(self.scope_stack.top())
-                    .analyze(expression, TranslationHint::ValueExpression)?;
+                    .analyze(expression, TranslationHint::Value)?;
 
             match Type::from_element(&while_result, self.scope_stack.top())? {
                 Type::Boolean => {}
@@ -380,9 +416,21 @@ impl Analyzer {
         self.scope_stack.pop();
 
         let is_reversed = range_start > range_end;
-        let range_start = cmp::min(range_start, range_end.clone());
-        let range_end = cmp::max(range_start.clone(), range_end);
-        let iterations_count = range_end - range_start.clone();
+        let range_start = if is_reversed {
+            cmp::max(range_start, range_end.clone())
+        } else {
+            cmp::min(range_start, range_end.clone())
+        };
+        let range_end = if is_reversed {
+            cmp::min(range_start.clone(), range_end)
+        } else {
+            cmp::max(range_start.clone(), range_end)
+        };
+        let iterations_count = if is_reversed {
+            range_start.clone() - range_end
+        } else {
+            range_end - range_start.clone()
+        };
         let mut iterations_count = iterations_count.to_usize().ok_or(Error::Element(
             bounds_expression_location,
             ElementError::Constant(ConstantError::Integer(
@@ -397,6 +445,7 @@ impl Analyzer {
         }
 
         Ok(GeneratorForLoopStatement::new(
+            location,
             range_start,
             iterations_count,
             is_reversed,
@@ -408,13 +457,16 @@ impl Analyzer {
         ))
     }
 
+    ///
+    /// Analyzes a compile time only constant declaration statement.
+    ///
     fn r#const(&mut self, statement: ConstStatement) -> Result<(), Error> {
         let location = statement.location;
         let type_location = statement.r#type.location;
         let expression_location = statement.expression.location;
 
         let (element, _intermediate) = ExpressionAnalyzer::new(self.scope_stack.top())
-            .analyze(statement.expression, TranslationHint::ValueExpression)?;
+            .analyze(statement.expression, TranslationHint::Value)?;
 
         let const_type =
             Type::from_type_variant(&statement.r#type.variant, self.scope_stack.top())?;
@@ -437,6 +489,9 @@ impl Analyzer {
         Ok(())
     }
 
+    ///
+    /// Analyzes a compile time only type alias declaration statement.
+    ///
     fn r#type(&mut self, statement: TypeStatement) -> Result<(), Error> {
         let location = statement.location;
 
@@ -448,6 +503,9 @@ impl Analyzer {
         Ok(())
     }
 
+    ///
+    /// Analyzes a compile time only structure declaration statement.
+    ///
     fn r#struct(&mut self, statement: StructStatement) -> Result<(), Error> {
         let location = statement.location;
 
@@ -457,11 +515,13 @@ impl Analyzer {
                 .iter()
                 .any(|(name, _type)| name == &field.identifier.name)
             {
-                return Err(Error::StructureDuplicateField {
-                    location: field.location,
-                    type_identifier: statement.identifier.name,
-                    field_name: field.identifier.name,
-                });
+                return Err(Error::Element(
+                    field.location,
+                    ElementError::Type(TypeError::Structure(StructureTypeError::DuplicateField {
+                        type_identifier: statement.identifier.name,
+                        field_name: field.identifier.name,
+                    })),
+                ));
             }
             fields.push((
                 field.identifier.name,
@@ -487,6 +547,9 @@ impl Analyzer {
         Ok(())
     }
 
+    ///
+    /// Analyzes a compile time only enumeration declaration statement.
+    ///
     fn r#enum(&mut self, statement: EnumStatement) -> Result<(), Error> {
         let location = statement.location;
 
@@ -508,6 +571,11 @@ impl Analyzer {
         Ok(())
     }
 
+    ///
+    /// Analyzes a module declaration statement.
+    ///
+    /// The module metadata can be returned depending on the target code structure and layout.
+    ///
     fn r#mod(&mut self, statement: ModStatement) -> Result<(), Error> {
         let identifier_location = statement.identifier.location;
         let module = match self.dependencies.remove(statement.identifier.name.as_str()) {
@@ -525,11 +593,14 @@ impl Analyzer {
         Ok(())
     }
 
+    ///
+    /// Analyzes a compile time only import statement.
+    ///
     fn r#use(&mut self, statement: UseStatement) -> Result<(), Error> {
         let path_location = statement.path.location;
 
         let path = match ExpressionAnalyzer::new(self.scope_stack.top())
-            .analyze(statement.path, TranslationHint::PathExpression)?
+            .analyze(statement.path, TranslationHint::Path)?
         {
             (Element::Path(path), _intermediate) => path,
             (element, _intermediate) => {
@@ -540,16 +611,12 @@ impl Analyzer {
             }
         };
         let item = Scope::resolve_path(self.scope_stack.top(), &path)?;
-        let last_member_string = path
+        let path_last_element = path
             .elements
             .last()
-            .expect(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
-        Scope::declare_item(
-            self.scope_stack.top(),
-            last_member_string.to_owned().into(),
-            item,
-        )
-        .map_err(|error| Error::Scope(last_member_string.location, error))?;
+            .expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
+        Scope::declare_item(self.scope_stack.top(), path_last_element.to_owned(), item)
+            .map_err(|error| Error::Scope(path_last_element.location, error))?;
 
         Ok(())
     }

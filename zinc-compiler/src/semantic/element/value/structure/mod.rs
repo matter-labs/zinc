@@ -6,14 +6,19 @@ mod tests;
 
 pub mod error;
 
+use std::convert::TryFrom;
 use std::fmt;
 
-use crate::semantic::element::access::AccessData;
+use crate::semantic::element::access::Field as FieldAccess;
 use crate::semantic::element::r#type::structure::Structure as StructureType;
 use crate::semantic::element::r#type::Type;
+use crate::semantic::element::value::Value;
 
 use self::error::Error;
 
+///
+/// Structures are collections of named elements of different types.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Structure {
     r#type: StructureType,
@@ -71,16 +76,18 @@ impl Structure {
         Ok(())
     }
 
-    pub fn slice(self, field_name: String) -> Result<(Self, AccessData), Error> {
+    pub fn slice(self, field_name: String) -> Result<(Value, FieldAccess), Error> {
         let mut offset = 0;
         let total_size = self.r#type().size();
 
         for (index, (name, r#type)) in self.r#type.fields.iter().enumerate() {
             if name == field_name.as_str() {
-                let access =
-                    AccessData::new(index, offset, r#type.size(), total_size, r#type.to_owned());
+                let access = FieldAccess::new(index, offset, r#type.size(), total_size);
 
-                return Ok((self, access));
+                return Ok((
+                    Value::try_from(r#type).expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+                    access,
+                ));
             }
             offset += r#type.size();
         }

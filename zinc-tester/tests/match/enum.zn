@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "first",
 //#     "input": {
 //#         "language": "0"
@@ -22,7 +22,7 @@
 //#         "language": "69"
 //#     },
 //#     "expect": "20"
-//# } ]
+//# } ] }
 
 enum Language {
     JABBERWOCKY = 0,

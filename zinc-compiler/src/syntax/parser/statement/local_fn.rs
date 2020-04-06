@@ -6,15 +6,15 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Keyword;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::parser::expression::Parser as ExpressionParser;
 use crate::syntax::parser::statement::r#const::Parser as ConstStatementParser;
+use crate::syntax::parser::statement::r#for::Parser as ForStatementParser;
 use crate::syntax::parser::statement::r#let::Parser as LetStatementParser;
-use crate::syntax::parser::statement::r#loop::Parser as LoopStatementParser;
 use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatement;
 
 #[derive(Default)]
@@ -23,6 +23,9 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a statement allowed in functions.
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -58,9 +61,9 @@ impl Parser {
                 ..
             } => {
                 let (statement, next) =
-                    LoopStatementParser::default().parse(stream.clone(), Some(token))?;
+                    ForStatementParser::default().parse(stream.clone(), Some(token))?;
                 self.next = next;
-                FunctionLocalStatement::Loop(statement)
+                FunctionLocalStatement::For(statement)
             }
             Token {
                 lexeme: Lexeme::Symbol(Symbol::Semicolon),
@@ -94,11 +97,11 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Token;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
+    use crate::lexical::token::Token;
     use crate::syntax::tree::expression::block::Expression as BlockExpression;
     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
     use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
@@ -128,11 +131,9 @@ mod tests {
                     ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                         IntegerLiteral::new(
                             Location::new(1, 19),
-                            lexical::IntegerLiteral::new_decimal("42".to_owned()),
+                            LexicalIntegerLiteral::new_decimal("42".to_owned()),
                         ),
                     )),
-                    None,
-                    None,
                 ),
             )),
             None,
@@ -159,15 +160,11 @@ mod tests {
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                             IntegerLiteral::new(
                                 Location::new(1, 3),
-                                lexical::IntegerLiteral::new_decimal("42".to_owned()),
+                                LexicalIntegerLiteral::new_decimal("42".to_owned()),
                             ),
                         )),
-                        None,
-                        None,
                     )),
                 ))),
-                None,
-                None,
             )),
             Some(Token::new(Lexeme::Eof, Location::new(1, 7))),
             true,

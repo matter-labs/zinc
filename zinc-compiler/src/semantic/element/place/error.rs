@@ -2,8 +2,19 @@
 //! The semantic analyzer place error.
 //!
 
+use crate::lexical::token::location::Location;
+
 #[derive(Debug, PartialEq)]
 pub enum Error {
+    MutatingWithDifferentType {
+        expected: String,
+        found: String,
+    },
+    MutatingImmutableMemory {
+        name: String,
+        reference: Option<Location>,
+    },
+
     OperatorIndexFirstOperandExpectedArray {
         found: String,
     },

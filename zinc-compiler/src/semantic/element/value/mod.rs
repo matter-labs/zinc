@@ -13,8 +13,9 @@ pub mod tuple;
 use std::convert::TryFrom;
 use std::fmt;
 
-use crate::semantic::caster::Caster;
-use crate::semantic::element::access::AccessData;
+use crate::semantic::casting::Caster;
+use crate::semantic::element::access::Field as FieldAccess;
+use crate::semantic::element::access::Index as IndexAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
 
@@ -24,6 +25,9 @@ use self::integer::Integer;
 use self::structure::Structure;
 use self::tuple::Tuple;
 
+///
+/// Value are parts of a non-constant expression.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     Unit,
@@ -446,13 +450,10 @@ impl Value {
         }
     }
 
-    pub fn index_value(self, other: Self) -> Result<(Self, AccessData), Error> {
+    pub fn index_value(self, other: Self) -> Result<(Self, IndexAccess), Error> {
         match self {
             Value::Array(array) => match other {
-                Value::Integer(_) => {
-                    let (array, access) = array.slice_single();
-                    Ok((Value::Array(array), access))
-                }
+                Value::Integer(_) => Ok(array.slice_single()),
                 value => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange {
                     found: value.to_string(),
                 }),
@@ -463,20 +464,17 @@ impl Value {
         }
     }
 
-    pub fn index_constant(self, other: Constant) -> Result<(Self, AccessData), Error> {
+    pub fn index_constant(self, other: Constant) -> Result<(Self, IndexAccess), Error> {
         match self {
             Value::Array(array) => match other {
-                Constant::Integer(_) => {
-                    let (array, access) = array.slice_single();
-                    Ok((Value::Array(array), access))
-                }
+                Constant::Integer(_) => Ok(array.slice_single()),
                 Constant::Range(range) => array
                     .slice_range(range.start, range.end)
-                    .map(|(array, access)| (Value::Array(array), access))
+                    .map(|(value, access)| (value, access))
                     .map_err(Error::Array),
                 Constant::RangeInclusive(range) => array
                     .slice_range_inclusive(range.start, range.end)
-                    .map(|(array, access)| (Value::Array(array), access))
+                    .map(|(value, access)| (value, access))
                     .map_err(Error::Array),
                 constant => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange {
                     found: constant.to_string(),
@@ -488,24 +486,18 @@ impl Value {
         }
     }
 
-    pub fn field_tuple(self, field_index: usize) -> Result<(Self, AccessData), Error> {
+    pub fn field_tuple(self, field_index: usize) -> Result<(Self, FieldAccess), Error> {
         match self {
-            Value::Tuple(tuple) => tuple
-                .slice(field_index)
-                .map(|(tuple, access)| (Value::Tuple(tuple), access))
-                .map_err(Error::Tuple),
+            Value::Tuple(tuple) => tuple.slice(field_index).map_err(Error::Tuple),
             value => Err(Error::OperatorFieldFirstOperandExpectedTuple {
                 found: value.to_string(),
             }),
         }
     }
 
-    pub fn field_structure(self, field_name: String) -> Result<(Self, AccessData), Error> {
+    pub fn field_structure(self, field_name: String) -> Result<(Self, FieldAccess), Error> {
         match self {
-            Value::Structure(structure) => structure
-                .slice(field_name)
-                .map(|(structure, access)| (Value::Structure(structure), access))
-                .map_err(Error::Structure),
+            Value::Structure(structure) => structure.slice(field_name).map_err(Error::Structure),
             value => Err(Error::OperatorFieldFirstOperandExpectedStructure {
                 found: value.to_string(),
             }),
@@ -531,11 +523,7 @@ impl TryFrom<&Type> for Value {
                 integer.set_enumeration(enumeration.to_owned());
                 Self::Integer(integer)
             }
-            r#type => {
-                return Err(Error::ConvertingFromType {
-                    r#type: r#type.to_string(),
-                })
-            }
+            _ => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
         })
     }
 }

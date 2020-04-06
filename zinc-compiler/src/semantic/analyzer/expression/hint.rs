@@ -1,143 +1,147 @@
 //!
-//! The expression translation hint.
+//! The expression evaluation hint.
 //!
 
-use crate::syntax::ExpressionOperator;
+use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
 
+///
+/// The evaluation hint.
+///
+/// Used by some operators for turning path expressions to place or type ones,
+/// or place ones to value ones.
+///
 #[derive(Debug, Clone, Copy)]
 pub enum Hint {
-    // runtime
-    PlaceExpression,
-    ValueExpression,
-
-    // compile time
-    TypeExpression,
-    PathExpression,
-    CompoundTypeMember,
+    /// describes a runtime memory location
+    Place,
+    /// describes a runtime or compile-time value (will be separated later)
+    Value,
+    /// describes a compile-time type
+    Type,
+    /// describes a compile-time path
+    Path,
+    /// describes a compile-time field identifier or path element
+    Field,
 }
 
 impl Hint {
+    ///
+    /// Returns the first operand expression type required by `operator`.
+    ///
     pub fn first(operator: ExpressionOperator) -> Self {
         match operator {
-            ExpressionOperator::Assignment => Self::PlaceExpression,
-            ExpressionOperator::AssignmentAddition => Self::PlaceExpression,
-            ExpressionOperator::AssignmentSubtraction => Self::PlaceExpression,
-            ExpressionOperator::AssignmentMultiplication => Self::PlaceExpression,
-            ExpressionOperator::AssignmentDivision => Self::PlaceExpression,
-            ExpressionOperator::AssignmentRemainder => Self::PlaceExpression,
-            ExpressionOperator::AssignmentBitwiseOr => Self::PlaceExpression,
-            ExpressionOperator::AssignmentBitwiseXor => Self::PlaceExpression,
-            ExpressionOperator::AssignmentBitwiseAnd => Self::PlaceExpression,
-            ExpressionOperator::AssignmentBitwiseShiftLeft => Self::PlaceExpression,
-            ExpressionOperator::AssignmentBitwiseShiftRight => Self::PlaceExpression,
+            ExpressionOperator::Assignment => Self::Place,
+            ExpressionOperator::AssignmentAddition => Self::Place,
+            ExpressionOperator::AssignmentSubtraction => Self::Place,
+            ExpressionOperator::AssignmentMultiplication => Self::Place,
+            ExpressionOperator::AssignmentDivision => Self::Place,
+            ExpressionOperator::AssignmentRemainder => Self::Place,
+            ExpressionOperator::AssignmentBitwiseOr => Self::Place,
+            ExpressionOperator::AssignmentBitwiseXor => Self::Place,
+            ExpressionOperator::AssignmentBitwiseAnd => Self::Place,
+            ExpressionOperator::AssignmentBitwiseShiftLeft => Self::Place,
+            ExpressionOperator::AssignmentBitwiseShiftRight => Self::Place,
 
-            ExpressionOperator::Range => Self::ValueExpression,
-            ExpressionOperator::RangeInclusive => Self::ValueExpression,
+            ExpressionOperator::Range => Self::Value,
+            ExpressionOperator::RangeInclusive => Self::Value,
 
-            ExpressionOperator::Or => Self::ValueExpression,
-            ExpressionOperator::Xor => Self::ValueExpression,
-            ExpressionOperator::And => Self::ValueExpression,
+            ExpressionOperator::Or => Self::Value,
+            ExpressionOperator::Xor => Self::Value,
+            ExpressionOperator::And => Self::Value,
 
-            ExpressionOperator::Equals => Self::ValueExpression,
-            ExpressionOperator::NotEquals => Self::ValueExpression,
-            ExpressionOperator::GreaterEquals => Self::ValueExpression,
-            ExpressionOperator::LesserEquals => Self::ValueExpression,
-            ExpressionOperator::Greater => Self::ValueExpression,
-            ExpressionOperator::Lesser => Self::ValueExpression,
+            ExpressionOperator::Equals => Self::Value,
+            ExpressionOperator::NotEquals => Self::Value,
+            ExpressionOperator::GreaterEquals => Self::Value,
+            ExpressionOperator::LesserEquals => Self::Value,
+            ExpressionOperator::Greater => Self::Value,
+            ExpressionOperator::Lesser => Self::Value,
 
-            ExpressionOperator::BitwiseOr => Self::ValueExpression,
-            ExpressionOperator::BitwiseXor => Self::ValueExpression,
-            ExpressionOperator::BitwiseAnd => Self::ValueExpression,
-            ExpressionOperator::BitwiseShiftLeft => Self::ValueExpression,
-            ExpressionOperator::BitwiseShiftRight => Self::ValueExpression,
+            ExpressionOperator::BitwiseOr => Self::Value,
+            ExpressionOperator::BitwiseXor => Self::Value,
+            ExpressionOperator::BitwiseAnd => Self::Value,
+            ExpressionOperator::BitwiseShiftLeft => Self::Value,
+            ExpressionOperator::BitwiseShiftRight => Self::Value,
 
-            ExpressionOperator::Addition => Self::ValueExpression,
-            ExpressionOperator::Subtraction => Self::ValueExpression,
-            ExpressionOperator::Multiplication => Self::ValueExpression,
-            ExpressionOperator::Division => Self::ValueExpression,
-            ExpressionOperator::Remainder => Self::ValueExpression,
+            ExpressionOperator::Addition => Self::Value,
+            ExpressionOperator::Subtraction => Self::Value,
+            ExpressionOperator::Multiplication => Self::Value,
+            ExpressionOperator::Division => Self::Value,
+            ExpressionOperator::Remainder => Self::Value,
 
-            ExpressionOperator::Casting => Self::ValueExpression,
+            ExpressionOperator::Casting => Self::Value,
 
-            ExpressionOperator::Not => Self::ValueExpression,
+            ExpressionOperator::Not => Self::Value,
+            ExpressionOperator::BitwiseNot => Self::Value,
+            ExpressionOperator::Negation => Self::Value,
 
-            ExpressionOperator::BitwiseNot => Self::ValueExpression,
+            ExpressionOperator::Index => Self::Place,
+            ExpressionOperator::Field => Self::Place,
 
-            ExpressionOperator::Negation => Self::ValueExpression,
+            ExpressionOperator::CallBuiltIn => Self::Type,
+            ExpressionOperator::Call => Self::Type,
 
-            ExpressionOperator::Index => Self::PlaceExpression,
-            ExpressionOperator::Field => Self::PlaceExpression,
-
-            ExpressionOperator::CallBuiltIn => Self::TypeExpression,
-            ExpressionOperator::Call => Self::TypeExpression,
-
-            ExpressionOperator::Path => Self::PathExpression,
+            ExpressionOperator::Path => Self::Path,
         }
     }
 
+    ///
+    /// Returns the second operand expression type required by `operator`.
+    ///
     pub fn second(operator: ExpressionOperator) -> Self {
         match operator {
-            ExpressionOperator::Assignment => Self::ValueExpression,
-            ExpressionOperator::AssignmentAddition => Self::ValueExpression,
-            ExpressionOperator::AssignmentSubtraction => Self::ValueExpression,
-            ExpressionOperator::AssignmentMultiplication => Self::ValueExpression,
-            ExpressionOperator::AssignmentDivision => Self::ValueExpression,
-            ExpressionOperator::AssignmentRemainder => Self::ValueExpression,
-            ExpressionOperator::AssignmentBitwiseOr => Self::ValueExpression,
-            ExpressionOperator::AssignmentBitwiseXor => Self::ValueExpression,
-            ExpressionOperator::AssignmentBitwiseAnd => Self::ValueExpression,
-            ExpressionOperator::AssignmentBitwiseShiftLeft => Self::ValueExpression,
-            ExpressionOperator::AssignmentBitwiseShiftRight => Self::ValueExpression,
+            ExpressionOperator::Assignment => Self::Value,
+            ExpressionOperator::AssignmentAddition => Self::Value,
+            ExpressionOperator::AssignmentSubtraction => Self::Value,
+            ExpressionOperator::AssignmentMultiplication => Self::Value,
+            ExpressionOperator::AssignmentDivision => Self::Value,
+            ExpressionOperator::AssignmentRemainder => Self::Value,
+            ExpressionOperator::AssignmentBitwiseOr => Self::Value,
+            ExpressionOperator::AssignmentBitwiseXor => Self::Value,
+            ExpressionOperator::AssignmentBitwiseAnd => Self::Value,
+            ExpressionOperator::AssignmentBitwiseShiftLeft => Self::Value,
+            ExpressionOperator::AssignmentBitwiseShiftRight => Self::Value,
 
-            ExpressionOperator::Range => Self::ValueExpression,
-            ExpressionOperator::RangeInclusive => Self::ValueExpression,
+            ExpressionOperator::Range => Self::Value,
+            ExpressionOperator::RangeInclusive => Self::Value,
 
-            ExpressionOperator::Or => Self::ValueExpression,
-            ExpressionOperator::Xor => Self::ValueExpression,
-            ExpressionOperator::And => Self::ValueExpression,
+            ExpressionOperator::Or => Self::Value,
+            ExpressionOperator::Xor => Self::Value,
+            ExpressionOperator::And => Self::Value,
 
-            ExpressionOperator::Equals => Self::ValueExpression,
-            ExpressionOperator::NotEquals => Self::ValueExpression,
-            ExpressionOperator::GreaterEquals => Self::ValueExpression,
-            ExpressionOperator::LesserEquals => Self::ValueExpression,
-            ExpressionOperator::Greater => Self::ValueExpression,
-            ExpressionOperator::Lesser => Self::ValueExpression,
+            ExpressionOperator::Equals => Self::Value,
+            ExpressionOperator::NotEquals => Self::Value,
+            ExpressionOperator::GreaterEquals => Self::Value,
+            ExpressionOperator::LesserEquals => Self::Value,
+            ExpressionOperator::Greater => Self::Value,
+            ExpressionOperator::Lesser => Self::Value,
 
-            ExpressionOperator::BitwiseOr => Self::ValueExpression,
-            ExpressionOperator::BitwiseXor => Self::ValueExpression,
-            ExpressionOperator::BitwiseAnd => Self::ValueExpression,
-            ExpressionOperator::BitwiseShiftLeft => Self::ValueExpression,
-            ExpressionOperator::BitwiseShiftRight => Self::ValueExpression,
+            ExpressionOperator::BitwiseOr => Self::Value,
+            ExpressionOperator::BitwiseXor => Self::Value,
+            ExpressionOperator::BitwiseAnd => Self::Value,
+            ExpressionOperator::BitwiseShiftLeft => Self::Value,
+            ExpressionOperator::BitwiseShiftRight => Self::Value,
 
-            ExpressionOperator::Addition => Self::ValueExpression,
-            ExpressionOperator::Subtraction => Self::ValueExpression,
-            ExpressionOperator::Multiplication => Self::ValueExpression,
-            ExpressionOperator::Division => Self::ValueExpression,
-            ExpressionOperator::Remainder => Self::ValueExpression,
+            ExpressionOperator::Addition => Self::Value,
+            ExpressionOperator::Subtraction => Self::Value,
+            ExpressionOperator::Multiplication => Self::Value,
+            ExpressionOperator::Division => Self::Value,
+            ExpressionOperator::Remainder => Self::Value,
 
-            ExpressionOperator::Casting => Self::TypeExpression,
+            ExpressionOperator::Casting => Self::Type,
 
-            ExpressionOperator::Not => {
-                panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS)
-            }
+            ExpressionOperator::Not => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+            ExpressionOperator::BitwiseNot => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+            ExpressionOperator::Negation => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
 
-            ExpressionOperator::BitwiseNot => {
-                panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS)
-            }
-
-            ExpressionOperator::Negation => {
-                panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS)
-            }
-
-            ExpressionOperator::Index => Self::ValueExpression,
-            ExpressionOperator::Field => Self::CompoundTypeMember,
+            ExpressionOperator::Index => Self::Value,
+            ExpressionOperator::Field => Self::Field,
 
             ExpressionOperator::CallBuiltIn => {
-                panic!(crate::semantic::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS)
+                panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS)
             }
-            ExpressionOperator::Call => Self::ValueExpression,
+            ExpressionOperator::Call => Self::Value,
 
-            ExpressionOperator::Path => Self::PathExpression,
+            ExpressionOperator::Path => Self::Path,
         }
     }
 }

@@ -16,21 +16,24 @@ case "${1}" in
         ;;
     debug)
         export LOG_LEVEL="-vv"
-#        export RUST_BACKTRACE=1
+        export RUST_BACKTRACE=1
         export CARGO_LOG_LEVEL="--verbose"
         ;;
     trace)
         export LOG_LEVEL="-vvv"
-#        export RUST_BACKTRACE="full"
+        export RUST_BACKTRACE="full"
         export CARGO_LOG_LEVEL="--verbose"
         ;;
     *)
-        export LOG_LEVEL="-v"
+        export LOG_LEVEL=""
         ;;
 esac
 
 # 'debug' | 'release'
 case "${2}" in
+    debug)
+        export TARGET_DIRECTORY="debug"
+        ;;
     release)
         export RELEASE_MODE_FLAG="--release"
         export TARGET_DIRECTORY="release"
@@ -47,8 +50,11 @@ export CIRCUIT_DATA_DIRECTORY="${CIRCUIT_DIRECTORY}/data/"
 cargo fmt --all
 cargo clippy
 cargo build ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG}
-#cargo test
-#cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL}
+cargo test
+cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL}
+
+rm -rfv "${CIRCUIT_BUILD_DIRECTORY}"
+rm -rfv "${CIRCUIT_DATA_DIRECTORY}"
 
 export ZARGO_PATH="./target/${TARGET_DIRECTORY}/zargo"
 

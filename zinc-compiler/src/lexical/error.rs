@@ -1,5 +1,5 @@
 //!
-//! The lexical error.
+//! The lexical parser error.
 //!
 
 use crate::lexical::token::lexeme::literal::integer::Integer;

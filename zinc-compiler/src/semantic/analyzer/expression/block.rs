@@ -16,11 +16,16 @@ use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
-use crate::syntax::BlockExpression;
+use crate::syntax::tree::expression::block::Expression as BlockExpression;
 
 pub struct Analyzer {}
 
 impl Analyzer {
+    ///
+    /// Analyzes the block expression.
+    ///
+    /// Returns the semantic element and the intermediate representation.
+    ///
     pub fn analyze(
         scope: Rc<RefCell<Scope>>,
         block: BlockExpression,
@@ -41,7 +46,7 @@ impl Analyzer {
         let element = match block.expression {
             Some(expression) => {
                 let (element, expression) = ExpressionAnalyzer::new(scope_stack.top())
-                    .analyze(*expression, TranslationHint::ValueExpression)?;
+                    .analyze(*expression, TranslationHint::Value)?;
                 builder.set_expression(expression);
                 element
             }

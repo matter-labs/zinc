@@ -9,14 +9,14 @@ use std::convert::TryFrom;
 use num_bigint::BigInt;
 
 use crate::error::Error;
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
-use crate::semantic::Error as SemanticError;
+use crate::semantic::error::Error as SemanticError;
 
 #[test]
 fn error_operator_assignment_1st_operand_expected_place() {
@@ -1658,7 +1658,7 @@ fn main() {
 }
 
 #[test]
-fn error_operator_path_2nd_operand_expected_member_string() {
+fn error_operator_path_2nd_operand_expected_identifier() {
     let input = r#"
 enum Value {
     FIRST = 1,
@@ -1671,7 +1671,7 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(7, 22),
-        ElementError::OperatorPathSecondOperandExpectedMemberString {
+        ElementError::OperatorPathSecondOperandExpectedIdentifier {
             found: IntegerConstant::new(BigInt::from(5), false, crate::BITLENGTH_BYTE).to_string(),
         },
     )));

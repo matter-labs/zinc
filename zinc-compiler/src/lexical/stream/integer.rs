@@ -28,6 +28,23 @@ pub enum Error {
     UnexpectedEnd,
 }
 
+///
+/// Parses an integer literal.
+///
+/// Integer literals can be of four types:
+///
+/// 1. Binary
+/// '0b101010'
+///
+/// 2. Octal
+/// '52'
+///
+/// 3. Decimal
+/// '42'
+///
+/// 4. Hexadecimal
+/// '2a'
+///
 pub fn parse(input: &str) -> Result<(usize, Integer), Error> {
     let mut state = State::Start;
     let mut size = 0;

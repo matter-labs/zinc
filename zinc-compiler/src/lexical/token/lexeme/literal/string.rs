@@ -3,21 +3,26 @@
 //!
 
 use std::fmt;
-use std::string;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct String {
-    pub value: string::String,
+    pub inner: ::std::string::String,
 }
 
 impl String {
-    pub fn new(value: string::String) -> Self {
-        Self { value }
+    pub fn new(inner: ::std::string::String) -> Self {
+        Self { inner }
+    }
+}
+
+impl Into<::std::string::String> for String {
+    fn into(self) -> ::std::string::String {
+        self.inner
     }
 }
 
 impl fmt::Display for String {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.value)
+        write!(f, "{}", self.inner)
     }
 }

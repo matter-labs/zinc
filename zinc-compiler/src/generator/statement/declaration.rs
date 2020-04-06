@@ -7,21 +7,32 @@ use std::rc::Rc;
 
 use zinc_bytecode::Instruction;
 
-use crate::bytecode::Bytecode;
+use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::Expression;
 use crate::generator::r#type::Type;
-use crate::semantic::Type as SemanticType;
+use crate::lexical::token::location::Location;
+use crate::semantic::element::r#type::Type as SemanticType;
 
+///
+/// The Zinc VM storage memory allocating statement.
+///
 #[derive(Debug, Clone)]
 pub struct Statement {
+    pub location: Location,
     pub name: String,
     pub r#type: Type,
     pub expression: Expression,
 }
 
 impl Statement {
-    pub fn new(name: String, r#type: SemanticType, expression: Expression) -> Option<Self> {
+    pub fn new(
+        location: Location,
+        name: String,
+        r#type: SemanticType,
+        expression: Expression,
+    ) -> Option<Self> {
         Type::try_from_semantic(&r#type).map(|r#type| Self {
+            location,
             name,
             r#type,
             expression,
@@ -39,12 +50,12 @@ impl Statement {
         if let Some(scalar_type) = self.r#type.into() {
             bytecode.borrow_mut().push_instruction(
                 Instruction::Cast(zinc_bytecode::Cast::new(scalar_type)),
-                crate::lexical::Location::default(),
+                Some(self.location),
             );
         }
         bytecode.borrow_mut().push_instruction(
             Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(address, size)),
-            crate::lexical::Location::default(),
+            Some(self.location),
         );
     }
 }

@@ -1,5 +1,5 @@
 //!
-//! The generator expression tuple operand builder.
+//! The generator expression list operand builder.
 //!
 
 use crate::generator::expression::operand::list::Expression as ListExpression;

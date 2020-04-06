@@ -6,14 +6,14 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::expression::Parser as ExpressionParser;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::expression::tuple::builder::Builder as TupleExpressionBuilder;
-use crate::syntax::ExpressionOperand;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
@@ -42,11 +42,16 @@ pub struct Parser {
 /// 3. A tuple of one or more elements
 ///
 impl Parser {
+    ///
+    /// Parser a tuple.
+    ///
+    /// '(a, 5, [1, 2, 3])'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
-    ) -> Result<(ExpressionOperand, Option<Token>), Error> {
+    ) -> Result<(ExpressionTree, Option<Token>), Error> {
         loop {
             match self.state {
                 State::ParenthesisLeft => {
@@ -122,11 +127,11 @@ mod tests {
 
     use super::Error;
     use super::Parser;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::symbol::Symbol;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
     use crate::syntax::error::Error as SyntaxError;
     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
     use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
@@ -138,7 +143,13 @@ mod tests {
     fn ok_unit() {
         let input = r#"()"#;
 
-        let expected = Ok((ExpressionOperand::Unit, None));
+        let expected = Ok((
+            ExpressionTree::new(
+                Location::new(1, 1),
+                ExpressionTreeNode::operand(ExpressionOperand::Unit),
+            ),
+            None,
+        ));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
@@ -150,17 +161,15 @@ mod tests {
         let input = r#"(1)"#;
 
         let expected = Ok((
-            ExpressionOperand::Parenthesized(Box::new(ExpressionTree::new(
+            ExpressionTree::new(
                 Location::new(1, 2),
                 ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                     IntegerLiteral::new(
                         Location::new(1, 2),
-                        lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                        LexicalIntegerLiteral::new_decimal("1".to_owned()),
                     ),
                 )),
-                None,
-                None,
-            ))),
+            ),
             None,
         ));
 
@@ -174,20 +183,21 @@ mod tests {
         let input = r#"(1,)"#;
 
         let expected = Ok((
-            ExpressionOperand::Tuple(TupleExpression::new(
+            ExpressionTree::new(
                 Location::new(1, 1),
-                vec![ExpressionTree::new(
-                    Location::new(1, 2),
-                    ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
-                        IntegerLiteral::new(
-                            Location::new(1, 2),
-                            lexical::IntegerLiteral::new_decimal("1".to_owned()),
-                        ),
-                    )),
-                    None,
-                    None,
-                )],
-            )),
+                ExpressionTreeNode::operand(ExpressionOperand::Tuple(TupleExpression::new(
+                    Location::new(1, 1),
+                    vec![ExpressionTree::new(
+                        Location::new(1, 2),
+                        ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(1, 2),
+                                LexicalIntegerLiteral::new_decimal("1".to_owned()),
+                            ),
+                        )),
+                    )],
+                ))),
+            ),
             None,
         ));
 
@@ -201,44 +211,41 @@ mod tests {
         let input = r#"(1, 2, 3)"#;
 
         let expected = Ok((
-            ExpressionOperand::Tuple(TupleExpression::new(
+            ExpressionTree::new(
                 Location::new(1, 1),
-                vec![
-                    ExpressionTree::new(
-                        Location::new(1, 2),
-                        ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
-                            IntegerLiteral::new(
-                                Location::new(1, 2),
-                                lexical::IntegerLiteral::new_decimal("1".to_owned()),
-                            ),
-                        )),
-                        None,
-                        None,
-                    ),
-                    ExpressionTree::new(
-                        Location::new(1, 5),
-                        ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
-                            IntegerLiteral::new(
-                                Location::new(1, 5),
-                                lexical::IntegerLiteral::new_decimal("2".to_owned()),
-                            ),
-                        )),
-                        None,
-                        None,
-                    ),
-                    ExpressionTree::new(
-                        Location::new(1, 8),
-                        ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
-                            IntegerLiteral::new(
-                                Location::new(1, 8),
-                                lexical::IntegerLiteral::new_decimal("3".to_owned()),
-                            ),
-                        )),
-                        None,
-                        None,
-                    ),
-                ],
-            )),
+                ExpressionTreeNode::operand(ExpressionOperand::Tuple(TupleExpression::new(
+                    Location::new(1, 1),
+                    vec![
+                        ExpressionTree::new(
+                            Location::new(1, 2),
+                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                                IntegerLiteral::new(
+                                    Location::new(1, 2),
+                                    LexicalIntegerLiteral::new_decimal("1".to_owned()),
+                                ),
+                            )),
+                        ),
+                        ExpressionTree::new(
+                            Location::new(1, 5),
+                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                                IntegerLiteral::new(
+                                    Location::new(1, 5),
+                                    LexicalIntegerLiteral::new_decimal("2".to_owned()),
+                                ),
+                            )),
+                        ),
+                        ExpressionTree::new(
+                            Location::new(1, 8),
+                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                                IntegerLiteral::new(
+                                    Location::new(1, 8),
+                                    LexicalIntegerLiteral::new_decimal("3".to_owned()),
+                                ),
+                            )),
+                        ),
+                    ],
+                ))),
+            ),
             None,
         ));
 

@@ -8,11 +8,14 @@ pub mod variant;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::bytecode::Bytecode;
+use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::Expression as GeneratorExpression;
 
 use self::variant::Variant;
 
+///
+/// The array expression which is translated to Zinc VM data.
+///
 #[derive(Debug, Clone)]
 pub struct Expression {
     variant: Variant,

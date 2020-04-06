@@ -1,10 +1,10 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "default", "should_panic": true,
 //#     "input": {
 //#         "witness": "32767"
 //#     },
 //#     "expect": null
-//# } ]
+//# } ] }
 
 fn main(witness: i16) -> i16 {
     witness + 1 as i16

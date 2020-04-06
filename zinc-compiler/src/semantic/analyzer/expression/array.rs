@@ -19,12 +19,17 @@ use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
-use crate::syntax::ArrayExpression;
-use crate::syntax::ArrayExpressionVariant;
+use crate::syntax::tree::expression::array::variant::Variant as ArrayExpressionVariant;
+use crate::syntax::tree::expression::array::Expression as ArrayExpression;
 
 pub struct Analyzer {}
 
 impl Analyzer {
+    ///
+    /// Analyzes the array literal expression.
+    ///
+    /// Returns the semantic element and the intermediate representation.
+    ///
     pub fn analyze(
         scope: Rc<RefCell<Scope>>,
         array: ArrayExpression,
@@ -38,7 +43,7 @@ impl Analyzer {
                     let expression_location = expression.location;
 
                     let (element, expression) = ExpressionAnalyzer::new(scope.clone())
-                        .analyze(expression, TranslationHint::ValueExpression)?;
+                        .analyze(expression, TranslationHint::Value)?;
                     let element_type = Type::from_element(&element, scope.clone())?;
                     result.push(element_type).map_err(|error| {
                         Error::Element(
@@ -58,7 +63,7 @@ impl Analyzer {
                 let size_expression_location = size_expression.location;
 
                 let size = match ExpressionAnalyzer::new(scope.clone())
-                    .analyze(size_expression, TranslationHint::ValueExpression)?
+                    .analyze(size_expression, TranslationHint::Value)?
                 {
                     (Element::Constant(Constant::Integer(integer)), _intermediate) => {
                         integer.to_usize().map_err(|error| {
@@ -77,7 +82,7 @@ impl Analyzer {
                 };
 
                 let (element, expression) = ExpressionAnalyzer::new(scope.clone())
-                    .analyze(expression, TranslationHint::ValueExpression)?;
+                    .analyze(expression, TranslationHint::Value)?;
                 let element_type = Type::from_element(&element, scope)?;
                 result.extend(element_type, size).map_err(|error| {
                     Error::Element(
