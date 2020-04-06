@@ -15,7 +15,7 @@
 //# } ] }
 
 //!
-//! The merkle tree root hash validator.
+//! The Merkle tree root hash validator.
 //!
 
 use std::crypto::sha256;
@@ -58,12 +58,12 @@ fn restore_root_hash(
 
     for i in 0..MERKLE_TREE_HEIGHT {
         let left_and_right = if address_bits[i] {
-            [current, merkle_path[i]]
+            (current, merkle_path[i])
         } else {
-            [merkle_path[i], current]
+            (merkle_path[i], current)
         };
 
-        current = merkle_node_hash(left_and_right[0], left_and_right[1]);
+        current = merkle_node_hash(left_and_right.0, left_and_right.1);
     }
 
     current

@@ -6,6 +6,10 @@
 //#     "expect": "168"
 //# } ] }
 
-fn main(a: u8) -> u8 {
+fn bitwise_shift_left(a: u8) -> u8 {
     42 << 2
+}
+
+fn main(a: u8) -> u8 {
+    bitwise_shift_left(a)
 }

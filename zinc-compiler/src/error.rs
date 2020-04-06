@@ -910,9 +910,8 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the bitwise shift left operator `<<` is temporary forbidden", // TODO: allow
-                        // "the bitwise shift left operator `<<` expected an integer constant as the first operand, found `{}`", // TODO: constant -> ''
-                        // found,
+                        "the bitwise shift left operator `<<` expected an integer constant as the first operand, found `{}`", // TODO: constant -> ''
+                        found,
                     )
                         .as_str(),
                     location,
@@ -925,9 +924,8 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the bitwise shift left operator `<<` is temporary forbidden", // TODO: allow
-                        // "the bitwise shift left operator `<<` expected an integer constant as the second operand, found `{}`",
-                        // found,
+                        "the bitwise shift left operator `<<` expected an integer constant as the second operand, found `{}`",
+                        found,
                     )
                         .as_str(),
                     location,
@@ -940,9 +938,8 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the bitwise shift right operator `>>` is temporary forbidden", // TODO: allow
-                        // "the bitwise shift right operator `>>` expected an integer constant as the first operand, found `{}`", // TODO: constant -> ''
-                        // found,
+                        "the bitwise shift right operator `>>` expected an integer constant as the first operand, found `{}`", // TODO: constant -> ''
+                        found,
                     )
                         .as_str(),
                     location,
@@ -955,9 +952,8 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the bitwise shift right operator `>>` is temporary forbidden", // TODO: allow
-                        // "the bitwise shift right operator `>>` expected an integer constant as the second operand, found `{}`",
-                        // found,
+                        "the bitwise shift right operator `>>` expected an integer constant as the second operand, found `{}`",
+                        found,
                     )
                         .as_str(),
                     location,

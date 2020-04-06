@@ -13,8 +13,8 @@ where
     CS: ConstraintSystem<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result {
-        let left = vm.pop()?.value()?;
         let right = vm.pop()?.value()?;
+        let left = vm.pop()?.value()?;
 
         let scalar_type = ScalarType::expect_same(left.get_type(), right.get_type())?;
 

@@ -7,8 +7,7 @@ The `|=`, `^=`, `&=`, `<<=`, `>>=` shortcut operators perform the operation
 and assign the result to the first operand. The first operand must be a mutable memory location
 like a variable, array element, or structure field.
 
-> Currently, bitwise operators OR, XOR, AND, NOT are allowed for constants only.
-> Bitwise left and right shifts are temporarily forbidden.
+> For now, bitwise operators are allowed for constants only. Witness data will be covered soon.
 
 #### Bitwise OR
 

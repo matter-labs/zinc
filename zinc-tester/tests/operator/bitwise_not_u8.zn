@@ -1,9 +1,9 @@
 //# { "cases": [ {
-//#     "case": "ordinar", "ignore": true,
+//#     "case": "ordinar",
 //#     "input": {
 //#         "a": "42"
 //#     },
-//#     "expect": "-43"
+//#     "expect": "213"
 //# }, {
 //#     "case": "min_to_max", "ignore": true,
 //#     "input": {

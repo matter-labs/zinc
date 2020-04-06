@@ -9,7 +9,7 @@
 //#     "input": {
 //#         "a": "42"
 //#     },
-//#     "expect": "-43"
+//#     "expect": "85"
 //# }, {
 //#     "case": "zeros_to_ones", "ignore": true,
 //#     "input": {
@@ -25,5 +25,5 @@
 //# } ] }
 
 fn main(a: i8) -> i8 {
-    ~42 as i8
+    ~(42 as i8)
 }
