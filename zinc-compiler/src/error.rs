@@ -920,11 +920,13 @@ impl Error {
             }
             Self::Semantic(SemanticError::Element(location, ElementError::OperatorBitwiseShiftLeftSecondOperandExpectedConstant{ found })) |
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorBitwiseShiftLeftSecondOperandExpectedInteger{ found }))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorBitwiseShiftLeftSecondOperandExpectedInteger{ found }))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::OperatorBitwiseShiftLeftSecondOperatorExpectedUnsigned { found })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorBitwiseShiftLeftSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OperatorBitwiseShiftLeftSecondOperatorExpectedUnsigned { found })))) => {
                 Self::format_line(
                     context,
                     format!(
-                        "the bitwise shift left operator `<<` expected an integer constant as the second operand, found `{}`",
+                        "the bitwise shift left operator `<<` expected an unsigned integer constant as the second operand, found `{}`",
                         found,
                     )
                         .as_str(),
@@ -948,11 +950,13 @@ impl Error {
             }
             Self::Semantic(SemanticError::Element(location, ElementError::OperatorBitwiseShiftRightSecondOperandExpectedConstant{ found })) |
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorBitwiseShiftRightSecondOperandExpectedInteger{ found }))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorBitwiseShiftRightSecondOperandExpectedInteger{ found }))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::OperatorBitwiseShiftRightSecondOperatorExpectedUnsigned { found })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorBitwiseShiftRightSecondOperandExpectedInteger{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::OperatorBitwiseShiftRightSecondOperatorExpectedUnsigned { found })))) => {
                 Self::format_line(
                     context,
                     format!(
-                        "the bitwise shift right operator `>>` expected an integer constant as the second operand, found `{}`",
+                        "the bitwise shift right operator `>>` expected an unsigned integer constant as the second operand, found `{}`",
                         found,
                     )
                         .as_str(),

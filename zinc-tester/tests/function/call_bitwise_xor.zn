@@ -8,7 +8,7 @@
 //# } ] }
 
 fn bitwise_xor(a: u8, b: u8) -> u8 {
-    42 ^ 21
+    42 ^ 21 // TODO
 }
 
 fn main(a: u8, b: u8) -> u8 {

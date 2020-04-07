@@ -21,6 +21,9 @@ pub enum Error {
     TypesMismatchDivision { first: String, second: String },
     TypesMismatchRemainder { first: String, second: String },
 
+    OperatorBitwiseShiftLeftSecondOperatorExpectedUnsigned { found: String },
+    OperatorBitwiseShiftRightSecondOperatorExpectedUnsigned { found: String },
+
     OverflowAddition { value: BigInt, r#type: String },
     OverflowSubtraction { value: BigInt, r#type: String },
     OverflowMultiplication { value: BigInt, r#type: String },

@@ -86,7 +86,7 @@ impl fmt::Display for Tuple {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "tuple of types {}",
+            "<tuple> of types {}",
             self.element_types
                 .iter()
                 .map(|r#type| format!("'{}'", r#type))

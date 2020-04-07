@@ -4,12 +4,15 @@
 
 #![cfg(test)]
 
+use num_bigint::BigInt;
+
 use crate::error::Error;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::element::value::integer::error::Error as IntegerValueError;
+use crate::semantic::element::value::integer::Integer as IntegerValue;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
@@ -356,6 +359,54 @@ fn main() {
             IntegerValueError::TypesMismatchRemainder {
                 first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
                 second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[ignore]
+#[test]
+fn error_operator_bitwise_shift_left_2nd_operand_expected_unsigned() {
+    let input = r#"
+fn main() {
+    let first = 168;
+    let result = first << -2;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(4, 24),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::OperatorBitwiseShiftLeftSecondOperatorExpectedUnsigned {
+                found: IntegerValue::new(true, crate::BITLENGTH_BYTE).to_string(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[ignore]
+#[test]
+fn error_operator_bitwise_shift_right_2nd_operand_expected_unsigned() {
+    let input = r#"
+fn main() {
+    let first = 42;
+    let result = first >> -2;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(4, 24),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::OperatorBitwiseShiftRightSecondOperatorExpectedUnsigned {
+                found: IntegerValue::new(true, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
     )));

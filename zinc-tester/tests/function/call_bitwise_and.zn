@@ -8,7 +8,7 @@
 //# } ] }
 
 fn bitwise_and(a: u8, b: u8) -> u8 {
-    42 & 10
+    42 & 10 // TODO
 }
 
 fn main(a: u8, b: u8) -> u8 {

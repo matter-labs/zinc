@@ -245,6 +245,14 @@ impl Integer {
             return Err(Error::ForbiddenFieldBitwise);
         }
 
+        if other.is_signed {
+            return Err(
+                Error::OperatorBitwiseShiftLeftSecondOperatorExpectedUnsigned {
+                    found: other.to_string(),
+                },
+            );
+        }
+
         let other = other
             .value
             .to_usize()
@@ -265,6 +273,14 @@ impl Integer {
     pub fn bitwise_shift_right(self, other: Self) -> Result<Self, Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
+        }
+
+        if other.is_signed {
+            return Err(
+                Error::OperatorBitwiseShiftRightSecondOperatorExpectedUnsigned {
+                    found: other.to_string(),
+                },
+            );
         }
 
         let other = other

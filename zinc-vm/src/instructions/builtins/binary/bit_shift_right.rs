@@ -21,7 +21,7 @@ where
         let scalar_type = left.get_type();
 
         let mut left_value = fr_to_bigint(&left.get_constant()?, scalar_type.is_signed());
-        let right_value = fr_to_bigint(&right.get_constant()?, false);
+        let right_value = right.get_constant_usize()?;
 
         let mut mask = vec![0xFF; scalar_type.bit_length::<E>() / 8];
         if scalar_type.is_signed() {

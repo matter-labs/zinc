@@ -539,8 +539,8 @@ impl TryFrom<Constant> for Value {
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Unit => write!(f, "unit value"),
-            Self::Boolean => write!(f, "boolean value"),
+            Self::Unit => write!(f, "<unit> value"),
+            Self::Boolean => write!(f, "<boolean> value"),
             Self::Integer(inner) => write!(f, "{}", inner),
             Self::Array(inner) => write!(f, "{}", inner),
             Self::Tuple(inner) => write!(f, "{}", inner),

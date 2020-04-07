@@ -166,17 +166,33 @@ impl Integer {
         Ok(self)
     }
 
-    pub fn bitwise_shift_left(self, _other: Self) -> Result<Self, Error> {
+    pub fn bitwise_shift_left(self, other: Self) -> Result<Self, Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
+        }
+
+        if other.is_signed {
+            return Err(
+                Error::OperatorBitwiseShiftRightSecondOperatorExpectedUnsigned {
+                    found: other.to_string(),
+                },
+            );
         }
 
         Ok(self)
     }
 
-    pub fn bitwise_shift_right(self, _other: Self) -> Result<Self, Error> {
+    pub fn bitwise_shift_right(self, other: Self) -> Result<Self, Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
+        }
+
+        if other.is_signed {
+            return Err(
+                Error::OperatorBitwiseShiftRightSecondOperatorExpectedUnsigned {
+                    found: other.to_string(),
+                },
+            );
         }
 
         Ok(self)
@@ -274,6 +290,6 @@ impl Integer {
 
 impl fmt::Display for Integer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "integer of type '{}'", self.r#type())
+        write!(f, "<integer> of type '{}'", self.r#type())
     }
 }

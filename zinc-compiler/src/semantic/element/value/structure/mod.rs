@@ -103,7 +103,7 @@ impl fmt::Display for Structure {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "structure '{}' with fields {}",
+            "<structure> '{}' with fields {}",
             self.r#type.identifier,
             self.r#type
                 .fields

@@ -6,7 +6,7 @@
 
 - forbidden the division operator `/`, but implemented `std::ff::invert` for `field` inversion
 - allowed casting to types with lesser bitlength (runtime error on overflow)
-- added the bitwise operators `|`, `|=`, `^`, `^=`, `&`, `&=`, `~` (constant expressions only)
+- added the bitwise operators `|`, `|=`, `^`, `^=`, `&`, `&=`, `<<`, `<<=`, `>>`, `>>=`, `~` (constant expressions only)
 - added the binary (e.g. `0b101010`) and octal (e.g. `0o52`) integer literals
 - implemented match exhaustiveness checking without the binding or wildcard pattern
 - removed `static` statements for global variables (use `const` instead)

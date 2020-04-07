@@ -12,7 +12,7 @@ use crate::error::Error;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
-use crate::semantic::element::constant::integer::Integer;
+use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
@@ -20,84 +20,96 @@ use crate::semantic::error::Error as SemanticError;
 #[test]
 fn ok_minimal_bitlength() {
     assert_eq!(
-        Integer::minimal_bitlength(&BigInt::from_str("0").unwrap_or_default(), false),
+        IntegerConstant::minimal_bitlength(&BigInt::from_str("0").unwrap_or_default(), false),
         Ok(crate::BITLENGTH_BYTE * 1),
     );
     assert_eq!(
-        Integer::minimal_bitlength(&BigInt::from_str("255").unwrap_or_default(), false),
+        IntegerConstant::minimal_bitlength(&BigInt::from_str("255").unwrap_or_default(), false),
         Ok(crate::BITLENGTH_BYTE * 1),
     );
     assert_eq!(
-        Integer::minimal_bitlength(&BigInt::from_str("256").unwrap_or_default(), false),
+        IntegerConstant::minimal_bitlength(&BigInt::from_str("256").unwrap_or_default(), false),
         Ok(crate::BITLENGTH_BYTE * 2),
     );
     assert_eq!(
-        Integer::minimal_bitlength(&BigInt::from_str("65535").unwrap_or_default(), false),
+        IntegerConstant::minimal_bitlength(&BigInt::from_str("65535").unwrap_or_default(), false),
         Ok(crate::BITLENGTH_BYTE * 2),
     );
     assert_eq!(
-        Integer::minimal_bitlength(&BigInt::from_str("65536").unwrap_or_default(), false),
+        IntegerConstant::minimal_bitlength(&BigInt::from_str("65536").unwrap_or_default(), false),
         Ok(crate::BITLENGTH_BYTE * 3),
     );
     assert_eq!(
-        Integer::minimal_bitlength(&BigInt::from_str("4294967295").unwrap_or_default(), false),
+        IntegerConstant::minimal_bitlength(
+            &BigInt::from_str("4294967295").unwrap_or_default(),
+            false
+        ),
         Ok(crate::BITLENGTH_BYTE * 4),
     );
     assert_eq!(
-        Integer::minimal_bitlength(&BigInt::from_str("4294967296").unwrap_or_default(), false),
+        IntegerConstant::minimal_bitlength(
+            &BigInt::from_str("4294967296").unwrap_or_default(),
+            false
+        ),
         Ok(crate::BITLENGTH_BYTE * 5),
     );
     assert_eq!(
-        Integer::minimal_bitlength(
+        IntegerConstant::minimal_bitlength(
             &BigInt::from_str("18446744073709551615").unwrap_or_default(),
             false
         ),
         Ok(crate::BITLENGTH_BYTE * 8),
     );
     assert_eq!(
-        Integer::minimal_bitlength(
+        IntegerConstant::minimal_bitlength(
             &BigInt::from_str("18446744073709551616").unwrap_or_default(),
             false
         ),
         Ok(crate::BITLENGTH_BYTE * 9),
     );
     assert_eq!(
-        Integer::minimal_bitlength(&BigInt::from_str("-128").unwrap_or_default(), true),
+        IntegerConstant::minimal_bitlength(&BigInt::from_str("-128").unwrap_or_default(), true),
         Ok(crate::BITLENGTH_BYTE * 1),
     );
     assert_eq!(
-        Integer::minimal_bitlength(&BigInt::from_str("127").unwrap_or_default(), true),
+        IntegerConstant::minimal_bitlength(&BigInt::from_str("127").unwrap_or_default(), true),
         Ok(crate::BITLENGTH_BYTE * 1),
     );
     assert_eq!(
-        Integer::minimal_bitlength(&BigInt::from_str("128").unwrap_or_default(), true),
+        IntegerConstant::minimal_bitlength(&BigInt::from_str("128").unwrap_or_default(), true),
         Ok(crate::BITLENGTH_BYTE * 2),
     );
     assert_eq!(
-        Integer::minimal_bitlength(&BigInt::from_str("32767").unwrap_or_default(), true),
+        IntegerConstant::minimal_bitlength(&BigInt::from_str("32767").unwrap_or_default(), true),
         Ok(crate::BITLENGTH_BYTE * 2),
     );
     assert_eq!(
-        Integer::minimal_bitlength(&BigInt::from_str("32768").unwrap_or_default(), true),
+        IntegerConstant::minimal_bitlength(&BigInt::from_str("32768").unwrap_or_default(), true),
         Ok(crate::BITLENGTH_BYTE * 3),
     );
     assert_eq!(
-        Integer::minimal_bitlength(&BigInt::from_str("2147483647").unwrap_or_default(), true),
+        IntegerConstant::minimal_bitlength(
+            &BigInt::from_str("2147483647").unwrap_or_default(),
+            true
+        ),
         Ok(crate::BITLENGTH_BYTE * 4),
     );
     assert_eq!(
-        Integer::minimal_bitlength(&BigInt::from_str("2147483648").unwrap_or_default(), true),
+        IntegerConstant::minimal_bitlength(
+            &BigInt::from_str("2147483648").unwrap_or_default(),
+            true
+        ),
         Ok(crate::BITLENGTH_BYTE * 5),
     );
     assert_eq!(
-        Integer::minimal_bitlength(
+        IntegerConstant::minimal_bitlength(
             &BigInt::from_str("9223372036854775807").unwrap_or_default(),
             true
         ),
         Ok(crate::BITLENGTH_BYTE * 8),
     );
     assert_eq!(
-        Integer::minimal_bitlength(
+        IntegerConstant::minimal_bitlength(
             &BigInt::from_str("9223372036854775808").unwrap_or_default(),
             true
         ),
@@ -1142,6 +1154,52 @@ fn main() {
             IntegerConstantError::TypesMismatchRemainder {
                 first: "enum One".to_owned(),
                 second: "enum Two".to_owned(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_operator_bitwise_shift_left_2nd_operand_expected_unsigned() {
+    let input = r#"
+fn main() {
+    let value = 168 << -2;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 21),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::OperatorBitwiseShiftLeftSecondOperatorExpectedUnsigned {
+                found: IntegerConstant::new(BigInt::from(-2), true, crate::BITLENGTH_BYTE)
+                    .to_string(),
+            },
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_operator_bitwise_shift_right_2nd_operand_expected_unsigned() {
+    let input = r#"
+fn main() {
+    let value = 42 >> -2;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 20),
+        ElementError::Constant(ConstantError::Integer(
+            IntegerConstantError::OperatorBitwiseShiftRightSecondOperatorExpectedUnsigned {
+                found: IntegerConstant::new(BigInt::from(-2), true, crate::BITLENGTH_BYTE)
+                    .to_string(),
             },
         )),
     )));
