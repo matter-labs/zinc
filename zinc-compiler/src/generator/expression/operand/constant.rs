@@ -70,7 +70,7 @@ impl Constant {
 
     pub fn try_from_semantic(constant: &SemanticConstant) -> Option<Self> {
         match constant {
-            SemanticConstant::Boolean(boolean) => Some(Self::new_boolean(*boolean)),
+            SemanticConstant::Boolean(boolean) => Some(Self::new_boolean(boolean.inner)),
             SemanticConstant::Integer(integer) => Some(Self::new_integer(
                 integer.value.to_owned(),
                 integer.is_signed,

@@ -8,6 +8,7 @@ use num_bigint::BigInt;
 
 use crate::error::Error;
 use crate::lexical::token::location::Location;
+use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
@@ -30,7 +31,7 @@ fn main() {
     let expected = Err(Error::Semantic(
         SemanticError::LoopBoundsExpectedConstantRangeExpression {
             location: Location::new(4, 14),
-            found: Constant::Boolean(true).to_string(),
+            found: Constant::Boolean(BooleanConstant::new(true)).to_string(),
         },
     ));
 

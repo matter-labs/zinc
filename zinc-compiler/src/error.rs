@@ -2011,6 +2011,15 @@ impl Error {
                     Some("all branches must return the type returned by the first branch"),
                 )
             }
+            Self::Semantic(SemanticError::MatchBranchDuplicate { location, reference }) => {
+                Self::format_line_with_reference(
+                    context,
+                    "match expression contains a duplicate branch pattern",
+                    location,
+                    Some(reference),
+                    Some("each pattern may occur only once"),
+                )
+            }
 
             Self::Semantic(SemanticError::LoopWhileExpectedBooleanCondition { location, found }) => {
                 Self::format_line(

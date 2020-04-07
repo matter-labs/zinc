@@ -18,6 +18,7 @@ use num_traits::ToPrimitive;
 use zinc_utils::euclidean;
 
 use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::range::Range;
 use crate::semantic::element::constant::range_inclusive::RangeInclusive;
 use crate::semantic::element::r#type::enumeration::Enumeration;
@@ -102,7 +103,7 @@ impl Integer {
         ))
     }
 
-    pub fn equals(self, other: Self) -> Result<bool, Error> {
+    pub fn equals(self, other: Self) -> Result<BooleanConstant, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchEquals {
                 first: self.r#type().to_string(),
@@ -111,10 +112,10 @@ impl Integer {
         }
 
         let result = self.value == other.value;
-        Ok(result)
+        Ok(BooleanConstant::new(result))
     }
 
-    pub fn not_equals(self, other: Self) -> Result<bool, Error> {
+    pub fn not_equals(self, other: Self) -> Result<BooleanConstant, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchNotEquals {
                 first: self.r#type().to_string(),
@@ -123,10 +124,10 @@ impl Integer {
         }
 
         let result = self.value != other.value;
-        Ok(result)
+        Ok(BooleanConstant::new(result))
     }
 
-    pub fn greater_equals(self, other: Self) -> Result<bool, Error> {
+    pub fn greater_equals(self, other: Self) -> Result<BooleanConstant, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchGreaterEquals {
                 first: self.r#type().to_string(),
@@ -135,10 +136,10 @@ impl Integer {
         }
 
         let result = self.value >= other.value;
-        Ok(result)
+        Ok(BooleanConstant::new(result))
     }
 
-    pub fn lesser_equals(self, other: Self) -> Result<bool, Error> {
+    pub fn lesser_equals(self, other: Self) -> Result<BooleanConstant, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchLesserEquals {
                 first: self.r#type().to_string(),
@@ -147,10 +148,10 @@ impl Integer {
         }
 
         let result = self.value <= other.value;
-        Ok(result)
+        Ok(BooleanConstant::new(result))
     }
 
-    pub fn greater(self, other: Self) -> Result<bool, Error> {
+    pub fn greater(self, other: Self) -> Result<BooleanConstant, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchGreater {
                 first: self.r#type().to_string(),
@@ -159,10 +160,10 @@ impl Integer {
         }
 
         let result = self.value > other.value;
-        Ok(result)
+        Ok(BooleanConstant::new(result))
     }
 
-    pub fn lesser(self, other: Self) -> Result<bool, Error> {
+    pub fn lesser(self, other: Self) -> Result<BooleanConstant, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchLesser {
                 first: self.r#type().to_string(),
@@ -171,7 +172,7 @@ impl Integer {
         }
 
         let result = self.value < other.value;
-        Ok(result)
+        Ok(BooleanConstant::new(result))
     }
 
     pub fn bitwise_or(self, other: Self) -> Result<Self, Error> {
@@ -186,7 +187,7 @@ impl Integer {
             return Err(Error::ForbiddenFieldBitwise);
         }
 
-        let result = self.value | other.value;
+        let result = self.value | &other.value;
 
         Ok(Self {
             value: result,
@@ -208,7 +209,7 @@ impl Integer {
             return Err(Error::ForbiddenFieldBitwise);
         }
 
-        let result = self.value ^ other.value;
+        let result = self.value ^ &other.value;
 
         Ok(Self {
             value: result,
@@ -230,7 +231,7 @@ impl Integer {
             return Err(Error::ForbiddenFieldBitwise);
         }
 
-        let result = self.value & other.value;
+        let result = self.value & &other.value;
 
         Ok(Self {
             value: result,

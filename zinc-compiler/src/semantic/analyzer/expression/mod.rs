@@ -683,13 +683,13 @@ impl Analyzer {
 
         let result =
             callback(operand_1, operand_2).map_err(|error| Error::Element(location, error))?;
-        let difference = match result {
+        let start = match result {
             Element::Constant(Constant::Range(ref range)) => range.start.to_owned(),
             Element::Constant(Constant::RangeInclusive(ref range)) => range.start.to_owned(),
             _ => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
         };
         let intermediate = GeneratorExpressionOperand::Constant(
-            GeneratorExpressionConstant::new_integer(difference, false, crate::BITLENGTH_FIELD),
+            GeneratorExpressionConstant::new_integer(start, false, crate::BITLENGTH_FIELD),
         );
 
         self.evaluation_stack.push(StackElement::Evaluated(result));

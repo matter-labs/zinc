@@ -39,25 +39,20 @@ fn main() {
 }
 
 #[test]
-fn error_match_branch_expression_invalid_type() {
+fn error_match_not_exhausted() {
     let input = r#"
 fn main() {
     let scrutinee = 42;
     let result = match scrutinee {
-        0 => false,
-        1 => 0,
+        1 => 10,
+        2 => 20,
     };
 }
 "#;
 
-    let expected = Err(Error::Semantic(
-        SemanticError::MatchBranchExpressionInvalidType {
-            location: Location::new(6, 14),
-            expected: Type::boolean().to_string(),
-            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            reference: Location::new(5, 14),
-        },
-    ));
+    let expected = Err(Error::Semantic(SemanticError::MatchNotExhausted {
+        location: Location::new(4, 18),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -65,25 +60,92 @@ fn main() {
 }
 
 #[test]
-fn error_match_branch_pattern_invalid_type() {
+fn error_match_less_than_two_branches() {
     let input = r#"
 fn main() {
     let scrutinee = 42;
     let result = match scrutinee {
-        false => 0,
-        true => 1,
+        _ => 10,
     };
 }
 "#;
 
-    let expected = Err(Error::Semantic(
-        SemanticError::MatchBranchPatternInvalidType {
-            location: Location::new(5, 9),
-            expected: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            found: Type::boolean().to_string(),
-            reference: Location::new(4, 24),
-        },
-    ));
+    let expected = Err(Error::Semantic(SemanticError::MatchLessThanTwoBranches {
+        location: Location::new(4, 18),
+    }));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_match_branch_unreachable() {
+    let input = r#"
+fn main() {
+    let scrutinee = 42;
+    let result = match scrutinee {
+        1 => 10,
+        _ => 101,
+        2 => 20,
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::MatchBranchUnreachable {
+        location: Location::new(7, 9),
+    }));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_match_branch_unreachable_exhausted_boolean() {
+    let input = r#"
+fn main() {
+    let scrutinee = true;
+    let result = match scrutinee {
+        false => 10,
+        true => 101,
+        _ => 20,
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::MatchBranchUnreachable {
+        location: Location::new(7, 9),
+    }));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_match_branch_unreachable_exhausted_enumeration() {
+    let input = r#"
+enum List {
+    One = 1,
+    Two = 2,
+    Three = 3,
+}
+
+fn main() {
+    let scrutinee = List::One;
+    let result = match scrutinee {
+        List::One => 1,
+        List::Two => 2,
+        List::Three => 3,
+        _ => 4,
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::MatchBranchUnreachable {
+        location: Location::new(14, 9),
+    }));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -128,20 +190,72 @@ fn main() -> u8 {
 }
 
 #[test]
-fn error_match_branch_unreachable() {
+fn error_match_branch_pattern_invalid_type() {
     let input = r#"
 fn main() {
     let scrutinee = 42;
     let result = match scrutinee {
-        1 => 10,
-        _ => 101,
-        2 => 20,
+        false => 0,
+        true => 1,
     };
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::MatchBranchUnreachable {
-        location: Location::new(7, 9),
+    let expected = Err(Error::Semantic(
+        SemanticError::MatchBranchPatternInvalidType {
+            location: Location::new(5, 9),
+            expected: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            found: Type::boolean().to_string(),
+            reference: Location::new(4, 24),
+        },
+    ));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_match_branch_expression_invalid_type() {
+    let input = r#"
+fn main() {
+    let scrutinee = 42;
+    let result = match scrutinee {
+        0 => false,
+        1 => 0,
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(
+        SemanticError::MatchBranchExpressionInvalidType {
+            location: Location::new(6, 14),
+            expected: Type::boolean().to_string(),
+            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            reference: Location::new(5, 14),
+        },
+    ));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_match_branch_duplicate_boolean() {
+    let input = r#"
+fn main() {
+    let scrutinee = true;
+    let result = match scrutinee {
+        false => 10,
+        false => 20,
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::MatchBranchDuplicate {
+        location: Location::new(6, 9),
+        reference: Location::new(5, 9),
     }));
 
     let result = crate::semantic::tests::compile_entry(input);
@@ -150,39 +264,20 @@ fn main() {
 }
 
 #[test]
-fn error_match_less_than_two_branches() {
+fn error_match_branch_duplicate_integer() {
     let input = r#"
 fn main() {
     let scrutinee = 42;
     let result = match scrutinee {
-        _ => 10,
+        42 => 10,
+        42 => 20,
     };
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::MatchLessThanTwoBranches {
-        location: Location::new(4, 18),
-    }));
-
-    let result = crate::semantic::tests::compile_entry(input);
-
-    assert_eq!(result, expected);
-}
-
-#[test]
-fn error_match_not_exhausted() {
-    let input = r#"
-fn main() {
-    let scrutinee = 42;
-    let result = match scrutinee {
-        1 => 10,
-        2 => 20,
-    };
-}
-"#;
-
-    let expected = Err(Error::Semantic(SemanticError::MatchNotExhausted {
-        location: Location::new(4, 18),
+    let expected = Err(Error::Semantic(SemanticError::MatchBranchDuplicate {
+        location: Location::new(6, 9),
+        reference: Location::new(5, 9),
     }));
 
     let result = crate::semantic::tests::compile_entry(input);

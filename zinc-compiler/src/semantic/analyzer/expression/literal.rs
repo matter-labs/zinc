@@ -6,6 +6,7 @@ use std::convert::TryFrom;
 
 use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
+use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
@@ -27,7 +28,7 @@ impl Analyzer {
     pub fn boolean(
         literal: BooleanLiteral,
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
-        let constant = Constant::from(literal);
+        let constant = Constant::Boolean(BooleanConstant::from(literal));
 
         let intermediate = GeneratorConstant::try_from_semantic(&constant)
             .map(GeneratorExpressionOperand::Constant);

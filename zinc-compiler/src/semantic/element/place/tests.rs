@@ -8,6 +8,7 @@ use num_bigint::BigInt;
 
 use crate::error::Error;
 use crate::lexical::token::location::Location;
+use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::place::error::Error as PlaceError;
@@ -92,7 +93,7 @@ fn main() {
         Location::new(4, 22),
         ElementError::Place(
             PlaceError::OperatorIndexSecondOperandExpectedIntegerOrRange {
-                found: Constant::Boolean(true).to_string(),
+                found: Constant::Boolean(BooleanConstant::new(true)).to_string(),
             },
         ),
     )));

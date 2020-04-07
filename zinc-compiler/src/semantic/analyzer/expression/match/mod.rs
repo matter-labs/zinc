@@ -4,6 +4,8 @@
 
 mod tests;
 
+pub mod exhausting;
+
 use std::cell::RefCell;
 use std::convert::TryFrom;
 use std::rc::Rc;
@@ -14,6 +16,7 @@ use crate::generator::expression::operand::Operand as GeneratorExpressionOperand
 use crate::generator::r#type::Type as GeneratorType;
 use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
+use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::Constant;
@@ -26,6 +29,8 @@ use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::expression::r#match::Expression as MatchExpression;
 use crate::syntax::tree::pattern_match::variant::Variant as MatchPatternVariant;
+
+use self::exhausting::Data as ExhaustingData;
 
 pub struct Analyzer {}
 
@@ -71,6 +76,7 @@ impl Analyzer {
 
         let first_branch_expression_location = r#match.branches[0].1.location;
         let mut is_exhausted = false;
+        let mut exhausting_data = ExhaustingData::new();
         let mut branch_results = Vec::with_capacity(r#match.branches.len());
 
         for (pattern, expression) in r#match.branches.into_iter() {
@@ -85,7 +91,9 @@ impl Analyzer {
 
             let result = match pattern.variant {
                 MatchPatternVariant::BooleanLiteral(boolean) => {
-                    let constant = Constant::from(boolean);
+                    let location = boolean.location;
+
+                    let constant = BooleanConstant::from(boolean);
                     let pattern_type = constant.r#type();
                     if pattern_type != scrutinee_type {
                         return Err(Error::MatchBranchPatternInvalidType {
@@ -96,25 +104,39 @@ impl Analyzer {
                         });
                     }
 
-                    let constant = GeneratorConstant::try_from_semantic(&constant)
-                        .expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
+                    if let Some(duplicate) =
+                        exhausting_data.insert_boolean(constant.inner, location)
+                    {
+                        return Err(Error::MatchBranchDuplicate {
+                            location,
+                            reference: duplicate,
+                        });
+                    }
+
+                    let constant =
+                        GeneratorConstant::try_from_semantic(&Constant::Boolean(constant))
+                            .expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
                     let (result, branch) = ExpressionAnalyzer::new(scope_stack.top())
                         .analyze(expression, TranslationHint::Value)?;
-                    builder.push_branch(constant, branch);
+
+                    if exhausting_data.is_exhausted_boolean() {
+                        is_exhausted = true;
+                        builder.set_wildcard_branch(branch);
+                    } else {
+                        builder.push_branch(constant, branch);
+                    }
 
                     result
                 }
                 MatchPatternVariant::IntegerLiteral(integer) => {
                     let location = integer.location;
 
-                    let constant = IntegerConstant::try_from(&integer)
-                        .map(Constant::Integer)
-                        .map_err(|error| {
-                            Error::Element(
-                                location,
-                                ElementError::Constant(ConstantError::Integer(error)),
-                            )
-                        })?;
+                    let constant = IntegerConstant::try_from(&integer).map_err(|error| {
+                        Error::Element(
+                            location,
+                            ElementError::Constant(ConstantError::Integer(error)),
+                        )
+                    })?;
                     let pattern_type = constant.r#type();
                     if pattern_type != scrutinee_type {
                         return Err(Error::MatchBranchPatternInvalidType {
@@ -125,11 +147,27 @@ impl Analyzer {
                         });
                     }
 
-                    let constant = GeneratorConstant::try_from_semantic(&constant)
-                        .expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
+                    if let Some(duplicate) =
+                        exhausting_data.insert_integer(constant.value.clone(), None, location)
+                    {
+                        return Err(Error::MatchBranchDuplicate {
+                            location,
+                            reference: duplicate,
+                        });
+                    }
+
+                    let constant =
+                        GeneratorConstant::try_from_semantic(&Constant::Integer(constant))
+                            .expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
                     let (result, branch) = ExpressionAnalyzer::new(scope_stack.top())
                         .analyze(expression, TranslationHint::Value)?;
-                    builder.push_branch(constant, branch);
+
+                    if exhausting_data.is_exhausted_integer() {
+                        is_exhausted = true;
+                        builder.set_wildcard_branch(branch);
+                    } else {
+                        builder.push_branch(constant, branch);
+                    }
 
                     result
                 }
@@ -139,7 +177,21 @@ impl Analyzer {
                     let constant = match ExpressionAnalyzer::new(scope_stack.top())
                         .analyze(path, TranslationHint::Value)?
                     {
-                        (Element::Constant(constant), _intermediate) => constant,
+                        (Element::Constant(constant), _intermediate) => {
+                            if let Constant::Integer(ref integer) = constant {
+                                if let Some(duplicate) = exhausting_data.insert_integer(
+                                    integer.value.to_owned(),
+                                    integer.enumeration.to_owned(),
+                                    location,
+                                ) {
+                                    return Err(Error::MatchBranchDuplicate {
+                                        location,
+                                        reference: duplicate,
+                                    });
+                                }
+                            }
+                            constant
+                        }
                         (element, _intermediate) => {
                             return Err(Error::MatchBranchPatternPathExpectedConstant {
                                 location,
@@ -152,7 +204,13 @@ impl Analyzer {
                         .expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
                     let (result, branch) = ExpressionAnalyzer::new(scope_stack.top())
                         .analyze(expression, TranslationHint::Value)?;
-                    builder.push_branch(constant, branch);
+
+                    if exhausting_data.is_exhausted_integer() {
+                        is_exhausted = true;
+                        builder.set_wildcard_branch(branch);
+                    } else {
+                        builder.push_branch(constant, branch);
+                    }
 
                     result
                 }
@@ -169,8 +227,9 @@ impl Analyzer {
                     .map_err(|error| Error::Scope(location, error))?;
                     let (result, branch) = ExpressionAnalyzer::new(scope_stack.top())
                         .analyze(expression, TranslationHint::Value)?;
-                    builder.set_binding_branch(branch, identifier.name);
                     scope_stack.pop();
+
+                    builder.set_binding_branch(branch, identifier.name);
 
                     result
                 }
@@ -178,7 +237,9 @@ impl Analyzer {
                     is_exhausted = true;
                     let (result, branch) = ExpressionAnalyzer::new(scope_stack.top())
                         .analyze(expression, TranslationHint::Value)?;
+
                     builder.set_wildcard_branch(branch);
+
                     result
                 }
             };

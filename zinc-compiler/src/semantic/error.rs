@@ -40,6 +40,10 @@ pub enum Error {
         found: String,
         reference: Location,
     },
+    MatchBranchDuplicate {
+        location: Location,
+        reference: Location,
+    },
 
     LoopWhileExpectedBooleanCondition {
         location: Location,

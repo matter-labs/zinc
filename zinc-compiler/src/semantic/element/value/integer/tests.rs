@@ -4,8 +4,6 @@
 
 #![cfg(test)]
 
-use num_bigint::BigInt;
-
 use crate::error::Error;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::error::Error as ElementError;

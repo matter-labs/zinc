@@ -4,6 +4,7 @@
 
 mod tests;
 
+pub mod boolean;
 pub mod error;
 pub mod integer;
 pub mod range;
@@ -13,8 +14,8 @@ use std::fmt;
 
 use crate::semantic::casting::Caster;
 use crate::semantic::element::r#type::Type;
-use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
 
+use self::boolean::Boolean;
 use self::error::Error;
 use self::integer::Integer;
 use self::range::Range;
@@ -26,7 +27,7 @@ use self::range_inclusive::RangeInclusive;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Constant {
     Unit,
-    Boolean(bool),
+    Boolean(Boolean),
     Integer(Integer),
     Range(Range),
     RangeInclusive(RangeInclusive),
@@ -37,7 +38,7 @@ impl Constant {
     pub fn r#type(&self) -> Type {
         match self {
             Self::Unit => Type::unit(),
-            Self::Boolean(_) => Type::boolean(),
+            Self::Boolean(inner) => inner.r#type(),
             Self::Integer(inner) => inner.r#type(),
             Self::Range(inner) => inner.r#type(),
             Self::RangeInclusive(inner) => inner.r#type(),
@@ -48,7 +49,9 @@ impl Constant {
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Unit, Self::Unit) => true,
-            (Self::Boolean(_), Self::Boolean(_)) => true,
+            (Self::Boolean(inner_1), Self::Boolean(inner_2)) => {
+                inner_1.has_the_same_type_as(inner_2)
+            }
             (Self::Integer(inner_1), Self::Integer(inner_2)) => {
                 inner_1.has_the_same_type_as(inner_2)
             }
@@ -97,10 +100,7 @@ impl Constant {
     pub fn or(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Boolean(value_1) => match other {
-                Self::Boolean(value_2) => {
-                    let result = value_1 || value_2;
-                    Ok(Self::Boolean(result))
-                }
+                Self::Boolean(value_2) => Ok(Self::Boolean(value_1.or(value_2))),
                 constant => Err(Error::OperatorOrSecondOperandExpectedBoolean {
                     found: constant.to_string(),
                 }),
@@ -114,10 +114,7 @@ impl Constant {
     pub fn xor(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Boolean(value_1) => match other {
-                Self::Boolean(value_2) => {
-                    let result = !value_1 && value_2 || value_1 && !value_2;
-                    Ok(Self::Boolean(result))
-                }
+                Self::Boolean(value_2) => Ok(Self::Boolean(value_1.xor(value_2))),
                 constant => Err(Error::OperatorXorSecondOperandExpectedBoolean {
                     found: constant.to_string(),
                 }),
@@ -131,10 +128,7 @@ impl Constant {
     pub fn and(self, other: Self) -> Result<Self, Error> {
         match self {
             Self::Boolean(value_1) => match other {
-                Self::Boolean(value_2) => {
-                    let result = value_1 && value_2;
-                    Ok(Self::Boolean(result))
-                }
+                Self::Boolean(value_2) => Ok(Self::Boolean(value_1.and(value_2))),
                 constant => Err(Error::OperatorAndSecondOperandExpectedBoolean {
                     found: constant.to_string(),
                 }),
@@ -147,13 +141,12 @@ impl Constant {
 
     pub fn equals(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
-            (Self::Unit, Self::Unit) => Ok(Self::Boolean(true)),
+            (Self::Unit, Self::Unit) => Ok(Self::Boolean(Boolean::new(true))),
             (Self::Unit, value_2) => Err(Error::OperatorEqualsSecondOperandExpectedUnit {
                 found: value_2.to_string(),
             }),
             (Self::Boolean(value_1), Self::Boolean(value_2)) => {
-                let result = value_1 == value_2;
-                Ok(Self::Boolean(result))
+                Ok(Self::Boolean(value_1.equals(value_2)))
             }
             (Self::Boolean(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedBoolean {
                 found: value_2.to_string(),
@@ -173,13 +166,12 @@ impl Constant {
 
     pub fn not_equals(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
-            (Self::Unit, Self::Unit) => Ok(Self::Boolean(true)),
+            (Self::Unit, Self::Unit) => Ok(Self::Boolean(Boolean::new(false))),
             (Self::Unit, value_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedUnit {
                 found: value_2.to_string(),
             }),
             (Self::Boolean(value_1), Self::Boolean(value_2)) => {
-                let result = value_1 != value_2;
-                Ok(Self::Boolean(result))
+                Ok(Self::Boolean(value_1.not_equals(value_2)))
             }
             (Self::Boolean(_), value_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedBoolean {
@@ -448,7 +440,7 @@ impl Constant {
     pub fn not(self) -> Result<Self, Error> {
         match self {
             Self::Boolean(value) => {
-                let result = !value;
+                let result = value.not();
                 Ok(Self::Boolean(result))
             }
             value => Err(Error::OperatorNotExpectedBoolean {
@@ -499,24 +491,11 @@ impl Constant {
     }
 }
 
-impl From<bool> for Constant {
-    fn from(value: bool) -> Self {
-        Self::Boolean(value)
-    }
-}
-
-impl From<BooleanLiteral> for Constant {
-    fn from(value: BooleanLiteral) -> Self {
-        let value: bool = value.into();
-        Self::from(value)
-    }
-}
-
 impl fmt::Display for Constant {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Unit => write!(f, "unit constant '()'"),
-            Self::Boolean(constant) => write!(f, "boolean constant '{}'", constant),
+            Self::Boolean(inner) => write!(f, "{}", inner),
             Self::Integer(inner) => write!(f, "{}", inner),
             Self::Range(inner) => write!(f, "{}", inner),
             Self::RangeInclusive(inner) => write!(f, "{}", inner),
