@@ -6,10 +6,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::r#type::Parser as TypeParser;
 use crate::syntax::tree::r#type::builder::Builder as TypeBuilder;
@@ -36,11 +36,16 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a tuple type literal.
+    ///
+    /// '(u8, field, bool)'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
-    ) -> Result<Type, Error> {
+    ) -> Result<(Type, Option<Token>), Error> {
         loop {
             match self.state {
                 State::ParenthesisLeft => {
@@ -69,7 +74,7 @@ impl Parser {
                             ..
                         } => {
                             self.builder.set_unit_if_empty();
-                            return Ok(self.builder.finish());
+                            return Ok((self.builder.finish(), self.next.take()));
                         }
                         token => {
                             let (element_type, next) =
@@ -89,7 +94,7 @@ impl Parser {
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::ParenthesisRight),
                             ..
-                        } => return Ok(self.builder.finish()),
+                        } => return Ok((self.builder.finish(), self.next.take())),
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
@@ -112,16 +117,15 @@ mod tests {
 
     use super::Parser;
     use crate::error::Error;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::symbol::Symbol;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
     use crate::syntax::error::Error as SyntaxError;
-    use crate::syntax::tree::expression::element::Element as ExpressionElement;
-    use crate::syntax::tree::expression::object::Object as ExpressionObject;
-    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
-    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
+    use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
     use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
     use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
     use crate::syntax::tree::r#type::Type;
@@ -130,7 +134,7 @@ mod tests {
     fn ok_unit() {
         let input = "()";
 
-        let expected = Ok(Type::new(Location::new(1, 1), TypeVariant::unit()));
+        let expected = Ok((Type::new(Location::new(1, 1), TypeVariant::unit()), None));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
 
@@ -141,9 +145,12 @@ mod tests {
     fn ok_single() {
         let input = "(field)";
 
-        let expected = Ok(Type::new(
-            Location::new(1, 1),
-            TypeVariant::tuple(vec![TypeVariant::Field]),
+        let expected = Ok((
+            Type::new(
+                Location::new(1, 1),
+                TypeVariant::tuple(vec![TypeVariant::Field]),
+            ),
+            None,
         ));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
@@ -155,9 +162,12 @@ mod tests {
     fn ok_single_with_comma() {
         let input = "(field,)";
 
-        let expected = Ok(Type::new(
-            Location::new(1, 1),
-            TypeVariant::tuple(vec![TypeVariant::Field]),
+        let expected = Ok((
+            Type::new(
+                Location::new(1, 1),
+                TypeVariant::tuple(vec![TypeVariant::Field]),
+            ),
+            None,
         ));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
@@ -169,27 +179,27 @@ mod tests {
     fn ok_multiple() {
         let input = "(field, (), [u8; 4])";
 
-        let expected = Ok(Type::new(
-            Location::new(1, 1),
-            TypeVariant::tuple(vec![
-                TypeVariant::Field,
-                TypeVariant::Unit,
-                TypeVariant::array(
-                    TypeVariant::integer_unsigned(8),
-                    Expression::new(
-                        Location::new(1, 18),
-                        vec![ExpressionElement::new(
+        let expected = Ok((
+            Type::new(
+                Location::new(1, 1),
+                TypeVariant::tuple(vec![
+                    TypeVariant::Field,
+                    TypeVariant::Unit,
+                    TypeVariant::array(
+                        TypeVariant::integer_unsigned(8),
+                        ExpressionTree::new(
                             Location::new(1, 18),
-                            ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
+                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
                                 IntegerLiteral::new(
                                     Location::new(1, 18),
-                                    lexical::IntegerLiteral::new_decimal("4".to_owned()),
+                                    LexicalIntegerLiteral::new_decimal("4".to_owned()),
                                 ),
                             )),
-                        )],
+                        ),
                     ),
-                ),
-            ]),
+                ]),
+            ),
+            None,
         ));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
@@ -201,12 +211,15 @@ mod tests {
     fn ok_nested() {
         let input = "((field, field),)";
 
-        let expected = Ok(Type::new(
-            Location::new(1, 1),
-            TypeVariant::tuple(vec![TypeVariant::tuple(vec![
-                TypeVariant::Field,
-                TypeVariant::Field,
-            ])]),
+        let expected = Ok((
+            Type::new(
+                Location::new(1, 1),
+                TypeVariant::tuple(vec![TypeVariant::tuple(vec![
+                    TypeVariant::Field,
+                    TypeVariant::Field,
+                ])]),
+            ),
+            None,
         ));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);

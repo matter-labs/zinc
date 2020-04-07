@@ -8,6 +8,11 @@ use num_bigint::BigInt;
 
 use crate::semantic::element::r#type::Type;
 
+///
+/// Range is a constant with the `start` and non-inclusive `end` bounds, sign, and bitlength.
+///
+/// Ranges are used mostly as loop bounds and the array slice operator argument.
+///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Range {
     pub start: BigInt,

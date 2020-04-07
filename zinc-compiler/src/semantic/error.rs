@@ -2,24 +2,29 @@
 //! The semantic error.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::semantic::element::error::Error as ElementError;
-use crate::semantic::element::r#type::function::error::Error as FunctionError;
 use crate::semantic::scope::error::Error as ScopeError;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
     Element(Location, ElementError),
     Scope(Location, ScopeError),
-    Function(Location, FunctionError),
 
+    MatchScrutineeInvalidType {
+        location: Location,
+        found: String,
+    },
     MatchNotExhausted {
+        location: Location,
+    },
+    MatchLessThanTwoBranches {
         location: Location,
     },
     MatchBranchUnreachable {
         location: Location,
     },
-    MatchBranchPatternPathExpectedEvaluable {
+    MatchBranchPatternPathExpectedConstant {
         location: Location,
         found: String,
     },
@@ -35,16 +40,9 @@ pub enum Error {
         found: String,
         reference: Location,
     },
-
-    MutatingWithDifferentType {
+    MatchBranchDuplicate {
         location: Location,
-        expected: String,
-        found: String,
-    },
-    MutatingImmutableMemory {
-        location: Location,
-        name: String,
-        reference: Option<Location>,
+        reference: Location,
     },
 
     LoopWhileExpectedBooleanCondition {
@@ -69,12 +67,6 @@ pub enum Error {
 
     EntryPointMissing,
 
-    StructureDuplicateField {
-        location: Location,
-        type_identifier: String,
-        field_name: String,
-    },
-
     ModuleNotFound {
         location: Location,
         name: String,
@@ -90,14 +82,6 @@ pub enum Error {
         found: String,
     },
 
-    TypeAliasDoesNotPointToType {
-        location: Location,
-        found: String,
-    },
-    TypeAliasDoesNotPointToStructure {
-        location: Location,
-        found: String,
-    },
     ConstantExpressionHasNonConstantElement {
         location: Location,
         found: String,

@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "zero_zero",
 //#     "input": {
 //#         "a": "0",
@@ -33,7 +33,7 @@
 //#         "b": "28"
 //#     },
 //#     "expect": null
-//# } ]
+//# } ] }
 
 fn main(a: i8, b: i8) -> i8 {
     let mut c = a;

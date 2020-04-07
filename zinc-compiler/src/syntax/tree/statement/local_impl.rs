@@ -2,7 +2,7 @@
 //! The implementation-local statement.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
 use crate::syntax::tree::statement::r#fn::Statement as FnStatement;
 

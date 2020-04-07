@@ -12,6 +12,8 @@ use std::path::PathBuf;
 use failure::Fail;
 use serde_derive::Deserialize;
 
+pub static FILE_NAME_DEFAULT: &str = "Zargo.toml";
+
 #[derive(Deserialize)]
 pub struct Manifest {
     pub circuit: Circuit,
@@ -25,21 +27,19 @@ pub struct Circuit {
 
 #[derive(Debug, Fail)]
 pub enum Error {
-    #[fail(display = "opening: {}", _0)]
-    Opening(io::Error),
-    #[fail(display = "metadata: {}", _0)]
-    Metadata(io::Error),
-    #[fail(display = "reading: {}", _0)]
-    Reading(io::Error),
-    #[fail(display = "parsing: {}", _0)]
-    Parsing(toml::de::Error),
-    #[fail(display = "creating: {}", _0)]
-    Creating(io::Error),
-    #[fail(display = "writing: {}", _0)]
-    Writing(io::Error),
+    #[fail(display = "`{}` opening: {}", _0, _1)]
+    Opening(&'static str, io::Error),
+    #[fail(display = "`{}` metadata: {}", _0, _1)]
+    Metadata(&'static str, io::Error),
+    #[fail(display = "`{}` reading: {}", _0, _1)]
+    Reading(&'static str, io::Error),
+    #[fail(display = "`{}` parsing: {}", _0, _1)]
+    Parsing(&'static str, toml::de::Error),
+    #[fail(display = "`{}` creating: {}", _0, _1)]
+    Creating(&'static str, io::Error),
+    #[fail(display = "`{}` writing: {}", _0, _1)]
+    Writing(&'static str, io::Error),
 }
-
-pub static FILE_NAME_DEFAULT: &str = "Zargo.toml";
 
 impl Manifest {
     pub fn new(circuit_name: &str) -> Self {
@@ -65,9 +65,10 @@ impl Manifest {
             path.push(PathBuf::from(FILE_NAME_DEFAULT));
         }
 
-        let mut file = File::create(&path).map_err(Error::Creating)?;
+        let mut file =
+            File::create(&path).map_err(|error| Error::Creating(FILE_NAME_DEFAULT, error))?;
         file.write_all(self.template().as_bytes())
-            .map_err(Error::Writing)
+            .map_err(|error| Error::Writing(FILE_NAME_DEFAULT, error))
     }
 
     fn template(&self) -> String {
@@ -90,12 +91,17 @@ impl TryFrom<&PathBuf> for Manifest {
             path.push(PathBuf::from(FILE_NAME_DEFAULT));
         }
 
-        let mut file = File::open(path).map_err(Error::Opening)?;
-        let size = file.metadata().map_err(Error::Metadata)?.len() as usize;
+        let mut file =
+            File::open(path).map_err(|error| Error::Opening(FILE_NAME_DEFAULT, error))?;
+        let size = file
+            .metadata()
+            .map_err(|error| Error::Metadata(FILE_NAME_DEFAULT, error))?
+            .len() as usize;
 
         let mut buffer = String::with_capacity(size);
-        file.read_to_string(&mut buffer).map_err(Error::Reading)?;
+        file.read_to_string(&mut buffer)
+            .map_err(|error| Error::Reading(FILE_NAME_DEFAULT, error))?;
 
-        Ok(toml::from_str(&buffer).map_err(Error::Parsing)?)
+        Ok(toml::from_str(&buffer).map_err(|error| Error::Parsing(FILE_NAME_DEFAULT, error))?)
     }
 }

@@ -1,0 +1,15 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "a": "42"
+//#     },
+//#     "expect": "213"
+//# } ] }
+
+fn bitwise_not(a: u8) -> u8 {
+    ~42 // TODO
+}
+
+fn main(a: u8) -> u8 {
+    bitwise_not(a)
+}

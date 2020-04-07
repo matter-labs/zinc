@@ -59,8 +59,8 @@ impl<E: Engine> NativeFunction<E> for SignedFromBits {
         let num = (num_expr - base_expr).into_number(cs.namespace(|| "result"))?;
 
         let int_type = IntegerType {
-            signed: true,
-            length: self.bit_length,
+            is_signed: true,
+            bitlength: self.bit_length,
         };
 
         let scalar =

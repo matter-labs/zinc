@@ -16,14 +16,22 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
-use crate::syntax::Identifier;
-use crate::syntax::Variant;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::variant::Variant;
 
+///
+/// Describes an enumeration type.
+///
+/// Consists of the local enumeration `identifier` within its scope, global `unique_id`,
+/// and the implementation `scope`, which contains the enumeration variants and
+/// reference to its parent scope.
+///
 #[derive(Debug, Clone)]
 pub struct Enumeration {
     pub identifier: String,
     pub unique_id: usize,
     pub bitlength: usize,
+    pub values: Vec<BigInt>,
     pub scope: Rc<RefCell<Scope>>,
 }
 
@@ -44,30 +52,39 @@ impl Enumeration {
                     ElementError::Constant(ConstantError::Integer(error)),
                 )
             })?;
-            variants_bigint.push((variant.identifier, value.value));
+            variants_bigint.push((variant.identifier, value.value.clone()));
         }
-        let bigints: Vec<&BigInt> = variants_bigint.iter().map(|variant| &variant.1).collect();
-        let minimal_bitlength =
-            IntegerConstant::minimal_bitlength_bigints(bigints.as_slice(), false).map_err(
-                |error| {
-                    Error::Element(
-                        identifier.location,
-                        ElementError::Constant(ConstantError::Integer(error)),
-                    )
-                },
-            )?;
+        let bigints: Vec<BigInt> = variants_bigint
+            .iter()
+            .map(|variant| variant.1.to_owned())
+            .collect();
 
-        let enumeration = Self {
+        let minimal_bitlength = IntegerConstant::minimal_bitlength_bigints(
+            bigints.iter().collect::<Vec<&BigInt>>().as_slice(),
+            false,
+        )
+        .map_err(|error| {
+            Error::Element(
+                identifier.location,
+                ElementError::Constant(ConstantError::Integer(error)),
+            )
+        })?;
+
+        let mut enumeration = Self {
             identifier: identifier.name,
             unique_id,
             bitlength: minimal_bitlength,
+            values: bigints,
             scope: scope.clone(),
         };
 
         for (identifier, value) in variants_bigint.into_iter() {
             let location = identifier.location;
+
             let mut constant = IntegerConstant::new(value, false, minimal_bitlength);
+
             constant.set_enumeration(enumeration.clone());
+
             Scope::declare_constant(scope.clone(), identifier, Constant::Integer(constant))
                 .map_err(|error| Error::Scope(location, error))?;
         }
@@ -75,6 +92,8 @@ impl Enumeration {
         scope
             .borrow_mut()
             .declare_self(Type::Enumeration(enumeration.clone()));
+
+        enumeration.values.sort();
 
         Ok(enumeration)
     }

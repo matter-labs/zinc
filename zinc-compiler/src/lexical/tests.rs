@@ -15,10 +15,10 @@ use crate::lexical::token::lexeme::Lexeme;
 use crate::lexical::token::location::Location;
 use crate::lexical::token::Token;
 
-static PANIC_LEXICAL_ERROR: &str = "An unexpected lexical error";
-
 #[test]
 fn ok() {
+    static PANIC_LEXICAL_ERROR: &str = "An unexpected lexical error";
+
     let input = r#"
 /*
     This is the mega ultra test application!
@@ -115,11 +115,23 @@ fn error_unterminated_double_quote_string() {
 }
 
 #[test]
-fn error_expected_one_of() {
-    let input = "^&";
+fn error_expected_one_of_binary() {
+    let input = "0b102";
 
     let expected: Result<Token, Error> =
-        Err(Error::expected_one_of(Location::new(1, 2), vec!['^'], '&'));
+        Err(Error::expected_one_of_binary(Location::new(1, 5), '2'));
+
+    let result = TokenStream::new(input).next();
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_expected_one_of_octal() {
+    let input = "0o378";
+
+    let expected: Result<Token, Error> =
+        Err(Error::expected_one_of_octal(Location::new(1, 5), '8'));
 
     let result = TokenStream::new(input).next();
 
@@ -163,9 +175,9 @@ fn error_invalid_character() {
 
 #[test]
 fn error_unexpected_end() {
-    let input = "&";
+    let input = "0x";
 
-    let expected: Result<Token, Error> = Err(Error::unexpected_end(Location::new(1, 2)));
+    let expected: Result<Token, Error> = Err(Error::unexpected_end(Location::new(1, 3)));
 
     let result = TokenStream::new(input).next();
 

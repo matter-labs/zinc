@@ -21,6 +21,10 @@ use std::fmt;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
+use crate::semantic::element::r#type::function::error::Error;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::element::Element;
+
 use self::array_pad::Function as ArrayPadFunction;
 use self::array_reverse::Function as ArrayReverseFunction;
 use self::array_truncate::Function as ArrayTruncateFunction;
@@ -82,6 +86,25 @@ impl Function {
             BuiltinIdentifier::ArrayPad => Self::ArrayPad(ArrayPadFunction::new(identifier)),
 
             BuiltinIdentifier::FieldInverse => Self::FfInvert(FfInvertFunction::new(identifier)),
+        }
+    }
+
+    pub fn call(self, elements: Vec<Element>) -> Result<Type, Error> {
+        match self {
+            Self::CryptoSha256(inner) => inner.call(elements),
+            Self::CryptoPedersen(inner) => inner.call(elements),
+            Self::CryptoSchnorrSignatureVerify(inner) => inner.call(elements),
+
+            Self::ConvertToBits(inner) => inner.call(elements),
+            Self::ConvertFromBitsUnsigned(inner) => inner.call(elements),
+            Self::ConvertFromBitsSigned(inner) => inner.call(elements),
+            Self::ConvertFromBitsField(inner) => inner.call(elements),
+
+            Self::ArrayReverse(inner) => inner.call(elements),
+            Self::ArrayTruncate(inner) => inner.call(elements),
+            Self::ArrayPad(inner) => inner.call(elements),
+
+            Self::FfInvert(inner) => inner.call(elements),
         }
     }
 

@@ -35,9 +35,8 @@ const EXIT_CODE_FAILURE: i32 = 1;
 static TESTS_DIRECTORY: &str = "zinc-tester/tests/";
 
 static PANIC_TEST_DIRECTORY_INVALID: &str = "The test files directory must be valid";
-static PANIC_THE_ONLY_REFERENCE: &str =
-    "The last shared reference is always unwrapped successfully";
-static PANIC_SYNC: &str = "Synchronization is always successful";
+static PANIC_LAST_SHARED_REFERENCE: &str = "There are no other references at this point";
+static PANIC_MUTEX_SYNC: &str = "Mutexes never panic";
 
 fn main() {
     let args = arguments::Arguments::from_args();
@@ -98,9 +97,9 @@ fn main_inner<R: TestRunner>(runner: R) -> Summary {
         .collect::<Vec<()>>();
 
     Arc::try_unwrap(summary)
-        .expect(PANIC_THE_ONLY_REFERENCE)
+        .expect(PANIC_LAST_SHARED_REFERENCE)
         .into_inner()
-        .expect(PANIC_THE_ONLY_REFERENCE)
+        .expect(PANIC_LAST_SHARED_REFERENCE)
 }
 
 #[derive(Debug, Default)]

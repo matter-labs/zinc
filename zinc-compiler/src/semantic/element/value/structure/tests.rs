@@ -5,12 +5,12 @@
 #![cfg(test)]
 
 use crate::error::Error;
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::error::Error as ValueError;
 use crate::semantic::element::value::structure::error::Error as StructureValueError;
-use crate::semantic::Error as SemanticError;
+use crate::semantic::error::Error as SemanticError;
 
 #[test]
 fn error_field_does_not_exist() {
@@ -36,7 +36,7 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
@@ -67,7 +67,7 @@ fn main() {
         })),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
@@ -98,7 +98,7 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
@@ -131,7 +131,7 @@ fn main() {
         )),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }

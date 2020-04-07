@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "condition_true", "should_panic": true,
 //#     "input": {
 //#         "condition": true
@@ -10,7 +10,7 @@
 //#         "condition": false
 //#     },
 //#     "expect": "5"
-//# } ]
+//# } ] }
 
 fn main(condition: bool) -> u8 {
     let mut result = 5;

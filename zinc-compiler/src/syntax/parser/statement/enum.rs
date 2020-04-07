@@ -6,11 +6,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Keyword;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::variant_list::Parser as VariantListParser;
 use crate::syntax::tree::identifier::Identifier;
@@ -43,6 +43,17 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses an 'enum' statement.
+    ///
+    /// '
+    /// enum List {
+    ///     A = 1,
+    ///     B = 2,
+    ///     C = 3,
+    /// }
+    /// '
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -75,7 +86,7 @@ impl Parser {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
                         } => {
-                            let identifier = Identifier::new(location, identifier.name);
+                            let identifier = Identifier::new(location, identifier.inner);
                             self.builder.set_identifier(identifier);
                             self.state = State::BracketCurlyLeftOrEnd;
                         }
@@ -127,12 +138,12 @@ mod tests {
 
     use super::Parser;
     use crate::error::Error;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::Token;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::symbol::Symbol;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
+    use crate::lexical::token::Token;
     use crate::syntax::error::Error as SyntaxError;
     use crate::syntax::tree::identifier::Identifier;
     use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
@@ -199,7 +210,7 @@ mod tests {
                     Identifier::new(Location::new(3, 9), "A".to_owned()),
                     IntegerLiteral::new(
                         Location::new(3, 13),
-                        lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                        LexicalIntegerLiteral::new_decimal("1".to_owned()),
                     ),
                 )],
             ),
@@ -231,7 +242,7 @@ mod tests {
                         Identifier::new(Location::new(3, 9), "A".to_owned()),
                         IntegerLiteral::new(
                             Location::new(3, 13),
-                            lexical::IntegerLiteral::new_decimal("1".to_owned()),
+                            LexicalIntegerLiteral::new_decimal("1".to_owned()),
                         ),
                     ),
                     Variant::new(
@@ -239,7 +250,7 @@ mod tests {
                         Identifier::new(Location::new(4, 9), "B".to_owned()),
                         IntegerLiteral::new(
                             Location::new(4, 13),
-                            lexical::IntegerLiteral::new_decimal("2".to_owned()),
+                            LexicalIntegerLiteral::new_decimal("2".to_owned()),
                         ),
                     ),
                     Variant::new(
@@ -247,7 +258,7 @@ mod tests {
                         Identifier::new(Location::new(5, 9), "C".to_owned()),
                         IntegerLiteral::new(
                             Location::new(5, 13),
-                            lexical::IntegerLiteral::new_decimal("3".to_owned()),
+                            LexicalIntegerLiteral::new_decimal("3".to_owned()),
                         ),
                     ),
                 ],

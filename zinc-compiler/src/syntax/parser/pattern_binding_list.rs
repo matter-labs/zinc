@@ -6,11 +6,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Keyword;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::parser::pattern_binding::Parser as BindingPatternParser;
 use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
 
@@ -34,6 +34,11 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a binding pattern list.
+    ///
+    /// 'mut a: u8, b: field, c: (bool, bool)'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -100,10 +105,10 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Token;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
+    use crate::lexical::token::Token;
     use crate::syntax::tree::identifier::Identifier;
     use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;
     use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;

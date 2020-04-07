@@ -6,29 +6,32 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Keyword;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::statement::module::Parser as ModStatementParser;
 use crate::syntax::parser::statement::r#const::Parser as ConstStatementParser;
 use crate::syntax::parser::statement::r#enum::Parser as EnumStatementParser;
 use crate::syntax::parser::statement::r#fn::Parser as FnStatementParser;
 use crate::syntax::parser::statement::r#impl::Parser as ImplStatementParser;
-use crate::syntax::parser::statement::r#static::Parser as StaticStatementParser;
 use crate::syntax::parser::statement::r#struct::Parser as StructStatementParser;
 use crate::syntax::parser::statement::r#type::Parser as TypeStatementParser;
 use crate::syntax::parser::statement::r#use::Parser as UseStatementParser;
 use crate::syntax::tree::statement::local_mod::Statement as ModuleLocalStatement;
 
-static HINT_ONLY_SOME_STATEMENTS: &str = "only constants, statics, types, functions, and type implementations may be declared at the module root";
+static HINT_ONLY_SOME_STATEMENTS: &str =
+    "only constants, types, functions, and type implementations may be declared at the module root";
 
 #[derive(Default)]
 pub struct Parser {}
 
 impl Parser {
+    ///
+    /// Parses a top-level statement allowed in modules.
+    ///
     pub fn parse(
         self,
         stream: Rc<RefCell<TokenStream>>,
@@ -43,14 +46,6 @@ impl Parser {
             } => ConstStatementParser::default()
                 .parse(stream, Some(token))
                 .map(|(statement, next)| (ModuleLocalStatement::Const(statement), next)),
-            token
-            @
-            Token {
-                lexeme: Lexeme::Keyword(Keyword::Static),
-                ..
-            } => StaticStatementParser::default()
-                .parse(stream, Some(token))
-                .map(|(statement, next)| (ModuleLocalStatement::Static(statement), next)),
             token
             @
             Token {
@@ -114,7 +109,7 @@ impl Parser {
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::expected_one_of(
                 location,
                 vec![
-                    "const", "static", "type", "struct", "enum", "fn", "mod", "use", "impl",
+                    "type", "struct", "enum", "fn", "mod", "use", "impl", "const",
                 ],
                 lexeme,
                 Some(HINT_ONLY_SOME_STATEMENTS),

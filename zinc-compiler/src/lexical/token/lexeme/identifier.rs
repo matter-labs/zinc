@@ -4,12 +4,13 @@
 
 use std::convert::TryFrom;
 use std::fmt;
+use std::str::FromStr;
 
 use crate::lexical::token::lexeme::keyword::Keyword;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Identifier {
-    pub name: String,
+    pub inner: String,
 }
 
 #[derive(Debug)]
@@ -18,25 +19,37 @@ pub enum Error {
     IsKeyword(Keyword),
 }
 
+pub static STRING_DELIMITER: &str = "_";
+
 impl Identifier {
-    pub fn new(name: String) -> Self {
-        Self { name }
+    pub const CHARACTER_DELIMITER: char = '_';
+
+    pub fn new(inner: String) -> Self {
+        Self { inner }
     }
 
     pub fn can_start_with(character: char) -> bool {
-        character.is_ascii_alphabetic() || character == '_'
+        character.is_ascii_alphabetic() || character == Self::CHARACTER_DELIMITER
     }
 
     pub fn can_contain_after_start(character: char) -> bool {
-        character.is_ascii_alphanumeric() || character == '_'
+        character.is_ascii_alphanumeric() || character == Self::CHARACTER_DELIMITER
     }
 }
 
-impl TryFrom<&str> for Identifier {
+impl TryFrom<String> for Identifier {
     type Error = Error;
 
-    fn try_from(input: &str) -> Result<Self, Self::Error> {
-        if input == "_" {
+    fn try_from(input: String) -> Result<Self, Self::Error> {
+        Self::from_str(input.as_str())
+    }
+}
+
+impl FromStr for Identifier {
+    type Err = Error;
+
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        if input == STRING_DELIMITER {
             return Err(Error::IsUnderscore);
         }
 
@@ -45,13 +58,13 @@ impl TryFrom<&str> for Identifier {
         }
 
         Ok(Self {
-            name: input.to_owned(),
+            inner: input.to_owned(),
         })
     }
 }
 
 impl fmt::Display for Identifier {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.name)
+        write!(f, "{}", self.inner)
     }
 }

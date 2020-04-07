@@ -2,7 +2,7 @@
 //! The semantic analyzer value element error.
 //!
 
-use crate::semantic::caster::error::Error as CasterError;
+use crate::semantic::casting::error::Error as CastingError;
 use crate::semantic::element::value::array::error::Error as ArrayValueError;
 use crate::semantic::element::value::integer::error::Error as IntegerValueError;
 use crate::semantic::element::value::structure::error::Error as StructureValueError;
@@ -41,6 +41,21 @@ pub enum Error {
     OperatorLesserFirstOperandExpectedInteger { found: String },
     OperatorLesserSecondOperandExpectedInteger { found: String },
 
+    OperatorBitwiseOrFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseOrSecondOperandExpectedInteger { found: String },
+
+    OperatorBitwiseXorFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseXorSecondOperandExpectedInteger { found: String },
+
+    OperatorBitwiseAndFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseAndSecondOperandExpectedInteger { found: String },
+
+    OperatorBitwiseShiftLeftFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseShiftLeftSecondOperandExpectedInteger { found: String },
+
+    OperatorBitwiseShiftRightFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseShiftRightSecondOperandExpectedInteger { found: String },
+
     OperatorAdditionFirstOperandExpectedInteger { found: String },
     OperatorAdditionSecondOperandExpectedInteger { found: String },
 
@@ -56,9 +71,11 @@ pub enum Error {
     OperatorRemainderFirstOperandExpectedInteger { found: String },
     OperatorRemainderSecondOperandExpectedInteger { found: String },
 
-    OperatorNegationExpectedInteger { found: String },
-
     OperatorNotExpectedBoolean { found: String },
+
+    OperatorBitwiseNotExpectedInteger { found: String },
+
+    OperatorNegationExpectedInteger { found: String },
 
     OperatorIndexFirstOperandExpectedArray { found: String },
     OperatorIndexSecondOperandExpectedIntegerOrRange { found: String },
@@ -66,11 +83,9 @@ pub enum Error {
     OperatorFieldFirstOperandExpectedTuple { found: String },
     OperatorFieldFirstOperandExpectedStructure { found: String },
 
-    ConvertingFromType { r#type: String },
-
     Integer(IntegerValueError),
     Array(ArrayValueError),
     Tuple(TupleValueError),
     Structure(StructureValueError),
-    Casting(CasterError),
+    Casting(CastingError),
 }

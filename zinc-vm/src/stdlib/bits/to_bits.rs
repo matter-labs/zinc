@@ -19,10 +19,10 @@ impl<E: Engine> NativeFunction<E> for ToBits {
 
         let mut bits = match scalar.get_type() {
             ScalarType::Integer(t) => {
-                if t.signed {
+                if t.is_signed {
                     signed_to_bits(cs.namespace(|| "signed_to_bits"), scalar)?
                 } else {
-                    expr.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), t.length)?
+                    expr.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), t.bitlength)?
                 }
             }
             ScalarType::Boolean => vec![scalar.to_boolean(cs.namespace(|| "to_boolean"))?],
@@ -54,11 +54,11 @@ where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    let length = match scalar.get_type() {
+    let bitlength = match scalar.get_type() {
         ScalarType::Integer(IntegerType {
-            length,
-            signed: true,
-        }) => length,
+            bitlength,
+            is_signed: true,
+        }) => bitlength,
         t => {
             return Err(RuntimeError::TypeError {
                 expected: "signed type".to_string(),
@@ -67,14 +67,14 @@ where
         }
     };
 
-    let base_value = BigInt::from(1) << length;
+    let base_value = BigInt::from(1) << bitlength;
     let base = Scalar::new_constant_bigint(&base_value, ScalarType::Field)?;
 
     let complement = gadgets::add(cs.namespace(|| "complement"), &scalar, &base)?;
 
     let bits = complement
         .to_expression::<CS>()
-        .into_bits_le_fixed(cs.namespace(|| "bits"), length + 1)?;
+        .into_bits_le_fixed(cs.namespace(|| "bits"), bitlength + 1)?;
 
-    Ok(Vec::from(&bits[..length]))
+    Ok(Vec::from(&bits[..bitlength]))
 }

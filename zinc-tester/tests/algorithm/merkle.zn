@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "default",
 //#     "input": {
 //#         "address": "0x558ef3cde10f05f73d27cdf30dbb1aa40adf940257e1549c239066",
@@ -12,10 +12,10 @@
 //#         "balance": "1000",
 //#         "root_hash": "0x2915116a62d5c0e17357da09e10726afc8030ac60e9371fbd950b407dfabf0"
 //#     }
-//# } ]
+//# } ] }
 
 //!
-//! The merkle tree root hash validator.
+//! The Merkle tree root hash validator.
 //!
 
 use std::crypto::sha256;
@@ -58,12 +58,12 @@ fn restore_root_hash(
 
     for i in 0..MERKLE_TREE_HEIGHT {
         let left_and_right = if address_bits[i] {
-            [current, merkle_path[i]]
+            (current, merkle_path[i])
         } else {
-            [merkle_path[i], current]
+            (merkle_path[i], current)
         };
 
-        current = merkle_node_hash(left_and_right[0], left_and_right[1]);
+        current = merkle_node_hash(left_and_right.0, left_and_right.1);
     }
 
     current

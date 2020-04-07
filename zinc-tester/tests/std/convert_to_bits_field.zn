@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "min",
 //#     "input": {
 //#         "value": "0"
@@ -46,7 +46,7 @@
 //#         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
 //#         false, false, false, false, false, false
 //#     ]
-//# } ]
+//# } ] }
 
 fn main(value: field) -> [bool; 254] {
     std::convert::to_bits(value)

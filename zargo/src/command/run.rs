@@ -62,17 +62,17 @@ pub struct Command {
 
 #[derive(Debug, Fail)]
 pub enum Error {
-    #[fail(display = "manifest file: {}", _0)]
+    #[fail(display = "manifest file {}", _0)]
     ManifestFile(ManifestError),
-    #[fail(display = "source directory: {}", _0)]
+    #[fail(display = "source directory {}", _0)]
     SourceDirectory(SourceDirectoryError),
-    #[fail(display = "build directory: {}", _0)]
+    #[fail(display = "build directory {}", _0)]
     BuildDirectory(BuildDirectoryError),
-    #[fail(display = "data directory: {}", _0)]
+    #[fail(display = "data directory {}", _0)]
     DataDirectory(DataDirectoryError),
-    #[fail(display = "compiler: {}", _0)]
+    #[fail(display = "compiler {}", _0)]
     Compiler(CompilerError),
-    #[fail(display = "virtual machine: {}", _0)]
+    #[fail(display = "virtual machine {}", _0)]
     VirtualMachine(VirtualMachineError),
 }
 

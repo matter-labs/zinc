@@ -1,5 +1,5 @@
 //!
-//! The merkle tree root hash validator.
+//! The Merkle tree root hash validator entry.
 //!
 
 mod merkle;

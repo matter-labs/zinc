@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "condition_true",
 //#     "input": {
 //#         "witness": { "a": false, "b": "0", "c": "0" },
@@ -12,7 +12,7 @@
 //#         "condition": false
 //#     },
 //#     "expect": { "a": false, "b": "0", "c": "0" }
-//# } ]
+//# } ] }
 
 struct Data {
     a: bool,

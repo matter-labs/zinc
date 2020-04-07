@@ -14,7 +14,13 @@ impl Cast {
 
     #[deprecated(note = "this is temporary fix")]
     pub fn new_integer(signed: bool, length: usize) -> Self {
-        Self::new(IntegerType { signed, length }.into())
+        Self::new(
+            IntegerType {
+                is_signed: signed,
+                bitlength: length,
+            }
+            .into(),
+        )
     }
 }
 

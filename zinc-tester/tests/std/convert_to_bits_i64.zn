@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "min",
 //#     "input": {
 //#         "value": "-9223372036854775808"
@@ -28,7 +28,7 @@
 //#         true, true, true, true, true, true, true, true,
 //#         true, true, true, true, true, true, true, true
 //#     ]
-//# } ]
+//# } ] }
 
 fn main(value: i64) -> [bool; 64] {
     std::convert::to_bits(value)

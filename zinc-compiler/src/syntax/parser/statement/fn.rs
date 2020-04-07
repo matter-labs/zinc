@@ -6,13 +6,13 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Keyword;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
-use crate::syntax::parser::expression::block::Parser as BlockExpressionParser;
+use crate::syntax::parser::expression::terminal::block::Parser as BlockExpressionParser;
 use crate::syntax::parser::pattern_binding_list::Parser as BindingPatternListParser;
 use crate::syntax::parser::r#type::Parser as TypeParser;
 use crate::syntax::tree::identifier::Identifier;
@@ -50,6 +50,15 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses an 'fn' statement.
+    ///
+    /// '
+    /// fn sum(a: u8, b: u8) -> u8 {
+    ///     a + b
+    /// }
+    /// '
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -82,7 +91,7 @@ impl Parser {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
                         } => {
-                            let identifier = Identifier::new(location, identifier.name);
+                            let identifier = Identifier::new(location, identifier.inner);
                             self.builder.set_identifier(identifier);
                             self.state = State::ParenthesisLeft;
                         }
@@ -153,9 +162,11 @@ impl Parser {
                     self.state = State::Body;
                 }
                 State::Body => {
-                    let body = BlockExpressionParser::default().parse(stream, self.next.take())?;
-                    self.builder.set_body(body);
-                    return Ok((self.builder.finish(), None));
+                    let (expression, next) =
+                        BlockExpressionParser::default().parse(stream, self.next.take())?;
+
+                    self.builder.set_body(expression);
+                    return Ok((self.builder.finish(), next));
                 }
             }
         }
@@ -169,10 +180,10 @@ mod tests {
 
     use super::Parser;
     use crate::error::Error;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::symbol::Symbol;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
     use crate::syntax::error::Error as SyntaxError;
     use crate::syntax::tree::expression::block::Expression as BlockExpression;
     use crate::syntax::tree::identifier::Identifier;

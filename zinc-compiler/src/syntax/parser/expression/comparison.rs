@@ -6,70 +6,64 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Lexeme;
-use crate::lexical::Location;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
-use crate::syntax::parser::expression::add_sub::Parser as AddSubOperandParser;
-use crate::syntax::tree::expression::builder::Builder as ExpressionBuilder;
-use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
-use crate::syntax::tree::expression::Expression;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
+use crate::syntax::parser::expression::bitwise_or::Parser as BitwiseOrOperandParser;
+use crate::syntax::tree::expression::tree::builder::Builder as ExpressionTreeBuilder;
+use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    AddSubOperand,
-    AddSubOperator,
+    BitwiseOrOperand,
+    BitwiseOrOperator,
 }
 
 impl Default for State {
     fn default() -> Self {
-        State::AddSubOperand
+        State::BitwiseOrOperand
     }
 }
 
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    builder: ExpressionBuilder,
-    operator: Option<(Location, ExpressionOperator)>,
     next: Option<Token>,
+    builder: ExpressionTreeBuilder,
 }
 
 impl Parser {
+    ///
+    /// Parses a comparison expression operand, which is
+    /// a lower precedence bitwise OR operator expression.
+    ///
+    /// '0b00001111 | 0b11110000'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
-    ) -> Result<(Expression, Option<Token>), Error> {
+    ) -> Result<(ExpressionTree, Option<Token>), Error> {
         loop {
             match self.state {
-                State::AddSubOperand => {
+                State::BitwiseOrOperand => {
                     let (expression, next) =
-                        AddSubOperandParser::default().parse(stream.clone(), initial.take())?;
+                        BitwiseOrOperandParser::default().parse(stream.clone(), initial.take())?;
                     self.next = next;
-                    self.builder.set_location_if_unset(expression.location);
-                    self.builder.extend_with_expression(expression);
-                    if let Some((location, operator)) = self.operator.take() {
-                        self.builder.push_operator(location, operator);
-                    }
-                    self.state = State::AddSubOperator;
+                    self.builder.eat(expression);
+                    self.state = State::BitwiseOrOperator;
                 }
-                State::AddSubOperator => {
+                State::BitwiseOrOperator => {
                     match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
                         Token {
-                            lexeme: Lexeme::Symbol(Symbol::Plus),
+                            lexeme: Lexeme::Symbol(Symbol::VerticalBar),
                             location,
                         } => {
-                            self.operator = Some((location, ExpressionOperator::Addition));
-                            self.state = State::AddSubOperand;
-                        }
-                        Token {
-                            lexeme: Lexeme::Symbol(Symbol::Minus),
-                            location,
-                        } => {
-                            self.operator = Some((location, ExpressionOperator::Subtraction));
-                            self.state = State::AddSubOperand;
+                            self.builder
+                                .eat_operator(ExpressionOperator::BitwiseOr, location);
+                            self.state = State::BitwiseOrOperand;
                         }
                         token => return Ok((self.builder.finish(), Some(token))),
                     }
@@ -85,49 +79,43 @@ mod tests {
     use std::rc::Rc;
 
     use super::Parser;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Token;
-    use crate::lexical::TokenStream;
-    use crate::syntax::tree::expression::element::Element as ExpressionElement;
-    use crate::syntax::tree::expression::object::Object as ExpressionObject;
-    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
-    use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
-    use crate::syntax::tree::expression::Expression;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
+    use crate::lexical::token::Token;
+    use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
+    use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
+    use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
     use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 
     #[test]
     fn ok() {
-        let input = r#"42 + 228"#;
+        let input = r#"42 | 228"#;
 
         let expected = Ok((
-            Expression::new(
-                Location::new(1, 1),
-                vec![
-                    ExpressionElement::new(
-                        Location::new(1, 1),
-                        ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-                            IntegerLiteral::new(
-                                Location::new(1, 1),
-                                lexical::IntegerLiteral::new_decimal("42".to_owned()),
-                            ),
-                        )),
-                    ),
-                    ExpressionElement::new(
-                        Location::new(1, 6),
-                        ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-                            IntegerLiteral::new(
-                                Location::new(1, 6),
-                                lexical::IntegerLiteral::new_decimal("228".to_owned()),
-                            ),
-                        )),
-                    ),
-                    ExpressionElement::new(
-                        Location::new(1, 4),
-                        ExpressionObject::Operator(ExpressionOperator::Addition),
-                    ),
-                ],
+            ExpressionTree::new_with_leaves(
+                Location::new(1, 4),
+                ExpressionTreeNode::operator(ExpressionOperator::BitwiseOr),
+                Some(ExpressionTree::new(
+                    Location::new(1, 1),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 1),
+                            LexicalIntegerLiteral::new_decimal("42".to_owned()),
+                        ),
+                    )),
+                )),
+                Some(ExpressionTree::new(
+                    Location::new(1, 6),
+                    ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                        IntegerLiteral::new(
+                            Location::new(1, 6),
+                            LexicalIntegerLiteral::new_decimal("228".to_owned()),
+                        ),
+                    )),
+                )),
             ),
             Some(Token::new(Lexeme::Eof, Location::new(1, 9))),
         ));

@@ -1,17 +1,15 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "default",
 //#     "input": {
 //#         "witness": "25"
 //#     },
-//#     "expect": "141"
-//# } ]
-
-static STATIC: field = 5;
+//#     "expect": "136"
+//# } ] }
 
 const CONST: field = 42;
 
 fn main(witness: field) -> field {
     let local: field = 69;
 
-    STATIC + CONST + local + witness
+    CONST + local + witness
 }

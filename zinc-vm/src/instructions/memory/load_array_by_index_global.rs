@@ -3,7 +3,6 @@ use crate::core::{RuntimeError, VirtualMachine};
 use crate::gadgets::Scalar;
 use crate::{gadgets, Engine};
 use franklin_crypto::bellman::ConstraintSystem;
-use std::mem;
 use zinc_bytecode::LoadSequenceByIndexGlobal;
 
 impl<E, CS> VMInstruction<E, CS> for LoadSequenceByIndexGlobal
@@ -25,7 +24,6 @@ where
             let cs = vm.constraint_system();
             let offset = Scalar::new_constant_bigint(&i.into(), index.get_type())?;
             let address = gadgets::add(cs.namespace(|| format!("address {}", i)), &index, &offset)?;
-            mem::drop(cs);
 
             let condition = vm.condition_top()?;
             let value =

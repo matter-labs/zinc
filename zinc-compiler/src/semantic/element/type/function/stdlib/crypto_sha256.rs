@@ -26,7 +26,7 @@ impl Function {
         Self {
             builtin_identifier,
             identifier: "sha256",
-            return_type: Box::new(Type::array(Type::boolean(), crate::SHA256_HASH_SIZE_BITS)),
+            return_type: Box::new(Type::array(Type::boolean(), crate::BITLENGTH_SHA256_HASH)),
         }
     }
 

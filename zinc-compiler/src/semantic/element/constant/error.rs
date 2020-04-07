@@ -2,7 +2,7 @@
 //! The semantic analyzer constant element error.
 //!
 
-use crate::semantic::caster::error::Error as CasterError;
+use crate::semantic::casting::error::Error as CastingError;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 
 #[derive(Debug, PartialEq)]
@@ -43,6 +43,21 @@ pub enum Error {
     OperatorLesserFirstOperandExpectedInteger { found: String },
     OperatorLesserSecondOperandExpectedInteger { found: String },
 
+    OperatorBitwiseOrFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseOrSecondOperandExpectedInteger { found: String },
+
+    OperatorBitwiseXorFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseXorSecondOperandExpectedInteger { found: String },
+
+    OperatorBitwiseAndFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseAndSecondOperandExpectedInteger { found: String },
+
+    OperatorBitwiseShiftLeftFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseShiftLeftSecondOperandExpectedInteger { found: String },
+
+    OperatorBitwiseShiftRightFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseShiftRightSecondOperandExpectedInteger { found: String },
+
     OperatorAdditionFirstOperandExpectedInteger { found: String },
     OperatorAdditionSecondOperandExpectedInteger { found: String },
 
@@ -58,9 +73,12 @@ pub enum Error {
     OperatorRemainderFirstOperandExpectedInteger { found: String },
     OperatorRemainderSecondOperandExpectedInteger { found: String },
 
-    OperatorNegationExpectedInteger { found: String },
     OperatorNotExpectedBoolean { found: String },
 
+    OperatorBitwiseNotExpectedInteger { found: String },
+
+    OperatorNegationExpectedInteger { found: String },
+
     Integer(IntegerConstantError),
-    Casting(CasterError),
+    Casting(CastingError),
 }

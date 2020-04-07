@@ -39,7 +39,7 @@ impl TestRunner for EvaluationTestRunner {
             let program_data = match ProgramData::new(&test_case.input, test_file.code.as_str()) {
                 Ok(program_data) => program_data,
                 Err(error) => {
-                    summary.lock().expect(crate::PANIC_SYNC).invalid += 1;
+                    summary.lock().expect(crate::PANIC_MUTEX_SYNC).invalid += 1;
                     println!(
                         "[INTEGRATION] {} {} ({})",
                         "INVALID".red(),
@@ -50,8 +50,8 @@ impl TestRunner for EvaluationTestRunner {
                 }
             };
 
-            if test_case.ignore {
-                summary.lock().expect(crate::PANIC_SYNC).ignored += 1;
+            if test_data.ignore || test_case.ignore {
+                summary.lock().expect(crate::PANIC_MUTEX_SYNC).ignored += 1;
                 println!("[INTEGRATION] {} {}", "IGNORE".yellow(), case_name);
                 continue;
             }
@@ -61,12 +61,12 @@ impl TestRunner for EvaluationTestRunner {
                     let output = output.to_json();
                     if test_case.expect == output {
                         if !test_case.should_panic {
-                            summary.lock().expect(crate::PANIC_SYNC).passed += 1;
+                            summary.lock().expect(crate::PANIC_MUTEX_SYNC).passed += 1;
                             if self.verbosity > 0 {
                                 println!("[INTEGRATION] {} {}", "PASSED".green(), case_name);
                             }
                         } else {
-                            summary.lock().expect(crate::PANIC_SYNC).failed += 1;
+                            summary.lock().expect(crate::PANIC_MUTEX_SYNC).failed += 1;
                             println!(
                                 "[INTEGRATION] {} {} (should have panicked)",
                                 "FAILED".bright_red(),
@@ -74,7 +74,7 @@ impl TestRunner for EvaluationTestRunner {
                             );
                         }
                     } else {
-                        summary.lock().expect(crate::PANIC_SYNC).failed += 1;
+                        summary.lock().expect(crate::PANIC_MUTEX_SYNC).failed += 1;
                         println!(
                             "[INTEGRATION] {} {} (expected {}, but got {})",
                             "FAILED".bright_red(),
@@ -86,7 +86,7 @@ impl TestRunner for EvaluationTestRunner {
                 }
                 Err(error) => {
                     if test_case.should_panic {
-                        summary.lock().expect(crate::PANIC_SYNC).passed += 1;
+                        summary.lock().expect(crate::PANIC_MUTEX_SYNC).passed += 1;
                         if self.verbosity > 0 {
                             println!(
                                 "[INTEGRATION] {} {} (panicked)",
@@ -95,7 +95,7 @@ impl TestRunner for EvaluationTestRunner {
                             );
                         }
                     } else {
-                        summary.lock().expect(crate::PANIC_SYNC).failed += 1;
+                        summary.lock().expect(crate::PANIC_MUTEX_SYNC).failed += 1;
                         println!(
                             "[INTEGRATION] {} {} ({})",
                             "FAILED".bright_red(),

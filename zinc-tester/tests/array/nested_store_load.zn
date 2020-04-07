@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "default",
 //#     "input": {
 //#         "array": [
@@ -9,7 +9,7 @@
 //#         ]
 //#     },
 //#     "expect": "69"
-//# } ]
+//# } ] }
 
 const SIDE_SIZE: u8 = 4;
 

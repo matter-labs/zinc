@@ -46,8 +46,8 @@ impl<E: Engine> NativeFunction<E> for UnsignedFromBits {
             AllocatedNum::pack_bits_to_element(cs.namespace(|| "pack_bits_to_element"), &bits)?;
 
         let int_type = IntegerType {
-            signed: false,
-            length: self.bit_length,
+            is_signed: false,
+            bitlength: self.bit_length,
         };
 
         let scalar =

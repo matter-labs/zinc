@@ -16,6 +16,12 @@ pub enum Error {
     UnterminatedDoubleQuote { lines: usize, column: usize },
 }
 
+///
+/// Parses a string literal.
+///
+/// Example:
+/// '"Zinc is the best language for ZKP"'
+///
 pub fn parse(input: &str) -> Result<(usize, String), Error> {
     let mut state = State::DoubleQuoteOpen;
     let mut size = 0;

@@ -33,6 +33,10 @@ pub struct TokenStream<'a> {
 impl<'a> TokenStream<'a> {
     const DEQUE_LOOK_AHEAD_INITIAL_CAPACITY: usize = 16;
 
+    ///
+    /// Initializes a stream without a file identifier.
+    /// Used mostly for testing purposes.
+    ///
     pub fn new(input: &'a str) -> Self {
         Self {
             input,
@@ -42,6 +46,10 @@ impl<'a> TokenStream<'a> {
         }
     }
 
+    ///
+    /// Initializes a stream with a file identifier.
+    /// The file identifier can be used to get its path from the global type index.
+    ///
     pub fn new_with_file(input: &'a str, file: usize) -> Self {
         Self {
             input,
@@ -51,6 +59,10 @@ impl<'a> TokenStream<'a> {
         }
     }
 
+    ///
+    /// Picks a character from the look-ahead queue.
+    /// If the queue is empty, advances the stream iterator.
+    ///
     pub fn next(&mut self) -> Result<Token, Error> {
         let token = match self.look_ahead.pop_front() {
             Some(token) => token,
@@ -61,9 +73,9 @@ impl<'a> TokenStream<'a> {
     }
 
     ///
-    /// Advances the iterator until there is `distance` elements in the look-ahead queue.
+    /// Advances the iterator until there are `distance` elements in the look-ahead queue.
     /// Is used where there is a need to resolve an ambiguity like `if value {}`,
-    /// where `value` can be both a variable or structure literal type name.
+    /// where `value` is able to start both a variable or structure literal type name.
     ///
     pub fn look_ahead(&mut self, distance: usize) -> Result<&Token, Error> {
         while self.look_ahead.len() < distance {
@@ -76,16 +88,16 @@ impl<'a> TokenStream<'a> {
     }
 
     ///
-    /// The function algorithm checks if the character:
-    /// 1. Is contained within the alphabet
-    /// 2. Is a whitespace
-    /// 3. Starts a comment
-    /// 4. Starts a string literal
-    /// 5. Starts a symbol (operator or delimiter)
-    /// 6. Starts a number (decimal or hexadecimal)
-    /// 7. Starts a word (keyword, boolean literal, or identifier)
-    /// 8. Panics if non of the above, thus the alphabet must contain all the characters being
-    /// passed to subscanners
+    /// The function checks if a character:
+    /// 1. Is a whitespace -> skip
+    /// 2. Starts a comment -> start the comment subparser
+    /// 3. Starts a string literal -> start the string subparser
+    /// 4. Starts a number -> start the number subparser
+    /// 5. Starts a word -> start the word subparser
+    /// 6. Starts a symbol -> start the operand subparser
+    /// 7. Is unknown -> yield an 'invalid character' error
+    ///
+    /// If the end of input has been reached, an 'EOF' token is returned for consequent calls.
     ///
     fn advance(&mut self) -> Result<Token, Error> {
         while let Some(character) = self.input.chars().nth(self.offset) {
@@ -151,8 +163,22 @@ impl<'a> TokenStream<'a> {
                         ));
                     }
                     Err(IntegerParserError::NotAnInteger) => {}
-                    Err(IntegerParserError::EmptyHexadecimalBody) => {
-                        return Err(Error::unexpected_end(self.location));
+                    Err(IntegerParserError::EmptyBinaryBody { offset })
+                    | Err(IntegerParserError::EmptyOctalBody { offset })
+                    | Err(IntegerParserError::EmptyHexadecimalBody { offset }) => {
+                        return Err(Error::unexpected_end(self.location.shifted_right(offset)));
+                    }
+                    Err(IntegerParserError::ExpectedOneOfBinary { found, offset }) => {
+                        return Err(Error::expected_one_of_binary(
+                            self.location.shifted_right(offset),
+                            found,
+                        ))
+                    }
+                    Err(IntegerParserError::ExpectedOneOfOctal { found, offset }) => {
+                        return Err(Error::expected_one_of_octal(
+                            self.location.shifted_right(offset),
+                            found,
+                        ))
                     }
                     Err(IntegerParserError::ExpectedOneOfDecimal { found, offset }) => {
                         return Err(Error::expected_one_of_decimal(
@@ -187,16 +213,6 @@ impl<'a> TokenStream<'a> {
                     self.offset += size;
                     Ok(Token::new(Lexeme::Symbol(symbol), location))
                 }
-                Err(SymbolParserError::ExpectedOneOf {
-                    expected,
-                    found,
-                    offset,
-                    ..
-                }) => Err(Error::expected_one_of(
-                    self.location.shifted_right(offset),
-                    expected,
-                    found,
-                )),
                 Err(SymbolParserError::InvalidCharacter { found, offset }) => Err(
                     Error::invalid_character(self.location.shifted_right(offset), found),
                 ),

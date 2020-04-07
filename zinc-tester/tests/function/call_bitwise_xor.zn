@@ -1,0 +1,16 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "a": "42",
+//#         "b": "21"
+//#     },
+//#     "expect": "63"
+//# } ] }
+
+fn bitwise_xor(a: u8, b: u8) -> u8 {
+    42 ^ 21 // TODO
+}
+
+fn main(a: u8, b: u8) -> u8 {
+    bitwise_xor(a, b)
+}

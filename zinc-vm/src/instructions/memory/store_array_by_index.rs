@@ -3,7 +3,6 @@ use crate::core::{RuntimeError, VirtualMachine};
 use crate::gadgets::Scalar;
 use crate::{gadgets, Engine};
 use franklin_crypto::bellman::ConstraintSystem;
-use std::mem;
 use zinc_bytecode::StoreSequenceByIndex;
 
 impl<E, CS> VMInstruction<E, CS> for StoreSequenceByIndex
@@ -31,7 +30,6 @@ where
             let cs = vm.constraint_system();
             let offset = Scalar::new_constant_bigint(&i.into(), index.get_type())?;
             let address = gadgets::add(cs.namespace(|| format!("address {}", i)), &index, &offset)?;
-            mem::drop(cs);
             array = vm
                 .operations()
                 .array_set(array.as_slice(), address, value)?;

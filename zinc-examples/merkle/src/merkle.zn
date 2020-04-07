@@ -1,8 +1,8 @@
-//
-// Merkle tree library
-//
+//!
+//! The Merkle tree root hash validator library.
+//!
 
-use std::crypto::sha256; // an import
+use std::crypto::sha256;
 use std::array::truncate;
 
 type Sha256Digest = u248;
@@ -40,12 +40,12 @@ fn restore_root_hash(
 
     for i in 0..10 {
         let left_and_right = if address_bits[i] {
-            [current, merkle_path[i]]
+            (current, merkle_path[i])
         } else {
-            [merkle_path[i], current]
+            (merkle_path[i], current)
         };
 
-        current = merkle_node_hash(left_and_right[0], left_and_right[1]);
+        current = merkle_node_hash(left_and_right.0, left_and_right.1);
     }
 
     current

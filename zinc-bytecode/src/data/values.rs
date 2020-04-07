@@ -179,7 +179,7 @@ impl Value {
                     }
                 }
                 ScalarValue::Integer(value, int_type) => {
-                    if value <= &BigInt::from(std::u64::MAX) || int_type.signed {
+                    if value <= &BigInt::from(std::u64::MAX) || int_type.is_signed {
                         json::Value::String(value.to_str_radix(10))
                     } else {
                         json::Value::String(String::from("0x") + value.to_str_radix(16).as_str())

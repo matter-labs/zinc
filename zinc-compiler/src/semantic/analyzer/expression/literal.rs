@@ -1,0 +1,72 @@
+//!
+//! The literal semantic analyzer.
+//!
+
+use std::convert::TryFrom;
+
+use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
+use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
+use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
+use crate::semantic::element::constant::error::Error as ConstantError;
+use crate::semantic::element::constant::integer::Integer as IntegerConstant;
+use crate::semantic::element::constant::Constant;
+use crate::semantic::element::error::Error as ElementError;
+use crate::semantic::element::Element;
+use crate::semantic::error::Error;
+use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
+use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
+use crate::syntax::tree::literal::string::Literal as StringLiteral;
+
+pub struct Analyzer {}
+
+impl Analyzer {
+    ///
+    /// Analyzes the boolean literal.
+    ///
+    /// Returns the semantic element and the intermediate representation if it is available.
+    ///
+    pub fn boolean(
+        literal: BooleanLiteral,
+    ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
+        let constant = Constant::Boolean(BooleanConstant::from(literal));
+
+        let intermediate = GeneratorConstant::try_from_semantic(&constant)
+            .map(GeneratorExpressionOperand::Constant);
+        let element = Element::Constant(constant);
+
+        Ok((element, intermediate))
+    }
+
+    ///
+    /// Analyzes the integer literal.
+    ///
+    /// Returns the semantic element and the intermediate representation if it is available.
+    ///
+    pub fn integer(
+        literal: IntegerLiteral,
+    ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
+        let location = literal.location;
+
+        let constant = IntegerConstant::try_from(&literal)
+            .map(Constant::Integer)
+            .map_err(|error| {
+                Error::Element(
+                    location,
+                    ElementError::Constant(ConstantError::Integer(error)),
+                )
+            })?;
+
+        let intermediate = GeneratorConstant::try_from_semantic(&constant)
+            .map(GeneratorExpressionOperand::Constant);
+        let element = Element::Constant(constant);
+
+        Ok((element, intermediate))
+    }
+
+    ///
+    /// Converts the syntax string literal to a semantic string literal.
+    ///
+    pub fn string(literal: StringLiteral) -> Result<Element, Error> {
+        Ok(Element::Constant(Constant::String(literal.inner.inner)))
+    }
+}

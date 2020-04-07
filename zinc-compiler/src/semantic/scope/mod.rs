@@ -4,43 +4,44 @@
 
 mod tests;
 
+pub mod builtin;
 pub mod error;
 pub mod item;
+pub mod stack;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::str;
 
-use zinc_bytecode::builtins::BuiltinIdentifier;
-
-use crate::lexical::Keyword;
+use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::path::Path;
-use crate::semantic::element::r#type::function::Function as FunctionType;
-use crate::semantic::element::r#type::structure::Structure as StructureType;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::Error as SemanticError;
-use crate::syntax::Identifier;
+use crate::semantic::error::Error as SemanticError;
+use crate::syntax::tree::identifier::Identifier;
 
+use self::builtin::BuiltInItems;
 use self::error::Error;
-use self::item::variable::Variable as VariableItem;
+use self::item::variant::variable::Variable as VariableItem;
+use self::item::variant::Variant as ItemVariant;
 use self::item::Item;
-use self::item::Variant as ItemVariant;
 
-#[derive(Debug, Clone, PartialEq)]
+///
+/// A scope consists of a hashmap of the declared items and a reference to its parent.
+/// The global scope has no parent.
+/// Modules are connected to the program scope hierarchy horizontally, being stored as module items.
+///
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Scope {
     parent: Option<Rc<RefCell<Self>>>,
     items: HashMap<String, Item>,
 }
 
-impl Default for Scope {
-    fn default() -> Self {
-        Self::new(None)
-    }
-}
-
 impl Scope {
+    ///
+    /// Initializes a nested scope with an explicit optional parent.
+    ///
     pub fn new(parent: Option<Rc<RefCell<Self>>>) -> Self {
         Self {
             parent,
@@ -48,13 +49,19 @@ impl Scope {
         }
     }
 
+    ///
+    /// Initializes a global scope without a parent and with default items.
+    ///
     pub fn new_global() -> Self {
         Self {
             parent: None,
-            items: Self::default_items(),
+            items: BuiltInItems::new_map(),
         }
     }
 
+    ///
+    /// Declares a general item.
+    ///
     pub fn declare_item(
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
@@ -70,6 +77,9 @@ impl Scope {
         Ok(())
     }
 
+    ///
+    /// Declares a variable, which is normally a `let` binding or a function actual parameter.
+    ///
     pub fn declare_variable(
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
@@ -88,6 +98,9 @@ impl Scope {
         Ok(())
     }
 
+    ///
+    /// Declares a constant, which is normally a `const` binding.
+    ///
     pub fn declare_constant(
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
@@ -106,6 +119,9 @@ impl Scope {
         Ok(())
     }
 
+    ///
+    /// Declares a type, which is normally a `type`, `struct`, or `enum` binding.
+    ///
     pub fn declare_type(
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
@@ -124,6 +140,9 @@ impl Scope {
         Ok(())
     }
 
+    ///
+    /// Declares a module, which is normally a `mod` binding.
+    ///
     pub fn declare_module(
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
@@ -142,13 +161,22 @@ impl Scope {
         Ok(())
     }
 
+    ///
+    /// Declares the `Self` alias within a type implementation.
+    ///
+    /// Since `Self` is the reserved keyword, it is not being checked for being already declared.
+    ///
     pub fn declare_self(&mut self, r#type: Type) {
         self.items.insert(
-            Keyword::AliasSelf.to_string(),
+            Keyword::SelfUppercase.to_string(),
             Item::new(ItemVariant::Type(r#type), None),
         );
     }
 
+    ///
+    /// Gets an item at the specified path by looking through modules, implementations,
+    /// and enumerations along the way.
+    ///
     pub fn resolve_path(scope: Rc<RefCell<Scope>>, path: &Path) -> Result<Item, SemanticError> {
         let mut current_scope = scope;
 
@@ -185,6 +213,9 @@ impl Scope {
         ))
     }
 
+    ///
+    /// Resolves the item within the current scope hierarchy.
+    ///
     pub fn resolve_item(scope: Rc<RefCell<Scope>>, identifier: &str) -> Result<Item, Error> {
         match scope.borrow().items.get(identifier) {
             Some(item) => Ok(item.to_owned()),
@@ -197,6 +228,9 @@ impl Scope {
         }
     }
 
+    ///
+    /// Checks whether the item is declared within the current scope hierarchy.
+    ///
     pub fn is_item_declared(&self, identifier: &str) -> bool {
         if self.items.contains_key(identifier) {
             true
@@ -208,202 +242,10 @@ impl Scope {
         }
     }
 
+    ///
+    /// Creates a child scope with the current one as its parent.
+    ///
     pub fn new_child(parent: Rc<RefCell<Scope>>) -> Rc<RefCell<Scope>> {
         Rc::new(RefCell::new(Scope::new(Some(parent))))
-    }
-
-    pub const TYPE_ID_STD_CRYPTO_ECC_POINT: usize = 0;
-    pub const TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE: usize = 1;
-    pub const TYPE_ID_FIRST_AVAILABLE: usize = 2;
-
-    fn default_items() -> HashMap<String, Item> {
-        let mut std_crypto_scope = Scope::default();
-        let std_crypto_sha256 = FunctionType::new_std(BuiltinIdentifier::CryptoSha256);
-        let std_crypto_pedersen = FunctionType::new_std(BuiltinIdentifier::CryptoPedersen);
-
-        let mut std_crypto_schnorr = Scope::default();
-        let mut std_crypto_schnorr_signature_scope = Scope::default();
-        let std_crypto_schnorr_verify =
-            FunctionType::new_std(BuiltinIdentifier::CryptoSchnorrSignatureVerify);
-        std_crypto_schnorr_signature_scope.items.insert(
-            std_crypto_schnorr_verify.identifier(),
-            Item::new(
-                ItemVariant::Type(Type::Function(std_crypto_schnorr_verify)),
-                None,
-            ),
-        );
-        let std_crypto_ecc_point = StructureType::new(
-            "Point".to_owned(),
-            Self::TYPE_ID_STD_CRYPTO_ECC_POINT,
-            vec![
-                ("x".to_owned(), Type::field()),
-                ("y".to_owned(), Type::field()),
-            ],
-            None,
-        );
-        let std_crypto_schnorr_signature = StructureType::new(
-            "Signature".to_owned(),
-            Self::TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE,
-            vec![
-                (
-                    "r".to_owned(),
-                    Type::Structure(std_crypto_ecc_point.clone()),
-                ),
-                ("s".to_owned(), Type::field()),
-                (
-                    "pk".to_owned(),
-                    Type::Structure(std_crypto_ecc_point.clone()),
-                ),
-            ],
-            Some(Rc::new(RefCell::new(std_crypto_schnorr_signature_scope))),
-        );
-        std_crypto_schnorr.items.insert(
-            "Signature".to_owned(),
-            Item::new(
-                ItemVariant::Type(Type::Structure(std_crypto_schnorr_signature)),
-                None,
-            ),
-        );
-
-        let mut std_crypto_ecc = Scope::default();
-        std_crypto_ecc.items.insert(
-            "Point".to_owned(),
-            Item::new(
-                ItemVariant::Type(Type::Structure(std_crypto_ecc_point)),
-                None,
-            ),
-        );
-
-        std_crypto_scope.items.insert(
-            std_crypto_sha256.identifier(),
-            Item::new(ItemVariant::Type(Type::Function(std_crypto_sha256)), None),
-        );
-        std_crypto_scope.items.insert(
-            std_crypto_pedersen.identifier(),
-            Item::new(ItemVariant::Type(Type::Function(std_crypto_pedersen)), None),
-        );
-        std_crypto_scope.items.insert(
-            "ecc".to_owned(),
-            Item::new(
-                ItemVariant::Module(Rc::new(RefCell::new(std_crypto_ecc))),
-                None,
-            ),
-        );
-        std_crypto_scope.items.insert(
-            "schnorr".to_owned(),
-            Item::new(
-                ItemVariant::Module(Rc::new(RefCell::new(std_crypto_schnorr))),
-                None,
-            ),
-        );
-
-        let mut std_convert_scope = Scope::default();
-        let std_convert_to_bits = FunctionType::new_std(BuiltinIdentifier::ToBits);
-        let std_convert_from_bits_unsigned =
-            FunctionType::new_std(BuiltinIdentifier::UnsignedFromBits);
-        let std_convert_from_bits_signed = FunctionType::new_std(BuiltinIdentifier::SignedFromBits);
-        let std_convert_from_bits_field = FunctionType::new_std(BuiltinIdentifier::FieldFromBits);
-        std_convert_scope.items.insert(
-            std_convert_to_bits.identifier(),
-            Item::new(ItemVariant::Type(Type::Function(std_convert_to_bits)), None),
-        );
-        std_convert_scope.items.insert(
-            std_convert_from_bits_unsigned.identifier(),
-            Item::new(
-                ItemVariant::Type(Type::Function(std_convert_from_bits_unsigned)),
-                None,
-            ),
-        );
-        std_convert_scope.items.insert(
-            std_convert_from_bits_signed.identifier(),
-            Item::new(
-                ItemVariant::Type(Type::Function(std_convert_from_bits_signed)),
-                None,
-            ),
-        );
-        std_convert_scope.items.insert(
-            std_convert_from_bits_field.identifier(),
-            Item::new(
-                ItemVariant::Type(Type::Function(std_convert_from_bits_field)),
-                None,
-            ),
-        );
-
-        let mut std_array_scope = Scope::default();
-        let std_array_reverse = FunctionType::new_std(BuiltinIdentifier::ArrayReverse);
-        let std_array_truncate = FunctionType::new_std(BuiltinIdentifier::ArrayTruncate);
-        let std_array_pad = FunctionType::new_std(BuiltinIdentifier::ArrayPad);
-        std_array_scope.items.insert(
-            std_array_reverse.identifier(),
-            Item::new(ItemVariant::Type(Type::Function(std_array_reverse)), None),
-        );
-        std_array_scope.items.insert(
-            std_array_truncate.identifier(),
-            Item::new(ItemVariant::Type(Type::Function(std_array_truncate)), None),
-        );
-        std_array_scope.items.insert(
-            std_array_pad.identifier(),
-            Item::new(ItemVariant::Type(Type::Function(std_array_pad)), None),
-        );
-
-        let mut std_ff_scope = Scope::default();
-        let std_ff_invert = FunctionType::new_std(BuiltinIdentifier::FieldInverse);
-        std_ff_scope.items.insert(
-            std_ff_invert.identifier(),
-            Item::new(ItemVariant::Type(Type::Function(std_ff_invert)), None),
-        );
-
-        let mut std_scope = Scope::default();
-        std_scope.items.insert(
-            "crypto".to_owned(),
-            Item::new(
-                ItemVariant::Module(Rc::new(RefCell::new(std_crypto_scope))),
-                None,
-            ),
-        );
-        std_scope.items.insert(
-            "convert".to_owned(),
-            Item::new(
-                ItemVariant::Module(Rc::new(RefCell::new(std_convert_scope))),
-                None,
-            ),
-        );
-        std_scope.items.insert(
-            "array".to_owned(),
-            Item::new(
-                ItemVariant::Module(Rc::new(RefCell::new(std_array_scope))),
-                None,
-            ),
-        );
-        std_scope.items.insert(
-            "ff".to_owned(),
-            Item::new(
-                ItemVariant::Module(Rc::new(RefCell::new(std_ff_scope))),
-                None,
-            ),
-        );
-
-        let mut items = HashMap::with_capacity(3);
-        let builtin_function_dbg = FunctionType::new_dbg();
-        let builtin_function_assert = FunctionType::new_assert();
-        items.insert(
-            builtin_function_dbg.identifier(),
-            Item::new(
-                ItemVariant::Type(Type::Function(builtin_function_dbg)),
-                None,
-            ),
-        );
-        items.insert(
-            builtin_function_assert.identifier(),
-            Item::new(
-                ItemVariant::Type(Type::Function(builtin_function_assert)),
-                None,
-            ),
-        );
-        items.insert(
-            "std".to_owned(),
-            Item::new(ItemVariant::Module(Rc::new(RefCell::new(std_scope))), None),
-        );
-        items
     }
 }

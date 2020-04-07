@@ -10,11 +10,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Keyword;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::tree::r#type::builder::Builder as TypeBuilder;
 use crate::syntax::tree::r#type::Type;
@@ -29,6 +29,14 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a type literal.
+    ///
+    /// 'bool'
+    /// '[u8; 16]'
+    /// '(u8, field, bool)'
+    /// 'Path::To::Type`
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -70,13 +78,13 @@ impl Parser {
             Token {
                 lexeme: Lexeme::Symbol(Symbol::BracketSquareLeft),
                 ..
-            } => Ok((ArrayParser::default().parse(stream, Some(token))?, None)),
+            } => ArrayParser::default().parse(stream, Some(token)),
             token
             @
             Token {
                 lexeme: Lexeme::Symbol(Symbol::ParenthesisLeft),
                 ..
-            } => Ok((TupleParser::default().parse(stream, Some(token))?, None)),
+            } => TupleParser::default().parse(stream, Some(token)),
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::expected_type(
                 location, lexeme, None,
             ))),
@@ -91,11 +99,12 @@ mod tests {
 
     use super::Parser;
     use crate::error::Error;
-    use crate::lexical;
-    use crate::lexical::Keyword;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::keyword::Keyword;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::literal::Literal as LexicalLiteral;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
     use crate::syntax::error::Error as SyntaxError;
     use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
     use crate::syntax::tree::r#type::Type;
@@ -157,9 +166,9 @@ mod tests {
 
         let expected = Err(Error::Syntax(SyntaxError::expected_type(
             Location::new(1, 1),
-            Lexeme::Literal(lexical::Literal::Integer(
-                lexical::IntegerLiteral::new_decimal("42".to_owned()),
-            )),
+            Lexeme::Literal(LexicalLiteral::Integer(LexicalIntegerLiteral::new_decimal(
+                "42".to_owned(),
+            ))),
             None,
         )));
 

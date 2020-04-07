@@ -4,12 +4,23 @@
 
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::place::error::Error as PlaceError;
+use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::value::error::Error as ValueError;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
     OperatorAssignmentFirstOperandExpectedPlace { found: String },
     OperatorAssignmentSecondOperandExpectedEvaluable { found: String },
+    OperatorAssignmentBitwiseOrFirstOperandExpectedPlace { found: String },
+    OperatorAssignmentBitwiseOrSecondOperandExpectedEvaluable { found: String },
+    OperatorAssignmentBitwiseXorFirstOperandExpectedPlace { found: String },
+    OperatorAssignmentBitwiseXorSecondOperandExpectedEvaluable { found: String },
+    OperatorAssignmentBitwiseAndFirstOperandExpectedPlace { found: String },
+    OperatorAssignmentBitwiseAndSecondOperandExpectedEvaluable { found: String },
+    OperatorAssignmentBitwiseShiftLeftFirstOperandExpectedPlace { found: String },
+    OperatorAssignmentBitwiseShiftLeftSecondOperandExpectedEvaluable { found: String },
+    OperatorAssignmentBitwiseShiftRightFirstOperandExpectedPlace { found: String },
+    OperatorAssignmentBitwiseShiftRightSecondOperandExpectedEvaluable { found: String },
     OperatorAssignmentAdditionFirstOperandExpectedPlace { found: String },
     OperatorAssignmentAdditionSecondOperandExpectedEvaluable { found: String },
     OperatorAssignmentSubtractionFirstOperandExpectedPlace { found: String },
@@ -53,6 +64,21 @@ pub enum Error {
     OperatorLesserFirstOperandExpectedEvaluable { found: String },
     OperatorLesserSecondOperandExpectedEvaluable { found: String },
 
+    OperatorBitwiseOrFirstOperandExpectedEvaluable { found: String },
+    OperatorBitwiseOrSecondOperandExpectedEvaluable { found: String },
+
+    OperatorBitwiseXorFirstOperandExpectedEvaluable { found: String },
+    OperatorBitwiseXorSecondOperandExpectedEvaluable { found: String },
+
+    OperatorBitwiseAndFirstOperandExpectedEvaluable { found: String },
+    OperatorBitwiseAndSecondOperandExpectedEvaluable { found: String },
+
+    OperatorBitwiseShiftLeftFirstOperandExpectedEvaluable { found: String },
+    OperatorBitwiseShiftLeftSecondOperandExpectedConstant { found: String },
+
+    OperatorBitwiseShiftRightFirstOperandExpectedEvaluable { found: String },
+    OperatorBitwiseShiftRightSecondOperandExpectedConstant { found: String },
+
     OperatorAdditionFirstOperandExpectedEvaluable { found: String },
     OperatorAdditionSecondOperandExpectedEvaluable { found: String },
 
@@ -71,20 +97,23 @@ pub enum Error {
     OperatorCastingFirstOperandExpectedEvaluable { found: String },
     OperatorCastingSecondOperandExpectedType { found: String },
 
-    OperatorNegationExpectedEvaluable { found: String },
-
     OperatorNotExpectedEvaluable { found: String },
+
+    OperatorBitwiseNotExpectedEvaluable { found: String },
+
+    OperatorNegationExpectedEvaluable { found: String },
 
     OperatorIndexFirstOperandExpectedPlaceOrEvaluable { found: String },
     OperatorIndexSecondOperandExpectedEvaluable { found: String },
 
     OperatorFieldFirstOperandExpectedPlaceOrEvaluable { found: String },
-    OperatorFieldSecondOperandExpectedMember { found: String },
+    OperatorFieldSecondOperandExpectedIdentifier { found: String },
 
     OperatorPathFirstOperandExpectedPath { found: String },
-    OperatorPathSecondOperandExpectedMemberString { found: String },
+    OperatorPathSecondOperandExpectedIdentifier { found: String },
 
     Place(PlaceError),
     Value(ValueError),
     Constant(ConstantError),
+    Type(TypeError),
 }
