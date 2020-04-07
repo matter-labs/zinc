@@ -1,6 +1,6 @@
 # The Zinc changelog
 
-## Version 0.1.5 (TODO)
+## Version 0.1.5 (2020-04-07)
 
 #### Language
 
@@ -17,6 +17,10 @@
 
 - fixed the bug with `!` while passing a non-builtin function call as a built-in one's argument
 - fixed the bug with duplicate match expression branches
+
+#### Overall
+
+- added a wrapper directory to the release archives to prevent tar- and zip-bombs
 
 ## Version 0.1.4 (2020-03-05)
 
