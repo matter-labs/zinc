@@ -28,7 +28,7 @@ pub struct File {
 }
 
 lazy_static! {
-    pub static ref INDEX: RwLock<HashMap<usize, PathBuf>> = RwLock::new(HashMap::new());
+    pub static ref INDEX: RwLock<Vec<PathBuf>> = RwLock::new(Vec::new());
 }
 
 impl File {
@@ -43,7 +43,7 @@ impl File {
         INDEX
             .write()
             .expect(crate::PANIC_MUTEX_SYNC)
-            .insert(next_file_id, self.path);
+            .push(self.path);
 
         let syntax_tree = Parser::default()
             .parse(&self.code, Some(next_file_id))
@@ -67,7 +67,7 @@ impl File {
         INDEX
             .write()
             .expect(crate::PANIC_MUTEX_SYNC)
-            .insert(next_file_id, self.path);
+            .push(self.path);
 
         let syntax_tree = Parser::default()
             .parse(&self.code, Some(next_file_id))

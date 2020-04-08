@@ -184,15 +184,14 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
         args.public_data_template_path
     );
 
-    let bytecode: Vec<u8> = Rc::try_unwrap(bytecode)
+    let bytecode = Rc::try_unwrap(bytecode)
         .expect(zinc_compiler::PANIC_LAST_SHARED_REFERENCE)
-        .into_inner()
-        .into();
+        .into_inner();
 
     File::create(&args.bytecode_output_path)
         .map_err(OutputError::Creating)
         .map_err(Error::BytecodeOutput)?
-        .write_all(bytecode.as_slice())
+        .write_all(bytecode.into_bytes().as_slice())
         .map_err(OutputError::Writing)
         .map_err(Error::BytecodeOutput)?;
     log::info!("Compiled to {:?}", args.bytecode_output_path);

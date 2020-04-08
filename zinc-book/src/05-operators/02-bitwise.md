@@ -1,8 +1,5 @@
 # Bitwise operators
 
-Bitwise operators do not perform any kind of overflow checking at
-compile time. If an overflow happens, the Zinc VM will fail at runtime.
-
 The `|=`, `^=`, `&=`, `<<=`, `>>=` shortcut operators perform the operation
 and assign the result to the first operand. The first operand must be a mutable memory location
 like a variable, array element, or structure field.

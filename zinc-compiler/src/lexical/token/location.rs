@@ -6,7 +6,7 @@ use std::fmt;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Location {
-    pub file: Option<usize>,
+    pub file_index: Option<usize>,
     pub line: usize,
     pub column: usize,
 }
@@ -18,7 +18,7 @@ impl Location {
     ///
     pub fn new(line: usize, column: usize) -> Self {
         Self {
-            file: None,
+            file_index: None,
             line,
             column,
         }
@@ -28,9 +28,9 @@ impl Location {
     /// Creates a location with a file identifier.
     /// The file identifier can be used to get its path from the global type index.
     ///
-    pub fn new_beginning(file: Option<usize>) -> Self {
+    pub fn new_beginning(file_index: Option<usize>) -> Self {
         Self {
-            file,
+            file_index,
             line: 1,
             column: 1,
         }
@@ -42,7 +42,7 @@ impl Location {
     ///
     pub fn shifted_down(&self, lines: usize, column: usize) -> Self {
         Self {
-            file: self.file,
+            file_index: self.file_index,
             line: self.line + lines,
             column,
         }
@@ -53,7 +53,7 @@ impl Location {
     ///
     pub fn shifted_right(&self, columns: usize) -> Self {
         Self {
-            file: self.file,
+            file_index: self.file_index,
             line: self.line,
             column: self.column + columns,
         }
@@ -64,18 +64,18 @@ impl fmt::Display for Location {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match (self.line, self.column) {
             (0, 0) => write!(f, "<unavailable>"),
-            (line, column) => match self.file {
-                Some(file) => write!(
+            (line, column) => match self.file_index {
+                Some(file_index) => write!(
                     f,
                     "{}:{}:{}",
                     crate::file::INDEX
                         .read()
                         .expect(crate::PANIC_MUTEX_SYNC)
-                        .get(&file)
+                        .get(file_index)
                         .expect(crate::PANIC_FILE_INDEX)
                         .to_string_lossy(),
                     line,
-                    column
+                    column,
                 ),
                 None => write!(f, "{}:{}", line, column),
             },

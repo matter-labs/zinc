@@ -178,6 +178,20 @@ impl Bytecode {
         }
     }
 
+    pub fn into_bytes(self) -> Vec<u8> {
+        for (index, instruction) in self.instructions.iter().enumerate() {
+            log::debug!("{:03} {:?}", index, instruction)
+        }
+
+        let program = Program::new(
+            self.input_types_as_struct(),
+            self.output_type.into(),
+            self.instructions,
+        );
+
+        program.to_bytes()
+    }
+
     fn input_types_as_struct(&self) -> DataType {
         DataType::Struct(
             self.input_fields
@@ -191,21 +205,5 @@ impl Bytecode {
 impl Into<Vec<Instruction>> for Bytecode {
     fn into(self) -> Vec<Instruction> {
         self.instructions
-    }
-}
-
-impl Into<Vec<u8>> for Bytecode {
-    fn into(self) -> Vec<u8> {
-        for (index, instruction) in self.instructions.iter().enumerate() {
-            log::debug!("{:03} {:?}", index, instruction)
-        }
-
-        let program = Program::new(
-            self.input_types_as_struct(),
-            self.output_type.into(),
-            self.instructions,
-        );
-
-        program.to_bytes()
     }
 }

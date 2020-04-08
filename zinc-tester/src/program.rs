@@ -58,9 +58,9 @@ impl ProgramData {
         let bytecode = Rc::try_unwrap(bytecode)
             .expect(crate::PANIC_LAST_SHARED_REFERENCE)
             .into_inner();
-        let bytecode: Vec<u8> = bytecode.into();
 
-        let program = Program::from_bytes(bytecode.as_slice()).map_err(Error::Program)?;
+        let program =
+            Program::from_bytes(bytecode.into_bytes().as_slice()).map_err(Error::Program)?;
 
         Ok(program)
     }
