@@ -1,13 +1,10 @@
 extern crate franklin_crypto;
 
-use crate::gadgets::stdlib::arrays::{ArrayPad, Reverse, Truncate};
-use crate::gadgets::stdlib::bits::*;
-use crate::gadgets::stdlib::crypto::{Pedersen, Sha256, VerifySchnorrSignature};
-
 use self::franklin_crypto::bellman::ConstraintSystem;
-use crate::core::{Cell, InternalVM, VMInstruction};
+use crate::core::{InternalVM, VMInstruction};
 use crate::core::{RuntimeError, VirtualMachine};
-use crate::Engine;
+use crate::stdlib::crypto::VerifySchnorrSignature;
+use crate::{stdlib, Engine};
 use zinc_bytecode::builtins::BuiltinIdentifier;
 use zinc_bytecode::instructions::CallBuiltin;
 
@@ -17,39 +14,35 @@ where
     CS: ConstraintSystem<E>,
 {
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
-        // TODO: Use call_native for all built-in functions
-        if let BuiltinIdentifier::CryptoSchnorrSignatureVerify = self.identifier {
-            return vm.call_native(VerifySchnorrSignature::new(self.inputs_count)?);
-        }
-
-        let mut input = Vec::new();
-        for _ in 0..self.inputs_count {
-            let value = vm.pop()?.value()?;
-            input.push(value);
-        }
-
-        input.reverse();
-
-        let output = match self.identifier {
-            BuiltinIdentifier::CryptoSha256 => vm.operations().execute(Sha256, &input),
-            BuiltinIdentifier::CryptoPedersen => vm.operations().execute(Pedersen, &input),
-            BuiltinIdentifier::ToBits => vm.operations().execute(ToBits, &input),
-            BuiltinIdentifier::UnsignedFromBits => {
-                vm.operations().execute(UnsignedFromBits, &input)
+        match self.identifier {
+            BuiltinIdentifier::CryptoSchnorrSignatureVerify => {
+                vm.call_native(VerifySchnorrSignature::new(self.inputs_count)?)
             }
-            BuiltinIdentifier::SignedFromBits => vm.operations().execute(SignedFromBits, &input),
-            BuiltinIdentifier::FieldFromBits => vm.operations().execute(FieldFromBits, &input),
-            BuiltinIdentifier::ArrayPad => vm.operations().execute(ArrayPad, &input),
-            BuiltinIdentifier::ArrayTruncate => vm.operations().execute(Truncate, &input),
-            BuiltinIdentifier::ArrayReverse => vm.operations().execute(Reverse, &input),
-            f => unimplemented!("Builtin function {} is not implemented.", f),
-        }?;
-
-        for value in output.into_iter() {
-            vm.push(Cell::Value(value))?
+            BuiltinIdentifier::FieldInverse => vm.call_native(stdlib::ff::Inverse),
+            BuiltinIdentifier::CryptoSha256 => {
+                vm.call_native(stdlib::crypto::Sha256::new(self.inputs_count)?)
+            }
+            BuiltinIdentifier::CryptoPedersen => {
+                vm.call_native(stdlib::crypto::Pedersen::new(self.inputs_count)?)
+            }
+            BuiltinIdentifier::ToBits => vm.call_native(stdlib::bits::ToBits),
+            BuiltinIdentifier::UnsignedFromBits => {
+                vm.call_native(stdlib::bits::UnsignedFromBits::new(self.inputs_count))
+            }
+            BuiltinIdentifier::SignedFromBits => {
+                vm.call_native(stdlib::bits::SignedFromBits::new(self.inputs_count))
+            }
+            BuiltinIdentifier::FieldFromBits => vm.call_native(stdlib::bits::FieldFromBits),
+            BuiltinIdentifier::ArrayReverse => {
+                vm.call_native(stdlib::array::Reverse::new(self.inputs_count)?)
+            }
+            BuiltinIdentifier::ArrayTruncate => {
+                vm.call_native(stdlib::array::Truncate::new(self.inputs_count)?)
+            }
+            BuiltinIdentifier::ArrayPad => {
+                vm.call_native(stdlib::array::Pad::new(self.inputs_count)?)
+            }
         }
-
-        Ok(())
     }
 }
 

@@ -1,10 +1,10 @@
 //!
-//! The structure expression builder.
+//! The structure or identifier expression builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::expression::structure::Expression as StructureExpression;
-use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::identifier::Identifier;
 
 #[derive(Default)]
@@ -12,7 +12,7 @@ pub struct Builder {
     location: Option<Location>,
     identifier: Option<Identifier>,
     is_struct: bool,
-    fields: Vec<(Identifier, Option<Expression>)>,
+    fields: Vec<(Identifier, Option<ExpressionTree>)>,
 }
 
 impl Builder {
@@ -24,7 +24,7 @@ impl Builder {
         self.identifier = Some(value);
     }
 
-    pub fn set_struct(&mut self) {
+    pub fn set_is_struct(&mut self) {
         self.is_struct = true;
     }
 
@@ -32,13 +32,13 @@ impl Builder {
         self.fields.push((value, None));
     }
 
-    pub fn set_field_expression(&mut self, value: Expression) {
+    pub fn set_field_expression(&mut self, value: ExpressionTree) {
         self.fields
             .last_mut()
             .unwrap_or_else(|| {
                 panic!(
                     "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    crate::PANIC_BUILDER_REQUIRES_VALUE,
                     "field identifier"
                 )
             })
@@ -47,17 +47,12 @@ impl Builder {
 
     pub fn finish(mut self) -> StructureExpression {
         StructureExpression::new(
-            self.location.unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "location"
-                )
-            }),
+            self.location
+                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")),
             self.identifier.take().unwrap_or_else(|| {
                 panic!(
                     "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                    crate::PANIC_BUILDER_REQUIRES_VALUE,
                     "path expression"
                 )
             }),
@@ -70,13 +65,13 @@ impl Builder {
                         expression.unwrap_or_else(|| {
                             panic!(
                                 "{}{}",
-                                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                                crate::PANIC_BUILDER_REQUIRES_VALUE,
                                 "field expression"
                             )
                         }),
                     )
                 })
-                .collect::<Vec<(Identifier, Expression)>>(),
+                .collect::<Vec<(Identifier, ExpressionTree)>>(),
         )
     }
 }

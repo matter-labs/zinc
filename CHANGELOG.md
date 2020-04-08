@@ -1,5 +1,27 @@
 # The Zinc changelog
 
+## Version 0.1.5 (2020-04-07)
+
+#### Language
+
+- forbidden the division operator `/`, but implemented `std::ff::invert` for `field` inversion
+- allowed casting to types with lesser bitlength (runtime error on overflow)
+- added the bitwise operators `|`, `|=`, `^`, `^=`, `&`, `&=`, `<<`, `<<=`, `>>`, `>>=`, `~` (constant expressions only)
+- added the binary (e.g. `0b101010`) and octal (e.g. `0o52`) integer literals
+- implemented match exhaustiveness checking without the binding or wildcard pattern
+- removed `static` statements for global variables (use `const` instead)
+- limited `match` scrutinee expression to boolean and integer only, since it is impossible to destructure complex types for now
+- reserved some keywords (see [Appendix C](https://zinc.matterlabs.dev/appendix/C-keywords.html) of the Zinc book)
+
+#### Compiler
+
+- fixed the bug with `!` while passing a non-builtin function call as a built-in one's argument
+- fixed the bug with duplicate match expression branches
+
+#### Overall
+
+- added a wrapper directory to the release archives to prevent tar- and zip-bombs
+
 ## Version 0.1.4 (2020-03-05)
 
 #### Language
@@ -17,7 +39,7 @@
 
 - implemented advanced errors with Rust-like formatting, hints, location pointers
 - added constant overflow checking at compile-time
-- the constant expression Euclidean division and remainder now works just like in VM
+- the constant expression Euclidean division and remainder now work just like in VM
 
 #### Virtual machine
 

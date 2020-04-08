@@ -2,7 +2,7 @@
 //! The semantic analyzer scope error.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {

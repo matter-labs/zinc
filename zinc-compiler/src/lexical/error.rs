@@ -1,7 +1,8 @@
 //!
-//! The lexical error.
+//! The lexical parser error.
 //!
 
+use crate::lexical::token::lexeme::literal::integer::Integer;
 use crate::lexical::token::location::Location;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -14,7 +15,12 @@ pub enum Error {
         start: Location,
         end: Location,
     },
-    ExpectedOneOf {
+    ExpectedOneOfBinary {
+        location: Location,
+        expected: String,
+        found: char,
+    },
+    ExpectedOneOfOctal {
         location: Location,
         expected: String,
         found: char,
@@ -47,10 +53,18 @@ impl Error {
         Self::UnterminatedDoubleQuoteString { start, end }
     }
 
-    pub fn expected_one_of(location: Location, expected: Vec<char>, found: char) -> Self {
-        Self::ExpectedOneOf {
+    pub fn expected_one_of_binary(location: Location, found: char) -> Self {
+        Self::ExpectedOneOfBinary {
             location,
-            expected: Self::join_expected(expected),
+            expected: Self::join_expected(Integer::CHARACTERS_BINARY.to_vec()),
+            found,
+        }
+    }
+
+    pub fn expected_one_of_octal(location: Location, found: char) -> Self {
+        Self::ExpectedOneOfOctal {
+            location,
+            expected: Self::join_expected(Integer::CHARACTERS_OCTAL.to_vec()),
             found,
         }
     }
@@ -58,9 +72,7 @@ impl Error {
     pub fn expected_one_of_decimal(location: Location, found: char) -> Self {
         Self::ExpectedOneOfDecimal {
             location,
-            expected: Self::join_expected(vec![
-                '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '_',
-            ]),
+            expected: Self::join_expected(Integer::CHARACTERS_DECIMAL.to_vec()),
             found,
         }
     }
@@ -68,10 +80,7 @@ impl Error {
     pub fn expected_one_of_hexadecimal(location: Location, found: char) -> Self {
         Self::ExpectedOneOfHexadecimal {
             location,
-            expected: Self::join_expected(vec![
-                '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
-                'A', 'B', 'C', 'D', 'E', 'F', '_',
-            ]),
+            expected: Self::join_expected(Integer::CHARACTERS_HEXADECIMAL.to_vec()),
             found,
         }
     }

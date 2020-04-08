@@ -43,7 +43,7 @@ fn unknown(value: u8) -> u8 {
     match value {
         1 => dbg!("One!"),
         2 => dbg!("Two!"),
-        _ => dbg!("Probably three!"),
+        _ => dbg!("Perhaps, three!"),
     };
     42
 }}

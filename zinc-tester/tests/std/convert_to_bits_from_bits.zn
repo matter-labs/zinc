@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "min",
 //#     "input": {
 //#         "signed": "-128",
@@ -19,7 +19,7 @@
 //#         "unsigned": "69"
 //#     },
 //#     "expect": ["-42", "69"]
-//# } ]
+//# } ] }
 
 use std::convert::to_bits;
 use std::convert::from_bits_signed;

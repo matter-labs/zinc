@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "default",
 //#     "input": {
 //#         "preimage": "0x558ef3cde10f05f73d27cdf30dbb1aa40adf940257e1549c239066ed21640a7"
@@ -21,7 +21,7 @@
 //#         true,false,true,false,true,false,true,true,false,true,true,false,true,false,true,false,
 //#         false,true,false,false,true,false,true,false,false,true,true,false,true,false,true,true
 //#     ]
-//# } ]
+//# } ] }
 
 use std::crypto::sha256;
 use std::convert::to_bits;

@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "false_false",
 //#     "input": {
 //#         "a": false,
@@ -26,7 +26,7 @@
 //#         "b": true
 //#     },
 //#     "expect": true
-//# } ]
+//# } ] }
 
 fn main(a: bool, b: bool) -> bool {
     a || b

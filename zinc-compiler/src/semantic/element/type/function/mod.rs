@@ -19,10 +19,19 @@ use self::builtin::Function as BuiltInFunction;
 use self::stdlib::Function as StandardLibraryFunction;
 use self::user::Function as UserFunction;
 
+///
+/// Describes a function, which is a special type.
+///
 #[derive(Debug, Clone)]
 pub enum Function {
+    /// `dbg!` and `assert!`, which must be called with the `!` specifier. These correspond to
+    /// some special VM instructions.
     BuiltInFunction(BuiltInFunction),
+    /// These functions are declared in a virtual built-in scope and implemented in the VM
+    /// as built-in function calls.
     StandardLibrary(StandardLibraryFunction),
+    /// Ordinar functions declared anywhere within a circuit. There is a special `main` function,
+    /// which is also declared by user, but serves as the circuit entry point.
     UserDefined(UserFunction),
 }
 

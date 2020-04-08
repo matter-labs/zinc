@@ -4,6 +4,7 @@
 
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::convert::TryFrom;
 use std::ffi::OsString;
 use std::fs::File;
 use std::io::Write;
@@ -15,6 +16,7 @@ use failure::Fail;
 use structopt::StructOpt;
 
 use zinc_compiler::Bytecode;
+use zinc_compiler::File as ZincFile;
 use zinc_compiler::Scope;
 
 static ZINC_SOURCE_FILE_EXTENSION: &str = "zn";
@@ -133,8 +135,11 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
         bytecode
             .borrow_mut()
             .start_new_file(source_file_path.to_string_lossy().as_ref());
+
         log::info!("Compiling {:?}", source_file_path);
-        let module = zinc_compiler::compile_module(source_file_path, bytecode.clone())
+        let module = ZincFile::try_from(source_file_path)
+            .map_err(Error::Compiler)?
+            .try_into_module(bytecode.clone())
             .map_err(Error::Compiler)?;
 
         modules.insert(module_name, module);
@@ -145,8 +150,11 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
             bytecode
                 .borrow_mut()
                 .start_new_file(entry_file_path.to_string_lossy().as_ref());
+
             log::info!("Compiling {:?}", entry_file_path);
-            zinc_compiler::compile_entry(entry_file_path, bytecode.clone(), modules)
+            ZincFile::try_from(entry_file_path)
+                .map_err(Error::Compiler)?
+                .try_into_entry(bytecode.clone(), modules)
                 .map_err(Error::Compiler)?;
         }
         None => return Err(Error::EntrySourceFileNotFound),
@@ -176,15 +184,14 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
         args.public_data_template_path
     );
 
-    let bytecode: Vec<u8> = Rc::try_unwrap(bytecode)
+    let bytecode = Rc::try_unwrap(bytecode)
         .expect(zinc_compiler::PANIC_LAST_SHARED_REFERENCE)
-        .into_inner()
-        .into();
+        .into_inner();
 
     File::create(&args.bytecode_output_path)
         .map_err(OutputError::Creating)
         .map_err(Error::BytecodeOutput)?
-        .write_all(bytecode.as_slice())
+        .write_all(bytecode.into_bytes().as_slice())
         .map_err(OutputError::Writing)
         .map_err(Error::BytecodeOutput)?;
     log::info!("Compiled to {:?}", args.bytecode_output_path);

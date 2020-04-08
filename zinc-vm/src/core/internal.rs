@@ -1,7 +1,7 @@
 use crate::core::{Block, Branch, Cell, FunctionFrame, Loop, VirtualMachine};
 use crate::errors::MalformedBytecode;
-use crate::gadgets::stdlib::NativeFunction;
 use crate::gadgets::Gadgets;
+use crate::stdlib::NativeFunction;
 use crate::Result;
 use crate::RuntimeError;
 use crate::{gadgets, Engine};
@@ -140,7 +140,8 @@ where
 
         let prev = self.condition_top()?;
 
-        let next = self.operations().and(condition.clone(), prev)?;
+        let cs = self.constraint_system();
+        let next = gadgets::boolean::and(cs.namespace(|| "branch"), &condition, &prev)?;
         self.state.conditions_stack.push(next);
 
         let branch = Branch {

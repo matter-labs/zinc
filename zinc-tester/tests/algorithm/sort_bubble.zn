@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "none",
 //#     "input": {
 //#         "array": ["7", "2", "1", "8", "10", "3", "5", "4", "9", "6"],
@@ -19,7 +19,7 @@
 //#         "direction": "2"
 //#     },
 //#     "expect": ["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]
-//# } ]
+//# } ] }
 
 const ARRAY_SIZE: u8 = 10;
 
@@ -35,7 +35,7 @@ fn main(mut array: [u8; ARRAY_SIZE], direction: Direction) -> [u8; ARRAY_SIZE] {
             if match direction {
                 Direction::Ascending => array[i] < array[j],
                 Direction::Descending => array[i] > array[j],
-                _ => false, // TODO
+                Direction::None => false,
             } {
                 let temp = array[j];
                 array[j] = array[i];

@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer standard library `std::crypto::schnorr::verify` function element.
+//! The semantic analyzer standard library `std::crypto::schnorr::Signature::verify` function element.
 //!
 
 use std::fmt;
@@ -10,10 +10,11 @@ use zinc_bytecode::builtins::BuiltinIdentifier;
 use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
-use crate::semantic::scope::Scope;
+use crate::semantic::scope::builtin::BuiltInItems;
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct Function {
+    builtin_identifier: BuiltinIdentifier,
     identifier: &'static str,
     return_type: Box<Type>,
 }
@@ -23,8 +24,9 @@ impl Function {
     pub const ARGUMENT_INDEX_MESSAGE: usize = 1;
     pub const ARGUMENT_COUNT: usize = 2;
 
-    pub fn new() -> Self {
+    pub fn new(builtin_identifier: BuiltinIdentifier) -> Self {
         Self {
+            builtin_identifier,
             identifier: "verify",
             return_type: Box::new(Type::boolean()),
         }
@@ -35,7 +37,7 @@ impl Function {
     }
 
     pub fn builtin_identifier(&self) -> BuiltinIdentifier {
-        BuiltinIdentifier::CryptoSchnorrSignatureVerify
+        self.builtin_identifier
     }
 
     pub fn call(self, actual_elements: Vec<Element>) -> Result<Type, Error> {
@@ -57,7 +59,7 @@ impl Function {
 
         match actual_params.get(Self::ARGUMENT_INDEX_SIGNATURE) {
             Some(Type::Structure(structure))
-                if structure.unique_id == Scope::TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE => {}
+                if structure.unique_id == BuiltInItems::TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE => {}
             Some(r#type) => {
                 return Err(Error::argument_type(
                     self.identifier.to_owned(),
@@ -81,7 +83,7 @@ impl Function {
                 (Type::Boolean, size)
                     if size % crate::BITLENGTH_BYTE == 0
                         && size > 0
-                        && size <= crate::SCHNORR_MESSAGE_LIMIT_BITS => {}
+                        && size <= crate::LIMIT_SCHNORR_MESSAGE_BITS => {}
                 (r#type, size) => {
                     return Err(Error::argument_type(
                         self.identifier.to_owned(),

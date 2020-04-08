@@ -5,7 +5,7 @@
 use std::fmt;
 
 use crate::semantic::element::constant::Constant;
-use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionError;
+use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionTypeError;
 use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
@@ -75,10 +75,12 @@ impl Function {
 
         let arguments_expected_count = format_string.matches("{}").count();
         if arguments_expected_count != actual_params.len() - 1 {
-            return Err(Error::BuiltIn(BuiltInFunctionError::debug_argument_count(
-                arguments_expected_count + 1,
-                actual_params.len(),
-            )));
+            return Err(Error::BuiltIn(
+                BuiltInFunctionTypeError::debug_argument_count(
+                    arguments_expected_count + 1,
+                    actual_params.len(),
+                ),
+            ));
         }
 
         let argument_types: Vec<Type> = actual_params

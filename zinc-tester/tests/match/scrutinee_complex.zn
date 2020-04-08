@@ -1,10 +1,10 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "default",
 //#     "input": {
 //#         "witness": "2"
 //#     },
 //#     "expect": "42"
-//# } ]
+//# } ] }
 
 fn main(witness: u8) -> u8 {
     match witness + witness * witness {

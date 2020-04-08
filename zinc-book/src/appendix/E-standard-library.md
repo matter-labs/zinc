@@ -135,7 +135,7 @@ Returns: `field`
 
 ### `std::array::reverse`
 
-Reverses the given array.
+Reverses a given array.
 
 Arguments:
 - array: `[{scalar}; N]`
@@ -170,3 +170,14 @@ Arguments:
 - fill_value: `{scalar}`
 
 Returns: `[{scalar}; new_length]`
+
+## `std::ff` module
+
+### `std::ff::invert`
+
+Inverts a finite field.
+
+Arguments:
+- value: `field`
+
+Returns: `field`

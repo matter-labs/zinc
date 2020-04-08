@@ -2,9 +2,9 @@
 //! The semantic analyzer function error.
 //!
 
-use crate::lexical::Location;
-use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionError;
-use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionError;
+use crate::lexical::token::location::Location;
+use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionTypeError;
+use crate::semantic::element::r#type::function::stdlib::error::Error as StandardLibraryFunctionTypeError;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
@@ -41,8 +41,8 @@ pub enum Error {
         name: String,
     },
 
-    BuiltIn(BuiltInFunctionError),
-    StandardLibrary(StandardLibraryFunctionError),
+    BuiltIn(BuiltInFunctionTypeError),
+    StandardLibrary(StandardLibraryFunctionTypeError),
 }
 
 impl Error {

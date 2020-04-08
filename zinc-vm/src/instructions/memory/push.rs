@@ -26,9 +26,9 @@ mod tests {
     #[test]
     fn test_push() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new_untyped(0.into()))
-            .add(PushConst::new_untyped(42.into()))
-            .add(PushConst::new_untyped(0xABCD.into()))
+            .add(PushConst::new_field(0.into()))
+            .add(PushConst::new_field(42.into()))
+            .add(PushConst::new_field(0xABCD.into()))
             .add(PushConst::new((-1).into(), IntegerType::I8.into()))
             .add(PushConst::new((-1000).into(), IntegerType::I16.into()))
             .test(&[-1000, -1, 0xABCD, 42, 0])

@@ -4,22 +4,22 @@
 
 pub mod builder;
 
-use crate::lexical::Location;
-use crate::syntax::tree::expression::Expression as SyntaxExpression;
+use crate::lexical::token::location::Location;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::pattern_match::Pattern as MatchPattern;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
     pub location: Location,
-    pub scrutinee: SyntaxExpression,
-    pub branches: Vec<(MatchPattern, SyntaxExpression)>,
+    pub scrutinee: ExpressionTree,
+    pub branches: Vec<(MatchPattern, ExpressionTree)>,
 }
 
 impl Expression {
     pub fn new(
         location: Location,
-        scrutinee: SyntaxExpression,
-        branches: Vec<(MatchPattern, SyntaxExpression)>,
+        scrutinee: ExpressionTree,
+        branches: Vec<(MatchPattern, ExpressionTree)>,
     ) -> Self {
         Self {
             location,

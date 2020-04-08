@@ -25,7 +25,7 @@ change the immutable variable value. However, constants cannot infer their type
 and you must specify it explicitly.
 
 > In contrast to Rust, variables can only be declared in functions. If you need a
-> global variable, you should declare a constant or static. This limitation is devised to
+> global variable, you should declare a constant instead. This limitation is devised to
 > prevent unwanted side effects, polluting the global namespace, and bad design.
 
 ```rust,no_run,noplaypen

@@ -7,15 +7,60 @@
 use num_bigint::BigInt;
 
 use crate::error::Error;
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
+use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::place::error::Error as PlaceError;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::Error as SemanticError;
+use crate::semantic::error::Error as SemanticError;
 
 #[test]
-fn error_element_place_index_1st_expected_array() {
+fn error_mutating_immutable_memory() {
+    let input = r#"
+fn main() {
+    let result = 42;
+    result = 69;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(4, 12),
+        ElementError::Place(PlaceError::MutatingImmutableMemory {
+            name: "result".to_string(),
+            reference: Some(Location::new(3, 9)),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_mutating_with_different_type() {
+    let input = r#"
+fn main() {
+    let mut result = 42;
+    result = false;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(4, 12),
+        ElementError::Place(PlaceError::MutatingWithDifferentType {
+            expected: Type::boolean().to_string(),
+            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_operator_index_1st_operand_expected_array() {
     let input = r#"
 fn main() {
     let tuple = (true, false, true);
@@ -25,18 +70,18 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 22),
-        ElementError::Place(PlaceError::OperatorIndexFirstOperandExpectedArray(
-            Type::tuple(vec![Type::boolean(); 3]).to_string(),
-        )),
+        ElementError::Place(PlaceError::OperatorIndexFirstOperandExpectedArray {
+            found: Type::tuple(vec![Type::boolean(); 3]).to_string(),
+        }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_place_index_2nd_expected_integer() {
+fn error_operator_index_2nd_operand_expected_integer_or_range() {
     let input = r#"
 fn main() {
     let array = [1, 2, 3];
@@ -47,19 +92,19 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 22),
         ElementError::Place(
-            PlaceError::OperatorIndexSecondOperandExpectedIntegerOrRange(
-                Constant::Boolean(true).to_string(),
-            ),
+            PlaceError::OperatorIndexSecondOperandExpectedIntegerOrRange {
+                found: Constant::Boolean(BooleanConstant::new(true)).to_string(),
+            },
         ),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_place_field_1st_expected_tuple() {
+fn error_operator_field_1st_operand_expected_tuple() {
     let input = r#"
 struct Data {
     a: u8,
@@ -75,8 +120,8 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(10, 21),
-        ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedTuple(
-            Type::structure(
+        ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedTuple {
+            found: Type::structure(
                 "Data".to_owned(),
                 1,
                 vec![(
@@ -86,16 +131,16 @@ fn main() {
                 None,
             )
             .to_string(),
-        )),
+        }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_place_field_1st_expected_structure() {
+fn error_operator_field_1st_operand_expected_structure() {
     let input = r#"
 fn main() {
     let tuple = (true, true, false);
@@ -105,18 +150,18 @@ fn main() {
 
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(4, 22),
-        ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedStructure(
-            Type::tuple(vec![Type::boolean(); 3]).to_string(),
-        )),
+        ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedStructure {
+            found: Type::tuple(vec![Type::boolean(); 3]).to_string(),
+        }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_place_index_slice_start_out_of_range() {
+fn error_array_slice_start_out_of_range() {
     let input = r#"
 fn main() {
     let array = [1, 2, 3, 4, 5];
@@ -131,13 +176,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_place_index_slice_end_out_of_range() {
+fn error_array_slice_end_out_of_range() {
     let input = r#"
 fn main() {
     let array = [1, 2, 3, 4, 5];
@@ -153,13 +198,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_place_index_slice_end_lesser_than_start() {
+fn error_array_slice_end_lesser_than_start() {
     let input = r#"
 fn main() {
     let array = [1, 2, 3, 4, 5];
@@ -175,13 +220,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_place_field_does_not_exist_in_tuple() {
+fn error_tuple_field_does_not_exist() {
     let input = r#"
 fn main() {
     let tuple = (1, 2, 3);
@@ -198,13 +243,13 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
 
 #[test]
-fn error_element_place_field_does_not_exist_in_structure() {
+fn error_structure_field_does_not_exist() {
     let input = r#"
 struct Data {
     a: u8,
@@ -226,7 +271,7 @@ fn main() {
         }),
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }

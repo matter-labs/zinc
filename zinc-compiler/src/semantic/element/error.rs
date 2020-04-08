@@ -4,87 +4,116 @@
 
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::place::error::Error as PlaceError;
+use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::value::error::Error as ValueError;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    OperatorAssignmentFirstOperandExpectedPlace(String),
-    OperatorAssignmentSecondOperandExpectedEvaluable(String),
-    OperatorAssignmentAdditionFirstOperandExpectedPlace(String),
-    OperatorAssignmentAdditionSecondOperandExpectedEvaluable(String),
-    OperatorAssignmentSubtractionFirstOperandExpectedPlace(String),
-    OperatorAssignmentSubtractionSecondOperandExpectedEvaluable(String),
-    OperatorAssignmentMultiplicationFirstOperandExpectedPlace(String),
-    OperatorAssignmentMultiplicationSecondOperandExpectedEvaluable(String),
-    OperatorAssignmentDivisionFirstOperandExpectedPlace(String),
-    OperatorAssignmentDivisionSecondOperandExpectedEvaluable(String),
-    OperatorAssignmentRemainderFirstOperandExpectedPlace(String),
-    OperatorAssignmentRemainderSecondOperandExpectedEvaluable(String),
+    OperatorAssignmentFirstOperandExpectedPlace { found: String },
+    OperatorAssignmentSecondOperandExpectedEvaluable { found: String },
+    OperatorAssignmentBitwiseOrFirstOperandExpectedPlace { found: String },
+    OperatorAssignmentBitwiseOrSecondOperandExpectedEvaluable { found: String },
+    OperatorAssignmentBitwiseXorFirstOperandExpectedPlace { found: String },
+    OperatorAssignmentBitwiseXorSecondOperandExpectedEvaluable { found: String },
+    OperatorAssignmentBitwiseAndFirstOperandExpectedPlace { found: String },
+    OperatorAssignmentBitwiseAndSecondOperandExpectedEvaluable { found: String },
+    OperatorAssignmentBitwiseShiftLeftFirstOperandExpectedPlace { found: String },
+    OperatorAssignmentBitwiseShiftLeftSecondOperandExpectedEvaluable { found: String },
+    OperatorAssignmentBitwiseShiftRightFirstOperandExpectedPlace { found: String },
+    OperatorAssignmentBitwiseShiftRightSecondOperandExpectedEvaluable { found: String },
+    OperatorAssignmentAdditionFirstOperandExpectedPlace { found: String },
+    OperatorAssignmentAdditionSecondOperandExpectedEvaluable { found: String },
+    OperatorAssignmentSubtractionFirstOperandExpectedPlace { found: String },
+    OperatorAssignmentSubtractionSecondOperandExpectedEvaluable { found: String },
+    OperatorAssignmentMultiplicationFirstOperandExpectedPlace { found: String },
+    OperatorAssignmentMultiplicationSecondOperandExpectedEvaluable { found: String },
+    OperatorAssignmentDivisionFirstOperandExpectedPlace { found: String },
+    OperatorAssignmentDivisionSecondOperandExpectedEvaluable { found: String },
+    OperatorAssignmentRemainderFirstOperandExpectedPlace { found: String },
+    OperatorAssignmentRemainderSecondOperandExpectedEvaluable { found: String },
 
-    OperatorRangeInclusiveFirstOperandExpectedConstant(String),
-    OperatorRangeInclusiveSecondOperandExpectedConstant(String),
-    OperatorRangeFirstOperandExpectedConstant(String),
-    OperatorRangeSecondOperandExpectedConstant(String),
+    OperatorRangeInclusiveFirstOperandExpectedConstant { found: String },
+    OperatorRangeInclusiveSecondOperandExpectedConstant { found: String },
+    OperatorRangeFirstOperandExpectedConstant { found: String },
+    OperatorRangeSecondOperandExpectedConstant { found: String },
 
-    OperatorOrFirstOperandExpectedEvaluable(String),
-    OperatorOrSecondOperandExpectedEvaluable(String),
+    OperatorOrFirstOperandExpectedEvaluable { found: String },
+    OperatorOrSecondOperandExpectedEvaluable { found: String },
 
-    OperatorXorFirstOperandExpectedEvaluable(String),
-    OperatorXorSecondOperandExpectedEvaluable(String),
+    OperatorXorFirstOperandExpectedEvaluable { found: String },
+    OperatorXorSecondOperandExpectedEvaluable { found: String },
 
-    OperatorAndFirstOperandExpectedEvaluable(String),
-    OperatorAndSecondOperandExpectedEvaluable(String),
+    OperatorAndFirstOperandExpectedEvaluable { found: String },
+    OperatorAndSecondOperandExpectedEvaluable { found: String },
 
-    OperatorEqualsFirstOperandExpectedEvaluable(String),
-    OperatorEqualsSecondOperandExpectedEvaluable(String),
+    OperatorEqualsFirstOperandExpectedEvaluable { found: String },
+    OperatorEqualsSecondOperandExpectedEvaluable { found: String },
 
-    OperatorNotEqualsFirstOperandExpectedEvaluable(String),
-    OperatorNotEqualsSecondOperandExpectedEvaluable(String),
+    OperatorNotEqualsFirstOperandExpectedEvaluable { found: String },
+    OperatorNotEqualsSecondOperandExpectedEvaluable { found: String },
 
-    OperatorGreaterEqualsFirstOperandExpectedEvaluable(String),
-    OperatorGreaterEqualsSecondOperandExpectedEvaluable(String),
+    OperatorGreaterEqualsFirstOperandExpectedEvaluable { found: String },
+    OperatorGreaterEqualsSecondOperandExpectedEvaluable { found: String },
 
-    OperatorLesserEqualsFirstOperandExpectedEvaluable(String),
-    OperatorLesserEqualsSecondOperandExpectedEvaluable(String),
+    OperatorLesserEqualsFirstOperandExpectedEvaluable { found: String },
+    OperatorLesserEqualsSecondOperandExpectedEvaluable { found: String },
 
-    OperatorGreaterFirstOperandExpectedEvaluable(String),
-    OperatorGreaterSecondOperandExpectedEvaluable(String),
+    OperatorGreaterFirstOperandExpectedEvaluable { found: String },
+    OperatorGreaterSecondOperandExpectedEvaluable { found: String },
 
-    OperatorLesserFirstOperandExpectedEvaluable(String),
-    OperatorLesserSecondOperandExpectedEvaluable(String),
+    OperatorLesserFirstOperandExpectedEvaluable { found: String },
+    OperatorLesserSecondOperandExpectedEvaluable { found: String },
 
-    OperatorAdditionFirstOperandExpectedEvaluable(String),
-    OperatorAdditionSecondOperandExpectedEvaluable(String),
+    OperatorBitwiseOrFirstOperandExpectedEvaluable { found: String },
+    OperatorBitwiseOrSecondOperandExpectedEvaluable { found: String },
 
-    OperatorSubtractionFirstOperandExpectedEvaluable(String),
-    OperatorSubtractionSecondOperandExpectedEvaluable(String),
+    OperatorBitwiseXorFirstOperandExpectedEvaluable { found: String },
+    OperatorBitwiseXorSecondOperandExpectedEvaluable { found: String },
 
-    OperatorMultiplicationFirstOperandExpectedEvaluable(String),
-    OperatorMultiplicationSecondOperandExpectedEvaluable(String),
+    OperatorBitwiseAndFirstOperandExpectedEvaluable { found: String },
+    OperatorBitwiseAndSecondOperandExpectedEvaluable { found: String },
 
-    OperatorDivisionFirstOperandExpectedEvaluable(String),
-    OperatorDivisionSecondOperandExpectedEvaluable(String),
+    OperatorBitwiseShiftLeftFirstOperandExpectedEvaluable { found: String },
+    OperatorBitwiseShiftLeftSecondOperandExpectedConstant { found: String },
 
-    OperatorRemainderFirstOperandExpectedEvaluable(String),
-    OperatorRemainderSecondOperandExpectedEvaluable(String),
+    OperatorBitwiseShiftRightFirstOperandExpectedEvaluable { found: String },
+    OperatorBitwiseShiftRightSecondOperandExpectedConstant { found: String },
 
-    OperatorCastingFirstOperandExpectedEvaluable(String),
-    OperatorCastingSecondOperandExpectedType(String),
+    OperatorAdditionFirstOperandExpectedEvaluable { found: String },
+    OperatorAdditionSecondOperandExpectedEvaluable { found: String },
 
-    OperatorNegationExpectedEvaluable(String),
+    OperatorSubtractionFirstOperandExpectedEvaluable { found: String },
+    OperatorSubtractionSecondOperandExpectedEvaluable { found: String },
 
-    OperatorNotExpectedEvaluable(String),
+    OperatorMultiplicationFirstOperandExpectedEvaluable { found: String },
+    OperatorMultiplicationSecondOperandExpectedEvaluable { found: String },
 
-    OperatorIndexFirstOperandExpectedPlaceOrEvaluable(String),
-    OperatorIndexSecondOperandExpectedEvaluable(String),
+    OperatorDivisionFirstOperandExpectedEvaluable { found: String },
+    OperatorDivisionSecondOperandExpectedEvaluable { found: String },
 
-    OperatorFieldFirstOperandExpectedPlaceOrEvaluable(String),
-    OperatorFieldSecondOperandExpectedMember(String),
+    OperatorRemainderFirstOperandExpectedEvaluable { found: String },
+    OperatorRemainderSecondOperandExpectedEvaluable { found: String },
 
-    OperatorPathFirstOperandExpectedPath(String),
-    OperatorPathSecondOperandExpectedMemberString(String),
+    OperatorCastingFirstOperandExpectedEvaluable { found: String },
+    OperatorCastingSecondOperandExpectedType { found: String },
+
+    OperatorNotExpectedEvaluable { found: String },
+
+    OperatorBitwiseNotExpectedEvaluable { found: String },
+
+    OperatorNegationExpectedEvaluable { found: String },
+
+    OperatorIndexFirstOperandExpectedPlaceOrEvaluable { found: String },
+    OperatorIndexSecondOperandExpectedEvaluable { found: String },
+
+    OperatorFieldFirstOperandExpectedPlaceOrEvaluable { found: String },
+    OperatorFieldSecondOperandExpectedIdentifier { found: String },
+
+    OperatorPathFirstOperandExpectedPath { found: String },
+    OperatorPathSecondOperandExpectedIdentifier { found: String },
 
     Place(PlaceError),
     Value(ValueError),
     Constant(ConstantError),
+    Type(TypeError),
 }

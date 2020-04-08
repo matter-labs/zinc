@@ -2,7 +2,7 @@
 //! The identifier builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::identifier::Identifier;
 
 #[derive(Default)]
@@ -21,18 +21,15 @@ impl Builder {
     }
 
     pub fn finish(mut self) -> Identifier {
-        let location = self.location.take().unwrap_or_else(|| {
-            panic!(
-                "{}{}",
-                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                "location"
-            )
-        });
+        let location = self
+            .location
+            .take()
+            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
 
         let name = self
             .name
             .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::syntax::PANIC_BUILDER_REQUIRES_VALUE, "name"));
+            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "name"));
 
         Identifier::new(location, name)
     }

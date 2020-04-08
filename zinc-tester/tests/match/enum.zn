@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "first",
 //#     "input": {
 //#         "language": "0"
@@ -16,13 +16,7 @@
 //#         "language": "255"
 //#     },
 //#     "expect": "15"
-//# }, {
-//#     "case": "another",
-//#     "input": {
-//#         "language": "69"
-//#     },
-//#     "expect": "20"
-//# } ]
+//# } ] }
 
 enum Language {
     JABBERWOCKY = 0,
@@ -35,6 +29,5 @@ fn main(language: Language) -> u8 {
         Language::JABBERWOCKY => 5,
         Language::ZINC => 10,
         Language::RUST => 15,
-        _ => 20,
     }
 }

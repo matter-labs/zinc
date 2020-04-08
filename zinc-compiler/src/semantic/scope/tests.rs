@@ -5,9 +5,9 @@
 #![cfg(test)]
 
 use crate::error::Error;
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
+use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::error::Error as ScopeError;
-use crate::semantic::Error as SemanticError;
 
 #[test]
 fn error_item_is_not_namespace() {
@@ -26,7 +26,7 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
@@ -50,7 +50,7 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
@@ -70,7 +70,7 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }
@@ -94,7 +94,7 @@ fn main() {
         },
     )));
 
-    let result = crate::semantic::tests::compile_entry_point(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }

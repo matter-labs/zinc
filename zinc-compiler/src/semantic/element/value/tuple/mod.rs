@@ -6,13 +6,18 @@ mod tests;
 
 pub mod error;
 
+use std::convert::TryFrom;
 use std::fmt;
 
-use crate::semantic::element::access::AccessData;
+use crate::semantic::element::access::Field as FieldAccess;
 use crate::semantic::element::r#type::Type;
+use crate::semantic::element::value::Value;
 
 use self::error::Error;
 
+///
+/// Tuples are collections of elements of different types.
+///
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Tuple {
     element_types: Vec<Type>,
@@ -49,7 +54,7 @@ impl Tuple {
         self.element_types.push(r#type);
     }
 
-    pub fn slice(&self, index: usize) -> Result<AccessData, Error> {
+    pub fn slice(self, index: usize) -> Result<(Value, FieldAccess), Error> {
         let mut offset = 0;
         let total_size = self.r#type().size();
 
@@ -66,11 +71,13 @@ impl Tuple {
             tuple_index += 1;
         }
 
-        Ok(AccessData::new(
-            offset,
-            self.element_types[tuple_index].size(),
-            total_size,
-            self.element_types[tuple_index].to_owned(),
+        let sliced_type = self.element_types[tuple_index].clone();
+
+        let access = FieldAccess::new(index, offset, sliced_type.size(), total_size);
+
+        Ok((
+            Value::try_from(&sliced_type).expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+            access,
         ))
     }
 }
@@ -79,7 +86,7 @@ impl fmt::Display for Tuple {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "tuple of types {}",
+            "<tuple> of types {}",
             self.element_types
                 .iter()
                 .map(|r#type| format!("'{}'", r#type))

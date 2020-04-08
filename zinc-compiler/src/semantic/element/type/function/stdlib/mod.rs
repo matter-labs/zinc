@@ -15,10 +15,15 @@ pub mod crypto_pedersen;
 pub mod crypto_schnorr_signature_verify;
 pub mod crypto_sha256;
 pub mod error;
+pub mod ff_invert;
 
 use std::fmt;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
+
+use crate::semantic::element::r#type::function::error::Error;
+use crate::semantic::element::r#type::Type;
+use crate::semantic::element::Element;
 
 use self::array_pad::Function as ArrayPadFunction;
 use self::array_reverse::Function as ArrayReverseFunction;
@@ -30,6 +35,7 @@ use self::convert_to_bits::Function as ToBitsFunction;
 use self::crypto_pedersen::Function as PedersenFunction;
 use self::crypto_schnorr_signature_verify::Function as SchnorrSignatureVerifyFunction;
 use self::crypto_sha256::Function as Sha256Function;
+use self::ff_invert::Function as FfInvertFunction;
 
 #[derive(Debug, Clone)]
 pub enum Function {
@@ -45,31 +51,60 @@ pub enum Function {
     ArrayReverse(ArrayReverseFunction),
     ArrayTruncate(ArrayTruncateFunction),
     ArrayPad(ArrayPadFunction),
+
+    FfInvert(FfInvertFunction),
 }
 
 impl Function {
     pub fn new(identifier: BuiltinIdentifier) -> Self {
         match identifier {
-            BuiltinIdentifier::CryptoSha256 => Self::CryptoSha256(Sha256Function::new()),
-            BuiltinIdentifier::CryptoPedersen => Self::CryptoPedersen(PedersenFunction::new()),
+            BuiltinIdentifier::CryptoSha256 => Self::CryptoSha256(Sha256Function::new(identifier)),
+            BuiltinIdentifier::CryptoPedersen => {
+                Self::CryptoPedersen(PedersenFunction::new(identifier))
+            }
             BuiltinIdentifier::CryptoSchnorrSignatureVerify => {
-                Self::CryptoSchnorrSignatureVerify(SchnorrSignatureVerifyFunction::new())
+                Self::CryptoSchnorrSignatureVerify(SchnorrSignatureVerifyFunction::new(identifier))
             }
 
-            BuiltinIdentifier::ToBits => Self::ConvertToBits(ToBitsFunction::new()),
+            BuiltinIdentifier::ToBits => Self::ConvertToBits(ToBitsFunction::new(identifier)),
             BuiltinIdentifier::UnsignedFromBits => {
-                Self::ConvertFromBitsUnsigned(FromBitsUnsignedFunction::new())
+                Self::ConvertFromBitsUnsigned(FromBitsUnsignedFunction::new(identifier))
             }
             BuiltinIdentifier::SignedFromBits => {
-                Self::ConvertFromBitsSigned(FromBitsSignedFunction::new())
+                Self::ConvertFromBitsSigned(FromBitsSignedFunction::new(identifier))
             }
             BuiltinIdentifier::FieldFromBits => {
-                Self::ConvertFromBitsField(FromBitsFieldFunction::new())
+                Self::ConvertFromBitsField(FromBitsFieldFunction::new(identifier))
             }
 
-            BuiltinIdentifier::ArrayReverse => Self::ArrayReverse(ArrayReverseFunction::new()),
-            BuiltinIdentifier::ArrayTruncate => Self::ArrayTruncate(ArrayTruncateFunction::new()),
-            BuiltinIdentifier::ArrayPad => Self::ArrayPad(ArrayPadFunction::new()),
+            BuiltinIdentifier::ArrayReverse => {
+                Self::ArrayReverse(ArrayReverseFunction::new(identifier))
+            }
+            BuiltinIdentifier::ArrayTruncate => {
+                Self::ArrayTruncate(ArrayTruncateFunction::new(identifier))
+            }
+            BuiltinIdentifier::ArrayPad => Self::ArrayPad(ArrayPadFunction::new(identifier)),
+
+            BuiltinIdentifier::FieldInverse => Self::FfInvert(FfInvertFunction::new(identifier)),
+        }
+    }
+
+    pub fn call(self, elements: Vec<Element>) -> Result<Type, Error> {
+        match self {
+            Self::CryptoSha256(inner) => inner.call(elements),
+            Self::CryptoPedersen(inner) => inner.call(elements),
+            Self::CryptoSchnorrSignatureVerify(inner) => inner.call(elements),
+
+            Self::ConvertToBits(inner) => inner.call(elements),
+            Self::ConvertFromBitsUnsigned(inner) => inner.call(elements),
+            Self::ConvertFromBitsSigned(inner) => inner.call(elements),
+            Self::ConvertFromBitsField(inner) => inner.call(elements),
+
+            Self::ArrayReverse(inner) => inner.call(elements),
+            Self::ArrayTruncate(inner) => inner.call(elements),
+            Self::ArrayPad(inner) => inner.call(elements),
+
+            Self::FfInvert(inner) => inner.call(elements),
         }
     }
 
@@ -87,6 +122,8 @@ impl Function {
             Self::ArrayReverse(inner) => inner.identifier(),
             Self::ArrayTruncate(inner) => inner.identifier(),
             Self::ArrayPad(inner) => inner.identifier(),
+
+            Self::FfInvert(inner) => inner.identifier(),
         }
     }
 
@@ -104,6 +141,8 @@ impl Function {
             Self::ArrayReverse(inner) => inner.builtin_identifier(),
             Self::ArrayTruncate(inner) => inner.builtin_identifier(),
             Self::ArrayPad(inner) => inner.builtin_identifier(),
+
+            Self::FfInvert(inner) => inner.builtin_identifier(),
         }
     }
 }
@@ -123,6 +162,8 @@ impl fmt::Display for Function {
             Self::ArrayReverse(inner) => write!(f, "{}", inner),
             Self::ArrayTruncate(inner) => write!(f, "{}", inner),
             Self::ArrayPad(inner) => write!(f, "{}", inner),
+
+            Self::FfInvert(inner) => write!(f, "{}", inner),
         }
     }
 }

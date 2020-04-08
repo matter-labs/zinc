@@ -2,65 +2,83 @@
 //! The semantic analyzer constant element error.
 //!
 
-use crate::semantic::caster::error::Error as CasterError;
+use crate::semantic::casting::error::Error as CastingError;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    OperatorRangeInclusiveFirstOperandExpectedInteger(String),
-    OperatorRangeInclusiveSecondOperandExpectedInteger(String),
-    OperatorRangeFirstOperandExpectedInteger(String),
-    OperatorRangeSecondOperandExpectedInteger(String),
+    OperatorRangeInclusiveFirstOperandExpectedInteger { found: String },
+    OperatorRangeInclusiveSecondOperandExpectedInteger { found: String },
+    OperatorRangeFirstOperandExpectedInteger { found: String },
+    OperatorRangeSecondOperandExpectedInteger { found: String },
 
-    OperatorOrFirstOperandExpectedBoolean(String),
-    OperatorOrSecondOperandExpectedBoolean(String),
+    OperatorOrFirstOperandExpectedBoolean { found: String },
+    OperatorOrSecondOperandExpectedBoolean { found: String },
 
-    OperatorXorFirstOperandExpectedBoolean(String),
-    OperatorXorSecondOperandExpectedBoolean(String),
+    OperatorXorFirstOperandExpectedBoolean { found: String },
+    OperatorXorSecondOperandExpectedBoolean { found: String },
 
-    OperatorAndFirstOperandExpectedBoolean(String),
-    OperatorAndSecondOperandExpectedBoolean(String),
+    OperatorAndFirstOperandExpectedBoolean { found: String },
+    OperatorAndSecondOperandExpectedBoolean { found: String },
 
-    OperatorEqualsSecondOperandExpectedUnit(String),
-    OperatorEqualsSecondOperandExpectedBoolean(String),
-    OperatorEqualsSecondOperandExpectedInteger(String),
-    OperatorEqualsFirstOperandExpectedPrimitiveType(String),
+    OperatorEqualsSecondOperandExpectedUnit { found: String },
+    OperatorEqualsSecondOperandExpectedBoolean { found: String },
+    OperatorEqualsSecondOperandExpectedInteger { found: String },
+    OperatorEqualsFirstOperandExpectedPrimitiveType { found: String },
 
-    OperatorNotEqualsSecondOperandExpectedUnit(String),
-    OperatorNotEqualsSecondOperandExpectedBoolean(String),
-    OperatorNotEqualsSecondOperandExpectedInteger(String),
-    OperatorNotEqualsFirstOperandExpectedPrimitiveType(String),
+    OperatorNotEqualsSecondOperandExpectedUnit { found: String },
+    OperatorNotEqualsSecondOperandExpectedBoolean { found: String },
+    OperatorNotEqualsSecondOperandExpectedInteger { found: String },
+    OperatorNotEqualsFirstOperandExpectedPrimitiveType { found: String },
 
-    OperatorGreaterEqualsFirstOperandExpectedInteger(String),
-    OperatorGreaterEqualsSecondOperandExpectedInteger(String),
+    OperatorGreaterEqualsFirstOperandExpectedInteger { found: String },
+    OperatorGreaterEqualsSecondOperandExpectedInteger { found: String },
 
-    OperatorLesserEqualsFirstOperandExpectedInteger(String),
-    OperatorLesserEqualsSecondOperandExpectedInteger(String),
+    OperatorLesserEqualsFirstOperandExpectedInteger { found: String },
+    OperatorLesserEqualsSecondOperandExpectedInteger { found: String },
 
-    OperatorGreaterFirstOperandExpectedInteger(String),
-    OperatorGreaterSecondOperandExpectedInteger(String),
+    OperatorGreaterFirstOperandExpectedInteger { found: String },
+    OperatorGreaterSecondOperandExpectedInteger { found: String },
 
-    OperatorLesserFirstOperandExpectedInteger(String),
-    OperatorLesserSecondOperandExpectedInteger(String),
+    OperatorLesserFirstOperandExpectedInteger { found: String },
+    OperatorLesserSecondOperandExpectedInteger { found: String },
 
-    OperatorAdditionFirstOperandExpectedInteger(String),
-    OperatorAdditionSecondOperandExpectedInteger(String),
+    OperatorBitwiseOrFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseOrSecondOperandExpectedInteger { found: String },
 
-    OperatorSubtractionFirstOperandExpectedInteger(String),
-    OperatorSubtractionSecondOperandExpectedInteger(String),
+    OperatorBitwiseXorFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseXorSecondOperandExpectedInteger { found: String },
 
-    OperatorMultiplicationFirstOperandExpectedInteger(String),
-    OperatorMultiplicationSecondOperandExpectedInteger(String),
+    OperatorBitwiseAndFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseAndSecondOperandExpectedInteger { found: String },
 
-    OperatorDivisionFirstOperandExpectedInteger(String),
-    OperatorDivisionSecondOperandExpectedInteger(String),
+    OperatorBitwiseShiftLeftFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseShiftLeftSecondOperandExpectedInteger { found: String },
 
-    OperatorRemainderFirstOperandExpectedInteger(String),
-    OperatorRemainderSecondOperandExpectedInteger(String),
+    OperatorBitwiseShiftRightFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseShiftRightSecondOperandExpectedInteger { found: String },
 
-    OperatorNegationExpectedInteger(String),
-    OperatorNotExpectedBoolean(String),
+    OperatorAdditionFirstOperandExpectedInteger { found: String },
+    OperatorAdditionSecondOperandExpectedInteger { found: String },
+
+    OperatorSubtractionFirstOperandExpectedInteger { found: String },
+    OperatorSubtractionSecondOperandExpectedInteger { found: String },
+
+    OperatorMultiplicationFirstOperandExpectedInteger { found: String },
+    OperatorMultiplicationSecondOperandExpectedInteger { found: String },
+
+    OperatorDivisionFirstOperandExpectedInteger { found: String },
+    OperatorDivisionSecondOperandExpectedInteger { found: String },
+
+    OperatorRemainderFirstOperandExpectedInteger { found: String },
+    OperatorRemainderSecondOperandExpectedInteger { found: String },
+
+    OperatorNotExpectedBoolean { found: String },
+
+    OperatorBitwiseNotExpectedInteger { found: String },
+
+    OperatorNegationExpectedInteger { found: String },
 
     Integer(IntegerConstantError),
-    Casting(CasterError),
+    Casting(CastingError),
 }

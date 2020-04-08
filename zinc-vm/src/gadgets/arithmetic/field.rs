@@ -1,38 +1,71 @@
-use crate::gadgets::{Scalar, ScalarTypeExpectation};
-use crate::{Engine, RuntimeError};
-
-use bellman::ConstraintSystem;
+use crate::auto_const;
+use crate::gadgets::auto_const::prelude::*;
+use crate::gadgets::Scalar;
+use crate::{Engine, Result};
 use ff::Field;
+use franklin_crypto::bellman::{ConstraintSystem, SynthesisError};
+use franklin_crypto::circuit::num::AllocatedNum;
 use franklin_crypto::circuit::Assignment;
-use zinc_bytecode::scalar::ScalarType;
 
-pub fn inverse<E, CS>(mut cs: CS, scalar: Scalar<E>) -> Result<Scalar<E>, RuntimeError>
+pub fn inverse<E, CS>(cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
 {
-    scalar.get_type().assert_type(ScalarType::Field)?;
+    fn inner<E, CS>(mut cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
+    where
+        E: Engine,
+        CS: ConstraintSystem<E>,
+    {
+        let expr = scalar.to_expression::<CS>();
 
-    let value = match scalar.get_value() {
-        None => None,
-        Some(value) => match value.inverse() {
-            Some(inverse) => Some(inverse),
-            None => return Err(RuntimeError::ZeroInversion),
-        },
-    };
+        let inverse = AllocatedNum::alloc(cs.namespace(|| "inverse"), || {
+            expr.get_value()
+                .grab()?
+                .inverse()
+                .ok_or(SynthesisError::Unsatisfiable)
+        })?;
 
-    let variable = cs.alloc(|| "inverse", || value.grab())?;
+        cs.enforce(
+            || "inverse constraint",
+            |zero| zero + &scalar.lc::<CS>(),
+            |zero| zero + inverse.get_variable(),
+            |zero| zero + CS::one(),
+        );
 
-    cs.enforce(
-        || "value * inverse = 1",
-        |zero| zero + &scalar.lc::<CS>(),
-        |zero| zero + variable,
-        |zero| zero + CS::one(),
-    );
+        Ok(inverse.into())
+    }
 
-    Ok(Scalar::new_unchecked_variable(
-        value,
-        variable,
-        ScalarType::Field,
-    ))
+    auto_const!(inner, cs, scalar)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use bellman::ConstraintSystem;
+    use ff::Field;
+    use franklin_crypto::circuit::test::TestConstraintSystem;
+    use pairing::bn256::{Bn256, Fr};
+
+    use crate::gadgets::Scalar;
+    use zinc_bytecode::scalar::ScalarType;
+
+    #[test]
+    fn test_inverse() {
+        let mut cs = TestConstraintSystem::<Bn256>::new();
+
+        let zero = Scalar::new_constant_int(0, ScalarType::Field);
+        let one = Scalar::new_constant_int(1, ScalarType::Field);
+
+        assert!(inverse(cs.namespace(|| "zero"), &zero).is_err(), "zero");
+        assert_eq!(
+            inverse(cs.namespace(|| "one"), &one)
+                .unwrap()
+                .get_value()
+                .unwrap(),
+            Fr::one(),
+            "one"
+        );
+    }
 }

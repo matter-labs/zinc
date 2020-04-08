@@ -6,11 +6,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Keyword;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::statement::local_impl::Parser as ImplementationLocalStatementParser;
 use crate::syntax::tree::identifier::Identifier;
@@ -42,6 +42,17 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses an 'impl' statement.
+    ///
+    /// '
+    /// impl Data {
+    ///     fn sum(a: u8, b: u8) -> u8 {
+    ///         a + b
+    ///     }
+    /// }
+    /// '
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -74,7 +85,7 @@ impl Parser {
                             lexeme: Lexeme::Identifier(identifier),
                             location,
                         } => {
-                            let identifier = Identifier::new(location, identifier.name);
+                            let identifier = Identifier::new(location, identifier.inner);
                             self.builder.set_identifier(identifier);
                             self.state = State::BracketCurlyLeft;
                         }
@@ -108,7 +119,6 @@ impl Parser {
                             let (statement, next) = ImplementationLocalStatementParser::default()
                                 .parse(stream.clone(), Some(token))?;
                             self.next = next;
-                            log::debug!("Implementation statement: {:?}", statement);
                             self.builder.push_statement(statement);
                         }
                     }
@@ -125,16 +135,15 @@ mod tests {
 
     use super::Parser;
     use crate::error::Error;
-    use crate::lexical;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::Symbol;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+    use crate::lexical::token::lexeme::symbol::Symbol;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
     use crate::syntax::error::Error as SyntaxError;
-    use crate::syntax::tree::expression::element::Element as ExpressionElement;
-    use crate::syntax::tree::expression::object::Object as ExpressionObject;
-    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
-    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
+    use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
     use crate::syntax::tree::identifier::Identifier;
     use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
     use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
@@ -179,17 +188,14 @@ mod tests {
                     Location::new(3, 9),
                     Identifier::new(Location::new(3, 15), "VALUE".to_owned()),
                     Type::new(Location::new(3, 22), TypeVariant::integer_unsigned(64)),
-                    Expression::new(
+                    ExpressionTree::new(
                         Location::new(3, 28),
-                        vec![ExpressionElement::new(
-                            Location::new(3, 28),
-                            ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-                                IntegerLiteral::new(
-                                    Location::new(3, 28),
-                                    lexical::IntegerLiteral::new_decimal("42".to_owned()),
-                                ),
-                            )),
-                        )],
+                        ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                            IntegerLiteral::new(
+                                Location::new(3, 28),
+                                LexicalIntegerLiteral::new_decimal("42".to_owned()),
+                            ),
+                        )),
                     ),
                 ))],
             ),
@@ -222,51 +228,42 @@ mod tests {
                         Location::new(3, 9),
                         Identifier::new(Location::new(3, 15), "VALUE".to_owned()),
                         Type::new(Location::new(3, 22), TypeVariant::integer_unsigned(64)),
-                        Expression::new(
+                        ExpressionTree::new(
                             Location::new(3, 28),
-                            vec![ExpressionElement::new(
-                                Location::new(3, 28),
-                                ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-                                    IntegerLiteral::new(
-                                        Location::new(3, 28),
-                                        lexical::IntegerLiteral::new_decimal("42".to_owned()),
-                                    ),
-                                )),
-                            )],
+                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                                IntegerLiteral::new(
+                                    Location::new(3, 28),
+                                    LexicalIntegerLiteral::new_decimal("42".to_owned()),
+                                ),
+                            )),
                         ),
                     )),
                     ImplementationLocalStatement::Const(ConstStatement::new(
                         Location::new(5, 9),
                         Identifier::new(Location::new(5, 15), "ANOTHER".to_owned()),
                         Type::new(Location::new(5, 24), TypeVariant::integer_unsigned(64)),
-                        Expression::new(
+                        ExpressionTree::new(
                             Location::new(5, 30),
-                            vec![ExpressionElement::new(
-                                Location::new(5, 30),
-                                ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-                                    IntegerLiteral::new(
-                                        Location::new(5, 30),
-                                        lexical::IntegerLiteral::new_decimal("42".to_owned()),
-                                    ),
-                                )),
-                            )],
+                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                                IntegerLiteral::new(
+                                    Location::new(5, 30),
+                                    LexicalIntegerLiteral::new_decimal("42".to_owned()),
+                                ),
+                            )),
                         ),
                     )),
                     ImplementationLocalStatement::Const(ConstStatement::new(
                         Location::new(7, 9),
                         Identifier::new(Location::new(7, 15), "YET_ANOTHER".to_owned()),
                         Type::new(Location::new(7, 28), TypeVariant::integer_unsigned(64)),
-                        Expression::new(
+                        ExpressionTree::new(
                             Location::new(7, 34),
-                            vec![ExpressionElement::new(
-                                Location::new(7, 34),
-                                ExpressionObject::Operand(ExpressionOperand::LiteralInteger(
-                                    IntegerLiteral::new(
-                                        Location::new(7, 34),
-                                        lexical::IntegerLiteral::new_decimal("42".to_owned()),
-                                    ),
-                                )),
-                            )],
+                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                                IntegerLiteral::new(
+                                    Location::new(7, 34),
+                                    LexicalIntegerLiteral::new_decimal("42".to_owned()),
+                                ),
+                            )),
                         ),
                     )),
                 ],

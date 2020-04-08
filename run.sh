@@ -25,12 +25,15 @@ case "${1}" in
         export CARGO_LOG_LEVEL="--verbose"
         ;;
     *)
-        export LOG_LEVEL="-v"
+        export LOG_LEVEL=""
         ;;
 esac
 
 # 'debug' | 'release'
 case "${2}" in
+    debug)
+        export TARGET_DIRECTORY="debug"
+        ;;
     release)
         export RELEASE_MODE_FLAG="--release"
         export TARGET_DIRECTORY="release"
@@ -44,13 +47,16 @@ export CIRCUIT_DIRECTORY='./zinc-examples/casual/'
 export CIRCUIT_BUILD_DIRECTORY="${CIRCUIT_DIRECTORY}/build/"
 export CIRCUIT_DATA_DIRECTORY="${CIRCUIT_DIRECTORY}/data/"
 
+export ZARGO_PATH="./target/${TARGET_DIRECTORY}/zargo"
+
 cargo fmt --all
 cargo clippy
 cargo build ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG}
 cargo test
 cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL}
 
-export ZARGO_PATH="./target/${TARGET_DIRECTORY}/zargo"
+"${ZARGO_PATH}" clean ${LOG_LEVEL} \
+    --manifest-path "${CIRCUIT_DIRECTORY}/Zargo.toml"
 
 "${ZARGO_PATH}" proof-check ${LOG_LEVEL} \
     --manifest-path "${CIRCUIT_DIRECTORY}/Zargo.toml" \

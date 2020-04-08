@@ -12,7 +12,7 @@ install:
 
 .PHONY: test-integration
 test-integration: install
-	./test/integration.sh
+	zinc-tester -qp
 
 .PHONY: build-release-musl
 build-release-musl:

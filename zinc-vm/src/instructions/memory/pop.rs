@@ -26,12 +26,12 @@ mod test {
     #[test]
     fn test_pop() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new_untyped(1.into()))
-            .add(PushConst::new_untyped(2.into()))
+            .add(PushConst::new_field(1.into()))
+            .add(PushConst::new_field(2.into()))
             .add(Pop::new(1))
-            .add(PushConst::new_untyped(3.into()))
-            .add(PushConst::new_untyped(4.into()))
-            .add(PushConst::new_untyped(5.into()))
+            .add(PushConst::new_field(3.into()))
+            .add(PushConst::new_field(4.into()))
+            .add(PushConst::new_field(5.into()))
             .add(Pop::new(2))
             .test(&[3, 1])
     }

@@ -2,9 +2,9 @@
 //! The type builder.
 //!
 
-use crate::lexical::Keyword;
-use crate::lexical::Location;
-use crate::syntax::tree::expression::Expression;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::location::Location;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
 use crate::syntax::tree::r#type::Type;
 
@@ -14,9 +14,9 @@ pub struct Builder {
     is_unit: bool,
     keyword: Option<Keyword>,
     array_type_variant: Option<TypeVariant>,
-    array_size: Option<Expression>,
+    array_size: Option<ExpressionTree>,
     tuple_element_types: Vec<TypeVariant>,
-    path_expression: Option<Expression>,
+    path_expression: Option<ExpressionTree>,
 }
 
 impl Builder {
@@ -38,7 +38,7 @@ impl Builder {
         self.array_type_variant = Some(value);
     }
 
-    pub fn set_array_size_expression(&mut self, value: Expression) {
+    pub fn set_array_size_expression(&mut self, value: ExpressionTree) {
         self.array_size = Some(value);
     }
 
@@ -46,7 +46,7 @@ impl Builder {
         self.tuple_element_types.push(value)
     }
 
-    pub fn set_path_expression(&mut self, value: Expression) {
+    pub fn set_path_expression(&mut self, value: ExpressionTree) {
         self.path_expression = Some(value);
     }
 
@@ -56,13 +56,10 @@ impl Builder {
         static PANIC_VALIDATED_BY_THE_TYPE_PARSER: &str =
             "Unreachable as long as the type parser works correctly";
 
-        let location = self.location.take().unwrap_or_else(|| {
-            panic!(
-                "{}{}",
-                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                "location"
-            )
-        });
+        let location = self
+            .location
+            .take()
+            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
 
         let variant = if let Some(path) = self.path_expression.take() {
             TypeVariant::alias(path)
@@ -78,11 +75,7 @@ impl Builder {
             TypeVariant::array(
                 array_type,
                 self.array_size.take().unwrap_or_else(|| {
-                    panic!(
-                        "{}{}",
-                        crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                        "array size"
-                    )
+                    panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "array size")
                 }),
             )
         } else if !self.tuple_element_types.is_empty() {

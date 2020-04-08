@@ -2,7 +2,7 @@
 //! The binding pattern builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;
 use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
@@ -12,7 +12,7 @@ use crate::syntax::tree::r#type::Type;
 pub struct Builder {
     location: Option<Location>,
     binding: Option<Identifier>,
-    is_mutable: bool,
+    is_binding_mutable: bool,
     wildcard: bool,
     r#type: Option<Type>,
 }
@@ -26,11 +26,11 @@ impl Builder {
         self.binding = Some(value);
     }
 
-    pub fn set_mutable(&mut self) {
-        self.is_mutable = true;
+    pub fn set_is_binding_mutable(&mut self) {
+        self.is_binding_mutable = true;
     }
 
-    pub fn set_wildcard(&mut self) {
+    pub fn set_is_wildcard(&mut self) {
         self.wildcard = true;
     }
 
@@ -39,18 +39,15 @@ impl Builder {
     }
 
     pub fn finish(mut self) -> BindingPattern {
-        let location = self.location.take().unwrap_or_else(|| {
-            panic!(
-                "{}{}",
-                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                "location"
-            )
-        });
+        let location = self
+            .location
+            .take()
+            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
 
         let variant = if self.wildcard {
             BindingPatternVariant::Wildcard
         } else if let Some(identifier) = self.binding.take() {
-            if self.is_mutable {
+            if self.is_binding_mutable {
                 BindingPatternVariant::MutableBinding(identifier)
             } else {
                 BindingPatternVariant::Binding(identifier)
@@ -58,7 +55,7 @@ impl Builder {
         } else {
             panic!(
                 "{}{}",
-                crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
+                crate::PANIC_BUILDER_REQUIRES_VALUE,
                 "binding | wildcard"
             );
         };
@@ -66,7 +63,7 @@ impl Builder {
         let r#type = self
             .r#type
             .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::syntax::PANIC_BUILDER_REQUIRES_VALUE, "type"));
+            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "type"));
 
         BindingPattern::new(location, variant, r#type)
     }

@@ -16,13 +16,14 @@ where
     fn execute(&self, vm: &mut VirtualMachine<E, CS>) -> Result<(), RuntimeError> {
         let value = vm.pop()?.value()?;
 
-        let unchecked_neg = vm.operations().neg(value.clone())?;
+        let cs = vm.constraint_system();
+        let unchecked_neg = gadgets::neg(cs.namespace(|| "unchecked_neg"), &value)?;
 
         match value.get_type() {
             ScalarType::Integer(mut int_type) => {
                 let condition = vm.condition_top()?;
                 let cs = vm.constraint_system();
-                int_type.signed = true;
+                int_type.is_signed = true;
                 let neg = gadgets::types::conditional_type_check(
                     cs.namespace(|| "neg"),
                     &condition,

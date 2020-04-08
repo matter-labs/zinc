@@ -1,8 +1,8 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "default",
 //#     "input": {},
 //#     "expect": "2545"
-//# } ]
+//# } ] }
 
 fn main() -> u16 {
     let mut sum: u16 = 0;

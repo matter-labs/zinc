@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "min",
 //#     "input": {
 //#         "value": [
@@ -25,7 +25,7 @@
 //#         ]
 //#     },
 //#     "expect": "32767"
-//# } ]
+//# } ] }
 
 fn main(value: [bool; 16]) -> i16 {
     std::convert::from_bits_signed(value)

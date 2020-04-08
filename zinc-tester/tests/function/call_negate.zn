@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "positive_to_negative",
 //#     "input": {
 //#         "a": "42"
@@ -10,7 +10,7 @@
 //#         "a": "-42"
 //#     },
 //#     "expect": "42"
-//# } ]
+//# } ] }
 
 fn negate(a: i8) -> i8 {
     -a

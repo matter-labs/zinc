@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "one",
 //#     "input": {
 //#         "gates": [true, false, false]
@@ -22,7 +22,7 @@
 //#         "gates": [false, false, false]
 //#     },
 //#     "expect": "4"
-//# } ]
+//# } ] }
 
 fn main(gates: [bool; 3]) -> u8 {
     if gates[0] {

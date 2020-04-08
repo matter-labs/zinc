@@ -7,52 +7,47 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::error::Error as CompilerError;
+use crate::generator::Tree;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
-use crate::semantic::bytecode::Bytecode;
+use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
-use crate::syntax::Tree as SyntaxTree;
+use crate::syntax::tree::Tree as SyntaxTree;
 
+///
+/// Analyzes a module, which are located in non-`main.zn` files.
+///
+/// To analyze the circuit entry, use the entry analyzer.
+///
 pub struct Analyzer {
-    scope_stack: Vec<Rc<RefCell<Scope>>>,
-    bytecode: Rc<RefCell<Bytecode>>,
+    scope_stack: ScopeStack,
 }
 
 impl Default for Analyzer {
     fn default() -> Self {
-        Self::new(Rc::new(RefCell::new(Bytecode::new())))
+        Self::new()
     }
 }
 
 impl Analyzer {
-    const STACK_SCOPE_INITIAL_CAPACITY: usize = 16;
-
-    pub fn new(bytecode: Rc<RefCell<Bytecode>>) -> Self {
+    pub fn new() -> Self {
         Self {
-            scope_stack: {
-                let mut scopes = Vec::with_capacity(Self::STACK_SCOPE_INITIAL_CAPACITY);
-                scopes.push(Rc::new(RefCell::new(Scope::new_global())));
-                scopes
-            },
-            bytecode,
+            scope_stack: ScopeStack::new_global(),
         }
     }
 
-    pub fn compile(self, program: SyntaxTree) -> Result<Rc<RefCell<Scope>>, CompilerError> {
-        self.bytecode.borrow_mut().push_data_stack_address();
+    pub fn compile(self, program: SyntaxTree) -> Result<(Rc<RefCell<Scope>>, Tree), CompilerError> {
+        let mut intermediate = Tree::new();
+
+        let mut analyzer = StatementAnalyzer::new(self.scope_stack.top(), HashMap::new());
         for statement in program.statements.into_iter() {
-            StatementAnalyzer::new(self.scope(), self.bytecode.clone(), HashMap::new())
-                .module_local_statement(statement)
-                .map_err(CompilerError::Semantic)?;
+            if let Some(statement) = analyzer
+                .local_mod(statement)
+                .map_err(CompilerError::Semantic)?
+            {
+                intermediate.statements.push(statement);
+            }
         }
-        self.bytecode.borrow_mut().pop_data_stack_address();
 
-        Ok(self.scope())
-    }
-
-    fn scope(&self) -> Rc<RefCell<Scope>> {
-        self.scope_stack
-            .last()
-            .cloned()
-            .expect(crate::semantic::PANIC_THERE_MUST_ALWAYS_BE_A_SCOPE)
+        Ok((self.scope_stack.top(), intermediate))
     }
 }

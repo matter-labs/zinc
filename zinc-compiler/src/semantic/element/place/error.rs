@@ -2,12 +2,31 @@
 //! The semantic analyzer place error.
 //!
 
+use crate::lexical::token::location::Location;
+
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    OperatorIndexFirstOperandExpectedArray(String),
-    OperatorIndexSecondOperandExpectedIntegerOrRange(String),
-    OperatorFieldFirstOperandExpectedTuple(String),
-    OperatorFieldFirstOperandExpectedStructure(String),
+    MutatingWithDifferentType {
+        expected: String,
+        found: String,
+    },
+    MutatingImmutableMemory {
+        name: String,
+        reference: Option<Location>,
+    },
+
+    OperatorIndexFirstOperandExpectedArray {
+        found: String,
+    },
+    OperatorIndexSecondOperandExpectedIntegerOrRange {
+        found: String,
+    },
+    OperatorFieldFirstOperandExpectedTuple {
+        found: String,
+    },
+    OperatorFieldFirstOperandExpectedStructure {
+        found: String,
+    },
 
     ArraySliceStartOutOfRange {
         start: String,

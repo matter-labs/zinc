@@ -18,6 +18,19 @@ pub enum Error {
     UnterminatedBlock { lines: usize, column: usize },
 }
 
+///
+/// Parses a comment.
+///
+/// Comments can be of two types:
+///
+/// 1. Single-line
+/// '// comment'
+///
+/// 2. Multi-line
+/// /*
+///     comment
+/// */
+///
 pub fn parse(input: &str) -> Result<(usize, usize, usize, Comment), Error> {
     let mut state = State::Start;
     let mut size = 0;

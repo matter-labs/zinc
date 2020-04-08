@@ -1,0 +1,13 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "value": "42"
+//#     },
+//#     "expect": "unit"
+//# } ] }
+
+fn foo(bar: ()) {}
+
+fn main(value: field) {
+    foo(assert!(value == 42 as field, "fixed bug with '!'"));
+}

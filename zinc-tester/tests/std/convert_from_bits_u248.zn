@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "min",
 //#     "input": {
 //#         "value": [
@@ -74,7 +74,7 @@
 //#         ]
 //#     },
 //#     "expect": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-//# } ]
+//# } ] }
 
 fn main(value: [bool; 248]) -> u248 {
     std::convert::from_bits_unsigned(value)

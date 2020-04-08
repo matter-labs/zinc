@@ -1,10 +1,10 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "default",
 //#     "input": {
 //#         "witness": "5"
 //#     },
 //#     "expect": "15"
-//# } ]
+//# } ] }
 
 fn main(witness: u8) -> u8 {
     let mut result = 0;

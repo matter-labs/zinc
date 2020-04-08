@@ -2,7 +2,7 @@
 //! The module statement builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::module::Statement as ModStatement;
 
@@ -23,19 +23,11 @@ impl Builder {
 
     pub fn finish(mut self) -> ModStatement {
         ModStatement::new(
-            self.location.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "location"
-                )
-            }),
+            self.location
+                .take()
+                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")),
             self.identifier.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "identifier"
-                )
+                panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "identifier")
             }),
         )
     }

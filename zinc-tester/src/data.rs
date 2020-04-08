@@ -22,6 +22,8 @@ pub struct TestCase {
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct TestData {
     pub cases: Vec<TestCase>,
+    #[serde(default)]
+    pub ignore: bool,
 }
 
 #[derive(Debug, Fail)]
@@ -47,7 +49,7 @@ impl FromStr for TestData {
             })
             .collect::<Vec<&str>>()
             .join("");
-        let cases: Vec<TestCase> = serde_json::from_str(&json).map_err(Error::Parsing)?;
-        Ok(Self { cases })
+
+        serde_json::from_str(&json).map_err(Error::Parsing)
     }
 }

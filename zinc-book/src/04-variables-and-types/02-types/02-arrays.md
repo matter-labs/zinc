@@ -6,7 +6,7 @@ Fixed-sized arrays follow the Rust rules. The only exception is the restriction
 to constant indexes, that is, you cannot index an array with anything but a
 constant expression for now.
 
-Arrays support the index and slice operators, which is explained in detail [here](../../05-operators/05-access.md).
+Arrays support the index and slice operators, which is explained in detail [here](../../05-operators/06-access.md).
 
 ```rust,no_run,noplaypen
 let mut fibbonaci = [0, 1, 1, 2, 3, 5, 8, 13];

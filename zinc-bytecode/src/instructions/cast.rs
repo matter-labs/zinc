@@ -1,5 +1,5 @@
 use crate::scalar::{IntegerType, ScalarType};
-use crate::{Instruction, InstructionCode, InstructionInfo};
+use crate::{Instruction, InstructionInfo};
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -14,25 +14,19 @@ impl Cast {
 
     #[deprecated(note = "this is temporary fix")]
     pub fn new_integer(signed: bool, length: usize) -> Self {
-        Self::new(IntegerType { signed, length }.into())
+        Self::new(
+            IntegerType {
+                is_signed: signed,
+                bitlength: length,
+            }
+            .into(),
+        )
     }
 }
 
 impl InstructionInfo for Cast {
     fn to_assembly(&self) -> String {
         format!("cast {}", self.scalar_type)
-    }
-
-    fn code() -> InstructionCode {
-        InstructionCode::Cast
-    }
-
-    fn inputs_count(&self) -> usize {
-        1
-    }
-
-    fn outputs_count(&self) -> usize {
-        1
     }
 
     fn wrap(&self) -> Instruction {

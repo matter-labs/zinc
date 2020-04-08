@@ -4,14 +4,14 @@
 
 pub mod builder;
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::expression::block::Expression as BlockExpression;
-use crate::syntax::tree::expression::Expression as SyntaxExpression;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
     pub location: Location,
-    pub condition: Box<SyntaxExpression>,
+    pub condition: Box<ExpressionTree>,
     pub main_block: BlockExpression,
     pub else_block: Option<BlockExpression>,
 }
@@ -19,7 +19,7 @@ pub struct Expression {
 impl Expression {
     pub fn new(
         location: Location,
-        condition: SyntaxExpression,
+        condition: ExpressionTree,
         main_block: BlockExpression,
         else_block: Option<BlockExpression>,
     ) -> Self {

@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "bitcoin",
 //#     "input": {
 //#         "token_id": "0"
@@ -38,7 +38,7 @@
 //#         "sum": "100",
 //#         "date_of_birth": {"year": "1994", "month": "3", "day": "16"}
 //#     }
-//# } ]
+//# } ] }
 
 enum Month {
     January = 1,

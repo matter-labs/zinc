@@ -1,9 +1,9 @@
 //!
-//! The syntax error.
+//! The syntax parser error.
 //!
 
-use crate::lexical::Lexeme;
-use crate::lexical::Location;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::location::Location;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {

@@ -41,13 +41,13 @@ mod tests {
     #[test]
     fn test_slice() -> Result<(), TestingError> {
         VMTestRunner::new()
-            .add(PushConst::new_untyped(1.into()))
-            .add(PushConst::new_untyped(2.into()))
-            .add(PushConst::new_untyped(3.into()))
-            .add(PushConst::new_untyped(4.into()))
-            .add(PushConst::new_untyped(5.into()))
-            .add(PushConst::new_untyped(6.into()))
-            .add(PushConst::new_untyped(2.into()))
+            .add(PushConst::new_field(1.into()))
+            .add(PushConst::new_field(2.into()))
+            .add(PushConst::new_field(3.into()))
+            .add(PushConst::new_field(4.into()))
+            .add(PushConst::new_field(5.into()))
+            .add(PushConst::new_field(6.into()))
+            .add(PushConst::new_field(2.into()))
             .add(Slice::new(5, 2))
             .test(&[5, 4, 1])
     }

@@ -6,11 +6,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Keyword;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::expression::path::Parser as PathOperandParser;
 use crate::syntax::tree::statement::r#use::builder::Builder as UseStatementBuilder;
@@ -22,6 +22,11 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a 'use' statement.
+    ///
+    /// 'use jabberwocky::existence;'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -44,8 +49,8 @@ impl Parser {
             }
         }
 
-        let (path, mut next) = PathOperandParser::default().parse(stream.clone(), None)?;
-        self.builder.set_path(path);
+        let (expression, mut next) = PathOperandParser::default().parse(stream.clone(), None)?;
+        self.builder.set_path(expression);
 
         match crate::syntax::parser::take_or_next(next.take(), stream)? {
             Token {
@@ -69,15 +74,14 @@ mod tests {
 
     use super::Parser;
     use crate::error::Error;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
     use crate::syntax::error::Error as SyntaxError;
-    use crate::syntax::tree::expression::element::Element as ExpressionElement;
-    use crate::syntax::tree::expression::object::Object as ExpressionObject;
-    use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
-    use crate::syntax::tree::expression::operator::Operator as ExpressionOperator;
-    use crate::syntax::tree::expression::Expression;
+    use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
+    use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
+    use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
     use crate::syntax::tree::identifier::Identifier;
     use crate::syntax::tree::statement::r#use::Statement as UseStatement;
 
@@ -88,36 +92,31 @@ mod tests {
         let expected = Ok((
             UseStatement::new(
                 Location::new(1, 1),
-                Expression::new(
-                    Location::new(1, 5),
-                    vec![
-                        ExpressionElement::new(
+                ExpressionTree::new_with_leaves(
+                    Location::new(1, 16),
+                    ExpressionTreeNode::operator(ExpressionOperator::Path),
+                    Some(ExpressionTree::new_with_leaves(
+                        Location::new(1, 9),
+                        ExpressionTreeNode::operator(ExpressionOperator::Path),
+                        Some(ExpressionTree::new(
                             Location::new(1, 5),
-                            ExpressionObject::Operand(ExpressionOperand::Identifier(
+                            ExpressionTreeNode::operand(ExpressionOperand::Identifier(
                                 Identifier::new(Location::new(1, 5), "mega".to_owned()),
                             )),
-                        ),
-                        ExpressionElement::new(
+                        )),
+                        Some(ExpressionTree::new(
                             Location::new(1, 11),
-                            ExpressionObject::Operand(ExpressionOperand::Identifier(
+                            ExpressionTreeNode::operand(ExpressionOperand::Identifier(
                                 Identifier::new(Location::new(1, 11), "ultra".to_owned()),
                             )),
-                        ),
-                        ExpressionElement::new(
-                            Location::new(1, 9),
-                            ExpressionObject::Operator(ExpressionOperator::Path),
-                        ),
-                        ExpressionElement::new(
-                            Location::new(1, 18),
-                            ExpressionObject::Operand(ExpressionOperand::Identifier(
-                                Identifier::new(Location::new(1, 18), "namespace".to_owned()),
-                            )),
-                        ),
-                        ExpressionElement::new(
-                            Location::new(1, 16),
-                            ExpressionObject::Operator(ExpressionOperator::Path),
-                        ),
-                    ],
+                        )),
+                    )),
+                    Some(ExpressionTree::new(
+                        Location::new(1, 18),
+                        ExpressionTreeNode::operand(ExpressionOperand::Identifier(
+                            Identifier::new(Location::new(1, 18), "namespace".to_owned()),
+                        )),
+                    )),
                 ),
             ),
             None,

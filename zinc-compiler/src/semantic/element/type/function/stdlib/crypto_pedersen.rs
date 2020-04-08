@@ -11,8 +11,9 @@ use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct Function {
+    builtin_identifier: BuiltinIdentifier,
     identifier: &'static str,
     return_type: Box<Type>,
 }
@@ -21,8 +22,9 @@ impl Function {
     pub const ARGUMENT_INDEX_PREIMAGE: usize = 0;
     pub const ARGUMENT_COUNT: usize = 1;
 
-    pub fn new() -> Self {
+    pub fn new(builtin_identifier: BuiltinIdentifier) -> Self {
         Self {
+            builtin_identifier,
             identifier: "pedersen",
             return_type: Box::new(Type::tuple(vec![Type::field(), Type::field()])),
         }
@@ -33,7 +35,7 @@ impl Function {
     }
 
     pub fn builtin_identifier(&self) -> BuiltinIdentifier {
-        BuiltinIdentifier::CryptoPedersen
+        self.builtin_identifier
     }
 
     pub fn call(self, actual_elements: Vec<Element>) -> Result<Type, Error> {
@@ -56,7 +58,7 @@ impl Function {
         match actual_params.get(Self::ARGUMENT_INDEX_PREIMAGE) {
             Some(Type::Array { r#type, size }) => match (r#type.deref(), *size) {
                 (Type::Boolean, size)
-                    if 0 < size && size <= crate::PEDERSEN_HASH_INPUT_LIMIT_BITS => {}
+                    if 0 < size && size <= crate::LIMIT_PEDERSEN_HASH_INPUT_BITS => {}
                 (r#type, size) => {
                     return Err(Error::argument_type(
                         self.identifier.to_owned(),
@@ -64,7 +66,7 @@ impl Function {
                         Self::ARGUMENT_INDEX_PREIMAGE + 1,
                         format!(
                             "[bool; N], 0 < N <= {}",
-                            crate::PEDERSEN_HASH_INPUT_LIMIT_BITS
+                            crate::LIMIT_PEDERSEN_HASH_INPUT_BITS
                         ),
                         format!("[{}; {}]", r#type, size),
                     ))
@@ -77,7 +79,7 @@ impl Function {
                     Self::ARGUMENT_INDEX_PREIMAGE + 1,
                     format!(
                         "[bool; N], 0 < N <= {}",
-                        crate::PEDERSEN_HASH_INPUT_LIMIT_BITS
+                        crate::LIMIT_PEDERSEN_HASH_INPUT_BITS
                     ),
                     r#type.to_string(),
                 ))

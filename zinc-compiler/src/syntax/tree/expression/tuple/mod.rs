@@ -4,17 +4,17 @@
 
 pub mod builder;
 
-use crate::lexical::Location;
-use crate::syntax::tree::expression::Expression as SyntaxExpression;
+use crate::lexical::token::location::Location;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Expression {
     pub location: Location,
-    pub elements: Vec<SyntaxExpression>,
+    pub elements: Vec<ExpressionTree>,
 }
 
 impl Expression {
-    pub fn new(location: Location, elements: Vec<SyntaxExpression>) -> Self {
+    pub fn new(location: Location, elements: Vec<ExpressionTree>) -> Self {
         Self { location, elements }
     }
 }

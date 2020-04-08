@@ -2,18 +2,16 @@
 //! The tuple expression builder.
 //!
 
-use crate::lexical::Location;
-use crate::syntax::tree::expression::builder::Builder as ExpressionBuilder;
-use crate::syntax::tree::expression::element::Element as ExpressionElement;
-use crate::syntax::tree::expression::object::Object as ExpressionObject;
-use crate::syntax::tree::expression::operand::Operand as ExpressionOperand;
+use crate::lexical::token::location::Location;
+use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::expression::tuple::Expression as TupleExpression;
-use crate::syntax::tree::expression::Expression;
 
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
-    elements: Vec<Expression>,
+    elements: Vec<ExpressionTree>,
     has_comma: bool,
 }
 
@@ -22,7 +20,7 @@ impl Builder {
         self.location = Some(value);
     }
 
-    pub fn push_expression(&mut self, expression: Expression) {
+    pub fn push_expression(&mut self, expression: ExpressionTree) {
         self.elements.push(expression);
     }
 
@@ -30,53 +28,39 @@ impl Builder {
         self.has_comma = true;
     }
 
-    pub fn finish(mut self) -> Expression {
-        match (self.elements.len(), self.has_comma) {
-            (0, false) => {
-                let mut builder = ExpressionBuilder::default();
-                let location = self.location.take().unwrap_or_else(|| {
-                    panic!(
-                        "{}{}",
-                        crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                        "location"
-                    )
-                });
-                builder.set_location(location);
-                builder.push_operand(location, ExpressionOperand::Unit);
-                builder.finish()
-            }
-            (1, false) => {
-                let mut builder = ExpressionBuilder::default();
-                let location = self.location.take().unwrap_or_else(|| {
-                    panic!(
-                        "{}{}",
-                        crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                        "location"
-                    )
-                });
-                builder.set_location(location);
-                builder.extend_with_expressions(self.elements);
-                builder.finish()
-            }
-            (_size, _has_comma) => {
-                let location = self.location.take().unwrap_or_else(|| {
-                    panic!(
-                        "{}{}",
-                        crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                        "location"
-                    )
-                });
-                Expression::new(
+    pub fn finish(mut self) -> ExpressionTree {
+        let location = self
+            .location
+            .take()
+            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
+
+        if self.elements.is_empty() {
+            ExpressionTree::new(
+                location,
+                ExpressionTreeNode::Operand(ExpressionOperand::Unit),
+            )
+        } else if self.elements.len() > 1 {
+            ExpressionTree::new(
+                location,
+                ExpressionTreeNode::Operand(ExpressionOperand::Tuple(TupleExpression::new(
                     location,
-                    vec![ExpressionElement::new(
+                    self.elements,
+                ))),
+            )
+        } else if let Some(element) = self.elements.pop() {
+            if self.has_comma {
+                ExpressionTree::new(
+                    location,
+                    ExpressionTreeNode::Operand(ExpressionOperand::Tuple(TupleExpression::new(
                         location,
-                        ExpressionObject::Operand(ExpressionOperand::Tuple(TupleExpression::new(
-                            location,
-                            self.elements,
-                        ))),
-                    )],
+                        vec![element],
+                    ))),
                 )
+            } else {
+                element
             }
+        } else {
+            panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "element");
         }
     }
 }

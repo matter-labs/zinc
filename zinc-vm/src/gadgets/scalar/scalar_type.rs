@@ -35,7 +35,7 @@ impl ScalarTypeExpectation for ScalarType {
         match self {
             ScalarType::Field => E::Fr::NUM_BITS as usize,
             ScalarType::Boolean => 1,
-            ScalarType::Integer(int_type) => int_type.length,
+            ScalarType::Integer(int_type) => int_type.bitlength,
         }
     }
 }

@@ -2,15 +2,15 @@
 //! The conditional expression builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::expression::block::Expression as BlockExpression;
 use crate::syntax::tree::expression::conditional::Expression as ConditionalExpression;
-use crate::syntax::tree::expression::Expression;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
-    condition: Option<Expression>,
+    condition: Option<ExpressionTree>,
     main_block: Option<BlockExpression>,
     else_block: Option<BlockExpression>,
 }
@@ -20,7 +20,7 @@ impl Builder {
         self.location = Some(value);
     }
 
-    pub fn set_condition(&mut self, value: Expression) {
+    pub fn set_condition(&mut self, value: ExpressionTree) {
         self.condition = Some(value);
     }
 
@@ -34,26 +34,14 @@ impl Builder {
 
     pub fn finish(mut self) -> ConditionalExpression {
         ConditionalExpression::new(
-            self.location.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "location"
-                )
-            }),
+            self.location
+                .take()
+                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")),
             self.condition.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "condition"
-                )
+                panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "condition")
             }),
             self.main_block.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "main block"
-                )
+                panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "main block")
             }),
             self.else_block.take(),
         )

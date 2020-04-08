@@ -2,7 +2,7 @@
 //! The semantic analyzer value element error.
 //!
 
-use crate::semantic::caster::error::Error as CasterError;
+use crate::semantic::casting::error::Error as CastingError;
 use crate::semantic::element::value::array::error::Error as ArrayValueError;
 use crate::semantic::element::value::integer::error::Error as IntegerValueError;
 use crate::semantic::element::value::structure::error::Error as StructureValueError;
@@ -10,67 +10,82 @@ use crate::semantic::element::value::tuple::error::Error as TupleValueError;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    OperatorOrFirstOperandExpectedBoolean(String),
-    OperatorOrSecondOperandExpectedBoolean(String),
+    OperatorOrFirstOperandExpectedBoolean { found: String },
+    OperatorOrSecondOperandExpectedBoolean { found: String },
 
-    OperatorXorFirstOperandExpectedBoolean(String),
-    OperatorXorSecondOperandExpectedBoolean(String),
+    OperatorXorFirstOperandExpectedBoolean { found: String },
+    OperatorXorSecondOperandExpectedBoolean { found: String },
 
-    OperatorAndFirstOperandExpectedBoolean(String),
-    OperatorAndSecondOperandExpectedBoolean(String),
+    OperatorAndFirstOperandExpectedBoolean { found: String },
+    OperatorAndSecondOperandExpectedBoolean { found: String },
 
-    OperatorEqualsSecondOperandExpectedUnit(String),
-    OperatorEqualsSecondOperandExpectedBoolean(String),
-    OperatorEqualsSecondOperandExpectedInteger(String),
-    OperatorEqualsFirstOperandExpectedPrimitiveType(String),
+    OperatorEqualsSecondOperandExpectedUnit { found: String },
+    OperatorEqualsSecondOperandExpectedBoolean { found: String },
+    OperatorEqualsSecondOperandExpectedInteger { found: String },
+    OperatorEqualsFirstOperandExpectedPrimitiveType { found: String },
 
-    OperatorNotEqualsSecondOperandExpectedUnit(String),
-    OperatorNotEqualsSecondOperandExpectedBoolean(String),
-    OperatorNotEqualsSecondOperandExpectedInteger(String),
-    OperatorNotEqualsFirstOperandExpectedPrimitiveType(String),
+    OperatorNotEqualsSecondOperandExpectedUnit { found: String },
+    OperatorNotEqualsSecondOperandExpectedBoolean { found: String },
+    OperatorNotEqualsSecondOperandExpectedInteger { found: String },
+    OperatorNotEqualsFirstOperandExpectedPrimitiveType { found: String },
 
-    OperatorGreaterEqualsFirstOperandExpectedInteger(String),
-    OperatorGreaterEqualsSecondOperandExpectedInteger(String),
+    OperatorGreaterEqualsFirstOperandExpectedInteger { found: String },
+    OperatorGreaterEqualsSecondOperandExpectedInteger { found: String },
 
-    OperatorLesserEqualsFirstOperandExpectedInteger(String),
-    OperatorLesserEqualsSecondOperandExpectedInteger(String),
+    OperatorLesserEqualsFirstOperandExpectedInteger { found: String },
+    OperatorLesserEqualsSecondOperandExpectedInteger { found: String },
 
-    OperatorGreaterFirstOperandExpectedInteger(String),
-    OperatorGreaterSecondOperandExpectedInteger(String),
+    OperatorGreaterFirstOperandExpectedInteger { found: String },
+    OperatorGreaterSecondOperandExpectedInteger { found: String },
 
-    OperatorLesserFirstOperandExpectedInteger(String),
-    OperatorLesserSecondOperandExpectedInteger(String),
+    OperatorLesserFirstOperandExpectedInteger { found: String },
+    OperatorLesserSecondOperandExpectedInteger { found: String },
 
-    OperatorAdditionFirstOperandExpectedInteger(String),
-    OperatorAdditionSecondOperandExpectedInteger(String),
+    OperatorBitwiseOrFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseOrSecondOperandExpectedInteger { found: String },
 
-    OperatorSubtractionFirstOperandExpectedInteger(String),
-    OperatorSubtractionSecondOperandExpectedInteger(String),
+    OperatorBitwiseXorFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseXorSecondOperandExpectedInteger { found: String },
 
-    OperatorMultiplicationFirstOperandExpectedInteger(String),
-    OperatorMultiplicationSecondOperandExpectedInteger(String),
+    OperatorBitwiseAndFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseAndSecondOperandExpectedInteger { found: String },
 
-    OperatorDivisionFirstOperandExpectedInteger(String),
-    OperatorDivisionSecondOperandExpectedInteger(String),
+    OperatorBitwiseShiftLeftFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseShiftLeftSecondOperandExpectedInteger { found: String },
 
-    OperatorRemainderFirstOperandExpectedInteger(String),
-    OperatorRemainderSecondOperandExpectedInteger(String),
+    OperatorBitwiseShiftRightFirstOperandExpectedInteger { found: String },
+    OperatorBitwiseShiftRightSecondOperandExpectedInteger { found: String },
 
-    OperatorNegationExpectedInteger(String),
+    OperatorAdditionFirstOperandExpectedInteger { found: String },
+    OperatorAdditionSecondOperandExpectedInteger { found: String },
 
-    OperatorNotExpectedBoolean(String),
+    OperatorSubtractionFirstOperandExpectedInteger { found: String },
+    OperatorSubtractionSecondOperandExpectedInteger { found: String },
 
-    OperatorIndexFirstOperandExpectedArray(String),
-    OperatorIndexSecondOperandExpectedIntegerOrRange(String),
+    OperatorMultiplicationFirstOperandExpectedInteger { found: String },
+    OperatorMultiplicationSecondOperandExpectedInteger { found: String },
 
-    OperatorFieldFirstOperandExpectedTuple(String),
-    OperatorFieldFirstOperandExpectedStructure(String),
+    OperatorDivisionFirstOperandExpectedInteger { found: String },
+    OperatorDivisionSecondOperandExpectedInteger { found: String },
 
-    ConvertingFromType(String),
+    OperatorRemainderFirstOperandExpectedInteger { found: String },
+    OperatorRemainderSecondOperandExpectedInteger { found: String },
+
+    OperatorNotExpectedBoolean { found: String },
+
+    OperatorBitwiseNotExpectedInteger { found: String },
+
+    OperatorNegationExpectedInteger { found: String },
+
+    OperatorIndexFirstOperandExpectedArray { found: String },
+    OperatorIndexSecondOperandExpectedIntegerOrRange { found: String },
+
+    OperatorFieldFirstOperandExpectedTuple { found: String },
+    OperatorFieldFirstOperandExpectedStructure { found: String },
 
     Integer(IntegerValueError),
     Array(ArrayValueError),
     Tuple(TupleValueError),
     Structure(StructureValueError),
-    Casting(CasterError),
+    Casting(CastingError),
 }

@@ -1,5 +1,8 @@
 # The Zinc framework
 
+The goal of Zinc is to make writing safe zero-knowledge programs and ZKP-based
+smart contracts easy.
+
 ## Workflow example
 
 At first, you should install the following binaries into your `PATH`:

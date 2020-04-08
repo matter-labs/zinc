@@ -4,8 +4,7 @@
 
 pub mod builder;
 
-use crate::lexical::Location;
-use crate::syntax::tree::member_string::MemberString;
+use crate::lexical::token::location::Location;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Identifier {
@@ -16,14 +15,5 @@ pub struct Identifier {
 impl Identifier {
     pub fn new(location: Location, name: String) -> Self {
         Self { location, name }
-    }
-}
-
-impl From<MemberString> for Identifier {
-    fn from(member_string: MemberString) -> Self {
-        Self {
-            location: member_string.location,
-            name: member_string.name,
-        }
     }
 }

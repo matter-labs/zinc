@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "remainder_zero",
 //#     "input": {
 //#         "witness": "15"
@@ -16,7 +16,7 @@
 //#         "witness": "26"
 //#     },
 //#     "expect": "8"
-//# } ]
+//# } ] }
 
 fn main(witness: u8) -> u8 {
     witness / 3

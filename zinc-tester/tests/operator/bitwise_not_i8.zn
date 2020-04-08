@@ -1,0 +1,29 @@
+//# { "cases": [ {
+//#     "case": "ordinar_negative", "ignore": true,
+//#     "input": {
+//#         "a": "-43"
+//#     },
+//#     "expect": "42"
+//# }, {
+//#     "case": "ordinar_positive",
+//#     "input": {
+//#         "a": "42"
+//#     },
+//#     "expect": "85"
+//# }, {
+//#     "case": "zeros_to_ones", "ignore": true,
+//#     "input": {
+//#         "a": "0"
+//#     },
+//#     "expect": "-128"
+//# }, {
+//#     "case": "ones_to_zeroes", "ignore": true,
+//#     "input": {
+//#         "a": "-128"
+//#     },
+//#     "expect": "0"
+//# } ] }
+
+fn main(a: i8) -> i8 {
+    ~(42 as i8)
+}

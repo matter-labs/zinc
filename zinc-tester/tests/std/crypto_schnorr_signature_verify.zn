@@ -1,4 +1,4 @@
-//# [ {
+//# { "cases": [ {
 //#     "case": "true",
 //#     "input": {
 //#         "signature": {
@@ -32,7 +32,7 @@
 //#         "message": [false, true, false, true, false, true, false, true]
 //#     },
 //#     "expect": false
-//# } ]
+//# } ] }
 
 use std::crypto::schnorr::Signature;
 

@@ -4,8 +4,8 @@
 
 pub mod builder;
 
-use crate::lexical::Location;
-use crate::syntax::tree::expression::Expression;
+use crate::lexical::token::location::Location;
+use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::r#type::Type;
 
@@ -15,7 +15,7 @@ pub struct Statement {
     pub identifier: Identifier,
     pub is_mutable: bool,
     pub r#type: Option<Type>,
-    pub expression: Expression,
+    pub expression: ExpressionTree,
 }
 
 impl Statement {
@@ -24,7 +24,7 @@ impl Statement {
         identifier: Identifier,
         is_mutable: bool,
         r#type: Option<Type>,
-        expression: Expression,
+        expression: ExpressionTree,
     ) -> Self {
         Self {
             location,

@@ -21,5 +21,3 @@ pub mod load_global;
 
 pub mod store_global;
 pub mod store_sequence_global;
-
-pub mod refs;

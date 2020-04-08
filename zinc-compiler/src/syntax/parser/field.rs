@@ -6,10 +6,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::error::Error;
-use crate::lexical::Lexeme;
-use crate::lexical::Symbol;
-use crate::lexical::Token;
-use crate::lexical::TokenStream;
+use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::symbol::Symbol;
+use crate::lexical::token::lexeme::Lexeme;
+use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
 use crate::syntax::parser::r#type::Parser as TypeParser;
 use crate::syntax::tree::field::builder::Builder as FieldBuilder;
@@ -26,6 +26,11 @@ pub struct Parser {
 }
 
 impl Parser {
+    ///
+    /// Parses a structure field.
+    ///
+    /// 'a: u8'
+    ///
     pub fn parse(
         mut self,
         stream: Rc<RefCell<TokenStream>>,
@@ -36,7 +41,7 @@ impl Parser {
                 lexeme: Lexeme::Identifier(identifier),
                 location,
             } => {
-                let identifier = Identifier::new(location, identifier.name);
+                let identifier = Identifier::new(location, identifier.inner);
                 self.builder.set_location(location);
                 self.builder.set_identifier(identifier);
             }
@@ -76,9 +81,9 @@ mod tests {
 
     use super::Parser;
     use crate::error::Error;
-    use crate::lexical::Lexeme;
-    use crate::lexical::Location;
-    use crate::lexical::TokenStream;
+    use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::Lexeme;
+    use crate::lexical::token::location::Location;
     use crate::syntax::error::Error as SyntaxError;
     use crate::syntax::parser::field::HINT_EXPECTED_TYPE;
     use crate::syntax::tree::field::Field;

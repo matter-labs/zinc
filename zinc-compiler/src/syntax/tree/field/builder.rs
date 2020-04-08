@@ -2,7 +2,7 @@
 //! The field builder.
 //!
 
-use crate::lexical::Location;
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::field::Field;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::r#type::Type;
@@ -29,23 +29,15 @@ impl Builder {
 
     pub fn finish(&mut self) -> Field {
         Field::new(
-            self.location.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "location"
-                )
-            }),
+            self.location
+                .take()
+                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")),
             self.identifier.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::syntax::PANIC_BUILDER_REQUIRES_VALUE,
-                    "identifier"
-                )
+                panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "identifier")
             }),
-            self.r#type.take().unwrap_or_else(|| {
-                panic!("{}{}", crate::syntax::PANIC_BUILDER_REQUIRES_VALUE, "type")
-            }),
+            self.r#type
+                .take()
+                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "type")),
         )
     }
 }
