@@ -3,7 +3,30 @@
 The goal of Zinc is to make writing safe zero-knowledge programs and ZKP-based
 smart contracts easy.
 
-## Workflow example
+## Install
+
+1. Download the latest release for your machine from https://github.com/matter-labs/zinc/releases.
+2. Unpack its contents to some folder and add the folder to your `PATH` environment variable.
+3. Use the binaries via your favorite terminal.
+
+#### Quick setup
+
+Download the Shell script for your OS and run it with `bash <name>.sh` to install
+all the binaries and generate a local folder with examples ready for hacking.
+
+[linux.sh](./install/linux.sh)
+
+[macos.sh](./install/macos.sh)
+
+## Documentation
+
+The official Zinc book: https://zinc.matterlabs.dev
+
+## Gitter
+
+Please discuss here: https://gitter.im/matter-labs/zinc
+
+## Example
 
 At first, you should install the following binaries into your `PATH`:
 - `zargo` - the circuit management tool
