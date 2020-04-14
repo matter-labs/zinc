@@ -18,7 +18,6 @@ use crate::semantic::element::Element;
 use crate::semantic::error::Error;
 use crate::semantic::scope::item::variant::Variant as ScopeItemVariant;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::identifier::Identifier;
 
 pub struct Translator {}
 
@@ -33,14 +32,13 @@ impl Translator {
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
         let location = path.location;
 
-        let path_last_element_name = path.last().to_owned().name;
+        let path_last_identifier = path.last().to_owned();
 
         match hint {
             TranslationHint::Place => match Scope::resolve_path(scope, &path)?.variant {
                 ScopeItemVariant::Variable(variable) => Ok((
                     Element::Place(Place::new(
-                        location,
-                        path_last_element_name,
+                        path_last_identifier,
                         variable.r#type,
                         variable.is_mutable,
                     )),
@@ -48,7 +46,9 @@ impl Translator {
                 )),
                 ScopeItemVariant::Constant(constant) => Ok((Element::Constant(constant), None)),
                 ScopeItemVariant::Type(r#type) => Ok((Element::Type(r#type), None)),
-                ScopeItemVariant::Module(_) => Ok((Element::Module(path_last_element_name), None)),
+                ScopeItemVariant::Module(_) => {
+                    Ok((Element::Module(path_last_identifier.name), None))
+                }
             },
             TranslationHint::Value => match Scope::resolve_path(scope, &path)?.variant {
                 ScopeItemVariant::Variable(variable) => {
@@ -58,13 +58,7 @@ impl Translator {
                     let r#type = value.r#type();
                     let intermediate = GeneratorType::try_from_semantic(&r#type)
                         .map(|_| {
-                            Place::new(
-                                path.location,
-                                path_last_element_name,
-                                r#type,
-                                variable.is_mutable,
-                            )
-                            .into()
+                            Place::new(path_last_identifier, r#type, variable.is_mutable).into()
                         })
                         .map(GeneratorExpressionOperand::Place);
                     let element = Element::Value(value);
@@ -77,7 +71,9 @@ impl Translator {
                     Ok((element, intermediate))
                 }
                 ScopeItemVariant::Type(r#type) => Ok((Element::Type(r#type), None)),
-                ScopeItemVariant::Module(_) => Ok((Element::Module(path_last_element_name), None)),
+                ScopeItemVariant::Module(_) => {
+                    Ok((Element::Module(path_last_identifier.name), None))
+                }
             },
 
             TranslationHint::Type => match Scope::resolve_path(scope, &path)?.variant {
@@ -85,10 +81,7 @@ impl Translator {
                 _ => Ok((Element::Path(path), None)),
             },
             TranslationHint::Path => Ok((Element::Path(path), None)),
-            TranslationHint::Field => Ok((
-                Element::Identifier(Identifier::new(location, path_last_element_name)),
-                None,
-            )),
+            TranslationHint::Field => Ok((Element::Identifier(path_last_identifier), None)),
         }
     }
 }

@@ -10,15 +10,14 @@ description = "The Zinc bytecode"
 
 [dependencies]
 log = "0.4"
-env_logger = "0.7"
-structopt = "0.3"
 failure = "0.1"
-num-traits = "^0.1"
-num-bigint = { version = "0.2.3", features = ["serde"] }
-num-integer = "0.1.41"
-enum-primitive-derive = "0.1.2"
-serde = "1.0.104"
-serde_derive = "1.0.104"
-serde_json = "1.0.46"
-bincode = "1.2.1"
-colored = "1.9.2"
+
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+
+enum-primitive-derive = "0.1"
+bincode = "1.2"
+
+num-traits = "0.2"
+num-bigint = { version = "0.2", features = ["serde"] }

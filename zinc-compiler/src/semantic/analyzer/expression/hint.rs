@@ -129,15 +129,17 @@ impl Hint {
 
             ExpressionOperator::Casting => Self::Type,
 
-            ExpressionOperator::Not => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
-            ExpressionOperator::BitwiseNot => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
-            ExpressionOperator::Negation => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+            ExpressionOperator::Not => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
+            ExpressionOperator::BitwiseNot => {
+                panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS)
+            }
+            ExpressionOperator::Negation => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
 
             ExpressionOperator::Index => Self::Value,
             ExpressionOperator::Field => Self::Field,
 
             ExpressionOperator::CallBuiltIn => {
-                panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS)
+                panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS)
             }
             ExpressionOperator::Call => Self::Value,
 

@@ -17,8 +17,6 @@ use crate::lexical::token::Token;
 
 #[test]
 fn ok() {
-    static PANIC_LEXICAL_ERROR: &str = "An unexpected lexical error";
-
     let input = r#"
 /*
     This is the mega ultra test application!
@@ -74,7 +72,10 @@ let mut c: u8 = 2 + 2;
     let mut result = Vec::with_capacity(expected.len());
     let mut stream = TokenStream::new(input);
     loop {
-        match stream.next().expect(PANIC_LEXICAL_ERROR) {
+        match stream
+            .next()
+            .expect(crate::panic::VALIDATED_DURING_LEXICAL_ANALYSIS)
+        {
             Token {
                 lexeme: Lexeme::Eof,
                 ..

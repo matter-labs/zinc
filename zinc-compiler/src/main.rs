@@ -2,24 +2,17 @@
 //! The Zinc compiler binary.
 //!
 
-use std::cell::RefCell;
-use std::collections::HashMap;
 use std::convert::TryFrom;
-use std::ffi::OsString;
+use std::fmt;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 use std::process;
-use std::rc::Rc;
 
-use failure::Fail;
 use structopt::StructOpt;
 
-use zinc_compiler::Bytecode;
-use zinc_compiler::File as ZincFile;
-use zinc_compiler::Scope;
-
-static ZINC_SOURCE_FILE_EXTENSION: &str = "zn";
+use zinc_compiler::Source;
+use zinc_compiler::SourceError;
 
 const EXIT_CODE_SUCCESS: i32 = 0;
 const EXIT_CODE_FAILURE: i32 = 1;
@@ -56,40 +49,6 @@ struct Arguments {
     source_files: Vec<PathBuf>,
 }
 
-#[derive(Debug, Fail)]
-enum Error {
-    #[fail(display = "source file: {}", _0)]
-    SourceFile(FileError),
-    #[fail(display = "{}", _0)]
-    Compiler(String),
-    #[fail(display = "witness template output: {}", _0)]
-    WitnessTemplateOutput(OutputError),
-    #[fail(display = "public data template output: {}", _0)]
-    PublicDataTemplateOutput(OutputError),
-    #[fail(display = "bytecode output: {}", _0)]
-    BytecodeOutput(OutputError),
-    #[fail(display = "the 'main.zn' source file is missing")]
-    EntrySourceFileNotFound,
-}
-
-#[derive(Debug, Fail)]
-enum FileError {
-    #[fail(display = "file extension not found")]
-    ExtensionNotFound,
-    #[fail(display = "file extension is invalid")]
-    ExtensionInvalid(OsString),
-    #[fail(display = "file name not found")]
-    StemNotFound,
-}
-
-#[derive(Debug, Fail)]
-enum OutputError {
-    #[fail(display = "creating: {}", _0)]
-    Creating(std::io::Error),
-    #[fail(display = "writing: {}", _0)]
-    Writing(std::io::Error),
-}
-
 fn main() {
     let args: Arguments = Arguments::from_args();
 
@@ -103,68 +62,18 @@ fn main() {
 }
 
 fn main_inner(args: Arguments) -> Result<(), Error> {
-    zinc_bytecode::logger::init_logger("znc", args.verbosity);
+    zinc_utils::logger::init_logger("znc", args.verbosity);
 
-    let bytecode = Rc::new(RefCell::new(Bytecode::new()));
-
-    let mut modules = HashMap::<String, Rc<RefCell<Scope>>>::new();
-    let mut entry_file_path = None;
-
-    for source_file_path in args.source_files.into_iter() {
-        let source_file_extension = source_file_path
-            .extension()
-            .ok_or(FileError::ExtensionNotFound)
-            .map_err(Error::SourceFile)?;
-        if source_file_extension != ZINC_SOURCE_FILE_EXTENSION {
-            return Err(FileError::ExtensionInvalid(
-                source_file_extension.to_owned(),
-            ))
-            .map_err(Error::SourceFile);
-        }
-
-        let source_file_stem = source_file_path
-            .file_stem()
-            .ok_or(FileError::StemNotFound)
-            .map_err(Error::SourceFile)?;
-        if source_file_stem == "main" {
-            entry_file_path = Some(source_file_path);
-            continue;
-        }
-
-        let module_name = source_file_stem.to_string_lossy().to_string();
-        bytecode
-            .borrow_mut()
-            .start_new_file(source_file_path.to_string_lossy().as_ref());
-
-        log::info!("Compiling {:?}", source_file_path);
-        let module = ZincFile::try_from(source_file_path)
-            .map_err(Error::Compiler)?
-            .try_into_module(bytecode.clone())
-            .map_err(Error::Compiler)?;
-
-        modules.insert(module_name, module);
-    }
-
-    match entry_file_path.take() {
-        Some(entry_file_path) => {
-            bytecode
-                .borrow_mut()
-                .start_new_file(entry_file_path.to_string_lossy().as_ref());
-
-            log::info!("Compiling {:?}", entry_file_path);
-            ZincFile::try_from(entry_file_path)
-                .map_err(Error::Compiler)?
-                .try_into_entry(bytecode.clone(), modules)
-                .map_err(Error::Compiler)?;
-        }
-        None => return Err(Error::EntrySourceFileNotFound),
-    }
+    let bytecode = Source::try_from(args.source_files)
+        .map_err(Error::Source)?
+        .compile()
+        .map_err(Error::Compiling)?;
 
     if !args.witness_template_path.exists() {
         File::create(&args.witness_template_path)
             .map_err(OutputError::Creating)
             .map_err(Error::WitnessTemplateOutput)?
-            .write_all(bytecode.borrow().input_template_bytes().as_slice())
+            .write_all(bytecode.input_template_bytes().as_slice())
             .map_err(OutputError::Writing)
             .map_err(Error::WitnessTemplateOutput)?;
         log::info!(
@@ -176,17 +85,13 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
     File::create(&args.public_data_template_path)
         .map_err(OutputError::Creating)
         .map_err(Error::PublicDataTemplateOutput)?
-        .write_all(bytecode.borrow().output_template_bytes().as_slice())
+        .write_all(bytecode.output_template_bytes().as_slice())
         .map_err(OutputError::Writing)
         .map_err(Error::PublicDataTemplateOutput)?;
     log::info!(
         "Public data template written to {:?}",
         args.public_data_template_path
     );
-
-    let bytecode = Rc::try_unwrap(bytecode)
-        .expect(zinc_compiler::PANIC_LAST_SHARED_REFERENCE)
-        .into_inner();
 
     File::create(&args.bytecode_output_path)
         .map_err(OutputError::Creating)
@@ -197,4 +102,40 @@ fn main_inner(args: Arguments) -> Result<(), Error> {
     log::info!("Compiled to {:?}", args.bytecode_output_path);
 
     Ok(())
+}
+
+enum Error {
+    Source(SourceError),
+    Compiling(String),
+    WitnessTemplateOutput(OutputError),
+    PublicDataTemplateOutput(OutputError),
+    BytecodeOutput(OutputError),
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Source(inner) => write!(f, "{}", inner),
+            Self::Compiling(inner) => write!(f, "{}", inner),
+            Self::WitnessTemplateOutput(inner) => write!(f, "witness template output {}", inner),
+            Self::PublicDataTemplateOutput(inner) => {
+                write!(f, "public data template output {}", inner)
+            }
+            Self::BytecodeOutput(inner) => write!(f, "bytecode output {}", inner),
+        }
+    }
+}
+
+enum OutputError {
+    Creating(std::io::Error),
+    Writing(std::io::Error),
+}
+
+impl fmt::Display for OutputError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Creating(inner) => write!(f, "creating {}", inner),
+            Self::Writing(inner) => write!(f, "writing {}", inner),
+        }
+    }
 }

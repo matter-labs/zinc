@@ -5,6 +5,7 @@
 #![cfg(test)]
 
 use crate::error::Error;
+use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::location::Location;
 use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::error::Error as ScopeError;
@@ -20,8 +21,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
-        Location::new(5, 18),
-        ScopeError::ItemIsNotNamespace {
+        ScopeError::ItemNotNamespace {
+            location: Location::new(5, 18),
             name: "NOT_NAMESPACE".to_owned(),
         },
     )));
@@ -43,8 +44,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
-        Location::new(5, 9),
         ScopeError::ItemRedeclared {
+            location: Location::new(5, 13),
             name: "result".to_owned(),
             reference: Some(Location::new(3, 9)),
         },
@@ -64,8 +65,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
-        Location::new(3, 5),
         ScopeError::ItemUndeclared {
+            location: Location::new(3, 5),
             name: "result".to_owned(),
         },
     )));
@@ -88,9 +89,81 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
-        Location::new(7, 31),
         ScopeError::ItemUndeclared {
+            location: Location::new(7, 31),
             name: "Exists".to_owned(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_item_undeclared_enum_variant_outside() {
+    let input = r#"
+const Gone: u8 = 42;
+
+enum Jabberwocky {}
+
+fn main() {
+    let really = Jabberwocky::Exists;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ItemUndeclared {
+            location: Location::new(7, 31),
+            name: "Exists".to_owned(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_item_undeclared_self_lowercase() {
+    let input = r#"
+fn not_method(self) -> bool {
+    42
+}
+
+fn main() {
+    let value = not_method();
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ItemUndeclared {
+            location: Location::new(2, 15),
+            name: Keyword::SelfUppercase.to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_item_undeclared_self_uppercase() {
+    let input = r#"
+fn not_method(value: Self) -> bool {
+    42
+}
+
+fn main() {
+    let value = not_method();
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ItemUndeclared {
+            location: Location::new(2, 22),
+            name: Keyword::SelfUppercase.to_string(),
         },
     )));
 

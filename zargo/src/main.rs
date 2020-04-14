@@ -43,7 +43,7 @@ fn main() {
 }
 
 fn main_inner(args: Arguments) -> Result<(), CommandError> {
-    zinc_bytecode::logger::init_logger("zargo", args.verbosity);
+    zinc_utils::logger::init_logger("zargo", args.verbosity);
 
     args.command.execute()
 }

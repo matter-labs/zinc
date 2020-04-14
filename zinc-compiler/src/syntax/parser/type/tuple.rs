@@ -132,7 +132,7 @@ mod tests {
 
     #[test]
     fn ok_unit() {
-        let input = "()";
+        let input = r#"()"#;
 
         let expected = Ok((Type::new(Location::new(1, 1), TypeVariant::unit()), None));
 
@@ -143,7 +143,7 @@ mod tests {
 
     #[test]
     fn ok_single() {
-        let input = "(field)";
+        let input = r#"(field)"#;
 
         let expected = Ok((
             Type::new(
@@ -160,7 +160,7 @@ mod tests {
 
     #[test]
     fn ok_single_with_comma() {
-        let input = "(field,)";
+        let input = r#"(field,)"#;
 
         let expected = Ok((
             Type::new(
@@ -177,7 +177,7 @@ mod tests {
 
     #[test]
     fn ok_multiple() {
-        let input = "(field, (), [u8; 4])";
+        let input = r#"(field, (), [u8; 4])"#;
 
         let expected = Ok((
             Type::new(
@@ -209,7 +209,7 @@ mod tests {
 
     #[test]
     fn ok_nested() {
-        let input = "((field, field),)";
+        let input = r#"((field, field),)"#;
 
         let expected = Ok((
             Type::new(
@@ -229,7 +229,7 @@ mod tests {
 
     #[test]
     fn error_expected_comma_or_parenthesis_right() {
-        let input = "(field;)";
+        let input = r#"(field;)"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 7),

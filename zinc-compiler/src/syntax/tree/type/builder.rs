@@ -51,15 +51,10 @@ impl Builder {
     }
 
     pub fn finish(mut self) -> Type {
-        static PANIC_BUILDER_TYPE_INVALID_KEYWORD: &str =
-            "The type builder has got an unexpected non-type keyword: ";
-        static PANIC_VALIDATED_BY_THE_TYPE_PARSER: &str =
-            "Unreachable as long as the type parser works correctly";
-
         let location = self
             .location
             .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
+            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location"));
 
         let variant = if let Some(path) = self.path_expression.take() {
             TypeVariant::alias(path)
@@ -69,13 +64,13 @@ impl Builder {
                 Keyword::IntegerUnsigned { bitlength } => TypeVariant::integer_unsigned(bitlength),
                 Keyword::IntegerSigned { bitlength } => TypeVariant::integer_signed(bitlength),
                 Keyword::Field => TypeVariant::field(),
-                keyword => panic!("{}{}", PANIC_BUILDER_TYPE_INVALID_KEYWORD, keyword),
+                keyword => panic!("{}{}", crate::panic::BUILDER_TYPE_INVALID_KEYWORD, keyword),
             }
         } else if let Some(array_type) = self.array_type_variant.take() {
             TypeVariant::array(
                 array_type,
                 self.array_size.take().unwrap_or_else(|| {
-                    panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "array size")
+                    panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "array size")
                 }),
             )
         } else if !self.tuple_element_types.is_empty() {
@@ -83,7 +78,7 @@ impl Builder {
         } else if self.is_unit {
             TypeVariant::unit()
         } else {
-            panic!(PANIC_VALIDATED_BY_THE_TYPE_PARSER);
+            panic!(crate::panic::VALIDATED_BY_THE_TYPE_PARSER);
         };
 
         Type::new(location, variant)

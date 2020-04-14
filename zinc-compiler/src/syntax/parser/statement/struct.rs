@@ -277,7 +277,7 @@ mod tests {
 
     #[test]
     fn error_expected_bracket_curly_right() {
-        let input = "struct Data { a: u8 );";
+        let input = r#"struct Data { a: u8 );"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 21),

@@ -9,5 +9,9 @@ edition = "2018"
 description = "The Zinc common utilities"
 
 [dependencies]
+log = "0.4"
+env_logger = "0.7"
+colored = "1.9"
+
 num-bigint = "0.2"
 num-traits = "0.2"

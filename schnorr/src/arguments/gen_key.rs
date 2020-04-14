@@ -1,6 +1,8 @@
-use crate::arguments::Error;
-use franklin_crypto::bellman::pairing::bn256::Bn256;
 use structopt::StructOpt;
+
+use franklin_crypto::bellman::pairing::bn256::Bn256;
+
+use crate::arguments::Error;
 
 #[derive(StructOpt)]
 #[structopt(name = "gen-key", about = "generate random private key")]

@@ -559,7 +559,7 @@ fn main() {
         Location::new(4, 7),
         ElementError::OperatorRangeFirstOperandExpectedConstant {
             found: Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
-                .expect(crate::semantic::tests::PANIC_TEST_DATA)
+                .expect(crate::panic::TEST_DATA)
                 .to_string(),
         },
     )));
@@ -582,7 +582,7 @@ fn main() {
         Location::new(4, 7),
         ElementError::OperatorRangeSecondOperandExpectedConstant {
             found: Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
-                .expect(crate::semantic::tests::PANIC_TEST_DATA)
+                .expect(crate::panic::TEST_DATA)
                 .to_string(),
         },
     )));
@@ -605,7 +605,7 @@ fn main() {
         Location::new(4, 7),
         ElementError::OperatorRangeInclusiveFirstOperandExpectedConstant {
             found: Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
-                .expect(crate::semantic::tests::PANIC_TEST_DATA)
+                .expect(crate::panic::TEST_DATA)
                 .to_string(),
         },
     )));
@@ -628,7 +628,7 @@ fn main() {
         Location::new(4, 7),
         ElementError::OperatorRangeInclusiveSecondOperandExpectedConstant {
             found: Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
-                .expect(crate::semantic::tests::PANIC_TEST_DATA)
+                .expect(crate::panic::TEST_DATA)
                 .to_string(),
         },
     )));
@@ -1201,7 +1201,7 @@ fn main() {
         Location::new(4, 20),
         ElementError::OperatorBitwiseShiftLeftSecondOperandExpectedConstant {
             found: Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
-                .expect(crate::semantic::tests::PANIC_TEST_DATA)
+                .expect(crate::panic::TEST_DATA)
                 .to_string(),
         },
     )));
@@ -1246,7 +1246,7 @@ fn main() {
         Location::new(4, 20),
         ElementError::OperatorBitwiseShiftRightSecondOperandExpectedConstant {
             found: Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
-                .expect(crate::semantic::tests::PANIC_TEST_DATA)
+                .expect(crate::panic::TEST_DATA)
                 .to_string(),
         },
     )));

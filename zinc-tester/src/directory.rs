@@ -20,15 +20,15 @@ pub struct TestDirectory {
 pub enum Error {
     #[fail(display = "reading: {}", _0)]
     Reading(io::Error),
-    #[fail(display = "file entry getting: {}", _0)]
+    #[fail(display = "directory.file entry getting: {}", _0)]
     GettingFileEntry(io::Error),
-    #[fail(display = "file {:?} type getting: {}", _0, _1)]
+    #[fail(display = "directory.file {:?} type getting: {}", _0, _1)]
     GettingFileType(OsString, io::Error),
-    #[fail(display = "invalid file {:?} type: {:?}", _0, _1)]
+    #[fail(display = "invalid directory.file {:?} type: {:?}", _0, _1)]
     InvalidFileType(OsString, FileType),
-    #[fail(display = "file {:?} extension getting", _0)]
+    #[fail(display = "directory.file {:?} extension getting", _0)]
     GettingFileExtension(OsString),
-    #[fail(display = "invalid file {:?} extension: {:?}", _0, _1)]
+    #[fail(display = "invalid directory.file {:?} extension: {:?}", _0, _1)]
     InvalidFileExtension(OsString, OsString),
 }
 

@@ -7,6 +7,7 @@ use std::rc::Rc;
 
 use crate::error::Error;
 use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::lexeme::symbol::Symbol;
 use crate::lexical::token::lexeme::Lexeme;
 use crate::lexical::token::Token;
@@ -56,6 +57,24 @@ impl Parser {
                             location,
                         } => {
                             let identifier = Identifier::new(location, identifier.inner);
+                            self.builder
+                                .eat_operand(ExpressionOperand::Identifier(identifier), location);
+                            self.state = State::DoubleColonOrEnd;
+                        }
+                        Token {
+                            lexeme: Lexeme::Keyword(keyword @ Keyword::SelfLowercase),
+                            location,
+                        } => {
+                            let identifier = Identifier::new(location, keyword.to_string());
+                            self.builder
+                                .eat_operand(ExpressionOperand::Identifier(identifier), location);
+                            self.state = State::DoubleColonOrEnd;
+                        }
+                        Token {
+                            lexeme: Lexeme::Keyword(keyword @ Keyword::SelfUppercase),
+                            location,
+                        } => {
+                            let identifier = Identifier::new(location, keyword.to_string());
                             self.builder
                                 .eat_operand(ExpressionOperand::Identifier(identifier), location);
                             self.state = State::DoubleColonOrEnd;

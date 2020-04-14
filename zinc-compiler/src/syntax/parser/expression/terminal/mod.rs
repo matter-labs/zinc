@@ -117,11 +117,23 @@ impl Parser {
                 Token {
                     lexeme: Lexeme::Identifier(..),
                     ..
+                }
+                | token
+                @
+                Token {
+                    lexeme: Lexeme::Keyword(Keyword::SelfLowercase),
+                    ..
+                }
+                | token
+                @
+                Token {
+                    lexeme: Lexeme::Keyword(Keyword::SelfUppercase),
+                    ..
                 } => {
                     let location = token.location;
                     let (expression, next) =
                         StructureExpressionParser::default().parse(stream, Some(token))?;
-                    if expression.is_struct {
+                    if expression.is_structure {
                         Ok((ExpressionOperand::Structure(expression), location, next))
                     } else {
                         let mut builder = IdentifierBuilder::default();
@@ -158,19 +170,6 @@ impl Parser {
                     location,
                     None,
                 )),
-                Token {
-                    lexeme: Lexeme::Keyword(keyword @ Keyword::SelfUppercase),
-                    location,
-                } => {
-                    let mut builder = IdentifierBuilder::default();
-                    builder.set_location(location);
-                    builder.set_name(keyword.to_string());
-                    Ok((
-                        ExpressionOperand::Identifier(builder.finish()),
-                        location,
-                        None,
-                    ))
-                }
                 Token { lexeme, location } => Err(Error::Syntax(
                     SyntaxError::expected_expression_or_operand(location, lexeme),
                 )),
@@ -197,13 +196,11 @@ mod tests {
     use crate::lexical::token::lexeme::symbol::Symbol;
     use crate::lexical::token::lexeme::Lexeme;
     use crate::lexical::token::location::Location;
-    use crate::lexical::token::Token;
     use crate::syntax::error::Error as SyntaxError;
     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
     use crate::syntax::tree::expression::tree::node::operator::Operator as ExpressionOperator;
     use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
     use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
-    use crate::syntax::tree::identifier::Identifier;
     use crate::syntax::tree::literal::boolean::Literal as BooleanLiteral;
     use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
     use crate::syntax::tree::literal::string::Literal as StringLiteral;
@@ -259,46 +256,6 @@ mod tests {
                 ExpressionTreeNode::Operand(ExpressionOperand::LiteralString(StringLiteral::new(
                     Location::new(1, 1),
                     LexicalStringLiteral::new("description".to_owned()),
-                ))),
-            ),
-            None,
-        ));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn ok_identifier() {
-        let input = r#"value"#;
-
-        let expected = Ok((
-            ExpressionTree::new(
-                Location::new(1, 1),
-                ExpressionTreeNode::Operand(ExpressionOperand::Identifier(Identifier::new(
-                    Location::new(1, 1),
-                    "value".to_owned(),
-                ))),
-            ),
-            Some(Token::new(Lexeme::Eof, Location::new(1, 6))),
-        ));
-
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
-
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn ok_alias_self() {
-        let input = r#"Self"#;
-
-        let expected = Ok((
-            ExpressionTree::new(
-                Location::new(1, 1),
-                ExpressionTreeNode::Operand(ExpressionOperand::Identifier(Identifier::new(
-                    Location::new(1, 1),
-                    "Self".to_owned(),
                 ))),
             ),
             None,

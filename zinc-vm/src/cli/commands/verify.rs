@@ -12,20 +12,24 @@ use zinc_bytecode::Program;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "verify", about = "Verifies the proof using verifying key")]
 pub struct VerifyCommand {
-    #[structopt(short = "c", long = "circuit", help = "Compiled circuit program file")]
+    #[structopt(
+        short = "c",
+        long = "circuit",
+        help = "Compiled circuit program directory.file"
+    )]
     pub circuit_path: PathBuf,
 
     #[structopt(
         short = "k",
         long = "verifying-key",
-        help = "Path to verifying key file"
+        help = "Path to verifying key directory.file"
     )]
     pub key_path: PathBuf,
 
     #[structopt(
         short = "d",
         long = "public-data",
-        help = "Path to public data JSON file"
+        help = "Path to public data JSON directory.file"
     )]
     pub public_data_path: PathBuf,
 }

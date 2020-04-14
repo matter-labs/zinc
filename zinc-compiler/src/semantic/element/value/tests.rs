@@ -1052,7 +1052,7 @@ fn main() {
         Location::new(3, 36),
         ElementError::Value(ValueError::OperatorIndexFirstOperandExpectedArray {
             found: Value::try_from(&Type::tuple(vec![Type::boolean(); 3]))
-                .expect(crate::semantic::tests::PANIC_TEST_DATA)
+                .expect(crate::panic::TEST_DATA)
                 .to_string(),
         }),
     )));
@@ -1096,7 +1096,7 @@ fn main() {
         Location::new(3, 36),
         ElementError::Value(ValueError::OperatorFieldFirstOperandExpectedTuple {
             found: Value::try_from(&Type::array(Type::boolean(), 3))
-                .expect(crate::semantic::tests::PANIC_TEST_DATA)
+                .expect(crate::panic::TEST_DATA)
                 .to_string(),
         }),
     )));
@@ -1118,7 +1118,7 @@ fn main() {
         Location::new(3, 36),
         ElementError::Value(ValueError::OperatorFieldFirstOperandExpectedStructure {
             found: Value::try_from(&Type::array(Type::boolean(), 3))
-                .expect(crate::semantic::tests::PANIC_TEST_DATA)
+                .expect(crate::panic::TEST_DATA)
                 .to_string(),
         }),
     )));

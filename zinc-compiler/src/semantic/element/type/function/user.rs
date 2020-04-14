@@ -9,8 +9,6 @@ use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 
-pub static FUNCTION_MAIN_IDENTIFIER: &str = "main";
-
 #[derive(Debug, Clone)]
 pub struct Function {
     identifier: String,

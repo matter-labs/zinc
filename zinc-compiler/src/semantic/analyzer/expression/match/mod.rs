@@ -1,9 +1,10 @@
 //!
-//! The match expression semantic analyzer.
+//! The `match` expression semantic analyzer.
 //!
 
 mod tests;
 
+pub mod error;
 pub mod exhausting;
 
 use std::cell::RefCell;
@@ -14,7 +15,9 @@ use crate::generator::expression::operand::constant::Constant as GeneratorConsta
 use crate::generator::expression::operand::r#match::builder::Builder as GeneratorMatchExpressionBuilder;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::generator::r#type::Type as GeneratorType;
+use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
+use crate::semantic::analyzer::expression::r#match::error::Error as MatchExpressionError;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::error::Error as ConstantError;
@@ -61,17 +64,21 @@ impl Analyzer {
             builder.set_scrutinee(
                 scrutinee_expression,
                 GeneratorType::try_from_semantic(&scrutinee_type)
-                    .expect(crate::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS),
+                    .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
             );
         } else {
-            return Err(Error::MatchScrutineeInvalidType {
-                location: scrutinee_location,
-                found: scrutinee_type.to_string(),
-            });
+            return Err(Error::Expression(ExpressionError::Match(
+                MatchExpressionError::ScrutineeInvalidType {
+                    location: scrutinee_location,
+                    found: scrutinee_type.to_string(),
+                },
+            )));
         }
 
         if r#match.branches.len() < 2 {
-            return Err(Error::MatchLessThanTwoBranches { location });
+            return Err(Error::Expression(ExpressionError::Match(
+                MatchExpressionError::LessThanTwoBranches { location },
+            )));
         }
 
         let first_branch_expression_location = r#match.branches[0].1.location;
@@ -84,9 +91,11 @@ impl Analyzer {
             let expression_location = expression.location;
 
             if is_exhausted {
-                return Err(Error::MatchBranchUnreachable {
-                    location: pattern.location,
-                });
+                return Err(Error::Expression(ExpressionError::Match(
+                    MatchExpressionError::BranchUnreachable {
+                        location: pattern.location,
+                    },
+                )));
             }
 
             let result = match pattern.variant {
@@ -96,26 +105,30 @@ impl Analyzer {
                     let constant = BooleanConstant::from(boolean);
                     let pattern_type = constant.r#type();
                     if pattern_type != scrutinee_type {
-                        return Err(Error::MatchBranchPatternInvalidType {
-                            location: pattern_location,
-                            expected: scrutinee_type.to_string(),
-                            found: pattern_type.to_string(),
-                            reference: scrutinee_location,
-                        });
+                        return Err(Error::Expression(ExpressionError::Match(
+                            MatchExpressionError::BranchPatternInvalidType {
+                                location: pattern_location,
+                                expected: scrutinee_type.to_string(),
+                                found: pattern_type.to_string(),
+                                reference: scrutinee_location,
+                            },
+                        )));
                     }
 
                     if let Some(duplicate) =
                         exhausting_data.insert_boolean(constant.inner, location)
                     {
-                        return Err(Error::MatchBranchDuplicate {
-                            location,
-                            reference: duplicate,
-                        });
+                        return Err(Error::Expression(ExpressionError::Match(
+                            MatchExpressionError::BranchDuplicate {
+                                location,
+                                reference: duplicate,
+                            },
+                        )));
                     }
 
                     let constant =
                         GeneratorConstant::try_from_semantic(&Constant::Boolean(constant))
-                            .expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
+                            .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);
                     let (result, branch) = ExpressionAnalyzer::new(scope_stack.top())
                         .analyze(expression, TranslationHint::Value)?;
 
@@ -139,26 +152,30 @@ impl Analyzer {
                     })?;
                     let pattern_type = constant.r#type();
                     if pattern_type != scrutinee_type {
-                        return Err(Error::MatchBranchPatternInvalidType {
-                            location: pattern_location,
-                            expected: scrutinee_type.to_string(),
-                            found: pattern_type.to_string(),
-                            reference: scrutinee_location,
-                        });
+                        return Err(Error::Expression(ExpressionError::Match(
+                            MatchExpressionError::BranchPatternInvalidType {
+                                location: pattern_location,
+                                expected: scrutinee_type.to_string(),
+                                found: pattern_type.to_string(),
+                                reference: scrutinee_location,
+                            },
+                        )));
                     }
 
                     if let Some(duplicate) =
                         exhausting_data.insert_integer(constant.value.clone(), None, location)
                     {
-                        return Err(Error::MatchBranchDuplicate {
-                            location,
-                            reference: duplicate,
-                        });
+                        return Err(Error::Expression(ExpressionError::Match(
+                            MatchExpressionError::BranchDuplicate {
+                                location,
+                                reference: duplicate,
+                            },
+                        )));
                     }
 
                     let constant =
                         GeneratorConstant::try_from_semantic(&Constant::Integer(constant))
-                            .expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
+                            .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);
                     let (result, branch) = ExpressionAnalyzer::new(scope_stack.top())
                         .analyze(expression, TranslationHint::Value)?;
 
@@ -184,24 +201,28 @@ impl Analyzer {
                                     integer.enumeration.to_owned(),
                                     location,
                                 ) {
-                                    return Err(Error::MatchBranchDuplicate {
-                                        location,
-                                        reference: duplicate,
-                                    });
+                                    return Err(Error::Expression(ExpressionError::Match(
+                                        MatchExpressionError::BranchDuplicate {
+                                            location,
+                                            reference: duplicate,
+                                        },
+                                    )));
                                 }
                             }
                             constant
                         }
                         (element, _intermediate) => {
-                            return Err(Error::MatchBranchPatternPathExpectedConstant {
-                                location,
-                                found: element.to_string(),
-                            });
+                            return Err(Error::Expression(ExpressionError::Match(
+                                MatchExpressionError::BranchPatternPathExpectedConstant {
+                                    location,
+                                    found: element.to_string(),
+                                },
+                            )));
                         }
                     };
 
                     let constant = GeneratorConstant::try_from_semantic(&constant)
-                        .expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS);
+                        .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);
                     let (result, branch) = ExpressionAnalyzer::new(scope_stack.top())
                         .analyze(expression, TranslationHint::Value)?;
 
@@ -215,7 +236,6 @@ impl Analyzer {
                     result
                 }
                 MatchPatternVariant::Binding(identifier) => {
-                    let location = identifier.location;
                     is_exhausted = true;
 
                     scope_stack.push();
@@ -223,8 +243,7 @@ impl Analyzer {
                         scope_stack.top(),
                         identifier.clone(),
                         ScopeVariableItem::new(false, scrutinee_type.clone()),
-                    )
-                    .map_err(|error| Error::Scope(location, error))?;
+                    )?;
                     let (result, branch) = ExpressionAnalyzer::new(scope_stack.top())
                         .analyze(expression, TranslationHint::Value)?;
                     scope_stack.pop();
@@ -249,12 +268,14 @@ impl Analyzer {
                 let first_branch_result_type =
                     Type::from_element(first_branch_result, scope_stack.top())?;
                 if result_type != first_branch_result_type {
-                    return Err(Error::MatchBranchExpressionInvalidType {
-                        location: expression_location,
-                        expected: first_branch_result_type.to_string(),
-                        found: result_type.to_string(),
-                        reference: first_branch_expression_location,
-                    });
+                    return Err(Error::Expression(ExpressionError::Match(
+                        MatchExpressionError::BranchExpressionInvalidType {
+                            location: expression_location,
+                            expected: first_branch_result_type.to_string(),
+                            found: result_type.to_string(),
+                            reference: first_branch_expression_location,
+                        },
+                    )));
                 }
             }
 
@@ -262,7 +283,9 @@ impl Analyzer {
         }
 
         if !is_exhausted {
-            return Err(Error::MatchNotExhausted { location });
+            return Err(Error::Expression(ExpressionError::Match(
+                MatchExpressionError::NotExhausted { location },
+            )));
         }
 
         let element = match branch_results.pop() {

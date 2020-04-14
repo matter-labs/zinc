@@ -15,7 +15,6 @@ use num_traits::One;
 use num_traits::Signed;
 use num_traits::ToPrimitive;
 
-use crate::lexical::token::location::Location;
 use crate::semantic::element::access::Field as FieldAccess;
 use crate::semantic::element::access::Index as IndexAccess;
 use crate::semantic::element::constant::range::Range;
@@ -24,14 +23,14 @@ use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
+use crate::syntax::tree::identifier::Identifier;
 
 use self::element::Element as PlaceElement;
 use self::error::Error;
 
 #[derive(Debug, Clone)]
 pub struct Place {
-    pub location: Location,
-    pub identifier: String,
+    pub identifier: Identifier,
     pub r#type: Type,
     pub total_size: usize,
     pub is_mutable: bool,
@@ -39,10 +38,9 @@ pub struct Place {
 }
 
 impl Place {
-    pub fn new(location: Location, identifier: String, r#type: Type, is_mutable: bool) -> Self {
+    pub fn new(identifier: Identifier, r#type: Type, is_mutable: bool) -> Self {
         let total_size = r#type.size();
         Self {
-            location,
             identifier,
             r#type,
             total_size,
@@ -232,7 +230,7 @@ impl fmt::Display for Place {
         write!(
             f,
             "{}{}",
-            self.identifier,
+            self.identifier.name,
             self.elements
                 .iter()
                 .map(|element| element.to_string())

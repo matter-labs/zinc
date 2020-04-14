@@ -1,8 +1,10 @@
 pub mod arguments;
 
-use arguments::{Arguments, Command};
 use std::process::exit;
+
 use structopt::StructOpt;
+
+use self::arguments::{Arguments, Command};
 
 fn main() {
     let arguments: Arguments = Arguments::from_args();

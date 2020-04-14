@@ -20,7 +20,7 @@ use crate::error::Error;
 use crate::lexical::stream::TokenStream;
 use crate::lexical::token::lexeme::Lexeme;
 use crate::lexical::token::Token;
-use crate::syntax::parser::statement::local_mod::Parser as ModuleLocalStatementParser;
+use crate::syntax::parser::statement::local_mod::Parser as ModLocalStatementParser;
 use crate::syntax::tree::Tree;
 
 #[derive(Default)]
@@ -48,7 +48,7 @@ impl Parser {
                 } => break,
                 token => {
                     let (statement, next) =
-                        ModuleLocalStatementParser::default().parse(stream.clone(), Some(token))?;
+                        ModLocalStatementParser::default().parse(stream.clone(), Some(token))?;
                     self.next = next;
                     statements.push(statement);
                 }

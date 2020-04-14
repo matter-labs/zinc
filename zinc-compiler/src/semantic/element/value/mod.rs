@@ -523,7 +523,7 @@ impl TryFrom<&Type> for Value {
                 integer.set_enumeration(enumeration.to_owned());
                 Self::Integer(integer)
             }
-            _ => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+            _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         })
     }
 }

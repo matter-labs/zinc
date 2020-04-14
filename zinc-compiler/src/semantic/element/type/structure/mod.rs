@@ -32,9 +32,9 @@ impl Structure {
         identifier: String,
         unique_id: usize,
         fields: Vec<(String, Type)>,
-        scope_parent: Option<Rc<RefCell<Scope>>>,
+        scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
-        let scope = Rc::new(RefCell::new(Scope::new(scope_parent)));
+        let scope = scope.unwrap_or_else(|| Rc::new(RefCell::new(Scope::new(None))));
 
         let structure = Self {
             identifier,
@@ -42,6 +42,7 @@ impl Structure {
             fields,
             scope: scope.clone(),
         };
+
         scope
             .borrow_mut()
             .declare_self(Type::Structure(structure.clone()));

@@ -76,7 +76,7 @@ impl Tuple {
         let access = FieldAccess::new(index, offset, sliced_type.size(), total_size);
 
         Ok((
-            Value::try_from(&sliced_type).expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+            Value::try_from(&sliced_type).expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
             access,
         ))
     }

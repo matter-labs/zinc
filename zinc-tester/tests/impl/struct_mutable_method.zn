@@ -1,0 +1,34 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "witness": {
+//#             "a": "1",
+//#             "b": "2",
+//#             "c": "3"
+//#         }
+//#     },
+//#     "expect": {
+//#         "a": "25",
+//#         "b": "42",
+//#         "c": "69"
+//#     }
+//# } ] }
+
+struct Data {
+    a: u8,
+    b: u8,
+    c: u8,
+}
+
+impl Data {
+    fn mutate(mut self, values: [u8; 3]) -> Self {
+        self.a = values[0];
+        self.b = values[1];
+        self.c = values[2];
+        self
+    }
+}
+
+fn main(witness: Data) -> Data {
+    Data::mutate(witness, [25, 42, 69])
+}

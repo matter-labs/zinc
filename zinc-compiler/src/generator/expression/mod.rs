@@ -351,8 +351,8 @@ impl Expression {
         let is_place_indexed = !place.elements.is_empty();
         let address = bytecode
             .borrow()
-            .get_variable_address(place.identifier.as_str())
-            .expect(crate::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS);
+            .get_variable_address(place.identifier.name.as_str())
+            .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
         let element_size = place.element_size;
         let total_size = place.total_size;
 
@@ -386,8 +386,8 @@ impl Expression {
         let is_place_indexed = !place.elements.is_empty();
         let address = bytecode
             .borrow()
-            .get_variable_address(place.identifier.as_str())
-            .expect(crate::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS);
+            .get_variable_address(place.identifier.name.as_str())
+            .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
         let element_size = place.element_size;
         let total_size = place.total_size;
 
@@ -452,7 +452,7 @@ impl Expression {
         let address = bytecode
             .borrow()
             .get_function_address(unique_id)
-            .expect(crate::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS);
+            .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
 
         bytecode.borrow_mut().push_instruction(
             Instruction::Call(zinc_bytecode::Call::new(address, input_size)),

@@ -27,7 +27,7 @@ impl Translator {
                 let element = Value::try_from(&place.r#type)
                     .map(Element::Value)
                     .map_err(ElementError::Value)
-                    .map_err(|error| Error::Element(place.location, error))?;
+                    .map_err(|error| Error::Element(place.identifier.location, error))?;
                 Ok((
                     element,
                     Some(GeneratorExpressionOperand::Place(place.into())),

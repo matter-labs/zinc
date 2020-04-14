@@ -17,9 +17,6 @@ pub struct Stack {
     elements: Vec<Rc<RefCell<Scope>>>,
 }
 
-static PANIC_THERE_MUST_ALWAYS_BE_A_SCOPE: &str =
-    "Scope stack balance is kept by the evaluation logic";
-
 impl Stack {
     const STACK_SCOPE_INITIAL_CAPACITY: usize = 16;
 
@@ -48,7 +45,7 @@ impl Stack {
         self.elements
             .last()
             .cloned()
-            .expect(PANIC_THERE_MUST_ALWAYS_BE_A_SCOPE)
+            .expect(crate::panic::THERE_MUST_ALWAYS_BE_A_SCOPE)
     }
 
     ///
@@ -71,6 +68,6 @@ impl Stack {
     pub fn pop(&mut self) {
         self.elements
             .pop()
-            .expect(PANIC_THERE_MUST_ALWAYS_BE_A_SCOPE);
+            .expect(crate::panic::THERE_MUST_ALWAYS_BE_A_SCOPE);
     }
 }

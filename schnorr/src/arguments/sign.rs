@@ -1,11 +1,14 @@
-use crate::arguments::{fr_into_hex, Error};
+use std::io::Read;
+use std::path::PathBuf;
+
+use serde_json::json;
+use structopt::StructOpt;
+
 use franklin_crypto::alt_babyjubjub::AltJubjubBn256;
 use franklin_crypto::bellman::pairing::bn256::Bn256;
 use franklin_crypto::eddsa;
-use serde_json::json;
-use std::io::Read;
-use std::path::PathBuf;
-use structopt::StructOpt;
+
+use crate::arguments::{fr_into_hex, Error};
 
 #[derive(StructOpt)]
 #[structopt(name = "sign", about = "generate signature")]
@@ -16,7 +19,7 @@ pub struct SignCommand {
     #[structopt(
         short = "m",
         long = "message",
-        help = "path to file with message or '-' for stdin"
+        help = "path to directory.file with message or '-' for stdin"
     )]
     message_path: PathBuf,
 }

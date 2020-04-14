@@ -4,14 +4,23 @@
 
 use colored::Colorize;
 
-use crate::file::error::Error as FileError;
 use crate::lexical::error::Error as LexicalError;
+use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::location::Location;
+use crate::semantic::analyzer::expression::conditional::error::Error as ConditionalExpressionError;
+use crate::semantic::analyzer::expression::error::Error as ExpressionError;
+use crate::semantic::analyzer::expression::r#match::error::Error as MatchExpressionError;
+use crate::semantic::analyzer::statement::error::Error as StatementError;
+use crate::semantic::analyzer::statement::module::error::Error as ModStatementError;
+use crate::semantic::analyzer::statement::r#for::error::Error as ForStatementError;
+use crate::semantic::analyzer::statement::r#impl::error::Error as ImplStatementError;
+use crate::semantic::analyzer::statement::r#use::error::Error as UseStatementError;
 use crate::semantic::casting::error::Error as CastingError;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::place::error::Error as PlaceError;
+use crate::semantic::element::r#type::contract::error::Error as ContractTypeError;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::function::builtin::error::Error as BuiltInFunctionTypeError;
 use crate::semantic::element::r#type::function::error::Error as FunctionTypeError;
@@ -28,7 +37,6 @@ use crate::syntax::error::Error as SyntaxError;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    File(FileError),
     Lexical(LexicalError),
     Syntax(SyntaxError),
     Semantic(SemanticError),
@@ -37,8 +45,6 @@ pub enum Error {
 impl Error {
     pub fn format(self, context: &[&str]) -> String {
         match self {
-            Self::File(inner) => inner.to_string(),
-
             Self::Lexical(LexicalError::UnterminatedBlockComment { start, end }) => {
                 Self::format_range(context, "unterminated block comment", start, end, None)
             }
@@ -1757,7 +1763,7 @@ impl Error {
                 )
             }
 
-            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemRedeclared { name, reference })) => {
+            Self::Semantic(SemanticError::Scope(ScopeError::ItemRedeclared { location, name, reference })) => {
                 Self::format_line_with_reference(
                     context,
                     format!(
@@ -1770,7 +1776,7 @@ impl Error {
                     Some("consider giving the latter item another name"),
                 )
             }
-            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemUndeclared { name })) => {
+            Self::Semantic(SemanticError::Scope(ScopeError::ItemUndeclared { location, name })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1782,7 +1788,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Scope(location, ScopeError::ItemIsNotNamespace { name })) => {
+            Self::Semantic(SemanticError::Scope(ScopeError::ItemNotNamespace { location, name })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1791,7 +1797,7 @@ impl Error {
                     )
                         .as_str(),
                     location,
-                    Some("only modules, structures, and enumerations can contain items within their namespaces"),
+                    Some("only modules, structures, enumerations, and contracts can contain items within their namespaces"),
                 )
             }
 
@@ -1866,6 +1872,21 @@ impl Error {
                         .as_str(),
                     location,
                     Some("only functions may be called"),
+                )
+            }
+            Self::Semantic(SemanticError::Element(location, ElementError::Type(TypeError::Function(FunctionTypeError::FunctionMethodSelfNotFirst { function, position, reference })))) => {
+                Self::format_line_with_reference(
+                    context,
+                    format!(
+                        "method `{}` expected the `{}` binding to be at the first position, but found at the position #`{}`",
+                        function,
+                        Keyword::SelfLowercase.to_string(),
+                        position,
+                    )
+                        .as_str(),
+                    location,
+                    Some(reference),
+                    Some(format!("consider moving the `{}` binding to the first place", Keyword::SelfLowercase.to_string()).as_str()),
                 )
             }
             Self::Semantic(SemanticError::Element(location, ElementError::Type(TypeError::Function(FunctionTypeError::BuiltIn(BuiltInFunctionTypeError::Unknown { function }))))) => {
@@ -1952,8 +1973,28 @@ impl Error {
                     Some("consider giving the field a unique name"),
                 )
             }
+            Self::Semantic(SemanticError::Element(location, ElementError::Type(TypeError::Contract(ContractTypeError::DuplicateField { type_identifier, field_name })))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "contract `{}` has a duplicate field `{}`",
+                        type_identifier, field_name,
+                    )
+                        .as_str(),
+                    location,
+                    Some("consider giving the field a unique name"),
+                )
+            }
 
-            Self::Semantic(SemanticError::MatchScrutineeInvalidType { location, found }) => {
+            Self::Semantic(SemanticError::Expression(ExpressionError::NonConstantElement { location, found })) => {
+                Self::format_line(
+                    context,
+                    format!("attempt to use a non-constant value `{}` in a constant expression", found).as_str(),
+                    location,
+                    None,
+                )
+            }
+            Self::Semantic(SemanticError::Expression(ExpressionError::Match(MatchExpressionError::ScrutineeInvalidType { location, found }))) => {
                 Self::format_line(
                     context,
                     format!("match scrutinee expected a boolean or integer expression, found `{}`", found).as_str(),
@@ -1961,7 +2002,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::MatchNotExhausted { location }) => {
+            Self::Semantic(SemanticError::Expression(ExpressionError::Match(MatchExpressionError::NotExhausted { location }))) => {
                 Self::format_line(
                     context,
                     "match expression must be exhaustive",
@@ -1969,7 +2010,7 @@ impl Error {
                     Some("ensure that all possible cases are being handled, possibly by adding wildcards or more match arms"),
                 )
             }
-            Self::Semantic(SemanticError::MatchLessThanTwoBranches { location }) => {
+            Self::Semantic(SemanticError::Expression(ExpressionError::Match(MatchExpressionError::LessThanTwoBranches { location }))) => {
                 Self::format_line(
                     context,
                     "match expression must have at least two branches",
@@ -1977,7 +2018,7 @@ impl Error {
                     Some("consider adding some branches to make the expression useful"),
                 )
             }
-            Self::Semantic(SemanticError::MatchBranchUnreachable { location }) => {
+            Self::Semantic(SemanticError::Expression(ExpressionError::Match(MatchExpressionError::BranchUnreachable { location }))) => {
                 Self::format_line(
                     context,
                     "match expression branch is unreachable",
@@ -1985,7 +2026,7 @@ impl Error {
                     Some("consider removing the branch or moving it above the branch with a wildcard or irrefutable binding"),
                 )
             }
-            Self::Semantic(SemanticError::MatchBranchPatternPathExpectedConstant { location, found }) => {
+            Self::Semantic(SemanticError::Expression(ExpressionError::Match(MatchExpressionError::BranchPatternPathExpectedConstant { location, found }))) => {
                 Self::format_line(
                     context,
                     format!("expected path to a constant, found `{}`", found).as_str(),
@@ -1993,7 +2034,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::MatchBranchPatternInvalidType { location, expected, found, reference }) => {
+            Self::Semantic(SemanticError::Expression(ExpressionError::Match(MatchExpressionError::BranchPatternInvalidType { location, expected, found, reference }))) => {
                 Self::format_line_with_reference(
                     context,
                     format!("expected `{}`, found `{}`", expected, found).as_str(),
@@ -2002,7 +2043,7 @@ impl Error {
                     Some("all branch patterns must be compatible with the type of the expression being matched"),
                 )
             }
-            Self::Semantic(SemanticError::MatchBranchExpressionInvalidType { location, expected, found, reference }) => {
+            Self::Semantic(SemanticError::Expression(ExpressionError::Match(MatchExpressionError::BranchExpressionInvalidType { location, expected, found, reference }))) => {
                 Self::format_line_with_reference(
                     context,
                     format!("expected `{}`, found `{}`", expected, found).as_str(),
@@ -2011,7 +2052,7 @@ impl Error {
                     Some("all branches must return the type returned by the first branch"),
                 )
             }
-            Self::Semantic(SemanticError::MatchBranchDuplicate { location, reference }) => {
+            Self::Semantic(SemanticError::Expression(ExpressionError::Match(MatchExpressionError::BranchDuplicate { location, reference }))) => {
                 Self::format_line_with_reference(
                     context,
                     "match expression contains a duplicate branch pattern",
@@ -2020,8 +2061,7 @@ impl Error {
                     Some("each pattern may occur only once"),
                 )
             }
-
-            Self::Semantic(SemanticError::LoopWhileExpectedBooleanCondition { location, found }) => {
+            Self::Semantic(SemanticError::Expression(ExpressionError::Conditional(ConditionalExpressionError::ExpectedBooleanCondition { location, found }))) => {
                 Self::format_line(
                     context,
                     format!("expected `bool`, found `{}`", found).as_str(),
@@ -2029,24 +2069,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::LoopBoundsExpectedConstantRangeExpression { location, found }) => {
-                Self::format_line(
-                    context,
-                    format!("expected a constant range expression, found `{}`", found).as_str(),
-                    location,
-                    Some("only constant ranges allowed, e.g. `for i in 0..42 { ... }`"),
-                )
-            }
-
-            Self::Semantic(SemanticError::ConditionalExpectedBooleanCondition { location, found }) => {
-                Self::format_line(
-                    context,
-                    format!("expected `bool`, found `{}`", found).as_str(),
-                    location,
-                    None,
-                )
-            }
-            Self::Semantic(SemanticError::ConditionalBranchTypesMismatch { location, expected, found, reference }) => {
+            Self::Semantic(SemanticError::Expression(ExpressionError::Conditional(ConditionalExpressionError::BranchTypesMismatch { location, expected, found, reference }))) => {
                 Self::format_line_with_reference(
                     context,
                     format!("if and else branches return incompatible types `{}` and `{}`", expected, found).as_str(),
@@ -2055,13 +2078,24 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::EntryPointMissing) => {
-                Self::format_message(
-                    "function `main` is missing",
-                    Some("create the `main` function in the entry point file `main.zn`"),
+
+            Self::Semantic(SemanticError::Statement(StatementError::For(ForStatementError::WhileExpectedBooleanCondition { location, found }))) => {
+                Self::format_line(
+                    context,
+                    format!("expected `bool`, found `{}`", found).as_str(),
+                    location,
+                    None,
                 )
             }
-            Self::Semantic(SemanticError::ModuleNotFound { location, name }) => {
+            Self::Semantic(SemanticError::Statement(StatementError::For(ForStatementError::BoundsExpectedConstantRangeExpression { location, found }))) => {
+                Self::format_line(
+                    context,
+                    format!("expected a constant range expression, found `{}`", found).as_str(),
+                    location,
+                    Some("only constant ranges allowed, e.g. `for i in 0..42 { ... }`"),
+                )
+            }
+            Self::Semantic(SemanticError::Statement(StatementError::Mod(ModStatementError::NotFound { location, name }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -2073,7 +2107,7 @@ impl Error {
                     Some(format!("create a file called `{}.zn` inside the `src` directory", name).as_str()),
                 )
             }
-            Self::Semantic(SemanticError::UseExpectedPath { location, found }) => {
+            Self::Semantic(SemanticError::Statement(StatementError::Use(UseStatementError::ExpectedPath { location, found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -2085,7 +2119,7 @@ impl Error {
                     Some("consider specifying a valid path to an item to import"),
                 )
             }
-            Self::Semantic(SemanticError::ImplStatementExpectedStructureOrEnumeration { location, found }) => {
+            Self::Semantic(SemanticError::Statement(StatementError::Impl(ImplStatementError::ExpectedNamespace { location, found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -2094,15 +2128,14 @@ impl Error {
                     )
                         .as_str(),
                     location,
-                    Some("only structures and enumerations can have an implementation"),
+                    Some("only structures, enumerations, and contracts can have an implementation"),
                 )
             }
-            Self::Semantic(SemanticError::ConstantExpressionHasNonConstantElement { location, found }) => {
-                Self::format_line(
-                    context,
-                    format!("attempt to use a non-constant value `{}` in a constant expression", found).as_str(),
-                    location,
-                    None,
+
+            Self::Semantic(SemanticError::EntryPointMissing) => {
+                Self::format_message(
+                    "function `main` is missing",
+                    Some("create the `main` function in the entry point file `main.zn`"),
                 )
             }
         }
@@ -2277,12 +2310,6 @@ impl Error {
         }
         strings.push(String::new());
         strings.join("\n")
-    }
-}
-
-impl From<FileError> for Error {
-    fn from(error: FileError) -> Self {
-        Self::File(error)
     }
 }
 

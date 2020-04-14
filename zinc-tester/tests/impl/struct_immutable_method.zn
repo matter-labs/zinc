@@ -1,0 +1,27 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "witness": {
+//#             "a": "1",
+//#             "b": "2",
+//#             "c": "3"
+//#         }
+//#     },
+//#     "expect": "6"
+//# } ] }
+
+struct Data {
+    a: u8,
+    b: u8,
+    c: u8,
+}
+
+impl Data {
+    fn sum(self) -> u8 {
+        self.a + self.b + self.c
+    }
+}
+
+fn main(witness: Data) -> u8 {
+    Data::sum(witness)
+}

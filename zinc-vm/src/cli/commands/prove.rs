@@ -10,10 +10,14 @@ use zinc_bytecode::program::Program;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "prove", about = "Executes circuit and prints program's output")]
 pub struct ProveCommand {
-    #[structopt(short = "c", long = "circuit", help = "Compiled circuit program file")]
+    #[structopt(
+        short = "c",
+        long = "circuit",
+        help = "Compiled circuit program directory.file"
+    )]
     pub circuit_path: PathBuf,
 
-    #[structopt(short = "k", long = "proving-key", help = "Proving key file")]
+    #[structopt(short = "k", long = "proving-key", help = "Proving key directory.file")]
     pub proving_key_path: PathBuf,
 
     #[structopt(short = "w", long = "witness", help = "File with witness values")]

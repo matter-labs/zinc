@@ -7,6 +7,7 @@ use std::rc::Rc;
 
 use crate::generator::expression::operand::array::builder::Builder as GeneratorArrayExpressionBuilder;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
+use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::element::constant::error::Error as ConstantError;
@@ -74,10 +75,10 @@ impl Analyzer {
                         })?
                     }
                     (element, _intermediate) => {
-                        return Err(Error::ConstantExpressionHasNonConstantElement {
+                        return Err(Error::Expression(ExpressionError::NonConstantElement {
                             location: size_expression_location,
                             found: element.to_string(),
-                        });
+                        }));
                     }
                 };
 

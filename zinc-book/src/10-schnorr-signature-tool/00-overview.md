@@ -14,7 +14,7 @@ schnorr gen-key > 'private_key.txt'
 
 ### Signing a message with a private key
 
-From file:
+From directory.file:
 
 ```bash
 schnorr sign --key 'private_key.txt' --message 'message.txt'

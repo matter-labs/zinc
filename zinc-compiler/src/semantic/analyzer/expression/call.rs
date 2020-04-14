@@ -61,7 +61,7 @@ impl Analyzer {
 
         let argument_elements = match operand_2 {
             Element::ArgumentList(values) => values,
-            _ => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+            _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         };
         let mut input_size = 0;
         for element in argument_elements.iter() {

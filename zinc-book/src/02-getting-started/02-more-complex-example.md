@@ -230,9 +230,9 @@ fn main(
 ## Defining a module
 
 Our `main.zn` module has got a little overpopulated by now, so let's move our
-functions to another one called `merkle`. At first, create a file called `merkle.zn`
+functions to another one called `merkle`. At first, create a directory.file called `merkle.zn`
 in the `src` directory besides `main.zn`. Then, move everything above the
-`PublicInput` definition to that file. Our `main.zn` will now look like this:
+`PublicInput` definition to that directory.file. Our `main.zn` will now look like this:
 
 ```rust
 struct PublicInput {

@@ -628,7 +628,7 @@ impl TryFrom<&IntegerLiteral> for Integer {
         };
 
         let value = BigInt::from_str_radix(&string, base)
-            .expect(crate::PANIC_VALIDATED_DURING_LEXICAL_ANALYSIS);
+            .expect(crate::panic::VALIDATED_DURING_LEXICAL_ANALYSIS);
         let bitlength = Self::minimal_bitlength(&value, false)?;
 
         Ok(Self::new(value, false, bitlength))

@@ -20,6 +20,7 @@ pub enum Keyword {
     Mod,
     Use,
     Impl,
+    Contract,
 
     // controls
     For,
@@ -42,11 +43,11 @@ pub enum Keyword {
     // operators
     As,
 
-    // special
+    // aliases
     SelfUppercase,
+    SelfLowercase,
 
     // reserved
-    SelfLowercase,
     Pub,
     Ref,
     Extern,
@@ -95,6 +96,7 @@ impl TryFrom<&str> for Keyword {
             "mod" => return Ok(Self::Mod),
             "use" => return Ok(Self::Use),
             "impl" => return Ok(Self::Impl),
+            "contract" => return Ok(Self::Contract),
 
             "for" => return Ok(Self::For),
             "in" => return Ok(Self::In),
@@ -112,8 +114,8 @@ impl TryFrom<&str> for Keyword {
             "as" => return Ok(Self::As),
 
             "Self" => return Ok(Self::SelfUppercase),
-
             "self" => return Ok(Self::SelfLowercase),
+
             "pub" => return Ok(Self::Pub),
             "ref" => return Ok(Self::Ref),
             "extern" => return Ok(Self::Extern),
@@ -191,6 +193,7 @@ impl fmt::Display for Keyword {
             Self::Mod => write!(f, "mod"),
             Self::Use => write!(f, "use"),
             Self::Impl => write!(f, "impl"),
+            Self::Contract => write!(f, "contract"),
 
             Self::For => write!(f, "for"),
             Self::In => write!(f, "in"),
@@ -210,8 +213,8 @@ impl fmt::Display for Keyword {
             Self::As => write!(f, "as"),
 
             Self::SelfUppercase => write!(f, "Self"),
-
             Self::SelfLowercase => write!(f, "self"),
+
             Self::Pub => write!(f, "pub"),
             Self::Ref => write!(f, "ref"),
             Self::Extern => write!(f, "extern"),

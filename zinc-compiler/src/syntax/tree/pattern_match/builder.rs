@@ -58,7 +58,7 @@ impl Builder {
         let location = self
             .location
             .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
+            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location"));
 
         let variant = if self.is_wildcard {
             MatchPatternVariant::Wildcard
@@ -73,7 +73,7 @@ impl Builder {
         } else {
             panic!(
                 "{}{}",
-                crate::PANIC_BUILDER_REQUIRES_VALUE,
+                crate::panic::BUILDER_REQUIRES_VALUE,
                 "boolean | integer | binding | path | wildcard"
             );
         };

@@ -1,8 +1,7 @@
-
 # Syntax grammar (EBNF)
 
 ```
-file = { module_local_statement } ;
+directory.file = { module_local_statement } ;
 
 (* Statements *)
 module_local_statement =
@@ -14,6 +13,7 @@ module_local_statement =
   | mod_statement
   | use_statement
   | impl_statement
+  | contract_statement
   | empty_statement
 ;
 
@@ -32,15 +32,27 @@ implementation_local_statement =
 ;
 
 type_statement = 'type', identifier, '=', type ;
+
 struct_statement = 'struct', '{', field_list, '}' ;
+
 enum_statement = 'enum', '{', variant_list, '}' ;
-fn_statement = 'fn', identifier, '(', field_list, ')', [ '->', type ], block_expression ;
+
+fn_statement = 'fn', identifier, '(', pattern_binding_list, ')', [ '->', type ], block_expression ;
+
 mod_statement = 'mod', identifier ;
+
 use_statement = 'use', path_expression ;
+
 impl_statement = 'impl', identifier, '{', { implementation_local_statement }, '}' ;
+
 const_statement = 'const', identifier, ':', type, '=', expression ;
+
 let_statement = 'let', [ 'mut' ], identifier, [ ':', type ], '=', expression ;
+
 loop_statement = 'for', identifier, 'in', expression, [ 'while', expression ], block_expression ;
+
+contract_statement = 'contract', '{', field_list, '}' ;
+
 empty_statement = ';' ;
 
 (* Expressions *)
@@ -73,6 +85,8 @@ operand_terminal =
   | struct_expression
   | literal
   | identifier
+  | 'Self'
+  | 'self'
 ;
 
 expression_list = [ expression, { ',', expression } ] ;
@@ -121,6 +135,13 @@ pattern_match =
   | operand_path
   | '_'
 ;
+
+pattern_binding =
+    [ 'mut' ], identifier, ':', type
+  | [ 'mut' ], 'self'
+  | '_', ':', type
+;
+pattern_binding_list = [ pattern_binding, { ',', pattern_binding } ] ;
 
 field = identifier, ':', type ;
 field_list = [ field, { ',', field } ] ;

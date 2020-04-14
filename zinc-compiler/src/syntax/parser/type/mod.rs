@@ -43,6 +43,24 @@ impl Parser {
         mut initial: Option<Token>,
     ) -> Result<(Type, Option<Token>), Error> {
         match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
+            token
+            @
+            Token {
+                lexeme: Lexeme::Identifier(_),
+                ..
+            }
+            | token
+            @
+            Token {
+                lexeme: Lexeme::Keyword(Keyword::SelfUppercase),
+                ..
+            } => {
+                let location = token.location;
+                let (expression, next) = PathParser::default().parse(stream, Some(token))?;
+                self.builder.set_location(location);
+                self.builder.set_path_expression(expression);
+                Ok((self.builder.finish(), next))
+            }
             Token {
                 lexeme: Lexeme::Keyword(keyword),
                 location,
@@ -61,18 +79,6 @@ impl Parser {
                     None,
                 ))),
             },
-            token
-            @
-            Token {
-                lexeme: Lexeme::Identifier(_),
-                ..
-            } => {
-                let location = token.location;
-                let (expression, next) = PathParser::default().parse(stream, Some(token))?;
-                self.builder.set_location(location);
-                self.builder.set_path_expression(expression);
-                Ok((self.builder.finish(), next))
-            }
             token
             @
             Token {
@@ -105,13 +111,18 @@ mod tests {
     use crate::lexical::token::lexeme::literal::Literal as LexicalLiteral;
     use crate::lexical::token::lexeme::Lexeme;
     use crate::lexical::token::location::Location;
+    use crate::lexical::token::Token;
     use crate::syntax::error::Error as SyntaxError;
+    use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
+    use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
+    use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
+    use crate::syntax::tree::identifier::Identifier;
     use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
     use crate::syntax::tree::r#type::Type;
 
     #[test]
     fn ok_bool() {
-        let input = "bool";
+        let input = r#"bool"#;
 
         let expected = Ok((Type::new(Location::new(1, 1), TypeVariant::boolean()), None));
 
@@ -122,7 +133,7 @@ mod tests {
 
     #[test]
     fn ok_integer() {
-        let input = "u232";
+        let input = r#"u232"#;
 
         let expected = Ok((
             Type::new(Location::new(1, 1), TypeVariant::integer_unsigned(232)),
@@ -136,7 +147,7 @@ mod tests {
 
     #[test]
     fn ok_field() {
-        let input = "field";
+        let input = r#"field"#;
 
         let expected = Ok((Type::new(Location::new(1, 1), TypeVariant::field()), None));
 
@@ -146,8 +157,31 @@ mod tests {
     }
 
     #[test]
+    fn ok_self_alias() {
+        let input = r#"Self"#;
+
+        let expected = Ok((
+            Type::new(
+                Location::new(1, 1),
+                TypeVariant::alias(ExpressionTree::new(
+                    Location::new(1, 1),
+                    ExpressionTreeNode::operand(ExpressionOperand::Identifier(Identifier::new(
+                        Location::new(1, 1),
+                        Keyword::SelfUppercase.to_string(),
+                    ))),
+                )),
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 5))),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
     fn error_expected_type_keyword() {
-        let input = "while";
+        let input = r#"while"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_type(
             Location::new(1, 1),
@@ -162,7 +196,7 @@ mod tests {
 
     #[test]
     fn error_expected_type() {
-        let input = "42";
+        let input = r#"42"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_type(
             Location::new(1, 1),

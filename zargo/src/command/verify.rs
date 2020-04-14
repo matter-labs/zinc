@@ -22,21 +22,21 @@ pub struct Command {
 
     #[structopt(
         long = "circuit",
-        help = "Path to the circuit binary file",
+        help = "Path to the circuit binary directory.file",
         default_value = "./build/default.znb"
     )]
     circuit: PathBuf,
 
     #[structopt(
         long = "verifying-key",
-        help = "Path to the verifying key file",
+        help = "Path to the verifying key directory.file",
         default_value = "./data/verifying-key.txt"
     )]
     verifying_key: PathBuf,
 
     #[structopt(
         long = "public-data",
-        help = "Path to the program's public data JSON file",
+        help = "Path to the program's public data JSON directory.file",
         default_value = "./data/public-data.json"
     )]
     public_data: PathBuf,

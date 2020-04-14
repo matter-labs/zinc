@@ -93,7 +93,7 @@ mod tests {
 
     #[test]
     fn ok() {
-        let input = "id: u232";
+        let input = r#"id: u232"#;
 
         let expected = Ok((
             Field::new(
@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn error_expected_type() {
-        let input = "id";
+        let input = r#"id"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_type(
             Location::new(1, 3),

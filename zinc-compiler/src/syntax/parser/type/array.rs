@@ -145,7 +145,7 @@ mod tests {
 
     #[test]
     fn ok() {
-        let input = "[field; 8]";
+        let input = r#"[field; 8]"#;
 
         let expected = Ok((
             Type::new(
@@ -173,7 +173,7 @@ mod tests {
 
     #[test]
     fn ok_size_expression() {
-        let input = "[field; 4 * 4]";
+        let input = r#"[field; 4 * 4]"#;
 
         let expected = Ok((
             Type::new(
@@ -214,7 +214,7 @@ mod tests {
 
     #[test]
     fn ok_nested() {
-        let input = "[[field; 8]; 8]";
+        let input = r#"[[field; 8]; 8]"#;
 
         let expected = Ok((
             Type::new(
@@ -253,7 +253,7 @@ mod tests {
 
     #[test]
     fn error_expected_semicolon() {
-        let input = "[field, 8]";
+        let input = r#"[field, 8]"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 7),
@@ -269,7 +269,7 @@ mod tests {
 
     #[test]
     fn error_expected_bracket_square_right() {
-        let input = "[field; 8)";
+        let input = r#"[field; 8)"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of_or_operator(
             Location::new(1, 10),

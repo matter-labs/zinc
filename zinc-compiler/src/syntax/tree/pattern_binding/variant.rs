@@ -2,25 +2,38 @@
 //! The binding pattern variant.
 //!
 
+use crate::lexical::token::location::Location;
 use crate::syntax::tree::identifier::Identifier;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Variant {
-    Binding(Identifier),
-    MutableBinding(Identifier),
+    Binding {
+        identifier: Identifier,
+        is_mutable: bool,
+    },
     Wildcard,
+    SelfAlias {
+        location: Location,
+        is_mutable: bool,
+    },
 }
 
 impl Variant {
-    pub fn new_binding(identifier: Identifier) -> Self {
-        Self::Binding(identifier)
-    }
-
-    pub fn new_mutable_binding(identifier: Identifier) -> Self {
-        Self::MutableBinding(identifier)
+    pub fn new_binding(identifier: Identifier, is_mutable: bool) -> Self {
+        Self::Binding {
+            identifier,
+            is_mutable,
+        }
     }
 
     pub fn new_wildcard() -> Self {
         Self::Wildcard
+    }
+
+    pub fn new_self_alias(location: Location, is_mutable: bool) -> Self {
+        Self::SelfAlias {
+            location,
+            is_mutable,
+        }
     }
 }

@@ -10,7 +10,7 @@ See `zargo --help` for more detail.
 
 ### `new`
 
-Creates a new project directory with `Zargo.toml` manifest file and `src/main.zn`
+Creates a new project directory with `Zargo.toml` manifest directory.file and `src/main.zn`
 circuit entry point module.
 
 ### `init`
@@ -20,7 +20,7 @@ Initializes a new project in an existing directory, creates missing files.
 ### `build`
 
 Builds the circuit. The build consists of:
-- the bytecode file
+- the bytecode directory.file
 - secret input JSON template
 - public data JSON template
 
@@ -93,9 +93,9 @@ zargo prove
 zargo verify
 ```
 
-## Manifest file
+## Manifest directory.file
 
-A Zinc circuit is described with the manifest file `Zargo.toml` with the
+A Zinc circuit is described with the manifest directory.file `Zargo.toml` with the
 following structure:
 
 ```toml

@@ -68,11 +68,11 @@ impl fmt::Display for Location {
                 Some(file_index) => write!(
                     f,
                     "{}:{}:{}",
-                    crate::file::INDEX
+                    crate::source::file::INDEX
                         .read()
-                        .expect(crate::PANIC_MUTEX_SYNC)
+                        .expect(crate::panic::MUTEX_SYNC)
                         .get(file_index)
-                        .expect(crate::PANIC_FILE_INDEX)
+                        .expect(crate::panic::FILE_INDEX)
                         .to_string_lossy(),
                     line,
                     column,

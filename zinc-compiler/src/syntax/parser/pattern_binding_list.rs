@@ -53,27 +53,23 @@ impl Parser {
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Mut),
                             ..
-                        } => {
-                            let (pattern, next) = BindingPatternParser::default()
-                                .parse(stream.clone(), Some(token))?;
-                            self.next = next;
-                            self.patterns.push(pattern);
                         }
-                        token
+                        | token
                         @
                         Token {
                             lexeme: Lexeme::Identifier(_),
                             ..
-                        } => {
-                            let (pattern, next) = BindingPatternParser::default()
-                                .parse(stream.clone(), Some(token))?;
-                            self.next = next;
-                            self.patterns.push(pattern);
                         }
-                        token
+                        | token
                         @
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Underscore),
+                            ..
+                        }
+                        | token
+                        @
+                        Token {
+                            lexeme: Lexeme::Keyword(Keyword::SelfLowercase),
                             ..
                         } => {
                             let (pattern, next) = BindingPatternParser::default()
@@ -136,10 +132,10 @@ mod tests {
         let expected = Ok((
             vec![BindingPattern::new(
                 Location::new(1, 1),
-                BindingPatternVariant::Binding(Identifier::new(
-                    Location::new(1, 1),
-                    "a".to_owned(),
-                )),
+                BindingPatternVariant::new_binding(
+                    Identifier::new(Location::new(1, 1), "a".to_owned()),
+                    false,
+                ),
                 Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
             )],
             Some(Token::new(Lexeme::Eof, Location::new(1, 8))),
@@ -157,10 +153,10 @@ mod tests {
         let expected = Ok((
             vec![BindingPattern::new(
                 Location::new(1, 1),
-                BindingPatternVariant::Binding(Identifier::new(
-                    Location::new(1, 1),
-                    "a".to_owned(),
-                )),
+                BindingPatternVariant::new_binding(
+                    Identifier::new(Location::new(1, 1), "a".to_owned()),
+                    false,
+                ),
                 Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
             )],
             Some(Token::new(Lexeme::Eof, Location::new(1, 9))),
@@ -179,26 +175,26 @@ mod tests {
             vec![
                 BindingPattern::new(
                     Location::new(1, 1),
-                    BindingPatternVariant::Binding(Identifier::new(
-                        Location::new(1, 1),
-                        "a".to_owned(),
-                    )),
+                    BindingPatternVariant::new_binding(
+                        Identifier::new(Location::new(1, 1), "a".to_owned()),
+                        false,
+                    ),
                     Type::new(Location::new(1, 4), TypeVariant::integer_unsigned(232)),
                 ),
                 BindingPattern::new(
                     Location::new(1, 10),
-                    BindingPatternVariant::Binding(Identifier::new(
-                        Location::new(1, 10),
-                        "b".to_owned(),
-                    )),
+                    BindingPatternVariant::new_binding(
+                        Identifier::new(Location::new(1, 10), "b".to_owned()),
+                        false,
+                    ),
                     Type::new(Location::new(1, 13), TypeVariant::integer_unsigned(8)),
                 ),
                 BindingPattern::new(
                     Location::new(1, 17),
-                    BindingPatternVariant::Binding(Identifier::new(
-                        Location::new(1, 17),
-                        "c".to_owned(),
-                    )),
+                    BindingPatternVariant::new_binding(
+                        Identifier::new(Location::new(1, 17), "c".to_owned()),
+                        false,
+                    ),
                     Type::new(Location::new(1, 20), TypeVariant::field()),
                 ),
             ],

@@ -11,7 +11,7 @@ use crate::syntax::tree::identifier::Identifier;
 pub struct Builder {
     location: Option<Location>,
     identifier: Option<Identifier>,
-    is_struct: bool,
+    is_structure: bool,
     fields: Vec<(Identifier, Option<ExpressionTree>)>,
 }
 
@@ -24,8 +24,8 @@ impl Builder {
         self.identifier = Some(value);
     }
 
-    pub fn set_is_struct(&mut self) {
-        self.is_struct = true;
+    pub fn set_is_structure(&mut self) {
+        self.is_structure = true;
     }
 
     pub fn push_field_identifier(&mut self, value: Identifier) {
@@ -38,7 +38,7 @@ impl Builder {
             .unwrap_or_else(|| {
                 panic!(
                     "{}{}",
-                    crate::PANIC_BUILDER_REQUIRES_VALUE,
+                    crate::panic::BUILDER_REQUIRES_VALUE,
                     "field identifier"
                 )
             })
@@ -47,16 +47,13 @@ impl Builder {
 
     pub fn finish(mut self) -> StructureExpression {
         StructureExpression::new(
-            self.location
-                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location")),
-            self.identifier.take().unwrap_or_else(|| {
-                panic!(
-                    "{}{}",
-                    crate::PANIC_BUILDER_REQUIRES_VALUE,
-                    "path expression"
-                )
+            self.location.unwrap_or_else(|| {
+                panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location")
             }),
-            self.is_struct,
+            self.identifier.take().unwrap_or_else(|| {
+                panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "identifier")
+            }),
+            self.is_structure,
             self.fields
                 .into_iter()
                 .map(|(identifier, expression)| {
@@ -65,7 +62,7 @@ impl Builder {
                         expression.unwrap_or_else(|| {
                             panic!(
                                 "{}{}",
-                                crate::PANIC_BUILDER_REQUIRES_VALUE,
+                                crate::panic::BUILDER_REQUIRES_VALUE,
                                 "field expression"
                             )
                         }),

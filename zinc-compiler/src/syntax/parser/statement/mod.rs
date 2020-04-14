@@ -3,6 +3,7 @@
 //!
 
 pub mod r#const;
+pub mod contract;
 pub mod r#enum;
 pub mod r#fn;
 pub mod r#for;

@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn error_expected_semicolon() {
-        let input = "use jabberwocky";
+        let input = r#"use jabberwocky"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 16),

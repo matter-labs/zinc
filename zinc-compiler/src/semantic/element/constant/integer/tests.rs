@@ -129,7 +129,7 @@ fn main() {
         Location::new(3, 19),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::IntegerTooLarge {
-                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::semantic::tests::PANIC_TEST_DATA),
+                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::panic::TEST_DATA),
                 bitlength: crate::BITLENGTH_FIELD,
             },
         )),
@@ -152,7 +152,7 @@ fn main() {
         Location::new(3, 17),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::IntegerTooLarge {
-                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::semantic::tests::PANIC_TEST_DATA),
+                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::panic::TEST_DATA),
                 bitlength: crate::BITLENGTH_FIELD,
             },
         )),
@@ -180,7 +180,7 @@ fn main() {
         Location::new(5, 9),
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::IntegerTooLarge {
-                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::semantic::tests::PANIC_TEST_DATA),
+                value: BigInt::from_str("115792089237316195423570985008687907853269984665640564039457584007913129639935").expect(crate::panic::TEST_DATA),
                 bitlength: crate::BITLENGTH_FIELD,
             },
         )),

@@ -23,7 +23,7 @@ impl fmt::Display for CodeLocation {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         let file = match &self.file {
             Some(file) => file.as_str(),
-            None => "<unknown file>",
+            None => "<unknown directory.file>",
         };
         write!(f, "{}", file)?;
 

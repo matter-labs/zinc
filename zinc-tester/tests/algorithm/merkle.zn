@@ -14,10 +14,6 @@
 //#     }
 //# } ] }
 
-//!
-//! The Merkle tree root hash validator.
-//!
-
 use std::crypto::sha256;
 use std::array::truncate;
 

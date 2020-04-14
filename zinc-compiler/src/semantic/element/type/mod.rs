@@ -4,6 +4,7 @@
 
 mod tests;
 
+pub mod contract;
 pub mod enumeration;
 pub mod error;
 pub mod function;
@@ -19,6 +20,7 @@ use lazy_static::lazy_static;
 
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
+use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::element::constant::error::Error as ConstantError;
@@ -34,6 +36,7 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
 use crate::syntax::tree::variant::Variant;
 
+use self::contract::Contract;
 use self::enumeration::Enumeration;
 use self::function::Function;
 use self::structure::Structure;
@@ -84,6 +87,8 @@ pub enum Type {
     Enumeration(Enumeration),
     /// the special function type declared with an `fn` statement
     Function(Function),
+    /// the special contract type declared with a `contract` statement
+    Contract(Contract),
 }
 
 impl Default for Type {
@@ -164,18 +169,18 @@ impl Type {
         identifier: String,
         unique_id: usize,
         fields: Vec<(String, Self)>,
-        scope_parent: Option<Rc<RefCell<Scope>>>,
+        scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
-        Self::Structure(Structure::new(identifier, unique_id, fields, scope_parent))
+        Self::Structure(Structure::new(identifier, unique_id, fields, scope))
     }
 
     pub fn enumeration(
         identifier: Identifier,
         unique_id: usize,
         variants: Vec<Variant>,
-        scope_parent: Option<Rc<RefCell<Scope>>>,
+        scope: Option<Rc<RefCell<Scope>>>,
     ) -> Result<Self, Error> {
-        Enumeration::new(identifier, unique_id, variants, scope_parent).map(Self::Enumeration)
+        Enumeration::new(identifier, unique_id, variants, scope).map(Self::Enumeration)
     }
 
     pub fn new_std_function(builtin_identifier: BuiltinIdentifier) -> Self {
@@ -196,6 +201,15 @@ impl Type {
         ))
     }
 
+    pub fn contract(
+        identifier: String,
+        unique_id: usize,
+        fields: Vec<(String, Self)>,
+        scope: Option<Rc<RefCell<Scope>>>,
+    ) -> Self {
+        Self::Contract(Contract::new(identifier, unique_id, fields, scope))
+    }
+
     pub fn size(&self) -> usize {
         match self {
             Self::Unit => 0,
@@ -214,6 +228,11 @@ impl Type {
                 .map(|(_name, r#type)| r#type.size())
                 .sum(),
             Self::Enumeration { .. } => 1,
+            Self::Contract(contract) => contract
+                .fields
+                .iter()
+                .map(|(_name, r#type)| r#type.size())
+                .sum(),
             Self::Function { .. } => 0,
         }
     }
@@ -292,10 +311,10 @@ impl Type {
                         })?
                     }
                     (element, _intermediate) => {
-                        return Err(Error::ConstantExpressionHasNonConstantElement {
+                        return Err(Error::Expression(ExpressionError::NonConstantElement {
                             location: size_location,
                             found: element.to_string(),
-                        });
+                        }));
                     }
                 };
 
@@ -335,11 +354,11 @@ impl Type {
             Element::Path(path) => match Scope::resolve_path(scope, &path)?.variant {
                 ScopeItemVariant::Variable(variable) => variable.r#type,
                 ScopeItemVariant::Constant(constant) => constant.r#type(),
-                _ => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+                _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
             },
             Element::Place(place) => place.r#type.to_owned(),
 
-            _ => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+            _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         })
     }
 }
@@ -357,10 +376,13 @@ impl PartialEq<Type> for Type {
             }
             (Self::Field, Self::Field) => true,
             (Self::String, Self::String) => true,
-            (Self::Range { r#type: type_1 }, Self::Range { r#type: type_2 }) => type_1 == type_2,
-            (Self::RangeInclusive { r#type: type_1 }, Self::RangeInclusive { r#type: type_2 }) => {
-                type_1 == type_2
+            (Self::Range { r#type: inner_1 }, Self::Range { r#type: inner_2 }) => {
+                inner_1 == inner_2
             }
+            (
+                Self::RangeInclusive { r#type: inner_1 },
+                Self::RangeInclusive { r#type: inner_2 },
+            ) => inner_1 == inner_2,
             (
                 Self::Array {
                     r#type: type_1,
@@ -372,12 +394,9 @@ impl PartialEq<Type> for Type {
                 },
             ) => type_1 == type_2 && size_1 == size_2,
             (Self::Tuple { types: types_1 }, Self::Tuple { types: types_2 }) => types_1 == types_2,
-            (Self::Structure(structure_1), Self::Structure(structure_2)) => {
-                structure_1 == structure_2
-            }
-            (Self::Enumeration(enumeration_1), Self::Enumeration(enumeration_2)) => {
-                enumeration_1 == enumeration_2
-            }
+            (Self::Structure(inner_1), Self::Structure(inner_2)) => inner_1 == inner_2,
+            (Self::Enumeration(inner_1), Self::Enumeration(inner_2)) => inner_1 == inner_2,
+            (Self::Contract(inner_1), Self::Contract(inner_2)) => inner_1 == inner_2,
             _ => false,
         }
     }
@@ -407,6 +426,7 @@ impl fmt::Display for Type {
             Self::Structure(inner) => write!(f, "{}", inner),
             Self::Enumeration(inner) => write!(f, "{}", inner),
             Self::Function(inner) => write!(f, "{}", inner),
+            Self::Contract(inner) => write!(f, "{}", inner),
         }
     }
 }

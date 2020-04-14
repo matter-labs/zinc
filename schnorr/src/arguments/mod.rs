@@ -6,10 +6,10 @@ pub use gen_key::*;
 pub use pub_key::*;
 pub use sign::*;
 
-use franklin_crypto::bellman::pairing::ff::{PrimeField, PrimeFieldRepr};
+use failure::Fail;
 use structopt::StructOpt;
 
-use failure::Fail;
+use franklin_crypto::bellman::pairing::ff::{PrimeField, PrimeFieldRepr};
 
 #[derive(StructOpt)]
 #[structopt(

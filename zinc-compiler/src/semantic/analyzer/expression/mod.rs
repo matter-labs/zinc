@@ -8,6 +8,7 @@ pub mod array;
 pub mod block;
 pub mod call;
 pub mod conditional;
+pub mod error;
 pub mod field_index;
 pub mod hint;
 pub mod identifier;
@@ -271,7 +272,7 @@ impl Analyzer {
 
                     return match self.evaluation_stack.pop() {
                         StackElement::Evaluated(element) => Ok((element, Some(intermediate))),
-                        _ => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+                        _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
                     };
                 }
                 ExpressionOperator::RangeInclusive => {
@@ -281,7 +282,7 @@ impl Analyzer {
 
                     return match self.evaluation_stack.pop() {
                         StackElement::Evaluated(element) => Ok((element, Some(intermediate))),
-                        _ => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+                        _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
                     };
                 }
 
@@ -515,7 +516,7 @@ impl Analyzer {
                     self.intermediate.push_operand(intermediate);
                 }
             }
-            None => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+            None => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         }
         Ok(())
     }
@@ -540,7 +541,7 @@ impl Analyzer {
                     self.intermediate.push_operand(intermediate);
                 }
             }
-            None => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+            None => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         }
         Ok(())
     }
@@ -558,7 +559,7 @@ impl Analyzer {
         let hint = TranslationHint::first(operator);
         let (element, intermediate) = match left {
             Some(left) => Self::new(self.scope_stack.top()).analyze(*left, hint)?,
-            None => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+            None => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         };
         self.evaluation_stack.push(StackElement::Evaluated(element));
         Ok(intermediate)
@@ -577,7 +578,7 @@ impl Analyzer {
         let hint = TranslationHint::second(operator);
         let (element, intermediate) = match right {
             Some(left) => Self::new(self.scope_stack.top()).analyze(*left, hint)?,
-            None => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+            None => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         };
         self.evaluation_stack.push(StackElement::Evaluated(element));
         Ok(intermediate)
@@ -607,9 +608,7 @@ impl Analyzer {
 
         if !place.is_mutable {
             let item_location =
-                Scope::resolve_item(self.scope_stack.top(), place.identifier.as_str())
-                    .map_err(|error| Error::Scope(place.location, error))?
-                    .location;
+                Scope::resolve_item(self.scope_stack.top(), &place.identifier, true)?.location;
             return Err(Error::Element(
                 location,
                 ElementError::Place(PlaceError::MutatingImmutableMemory {
@@ -686,7 +685,7 @@ impl Analyzer {
         let start = match result {
             Element::Constant(Constant::Range(ref range)) => range.start.to_owned(),
             Element::Constant(Constant::RangeInclusive(ref range)) => range.start.to_owned(),
-            _ => panic!(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+            _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         };
         let intermediate = GeneratorExpressionOperand::Constant(
             GeneratorExpressionConstant::new_integer(start, false, crate::BITLENGTH_FIELD),

@@ -32,7 +32,7 @@ impl Path {
     pub fn last(&self) -> &Identifier {
         self.elements
             .last()
-            .expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS)
+            .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS)
     }
 }
 

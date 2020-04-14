@@ -91,7 +91,7 @@ impl Array {
         let access = IndexAccess::new(self.r#type.size(), self.r#type().size());
 
         (
-            Value::try_from(&self.r#type).expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+            Value::try_from(&self.r#type).expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
             access,
         )
     }

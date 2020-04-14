@@ -24,7 +24,7 @@ Let's now move on to writing 'Hello, World!' in Zinc!
 ## The Visual Studio Code extension
 
 There is a syntax highlighting extension for Zinc called `Zinc Syntax Highligthing`.
-The IDE should recommend installing it once you have opened a Zinc file!
+The IDE should recommend installing it once you have opened a Zinc directory.file!
 
 ## Creating the circuit
 
@@ -76,19 +76,19 @@ Now, you need to compile the circuit into Zinc bytecode:
 `zargo build`
 
 The command above will write the bytecode to the `build` directory located in
-the project root. There is also a file called `witness.json` in the
+the project root. There is also a directory.file called `witness.json` in the
 `build` directory, which is used to provide the secret witness data to the circuit.
 
 ### Running the circuit
 
-Before you run the circuit, open the `data/witness.json` file with
+Before you run the circuit, open the `data/witness.json` directory.file with
 your favorite editor and fill it with some meaningful values.
 
 Now, execute `zargo run > data/public-data.json` to run the circuit and
-write the resulting public data to a file.
+write the resulting public data to a directory.file.
 
 > There is a useful tool called `jq`. You may use it together with `zargo run`
-> to highlight, edit, filter the output data before writing it to the file:
+> to highlight, edit, filter the output data before writing it to the directory.file:
 > `zargo run | jq > data/public-data.json`.
 > 
 > For more information on `jq`, visit the [official manual](https://stedolan.github.io/jq/manual/).

@@ -114,7 +114,7 @@ mod tests {
 
     #[test]
     fn error_identifier() {
-        let input = "mod;";
+        let input = r#"mod;"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_identifier(
             Location::new(1, 4),
@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn error_expected_semicolon() {
-        let input = "mod jabberwocky";
+        let input = r#"mod jabberwocky"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 16),

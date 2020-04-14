@@ -85,7 +85,7 @@ impl Structure {
                 let access = FieldAccess::new(index, offset, r#type.size(), total_size);
 
                 return Ok((
-                    Value::try_from(r#type).expect(crate::PANIC_VALIDATED_DURING_SYNTAX_ANALYSIS),
+                    Value::try_from(r#type).expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
                     access,
                 ));
             }

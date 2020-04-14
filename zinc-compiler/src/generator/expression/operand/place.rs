@@ -13,15 +13,14 @@ use zinc_bytecode::Instruction;
 
 use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::operand::constant::Constant;
-use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::Constant as SemanticConstant;
 use crate::semantic::element::place::element::Element as SemanticPlaceElement;
 use crate::semantic::element::place::Place as SemanticPlace;
+use crate::syntax::tree::identifier::Identifier;
 
 #[derive(Debug, Clone)]
 pub struct Place {
-    pub location: Location,
-    pub identifier: String,
+    pub identifier: Identifier,
     pub element_size: usize,
     pub total_size: usize,
     pub elements: Vec<SemanticPlaceElement>,
@@ -37,11 +36,11 @@ impl Place {
             match element {
                 SemanticPlaceElement::IndexConstant { constant, access } => {
                     Constant::try_from_semantic(&SemanticConstant::Integer(constant))
-                        .expect(crate::PANIC_VALIDATED_DURING_SEMANTIC_ANALYSIS)
+                        .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
                         .write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
                         Instruction::Cast(zinc_bytecode::Cast::new(ScalarType::Field)),
-                        Some(self.location),
+                        Some(self.identifier.location),
                     );
                     Constant::new_integer(
                         BigInt::from(access.element_size),
@@ -51,18 +50,18 @@ impl Place {
                     .write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
                         Instruction::Mul(zinc_bytecode::Mul),
-                        Some(self.location),
+                        Some(self.identifier.location),
                     );
                     bytecode.borrow_mut().push_instruction(
                         Instruction::Add(zinc_bytecode::Add),
-                        Some(self.location),
+                        Some(self.identifier.location),
                     );
                 }
                 SemanticPlaceElement::IndexExpression { expression, access } => {
                     expression.write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
                         Instruction::Cast(zinc_bytecode::Cast::new(ScalarType::Field)),
-                        Some(self.location),
+                        Some(self.identifier.location),
                     );
                     Constant::new_integer(
                         BigInt::from(access.element_size),
@@ -72,11 +71,11 @@ impl Place {
                     .write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
                         Instruction::Mul(zinc_bytecode::Mul),
-                        Some(self.location),
+                        Some(self.identifier.location),
                     );
                     bytecode.borrow_mut().push_instruction(
                         Instruction::Add(zinc_bytecode::Add),
-                        Some(self.location),
+                        Some(self.identifier.location),
                     );
                 }
                 SemanticPlaceElement::IndexRange { start, access, .. } => {
@@ -88,7 +87,7 @@ impl Place {
                     .write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
                         Instruction::Add(zinc_bytecode::Add),
-                        Some(self.location),
+                        Some(self.identifier.location),
                     );
                 }
                 SemanticPlaceElement::IndexRangeInclusive { start, access, .. } => {
@@ -100,7 +99,7 @@ impl Place {
                     .write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
                         Instruction::Add(zinc_bytecode::Add),
-                        Some(self.location),
+                        Some(self.identifier.location),
                     );
                 }
                 SemanticPlaceElement::Field { access } => {
@@ -112,7 +111,7 @@ impl Place {
                     .write_all_to_bytecode(bytecode.clone());
                     bytecode.borrow_mut().push_instruction(
                         Instruction::Add(zinc_bytecode::Add),
-                        Some(self.location),
+                        Some(self.identifier.location),
                     );
                 }
             }
@@ -123,7 +122,6 @@ impl Place {
 impl From<SemanticPlace> for Place {
     fn from(place: SemanticPlace) -> Self {
         Self {
-            location: place.location,
             identifier: place.identifier,
             element_size: place.r#type.size(),
             total_size: place.total_size,

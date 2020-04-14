@@ -32,7 +32,7 @@ impl Builder {
         let location = self
             .location
             .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
+            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location"));
 
         if self.elements.is_empty() {
             ExpressionTree::new(
@@ -60,7 +60,7 @@ impl Builder {
                 element
             }
         } else {
-            panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "element");
+            panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "element");
         }
     }
 }

@@ -203,10 +203,10 @@ mod tests {
                 Identifier::new(Location::new(1, 4), "f".to_owned()),
                 vec![BindingPattern::new(
                     Location::new(1, 6),
-                    BindingPatternVariant::Binding(Identifier::new(
-                        Location::new(1, 6),
-                        "a".to_owned(),
-                    )),
+                    BindingPatternVariant::new_binding(
+                        Identifier::new(Location::new(1, 6), "a".to_owned()),
+                        false,
+                    ),
                     Type::new(Location::new(1, 9), TypeVariant::field()),
                 )],
                 None,
@@ -230,10 +230,10 @@ mod tests {
                 Identifier::new(Location::new(1, 4), "f".to_owned()),
                 vec![BindingPattern::new(
                     Location::new(1, 6),
-                    BindingPatternVariant::Binding(Identifier::new(
-                        Location::new(1, 6),
-                        "a".to_owned(),
-                    )),
+                    BindingPatternVariant::new_binding(
+                        Identifier::new(Location::new(1, 6), "a".to_owned()),
+                        false,
+                    ),
                     Type::new(Location::new(1, 9), TypeVariant::field()),
                 )],
                 Some(Type::new(Location::new(1, 19), TypeVariant::field())),

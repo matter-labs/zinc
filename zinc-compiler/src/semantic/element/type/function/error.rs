@@ -40,6 +40,11 @@ pub enum Error {
     NonCallable {
         name: String,
     },
+    FunctionMethodSelfNotFirst {
+        function: String,
+        position: usize,
+        reference: Location,
+    },
 
     BuiltIn(BuiltInFunctionTypeError),
     StandardLibrary(StandardLibraryFunctionTypeError),
@@ -108,5 +113,17 @@ impl Error {
 
     pub fn non_callable(name: String) -> Self {
         Self::NonCallable { name }
+    }
+
+    pub fn function_method_self_not_first(
+        function: String,
+        position: usize,
+        reference: Location,
+    ) -> Self {
+        Self::FunctionMethodSelfNotFirst {
+            function,
+            position,
+            reference,
+        }
     }
 }

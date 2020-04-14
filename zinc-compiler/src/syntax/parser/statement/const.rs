@@ -258,7 +258,7 @@ mod tests {
 
     #[test]
     fn error_expected_semicolon() {
-        let input = "const A: u64 = 42";
+        let input = r#"const A: u64 = 42"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 18),

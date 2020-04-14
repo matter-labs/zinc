@@ -43,17 +43,17 @@ impl Builder {
         let location = self
             .location
             .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
+            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location"));
         FnStatement::new(
             location,
             self.identifier.take().unwrap_or_else(|| {
-                panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "identifier")
+                panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "identifier")
             }),
             self.argument_bindings,
             self.return_type.take(),
             self.body
                 .take()
-                .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "body")),
+                .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "body")),
         )
     }
 }

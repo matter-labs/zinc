@@ -288,7 +288,7 @@ mod tests {
 
     #[test]
     fn error_expected_bracket_curly_right() {
-        let input = "enum List { A = 1 );";
+        let input = r#"enum List { A = 1 );"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 19),

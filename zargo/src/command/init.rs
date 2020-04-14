@@ -46,11 +46,11 @@ pub enum Error {
     DirectoryDoesNotExist(OsString),
     #[fail(display = "circuit at path {:?} is already initialized", _0)]
     CircuitAlreadyInitialized(OsString),
-    #[fail(display = "manifest file {}", _0)]
+    #[fail(display = "manifest directory.file {}", _0)]
     ManifestFile(ManifestError),
     #[fail(display = "source directory {}", _0)]
     SourceDirectory(SourceDirectoryError),
-    #[fail(display = "main file {}", _0)]
+    #[fail(display = "main directory.file {}", _0)]
     MainFile(MainFileError),
 }
 

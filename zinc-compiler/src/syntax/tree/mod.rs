@@ -13,9 +13,9 @@ pub mod tuple_index;
 pub mod r#type;
 pub mod variant;
 
-use self::statement::local_mod::Statement as ModuleLocalStatement;
+use self::statement::local_mod::Statement as ModLocalStatement;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Tree {
-    pub statements: Vec<ModuleLocalStatement>,
+    pub statements: Vec<ModLocalStatement>,
 }

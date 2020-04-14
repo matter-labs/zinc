@@ -44,7 +44,7 @@ false
 as
 ```
 
-#### Special
+#### Aliases
 ```rust,no_run,noplaypen
 Self
 self
@@ -52,7 +52,6 @@ self
 
 ## Reserved
 ```rust,no_run,noplaypen
-self
 static
 pub
 ref

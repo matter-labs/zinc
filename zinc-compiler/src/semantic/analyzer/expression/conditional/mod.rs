@@ -4,12 +4,16 @@
 
 mod tests;
 
+pub mod error;
+
 use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::generator::expression::operand::conditional::builder::Builder as GeneratorConditionalExpressionBuilder;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockAnalyzer;
+use crate::semantic::analyzer::expression::conditional::error::Error as ConditionalExpressionError;
+use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::element::r#type::Type;
@@ -62,10 +66,12 @@ impl Analyzer {
         match Type::from_element(&condition_result, scope_stack.top())? {
             Type::Boolean => {}
             r#type => {
-                return Err(Error::ConditionalExpectedBooleanCondition {
-                    location: condition_location,
-                    found: r#type.to_string(),
-                });
+                return Err(Error::Expression(ExpressionError::Conditional(
+                    ConditionalExpressionError::ExpectedBooleanCondition {
+                        location: condition_location,
+                        found: r#type.to_string(),
+                    },
+                )));
             }
         }
         builder.set_condition(condition);
@@ -91,12 +97,14 @@ impl Analyzer {
 
         // check if the two branches return equals types
         if main_type != else_type {
-            return Err(Error::ConditionalBranchTypesMismatch {
-                location: main_expression_location,
-                expected: main_type.to_string(),
-                found: else_type.to_string(),
-                reference: else_expression_location,
-            });
+            return Err(Error::Expression(ExpressionError::Conditional(
+                ConditionalExpressionError::BranchTypesMismatch {
+                    location: main_expression_location,
+                    expected: main_type.to_string(),
+                    found: else_type.to_string(),
+                    reference: else_expression_location,
+                },
+            )));
         }
 
         let element = main_result;

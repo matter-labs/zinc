@@ -7,6 +7,7 @@ use std::rc::Rc;
 
 use crate::error::Error;
 use crate::lexical::stream::TokenStream;
+use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::lexeme::symbol::Symbol;
 use crate::lexical::token::lexeme::Lexeme;
 use crate::lexical::token::Token;
@@ -69,6 +70,24 @@ impl Parser {
                             self.builder.set_identifier(identifier);
                             self.state = State::BracketCurlyLeftOrEnd;
                         }
+                        Token {
+                            lexeme: Lexeme::Keyword(keyword @ Keyword::SelfLowercase),
+                            location,
+                        } => {
+                            self.builder.set_location(location);
+                            let identifier = Identifier::new(location, keyword.to_string());
+                            self.builder.set_identifier(identifier);
+                            self.state = State::BracketCurlyLeftOrEnd;
+                        }
+                        Token {
+                            lexeme: Lexeme::Keyword(keyword @ Keyword::SelfUppercase),
+                            location,
+                        } => {
+                            self.builder.set_location(location);
+                            let identifier = Identifier::new(location, keyword.to_string());
+                            self.builder.set_identifier(identifier);
+                            self.state = State::BracketCurlyLeftOrEnd;
+                        }
                         Token { lexeme, location } => {
                             return Err(Error::Syntax(SyntaxError::expected_identifier(
                                 location, lexeme, None,
@@ -92,7 +111,7 @@ impl Parser {
                                 _ => return Ok((self.builder.finish(), Some(token))),
                             }
 
-                            self.builder.set_is_struct();
+                            self.builder.set_is_structure();
                             self.state = State::IdentifierOrBracketCurlyRight;
                         }
                         token => return Ok((self.builder.finish(), Some(token))),
@@ -176,6 +195,7 @@ mod tests {
     use super::Error;
     use super::Parser;
     use crate::lexical::stream::TokenStream;
+    use crate::lexical::token::lexeme::keyword::Keyword;
     use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
     use crate::lexical::token::lexeme::symbol::Symbol;
     use crate::lexical::token::lexeme::Lexeme;
@@ -197,6 +217,44 @@ mod tests {
             StructureExpression::new(
                 Location::new(1, 1),
                 Identifier::new(Location::new(1, 1), "test".to_owned()),
+                false,
+                vec![],
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 5))),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_self_lowercase() {
+        let input = r#"self"#;
+
+        let expected = Ok((
+            StructureExpression::new(
+                Location::new(1, 1),
+                Identifier::new(Location::new(1, 1), Keyword::SelfLowercase.to_string()),
+                false,
+                vec![],
+            ),
+            Some(Token::new(Lexeme::Eof, Location::new(1, 5))),
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_self_uppercase() {
+        let input = r#"Self"#;
+
+        let expected = Ok((
+            StructureExpression::new(
+                Location::new(1, 1),
+                Identifier::new(Location::new(1, 1), Keyword::SelfUppercase.to_string()),
                 false,
                 vec![],
             ),

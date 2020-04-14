@@ -44,6 +44,7 @@ impl Data {
     pub fn is_exhausted_boolean(&self) -> bool {
         let mut current = self.patterns.keys().cloned().collect::<Vec<BigInt>>();
         current.sort();
+
         let full = vec![BigInt::zero(), BigInt::one()];
 
         current == full

@@ -2,6 +2,7 @@
 //! The semantic analyzer type error.
 //!
 
+use crate::semantic::element::r#type::contract::error::Error as ContractTypeError;
 use crate::semantic::element::r#type::function::error::Error as FunctionTypeError;
 use crate::semantic::element::r#type::structure::error::Error as StructureTypeError;
 
@@ -12,4 +13,5 @@ pub enum Error {
 
     Function(FunctionTypeError),
     Structure(StructureTypeError),
+    Contract(ContractTypeError),
 }

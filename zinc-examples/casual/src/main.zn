@@ -1,3 +1,22 @@
-fn main() -> u8 {
-    42
+mod one;
+mod two;
+mod three;
+
+struct Data {
+    a: u8,
+    b: u8,
+    c: u8,
+}
+
+impl Data {
+    fn mutate(mut self) -> Self {
+        self.a = one::A;
+        self.b = two::B;
+        self.c = three::C;
+        self
+    }
+}
+
+fn main(witness: Data) -> Data {
+    Data::mutate(witness)
 }

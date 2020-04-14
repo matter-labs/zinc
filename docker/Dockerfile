@@ -12,7 +12,7 @@ RUN apt-get install --yes \
     'dos2unix' \
     'zip'
 
-# Fixing the '\r\n' endings
+# Fixing the Windows '\r\n' line endings
 RUN dos2unix 'docker/build.sh'
 
 # Main build script, requires the Zinc and Rust versions

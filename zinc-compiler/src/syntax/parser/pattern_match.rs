@@ -150,7 +150,7 @@ mod tests {
 
     #[test]
     fn ok_literal_boolean() {
-        let input = "true";
+        let input = r#"true"#;
 
         let expected = Ok((
             MatchPattern::new(
@@ -170,7 +170,7 @@ mod tests {
 
     #[test]
     fn ok_literal_integer() {
-        let input = "42";
+        let input = r#"42"#;
 
         let expected = Ok((
             MatchPattern::new(
@@ -190,7 +190,7 @@ mod tests {
 
     #[test]
     fn ok_binding() {
-        let input = "value";
+        let input = r#"value"#;
 
         let expected = Ok((
             MatchPattern::new(
@@ -210,7 +210,7 @@ mod tests {
 
     #[test]
     fn ok_path() {
-        let input = "data::Inner::VALUE";
+        let input = r#"data::Inner::VALUE"#;
 
         let expected = Ok((
             MatchPattern::new(
@@ -252,7 +252,7 @@ mod tests {
 
     #[test]
     fn ok_wildcard() {
-        let input = "_";
+        let input = r#"_"#;
 
         let expected = Ok((
             MatchPattern::new(Location::new(1, 1), MatchPatternVariant::Wildcard),

@@ -44,16 +44,16 @@ impl Builder {
         let location = self
             .location
             .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "location"));
+            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location"));
 
         let scrutinee = self
             .scrutinee
             .take()
-            .unwrap_or_else(|| panic!("{}{}", crate::PANIC_BUILDER_REQUIRES_VALUE, "scrutinee"));
+            .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "scrutinee"));
         let scrutinee_type = self.scrutinee_type.take().unwrap_or_else(|| {
             panic!(
                 "{}{}",
-                crate::PANIC_BUILDER_REQUIRES_VALUE,
+                crate::panic::BUILDER_REQUIRES_VALUE,
                 "scrutinee_type"
             )
         });
@@ -71,7 +71,7 @@ impl Builder {
                 let wildcard_branch = self.wildcard_branch.take().unwrap_or_else(|| {
                     panic!(
                         "{}{}",
-                        crate::PANIC_BUILDER_REQUIRES_VALUE,
+                        crate::panic::BUILDER_REQUIRES_VALUE,
                         "wildcard_branch"
                     )
                 });

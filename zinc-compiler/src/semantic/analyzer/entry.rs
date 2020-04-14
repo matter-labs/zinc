@@ -53,12 +53,9 @@ impl Analyzer {
             }
         }
 
-        Scope::resolve_item(
-            self.scope_stack.top(),
-            crate::semantic::element::r#type::function::user::FUNCTION_MAIN_IDENTIFIER,
-        )
-        .map_err(|_| Error::EntryPointMissing)
-        .map_err(CompilerError::Semantic)?;
+        if !self.scope_stack.top().borrow().is_main_function_declared() {
+            return Err(CompilerError::Semantic(Error::EntryPointMissing));
+        }
 
         Ok(intermediate)
     }

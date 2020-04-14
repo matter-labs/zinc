@@ -12,6 +12,7 @@ use crate::lexical::token::lexeme::symbol::Symbol;
 use crate::lexical::token::lexeme::Lexeme;
 use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
+use crate::syntax::parser::statement::contract::Parser as ContractStatementParser;
 use crate::syntax::parser::statement::module::Parser as ModStatementParser;
 use crate::syntax::parser::statement::r#const::Parser as ConstStatementParser;
 use crate::syntax::parser::statement::r#enum::Parser as EnumStatementParser;
@@ -20,7 +21,7 @@ use crate::syntax::parser::statement::r#impl::Parser as ImplStatementParser;
 use crate::syntax::parser::statement::r#struct::Parser as StructStatementParser;
 use crate::syntax::parser::statement::r#type::Parser as TypeStatementParser;
 use crate::syntax::parser::statement::r#use::Parser as UseStatementParser;
-use crate::syntax::tree::statement::local_mod::Statement as ModuleLocalStatement;
+use crate::syntax::tree::statement::local_mod::Statement as ModLocalStatement;
 
 static HINT_ONLY_SOME_STATEMENTS: &str =
     "only constants, types, functions, and type implementations may be declared at the module root";
@@ -36,7 +37,7 @@ impl Parser {
         self,
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
-    ) -> Result<(ModuleLocalStatement, Option<Token>), Error> {
+    ) -> Result<(ModLocalStatement, Option<Token>), Error> {
         match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
             token
             @
@@ -45,7 +46,7 @@ impl Parser {
                 ..
             } => ConstStatementParser::default()
                 .parse(stream, Some(token))
-                .map(|(statement, next)| (ModuleLocalStatement::Const(statement), next)),
+                .map(|(statement, next)| (ModLocalStatement::Const(statement), next)),
             token
             @
             Token {
@@ -53,7 +54,7 @@ impl Parser {
                 ..
             } => TypeStatementParser::default()
                 .parse(stream, Some(token))
-                .map(|(statement, next)| (ModuleLocalStatement::Type(statement), next)),
+                .map(|(statement, next)| (ModLocalStatement::Type(statement), next)),
             token
             @
             Token {
@@ -61,7 +62,7 @@ impl Parser {
                 ..
             } => StructStatementParser::default()
                 .parse(stream, Some(token))
-                .map(|(statement, next)| (ModuleLocalStatement::Struct(statement), next)),
+                .map(|(statement, next)| (ModLocalStatement::Struct(statement), next)),
             token
             @
             Token {
@@ -69,7 +70,7 @@ impl Parser {
                 ..
             } => EnumStatementParser::default()
                 .parse(stream, Some(token))
-                .map(|(statement, next)| (ModuleLocalStatement::Enum(statement), next)),
+                .map(|(statement, next)| (ModLocalStatement::Enum(statement), next)),
             token
             @
             Token {
@@ -77,7 +78,7 @@ impl Parser {
                 ..
             } => FnStatementParser::default()
                 .parse(stream, Some(token))
-                .map(|(statement, next)| (ModuleLocalStatement::Fn(statement), next)),
+                .map(|(statement, next)| (ModLocalStatement::Fn(statement), next)),
             token
             @
             Token {
@@ -85,7 +86,7 @@ impl Parser {
                 ..
             } => ModStatementParser::default()
                 .parse(stream, Some(token))
-                .map(|(statement, next)| (ModuleLocalStatement::Mod(statement), next)),
+                .map(|(statement, next)| (ModLocalStatement::Mod(statement), next)),
             token
             @
             Token {
@@ -93,7 +94,7 @@ impl Parser {
                 ..
             } => UseStatementParser::default()
                 .parse(stream, Some(token))
-                .map(|(statement, next)| (ModuleLocalStatement::Use(statement), next)),
+                .map(|(statement, next)| (ModLocalStatement::Use(statement), next)),
             token
             @
             Token {
@@ -101,11 +102,19 @@ impl Parser {
                 ..
             } => ImplStatementParser::default()
                 .parse(stream, Some(token))
-                .map(|(statement, next)| (ModuleLocalStatement::Impl(statement), next)),
+                .map(|(statement, next)| (ModLocalStatement::Impl(statement), next)),
+            token
+            @
+            Token {
+                lexeme: Lexeme::Keyword(Keyword::Contract),
+                ..
+            } => ContractStatementParser::default()
+                .parse(stream, Some(token))
+                .map(|(statement, next)| (ModLocalStatement::Contract(statement), next)),
             Token {
                 lexeme: Lexeme::Symbol(Symbol::Semicolon),
                 location,
-            } => Ok((ModuleLocalStatement::Empty(location), None)),
+            } => Ok((ModLocalStatement::Empty(location), None)),
             Token { lexeme, location } => Err(Error::Syntax(SyntaxError::expected_one_of(
                 location,
                 vec![

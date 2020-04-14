@@ -123,7 +123,8 @@ mod tests {
 
     #[test]
     fn ok_line_with_break() {
-        let input = "//mega ultra comment text\n";
+        let input = r#"//mega ultra comment text
+"#;
         let expected = Ok((
             input.len(),
             input.lines().count(),
@@ -136,7 +137,7 @@ mod tests {
 
     #[test]
     fn ok_line_with_eof() {
-        let input = "//mega ultra comment text";
+        let input = r#"//mega ultra comment text"#;
         let expected = Ok((
             input.len(),
             input.lines().count() - 1,
@@ -177,7 +178,7 @@ mod tests {
 
     #[test]
     fn error_not_a_comment() {
-        let input = "not a comment text";
+        let input = r#"not a comment text"#;
         let expected = Err(Error::NotAComment);
         let result = parse(input);
         assert_eq!(result, expected);
@@ -185,7 +186,7 @@ mod tests {
 
     #[test]
     fn error_not_a_comment_one_slash() {
-        let input = "/almost a comment text";
+        let input = r#"/almost a comment text"#;
         let expected = Err(Error::NotAComment);
         let result = parse(input);
         assert_eq!(result, expected);

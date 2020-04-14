@@ -105,7 +105,7 @@ mod tests {
 
     #[test]
     fn ok() {
-        let input = "A = 1";
+        let input = r#"A = 1"#;
 
         let expected = Ok((
             Variant::new(
@@ -126,7 +126,7 @@ mod tests {
 
     #[test]
     fn error_expected_value() {
-        let input = "A";
+        let input = r#"A"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_value(
             Location::new(1, 2),
@@ -141,7 +141,7 @@ mod tests {
 
     #[test]
     fn error_expected_integer_literal() {
-        let input = "A = id";
+        let input = r#"A = id"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_integer_literal(
             Location::new(1, 5),

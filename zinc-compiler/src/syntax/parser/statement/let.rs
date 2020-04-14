@@ -335,7 +335,7 @@ mod tests {
 
     #[test]
     fn error_expected_semicolon() {
-        let input = "let a: u64 = 42";
+        let input = r#"let a: u64 = 42"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 16),

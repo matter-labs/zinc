@@ -199,7 +199,7 @@ mod tests {
 
     #[test]
     fn error_expected_semicolon() {
-        let input = "type Data = field";
+        let input = r#"type Data = field"#;
 
         let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 18),
