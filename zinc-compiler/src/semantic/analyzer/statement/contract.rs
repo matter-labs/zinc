@@ -18,7 +18,7 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes a compile time only contract declaration statement.
+    /// Analyzes a compile-time only contract declaration statement.
     ///
     pub fn analyze(scope: Rc<RefCell<Scope>>, statement: StructStatement) -> Result<(), Error> {
         let mut fields: Vec<(String, Type)> = Vec::with_capacity(statement.fields.len());

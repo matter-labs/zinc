@@ -9,11 +9,7 @@ use zinc_bytecode::program::Program;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "debug", about = "Executes circuit with additional checks")]
 pub struct DebugCommand {
-    #[structopt(
-        short = "c",
-        long = "circuit",
-        help = "Circuit's bytecode file"
-    )]
+    #[structopt(short = "c", long = "circuit", help = "Circuit's bytecode file")]
     pub circuit_path: PathBuf,
 
     #[structopt(short = "i", long = "input", help = "Program's input file")]

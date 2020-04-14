@@ -2,6 +2,8 @@
 //! The `impl` statement semantic analyzer.
 //!
 
+mod tests;
+
 pub mod error;
 
 use std::cell::RefCell;

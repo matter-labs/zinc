@@ -36,7 +36,7 @@ cost.
 
 The [conditional and match](../06-expressions/03-conditionals.md) expressions
 can act as control statements, ignoring the returned value. To use them in such
-role, just terminate the expression with a semicolon:
+a role, just terminate the expression with a semicolon:
 
 ```rust
 fn unknown(value: u8) -> u8 {

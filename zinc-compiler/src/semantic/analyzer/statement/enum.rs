@@ -15,7 +15,7 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes a compile time only enumeration declaration statement.
+    /// Analyzes a compile-time only enumeration declaration statement.
     ///
     pub fn analyze(scope: Rc<RefCell<Scope>>, statement: EnumStatement) -> Result<(), Error> {
         let unique_id = TYPE_INDEX.read().expect(crate::panic::MUTEX_SYNC).len();

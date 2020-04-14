@@ -20,7 +20,7 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes a compile time only module declaration statement.
+    /// Analyzes a compile-time only module declaration statement.
     ///
     pub fn analyze(
         scope: Rc<RefCell<Scope>>,

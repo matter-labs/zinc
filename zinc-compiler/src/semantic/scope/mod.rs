@@ -21,7 +21,7 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
 use crate::syntax::tree::identifier::Identifier;
 
-use self::builtin::BuiltInItems;
+use self::builtin::BuiltInScope;
 use self::error::Error;
 use self::item::variant::variable::Variable as VariableItem;
 use self::item::variant::Variant as ItemVariant;
@@ -54,8 +54,8 @@ impl Scope {
     ///
     pub fn new_global() -> Self {
         Self {
-            parent: None,
-            items: BuiltInItems::new_map(),
+            parent: Some(Rc::new(RefCell::new(BuiltInScope::initialize()))),
+            items: HashMap::new(),
         }
     }
 

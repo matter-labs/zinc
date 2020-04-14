@@ -64,7 +64,7 @@ fn balance_hash(balance: field) -> Sha256Digest {
 
 The function accepts `balance` we passed as secret witness data, converts it
 into a bit array of length 254 (elliptic curve field length), and pads the
-array with 2 extra zero bits, since we are going to pass 256 bit vector to the
+array with 2 extra zero bits, since we are going to pass a 256-bit vector to the
 `sha256` function.
 
 We have also used here three functions from the Zinc [standard library](../appendix/E-standard-library.md)
@@ -115,7 +115,7 @@ fn merkle_node_hash(left: Sha256Digest, right: Sha256Digest) -> Sha256Digest {
 ```
 
 The Zinc standard library does not support array concatenation yet, so, for now,
-we will do it by hand, allocating an array to contain two leaf node digests,
+we will do it by hand, allocating an array to contain two leaves node digests,
 then put the digests together and hash them with `std::crypto::sha256`.
 
 Finally, let's define a function to calculate the hash of the whole tree:

@@ -12,6 +12,61 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
+fn ok_simple() {
+    let input = r#"
+fn main() -> u8 {
+    if true {
+        42
+    } else {
+        69
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_else_if() {
+    let input = r#"
+fn main() -> u8 {
+    if true {
+        42
+    } else if true {
+        24
+    } else {
+        69
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_nested() {
+    let input = r#"
+fn main() -> u8 {
+    if true {
+        if true {
+        42
+        } else {
+            69
+        }
+    } else {
+        if true {
+        42
+        } else {
+            69
+        }
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
 fn error_branch_types_mismatch() {
     let input = r#"
 fn main() {

@@ -1,7 +1,7 @@
 # Types
 
 Zinc is a statically typed language, thus all the variables must have a type
-known at the compile time. Strict type system allows to catch the majority of
+known at the compile-time. Strict type system allows to catch the majority of
 runtime errors, which are very common to dynamically typed languages. Zinc type
 system closely resembles that of Rust, but with some modifications, limitations,
 and restrictions.

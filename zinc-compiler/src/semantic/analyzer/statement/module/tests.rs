@@ -51,9 +51,7 @@ fn main() -> u8 {
     .into_iter()
     .collect();
 
-    let result = crate::semantic::tests::compile_entry_with_dependencies(binary, dependencies);
-
-    assert!(result.is_ok());
+    assert!(crate::semantic::tests::compile_entry_with_dependencies(binary, dependencies).is_ok());
 }
 
 #[test]

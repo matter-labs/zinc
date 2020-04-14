@@ -89,12 +89,8 @@ fn main_inner<R: TestRunner>(runner: R) -> Summary {
         .map(|test_file_path| {
             let test_file = TestFile::try_from(&test_file_path)
                 .unwrap_or_else(|_| panic!("Test file {:?} is invalid", test_file_path));
-            let test_data = TestData::from_str(test_file.code.as_str()).unwrap_or_else(|_| {
-                panic!(
-                    "Test file {:?} case data is invalid",
-                    test_file_path
-                )
-            });
+            let test_data = TestData::from_str(test_file.code.as_str())
+                .unwrap_or_else(|_| panic!("Test file {:?} case data is invalid", test_file_path));
 
             runner.run(&test_file_path, &test_file, &test_data, summary.clone());
         })

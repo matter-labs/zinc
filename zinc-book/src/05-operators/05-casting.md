@@ -4,7 +4,7 @@
 
 **Accepts**
 1. Expression of any type
-2. Expression of the same or integer type
+2. Expression of the same or another integer type
 
 **Returns** the casted value.
 

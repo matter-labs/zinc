@@ -11,6 +11,53 @@ use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::error::Error as ScopeError;
 
 #[test]
+fn ok_current_scope() {
+    let input = r#"
+fn main() {
+    const VALUE: u8 = 42;
+
+    let result = VALUE;
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_upper_scope() {
+    let input = r#"
+const VALUE: u8 = 42;
+
+fn main() {
+    let result = VALUE;
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_far_scope() {
+    let input = r#"
+const VALUE: u8 = 42;
+
+fn main() {
+    {
+        {
+            {
+                {
+                    let result = VALUE;
+                }
+            }
+        }
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
 fn error_item_is_not_namespace() {
     let input = r#"
 const NOT_NAMESPACE: u8 = 42;

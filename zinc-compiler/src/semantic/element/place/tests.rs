@@ -16,6 +16,156 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
+fn ok_mutating_simple_variable() {
+    let input = r#"
+fn main() {
+    let mut result = 42;
+    result = 69;
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_mutating_array() {
+    let input = r#"
+fn main() {
+    let mut result = [1, 2, 3, 4, 5];
+    result = [6, 7, 8, 9, 10];
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_mutating_array_element() {
+    let input = r#"
+fn main() {
+    let mut result = [1, 2, 3, 4, 5];
+    result[3] = 42;
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_mutating_tuple() {
+    let input = r#"
+fn main() {
+    let mut result = (1, 2, 3, 4, 5);
+    result = (6, 7, 8, 9, 10);
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_mutating_tuple_element() {
+    let input = r#"
+fn main() {
+    let mut result = (1, 2, 3, 4, 5);
+    result.3 = 42;
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_mutating_structure() {
+    let input = r#"
+struct Data {
+    a: u8,
+    b: u8,
+    c: u8,
+}
+
+fn main() {
+    let mut result = Data {
+        a: 1,
+        b: 2,
+        c: 3,
+    };
+
+    result = Data {
+        a: 10,
+        b: 20,
+        c: 30,
+    };
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_mutating_structure_field() {
+    let input = r#"
+struct Data {
+    a: u8,
+    b: u8,
+    c: u8,
+}
+
+fn main() {
+    let mut result = Data {
+        a: 1,
+        b: 2,
+        c: 3,
+    };
+
+    result.b = 42;
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_mutating_complex() {
+    let input = r#"
+struct Data {
+    a: (u8, [u8; 4]),
+}
+
+fn main() {
+    let mut result = Data {
+        a: (1, [2; 4]),
+    };
+
+    result = Data {
+        a: (42, [10; 4]),
+    };
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_mutating_complex_element() {
+    let input = r#"
+struct Data {
+    a: (u8, [u8; 4]),
+}
+
+fn main() {
+    let mut result = Data {
+        a: (1, [2; 4]),
+    };
+
+    result.a.1[1] = 42;
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
 fn error_mutating_immutable_memory() {
     let input = r#"
 fn main() {

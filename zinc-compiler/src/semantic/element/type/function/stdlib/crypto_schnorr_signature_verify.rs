@@ -10,7 +10,7 @@ use zinc_bytecode::builtins::BuiltinIdentifier;
 use crate::semantic::element::r#type::function::error::Error;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
-use crate::semantic::scope::builtin::BuiltInItems;
+use crate::semantic::scope::builtin::BuiltInTypeId;
 
 #[derive(Debug, Clone)]
 pub struct Function {
@@ -59,7 +59,7 @@ impl Function {
 
         match actual_params.get(Self::ARGUMENT_INDEX_SIGNATURE) {
             Some(Type::Structure(structure))
-                if structure.unique_id == BuiltInItems::TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE => {}
+                if structure.unique_id == BuiltInTypeId::StdCryptoSchnorrSignature as usize => {}
             Some(r#type) => {
                 return Err(Error::argument_type(
                     self.identifier.to_owned(),

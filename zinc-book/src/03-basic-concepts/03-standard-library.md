@@ -1,7 +1,7 @@
 # Standard library
 
 The standard library is currently located in a built-in module called `std`.
-The library contains three modules for now:
+The library contains the following modules:
 - `crypto` - cryptographic and hash functions
     - `ecc` - elliptic curve cryptography
     - `schnorr` - EDDSA signatyre verification
@@ -11,7 +11,7 @@ The library contains three modules for now:
 
 All the function signatures are listed in [Appendix E](../appendix/E-standard-library.md).
 
-Standard library items can be used directly or be imported with `use`:
+Standard library items can be used directly or imported with `use`:
 
 ```rust,no_run,noplaypen
 use std::crypto::sha256;

@@ -19,7 +19,7 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes a compile time only constant declaration statement.
+    /// Analyzes a compile-time only constant declaration statement.
     ///
     pub fn analyze(scope: Rc<RefCell<Scope>>, statement: ConstStatement) -> Result<(), Error> {
         let type_location = statement.r#type.location;

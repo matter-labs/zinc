@@ -34,9 +34,9 @@ use self::value::Value;
 ///
 #[derive(Debug, Clone)]
 pub enum Element {
-    /// Runtime value, which is unknown at compile time (`rvalue`)
+    /// Runtime value, which is unknown at compile-time (`rvalue`)
     Value(Value),
-    /// Constant value, which is known at compile time (`rvalue`)
+    /// Constant value, which is known at compile-time (`rvalue`)
     Constant(Constant),
     /// The second operand of the casting operator
     Type(Type),

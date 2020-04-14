@@ -14,6 +14,110 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
+fn ok_ordinar() {
+    let input = r#"
+fn main() {
+    for i in 0..10 {
+        dbg!("{}", i);
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_ordinar_with_while() {
+    let input = r#"
+fn main() {
+    for i in 0..10 while i < 5 {
+        dbg!("{}", i);
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_inclusive() {
+    let input = r#"
+fn main() {
+    for i in 0..=10 {
+        dbg!("{}", i);
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_inclusive_with_while() {
+    let input = r#"
+fn main() {
+    for i in 0..=10 while i < 5 {
+        dbg!("{}", i);
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_reversed() {
+    let input = r#"
+fn main() {
+    for i in 10..0 {
+        dbg!("{}", i);
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_reversed_with_while() {
+    let input = r#"
+fn main() {
+    for i in 10..0 while i > 5 {
+        dbg!("{}", i);
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_reversed_inclusive() {
+    let input = r#"
+fn main() {
+    for i in 10..=0 {
+        dbg!("{}", i);
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_reversed_inclusive_with_while() {
+    let input = r#"
+fn main() {
+    for i in 10..=0 while i > 5 {
+        dbg!("{}", i);
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
 fn error_bounds_expected_constant_range_expression() {
     let input = r#"
 fn main() {

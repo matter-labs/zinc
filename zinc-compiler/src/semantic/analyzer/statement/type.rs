@@ -14,7 +14,7 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes a compile time only type alias declaration statement.
+    /// Analyzes a compile-time only type alias declaration statement.
     ///
     pub fn analyze(scope: Rc<RefCell<Scope>>, statement: TypeStatement) -> Result<(), Error> {
         let r#type = Type::from_type_variant(&statement.r#type.variant, scope.clone())?;

@@ -1,7 +1,7 @@
 # Arithmetic operators
 
 Arithmetic operators do not perform any kind of overflow checking at
-compile time. If an overflow happens, the Zinc VM will fail at runtime.
+compile-time. If an overflow happens, the Zinc VM will fail at runtime.
 
 > When it comes to the division of negative numbers, Zinc follows the Euclidean
 > division concept. It means that `-45 % 7 == 4`. To get the detailed explanation

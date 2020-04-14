@@ -29,7 +29,7 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::builtin::BuiltInItems;
+use crate::semantic::scope::builtin::BuiltInTypeId;
 use crate::semantic::scope::item::variant::Variant as ScopeItemVariant;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::identifier::Identifier;
@@ -42,14 +42,19 @@ use self::function::Function;
 use self::structure::Structure;
 
 lazy_static! {
+    ///
+    /// The type index where the unique IDs for all declared types are recorded.
+    ///
+    /// It is initialized with some built-in and standard library types.
+    ///
     pub static ref INDEX: RwLock<HashMap<usize, String>> = {
-        let mut index = HashMap::with_capacity(BuiltInItems::TYPE_ID_FIRST_AVAILABLE);
+        let mut index = HashMap::with_capacity(BuiltInTypeId::Count as usize);
         index.insert(
-            BuiltInItems::TYPE_ID_STD_CRYPTO_ECC_POINT,
+            BuiltInTypeId::StdCryptoEccPoint as usize,
             "struct std::crypto::ecc::Point".to_owned(),
         );
         index.insert(
-            BuiltInItems::TYPE_ID_STD_CRYPTO_SCHNORR_SIGNATURE,
+            BuiltInTypeId::StdCryptoSchnorrSignature as usize,
             "struct std::crypto::schnorr::Signature".to_owned(),
         );
         RwLock::new(index)

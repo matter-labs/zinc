@@ -60,7 +60,7 @@ fn main(preimage: field) -> [bool; SHA256_HASH_SIZE] {
 ## All-in-one command
 
 When you have finished writing the code, run `zargo proof-check`. This command
-will build and run the circuit, generate keys for trusted setup, generate a proof
+will build and run the circuit, generate keys for the trusted setup, generate a proof
 and verify it.
 
 ## Step by step
@@ -118,7 +118,7 @@ used by the verifier.
 
 ### Verifying a proof
 
-Before verifying a proof, make sure that the prover and verifier use the same
+Before verifying a proof, make sure the prover and verifier use the same
 version of the Zinc framework.
 Some versions may be compatible, but it is to be decided yet.
 

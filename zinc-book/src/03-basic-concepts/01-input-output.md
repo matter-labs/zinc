@@ -1,12 +1,12 @@
 # Input and output
 
 In terms of zero-knowledge circuits, the information that we are trying to prove
-valid is called **public input**. And the secret piece of information that may
-be known only by prover is called **witness**.
+valid is called **public input**. The secret piece of information that may
+be known only by the prover is called **witness**.
 
 In the Zinc framework, the program's **result** becomes **public input**.
-That means that whatever the `main` function returns should be known by verifier.
-All other runtime values including **arguments** represent circuit's **witness**.
+That means that whatever the `main` function returns should be known by the verifier.
+All other runtime values including **arguments** represent the circuit **witness** data.
 
 So when verifier checks the program's **result** and the **proof**
 it is safe to state that:
@@ -14,7 +14,7 @@ it is safe to state that:
 > There is some set of **arguments** known to **prover**, which,
 > being provided into **program** yields the same **output**.
 
-The prover must provide program's arguments to generate the result and proof.
+The prover must provide arguments to the program to generate the result and proof.
 
 Verifier will use the proof to check that the result has been obtained by
 executing the program.

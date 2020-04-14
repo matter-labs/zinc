@@ -17,6 +17,84 @@ use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::Scope;
 
 #[test]
+fn ok_boolean() {
+    let input = r#"
+fn main() -> u8 {
+    let condition = true;
+    match condition {
+        true => 42,
+        false => 69,
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_integer() {
+    let input = r#"
+fn main() -> bool {
+    let value = 42;
+    match value {
+        1 => false,
+        2 => false,
+        42 => true,
+        _ => false,
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_enumeration_two_variants() {
+    let input = r#"
+enum List {
+    A = 1,
+    B = 2,
+}
+
+fn main() -> u8 {
+    let value = List::A;
+    match value {
+        List::A => 10,
+        List::B => 20,
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_enumeration_five_variants() {
+    let input = r#"
+enum List {
+    A = 1,
+    B = 2,
+    C = 3,
+    D = 4,
+    E = 5,
+}
+
+fn main() -> u8 {
+    let value = List::A;
+    match value {
+        List::A => 10,
+        List::B => 20,
+        List::C => 30,
+        List::D => 40,
+        List::E => 50,
+    }
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
 fn error_scrutinee_invalid_type() {
     let input = r#"
 fn main() {

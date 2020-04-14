@@ -22,7 +22,7 @@ pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes a compile time only import statement.
+    /// Analyzes a compile-time only import statement.
     ///
     pub fn analyze(scope: Rc<RefCell<Scope>>, statement: UseStatement) -> Result<(), Error> {
         let path_location = statement.path.location;

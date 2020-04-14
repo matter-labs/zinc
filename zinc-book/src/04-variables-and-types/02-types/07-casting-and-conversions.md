@@ -1,7 +1,7 @@
 # Casting and conversions
 
-The language enforces static strong explicit type semantics. It is the most
-strict type system available since reliability is above everything. However,
+The language enforces static strong explicit type semantics. It is the strictest
+type system available since reliability is above everything. However,
 some inference abilities will not do any harm, so you do not have to specify
 types in places where they are highly obvious.
 

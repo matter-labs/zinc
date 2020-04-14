@@ -32,7 +32,7 @@
 
 #### NOT
 
-`!` is an unary operator.
+`!` is a unary operator.
 
 **Accepts**
 1. Boolean expression

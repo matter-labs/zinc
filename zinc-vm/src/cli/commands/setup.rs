@@ -11,25 +11,13 @@ use zinc_bytecode::program::Program;
     about = "Generates a pair of proving and verifying keys"
 )]
 pub struct SetupCommand {
-    #[structopt(
-        short = "c",
-        long = "circuit",
-        help = "Circuit's bytecode file"
-    )]
+    #[structopt(short = "c", long = "circuit", help = "Circuit's bytecode file")]
     pub circuit_path: PathBuf,
 
-    #[structopt(
-        short = "p",
-        long = "proving-key",
-        help = "Params file to write"
-    )]
+    #[structopt(short = "p", long = "proving-key", help = "Params file to write")]
     pub proving_key_path: PathBuf,
 
-    #[structopt(
-        short = "v",
-        long = "verifying-key",
-        help = "Params file to write"
-    )]
+    #[structopt(short = "v", long = "verifying-key", help = "Params file to write")]
     pub verifying_key_path: PathBuf,
 }
 
