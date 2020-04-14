@@ -1,5 +1,5 @@
 //!
-//! The Zinc tester directory.file.
+//! The Zinc tester file.
 //!
 
 use std::convert::TryFrom;

@@ -19,7 +19,7 @@ pub struct SignCommand {
     #[structopt(
         short = "m",
         long = "message",
-        help = "path to directory.file with message or '-' for stdin"
+        help = "path to file with message or '-' for stdin"
     )]
     message_path: PathBuf,
 }

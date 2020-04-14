@@ -12,14 +12,14 @@ pub struct DebugCommand {
     #[structopt(
         short = "c",
         long = "circuit",
-        help = "Circuit's bytecode directory.file"
+        help = "Circuit's bytecode file"
     )]
     pub circuit_path: PathBuf,
 
-    #[structopt(short = "i", long = "input", help = "Program's input directory.file")]
+    #[structopt(short = "i", long = "input", help = "Program's input file")]
     pub input_path: PathBuf,
 
-    #[structopt(short = "o", long = "output", help = "Program's output directory.file")]
+    #[structopt(short = "o", long = "output", help = "Program's output file")]
     pub output_path: PathBuf,
 }
 

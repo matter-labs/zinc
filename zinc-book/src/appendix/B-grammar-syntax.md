@@ -1,7 +1,7 @@
 # Syntax grammar (EBNF)
 
 ```
-directory.file = { module_local_statement } ;
+file = { module_local_statement } ;
 
 (* Statements *)
 module_local_statement =

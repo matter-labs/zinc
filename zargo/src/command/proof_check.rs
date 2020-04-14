@@ -42,35 +42,35 @@ pub struct Command {
 
     #[structopt(
         long = "circuit",
-        help = "Path to the circuit binary directory.file",
+        help = "Path to the circuit binary file",
         default_value = "./build/default.znb"
     )]
     circuit: PathBuf,
 
     #[structopt(
         long = "witness",
-        help = "Path to the witness directory.file",
+        help = "Path to the witness file",
         default_value = "./data/witness.json"
     )]
     witness: PathBuf,
 
     #[structopt(
         long = "public-data",
-        help = "Path to the public data directory.file",
+        help = "Path to the public data file",
         default_value = "./data/public-data.json"
     )]
     public_data: PathBuf,
 
     #[structopt(
         long = "proving-key",
-        help = "Path to the proving key directory.file",
+        help = "Path to the proving key file",
         default_value = "./data/proving-key"
     )]
     proving_key: PathBuf,
 
     #[structopt(
         long = "verifying-key",
-        help = "Path to the verifying key directory.file",
+        help = "Path to the verifying key file",
         default_value = "./data/verifying-key.txt"
     )]
     verifying_key: PathBuf,
@@ -78,7 +78,7 @@ pub struct Command {
 
 #[derive(Debug, Fail)]
 pub enum Error {
-    #[fail(display = "manifest directory.file {}", _0)]
+    #[fail(display = "manifest file {}", _0)]
     ManifestFile(ManifestError),
     #[fail(display = "source directory {}", _0)]
     SourceDirectory(SourceDirectoryError),

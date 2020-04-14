@@ -67,7 +67,7 @@
 
 #### Compiler
 
-- fixed the compile error with a comment at the end of a directory.file
+- fixed the compile error with a comment at the end of a file
 - added an empty statement to allow optional semicolons
 
 ## Version 0.1.2 (2020-02-14)
@@ -101,7 +101,7 @@
 - fixed the `while` condition
 - fixed the function argument order in some `std` functions
 - made the `std::convert::from_bits_signed` result two-complement
-- pretty error reporting with directory.file, line, and column
+- pretty error reporting with file, line, and column
 - improved some error messages
 - removed the redundant 'field' and 'value' keys from the structure type in input JSON templates
 

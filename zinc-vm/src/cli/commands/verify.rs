@@ -15,21 +15,21 @@ pub struct VerifyCommand {
     #[structopt(
         short = "c",
         long = "circuit",
-        help = "Compiled circuit program directory.file"
+        help = "Compiled circuit program file"
     )]
     pub circuit_path: PathBuf,
 
     #[structopt(
         short = "k",
         long = "verifying-key",
-        help = "Path to verifying key directory.file"
+        help = "Path to verifying key file"
     )]
     pub key_path: PathBuf,
 
     #[structopt(
         short = "d",
         long = "public-data",
-        help = "Path to public data JSON directory.file"
+        help = "Path to public data JSON file"
     )]
     pub public_data_path: PathBuf,
 }

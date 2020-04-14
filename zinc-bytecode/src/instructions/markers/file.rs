@@ -14,7 +14,7 @@ impl FileMarker {
 
 impl InstructionInfo for FileMarker {
     fn to_assembly(&self) -> String {
-        format!("marker: directory.file = \"{}\"", self.file)
+        format!("marker: file = \"{}\"", self.file)
     }
 
     fn wrap(&self) -> Instruction {

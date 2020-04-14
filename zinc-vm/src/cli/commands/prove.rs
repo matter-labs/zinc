@@ -13,11 +13,11 @@ pub struct ProveCommand {
     #[structopt(
         short = "c",
         long = "circuit",
-        help = "Compiled circuit program directory.file"
+        help = "Compiled circuit program file"
     )]
     pub circuit_path: PathBuf,
 
-    #[structopt(short = "k", long = "proving-key", help = "Proving key directory.file")]
+    #[structopt(short = "k", long = "proving-key", help = "Proving key file")]
     pub proving_key_path: PathBuf,
 
     #[structopt(short = "w", long = "witness", help = "File with witness values")]

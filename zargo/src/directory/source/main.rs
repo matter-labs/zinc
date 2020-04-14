@@ -1,5 +1,5 @@
 //!
-//! The circuit `main.zn` directory.file.
+//! The circuit `main.zn` file.
 //!
 
 //!
