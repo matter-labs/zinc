@@ -17,6 +17,7 @@ use num_traits::ToPrimitive;
 
 use zinc_utils::euclidean;
 
+use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::range::Range;
@@ -103,7 +104,10 @@ impl Integer {
         ))
     }
 
-    pub fn equals(self, other: Self) -> Result<BooleanConstant, Error> {
+    pub fn equals(
+        self,
+        other: Self,
+    ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchEquals {
                 first: self.r#type().to_string(),
@@ -111,11 +115,17 @@ impl Integer {
             });
         }
 
-        let result = self.value == other.value;
-        Ok(BooleanConstant::new(result))
+        let result = BooleanConstant::new(self.value == other.value);
+
+        let operator = GeneratorExpressionOperator::Equals;
+
+        Ok((result, operator))
     }
 
-    pub fn not_equals(self, other: Self) -> Result<BooleanConstant, Error> {
+    pub fn not_equals(
+        self,
+        other: Self,
+    ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchNotEquals {
                 first: self.r#type().to_string(),
@@ -123,11 +133,17 @@ impl Integer {
             });
         }
 
-        let result = self.value != other.value;
-        Ok(BooleanConstant::new(result))
+        let result = BooleanConstant::new(self.value != other.value);
+
+        let operator = GeneratorExpressionOperator::NotEquals;
+
+        Ok((result, operator))
     }
 
-    pub fn greater_equals(self, other: Self) -> Result<BooleanConstant, Error> {
+    pub fn greater_equals(
+        self,
+        other: Self,
+    ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchGreaterEquals {
                 first: self.r#type().to_string(),
@@ -135,11 +151,17 @@ impl Integer {
             });
         }
 
-        let result = self.value >= other.value;
-        Ok(BooleanConstant::new(result))
+        let result = BooleanConstant::new(self.value >= other.value);
+
+        let operator = GeneratorExpressionOperator::GreaterEquals;
+
+        Ok((result, operator))
     }
 
-    pub fn lesser_equals(self, other: Self) -> Result<BooleanConstant, Error> {
+    pub fn lesser_equals(
+        self,
+        other: Self,
+    ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchLesserEquals {
                 first: self.r#type().to_string(),
@@ -147,11 +169,17 @@ impl Integer {
             });
         }
 
-        let result = self.value <= other.value;
-        Ok(BooleanConstant::new(result))
+        let result = BooleanConstant::new(self.value <= other.value);
+
+        let operator = GeneratorExpressionOperator::LesserEquals;
+
+        Ok((result, operator))
     }
 
-    pub fn greater(self, other: Self) -> Result<BooleanConstant, Error> {
+    pub fn greater(
+        self,
+        other: Self,
+    ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchGreater {
                 first: self.r#type().to_string(),
@@ -159,11 +187,17 @@ impl Integer {
             });
         }
 
-        let result = self.value > other.value;
-        Ok(BooleanConstant::new(result))
+        let result = BooleanConstant::new(self.value > other.value);
+
+        let operator = GeneratorExpressionOperator::Greater;
+
+        Ok((result, operator))
     }
 
-    pub fn lesser(self, other: Self) -> Result<BooleanConstant, Error> {
+    pub fn lesser(
+        self,
+        other: Self,
+    ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchLesser {
                 first: self.r#type().to_string(),
@@ -171,11 +205,14 @@ impl Integer {
             });
         }
 
-        let result = self.value < other.value;
-        Ok(BooleanConstant::new(result))
+        let result = BooleanConstant::new(self.value < other.value);
+
+        let operator = GeneratorExpressionOperator::Lesser;
+
+        Ok((result, operator))
     }
 
-    pub fn bitwise_or(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_or(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchBitwiseOr {
                 first: self.r#type().to_string(),
@@ -187,17 +224,19 @@ impl Integer {
             return Err(Error::ForbiddenFieldBitwise);
         }
 
-        let result = self.value | &other.value;
-
-        Ok(Self {
-            value: result,
+        let result = Self {
+            value: self.value | &other.value,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration.to_owned(),
-        })
+            enumeration: self.enumeration,
+        };
+
+        let operator = GeneratorExpressionOperator::BitwiseOr;
+
+        Ok((result, operator))
     }
 
-    pub fn bitwise_xor(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_xor(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchBitwiseXor {
                 first: self.r#type().to_string(),
@@ -209,17 +248,19 @@ impl Integer {
             return Err(Error::ForbiddenFieldBitwise);
         }
 
-        let result = self.value ^ &other.value;
-
-        Ok(Self {
-            value: result,
+        let result = Self {
+            value: self.value ^ &other.value,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration.to_owned(),
-        })
+            enumeration: self.enumeration,
+        };
+
+        let operator = GeneratorExpressionOperator::BitwiseXor;
+
+        Ok((result, operator))
     }
 
-    pub fn bitwise_and(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_and(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchBitwiseAnd {
                 first: self.r#type().to_string(),
@@ -231,17 +272,22 @@ impl Integer {
             return Err(Error::ForbiddenFieldBitwise);
         }
 
-        let result = self.value & &other.value;
-
-        Ok(Self {
-            value: result,
+        let result = Self {
+            value: self.value & &other.value,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
             enumeration: self.enumeration,
-        })
+        };
+
+        let operator = GeneratorExpressionOperator::BitwiseAnd;
+
+        Ok((result, operator))
     }
 
-    pub fn bitwise_shift_left(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_shift_left(
+        self,
+        other: Self,
+    ) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
         }
@@ -261,17 +307,23 @@ impl Integer {
                 value: other.value,
                 bitlength: self.bitlength,
             })?;
-        let result = self.value << other;
 
-        Ok(Self {
-            value: result,
+        let result = Self {
+            value: self.value << other,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
             enumeration: self.enumeration,
-        })
+        };
+
+        let operator = GeneratorExpressionOperator::BitwiseShiftLeft;
+
+        Ok((result, operator))
     }
 
-    pub fn bitwise_shift_right(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_shift_right(
+        self,
+        other: Self,
+    ) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
         }
@@ -291,17 +343,20 @@ impl Integer {
                 value: other.value,
                 bitlength: self.bitlength,
             })?;
-        let result = self.value >> other;
 
-        Ok(Self {
-            value: result,
+        let result = Self {
+            value: self.value >> other,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
             enumeration: self.enumeration,
-        })
+        };
+
+        let operator = GeneratorExpressionOperator::BitwiseShiftRight;
+
+        Ok((result, operator))
     }
 
-    pub fn add(self, other: Self) -> Result<Self, Error> {
+    pub fn add(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchAddition {
                 first: self.r#type().to_string(),
@@ -324,15 +379,19 @@ impl Integer {
             });
         }
 
-        Ok(Self {
+        let result = Self {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration.to_owned(),
-        })
+            enumeration: self.enumeration,
+        };
+
+        let operator = GeneratorExpressionOperator::Addition;
+
+        Ok((result, operator))
     }
 
-    pub fn subtract(self, other: Self) -> Result<Self, Error> {
+    pub fn subtract(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchSubtraction {
                 first: self.r#type().to_string(),
@@ -355,15 +414,19 @@ impl Integer {
             });
         }
 
-        Ok(Self {
+        let result = Self {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration.to_owned(),
-        })
+            enumeration: self.enumeration,
+        };
+
+        let operator = GeneratorExpressionOperator::Subtraction;
+
+        Ok((result, operator))
     }
 
-    pub fn multiply(self, other: Self) -> Result<Self, Error> {
+    pub fn multiply(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchMultiplication {
                 first: self.r#type().to_string(),
@@ -386,15 +449,19 @@ impl Integer {
             });
         }
 
-        Ok(Self {
+        let result = Self {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
-            enumeration: self.enumeration.to_owned(),
-        })
+            enumeration: self.enumeration,
+        };
+
+        let operator = GeneratorExpressionOperator::Multiplication;
+
+        Ok((result, operator))
     }
 
-    pub fn divide(self, other: Self) -> Result<Self, Error> {
+    pub fn divide(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchDivision {
                 first: self.r#type().to_string(),
@@ -422,15 +489,19 @@ impl Integer {
             });
         }
 
-        Ok(Self {
+        let result = Self {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
             enumeration: self.enumeration,
-        })
+        };
+
+        let operator = GeneratorExpressionOperator::Division;
+
+        Ok((result, operator))
     }
 
-    pub fn remainder(self, other: Self) -> Result<Self, Error> {
+    pub fn remainder(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchRemainder {
                 first: self.r#type().to_string(),
@@ -458,15 +529,23 @@ impl Integer {
             });
         }
 
-        Ok(Self {
+        let result = Self {
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
             enumeration: self.enumeration,
-        })
+        };
+
+        let operator = GeneratorExpressionOperator::Remainder;
+
+        Ok((result, operator))
     }
 
-    pub fn cast(mut self, is_signed: bool, bitlength: usize) -> Result<Self, Error> {
+    pub fn cast(
+        mut self,
+        is_signed: bool,
+        bitlength: usize,
+    ) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
         if self.value.is_negative() && !is_signed {
             return Err(Error::OverflowCasting {
                 value: self.value,
@@ -481,29 +560,37 @@ impl Integer {
             });
         }
 
+        let operator = if self.is_signed != is_signed || self.bitlength != bitlength {
+            GeneratorExpressionOperator::casting(&Type::scalar(is_signed, bitlength))
+        } else {
+            None
+        };
+
         self.is_signed = is_signed;
         self.bitlength = bitlength;
         self.enumeration = None;
 
-        Ok(self)
+        Ok((self, operator))
     }
 
-    pub fn bitwise_not(self) -> Result<Self, Error> {
+    pub fn bitwise_not(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
         }
 
-        let result = !self.value;
-
-        Ok(Self {
-            value: result,
+        let result = Self {
+            value: !self.value,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
             enumeration: self.enumeration,
-        })
+        };
+
+        let operator = GeneratorExpressionOperator::BitwiseNot;
+
+        Ok((result, operator))
     }
 
-    pub fn negate(self) -> Result<Self, Error> {
+    pub fn negate(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldNegation);
         }
@@ -518,12 +605,16 @@ impl Integer {
             });
         }
 
-        Ok(Self {
+        let result = Self {
             value: result,
             is_signed,
             bitlength: self.bitlength,
             enumeration: self.enumeration,
-        })
+        };
+
+        let operator = GeneratorExpressionOperator::Negation;
+
+        Ok((result, operator))
     }
 
     pub fn to_usize(&self) -> Result<usize, Error> {

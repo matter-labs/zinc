@@ -315,7 +315,7 @@ fn error_array_slice_start_out_of_range() {
     let input = r#"
 fn main() {
     let array = [1, 2, 3, 4, 5];
-    let slice = array[-1 .. 1 as i8];
+    let slice = array[-(1 as i8) .. 1];
 }
 "#;
 

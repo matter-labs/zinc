@@ -15,9 +15,9 @@ use crate::semantic::scope::Scope;
 use crate::syntax::tree::Tree as SyntaxTree;
 
 ///
-/// Analyzes the circuit entry, which must be located in the `main.zn` file.
+/// Analyzes the project entry, which must be located in the `main.zn` file.
 ///
-/// To analyze a circuit module, use the module analyzer.
+/// To analyze a project module, use the module analyzer.
 ///
 pub struct Analyzer {
     scope_stack: ScopeStack,

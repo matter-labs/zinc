@@ -57,100 +57,122 @@ impl Expression {
                     operand.write_all_to_bytecode(bytecode.clone());
                 }
                 Element::Operator { location, operator } => match operator {
+                    Operator::None => {}
+
                     Operator::Assignment { place, expression } => {
                         Self::assignment(bytecode.clone(), place, expression, location)
                     }
 
-                    Operator::AssignmentBitwiseOr { place, expression } => {
-                        Self::assignment_with_operation(
-                            bytecode.clone(),
-                            place,
-                            expression,
-                            Instruction::BitOr(zinc_bytecode::BitOr),
-                            location,
-                        )
-                    }
-                    Operator::AssignmentBitwiseXor { place, expression } => {
-                        Self::assignment_with_operation(
-                            bytecode.clone(),
-                            place,
-                            expression,
-                            Instruction::BitXor(zinc_bytecode::BitXor),
-                            location,
-                        )
-                    }
-                    Operator::AssignmentBitwiseAnd { place, expression } => {
-                        Self::assignment_with_operation(
-                            bytecode.clone(),
-                            place,
-                            expression,
-                            Instruction::BitAnd(zinc_bytecode::BitAnd),
-                            location,
-                        )
-                    }
-                    Operator::AssignmentBitwiseShiftLeft { place, expression } => {
-                        Self::assignment_with_operation(
-                            bytecode.clone(),
-                            place,
-                            expression,
-                            Instruction::BitShiftLeft(zinc_bytecode::BitShiftLeft),
-                            location,
-                        )
-                    }
-                    Operator::AssignmentBitwiseShiftRight { place, expression } => {
-                        Self::assignment_with_operation(
-                            bytecode.clone(),
-                            place,
-                            expression,
-                            Instruction::BitShiftRight(zinc_bytecode::BitShiftRight),
-                            location,
-                        )
-                    }
-                    Operator::AssignmentAddition { place, expression } => {
-                        Self::assignment_with_operation(
-                            bytecode.clone(),
-                            place,
-                            expression,
-                            Instruction::Add(zinc_bytecode::Add),
-                            location,
-                        )
-                    }
-                    Operator::AssignmentSubtraction { place, expression } => {
-                        Self::assignment_with_operation(
-                            bytecode.clone(),
-                            place,
-                            expression,
-                            Instruction::Sub(zinc_bytecode::Sub),
-                            location,
-                        )
-                    }
-                    Operator::AssignmentMultiplication { place, expression } => {
-                        Self::assignment_with_operation(
-                            bytecode.clone(),
-                            place,
-                            expression,
-                            Instruction::Mul(zinc_bytecode::Mul),
-                            location,
-                        )
-                    }
-                    Operator::AssignmentDivision { place, expression } => {
-                        Self::assignment_with_operation(
-                            bytecode.clone(),
-                            place,
-                            expression,
-                            Instruction::Div(zinc_bytecode::Div),
-                            location,
-                        )
-                    }
-                    Operator::AssignmentRemainder { place, expression } => {
-                        Self::assignment_with_operation(
-                            bytecode.clone(),
-                            place,
-                            expression,
-                            Instruction::Rem(zinc_bytecode::Rem),
-                            location,
-                        )
-                    }
+                    Operator::AssignmentBitwiseOr {
+                        place,
+                        expression,
+                        operator,
+                    } => Self::assignment_with_operation(
+                        bytecode.clone(),
+                        place,
+                        expression,
+                        Instruction::BitOr(zinc_bytecode::BitOr),
+                        location,
+                    ),
+                    Operator::AssignmentBitwiseXor {
+                        place,
+                        expression,
+                        operator,
+                    } => Self::assignment_with_operation(
+                        bytecode.clone(),
+                        place,
+                        expression,
+                        Instruction::BitXor(zinc_bytecode::BitXor),
+                        location,
+                    ),
+                    Operator::AssignmentBitwiseAnd {
+                        place,
+                        expression,
+                        operator,
+                    } => Self::assignment_with_operation(
+                        bytecode.clone(),
+                        place,
+                        expression,
+                        Instruction::BitAnd(zinc_bytecode::BitAnd),
+                        location,
+                    ),
+                    Operator::AssignmentBitwiseShiftLeft {
+                        place,
+                        expression,
+                        operator,
+                    } => Self::assignment_with_operation(
+                        bytecode.clone(),
+                        place,
+                        expression,
+                        Instruction::BitShiftLeft(zinc_bytecode::BitShiftLeft),
+                        location,
+                    ),
+                    Operator::AssignmentBitwiseShiftRight {
+                        place,
+                        expression,
+                        operator,
+                    } => Self::assignment_with_operation(
+                        bytecode.clone(),
+                        place,
+                        expression,
+                        Instruction::BitShiftRight(zinc_bytecode::BitShiftRight),
+                        location,
+                    ),
+                    Operator::AssignmentAddition {
+                        place,
+                        expression,
+                        operator,
+                    } => Self::assignment_with_operation(
+                        bytecode.clone(),
+                        place,
+                        expression,
+                        Instruction::Add(zinc_bytecode::Add),
+                        location,
+                    ),
+                    Operator::AssignmentSubtraction {
+                        place,
+                        expression,
+                        operator,
+                    } => Self::assignment_with_operation(
+                        bytecode.clone(),
+                        place,
+                        expression,
+                        Instruction::Sub(zinc_bytecode::Sub),
+                        location,
+                    ),
+                    Operator::AssignmentMultiplication {
+                        place,
+                        expression,
+                        operator,
+                    } => Self::assignment_with_operation(
+                        bytecode.clone(),
+                        place,
+                        expression,
+                        Instruction::Mul(zinc_bytecode::Mul),
+                        location,
+                    ),
+                    Operator::AssignmentDivision {
+                        place,
+                        expression,
+                        operator,
+                    } => Self::assignment_with_operation(
+                        bytecode.clone(),
+                        place,
+                        expression,
+                        Instruction::Div(zinc_bytecode::Div),
+                        location,
+                    ),
+                    Operator::AssignmentRemainder {
+                        place,
+                        expression,
+                        operator,
+                    } => Self::assignment_with_operation(
+                        bytecode.clone(),
+                        place,
+                        expression,
+                        Instruction::Rem(zinc_bytecode::Rem),
+                        location,
+                    ),
 
                     Operator::Or => Self::binary(
                         bytecode.clone(),

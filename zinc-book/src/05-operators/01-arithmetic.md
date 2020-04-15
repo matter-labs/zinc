@@ -66,6 +66,6 @@ like a variable, array element, or structure field.
 `-` is an unary operator.
 
 **Accepts**
-1. Integer expression (any type except `field`)
+1. Unsigned integer expression
 
-**Returns** a signed integer with the same bitlength.
+**Returns** an integer result of the same type.

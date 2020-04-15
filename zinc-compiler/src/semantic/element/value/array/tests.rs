@@ -39,7 +39,7 @@ fn main() {
 fn error_slice_start_out_of_range() {
     let input = r#"
 fn main() {
-    [1, 2, 3, 4, 5][-1 .. 1];
+    [1, 2, 3, 4, 5][-(1 as i8) .. 1];
 }
 "#;
 

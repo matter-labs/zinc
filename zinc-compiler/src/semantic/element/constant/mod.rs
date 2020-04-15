@@ -12,6 +12,7 @@ pub mod range_inclusive;
 
 use std::fmt;
 
+use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::semantic::casting::Caster;
 use crate::semantic::element::r#type::Type;
 
@@ -70,12 +71,12 @@ impl Constant {
                     .range_inclusive(integer_2)
                     .map(Self::RangeInclusive)
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorRangeInclusiveSecondOperandExpectedInteger {
-                    found: value.to_string(),
+                constant => Err(Error::OperatorRangeInclusiveSecondOperandExpectedInteger {
+                    found: constant.to_string(),
                 }),
             },
-            value => Err(Error::OperatorRangeInclusiveFirstOperandExpectedInteger {
-                found: value.to_string(),
+            constant => Err(Error::OperatorRangeInclusiveFirstOperandExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
@@ -87,20 +88,23 @@ impl Constant {
                     .range(integer_2)
                     .map(Self::Range)
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorRangeSecondOperandExpectedInteger {
-                    found: value.to_string(),
+                constant => Err(Error::OperatorRangeSecondOperandExpectedInteger {
+                    found: constant.to_string(),
                 }),
             },
-            value => Err(Error::OperatorRangeFirstOperandExpectedInteger {
-                found: value.to_string(),
+            constant => Err(Error::OperatorRangeFirstOperandExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn or(self, other: Self) -> Result<Self, Error> {
+    pub fn or(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
-            Self::Boolean(value_1) => match other {
-                Self::Boolean(value_2) => Ok(Self::Boolean(value_1.or(value_2))),
+            Self::Boolean(constant_1) => match other {
+                Self::Boolean(constant_2) => Ok((
+                    Self::Boolean(constant_1.or(constant_2)),
+                    GeneratorExpressionOperator::Or,
+                )),
                 constant => Err(Error::OperatorOrSecondOperandExpectedBoolean {
                     found: constant.to_string(),
                 }),
@@ -111,10 +115,13 @@ impl Constant {
         }
     }
 
-    pub fn xor(self, other: Self) -> Result<Self, Error> {
+    pub fn xor(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
-            Self::Boolean(value_1) => match other {
-                Self::Boolean(value_2) => Ok(Self::Boolean(value_1.xor(value_2))),
+            Self::Boolean(constant_1) => match other {
+                Self::Boolean(constant_2) => Ok((
+                    Self::Boolean(constant_1.xor(constant_2)),
+                    GeneratorExpressionOperator::Xor,
+                )),
                 constant => Err(Error::OperatorXorSecondOperandExpectedBoolean {
                     found: constant.to_string(),
                 }),
@@ -125,10 +132,13 @@ impl Constant {
         }
     }
 
-    pub fn and(self, other: Self) -> Result<Self, Error> {
+    pub fn and(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
-            Self::Boolean(value_1) => match other {
-                Self::Boolean(value_2) => Ok(Self::Boolean(value_1.and(value_2))),
+            Self::Boolean(constant_1) => match other {
+                Self::Boolean(constant_2) => Ok((
+                    Self::Boolean(constant_1.and(constant_2)),
+                    GeneratorExpressionOperator::And,
+                )),
                 constant => Err(Error::OperatorAndSecondOperandExpectedBoolean {
                     found: constant.to_string(),
                 }),
@@ -139,338 +149,359 @@ impl Constant {
         }
     }
 
-    pub fn equals(self, other: Self) -> Result<Self, Error> {
+    pub fn equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match (self, other) {
-            (Self::Unit, Self::Unit) => Ok(Self::Boolean(Boolean::new(true))),
-            (Self::Unit, value_2) => Err(Error::OperatorEqualsSecondOperandExpectedUnit {
-                found: value_2.to_string(),
+            (Self::Unit, Self::Unit) => Ok((
+                Self::Boolean(Boolean::new(true)),
+                GeneratorExpressionOperator::Equals,
+            )),
+            (Self::Unit, constant_2) => Err(Error::OperatorEqualsSecondOperandExpectedUnit {
+                found: constant_2.to_string(),
             }),
-            (Self::Boolean(value_1), Self::Boolean(value_2)) => {
-                Ok(Self::Boolean(value_1.equals(value_2)))
+            (Self::Boolean(constant_1), Self::Boolean(constant_2)) => Ok((
+                Self::Boolean(constant_1.equals(constant_2)),
+                GeneratorExpressionOperator::Equals,
+            )),
+            (Self::Boolean(_), constant_2) => {
+                Err(Error::OperatorEqualsSecondOperandExpectedBoolean {
+                    found: constant_2.to_string(),
+                })
             }
-            (Self::Boolean(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedBoolean {
-                found: value_2.to_string(),
-            }),
-            (Self::Integer(value_1), Self::Integer(value_2)) => value_1
-                .equals(value_2)
-                .map(Self::Boolean)
+            (Self::Integer(constant_1), Self::Integer(constant_2)) => constant_1
+                .equals(constant_2)
+                .map(|(boolean, operator)| (Self::Boolean(boolean), operator))
                 .map_err(Error::Integer),
-            (Self::Integer(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedInteger {
-                found: value_2.to_string(),
-            }),
-            (value_1, _) => Err(Error::OperatorEqualsFirstOperandExpectedPrimitiveType {
-                found: value_1.to_string(),
+            (Self::Integer(_), constant_2) => {
+                Err(Error::OperatorEqualsSecondOperandExpectedInteger {
+                    found: constant_2.to_string(),
+                })
+            }
+            (constant_1, _) => Err(Error::OperatorEqualsFirstOperandExpectedPrimitiveType {
+                found: constant_1.to_string(),
             }),
         }
     }
 
-    pub fn not_equals(self, other: Self) -> Result<Self, Error> {
+    pub fn not_equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match (self, other) {
-            (Self::Unit, Self::Unit) => Ok(Self::Boolean(Boolean::new(false))),
-            (Self::Unit, value_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedUnit {
-                found: value_2.to_string(),
+            (Self::Unit, Self::Unit) => Ok((
+                Self::Boolean(Boolean::new(false)),
+                GeneratorExpressionOperator::NotEquals,
+            )),
+            (Self::Unit, constant_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedUnit {
+                found: constant_2.to_string(),
             }),
-            (Self::Boolean(value_1), Self::Boolean(value_2)) => {
-                Ok(Self::Boolean(value_1.not_equals(value_2)))
-            }
-            (Self::Boolean(_), value_2) => {
+            (Self::Boolean(constant_1), Self::Boolean(constant_2)) => Ok((
+                Self::Boolean(constant_1.not_equals(constant_2)),
+                GeneratorExpressionOperator::NotEquals,
+            )),
+            (Self::Boolean(_), constant_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedBoolean {
-                    found: value_2.to_string(),
+                    found: constant_2.to_string(),
                 })
             }
-            (Self::Integer(value_1), Self::Integer(value_2)) => value_1
-                .not_equals(value_2)
-                .map(Self::Boolean)
+            (Self::Integer(constant_1), Self::Integer(constant_2)) => constant_1
+                .not_equals(constant_2)
+                .map(|(boolean, operator)| (Self::Boolean(boolean), operator))
                 .map_err(Error::Integer),
-            (Self::Integer(_), value_2) => {
+            (Self::Integer(_), constant_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedInteger {
-                    found: value_2.to_string(),
+                    found: constant_2.to_string(),
                 })
             }
-            (value_1, _) => Err(Error::OperatorNotEqualsFirstOperandExpectedPrimitiveType {
-                found: value_1.to_string(),
+            (constant_1, _) => Err(Error::OperatorNotEqualsFirstOperandExpectedPrimitiveType {
+                found: constant_1.to_string(),
             }),
         }
     }
 
-    pub fn greater_equals(self, other: Self) -> Result<Self, Error> {
+    pub fn greater_equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .greater_equals(integer_2)
-                    .map(Self::Boolean)
+                    .map(|(boolean, operator)| (Self::Boolean(boolean), operator))
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorGreaterEqualsSecondOperandExpectedInteger {
-                    found: value.to_string(),
+                constant => Err(Error::OperatorGreaterEqualsSecondOperandExpectedInteger {
+                    found: constant.to_string(),
                 }),
             },
-            value => Err(Error::OperatorGreaterEqualsFirstOperandExpectedInteger {
-                found: value.to_string(),
+            constant => Err(Error::OperatorGreaterEqualsFirstOperandExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn lesser_equals(self, other: Self) -> Result<Self, Error> {
+    pub fn lesser_equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .lesser_equals(integer_2)
-                    .map(Self::Boolean)
+                    .map(|(boolean, operator)| (Self::Boolean(boolean), operator))
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorLesserEqualsSecondOperandExpectedInteger {
-                    found: value.to_string(),
+                constant => Err(Error::OperatorLesserEqualsSecondOperandExpectedInteger {
+                    found: constant.to_string(),
                 }),
             },
-            value => Err(Error::OperatorLesserEqualsFirstOperandExpectedInteger {
-                found: value.to_string(),
+            constant => Err(Error::OperatorLesserEqualsFirstOperandExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn greater(self, other: Self) -> Result<Self, Error> {
+    pub fn greater(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .greater(integer_2)
-                    .map(Self::Boolean)
+                    .map(|(boolean, operator)| (Self::Boolean(boolean), operator))
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorGreaterSecondOperandExpectedInteger {
-                    found: value.to_string(),
+                constant => Err(Error::OperatorGreaterSecondOperandExpectedInteger {
+                    found: constant.to_string(),
                 }),
             },
-            value => Err(Error::OperatorGreaterFirstOperandExpectedInteger {
-                found: value.to_string(),
+            constant => Err(Error::OperatorGreaterFirstOperandExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn lesser(self, other: Self) -> Result<Self, Error> {
+    pub fn lesser(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .lesser(integer_2)
-                    .map(Self::Boolean)
+                    .map(|(boolean, operator)| (Self::Boolean(boolean), operator))
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorLesserSecondOperandExpectedInteger {
-                    found: value.to_string(),
+                constant => Err(Error::OperatorLesserSecondOperandExpectedInteger {
+                    found: constant.to_string(),
                 }),
             },
-            value => Err(Error::OperatorLesserFirstOperandExpectedInteger {
-                found: value.to_string(),
+            constant => Err(Error::OperatorLesserFirstOperandExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn bitwise_or(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_or(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitwise_or(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorBitwiseOrSecondOperandExpectedInteger {
-                    found: value.to_string(),
+                constant => Err(Error::OperatorBitwiseOrSecondOperandExpectedInteger {
+                    found: constant.to_string(),
                 }),
             },
-            value => Err(Error::OperatorBitwiseOrFirstOperandExpectedInteger {
-                found: value.to_string(),
+            constant => Err(Error::OperatorBitwiseOrFirstOperandExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn bitwise_xor(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_xor(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitwise_xor(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorBitwiseXorSecondOperandExpectedInteger {
-                    found: value.to_string(),
+                constant => Err(Error::OperatorBitwiseXorSecondOperandExpectedInteger {
+                    found: constant.to_string(),
                 }),
             },
-            value => Err(Error::OperatorBitwiseXorFirstOperandExpectedInteger {
-                found: value.to_string(),
+            constant => Err(Error::OperatorBitwiseXorFirstOperandExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn bitwise_and(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_and(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitwise_and(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorBitwiseAndSecondOperandExpectedInteger {
-                    found: value.to_string(),
+                constant => Err(Error::OperatorBitwiseAndSecondOperandExpectedInteger {
+                    found: constant.to_string(),
                 }),
             },
-            value => Err(Error::OperatorBitwiseAndFirstOperandExpectedInteger {
-                found: value.to_string(),
+            constant => Err(Error::OperatorBitwiseAndFirstOperandExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn bitwise_shift_left(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_shift_left(
+        self,
+        other: Self,
+    ) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitwise_shift_left(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
-                value => Err(
+                constant => Err(
                     Error::OperatorBitwiseShiftLeftSecondOperandExpectedInteger {
-                        found: value.to_string(),
+                        found: constant.to_string(),
                     },
                 ),
             },
-            value => Err(Error::OperatorBitwiseShiftLeftFirstOperandExpectedInteger {
-                found: value.to_string(),
+            constant => Err(Error::OperatorBitwiseShiftLeftFirstOperandExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn bitwise_shift_right(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_shift_right(
+        self,
+        other: Self,
+    ) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitwise_shift_right(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
-                value => Err(
+                constant => Err(
                     Error::OperatorBitwiseShiftRightSecondOperandExpectedInteger {
-                        found: value.to_string(),
+                        found: constant.to_string(),
                     },
                 ),
             },
-            value => Err(
+            constant => Err(
                 Error::OperatorBitwiseShiftRightFirstOperandExpectedInteger {
-                    found: value.to_string(),
+                    found: constant.to_string(),
                 },
             ),
         }
     }
 
-    pub fn add(self, other: Self) -> Result<Self, Error> {
+    pub fn add(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .add(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorAdditionSecondOperandExpectedInteger {
-                    found: value.to_string(),
+                constant => Err(Error::OperatorAdditionSecondOperandExpectedInteger {
+                    found: constant.to_string(),
                 }),
             },
-            value => Err(Error::OperatorAdditionFirstOperandExpectedInteger {
-                found: value.to_string(),
+            constant => Err(Error::OperatorAdditionFirstOperandExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn subtract(self, other: Self) -> Result<Self, Error> {
+    pub fn subtract(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .subtract(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorSubtractionSecondOperandExpectedInteger {
-                    found: value.to_string(),
+                constant => Err(Error::OperatorSubtractionSecondOperandExpectedInteger {
+                    found: constant.to_string(),
                 }),
             },
-            value => Err(Error::OperatorSubtractionFirstOperandExpectedInteger {
-                found: value.to_string(),
+            constant => Err(Error::OperatorSubtractionFirstOperandExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn multiply(self, other: Self) -> Result<Self, Error> {
+    pub fn multiply(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .multiply(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorMultiplicationSecondOperandExpectedInteger {
-                    found: value.to_string(),
+                constant => Err(Error::OperatorMultiplicationSecondOperandExpectedInteger {
+                    found: constant.to_string(),
                 }),
             },
-            value => Err(Error::OperatorMultiplicationFirstOperandExpectedInteger {
-                found: value.to_string(),
+            constant => Err(Error::OperatorMultiplicationFirstOperandExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn divide(self, other: Self) -> Result<Self, Error> {
+    pub fn divide(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .divide(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorDivisionSecondOperandExpectedInteger {
-                    found: value.to_string(),
+                constant => Err(Error::OperatorDivisionSecondOperandExpectedInteger {
+                    found: constant.to_string(),
                 }),
             },
-            value => Err(Error::OperatorDivisionFirstOperandExpectedInteger {
-                found: value.to_string(),
+            constant => Err(Error::OperatorDivisionFirstOperandExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn remainder(self, other: Self) -> Result<Self, Error> {
+    pub fn remainder(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .remainder(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
-                value => Err(Error::OperatorRemainderSecondOperandExpectedInteger {
-                    found: value.to_string(),
+                constant => Err(Error::OperatorRemainderSecondOperandExpectedInteger {
+                    found: constant.to_string(),
                 }),
             },
-            value => Err(Error::OperatorRemainderFirstOperandExpectedInteger {
-                found: value.to_string(),
+            constant => Err(Error::OperatorRemainderFirstOperandExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn not(self) -> Result<Self, Error> {
+    pub fn not(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
-            Self::Boolean(value) => {
-                let result = value.not();
-                Ok(Self::Boolean(result))
-            }
-            value => Err(Error::OperatorNotExpectedBoolean {
-                found: value.to_string(),
+            Self::Boolean(constant) => Ok((
+                Self::Boolean(constant.not()),
+                GeneratorExpressionOperator::Not,
+            )),
+            constant => Err(Error::OperatorNotExpectedBoolean {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn bitwise_not(self) -> Result<Self, Error> {
+    pub fn bitwise_not(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer) => integer
                 .bitwise_not()
-                .map(Self::Integer)
+                .map(|(integer, operator)| (Self::Integer(integer), operator))
                 .map_err(Error::Integer),
-            value => Err(Error::OperatorBitwiseNotExpectedInteger {
-                found: value.to_string(),
+            constant => Err(Error::OperatorBitwiseNotExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn negate(self) -> Result<Self, Error> {
+    pub fn negate(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
-            Self::Integer(integer) => integer.negate().map(Self::Integer).map_err(Error::Integer),
-            value => Err(Error::OperatorNegationExpectedInteger {
-                found: value.to_string(),
+            Self::Integer(integer) => integer
+                .negate()
+                .map(|(integer, operator)| (Self::Integer(integer), operator))
+                .map_err(Error::Integer),
+            constant => Err(Error::OperatorNegationExpectedInteger {
+                found: constant.to_string(),
             }),
         }
     }
 
-    pub fn cast(self, to: Type) -> Result<Self, Error> {
+    pub fn cast(self, to: Type) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
         let from = self.r#type();
         Caster::cast(&from, &to).map_err(Error::Casting)?;
 
@@ -478,15 +509,15 @@ impl Constant {
             Type::IntegerUnsigned { bitlength } => (false, bitlength),
             Type::IntegerSigned { bitlength } => (true, bitlength),
             Type::Field => (false, crate::BITLENGTH_FIELD),
-            _ => return Ok(self),
+            _ => return Ok((self, None)),
         };
 
         Ok(match self {
             Self::Integer(integer) => integer
                 .cast(is_signed, bitlength)
-                .map(Self::Integer)
+                .map(|(integer, operator)| (Self::Integer(integer), operator))
                 .map_err(Error::Integer)?,
-            operand => operand,
+            operand => (operand, None),
         })
     }
 }

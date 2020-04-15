@@ -13,6 +13,7 @@ pub mod tuple;
 use std::convert::TryFrom;
 use std::fmt;
 
+use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::semantic::casting::Caster;
 use crate::semantic::element::access::Field as FieldAccess;
 use crate::semantic::element::access::Index as IndexAccess;
@@ -66,10 +67,10 @@ impl Value {
         }
     }
 
-    pub fn or(self, other: Self) -> Result<Self, Error> {
+    pub fn or(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Boolean => match other {
-                Self::Boolean => Ok(Self::Boolean),
+                Self::Boolean => Ok((Self::Boolean, GeneratorExpressionOperator::Or)),
                 value => Err(Error::OperatorOrSecondOperandExpectedBoolean {
                     found: value.r#type().to_string(),
                 }),
@@ -80,10 +81,10 @@ impl Value {
         }
     }
 
-    pub fn xor(self, other: Self) -> Result<Self, Error> {
+    pub fn xor(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Boolean => match other {
-                Self::Boolean => Ok(Self::Boolean),
+                Self::Boolean => Ok((Self::Boolean, GeneratorExpressionOperator::Xor)),
                 value => Err(Error::OperatorXorSecondOperandExpectedBoolean {
                     found: value.r#type().to_string(),
                 }),
@@ -94,10 +95,10 @@ impl Value {
         }
     }
 
-    pub fn and(self, other: Self) -> Result<Self, Error> {
+    pub fn and(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Boolean => match other {
-                Self::Boolean => Ok(Self::Boolean),
+                Self::Boolean => Ok((Self::Boolean, GeneratorExpressionOperator::And)),
                 value => Err(Error::OperatorAndSecondOperandExpectedBoolean {
                     found: value.r#type().to_string(),
                 }),
@@ -108,19 +109,21 @@ impl Value {
         }
     }
 
-    pub fn equals(self, other: Self) -> Result<Self, Error> {
+    pub fn equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match (self, other) {
-            (Self::Unit, Self::Unit) => Ok(Self::Boolean),
+            (Self::Unit, Self::Unit) => Ok((Self::Boolean, GeneratorExpressionOperator::Equals)),
             (Self::Unit, value_2) => Err(Error::OperatorEqualsSecondOperandExpectedUnit {
                 found: value_2.r#type().to_string(),
             }),
-            (Self::Boolean, Self::Boolean) => Ok(Self::Boolean),
+            (Self::Boolean, Self::Boolean) => {
+                Ok((Self::Boolean, GeneratorExpressionOperator::Equals))
+            }
             (Self::Boolean, value_2) => Err(Error::OperatorEqualsSecondOperandExpectedBoolean {
                 found: value_2.r#type().to_string(),
             }),
             (Self::Integer(integer_1), Self::Integer(integer_2)) => integer_1
                 .equals(integer_2)
-                .map(|_| Self::Boolean)
+                .map(|operator| (Self::Boolean, operator))
                 .map_err(Error::Integer),
             (Self::Integer(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedInteger {
                 found: value_2.r#type().to_string(),
@@ -131,19 +134,21 @@ impl Value {
         }
     }
 
-    pub fn not_equals(self, other: Self) -> Result<Self, Error> {
+    pub fn not_equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match (self, other) {
-            (Self::Unit, Self::Unit) => Ok(Self::Boolean),
+            (Self::Unit, Self::Unit) => Ok((Self::Boolean, GeneratorExpressionOperator::NotEquals)),
             (Self::Unit, value_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedUnit {
                 found: value_2.r#type().to_string(),
             }),
-            (Self::Boolean, Self::Boolean) => Ok(Self::Boolean),
+            (Self::Boolean, Self::Boolean) => {
+                Ok((Self::Boolean, GeneratorExpressionOperator::NotEquals))
+            }
             (Self::Boolean, value_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedBoolean {
                 found: value_2.r#type().to_string(),
             }),
             (Self::Integer(integer_1), Self::Integer(integer_2)) => integer_1
                 .not_equals(integer_2)
-                .map(|_| Self::Boolean)
+                .map(|operator| (Self::Boolean, operator))
                 .map_err(Error::Integer),
             (Self::Integer(_), value_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedInteger {
@@ -156,12 +161,12 @@ impl Value {
         }
     }
 
-    pub fn greater_equals(self, other: Self) -> Result<Self, Error> {
+    pub fn greater_equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .greater_equals(integer_2)
-                    .map(|_| Self::Boolean)
+                    .map(|operator| (Self::Boolean, operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorGreaterEqualsSecondOperandExpectedInteger {
                     found: value.r#type().to_string(),
@@ -173,12 +178,12 @@ impl Value {
         }
     }
 
-    pub fn lesser_equals(self, other: Self) -> Result<Self, Error> {
+    pub fn lesser_equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .lesser_equals(integer_2)
-                    .map(|_| Self::Boolean)
+                    .map(|operator| (Self::Boolean, operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorLesserEqualsSecondOperandExpectedInteger {
                     found: value.r#type().to_string(),
@@ -190,12 +195,12 @@ impl Value {
         }
     }
 
-    pub fn greater(self, other: Self) -> Result<Self, Error> {
+    pub fn greater(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .greater(integer_2)
-                    .map(|_| Self::Boolean)
+                    .map(|operator| (Self::Boolean, operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorGreaterSecondOperandExpectedInteger {
                     found: value.r#type().to_string(),
@@ -207,12 +212,12 @@ impl Value {
         }
     }
 
-    pub fn lesser(self, other: Self) -> Result<Self, Error> {
+    pub fn lesser(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .lesser(integer_2)
-                    .map(|_| Self::Boolean)
+                    .map(|operator| (Self::Boolean, operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorLesserSecondOperandExpectedInteger {
                     found: value.r#type().to_string(),
@@ -224,12 +229,12 @@ impl Value {
         }
     }
 
-    pub fn bitwise_or(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_or(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitwise_or(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorBitwiseOrSecondOperandExpectedInteger {
                     found: value.r#type().to_string(),
@@ -241,12 +246,12 @@ impl Value {
         }
     }
 
-    pub fn bitwise_xor(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_xor(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitwise_xor(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorBitwiseXorSecondOperandExpectedInteger {
                     found: value.r#type().to_string(),
@@ -258,12 +263,12 @@ impl Value {
         }
     }
 
-    pub fn bitwise_and(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_and(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitwise_and(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorBitwiseAndSecondOperandExpectedInteger {
                     found: value.r#type().to_string(),
@@ -275,12 +280,15 @@ impl Value {
         }
     }
 
-    pub fn bitwise_shift_left(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_shift_left(
+        self,
+        other: Self,
+    ) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitwise_shift_left(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(
                     Error::OperatorBitwiseShiftLeftSecondOperandExpectedInteger {
@@ -294,12 +302,15 @@ impl Value {
         }
     }
 
-    pub fn bitwise_shift_right(self, other: Self) -> Result<Self, Error> {
+    pub fn bitwise_shift_right(
+        self,
+        other: Self,
+    ) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .bitwise_shift_right(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(
                     Error::OperatorBitwiseShiftRightSecondOperandExpectedInteger {
@@ -315,12 +326,12 @@ impl Value {
         }
     }
 
-    pub fn add(self, other: Self) -> Result<Self, Error> {
+    pub fn add(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .add(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorAdditionSecondOperandExpectedInteger {
                     found: value.r#type().to_string(),
@@ -332,12 +343,12 @@ impl Value {
         }
     }
 
-    pub fn subtract(self, other: Self) -> Result<Self, Error> {
+    pub fn subtract(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .subtract(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorSubtractionSecondOperandExpectedInteger {
                     found: value.r#type().to_string(),
@@ -349,12 +360,12 @@ impl Value {
         }
     }
 
-    pub fn multiply(self, other: Self) -> Result<Self, Error> {
+    pub fn multiply(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .multiply(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorMultiplicationSecondOperandExpectedInteger {
                     found: value.r#type().to_string(),
@@ -366,12 +377,12 @@ impl Value {
         }
     }
 
-    pub fn divide(self, other: Self) -> Result<Self, Error> {
+    pub fn divide(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .divide(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorDivisionSecondOperandExpectedInteger {
                     found: value.r#type().to_string(),
@@ -383,12 +394,12 @@ impl Value {
         }
     }
 
-    pub fn remainder(self, other: Self) -> Result<Self, Error> {
+    pub fn remainder(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer_1) => match other {
                 Self::Integer(integer_2) => integer_1
                     .remainder(integer_2)
-                    .map(Self::Integer)
+                    .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorRemainderSecondOperandExpectedInteger {
                     found: value.r#type().to_string(),
@@ -400,7 +411,7 @@ impl Value {
         }
     }
 
-    pub fn cast(self, to: Type) -> Result<Self, Error> {
+    pub fn cast(self, to: Type) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
         let from = self.r#type();
         Caster::cast(&from, &to).map_err(Error::Casting)?;
 
@@ -408,32 +419,32 @@ impl Value {
             Type::IntegerUnsigned { bitlength } => (false, bitlength),
             Type::IntegerSigned { bitlength } => (true, bitlength),
             Type::Field => (false, crate::BITLENGTH_FIELD),
-            _ => return Ok(self),
+            _ => return Ok((self, None)),
         };
 
         Ok(match self {
             Self::Integer(integer) => integer
                 .cast(is_signed, bitlength)
-                .map(Self::Integer)
+                .map(|(integer, operator)| (Self::Integer(integer), operator))
                 .map_err(Error::Integer)?,
-            operand => operand,
+            operand => (operand, None),
         })
     }
 
-    pub fn not(self) -> Result<Self, Error> {
+    pub fn not(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
-            Self::Boolean => Ok(Self::Boolean),
+            Self::Boolean => Ok((Self::Boolean, GeneratorExpressionOperator::Not)),
             value => Err(Error::OperatorNotExpectedBoolean {
                 found: value.r#type().to_string(),
             }),
         }
     }
 
-    pub fn bitwise_not(self) -> Result<Self, Error> {
+    pub fn bitwise_not(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Integer(integer) => integer
                 .bitwise_not()
-                .map(Self::Integer)
+                .map(|(integer, operator)| (Self::Integer(integer), operator))
                 .map_err(Error::Integer),
             value => Err(Error::OperatorBitwiseNotExpectedInteger {
                 found: value.r#type().to_string(),
@@ -441,9 +452,12 @@ impl Value {
         }
     }
 
-    pub fn negate(self) -> Result<Self, Error> {
+    pub fn negate(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
-            Self::Integer(integer) => integer.negate().map(Self::Integer).map_err(Error::Integer),
+            Self::Integer(integer) => integer
+                .negate()
+                .map(|(integer, operator)| (Self::Integer(integer), operator))
+                .map_err(Error::Integer),
             value => Err(Error::OperatorNegationExpectedInteger {
                 found: value.r#type().to_string(),
             }),

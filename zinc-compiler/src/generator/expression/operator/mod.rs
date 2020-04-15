@@ -16,6 +16,8 @@ use crate::semantic::element::r#type::Type as SemanticType;
 ///
 #[derive(Debug, Clone)]
 pub enum Operator {
+    None,
+
     // assignment
     Assignment {
         place: Place,
@@ -24,42 +26,52 @@ pub enum Operator {
     AssignmentBitwiseOr {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentBitwiseXor {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentBitwiseAnd {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentBitwiseShiftLeft {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentBitwiseShiftRight {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentAddition {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentSubtraction {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentMultiplication {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentDivision {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
     AssignmentRemainder {
         place: Place,
         expression: Expression,
+        operator: Box<Self>,
     },
 
     // binary logical

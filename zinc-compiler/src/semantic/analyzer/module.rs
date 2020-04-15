@@ -16,7 +16,7 @@ use crate::syntax::tree::Tree as SyntaxTree;
 ///
 /// Analyzes a module, which are located in non-`main.zn` files.
 ///
-/// To analyze the circuit entry, use the entry analyzer.
+/// To analyze the project entry, use the entry analyzer.
 ///
 pub struct Analyzer {
     scope_stack: ScopeStack,

@@ -512,7 +512,6 @@ fn main() {
     assert_eq!(result, expected);
 }
 
-#[ignore]
 #[test]
 fn error_operator_bitwise_or_1st_operand_expected_integer() {
     let input = r#"
@@ -535,7 +534,6 @@ fn main() {
     assert_eq!(result, expected);
 }
 
-#[ignore]
 #[test]
 fn error_operator_bitwise_or_2nd_operand_expected_integer() {
     let input = r#"
@@ -558,7 +556,6 @@ fn main() {
     assert_eq!(result, expected);
 }
 
-#[ignore]
 #[test]
 fn error_operator_bitwise_xor_1st_operand_expected_integer() {
     let input = r#"
@@ -581,7 +578,6 @@ fn main() {
     assert_eq!(result, expected);
 }
 
-#[ignore]
 #[test]
 fn error_operator_bitwise_xor_2nd_operand_expected_integer() {
     let input = r#"
@@ -604,7 +600,6 @@ fn main() {
     assert_eq!(result, expected);
 }
 
-#[ignore]
 #[test]
 fn error_operator_bitwise_and_1st_operand_expected_integer() {
     let input = r#"
@@ -627,7 +622,6 @@ fn main() {
     assert_eq!(result, expected);
 }
 
-#[ignore]
 #[test]
 fn error_operator_bitwise_and_2nd_operand_expected_integer() {
     let input = r#"
@@ -650,7 +644,6 @@ fn main() {
     assert_eq!(result, expected);
 }
 
-#[ignore]
 #[test]
 fn error_operator_bitwise_shift_left_1st_operand_expected_integer() {
     let input = r#"
@@ -675,7 +668,6 @@ fn main() {
     assert_eq!(result, expected);
 }
 
-#[ignore]
 #[test]
 fn error_operator_bitwise_shift_left_2nd_operand_expected_integer() {
     let input = r#"
@@ -700,7 +692,6 @@ fn main() {
     assert_eq!(result, expected);
 }
 
-#[ignore]
 #[test]
 fn error_operator_bitwise_shift_right_1st_operand_expected_integer() {
     let input = r#"
@@ -725,7 +716,6 @@ fn main() {
     assert_eq!(result, expected);
 }
 
-#[ignore]
 #[test]
 fn error_operator_bitwise_shift_right_2nd_operand_expected_integer() {
     let input = r#"
@@ -997,7 +987,6 @@ fn main() {
     assert_eq!(result, expected);
 }
 
-#[ignore]
 #[test]
 fn error_operator_bitwise_not_expected_integer() {
     let input = r#"

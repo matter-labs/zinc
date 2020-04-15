@@ -290,7 +290,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the assignment bitwise OR operator `|=` expected a constant as the second operand, found `{}`", // TODO: constant -> value
+                        "the assignment bitwise OR operator `|=` expected a value as the second operand, found `{}`",
                         found,
                     )
                         .as_str(),
@@ -314,7 +314,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the assignment bitwise XOR operator `^=` expected a constant as the second operand, found `{}`", // TODO: constant -> value
+                        "the assignment bitwise XOR operator `^=` expected a value as the second operand, found `{}`",
                         found,
                     )
                         .as_str(),
@@ -338,7 +338,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the assignment bitwise AND operator `&=` expected a constant as the second operand, found `{}`", // TODO: constant -> value
+                        "the assignment bitwise AND operator `&=` expected a value as the second operand, found `{}`",
                         found,
                     )
                         .as_str(),
@@ -362,7 +362,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the assignment bitwise shift left operator `<<=` expected a constant as the second operand, found `{}`", // TODO: constant -> value
+                        "the assignment bitwise shift left operator `<<=` expected a value as the second operand, found `{}`",
                         found,
                     )
                         .as_str(),
@@ -386,7 +386,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the assignment bitwise shift right operator `>>=` expected a constant as the second operand, found `{}`", // TODO: constant -> value
+                        "the assignment bitwise shift right operator `>>=` expected a value as the second operand, found `{}`",
                         found,
                     )
                         .as_str(),
@@ -832,7 +832,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the bitwise OR operator `|` expected an integer constant as the first operand, found `{}`", // TODO: constant -> ''
+                        "the bitwise OR operator `|` expected an integer as the first operand, found `{}`",
                         found,
                     )
                         .as_str(),
@@ -846,7 +846,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the bitwise OR operator `|` expected an integer constant as the second operand, found `{}`", // TODO: constant -> ''
+                        "the bitwise OR operator `|` expected an integer as the second operand, found `{}`",
                         found,
                     )
                         .as_str(),
@@ -860,7 +860,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the bitwise XOR operator `^` expected an integer constant as the first operand, found `{}`", // TODO: constant -> ''
+                        "the bitwise XOR operator `^` expected an integer as the first operand, found `{}`",
                         found,
                     )
                         .as_str(),
@@ -874,7 +874,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the bitwise XOR operator `^` expected an integer constant as the second operand, found `{}`", // TODO: constant -> ''
+                        "the bitwise XOR operator `^` expected an integer as the second operand, found `{}`",
                         found,
                     )
                         .as_str(),
@@ -888,7 +888,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the bitwise AND operator `&` expected an integer constant as the first operand, found `{}`", // TODO: constant -> ''
+                        "the bitwise AND operator `&` expected an integer as the first operand, found `{}`",
                         found,
                     )
                         .as_str(),
@@ -902,7 +902,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the bitwise AND operator `&` expected an integer constant as the second operand, found `{}`", // TODO: constant -> ''
+                        "the bitwise AND operator `&` expected an integer as the second operand, found `{}`",
                         found,
                     )
                         .as_str(),
@@ -916,7 +916,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the bitwise shift left operator `<<` expected an integer constant as the first operand, found `{}`", // TODO: constant -> ''
+                        "the bitwise shift left operator `<<` expected an integer as the first operand, found `{}`",
                         found,
                     )
                         .as_str(),
@@ -946,7 +946,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "the bitwise shift right operator `>>` expected an integer constant as the first operand, found `{}`", // TODO: constant -> ''
+                        "the bitwise shift right operator `>>` expected an integer as the first operand, found `{}`",
                         found,
                     )
                         .as_str(),

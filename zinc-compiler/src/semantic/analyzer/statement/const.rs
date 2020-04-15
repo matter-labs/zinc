@@ -29,7 +29,7 @@ impl Analyzer {
             .analyze(statement.expression, TranslationHint::Value)?;
 
         let const_type = Type::from_type_variant(&statement.r#type.variant, scope.clone())?;
-        let constant = match element {
+        let (constant, _intermediate) = match element {
             Element::Constant(constant) => constant
                 .cast(const_type)
                 .map_err(ElementError::Constant)

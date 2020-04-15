@@ -5,6 +5,7 @@
 #### Language
 
 - added the implementation methods with by-value `self` instance parameter
+- allowed the bitwise operations on non-constant and witness values
 
 #### Compiler
 
