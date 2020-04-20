@@ -4,6 +4,8 @@
 
 use std::io::Write;
 
+use log::Level;
+
 use colored::ColoredString;
 use colored::Colorize;
 
@@ -29,18 +31,28 @@ pub fn init_logger(app_name: &'static str, verbosity: usize) {
             _ => log::LevelFilter::Trace,
         })
         .format(move |buf, record| {
-            let mut padding = String::from("\n");
-            for _ in 0..(app_name.len() + LEVEL_NAME_LENGTH + 4) {
-                padding.push(' ');
-            }
+            if let Level::Debug | Level::Trace = record.level() {
+                writeln!(
+                    buf,
+                    "[{:>5} {:>5}] {}",
+                    level_string(record.level()),
+                    record.module_path().unwrap_or_else(|| app_name).white(),
+                    record.args()
+                )
+            } else {
+                let mut padding = String::from("\n");
+                for _ in 0..(app_name.len() + LEVEL_NAME_LENGTH + 4) {
+                    padding.push(' ');
+                }
 
-            writeln!(
-                buf,
-                "[{:>5} {:>5}] {}",
-                level_string(record.level()),
-                app_name,
-                record.args().to_string().replace("\n", &padding)
-            )
+                writeln!(
+                    buf,
+                    "[{:>5} {:>5}] {}",
+                    level_string(record.level()),
+                    app_name.white(),
+                    record.args().to_string().replace("\n", &padding)
+                )
+            }
         })
         .init();
 }

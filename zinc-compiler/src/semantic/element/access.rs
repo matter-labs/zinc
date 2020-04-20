@@ -2,6 +2,8 @@
 //! The semantic analyzer element access.
 //!
 
+use crate::semantic::element::Element;
+
 #[derive(Debug, Clone)]
 pub struct Index {
     pub element_size: usize,
@@ -15,6 +17,11 @@ impl Index {
             total_size,
         }
     }
+}
+
+pub enum FieldVariant {
+    Field(Field),
+    Method(Element),
 }
 
 #[derive(Debug, Clone)]

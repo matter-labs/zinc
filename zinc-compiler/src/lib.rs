@@ -6,6 +6,7 @@
 #![allow(clippy::implicit_hasher)]
 #![allow(clippy::should_implement_trait)]
 #![allow(clippy::too_many_arguments)]
+#![recursion_limit = "1024"]
 
 pub(crate) mod error;
 pub(crate) mod generator;

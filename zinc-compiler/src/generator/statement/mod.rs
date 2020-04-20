@@ -25,6 +25,7 @@ pub enum Statement {
     Loop(ForLoopStatement),
     Function(FunctionStatement),
     Implementation(Vec<Self>),
+    Contract(Vec<Self>),
 }
 
 impl Statement {
@@ -35,6 +36,11 @@ impl Statement {
             Self::Loop(inner) => inner.write_all_to_bytecode(bytecode),
             Self::Function(inner) => inner.write_all_to_bytecode(bytecode),
             Self::Implementation(inner) => {
+                for element in inner.into_iter() {
+                    element.write_all_to_bytecode(bytecode.clone());
+                }
+            }
+            Self::Contract(inner) => {
                 for element in inner.into_iter() {
                     element.write_all_to_bytecode(bytecode.clone());
                 }

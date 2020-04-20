@@ -15,6 +15,7 @@ pub enum Error {
     Expression(ExpressionError),
     Statement(StatementError),
     EntryPointMissing,
+    ContractBeyondEntry,
 }
 
 impl From<ScopeError> for Error {

@@ -13,6 +13,7 @@ use
 mod
 impl
 contract
+pub
 ```
 
 #### Controls
@@ -53,11 +54,11 @@ self
 ## Reserved
 ```rust,no_run,noplaypen
 static
-pub
 ref
 extern
 return
 loop
 break
 continue
+trait
 ```

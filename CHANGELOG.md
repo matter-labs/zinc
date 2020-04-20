@@ -4,13 +4,20 @@
 
 #### Language
 
-- added the implementation methods with by-value `self` instance parameter
+- added methods with the by-value `self` instance parameter
+- added the sugar syntax for calling methods via the dot `.` operator
 - allowed the bitwise operations on non-constant and witness values
+- implemented simple smart contracts
+- implemented constant array, tuple, and structure expressions
 
 #### Compiler
 
 - fixed the bug where namespace items where resolved from outside the namespace
 - improved some error messages
+
+#### Zargo
+
+- added the option to create either a circuit or smart contract project
 
 ## Version 0.1.5 (2020-04-07)
 

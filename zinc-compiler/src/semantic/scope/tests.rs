@@ -124,6 +124,29 @@ fn main() {
 }
 
 #[test]
+fn error_item_undeclared_lower() {
+    let input = r#"
+fn main() {
+    {
+        let result = 42;
+    };
+    result = 69;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ItemUndeclared {
+            location: Location::new(6, 5),
+            name: "result".to_owned(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_item_undeclared_enum_variant() {
     let input = r#"
 enum Jabberwocky {
@@ -211,6 +234,31 @@ fn main() {
         ScopeError::ItemUndeclared {
             location: Location::new(2, 22),
             name: Keyword::SelfUppercase.to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_contract_redeclared() {
+    let input = r#"
+contract Uniswap {
+    pub fn deposit(amount: u248) -> bool { true }
+}
+
+contract Multiswap {
+    pub fn deposit(amount: u248) -> bool { true }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Scope(
+        ScopeError::ContractRedeclared {
+            location: Location::new(6, 10),
+            name: "Uniswap".to_owned(),
+            reference: Some(Location::new(2, 10)),
         },
     )));
 

@@ -1343,7 +1343,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "field `{}` does not exist in structure `{}`",
+                        "field or method `{}` does not exist in structure `{}`",
                         field_name, type_identifier,
                     )
                         .as_str(),
@@ -1800,6 +1800,19 @@ impl Error {
                     Some("only modules, structures, enumerations, and contracts can contain items within their namespaces"),
                 )
             }
+            Self::Semantic(SemanticError::Scope(ScopeError::ContractRedeclared { location, name, reference })) => {
+                Self::format_line_with_reference(
+                    context,
+                    format!(
+                        "another contract `{}` is already declared here",
+                        name
+                    )
+                        .as_str(),
+                    location,
+                    reference,
+                    Some("only one contract may be declared in the project"),
+                )
+            }
 
             Self::Semantic(SemanticError::Element(location, ElementError::Type(TypeError::Function(FunctionTypeError::ArgumentCount { function, expected, found })))) => {
                 Self::format_line(
@@ -2119,7 +2132,7 @@ impl Error {
                     Some("consider specifying a valid path to an item to import"),
                 )
             }
-            Self::Semantic(SemanticError::Statement(StatementError::Impl(ImplStatementError::ExpectedNamespace { location, found }))) => {
+            Self::Semantic(SemanticError::Statement(StatementError::Impl(ImplStatementError::ExpectedStructureOrEnumeration { location, found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -2128,7 +2141,7 @@ impl Error {
                     )
                         .as_str(),
                     location,
-                    Some("only structures, enumerations, and contracts can have an implementation"),
+                    Some("only structures and enumerations can have an implementation"),
                 )
             }
 
@@ -2136,6 +2149,12 @@ impl Error {
                 Self::format_message(
                     "function `main` is missing",
                     Some("create the `main` function in the entry point file `main.zn`"),
+                )
+            }
+            Self::Semantic(SemanticError::ContractBeyondEntry) => {
+                Self::format_message(
+                    "contract is declared beyond the entry file",
+                    Some("contracts may be declared only once in the entry file"),
                 )
             }
         }

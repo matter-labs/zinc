@@ -42,6 +42,16 @@ use self::r#type::Analyzer as TypeStatementAnalyzer;
 use self::r#use::Analyzer as UseStatementAnalyzer;
 
 ///
+/// The context lets the analyzer know of file type where the analyzed statements are defined.
+///
+pub enum Context {
+    /// The circuit or contract entry file.
+    Entry,
+    /// An ordinar project module.
+    Module,
+}
+
+///
 /// Analyzes statements.
 ///
 /// An analyzer instance can be reused to analyze statements located in the same item, e.g. in the
@@ -71,6 +81,7 @@ impl Analyzer {
     pub fn local_mod(
         &mut self,
         statement: ModLocalStatement,
+        context: Context,
     ) -> Result<Option<GeneratorStatement>, Error> {
         match statement {
             ModLocalStatement::Const(statement) => {
@@ -110,10 +121,14 @@ impl Analyzer {
                     ImplStatementAnalyzer::analyze(self.scope_stack.top(), statement)?;
                 Ok(Some(GeneratorStatement::Implementation(intermediate)))
             }
-            ModLocalStatement::Contract(statement) => {
-                ContractStatementAnalyzer::analyze(self.scope_stack.top(), statement)?;
-                Ok(None)
-            }
+            ModLocalStatement::Contract(statement) => match context {
+                Context::Entry => {
+                    let intermediate =
+                        ContractStatementAnalyzer::analyze(self.scope_stack.top(), statement)?;
+                    Ok(Some(GeneratorStatement::Contract(intermediate)))
+                }
+                Context::Module => Err(Error::ContractBeyondEntry),
+            },
             ModLocalStatement::Empty(_location) => Ok(None),
         }
     }

@@ -21,6 +21,7 @@ pub enum Keyword {
     Use,
     Impl,
     Contract,
+    Pub,
 
     // controls
     For,
@@ -48,13 +49,14 @@ pub enum Keyword {
     SelfLowercase,
 
     // reserved
-    Pub,
+    Static,
     Ref,
     Extern,
     Return,
     Loop,
     Break,
     Continue,
+    Trait,
 }
 
 impl Keyword {
@@ -97,6 +99,7 @@ impl TryFrom<&str> for Keyword {
             "use" => return Ok(Self::Use),
             "impl" => return Ok(Self::Impl),
             "contract" => return Ok(Self::Contract),
+            "pub" => return Ok(Self::Pub),
 
             "for" => return Ok(Self::For),
             "in" => return Ok(Self::In),
@@ -116,13 +119,14 @@ impl TryFrom<&str> for Keyword {
             "Self" => return Ok(Self::SelfUppercase),
             "self" => return Ok(Self::SelfLowercase),
 
-            "pub" => return Ok(Self::Pub),
+            "static" => return Ok(Self::Static),
             "ref" => return Ok(Self::Ref),
             "extern" => return Ok(Self::Extern),
             "return" => return Ok(Self::Return),
             "loop" => return Ok(Self::Loop),
             "break" => return Ok(Self::Break),
             "continue" => return Ok(Self::Continue),
+            "trait" => return Ok(Self::Trait),
 
             _ => {}
         }
@@ -194,6 +198,7 @@ impl fmt::Display for Keyword {
             Self::Use => write!(f, "use"),
             Self::Impl => write!(f, "impl"),
             Self::Contract => write!(f, "contract"),
+            Self::Pub => write!(f, "pub"),
 
             Self::For => write!(f, "for"),
             Self::In => write!(f, "in"),
@@ -215,13 +220,14 @@ impl fmt::Display for Keyword {
             Self::SelfUppercase => write!(f, "Self"),
             Self::SelfLowercase => write!(f, "self"),
 
-            Self::Pub => write!(f, "pub"),
+            Self::Static => write!(f, "static"),
             Self::Ref => write!(f, "ref"),
             Self::Extern => write!(f, "extern"),
             Self::Return => write!(f, "return"),
             Self::Loop => write!(f, "loop"),
             Self::Break => write!(f, "break"),
             Self::Continue => write!(f, "continue"),
+            Self::Trait => write!(f, "trait"),
         }
     }
 }

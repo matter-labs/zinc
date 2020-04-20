@@ -2,6 +2,8 @@
 //! The function call semantic analyzer.
 //!
 
+pub mod r#type;
+
 use std::cell::RefCell;
 use std::convert::TryFrom;
 use std::rc::Rc;
@@ -21,6 +23,8 @@ use crate::semantic::error::Error;
 use crate::semantic::scope::item::variant::Variant as ScopeItemVariant;
 use crate::semantic::scope::Scope;
 
+use self::r#type::Type as CallType;
+
 pub struct Analyzer {}
 
 impl Analyzer {
@@ -33,7 +37,7 @@ impl Analyzer {
         scope: Rc<RefCell<Scope>>,
         operand_1: Element,
         operand_2: Element,
-        is_call_builtin: bool,
+        mut call_type: CallType,
         location: Location,
     ) -> Result<(Element, GeneratorExpressionOperator), Error> {
         let function = match operand_1 {
@@ -59,10 +63,14 @@ impl Analyzer {
             }
         };
 
-        let argument_elements = match operand_2 {
+        let mut argument_elements = match operand_2 {
             Element::ArgumentList(values) => values,
             _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         };
+        match call_type.take() {
+            CallType::Method { instance } => argument_elements.insert(0, instance),
+            another => call_type = another,
+        }
         let mut input_size = 0;
         for element in argument_elements.iter() {
             input_size += Type::from_element(element, scope.clone())?.size();
@@ -70,13 +78,16 @@ impl Analyzer {
 
         let (return_type, intermediate) = match function {
             FunctionType::BuiltInFunction(function) => {
-                if !is_call_builtin {
-                    return Err(Error::Element(
-                        location,
-                        ElementError::Type(TypeError::Function(FunctionTypeError::BuiltIn(
-                            BuiltInFunctionTypeError::specifier_missing(function.identifier()),
-                        ))),
-                    ));
+                match call_type {
+                    CallType::BuiltIn => {}
+                    _ => {
+                        return Err(Error::Element(
+                            location,
+                            ElementError::Type(TypeError::Function(FunctionTypeError::BuiltIn(
+                                BuiltInFunctionTypeError::specifier_missing(function.identifier()),
+                            ))),
+                        ))
+                    }
                 }
 
                 match function {
@@ -110,7 +121,7 @@ impl Analyzer {
                 }
             }
             FunctionType::StandardLibrary(function) => {
-                if is_call_builtin {
+                if let CallType::BuiltIn = call_type {
                     return Err(Error::Element(
                         location,
                         ElementError::Type(TypeError::Function(FunctionTypeError::BuiltIn(
@@ -134,7 +145,7 @@ impl Analyzer {
                 (return_type, intermediate)
             }
             FunctionType::UserDefined(function) => {
-                if is_call_builtin {
+                if let CallType::BuiltIn = call_type {
                     return Err(Error::Element(
                         location,
                         ElementError::Type(TypeError::Function(FunctionTypeError::BuiltIn(

@@ -166,6 +166,7 @@ impl Analyzer {
             body,
             expected_type,
             unique_id,
+            statement.is_public,
             is_main,
         ))
     }

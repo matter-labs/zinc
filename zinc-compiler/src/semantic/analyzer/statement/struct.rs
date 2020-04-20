@@ -43,11 +43,12 @@ impl Analyzer {
         }
 
         let unique_id = TYPE_INDEX.read().expect(crate::panic::MUTEX_SYNC).len();
+        let namespace_scope = Rc::new(RefCell::new(Scope::new(Some(scope.clone()))));
         let r#type = Type::structure(
             statement.identifier.name.clone(),
             unique_id,
             fields,
-            Some(Rc::new(RefCell::new(Scope::new(Some(scope.clone()))))),
+            Some(namespace_scope),
         );
 
         TYPE_INDEX

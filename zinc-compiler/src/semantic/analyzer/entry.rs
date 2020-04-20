@@ -9,6 +9,7 @@ use std::rc::Rc;
 use crate::error::Error as CompilerError;
 use crate::generator::Tree;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
+use crate::semantic::analyzer::statement::Context as StatementAnalyzerContext;
 use crate::semantic::error::Error;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
@@ -46,38 +47,24 @@ impl Analyzer {
         let mut analyzer = StatementAnalyzer::new(self.scope_stack.top(), dependencies);
         for statement in program.statements.into_iter() {
             if let Some(statement) = analyzer
-                .local_mod(statement)
+                .local_mod(statement, StatementAnalyzerContext::Entry)
                 .map_err(CompilerError::Semantic)?
             {
                 intermediate.statements.push(statement);
             }
         }
 
-        if !self.scope_stack.top().borrow().is_main_function_declared() {
+        if !self.scope_stack.top().borrow().is_main_function_declared()
+            && self
+                .scope_stack
+                .top()
+                .borrow()
+                .get_contract_location()
+                .is_none()
+        {
             return Err(CompilerError::Semantic(Error::EntryPointMissing));
         }
 
         Ok(intermediate)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::error::Error;
-    use crate::semantic::error::Error as SemanticError;
-
-    #[test]
-    fn error_test() {
-        let input = r#"
-fn another() -> u8 {
-    42
-}
-"#;
-
-        let expected = Err(Error::Semantic(SemanticError::EntryPointMissing));
-
-        let result = crate::semantic::tests::compile_entry(input);
-
-        assert_eq!(result, expected);
     }
 }

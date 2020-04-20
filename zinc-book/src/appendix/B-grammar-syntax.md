@@ -37,7 +37,7 @@ struct_statement = 'struct', '{', field_list, '}' ;
 
 enum_statement = 'enum', '{', variant_list, '}' ;
 
-fn_statement = 'fn', identifier, '(', pattern_binding_list, ')', [ '->', type ], block_expression ;
+fn_statement = [ 'pub' ], 'fn', identifier, '(', pattern_binding_list, ')', [ '->', type ], block_expression ;
 
 mod_statement = 'mod', identifier ;
 
@@ -51,7 +51,7 @@ let_statement = 'let', [ 'mut' ], identifier, [ ':', type ], '=', expression ;
 
 loop_statement = 'for', identifier, 'in', expression, [ 'while', expression ], block_expression ;
 
-contract_statement = 'contract', '{', field_list, '}' ;
+contract_statement = 'contract', '{', field_list, { fn_statement }, '}' ;
 
 empty_statement = ';' ;
 
@@ -141,12 +141,12 @@ pattern_binding =
   | [ 'mut' ], 'self'
   | '_', ':', type
 ;
-pattern_binding_list = [ pattern_binding, { ',', pattern_binding } ] ;
+pattern_binding_list = [ pattern_binding, { ',', [ pattern_binding ] } ] ;
 
 field = identifier, ':', type ;
-field_list = [ field, { ',', field } ] ;
+field_list = [ field, { ',', [ field ] } ] ;
 
 variant = identifier, '=', integer ;
-variant_list = [ variant, { ',', variant } ] ;
+variant_list = [ variant, { ',', [ variant ] } ] ;
 
 ```

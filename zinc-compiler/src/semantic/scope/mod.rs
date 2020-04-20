@@ -15,6 +15,7 @@ use std::rc::Rc;
 use std::str;
 
 use crate::lexical::token::lexeme::keyword::Keyword;
+use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::r#type::Type;
@@ -145,6 +146,25 @@ impl Scope {
     }
 
     ///
+    /// Declares a `contract` type, which checks whether it is the only contract in the scope.
+    ///
+    pub fn declare_contract(
+        scope: Rc<RefCell<Scope>>,
+        identifier: Identifier,
+        r#type: Type,
+    ) -> Result<(), Error> {
+        if let Some((name, location)) = scope.borrow().get_contract_location() {
+            return Err(Error::ContractRedeclared {
+                location: identifier.location,
+                name,
+                reference: location,
+            });
+        }
+
+        Self::declare_type(scope, identifier, r#type)
+    }
+
+    ///
     /// Declares a module, which is normally a `mod` binding.
     ///
     pub fn declare_module(
@@ -250,19 +270,27 @@ impl Scope {
     }
 
     ///
-    /// Checks whether the `main` function is declared within the current scope hierarchy.
+    /// Checks whether the `main` function is declared in the current scope.
     ///
     pub fn is_main_function_declared(&self) -> bool {
-        if self.items.contains_key(crate::FUNCTION_MAIN_IDENTIFIER) {
-            true
-        } else {
-            match self.parent {
-                Some(ref parent) => parent
-                    .borrow()
-                    .is_item_declared(crate::FUNCTION_MAIN_IDENTIFIER),
-                None => false,
+        self.items.contains_key(crate::FUNCTION_MAIN_IDENTIFIER)
+    }
+
+    ///
+    /// Checks whether a contract function is declared in the current scope.
+    ///
+    pub fn get_contract_location(&self) -> Option<(String, Option<Location>)> {
+        for (_name, item) in self.items.iter() {
+            if let Item {
+                variant: ItemVariant::Type(Type::Contract(contract)),
+                location,
+            } = item
+            {
+                return Some((contract.identifier.to_owned(), location.to_owned()));
             }
         }
+
+        None
     }
 
     ///

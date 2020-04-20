@@ -12,6 +12,7 @@ use crate::syntax::tree::statement::r#fn::Statement as FnStatement;
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
+    is_public: bool,
     identifier: Option<Identifier>,
     argument_bindings: Vec<BindingPattern>,
     return_type: Option<Type>,
@@ -21,6 +22,10 @@ pub struct Builder {
 impl Builder {
     pub fn set_location(&mut self, value: Location) {
         self.location = Some(value);
+    }
+
+    pub fn set_is_public(&mut self) {
+        self.is_public = true;
     }
 
     pub fn set_identifier(&mut self, value: Identifier) {
@@ -46,6 +51,7 @@ impl Builder {
             .unwrap_or_else(|| panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "location"));
         FnStatement::new(
             location,
+            self.is_public,
             self.identifier.take().unwrap_or_else(|| {
                 panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "identifier")
             }),

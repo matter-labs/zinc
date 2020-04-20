@@ -16,9 +16,12 @@ use std::convert::TryFrom;
 use std::fmt;
 
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
+use crate::semantic::scope::item::variant::Variant as ScopeItemVariant;
+use crate::semantic::scope::item::Item as ScopeItem;
+use crate::semantic::scope::Scope;
 use crate::syntax::tree::identifier::Identifier;
 
-use self::access::Field as FieldAccess;
+use self::access::FieldVariant as FieldAccessVariant;
 use self::access::Index as IndexAccess;
 use self::constant::Constant;
 use self::error::Error;
@@ -1174,17 +1177,42 @@ impl Element {
         }
     }
 
-    pub fn field(self, other: Self) -> Result<(Self, FieldAccess), Error> {
+    pub fn field(self, other: Self) -> Result<(Self, FieldAccessVariant), Error> {
+        log::trace!("Executing the field operation");
+
         match self {
             Self::Place(place) => match other {
                 Self::TupleIndex(index) => place
                     .field_tuple(index)
-                    .map(|(place, access)| (Element::Place(place), access))
+                    .map(|(place, access)| {
+                        (Element::Place(place), FieldAccessVariant::Field(access))
+                    })
                     .map_err(Error::Place),
-                Self::Identifier(identifier) => place
-                    .field_structure(identifier.name)
-                    .map(|(place, access)| (Element::Place(place), access))
-                    .map_err(Error::Place),
+                Self::Identifier(identifier) => match place.r#type {
+                    Type::Structure(ref structure) => {
+                        match Scope::resolve_item(structure.scope.to_owned(), &identifier, false) {
+                            Ok(ScopeItem {
+                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                                ..
+                            }) => Ok((
+                                Element::Type(r#type),
+                                FieldAccessVariant::Method(Self::Place(place)),
+                            )),
+                            _ => place
+                                .field_structure(identifier.name)
+                                .map(|(place, access)| {
+                                    (Element::Place(place), FieldAccessVariant::Field(access))
+                                })
+                                .map_err(Error::Place),
+                        }
+                    }
+                    _ => place
+                        .field_structure(identifier.name)
+                        .map(|(place, access)| {
+                            (Element::Place(place), FieldAccessVariant::Field(access))
+                        })
+                        .map_err(Error::Place),
+                },
                 element => Err(Error::OperatorFieldSecondOperandExpectedIdentifier {
                     found: element.to_string(),
                 }),
@@ -1192,12 +1220,35 @@ impl Element {
             Self::Value(value) => match other {
                 Self::TupleIndex(index) => value
                     .field_tuple(index)
-                    .map(|(value, access)| (Element::Value(value), access))
+                    .map(|(value, access)| {
+                        (Element::Value(value), FieldAccessVariant::Field(access))
+                    })
                     .map_err(Error::Value),
-                Self::Identifier(identifier) => value
-                    .field_structure(identifier.name)
-                    .map(|(value, access)| (Element::Value(value), access))
-                    .map_err(Error::Value),
+                Self::Identifier(identifier) => match value.r#type() {
+                    Type::Structure(ref structure) => {
+                        match Scope::resolve_item(structure.scope.to_owned(), &identifier, false) {
+                            Ok(ScopeItem {
+                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                                ..
+                            }) => Ok((
+                                Element::Type(r#type),
+                                FieldAccessVariant::Method(Self::Value(value)),
+                            )),
+                            _ => value
+                                .field_structure(identifier.name)
+                                .map(|(value, access)| {
+                                    (Element::Value(value), FieldAccessVariant::Field(access))
+                                })
+                                .map_err(Error::Value),
+                        }
+                    }
+                    _ => value
+                        .field_structure(identifier.name)
+                        .map(|(value, access)| {
+                            (Element::Value(value), FieldAccessVariant::Field(access))
+                        })
+                        .map_err(Error::Value),
+                },
                 element => Err(Error::OperatorFieldSecondOperandExpectedIdentifier {
                     found: element.to_string(),
                 }),

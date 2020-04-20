@@ -43,10 +43,14 @@ impl Expression {
     }
 
     pub fn push_operand(&mut self, operand: Operand) {
+        log::trace!("Pushing operand {:?}", operand);
+
         self.elements.push(Element::Operand(operand))
     }
 
     pub fn push_operator(&mut self, location: Location, operator: Operator) {
+        log::trace!("Pushing operator {:?}", operator);
+
         self.elements.push(Element::Operator { location, operator })
     }
 

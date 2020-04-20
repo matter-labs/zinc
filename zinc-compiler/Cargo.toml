@@ -10,7 +10,7 @@ description = "The Zinc compiler"
 
 [[bin]]
 name = "znc"
-path = "src/main.rs"
+path = "src/main/mod.rs"
 
 [dependencies]
 log = "0.4"

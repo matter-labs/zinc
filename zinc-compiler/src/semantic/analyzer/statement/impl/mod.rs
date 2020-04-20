@@ -41,10 +41,9 @@ impl Analyzer {
             match Scope::resolve_item(scope_stack.top(), &statement.identifier, true)?.variant {
                 ScopeItemVariant::Type(Type::Structure(inner)) => inner.scope,
                 ScopeItemVariant::Type(Type::Enumeration(inner)) => inner.scope,
-                ScopeItemVariant::Type(Type::Contract(inner)) => inner.scope,
                 item => {
                     return Err(Error::Statement(StatementError::Impl(
-                        ImplStatementError::ExpectedNamespace {
+                        ImplStatementError::ExpectedStructureOrEnumeration {
                             location: identifier_location,
                             found: item.to_string(),
                         },

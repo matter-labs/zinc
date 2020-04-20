@@ -1,0 +1,21 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "witness": "42"
+//#     },
+//#     "expect": "210"
+//# } ] }
+
+struct Data {}
+
+impl Data {
+    const FACTOR: u8 = 5;
+
+    fn test(witness: u8) -> u8 {
+        witness * Self::FACTOR
+    }
+}
+
+fn main(witness: u8) -> u8 {
+    Data::test(witness)
+}

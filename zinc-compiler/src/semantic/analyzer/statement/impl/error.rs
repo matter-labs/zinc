@@ -6,5 +6,5 @@ use crate::lexical::token::location::Location;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    ExpectedNamespace { location: Location, found: String },
+    ExpectedStructureOrEnumeration { location: Location, found: String },
 }

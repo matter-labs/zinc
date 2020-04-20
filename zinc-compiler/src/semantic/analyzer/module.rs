@@ -9,6 +9,7 @@ use std::rc::Rc;
 use crate::error::Error as CompilerError;
 use crate::generator::Tree;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
+use crate::semantic::analyzer::statement::Context as StatementAnalyzerContext;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::Tree as SyntaxTree;
@@ -41,7 +42,7 @@ impl Analyzer {
         let mut analyzer = StatementAnalyzer::new(self.scope_stack.top(), HashMap::new());
         for statement in program.statements.into_iter() {
             if let Some(statement) = analyzer
-                .local_mod(statement)
+                .local_mod(statement, StatementAnalyzerContext::Module)
                 .map_err(CompilerError::Semantic)?
             {
                 intermediate.statements.push(statement);

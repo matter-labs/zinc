@@ -68,7 +68,7 @@ fn main() {}
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Statement(
-        StatementError::Impl(ImplStatementError::ExpectedNamespace {
+        StatementError::Impl(ImplStatementError::ExpectedStructureOrEnumeration {
             location: Location::new(4, 6),
             found: Type::field().to_string(),
         }),
