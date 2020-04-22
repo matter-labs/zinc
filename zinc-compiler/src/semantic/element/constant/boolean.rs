@@ -20,6 +20,14 @@ impl Boolean {
         Self { inner }
     }
 
+    pub fn is_true(&self) -> bool {
+        self.inner
+    }
+
+    pub fn is_false(&self) -> bool {
+        !self.inner
+    }
+
     pub fn r#type(&self) -> Type {
         Type::boolean()
     }

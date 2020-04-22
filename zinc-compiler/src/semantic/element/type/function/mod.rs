@@ -30,7 +30,7 @@ pub enum Function {
     /// These functions are declared in a virtual built-in scope and implemented in the VM
     /// as built-in function calls.
     StandardLibrary(StandardLibraryFunction),
-    /// Ordinar functions declared anywhere within a circuit. There is a special `main` function,
+    /// Ordinar functions declared anywhere within a project. There is a special `main` function,
     /// which is also declared by user, but serves as the circuit entry point.
     UserDefined(UserFunction),
 }

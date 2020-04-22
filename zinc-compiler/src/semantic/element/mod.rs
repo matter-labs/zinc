@@ -1171,6 +1171,15 @@ impl Element {
                     found: element.to_string(),
                 }),
             },
+            Self::Constant(constant) => match other {
+                Self::Constant(index) => constant
+                    .index(index)
+                    .map(|(constant, access)| (Element::Constant(constant), access))
+                    .map_err(Error::Constant),
+                element => Err(Error::OperatorIndexSecondOperandExpectedEvaluable {
+                    found: element.to_string(),
+                }),
+            },
             element => Err(Error::OperatorIndexFirstOperandExpectedPlaceOrEvaluable {
                 found: element.to_string(),
             }),
@@ -1248,6 +1257,51 @@ impl Element {
                             (Element::Value(value), FieldAccessVariant::Field(access))
                         })
                         .map_err(Error::Value),
+                },
+                element => Err(Error::OperatorFieldSecondOperandExpectedIdentifier {
+                    found: element.to_string(),
+                }),
+            },
+            Self::Constant(constant) => match other {
+                Self::TupleIndex(index) => constant
+                    .field_tuple(index)
+                    .map(|(constant, access)| {
+                        (
+                            Element::Constant(constant),
+                            FieldAccessVariant::Field(access),
+                        )
+                    })
+                    .map_err(Error::Constant),
+                Self::Identifier(identifier) => match constant.r#type() {
+                    Type::Structure(ref structure) => {
+                        match Scope::resolve_item(structure.scope.to_owned(), &identifier, false) {
+                            Ok(ScopeItem {
+                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                                ..
+                            }) => Ok((
+                                Element::Type(r#type),
+                                FieldAccessVariant::Method(Self::Constant(constant)),
+                            )),
+                            _ => constant
+                                .field_structure(identifier.name)
+                                .map(|(constant, access)| {
+                                    (
+                                        Element::Constant(constant),
+                                        FieldAccessVariant::Field(access),
+                                    )
+                                })
+                                .map_err(Error::Constant),
+                        }
+                    }
+                    _ => constant
+                        .field_structure(identifier.name)
+                        .map(|(constant, access)| {
+                            (
+                                Element::Constant(constant),
+                                FieldAccessVariant::Field(access),
+                            )
+                        })
+                        .map_err(Error::Constant),
                 },
                 element => Err(Error::OperatorFieldSecondOperandExpectedIdentifier {
                     found: element.to_string(),

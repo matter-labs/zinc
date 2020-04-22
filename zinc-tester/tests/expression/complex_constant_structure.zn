@@ -1,0 +1,21 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "witness": "16"
+//#     },
+//#     "expect": "128"
+//# } ] }
+
+struct Data {
+    a: (u8, u8, u8),
+}
+
+const DATA: [Data; 3] = [
+    Data { a: (1, 2, 3) },
+    Data { a: (3, 4, 5) },
+    Data { a: (7, 8, 9) },
+];
+
+fn main(witness: u8) -> u8 {
+    DATA[2].a.1 * witness
+}

@@ -1,5 +1,5 @@
 //!
-//! The Zargo circuit manager binary.
+//! The Zargo project manager binary.
 //!
 
 mod command;
@@ -18,7 +18,7 @@ const EXIT_CODE_SUCCESS: i32 = 0;
 const EXIT_CODE_FAILURE: i32 = 1;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "zargo", about = "Zinc's circuit manager")]
+#[structopt(name = "zargo", about = "Zinc's project manager")]
 struct Arguments {
     #[structopt(
         short = "v",

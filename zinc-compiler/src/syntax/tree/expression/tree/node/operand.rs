@@ -19,7 +19,7 @@ use crate::syntax::tree::tuple_index::TupleIndex;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Operand {
     /// a unit value `()`
-    Unit,
+    LiteralUnit,
     /// `true` or `false`
     LiteralBoolean(BooleanLiteral),
     /// `42`, `0x101010`, etc.

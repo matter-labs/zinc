@@ -28,20 +28,22 @@ static HINT_ONLY_SOME_STATEMENTS: &str =
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {
-    PubOrNext,
+    KeywordPubOrNext,
+    KeywordConstOrNext,
     Statement,
 }
 
 impl Default for State {
     fn default() -> Self {
-        Self::PubOrNext
+        Self::KeywordPubOrNext
     }
 }
 
 #[derive(Default)]
 pub struct Parser {
     state: State,
-    is_public: bool,
+    keyword_public: Option<Token>,
+    keyword_constant: Option<Token>,
     next: Option<Token>,
 }
 
@@ -56,12 +58,43 @@ impl Parser {
     ) -> Result<(ModLocalStatement, Option<Token>), Error> {
         loop {
             match self.state {
-                State::PubOrNext => {
+                State::KeywordPubOrNext => {
                     match crate::syntax::parser::take_or_next(initial.take(), stream.clone())? {
+                        token
+                        @
                         Token {
                             lexeme: Lexeme::Keyword(Keyword::Pub),
                             ..
-                        } => self.is_public = true,
+                        } => self.keyword_public = Some(token),
+                        token => self.next = Some(token),
+                    }
+
+                    self.state = State::KeywordConstOrNext;
+                    continue;
+                }
+                State::KeywordConstOrNext => {
+                    match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
+                        token
+                        @
+                        Token {
+                            lexeme: Lexeme::Keyword(Keyword::Const),
+                            ..
+                        } => {
+                            let look_ahead = stream.borrow_mut().look_ahead(1)?.to_owned();
+                            if let Token {
+                                lexeme: Lexeme::Keyword(Keyword::Fn),
+                                ..
+                            } = look_ahead
+                            {
+                                self.keyword_constant = Some(token);
+                            } else {
+                                return ConstStatementParser::default()
+                                    .parse(stream.clone(), Some(token))
+                                    .map(|(statement, next)| {
+                                        (ModLocalStatement::Const(statement), next)
+                                    });
+                            }
+                        }
                         token => self.next = Some(token),
                     }
 
@@ -73,14 +106,6 @@ impl Parser {
                         self.next.take(),
                         stream.clone(),
                     )? {
-                        token
-                        @
-                        Token {
-                            lexeme: Lexeme::Keyword(Keyword::Const),
-                            ..
-                        } => ConstStatementParser::default()
-                            .parse(stream.clone(), Some(token))
-                            .map(|(statement, next)| (ModLocalStatement::Const(statement), next)),
                         token
                         @
                         Token {
@@ -114,7 +139,12 @@ impl Parser {
                             let (mut builder, next) =
                                 FnStatementParser::default().parse(stream.clone(), Some(token))?;
 
-                            if self.is_public {
+                            if let Some(token) = self.keyword_constant {
+                                builder.set_location(token.location);
+                                builder.set_is_constant();
+                            }
+                            if let Some(token) = self.keyword_public {
+                                builder.set_location(token.location);
                                 builder.set_is_public();
                             }
 
@@ -198,8 +228,9 @@ mod tests {
 
         let expected = Ok((
             ModLocalStatement::Fn(FnStatement::new(
-                Location::new(1, 5),
+                Location::new(1, 1),
                 true,
+                false,
                 Identifier::new(Location::new(1, 8), "f".to_owned()),
                 vec![BindingPattern::new(
                     Location::new(1, 10),
@@ -211,6 +242,64 @@ mod tests {
                 )],
                 Some(Type::new(Location::new(1, 23), TypeVariant::field())),
                 BlockExpression::new(Location::new(1, 29), vec![], None),
+            )),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_fn_constant() {
+        let input = r#"const fn f(a: field) -> field {}"#;
+
+        let expected = Ok((
+            ModLocalStatement::Fn(FnStatement::new(
+                Location::new(1, 1),
+                false,
+                true,
+                Identifier::new(Location::new(1, 10), "f".to_owned()),
+                vec![BindingPattern::new(
+                    Location::new(1, 12),
+                    BindingPatternVariant::new_binding(
+                        Identifier::new(Location::new(1, 12), "a".to_owned()),
+                        false,
+                    ),
+                    Type::new(Location::new(1, 15), TypeVariant::field()),
+                )],
+                Some(Type::new(Location::new(1, 25), TypeVariant::field())),
+                BlockExpression::new(Location::new(1, 31), vec![], None),
+            )),
+            None,
+        ));
+
+        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn ok_fn_public_constant() {
+        let input = r#"pub const fn f(a: field) -> field {}"#;
+
+        let expected = Ok((
+            ModLocalStatement::Fn(FnStatement::new(
+                Location::new(1, 1),
+                true,
+                true,
+                Identifier::new(Location::new(1, 14), "f".to_owned()),
+                vec![BindingPattern::new(
+                    Location::new(1, 16),
+                    BindingPatternVariant::new_binding(
+                        Identifier::new(Location::new(1, 16), "a".to_owned()),
+                        false,
+                    ),
+                    Type::new(Location::new(1, 19), TypeVariant::field()),
+                )],
+                Some(Type::new(Location::new(1, 29), TypeVariant::field())),
+                BlockExpression::new(Location::new(1, 35), vec![], None),
             )),
             None,
         ));

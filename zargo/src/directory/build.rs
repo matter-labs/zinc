@@ -1,5 +1,5 @@
 //!
-//! The circuit `build` directory.
+//! The project `build` directory.
 //!
 
 use std::fs;

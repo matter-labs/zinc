@@ -1,5 +1,5 @@
 //!
-//! The integer constant element tests.
+//! The constant integer element tests.
 //!
 
 #![cfg(test)]

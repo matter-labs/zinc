@@ -10,7 +10,6 @@ pub mod call;
 pub mod conditional;
 pub mod error;
 pub mod field_index;
-pub mod hint;
 pub mod identifier;
 pub mod list;
 pub mod literal;
@@ -25,11 +24,13 @@ pub mod r#type;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::generator::expression::operand::constant::integer::Integer as GeneratorExpressionIntegerConstant;
 use crate::generator::expression::operand::constant::Constant as GeneratorExpressionConstant;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::lexical::token::location::Location;
+use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::access::FieldVariant as FieldAccessVariant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
@@ -53,7 +54,6 @@ use self::call::r#type::Type as CallType;
 use self::call::Analyzer as CallAnalyzer;
 use self::conditional::Analyzer as ConditionalAnalyzer;
 use self::field_index::Analyzer as TupleIndexAnalyzer;
-use self::hint::Hint as TranslationHint;
 use self::identifier::Analyzer as IdentifierAnalyzer;
 use self::list::Analyzer as ListAnalyzer;
 use self::literal::Analyzer as LiteralAnalyzer;
@@ -75,6 +75,7 @@ pub struct Analyzer {
     scope_stack: ScopeStack,
     evaluation_stack: EvaluationStack,
     intermediate: GeneratorExpression,
+    rule: TranslationRule,
     next_call_type: CallType,
 }
 
@@ -82,11 +83,12 @@ impl Analyzer {
     ///
     /// Initializes a new analyzer with access to the `scope`.
     ///
-    pub fn new(scope: Rc<RefCell<Scope>>) -> Self {
+    pub fn new(scope: Rc<RefCell<Scope>>, rule: TranslationRule) -> Self {
         Self {
             scope_stack: ScopeStack::new(scope),
             evaluation_stack: EvaluationStack::new(),
             intermediate: GeneratorExpression::new(),
+            rule,
             next_call_type: CallType::Normal,
         }
     }
@@ -103,16 +105,15 @@ impl Analyzer {
     pub fn analyze(
         mut self,
         tree: ExpressionTree,
-        hint: TranslationHint,
     ) -> Result<(Element, GeneratorExpression), Error> {
         log::trace!("Analyzing an expression tree");
 
-        let (element, intermediate) = self.traverse(tree, hint)?;
+        let (element, intermediate) = self.traverse(tree, self.rule)?;
         if let Some(intermediate) = intermediate {
             self.intermediate.push_operand(intermediate)
         }
 
-        if let (Element::Place(place), TranslationHint::Value) = (&element, hint) {
+        if let (Element::Place(place), TranslationRule::Value) = (&element, self.rule) {
             self.intermediate
                 .push_operand(GeneratorExpressionOperand::Place(place.to_owned().into()))
         }
@@ -133,7 +134,7 @@ impl Analyzer {
     pub fn traverse(
         &mut self,
         tree: ExpressionTree,
-        hint: TranslationHint,
+        rule: TranslationRule,
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
         log::trace!("Traversing an expression tree");
 
@@ -144,7 +145,7 @@ impl Analyzer {
                 return Self::evaluate(
                     self.scope_stack.top(),
                     StackElement::NotEvaluated(operand),
-                    hint,
+                    rule,
                 );
             }
             ExpressionTreeNode::Operator(operator) => {
@@ -152,8 +153,8 @@ impl Analyzer {
 
                 match operator {
                     ExpressionOperator::Assignment => {
-                        self.left_global(tree.left, operator)?;
-                        let expression = self.right_global(tree.right, operator)?;
+                        self.left_global(tree.left, operator, rule)?;
+                        let expression = self.right_global(tree.right, operator, rule)?;
                         let (place, _operator) = self.assignment(Element::assign, tree.location)?;
                         self.intermediate.push_operator(
                             tree.location,
@@ -164,8 +165,8 @@ impl Analyzer {
                         );
                     }
                     ExpressionOperator::AssignmentBitwiseOr => {
-                        self.left_global(tree.left, operator)?;
-                        let expression = self.right_global(tree.right, operator)?;
+                        self.left_global(tree.left, operator, rule)?;
+                        let expression = self.right_global(tree.right, operator, rule)?;
                         let (place, operator) =
                             self.assignment(Element::assign_bitwise_or, tree.location)?;
                         self.intermediate.push_operator(
@@ -178,8 +179,8 @@ impl Analyzer {
                         );
                     }
                     ExpressionOperator::AssignmentBitwiseXor => {
-                        self.left_global(tree.left, operator)?;
-                        let expression = self.right_global(tree.right, operator)?;
+                        self.left_global(tree.left, operator, rule)?;
+                        let expression = self.right_global(tree.right, operator, rule)?;
                         let (place, operator) =
                             self.assignment(Element::assign_bitwise_xor, tree.location)?;
                         self.intermediate.push_operator(
@@ -192,8 +193,8 @@ impl Analyzer {
                         );
                     }
                     ExpressionOperator::AssignmentBitwiseAnd => {
-                        self.left_global(tree.left, operator)?;
-                        let expression = self.right_global(tree.right, operator)?;
+                        self.left_global(tree.left, operator, rule)?;
+                        let expression = self.right_global(tree.right, operator, rule)?;
                         let (place, operator) =
                             self.assignment(Element::assign_bitwise_and, tree.location)?;
                         self.intermediate.push_operator(
@@ -206,8 +207,8 @@ impl Analyzer {
                         );
                     }
                     ExpressionOperator::AssignmentBitwiseShiftLeft => {
-                        self.left_global(tree.left, operator)?;
-                        let expression = self.right_global(tree.right, operator)?;
+                        self.left_global(tree.left, operator, rule)?;
+                        let expression = self.right_global(tree.right, operator, rule)?;
                         let (place, operator) =
                             self.assignment(Element::assign_bitwise_shift_left, tree.location)?;
                         self.intermediate.push_operator(
@@ -220,8 +221,8 @@ impl Analyzer {
                         );
                     }
                     ExpressionOperator::AssignmentBitwiseShiftRight => {
-                        self.left_global(tree.left, operator)?;
-                        let expression = self.right_global(tree.right, operator)?;
+                        self.left_global(tree.left, operator, rule)?;
+                        let expression = self.right_global(tree.right, operator, rule)?;
                         let (place, operator) =
                             self.assignment(Element::assign_bitwise_shift_right, tree.location)?;
                         self.intermediate.push_operator(
@@ -234,8 +235,8 @@ impl Analyzer {
                         );
                     }
                     ExpressionOperator::AssignmentAddition => {
-                        self.left_global(tree.left, operator)?;
-                        let expression = self.right_global(tree.right, operator)?;
+                        self.left_global(tree.left, operator, rule)?;
+                        let expression = self.right_global(tree.right, operator, rule)?;
                         let (place, operator) =
                             self.assignment(Element::assign_add, tree.location)?;
                         self.intermediate.push_operator(
@@ -248,8 +249,8 @@ impl Analyzer {
                         );
                     }
                     ExpressionOperator::AssignmentSubtraction => {
-                        self.left_global(tree.left, operator)?;
-                        let expression = self.right_global(tree.right, operator)?;
+                        self.left_global(tree.left, operator, rule)?;
+                        let expression = self.right_global(tree.right, operator, rule)?;
                         let (place, operator) =
                             self.assignment(Element::assign_subtract, tree.location)?;
                         self.intermediate.push_operator(
@@ -262,8 +263,8 @@ impl Analyzer {
                         );
                     }
                     ExpressionOperator::AssignmentMultiplication => {
-                        self.left_global(tree.left, operator)?;
-                        let expression = self.right_global(tree.right, operator)?;
+                        self.left_global(tree.left, operator, rule)?;
+                        let expression = self.right_global(tree.right, operator, rule)?;
                         let (place, operator) =
                             self.assignment(Element::assign_multiply, tree.location)?;
                         self.intermediate.push_operator(
@@ -276,8 +277,8 @@ impl Analyzer {
                         );
                     }
                     ExpressionOperator::AssignmentDivision => {
-                        self.left_global(tree.left, operator)?;
-                        let expression = self.right_global(tree.right, operator)?;
+                        self.left_global(tree.left, operator, rule)?;
+                        let expression = self.right_global(tree.right, operator, rule)?;
                         let (place, operator) =
                             self.assignment(Element::assign_divide, tree.location)?;
                         self.intermediate.push_operator(
@@ -290,8 +291,8 @@ impl Analyzer {
                         );
                     }
                     ExpressionOperator::AssignmentRemainder => {
-                        self.left_global(tree.left, operator)?;
-                        let expression = self.right_global(tree.right, operator)?;
+                        self.left_global(tree.left, operator, rule)?;
+                        let expression = self.right_global(tree.right, operator, rule)?;
                         let (place, operator) =
                             self.assignment(Element::assign_remainder, tree.location)?;
                         self.intermediate.push_operator(
@@ -305,8 +306,8 @@ impl Analyzer {
                     }
 
                     ExpressionOperator::Range => {
-                        let _intermediate = self.left_global(tree.left, operator)?;
-                        let _intermediate = self.right_global(tree.right, operator)?;
+                        let _intermediate = self.left_global(tree.left, operator, rule)?;
+                        let _intermediate = self.right_global(tree.right, operator, rule)?;
 
                         let intermediate = self.range(Element::range, tree.location)?;
 
@@ -316,8 +317,8 @@ impl Analyzer {
                         };
                     }
                     ExpressionOperator::RangeInclusive => {
-                        let _intermediate = self.left_global(tree.left, operator)?;
-                        let _intermediate = self.right_global(tree.right, operator)?;
+                        let _intermediate = self.left_global(tree.left, operator, rule)?;
+                        let _intermediate = self.right_global(tree.right, operator, rule)?;
                         let intermediate = self.range(Element::range_inclusive, tree.location)?;
 
                         return match self.evaluation_stack.pop() {
@@ -327,130 +328,130 @@ impl Analyzer {
                     }
 
                     ExpressionOperator::Or => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::or, tree.location)?;
                     }
                     ExpressionOperator::Xor => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::xor, tree.location)?;
                     }
                     ExpressionOperator::And => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::and, tree.location)?;
                     }
 
                     ExpressionOperator::Equals => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::equals, tree.location)?;
                     }
                     ExpressionOperator::NotEquals => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::not_equals, tree.location)?;
                     }
                     ExpressionOperator::GreaterEquals => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::greater_equals, tree.location)?;
                     }
                     ExpressionOperator::LesserEquals => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::lesser_equals, tree.location)?;
                     }
                     ExpressionOperator::Greater => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::greater, tree.location)?;
                     }
                     ExpressionOperator::Lesser => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::lesser, tree.location)?;
                     }
 
                     ExpressionOperator::BitwiseOr => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::bitwise_or, tree.location)?;
                     }
                     ExpressionOperator::BitwiseXor => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::bitwise_xor, tree.location)?;
                     }
                     ExpressionOperator::BitwiseAnd => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::bitwise_and, tree.location)?;
                     }
                     ExpressionOperator::BitwiseShiftLeft => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::bitwise_shift_left, tree.location)?;
                     }
                     ExpressionOperator::BitwiseShiftRight => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::bitwise_shift_right, tree.location)?;
                     }
 
                     ExpressionOperator::Addition => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::add, tree.location)?;
                     }
                     ExpressionOperator::Subtraction => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::subtract, tree.location)?;
                     }
                     ExpressionOperator::Multiplication => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::multiply, tree.location)?;
                     }
                     ExpressionOperator::Division => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::divide, tree.location)?;
                     }
                     ExpressionOperator::Remainder => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.binary(Element::remainder, tree.location)?;
                     }
 
                     ExpressionOperator::Casting => {
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.casting(tree.location)?;
                     }
 
                     ExpressionOperator::Not => {
-                        self.left_local(tree.left, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
                         self.unary(Element::not, tree.location)?;
                     }
 
                     ExpressionOperator::BitwiseNot => {
-                        self.left_local(tree.left, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
                         self.unary(Element::bitwise_not, tree.location)?;
                     }
 
                     ExpressionOperator::Negation => {
-                        self.left_local(tree.left, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
                         self.unary(Element::negate, tree.location)?;
                     }
 
                     ExpressionOperator::Index => {
                         log::trace!("Traversing an expression tree operator index");
 
-                        self.left_local(tree.left, operator)?;
-                        let intermediate = self.right_global(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        let intermediate = self.right_global(tree.right, operator, rule)?;
                         let intermediate = self.index(tree.location, intermediate)?;
                         if let Some(intermediate) = intermediate {
                             self.intermediate.push_operator(tree.location, intermediate);
@@ -460,8 +461,8 @@ impl Analyzer {
                     ExpressionOperator::Field => {
                         log::trace!("Traversing an expression tree operator field");
 
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         let intermediate = self.field(tree.location)?;
                         if let Some(intermediate) = intermediate {
                             self.intermediate.push_operator(tree.location, intermediate);
@@ -471,30 +472,30 @@ impl Analyzer {
                     ExpressionOperator::Call => {
                         log::trace!("Traversing an expression tree operator call");
 
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
-                        let operator = self.call(tree.location)?;
-                        self.intermediate.push_operator(tree.location, operator);
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
+                        let intermediate = self.call(tree.location, rule)?;
+                        self.intermediate.push_operator(tree.location, intermediate);
                     }
                     ExpressionOperator::CallBuiltIn => {
                         log::trace!("Traversing an expression tree operator call builtin");
 
                         self.next_call_type = CallType::BuiltIn;
-                        self.left_local(tree.left, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
                     }
 
                     ExpressionOperator::Path => {
                         log::trace!("Traversing an expression tree operator path");
 
-                        self.left_local(tree.left, operator)?;
-                        self.right_local(tree.right, operator)?;
+                        self.left_local(tree.left, operator, rule)?;
+                        self.right_local(tree.right, operator, rule)?;
                         self.path(tree.location)?;
                     }
                 }
             }
         }
 
-        Self::evaluate(self.scope_stack.top(), self.evaluation_stack.pop(), hint)
+        Self::evaluate(self.scope_stack.top(), self.evaluation_stack.pop(), rule)
     }
 
     ///
@@ -506,23 +507,24 @@ impl Analyzer {
         &mut self,
         left: Option<Box<ExpressionTree>>,
         operator: ExpressionOperator,
+        rule: TranslationRule,
     ) -> Result<(), Error> {
         match left {
             Some(left) => {
                 log::trace!("Analyzing a left operand locally: {:?}", left);
-                log::trace!("{:?}", self.evaluation_stack);
 
-                let hint = TranslationHint::first(operator);
-                let (element, intermediate) = self.traverse(*left, hint)?;
+                let rule = TranslationRule::first(operator, rule);
+                let (element, intermediate) = self.traverse(*left, rule)?;
 
                 self.evaluation_stack.push(StackElement::Evaluated(element));
                 if let Some(intermediate) = intermediate {
                     self.intermediate.push_operand(intermediate);
                 }
+
+                Ok(())
             }
             None => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         }
-        Ok(())
     }
 
     ///
@@ -534,22 +536,24 @@ impl Analyzer {
         &mut self,
         right: Option<Box<ExpressionTree>>,
         operator: ExpressionOperator,
+        rule: TranslationRule,
     ) -> Result<(), Error> {
         match right {
             Some(right) => {
                 log::trace!("Analyzing a right operand locally: {:?}", right);
 
-                let hint = TranslationHint::second(operator);
-                let (element, intermediate) = self.traverse(*right, hint)?;
+                let rule = TranslationRule::second(operator, rule);
+                let (element, intermediate) = self.traverse(*right, rule)?;
 
                 self.evaluation_stack.push(StackElement::Evaluated(element));
                 if let Some(intermediate) = intermediate {
                     self.intermediate.push_operand(intermediate);
                 }
+
+                Ok(())
             }
             None => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         }
-        Ok(())
     }
 
     ///
@@ -561,12 +565,13 @@ impl Analyzer {
         &mut self,
         left: Option<Box<ExpressionTree>>,
         operator: ExpressionOperator,
+        rule: TranslationRule,
     ) -> Result<GeneratorExpression, Error> {
         log::trace!("Analyzing a left operand separately");
 
-        let hint = TranslationHint::first(operator);
+        let rule = TranslationRule::first(operator, rule);
         let (element, intermediate) = match left {
-            Some(left) => Self::new(self.scope_stack.top()).analyze(*left, hint)?,
+            Some(left) => Self::new(self.scope_stack.top(), rule).analyze(*left)?,
             None => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         };
         self.evaluation_stack.push(StackElement::Evaluated(element));
@@ -582,12 +587,13 @@ impl Analyzer {
         &mut self,
         right: Option<Box<ExpressionTree>>,
         operator: ExpressionOperator,
+        rule: TranslationRule,
     ) -> Result<GeneratorExpression, Error> {
         log::trace!("Analyzing a right operand separately");
 
-        let hint = TranslationHint::second(operator);
+        let rule = TranslationRule::second(operator, rule);
         let (element, intermediate) = match right {
-            Some(left) => Self::new(self.scope_stack.top()).analyze(*left, hint)?,
+            Some(left) => Self::new(self.scope_stack.top(), rule).analyze(*left)?,
             None => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         };
         self.evaluation_stack.push(StackElement::Evaluated(element));
@@ -610,12 +616,12 @@ impl Analyzer {
         let (operand_2, _) = Self::evaluate(
             self.scope_stack.top(),
             self.evaluation_stack.pop(),
-            TranslationHint::Value,
+            TranslationRule::Value,
         )?;
         let (operand_1, _) = Self::evaluate(
             self.scope_stack.top(),
             self.evaluation_stack.pop(),
-            TranslationHint::Place,
+            TranslationRule::Place,
         )?;
 
         let r#type = Type::from_element(&operand_2, self.scope_stack.top())?;
@@ -661,12 +667,12 @@ impl Analyzer {
         let (operand_2, _) = Self::evaluate(
             self.scope_stack.top(),
             self.evaluation_stack.pop(),
-            TranslationHint::Value,
+            self.rule,
         )?;
         let (operand_1, _) = Self::evaluate(
             self.scope_stack.top(),
             self.evaluation_stack.pop(),
-            TranslationHint::Value,
+            self.rule,
         )?;
 
         let (result, operator) =
@@ -693,12 +699,12 @@ impl Analyzer {
         let (operand_2, _) = Self::evaluate(
             self.scope_stack.top(),
             self.evaluation_stack.pop(),
-            TranslationHint::Value,
+            self.rule,
         )?;
         let (operand_1, _) = Self::evaluate(
             self.scope_stack.top(),
             self.evaluation_stack.pop(),
-            TranslationHint::Value,
+            self.rule,
         )?;
 
         let result =
@@ -708,9 +714,10 @@ impl Analyzer {
             Element::Constant(Constant::RangeInclusive(ref range)) => range.start.to_owned(),
             _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         };
-        let intermediate = GeneratorExpressionOperand::Constant(
-            GeneratorExpressionConstant::new_integer(start, false, crate::BITLENGTH_FIELD),
-        );
+        let intermediate =
+            GeneratorExpressionOperand::Constant(GeneratorExpressionConstant::Integer(
+                GeneratorExpressionIntegerConstant::new(start, false, crate::BITLENGTH_FIELD),
+            ));
 
         self.evaluation_stack.push(StackElement::Evaluated(result));
 
@@ -726,12 +733,12 @@ impl Analyzer {
         let (operand_2, _) = Self::evaluate(
             self.scope_stack.top(),
             self.evaluation_stack.pop(),
-            TranslationHint::Type,
+            TranslationRule::Type,
         )?;
         let (operand_1, _) = Self::evaluate(
             self.scope_stack.top(),
             self.evaluation_stack.pop(),
-            TranslationHint::Value,
+            self.rule,
         )?;
 
         let (result, operator) =
@@ -756,7 +763,7 @@ impl Analyzer {
         let (operand, _) = Self::evaluate(
             self.scope_stack.top(),
             self.evaluation_stack.pop(),
-            TranslationHint::Value,
+            self.rule,
         )?;
 
         let (result, operator) =
@@ -780,12 +787,12 @@ impl Analyzer {
         let (operand_2, _) = Self::evaluate(
             self.scope_stack.top(),
             self.evaluation_stack.pop(),
-            TranslationHint::Value,
+            self.rule,
         )?;
         let (operand_1, _) = Self::evaluate(
             self.scope_stack.top(),
             self.evaluation_stack.pop(),
-            TranslationHint::Place,
+            TranslationRule::Place,
         )?;
 
         let (result, access) = Element::index(operand_1, operand_2.clone())
@@ -839,12 +846,12 @@ impl Analyzer {
         let (operand_2, _) = Self::evaluate(
             self.scope_stack.top(),
             self.evaluation_stack.pop(),
-            TranslationHint::Field,
+            TranslationRule::Field,
         )?;
         let (operand_1, _) = Self::evaluate(
             self.scope_stack.top(),
             self.evaluation_stack.pop(),
-            TranslationHint::Place,
+            TranslationRule::Place,
         )?;
 
         let (result, access) = Element::field(operand_1, operand_2)
@@ -871,7 +878,7 @@ impl Analyzer {
                     let (instance, intermedidate) = Self::evaluate(
                         self.scope_stack.top(),
                         StackElement::Evaluated(Element::Place(instance)),
-                        TranslationHint::Value,
+                        TranslationRule::Value,
                     )?;
 
                     if let Some(instance) = intermedidate {
@@ -894,20 +901,21 @@ impl Analyzer {
     ///
     /// Analyzes the function call operation.
     ///
-    fn call(&mut self, location: Location) -> Result<GeneratorExpressionOperator, Error> {
+    fn call(
+        &mut self,
+        location: Location,
+        rule: TranslationRule,
+    ) -> Result<GeneratorExpressionOperator, Error> {
         log::trace!("Analyzing call");
 
         let call_type = self.next_call_type.take();
 
-        let (operand_2, _intermediate_2) = Self::evaluate(
-            self.scope_stack.top(),
-            self.evaluation_stack.pop(),
-            TranslationHint::Value,
-        )?;
+        let (operand_2, _intermediate_2) =
+            Self::evaluate(self.scope_stack.top(), self.evaluation_stack.pop(), rule)?;
         let (operand_1, _intermediate_1) = Self::evaluate(
             self.scope_stack.top(),
             self.evaluation_stack.pop(),
-            TranslationHint::Type,
+            TranslationRule::Type,
         )?;
 
         let (element, operator) = CallAnalyzer::analyze(
@@ -932,12 +940,12 @@ impl Analyzer {
         let (operand_2, _) = Self::evaluate(
             self.scope_stack.top(),
             self.evaluation_stack.pop(),
-            TranslationHint::Field,
+            TranslationRule::Field,
         )?;
         let (operand_1, _) = Self::evaluate(
             self.scope_stack.top(),
             self.evaluation_stack.pop(),
-            TranslationHint::Path,
+            TranslationRule::Path,
         )?;
 
         let result =
@@ -948,18 +956,18 @@ impl Analyzer {
     }
 
     ///
-    /// Evaluates the element, turning it into the state specified with `hint`.
+    /// Evaluates the element, turning it into the state specified with `rule`.
     ///
     fn evaluate(
         scope: Rc<RefCell<Scope>>,
         element: StackElement,
-        hint: TranslationHint,
+        rule: TranslationRule,
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
         log::trace!("Evaluating operand");
 
         match element {
             StackElement::NotEvaluated(operand) => match operand {
-                ExpressionOperand::Unit => Ok((Element::Constant(Constant::Unit), None)),
+                ExpressionOperand::LiteralUnit => Ok((Element::Constant(Constant::Unit), None)),
                 ExpressionOperand::LiteralBoolean(inner) => LiteralAnalyzer::boolean(inner),
                 ExpressionOperand::LiteralInteger(inner) => LiteralAnalyzer::integer(inner),
                 ExpressionOperand::LiteralString(inner) => {
@@ -969,33 +977,32 @@ impl Analyzer {
                     Ok((TupleIndexAnalyzer::integer(inner)?, None))
                 }
                 ExpressionOperand::Identifier(inner) => {
-                    IdentifierAnalyzer::analyze(scope, inner, hint)
+                    IdentifierAnalyzer::analyze(scope, inner, rule)
                 }
                 ExpressionOperand::Type(inner) => Ok((TypeAnalyzer::analyze(scope, inner)?, None)),
-                ExpressionOperand::Array(inner) => ArrayAnalyzer::analyze(scope, inner)
-                    .map(|(element, intermediate)| (element, Some(intermediate))),
-                ExpressionOperand::Tuple(inner) => TupleAnalyzer::analyze(scope, inner)
-                    .map(|(element, intermediate)| (element, Some(intermediate))),
-                ExpressionOperand::Structure(inner) => StructureAnalyzer::analyze(scope, inner)
-                    .map(|(element, intermediate)| (element, Some(intermediate))),
-                ExpressionOperand::List(inner) => ListAnalyzer::analyze(scope, inner)
+                ExpressionOperand::Array(inner) => ArrayAnalyzer::analyze(scope, inner, rule),
+                ExpressionOperand::Tuple(inner) => TupleAnalyzer::analyze(scope, inner, rule),
+                ExpressionOperand::Structure(inner) => {
+                    StructureAnalyzer::analyze(scope, inner, rule)
+                }
+                ExpressionOperand::List(inner) => ListAnalyzer::analyze(scope, inner, rule)
                     .map(|(element, intermediate)| (element, Some(intermediate))),
                 ExpressionOperand::Block(inner) => {
-                    BlockAnalyzer::analyze(scope, inner).map(|(element, intermediate)| {
+                    BlockAnalyzer::analyze(scope, inner, rule).map(|(element, intermediate)| {
                         (
                             element,
                             Some(GeneratorExpressionOperand::Block(intermediate)),
                         )
                     })
                 }
-                ExpressionOperand::Conditional(inner) => ConditionalAnalyzer::analyze(scope, inner)
-                    .map(|(element, intermediate)| (element, Some(intermediate))),
-                ExpressionOperand::Match(inner) => MatchAnalyzer::analyze(scope, inner)
-                    .map(|(element, intermediate)| (element, Some(intermediate))),
+                ExpressionOperand::Conditional(inner) => {
+                    ConditionalAnalyzer::analyze(scope, inner, rule)
+                }
+                ExpressionOperand::Match(inner) => MatchAnalyzer::analyze(scope, inner, rule),
             },
             StackElement::Evaluated(inner) => match inner {
-                Element::Path(path) => PathTranslator::translate(scope, path, hint),
-                Element::Place(place) => PlaceTranslator::translate(place, hint),
+                Element::Path(path) => PathTranslator::translate(scope, path, rule),
+                Element::Place(place) => PlaceTranslator::translate(place, rule),
                 element => Ok((element, None)),
             },
         }

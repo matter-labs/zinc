@@ -200,6 +200,7 @@ mod tests {
             FnStatement::new(
                 Location::new(1, 1),
                 false,
+                false,
                 Identifier::new(Location::new(1, 4), "f".to_owned()),
                 vec![BindingPattern::new(
                     Location::new(1, 6),
@@ -229,6 +230,7 @@ mod tests {
         let expected = Ok((
             FnStatement::new(
                 Location::new(1, 1),
+                false,
                 false,
                 Identifier::new(Location::new(1, 4), "f".to_owned()),
                 vec![BindingPattern::new(

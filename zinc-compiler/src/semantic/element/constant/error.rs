@@ -3,7 +3,10 @@
 //!
 
 use crate::semantic::casting::error::Error as CastingError;
+use crate::semantic::element::constant::array::error::Error as ArrayConstantError;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
+use crate::semantic::element::constant::structure::error::Error as StructureConstantError;
+use crate::semantic::element::constant::tuple::error::Error as TupleConstantError;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
@@ -79,6 +82,15 @@ pub enum Error {
 
     OperatorNegationExpectedInteger { found: String },
 
+    OperatorIndexFirstOperandExpectedArray { found: String },
+    OperatorIndexSecondOperandExpectedIntegerOrRange { found: String },
+
+    OperatorFieldFirstOperandExpectedTuple { found: String },
+    OperatorFieldFirstOperandExpectedStructure { found: String },
+
     Integer(IntegerConstantError),
+    Array(ArrayConstantError),
+    Tuple(TupleConstantError),
+    Structure(StructureConstantError),
     Casting(CastingError),
 }

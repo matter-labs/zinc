@@ -14,8 +14,8 @@ use num_traits::ToPrimitive;
 
 use crate::generator::statement::loop_for::Statement as GeneratorForLoopStatement;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockAnalyzer;
-use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
+use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::analyzer::statement::error::Error as StatementError;
 use crate::semantic::analyzer::statement::r#for::error::Error as ForStatementError;
 use crate::semantic::element::constant::error::Error as ConstantError;
@@ -46,8 +46,8 @@ impl Analyzer {
         let mut scope_stack = ScopeStack::new(scope);
 
         let (range_start, range_end, index_bitlength, is_index_signed, is_inclusive) =
-            match ExpressionAnalyzer::new(scope_stack.top())
-                .analyze(statement.bounds_expression, TranslationHint::Value)?
+            match ExpressionAnalyzer::new(scope_stack.top(), TranslationRule::Constant)
+                .analyze(statement.bounds_expression)?
             {
                 (Element::Constant(Constant::RangeInclusive(range)), _intermediate) => (
                     range.start,
@@ -84,8 +84,9 @@ impl Analyzer {
 
         let while_condition = if let Some(expression) = statement.while_condition {
             let location = expression.location;
-            let (while_result, while_intermediate) = ExpressionAnalyzer::new(scope_stack.top())
-                .analyze(expression, TranslationHint::Value)?;
+            let (while_result, while_intermediate) =
+                ExpressionAnalyzer::new(scope_stack.top(), TranslationRule::Value)
+                    .analyze(expression)?;
 
             match Type::from_element(&while_result, scope_stack.top())? {
                 Type::Boolean => {}
@@ -104,7 +105,8 @@ impl Analyzer {
             None
         };
 
-        let (_element, body) = BlockAnalyzer::analyze(scope_stack.top(), statement.block)?;
+        let (_element, body) =
+            BlockAnalyzer::analyze(scope_stack.top(), statement.block, TranslationRule::Value)?;
 
         scope_stack.pop();
 

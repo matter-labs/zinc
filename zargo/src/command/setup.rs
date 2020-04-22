@@ -21,11 +21,11 @@ pub struct Command {
     verbosity: usize,
 
     #[structopt(
-        long = "circuit",
-        help = "Path to the circuit binary file",
+        long = "binary",
+        help = "Path to the binary file",
         default_value = "./build/default.znb"
     )]
-    circuit: PathBuf,
+    binary: PathBuf,
 
     #[structopt(
         long = "proving-key",
@@ -52,7 +52,7 @@ impl Command {
     pub fn execute(self) -> Result<(), Error> {
         VirtualMachine::setup(
             self.verbosity,
-            &self.circuit,
+            &self.binary,
             &self.proving_key,
             &self.verifying_key,
         )

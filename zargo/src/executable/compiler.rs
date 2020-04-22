@@ -28,7 +28,7 @@ impl Compiler {
         verbosity: usize,
         witness_path: &PathBuf,
         public_data_path: &PathBuf,
-        circuit_path: &PathBuf,
+        binary_path: &PathBuf,
         source_file_paths: &[PathBuf],
     ) -> Result<(), Error> {
         let mut child = process::Command::new(BINARY_NAME_DEFAULT)
@@ -38,7 +38,7 @@ impl Compiler {
             .arg("--public-data")
             .arg(public_data_path)
             .arg("--output")
-            .arg(circuit_path)
+            .arg(binary_path)
             .args(source_file_paths)
             .spawn()
             .map_err(Error::Spawning)?;

@@ -16,7 +16,7 @@ use crate::manifest::Error as ManifestError;
 use crate::manifest::Manifest;
 
 #[derive(Debug, StructOpt)]
-#[structopt(about = "Cleans up the circuit project")]
+#[structopt(about = "Cleans up the project")]
 pub struct Command {
     #[structopt(
         short = "v",
@@ -47,13 +47,13 @@ impl Command {
     pub fn execute(self) -> Result<(), Error> {
         let _manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
-        let mut circuit_path = self.manifest_path;
-        if circuit_path.is_file() {
-            circuit_path.pop();
+        let mut manifest_path = self.manifest_path;
+        if manifest_path.is_file() {
+            manifest_path.pop();
         }
 
-        BuildDirectory::remove(&circuit_path).map_err(Error::BuildDirectory)?;
-        DataDirectory::remove(&circuit_path).map_err(Error::DataDirectory)?;
+        BuildDirectory::remove(&manifest_path).map_err(Error::BuildDirectory)?;
+        DataDirectory::remove(&manifest_path).map_err(Error::DataDirectory)?;
 
         Ok(())
     }

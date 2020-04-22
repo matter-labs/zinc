@@ -5,7 +5,7 @@
 use std::convert::TryFrom;
 
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
-use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
+use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::place::Place;
 use crate::semantic::element::value::Value;
@@ -16,14 +16,14 @@ pub struct Translator {}
 
 impl Translator {
     ///
-    /// Translates the place expression to a semantic expression type specified in `hint`.
+    /// Translates the place expression to a semantic expression type specified in `rule`.
     ///
     pub fn translate(
         place: Place,
-        hint: TranslationHint,
+        rule: TranslationRule,
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
-        match hint {
-            TranslationHint::Value => {
+        match rule {
+            TranslationRule::Value => {
                 let element = Value::try_from(&place.r#type)
                     .map(Element::Value)
                     .map_err(ElementError::Value)

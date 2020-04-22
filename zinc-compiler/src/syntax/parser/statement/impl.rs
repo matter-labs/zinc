@@ -295,6 +295,7 @@ mod tests {
                 vec![ImplementationLocalStatement::Fn(FnStatement::new(
                     Location::new(3, 9),
                     false,
+                    false,
                     Identifier::new(Location::new(3, 12), "f".to_owned()),
                     vec![BindingPattern::new(
                         Location::new(3, 14),
@@ -336,6 +337,7 @@ mod tests {
                     ImplementationLocalStatement::Fn(FnStatement::new(
                         Location::new(3, 9),
                         false,
+                        false,
                         Identifier::new(Location::new(3, 12), "f1".to_owned()),
                         vec![BindingPattern::new(
                             Location::new(3, 15),
@@ -351,6 +353,7 @@ mod tests {
                     ImplementationLocalStatement::Fn(FnStatement::new(
                         Location::new(5, 9),
                         false,
+                        false,
                         Identifier::new(Location::new(5, 12), "f2".to_owned()),
                         vec![BindingPattern::new(
                             Location::new(5, 15),
@@ -365,6 +368,7 @@ mod tests {
                     )),
                     ImplementationLocalStatement::Fn(FnStatement::new(
                         Location::new(7, 9),
+                        false,
                         false,
                         Identifier::new(Location::new(7, 12), "f3".to_owned()),
                         vec![BindingPattern::new(
@@ -419,6 +423,7 @@ mod tests {
                     )),
                     ImplementationLocalStatement::Fn(FnStatement::new(
                         Location::new(5, 9),
+                        false,
                         false,
                         Identifier::new(Location::new(5, 12), "f".to_owned()),
                         vec![BindingPattern::new(
@@ -510,6 +515,7 @@ mod tests {
                     ImplementationLocalStatement::Fn(FnStatement::new(
                         Location::new(9, 9),
                         false,
+                        false,
                         Identifier::new(Location::new(9, 12), "f1".to_owned()),
                         vec![BindingPattern::new(
                             Location::new(9, 15),
@@ -525,6 +531,7 @@ mod tests {
                     ImplementationLocalStatement::Fn(FnStatement::new(
                         Location::new(11, 9),
                         false,
+                        false,
                         Identifier::new(Location::new(11, 12), "f2".to_owned()),
                         vec![BindingPattern::new(
                             Location::new(11, 15),
@@ -539,6 +546,7 @@ mod tests {
                     )),
                     ImplementationLocalStatement::Fn(FnStatement::new(
                         Location::new(13, 9),
+                        false,
                         false,
                         Identifier::new(Location::new(13, 12), "f3".to_owned()),
                         vec![BindingPattern::new(

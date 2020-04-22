@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -ex
+set -Cex
 
 # 'error' | 'warn' | 'info' | 'debug' | 'trace'
 case "${1}" in
@@ -60,7 +60,7 @@ cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_L
 
 "${ZARGO_PATH}" proof-check ${LOG_LEVEL} \
     --manifest-path "${CIRCUIT_DIRECTORY}/Zargo.toml" \
-    --circuit "${CIRCUIT_BUILD_DIRECTORY}/default.znb" \
+    --binary "${CIRCUIT_BUILD_DIRECTORY}/default.znb" \
     --witness "${CIRCUIT_DATA_DIRECTORY}/witness.json" \
     --public-data "${CIRCUIT_DATA_DIRECTORY}/public-data.json" \
     --proving-key "${CIRCUIT_DATA_DIRECTORY}/proving-key" \

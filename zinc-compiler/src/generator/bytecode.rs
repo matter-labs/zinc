@@ -174,7 +174,15 @@ impl Bytecode {
 
     pub fn into_bytes(self) -> Vec<u8> {
         for (index, instruction) in self.instructions.iter().enumerate() {
-            log::debug!("{:03} {:?}", index, instruction)
+            match instruction {
+                instruction @ Instruction::FileMarker(_)
+                | instruction @ Instruction::FunctionMarker(_)
+                | instruction @ Instruction::LineMarker(_)
+                | instruction @ Instruction::ColumnMarker(_) => {
+                    log::trace!("{:03} {:?}", index, instruction)
+                }
+                instruction => log::debug!("{:03} {:?}", index, instruction),
+            }
         }
 
         let program = Program::new(

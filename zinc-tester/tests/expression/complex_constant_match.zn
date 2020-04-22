@@ -1,0 +1,26 @@
+//# { "cases": [ {
+//#     "case": "one",
+//#     "input": {
+//#         "witness": "42"
+//#     },
+//#     "expect": "58"
+//# }, {
+//#     "case": "two",
+//#     "input": {
+//#         "witness": "100"
+//#     },
+//#     "expect": "0"
+//# } ] }
+
+const SCRUTINEE: u8 = 42;
+
+const MATCH: u8 = match SCRUTINEE {
+    0 => 10,
+    1 => 20,
+    42 => 100,
+    VALUE => 255 - VALUE,
+};
+
+fn main(witness: u8) -> u8 {
+    MATCH - witness
+}

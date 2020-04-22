@@ -7,13 +7,18 @@ use std::rc::Rc;
 
 use crate::generator::expression::operand::group::builder::Builder as GeneratorGroupExpressionBuilder;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
-use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
+use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
+use crate::semantic::analyzer::rule::Rule as TranslationRule;
+use crate::semantic::element::constant::error::Error as ConstantError;
+use crate::semantic::element::constant::structure::Structure as StructureConstant;
+use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::error::Error as TypeError;
+use crate::semantic::element::r#type::structure::Structure as StructureType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::error::Error as ValueError;
-use crate::semantic::element::value::structure::Structure;
+use crate::semantic::element::value::structure::Structure as StructureValue;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
@@ -32,13 +37,12 @@ impl Analyzer {
     pub fn analyze(
         scope: Rc<RefCell<Scope>>,
         structure: StructureExpression,
-    ) -> Result<(Element, GeneratorExpressionOperand), Error> {
+        rule: TranslationRule,
+    ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
         let identifier_location = structure.identifier.location;
 
-        let mut builder = GeneratorGroupExpressionBuilder::default();
-
-        let structure_type_item = Scope::resolve_item(scope.clone(), &structure.identifier, true)?;
-        let structure_type = match structure_type_item.variant {
+        let type_item = Scope::resolve_item(scope.clone(), &structure.identifier, true)?;
+        let r#type = match type_item.variant {
             ScopeItemVariant::Type(Type::Structure(structure)) => structure,
             item => {
                 return Err(Error::Element(
@@ -49,14 +53,36 @@ impl Analyzer {
                 ));
             }
         };
-        let mut result = Structure::new(structure_type);
+
+        match rule {
+            TranslationRule::Constant => {
+                Self::constant(scope, structure, r#type).map(|element| (element, None))
+            }
+            _rule => Self::value(scope, structure, r#type)
+                .map(|(element, intermediate)| (element, Some(intermediate))),
+        }
+    }
+
+    ///
+    /// Returns the runtime structure value semantic element and intermediate representation.
+    ///
+    fn value(
+        scope: Rc<RefCell<Scope>>,
+        structure: StructureExpression,
+        r#type: StructureType,
+    ) -> Result<(Element, GeneratorExpressionOperand), Error> {
+        let mut builder = GeneratorGroupExpressionBuilder::default();
+
+        let mut result = StructureValue::new(r#type);
 
         for (identifier, expression) in structure.fields.into_iter() {
             let identifier_location = identifier.location;
 
-            let (element, expression) = ExpressionAnalyzer::new(scope.clone())
-                .analyze(expression, TranslationHint::Value)?;
+            let (element, expression) =
+                ExpressionAnalyzer::new(scope.clone(), TranslationRule::Value)
+                    .analyze(expression)?;
             let element_type = Type::from_element(&element, scope.clone())?;
+
             result
                 .push(identifier.name, element_type.clone())
                 .map_err(|error| {
@@ -73,5 +99,45 @@ impl Analyzer {
         let intermediate = GeneratorExpressionOperand::Group(builder.finish());
 
         Ok((element, intermediate))
+    }
+
+    ///
+    /// Returns the constant structure semantic element.
+    ///
+    fn constant(
+        scope: Rc<RefCell<Scope>>,
+        structure: StructureExpression,
+        r#type: StructureType,
+    ) -> Result<Element, Error> {
+        let mut result = StructureConstant::new(r#type);
+
+        for (identifier, expression) in structure.fields.into_iter() {
+            let expression_location = expression.location;
+            let identifier_location = identifier.location;
+
+            let (element, _) = ExpressionAnalyzer::new(scope.clone(), TranslationRule::Constant)
+                .analyze(expression)?;
+
+            match element {
+                Element::Constant(constant) => {
+                    result.push(identifier.name, constant).map_err(|error| {
+                        Error::Element(
+                            identifier_location,
+                            ElementError::Constant(ConstantError::Structure(error)),
+                        )
+                    })?
+                }
+                element => {
+                    return Err(Error::Expression(ExpressionError::NonConstantElement {
+                        location: expression_location,
+                        found: element.to_string(),
+                    }))
+                }
+            }
+        }
+
+        let element = Element::Constant(Constant::Structure(result));
+
+        Ok(element)
     }
 }

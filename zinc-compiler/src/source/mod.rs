@@ -65,11 +65,17 @@ impl TryFrom<Vec<PathBuf>> for Source {
         let mut modules = Vec::with_capacity(source_paths.len());
         let mut entry = None;
 
-        for source_file_path in source_paths.into_iter() {
+        let source_paths_count = source_paths.len();
+        for (index, source_file_path) in source_paths.into_iter().enumerate() {
             let file = File::try_from(&source_file_path)
                 .map_err(|error| Error::File(source_file_path.into_os_string(), error))?;
 
             if file.name == MODULE_MAIN_NAME {
+                entry = Some(file);
+                continue;
+            }
+
+            if entry.is_none() && index == source_paths_count - 1 {
                 entry = Some(file);
                 continue;
             }

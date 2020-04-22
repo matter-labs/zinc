@@ -1,0 +1,19 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "witness": "42"
+//#     },
+//#     "expect": "158"
+//# } ] }
+
+const SCRUTINEE: u8 = 42;
+
+const CONIDITIONAL: u8 = if SCRUTINEE == 69 {
+    100
+} else {
+    200
+};
+
+fn main(witness: u8) -> u8 {
+    CONIDITIONAL - witness
+}

@@ -2,6 +2,8 @@
 //! The Zargo manifest.
 //!
 
+pub mod project_type;
+
 use std::convert::TryFrom;
 use std::fs::File;
 use std::io;
@@ -12,16 +14,20 @@ use std::path::PathBuf;
 use failure::Fail;
 use serde_derive::Deserialize;
 
+use crate::manifest::project_type::ProjectType;
+
 pub static FILE_NAME_DEFAULT: &str = "Zargo.toml";
+pub static PROJECT_VERSION_DEFAULT: &str = "0.1.0";
 
 #[derive(Deserialize)]
 pub struct Manifest {
-    pub circuit: Circuit,
+    pub project: Project,
 }
 
 #[derive(Deserialize)]
-pub struct Circuit {
+pub struct Project {
     pub name: String,
+    pub r#type: ProjectType,
     pub version: String,
 }
 
@@ -42,11 +48,12 @@ pub enum Error {
 }
 
 impl Manifest {
-    pub fn new(circuit_name: &str) -> Self {
+    pub fn new(project_name: &str, project_type: ProjectType) -> Self {
         Self {
-            circuit: Circuit {
-                name: circuit_name.to_owned(),
-                version: "0.1.0".to_owned(),
+            project: Project {
+                name: project_name.to_owned(),
+                r#type: project_type,
+                version: PROJECT_VERSION_DEFAULT.to_owned(),
             },
         }
     }
@@ -73,11 +80,12 @@ impl Manifest {
 
     fn template(&self) -> String {
         format!(
-            r#"[circuit]
+            r#"[project]
 name = "{}"
-version = "0.1.0"
+type = "{}"
+version = "{}"
 "#,
-            self.circuit.name
+            self.project.name, self.project.r#type, self.project.version,
         )
     }
 }

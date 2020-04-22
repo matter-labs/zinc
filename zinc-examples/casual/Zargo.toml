@@ -1,3 +1,4 @@
-[circuit]
+[project]
 name = "casual"
+type = "circuit"
 version = "0.1.0"

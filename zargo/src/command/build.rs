@@ -20,7 +20,7 @@ use crate::manifest::Error as ManifestError;
 use crate::manifest::Manifest;
 
 #[derive(Debug, StructOpt)]
-#[structopt(about = "Builds the circuit at the given path")]
+#[structopt(about = "Builds the project at the given path")]
 pub struct Command {
     #[structopt(
         short = "v",
@@ -37,11 +37,11 @@ pub struct Command {
     manifest_path: PathBuf,
 
     #[structopt(
-        long = "circuit",
-        help = "Path to the circuit binary file",
+        long = "binary",
+        help = "Path to the binary file",
         default_value = "./build/default.znb"
     )]
-    circuit: PathBuf,
+    binary: PathBuf,
 
     #[structopt(
         long = "witness",
@@ -76,22 +76,22 @@ impl Command {
     pub fn execute(self) -> Result<(), Error> {
         let _manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
-        let mut circuit_path = self.manifest_path.clone();
-        if circuit_path.is_file() {
-            circuit_path.pop();
+        let mut manifest_path = self.manifest_path.clone();
+        if manifest_path.is_file() {
+            manifest_path.pop();
         }
 
         let source_file_paths =
-            SourceDirectory::files(&circuit_path).map_err(Error::SourceDirectory)?;
+            SourceDirectory::files(&manifest_path).map_err(Error::SourceDirectory)?;
 
-        BuildDirectory::create(&circuit_path).map_err(Error::BuildDirectory)?;
-        DataDirectory::create(&circuit_path).map_err(Error::DataDirectory)?;
+        BuildDirectory::create(&manifest_path).map_err(Error::BuildDirectory)?;
+        DataDirectory::create(&manifest_path).map_err(Error::DataDirectory)?;
 
         Compiler::build(
             self.verbosity,
             &self.witness,
             &self.public_data,
-            &self.circuit,
+            &self.binary,
             &source_file_paths,
         )
         .map_err(Error::Compiler)?;

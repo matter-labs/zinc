@@ -72,8 +72,9 @@ impl Tuple {
         }
 
         let sliced_type = self.element_types[tuple_index].clone();
+        let element_size = sliced_type.size();
 
-        let access = FieldAccess::new(index, offset, sliced_type.size(), total_size);
+        let access = FieldAccess::new(index, offset, element_size, total_size);
 
         Ok((
             Value::try_from(&sliced_type).expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),

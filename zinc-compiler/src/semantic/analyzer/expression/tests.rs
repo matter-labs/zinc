@@ -4,32 +4,386 @@
 
 #![cfg(test)]
 
-use std::convert::TryFrom;
-
 use crate::error::Error;
 use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::value::Value;
-use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
+use crate::semantic::scope::item::variant::variable::Variable as ScopeVariableItem;
+use crate::semantic::scope::item::variant::Variant as ScopeItemVariant;
 
 #[test]
-fn error_non_const_element() {
+fn ok_constant_element_simple() {
+    let input = r#"
+fn main() {
+    const CONSTANT: u8 = 42;
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_constant_element_complex() {
+    let input = r#"
+fn main() {
+    const INNER_1: u8 = 5;
+    const INNER_2: u8 = 3;
+    const INNER_3: u8 = 42;
+    const INNER_4: u8 = 2;
+
+    const CONSTANT: u8 = INNER_1 * INNER_2 + INNER_3 / INNER_4;
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_constant_element_block() {
+    let input = r#"
+fn main() {
+    const INNER_1: u8 = 5;
+    const INNER_2: u8 = 3;
+    const INNER_3: u8 = 42;
+    const INNER_4: u8 = 2;
+
+    const CONSTANT: u8 = {
+        INNER_1 * INNER_2 + INNER_3 / INNER_4
+    };
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_constant_element_conditional() {
+    let input = r#"
+fn main() {
+    const INNER_1: u8 = 5;
+    const INNER_2: u8 = 3;
+    const INNER_3: u8 = 42;
+    const INNER_4: u8 = 2;
+
+    const CONSTANT: u8 = if true {
+        INNER_1 * INNER_2 + INNER_3 / INNER_4
+    } else {
+        69
+    };
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn ok_constant_element_match() {
+    let input = r#"
+fn main() {
+    const INNER_1: u8 = 5;
+    const INNER_2: u8 = 3;
+    const INNER_3: u8 = 42;
+    const INNER_4: u8 = 2;
+
+    const CONSTANT: u8 = match 42 {
+        42 => INNER_1 * INNER_2 + INNER_3 / INNER_4,
+        _ => 69,
+    };
+}
+"#;
+
+    assert!(crate::semantic::tests::compile_entry(input).is_ok());
+}
+
+#[test]
+fn error_non_constant_element_simple() {
     let input = r#"
 fn main() {
     let variable = 42;
+
     const CONSTANT: u8 = variable;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::NonConstantElement {
-            location: Location::new(4, 26),
-            found: Element::Value(
-                Value::try_from(&Type::integer_unsigned(crate::BITLENGTH_BYTE))
-                    .expect(crate::panic::TEST_DATA),
-            )
+            location: Location::new(5, 26),
+            found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                false,
+                Type::integer_unsigned(crate::BITLENGTH_BYTE),
+            ))
+            .to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_non_constant_element_complex() {
+    let input = r#"
+fn main() {
+    let variable = 42;
+
+    const INNER_1: u8 = 5;
+    const INNER_2: u8 = 3;
+    const INNER_3: u8 = 42;
+    const INNER_4: u8 = 2;
+
+    const CONSTANT: u8 = INNER_1 * INNER_2 + variable - INNER_3 / INNER_4;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Expression(
+        ExpressionError::NonConstantElement {
+            location: Location::new(10, 46),
+            found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                false,
+                Type::integer_unsigned(crate::BITLENGTH_BYTE),
+            ))
+            .to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_non_constant_element_block() {
+    let input = r#"
+fn main() {
+    let variable = 42;
+
+    const INNER_1: u8 = 5;
+    const INNER_2: u8 = 3;
+    const INNER_3: u8 = 42;
+    const INNER_4: u8 = 2;
+
+    const CONSTANT: u8 = {
+        INNER_1 * INNER_2 + variable - INNER_3 / INNER_4
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Expression(
+        ExpressionError::NonConstantElement {
+            location: Location::new(11, 29),
+            found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                false,
+                Type::integer_unsigned(crate::BITLENGTH_BYTE),
+            ))
+            .to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_non_constant_element_conditional_condition() {
+    let input = r#"
+fn main() {
+    let variable = 42;
+
+    const INNER_1: u8 = 5;
+    const INNER_2: u8 = 3;
+    const INNER_3: u8 = 42;
+    const INNER_4: u8 = 2;
+
+    const CONSTANT: u8 = if variable == 42 {
+        INNER_1 * INNER_2 + INNER_3 / INNER_4
+    } else {
+        69
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Expression(
+        ExpressionError::NonConstantElement {
+            location: Location::new(10, 29),
+            found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                false,
+                Type::integer_unsigned(crate::BITLENGTH_BYTE),
+            ))
+            .to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_non_constant_element_conditional_main_branch() {
+    let input = r#"
+fn main() {
+    let variable = 42;
+
+    const INNER_1: u8 = 5;
+    const INNER_2: u8 = 3;
+    const INNER_3: u8 = 42;
+    const INNER_4: u8 = 2;
+
+    const CONSTANT: u8 = if true {
+        INNER_1 * INNER_2 + variable - INNER_3 / INNER_4
+    } else {
+        69
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Expression(
+        ExpressionError::NonConstantElement {
+            location: Location::new(11, 29),
+            found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                false,
+                Type::integer_unsigned(crate::BITLENGTH_BYTE),
+            ))
+            .to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_non_constant_element_conditional_else_branch() {
+    let input = r#"
+fn main() {
+    let variable = 42;
+
+    const INNER_1: u8 = 5;
+    const INNER_2: u8 = 3;
+    const INNER_3: u8 = 42;
+    const INNER_4: u8 = 2;
+
+    const CONSTANT: u8 = if false {
+        69
+    } else {
+        INNER_1 * INNER_2 + variable - INNER_3 / INNER_4
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Expression(
+        ExpressionError::NonConstantElement {
+            location: Location::new(13, 29),
+            found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                false,
+                Type::integer_unsigned(crate::BITLENGTH_BYTE),
+            ))
+            .to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_non_constant_element_match_scrutinee() {
+    let input = r#"
+fn main() {
+    let variable = 42;
+
+    const INNER_1: u8 = 5;
+    const INNER_2: u8 = 3;
+    const INNER_3: u8 = 42;
+    const INNER_4: u8 = 2;
+
+    const CONSTANT: u8 = match variable {
+        42 => INNER_1 * INNER_2 + INNER_3 / INNER_4,
+        _ => 69,
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Expression(
+        ExpressionError::NonConstantElement {
+            location: Location::new(10, 32),
+            found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                false,
+                Type::integer_unsigned(crate::BITLENGTH_BYTE),
+            ))
+            .to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_non_constant_element_match_branch_ordinar() {
+    let input = r#"
+fn main() {
+    let variable = 42;
+
+    const INNER_1: u8 = 5;
+    const INNER_2: u8 = 3;
+    const INNER_3: u8 = 42;
+    const INNER_4: u8 = 2;
+
+    const CONSTANT: u8 = match 42 {
+        42 => INNER_1 * INNER_2 + variable + INNER_3 / INNER_4,
+        _ => 69,
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Expression(
+        ExpressionError::NonConstantElement {
+            location: Location::new(11, 35),
+            found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                false,
+                Type::integer_unsigned(crate::BITLENGTH_BYTE),
+            ))
+            .to_string(),
+        },
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_non_constant_element_match_branch_wildcard() {
+    let input = r#"
+fn main() {
+    let variable = 42;
+
+    const INNER_1: u8 = 5;
+    const INNER_2: u8 = 3;
+    const INNER_3: u8 = 42;
+    const INNER_4: u8 = 2;
+
+    const CONSTANT: u8 = match 42 {
+        42 => 42,
+        _ => INNER_1 * INNER_2 + variable + INNER_3 / INNER_4,
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Expression(
+        ExpressionError::NonConstantElement {
+            location: Location::new(12, 34),
+            found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                false,
+                Type::integer_unsigned(crate::BITLENGTH_BYTE),
+            ))
             .to_string(),
         },
     )));

@@ -41,7 +41,7 @@ impl Data {
         self.patterns.insert(value, location)
     }
 
-    pub fn is_exhausted_boolean(&self) -> bool {
+    pub fn has_exhausted_boolean(&self) -> bool {
         let mut current = self.patterns.keys().cloned().collect::<Vec<BigInt>>();
         current.sort();
 
@@ -50,7 +50,7 @@ impl Data {
         current == full
     }
 
-    pub fn is_exhausted_integer(&self) -> bool {
+    pub fn has_exhausted_integer(&self) -> bool {
         match self.enumeration_type {
             Some(ref enumeration) => {
                 let mut current = self.patterns.keys().cloned().collect::<Vec<BigInt>>();

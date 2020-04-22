@@ -6,8 +6,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
-use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
+use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
@@ -25,8 +25,9 @@ impl Analyzer {
         let type_location = statement.r#type.location;
         let expression_location = statement.expression.location;
 
-        let (element, _intermediate) = ExpressionAnalyzer::new(scope.clone())
-            .analyze(statement.expression, TranslationHint::Value)?;
+        let (element, _intermediate) =
+            ExpressionAnalyzer::new(scope.clone(), TranslationRule::Constant)
+                .analyze(statement.expression)?;
 
         let const_type = Type::from_type_variant(&statement.r#type.variant, scope.clone())?;
         let (constant, _intermediate) = match element {

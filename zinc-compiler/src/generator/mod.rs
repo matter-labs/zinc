@@ -27,6 +27,7 @@ impl Tree {
 
     pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
         for statement in self.statements.into_iter() {
+            log::info!("{:?}", statement);
             statement.write_all_to_bytecode(bytecode.clone());
         }
     }

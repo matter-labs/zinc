@@ -9,8 +9,8 @@ pub mod error;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
+use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::analyzer::statement::error::Error as StatementError;
 use crate::semantic::analyzer::statement::r#use::error::Error as UseStatementError;
 use crate::semantic::element::Element;
@@ -27,8 +27,8 @@ impl Analyzer {
     pub fn analyze(scope: Rc<RefCell<Scope>>, statement: UseStatement) -> Result<(), Error> {
         let path_location = statement.path.location;
 
-        let path = match ExpressionAnalyzer::new(scope.clone())
-            .analyze(statement.path, TranslationHint::Path)?
+        let path = match ExpressionAnalyzer::new(scope.clone(), TranslationRule::Path)
+            .analyze(statement.path)?
         {
             (Element::Path(path), _intermediate) => path,
             (element, _intermediate) => {

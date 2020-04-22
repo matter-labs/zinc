@@ -16,8 +16,11 @@ use crate::semantic::analyzer::statement::r#for::error::Error as ForStatementErr
 use crate::semantic::analyzer::statement::r#impl::error::Error as ImplStatementError;
 use crate::semantic::analyzer::statement::r#use::error::Error as UseStatementError;
 use crate::semantic::casting::error::Error as CastingError;
+use crate::semantic::element::constant::array::error::Error as ArrayConstantError;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::error::Error as IntegerConstantError;
+use crate::semantic::element::constant::structure::error::Error as StructureConstantError;
+use crate::semantic::element::constant::tuple::error::Error as TupleConstantError;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::place::error::Error as PlaceError;
 use crate::semantic::element::r#type::contract::error::Error as ContractTypeError;
@@ -1193,7 +1196,8 @@ impl Error {
             }
             Self::Semantic(SemanticError::Element(location, ElementError::OperatorIndexFirstOperandExpectedPlaceOrEvaluable{ found })) |
             Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::OperatorIndexFirstOperandExpectedArray{ found }))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorIndexFirstOperandExpectedArray{ found }))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorIndexFirstOperandExpectedArray{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorIndexFirstOperandExpectedArray{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1207,7 +1211,8 @@ impl Error {
             }
             Self::Semantic(SemanticError::Element(location, ElementError::OperatorIndexSecondOperandExpectedEvaluable{ found })) |
             Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::OperatorIndexSecondOperandExpectedIntegerOrRange{ found }))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorIndexSecondOperandExpectedIntegerOrRange{ found }))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorIndexSecondOperandExpectedIntegerOrRange{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorIndexSecondOperandExpectedIntegerOrRange{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1223,7 +1228,9 @@ impl Error {
             Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedTuple{ found }))) |
             Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedStructure{ found }))) |
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorFieldFirstOperandExpectedTuple{ found }))) |
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorFieldFirstOperandExpectedStructure{ found }))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::OperatorFieldFirstOperandExpectedStructure{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorFieldFirstOperandExpectedTuple{ found }))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::OperatorFieldFirstOperandExpectedStructure{ found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1272,7 +1279,8 @@ impl Error {
                 )
             }
 
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::PushingInvalidType { expected, found })))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::PushingInvalidType { expected, found })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Array(ArrayConstantError::PushingInvalidType { expected, found })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1284,7 +1292,20 @@ impl Error {
                     None,
                 )
             }
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Array(ArrayConstantError::IndexOutOfRange { index, size })))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "index `{}` is out of range of the array of size {}",
+                        index, size,
+                    )
+                        .as_str(),
+                    location,
+                    Some("array index must be within the array size"),
+                )
+            }
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::SliceStartOutOfRange { start })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Array(ArrayConstantError::SliceStartOutOfRange { start })))) |
             Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::ArraySliceStartOutOfRange { start }))) => {
                 Self::format_line(
                     context,
@@ -1298,6 +1319,7 @@ impl Error {
                 )
             }
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::SliceEndOutOfRange { end, size })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Array(ArrayConstantError::SliceEndOutOfRange { end, size })))) |
             Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::ArraySliceEndOutOfRange { end, size }))) => {
                 Self::format_line(
                     context,
@@ -1311,6 +1333,7 @@ impl Error {
                 )
             }
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Array(ArrayValueError::SliceEndLesserThanStart { start, end })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Array(ArrayConstantError::SliceEndLesserThanStart { start, end })))) |
             Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::ArraySliceEndLesserThanStart { start, end }))) => {
                 Self::format_line(
                     context,
@@ -1325,6 +1348,7 @@ impl Error {
             }
 
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Tuple(TupleValueError::FieldDoesNotExist { type_identifier, field_index })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Tuple(TupleConstantError::FieldDoesNotExist { type_identifier, field_index })))) |
             Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::TupleFieldDoesNotExist { type_identifier, field_index }))) => {
                 Self::format_line(
                     context,
@@ -1339,6 +1363,7 @@ impl Error {
             }
 
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Structure(StructureValueError::FieldDoesNotExist { type_identifier, field_name })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Structure(StructureConstantError::FieldDoesNotExist { type_identifier, field_name })))) |
             Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::StructureFieldDoesNotExist { type_identifier, field_name }))) => {
                 Self::format_line(
                     context,
@@ -1368,7 +1393,8 @@ impl Error {
                     Some(format!("make this variable mutable: `mut {}`", name).as_str()),
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Structure(StructureValueError::FieldExpected { type_identifier, position, expected, found })))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Structure(StructureValueError::FieldExpected { type_identifier, position, expected, found })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Structure(StructureConstantError::FieldExpected { type_identifier, position, expected, found })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1380,7 +1406,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Structure(StructureValueError::FieldInvalidType { type_identifier, field_name, expected, found })))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Structure(StructureValueError::FieldInvalidType { type_identifier, field_name, expected, found })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Structure(StructureConstantError::FieldInvalidType { type_identifier, field_name, expected, found })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1392,7 +1419,8 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Structure(StructureValueError::FieldOutOfRange { type_identifier, expected, found })))) => {
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Structure(StructureValueError::FieldOutOfRange { type_identifier, expected, found })))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Structure(StructureConstantError::FieldOutOfRange { type_identifier, expected, found })))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -2155,6 +2183,14 @@ impl Error {
                 Self::format_message(
                     "contract is declared beyond the entry file",
                     Some("contracts may be declared only once in the entry file"),
+                )
+            }
+            Self::Semantic(SemanticError::ForbiddenConstantFunction { location }) => {
+                Self::format_line(
+                    context,
+                    "constant functions are temporarily forbidden",
+                    location,
+                    None,
                 )
             }
         }

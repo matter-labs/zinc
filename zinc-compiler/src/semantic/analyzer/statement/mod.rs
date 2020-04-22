@@ -20,8 +20,8 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::generator::statement::Statement as GeneratorStatement;
-use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
+use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::error::Error;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
@@ -100,10 +100,11 @@ impl Analyzer {
                 EnumStatementAnalyzer::analyze(self.scope_stack.top(), statement)?;
                 Ok(None)
             }
-            ModLocalStatement::Fn(statement) => {
-                let intermediate = FnStatementAnalyzer::analyze(self.scope_stack.top(), statement)?;
-                Ok(Some(GeneratorStatement::Function(intermediate)))
-            }
+            ModLocalStatement::Fn(statement) => Ok(FnStatementAnalyzer::analyze(
+                self.scope_stack.top(),
+                statement,
+            )?
+            .map(GeneratorStatement::Function)),
             ModLocalStatement::Mod(statement) => {
                 ModStatementAnalyzer::analyze(
                     self.scope_stack.top(),
@@ -141,6 +142,7 @@ impl Analyzer {
     pub fn local_fn(
         &mut self,
         statement: FunctionLocalStatement,
+        rule: TranslationRule,
     ) -> Result<Option<GeneratorStatement>, Error> {
         match statement {
             FunctionLocalStatement::Let(statement) => {
@@ -158,8 +160,8 @@ impl Analyzer {
                 Ok(Some(GeneratorStatement::Loop(intermediate)))
             }
             FunctionLocalStatement::Expression(expression) => {
-                let (_result, expression) = ExpressionAnalyzer::new(self.scope_stack.top())
-                    .analyze(expression, TranslationHint::Value)?;
+                let (_result, expression) =
+                    ExpressionAnalyzer::new(self.scope_stack.top(), rule).analyze(expression)?;
                 let intermediate = GeneratorStatement::Expression(expression);
                 Ok(Some(intermediate))
             }
@@ -181,10 +183,11 @@ impl Analyzer {
                 ConstStatementAnalyzer::analyze(self.scope_stack.top(), statement)?;
                 Ok(None)
             }
-            ImplementationLocalStatement::Fn(statement) => {
-                let intermediate = FnStatementAnalyzer::analyze(self.scope_stack.top(), statement)?;
-                Ok(Some(GeneratorStatement::Function(intermediate)))
-            }
+            ImplementationLocalStatement::Fn(statement) => Ok(FnStatementAnalyzer::analyze(
+                self.scope_stack.top(),
+                statement,
+            )?
+            .map(GeneratorStatement::Function)),
             ImplementationLocalStatement::Empty(_location) => Ok(None),
         }
     }

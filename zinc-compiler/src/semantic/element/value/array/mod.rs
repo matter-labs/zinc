@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer array element value.
+//! The semantic analyzer array value element.
 //!
 
 mod tests;
@@ -10,7 +10,6 @@ use std::convert::TryFrom;
 use std::fmt;
 
 use num_bigint::BigInt;
-use num_traits::One;
 use num_traits::Signed;
 use num_traits::ToPrimitive;
 
@@ -60,7 +59,7 @@ impl Array {
     }
 
     pub fn push(&mut self, r#type: Type) -> Result<(), Error> {
-        if self.size == 0 {
+        if self.is_empty() {
             self.r#type = r#type;
         } else if r#type != self.r#type {
             return Err(Error::PushingInvalidType {
@@ -74,7 +73,7 @@ impl Array {
     }
 
     pub fn extend(&mut self, r#type: Type, count: usize) -> Result<(), Error> {
-        if self.size == 0 {
+        if self.is_empty() {
             self.r#type = r#type;
         } else if r#type != self.r#type {
             return Err(Error::PushingInvalidType {
@@ -88,7 +87,7 @@ impl Array {
     }
 
     pub fn slice_single(self) -> (Value, IndexAccess) {
-        let access = IndexAccess::new(self.r#type.size(), self.r#type().size());
+        let access = IndexAccess::new(self.r#type.size(), self.r#type().size(), None);
 
         (
             Value::try_from(&self.r#type).expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
@@ -103,12 +102,16 @@ impl Array {
             });
         }
 
-        if end > BigInt::from(self.size) {
-            return Err(Error::SliceEndOutOfRange {
-                end: end.to_string(),
-                size: self.size,
-            });
-        }
+        let start = start
+            .to_usize()
+            .ok_or_else(|| Error::SliceStartOutOfRange {
+                start: start.to_string(),
+            })?;
+
+        let end = end.to_usize().ok_or_else(|| Error::SliceEndOutOfRange {
+            end: end.to_string(),
+            size: self.size,
+        })?;
 
         if end < start {
             return Err(Error::SliceEndLesserThanStart {
@@ -117,21 +120,16 @@ impl Array {
             });
         }
 
-        let start = start
-            .to_usize()
-            .ok_or_else(|| Error::SliceStartOutOfRange {
-                start: start.to_string(),
-            })?;
+        if end > self.size {
+            return Err(Error::SliceEndOutOfRange {
+                end: end.to_string(),
+                size: self.size,
+            });
+        }
 
-        let length =
-            (end.clone() - start)
-                .to_usize()
-                .ok_or_else(|| Error::SliceEndLesserThanStart {
-                    start: start.to_string(),
-                    end: end.to_string(),
-                })?;
+        let length = end - start;
 
-        let access = IndexAccess::new(self.r#type.size() * length, self.r#type().size());
+        let access = IndexAccess::new(self.r#type.size() * length, self.r#type().size(), None);
 
         Ok((Value::Array(Self::new(self.r#type, length)), access))
     }
@@ -147,12 +145,16 @@ impl Array {
             });
         }
 
-        if end >= BigInt::from(self.size) {
-            return Err(Error::SliceEndOutOfRange {
-                end: end.to_string(),
-                size: self.size,
-            });
-        }
+        let start = start
+            .to_usize()
+            .ok_or_else(|| Error::SliceStartOutOfRange {
+                start: start.to_string(),
+            })?;
+
+        let end = end.to_usize().ok_or_else(|| Error::SliceEndOutOfRange {
+            end: end.to_string(),
+            size: self.size,
+        })?;
 
         if end < start {
             return Err(Error::SliceEndLesserThanStart {
@@ -161,20 +163,16 @@ impl Array {
             });
         }
 
-        let start = start
-            .to_usize()
-            .ok_or_else(|| Error::SliceStartOutOfRange {
-                start: start.to_string(),
-            })?;
-
-        let length = (end.clone() - start + BigInt::one())
-            .to_usize()
-            .ok_or_else(|| Error::SliceEndLesserThanStart {
-                start: start.to_string(),
+        if end >= self.size {
+            return Err(Error::SliceEndOutOfRange {
                 end: end.to_string(),
-            })?;
+                size: self.size,
+            });
+        }
 
-        let access = IndexAccess::new(self.r#type.size() * length, self.r#type().size());
+        let length = end - start + 1;
+
+        let access = IndexAccess::new(self.r#type.size() * length, self.r#type().size(), None);
 
         Ok((Value::Array(Self::new(self.r#type, length)), access))
     }

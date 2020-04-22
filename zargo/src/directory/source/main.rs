@@ -2,10 +2,6 @@
 //! The circuit `main.zn` file.
 //!
 
-//!
-//! The Zargo manifest.
-//!
-
 use std::fs::File;
 use std::io;
 use std::io::Write;
@@ -64,7 +60,7 @@ impl Main {
     fn template(&self) -> String {
         format!(
             r#"//!
-//! The '{}' main module.
+//! The '{}' circuit entry.
 //!
 
 fn main(witness: u8) -> u8 {{

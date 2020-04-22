@@ -1567,20 +1567,17 @@ fn main() {
 #[test]
 fn error_operator_index_1st_operand_expected_place_or_evaluable() {
     let input = r#"
+type X = field;
+
 fn main() {
-    5[42];
+    X[42];
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 6),
+        Location::new(5, 6),
         ElementError::OperatorIndexFirstOperandExpectedPlaceOrEvaluable {
-            found: Element::Constant(Constant::Integer(IntegerConstant::new(
-                BigInt::from(5),
-                false,
-                crate::BITLENGTH_BYTE,
-            )))
-            .to_string(),
+            found: Type::field().to_string(),
         },
     )));
 
@@ -1615,20 +1612,17 @@ fn main() {
 #[test]
 fn error_operator_field_1st_operand_expected_place_or_evaluable() {
     let input = r#"
+type X = field;
+
 fn main() {
-    5.data;
+    X.data;
 }
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 6),
+        Location::new(5, 6),
         ElementError::OperatorFieldFirstOperandExpectedPlaceOrEvaluable {
-            found: Element::Constant(Constant::Integer(IntegerConstant::new(
-                BigInt::from(5),
-                false,
-                crate::BITLENGTH_BYTE,
-            )))
-            .to_string(),
+            found: Type::field().to_string(),
         },
     )));
 

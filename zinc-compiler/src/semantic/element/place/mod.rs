@@ -65,14 +65,14 @@ impl Place {
             Element::Value(Value::Integer(..)) => {
                 self.r#type = inner_type;
 
-                let access = IndexAccess::new(inner_type_size, array_size);
+                let access = IndexAccess::new(inner_type_size, array_size, None);
 
                 Ok((self, access))
             }
             Element::Constant(Constant::Integer(_integer)) => {
                 self.r#type = inner_type;
 
-                let access = IndexAccess::new(inner_type_size, array_size);
+                let access = IndexAccess::new(inner_type_size, array_size, None);
 
                 Ok((self, access))
             }
@@ -112,7 +112,7 @@ impl Place {
 
                 self.r#type = Type::array(inner_type, length);
 
-                let access = IndexAccess::new(inner_type_size, array_size);
+                let access = IndexAccess::new(inner_type_size, array_size, None);
 
                 Ok((self, access))
             }
@@ -152,7 +152,7 @@ impl Place {
 
                 self.r#type = Type::array(inner_type, length);
 
-                let access = IndexAccess::new(inner_type_size, array_size);
+                let access = IndexAccess::new(inner_type_size, array_size, None);
 
                 Ok((self, access))
             }

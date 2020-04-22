@@ -6,8 +6,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::generator::statement::declaration::Statement as GeneratorDeclarationStatement;
-use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
+use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
@@ -27,8 +27,8 @@ impl Analyzer {
     ) -> Result<Option<GeneratorDeclarationStatement>, Error> {
         let location = statement.location;
 
-        let (element, expression) = ExpressionAnalyzer::new(scope.clone())
-            .analyze(statement.expression, TranslationHint::Value)?;
+        let (element, expression) = ExpressionAnalyzer::new(scope.clone(), TranslationRule::Value)
+            .analyze(statement.expression)?;
 
         let r#type = if let Some(r#type) = statement.r#type {
             let type_location = r#type.location;

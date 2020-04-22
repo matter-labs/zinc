@@ -4,23 +4,31 @@
 
 mod tests;
 
+pub mod array;
 pub mod boolean;
 pub mod error;
 pub mod integer;
 pub mod range;
 pub mod range_inclusive;
+pub mod structure;
+pub mod tuple;
 
 use std::fmt;
 
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::semantic::casting::Caster;
+use crate::semantic::element::access::Field as FieldAccess;
+use crate::semantic::element::access::Index as IndexAccess;
 use crate::semantic::element::r#type::Type;
 
+use self::array::Array;
 use self::boolean::Boolean;
 use self::error::Error;
 use self::integer::Integer;
 use self::range::Range;
 use self::range_inclusive::RangeInclusive;
+use self::structure::Structure;
+use self::tuple::Tuple;
 
 ///
 /// Constants are parts of a constant expression.
@@ -33,6 +41,9 @@ pub enum Constant {
     Range(Range),
     RangeInclusive(RangeInclusive),
     String(String),
+    Array(Array),
+    Tuple(Tuple),
+    Structure(Structure),
 }
 
 impl Constant {
@@ -44,6 +55,9 @@ impl Constant {
             Self::Range(inner) => inner.r#type(),
             Self::RangeInclusive(inner) => inner.r#type(),
             Self::String(_) => Type::string(),
+            Self::Array(inner) => inner.r#type(),
+            Self::Tuple(inner) => inner.r#type(),
+            Self::Structure(inner) => inner.r#type(),
         }
     }
 
@@ -58,6 +72,11 @@ impl Constant {
             }
             (Self::Range(inner_1), Self::Range(inner_2)) => inner_1.has_the_same_type_as(inner_2),
             (Self::RangeInclusive(inner_1), Self::RangeInclusive(inner_2)) => {
+                inner_1.has_the_same_type_as(inner_2)
+            }
+            (Self::Array(inner_1), Self::Array(inner_2)) => inner_1.has_the_same_type_as(inner_2),
+            (Self::Tuple(inner_1), Self::Tuple(inner_2)) => inner_1.has_the_same_type_as(inner_2),
+            (Self::Structure(inner_1), Self::Structure(inner_2)) => {
                 inner_1.has_the_same_type_as(inner_2)
             }
             _ => false,
@@ -465,6 +484,26 @@ impl Constant {
         }
     }
 
+    pub fn cast(self, to: Type) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
+        let from = self.r#type();
+        Caster::cast(&from, &to).map_err(Error::Casting)?;
+
+        let (is_signed, bitlength) = match to {
+            Type::IntegerUnsigned { bitlength } => (false, bitlength),
+            Type::IntegerSigned { bitlength } => (true, bitlength),
+            Type::Field => (false, crate::BITLENGTH_FIELD),
+            _ => return Ok((self, None)),
+        };
+
+        Ok(match self {
+            Self::Integer(integer) => integer
+                .cast(is_signed, bitlength)
+                .map(|(integer, operator)| (Self::Integer(integer), operator))
+                .map_err(Error::Integer)?,
+            operand => (operand, None),
+        })
+    }
+
     pub fn not(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match self {
             Self::Boolean(constant) => Ok((
@@ -501,24 +540,46 @@ impl Constant {
         }
     }
 
-    pub fn cast(self, to: Type) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
-        let from = self.r#type();
-        Caster::cast(&from, &to).map_err(Error::Casting)?;
+    pub fn index(self, other: Constant) -> Result<(Self, IndexAccess), Error> {
+        match self {
+            Constant::Array(array) => match other {
+                Constant::Integer(integer) => {
+                    array.slice_single(integer.value).map_err(Error::Array)
+                }
+                Constant::Range(range) => array
+                    .slice_range(range.start, range.end)
+                    .map(|(constant, access)| (constant, access))
+                    .map_err(Error::Array),
+                Constant::RangeInclusive(range) => array
+                    .slice_range_inclusive(range.start, range.end)
+                    .map(|(constant, access)| (constant, access))
+                    .map_err(Error::Array),
+                constant => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange {
+                    found: constant.to_string(),
+                }),
+            },
+            constant => Err(Error::OperatorIndexFirstOperandExpectedArray {
+                found: constant.to_string(),
+            }),
+        }
+    }
 
-        let (is_signed, bitlength) = match to {
-            Type::IntegerUnsigned { bitlength } => (false, bitlength),
-            Type::IntegerSigned { bitlength } => (true, bitlength),
-            Type::Field => (false, crate::BITLENGTH_FIELD),
-            _ => return Ok((self, None)),
-        };
+    pub fn field_tuple(self, field_index: usize) -> Result<(Self, FieldAccess), Error> {
+        match self {
+            Constant::Tuple(tuple) => tuple.slice(field_index).map_err(Error::Tuple),
+            constant => Err(Error::OperatorFieldFirstOperandExpectedTuple {
+                found: constant.to_string(),
+            }),
+        }
+    }
 
-        Ok(match self {
-            Self::Integer(integer) => integer
-                .cast(is_signed, bitlength)
-                .map(|(integer, operator)| (Self::Integer(integer), operator))
-                .map_err(Error::Integer)?,
-            operand => (operand, None),
-        })
+    pub fn field_structure(self, field_name: String) -> Result<(Self, FieldAccess), Error> {
+        match self {
+            Constant::Structure(structure) => structure.slice(field_name).map_err(Error::Structure),
+            constant => Err(Error::OperatorFieldFirstOperandExpectedStructure {
+                found: constant.to_string(),
+            }),
+        }
     }
 }
 
@@ -531,6 +592,9 @@ impl fmt::Display for Constant {
             Self::Range(inner) => write!(f, "{}", inner),
             Self::RangeInclusive(inner) => write!(f, "{}", inner),
             Self::String(constant) => write!(f, "string constant '{}'", constant),
+            Self::Array(inner) => write!(f, "{}", inner),
+            Self::Tuple(inner) => write!(f, "{}", inner),
+            Self::Structure(inner) => write!(f, "{}", inner),
         }
     }
 }

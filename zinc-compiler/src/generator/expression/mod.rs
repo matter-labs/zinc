@@ -17,7 +17,7 @@ use zinc_bytecode::data::types::ScalarType;
 use zinc_bytecode::Instruction;
 
 use crate::generator::bytecode::Bytecode;
-use crate::generator::expression::operand::constant::Constant;
+use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::expression::operand::place::Place;
 use crate::lexical::token::location::Location;
 
@@ -304,11 +304,20 @@ impl Expression {
                     ),
 
                     Operator::Index { expression, access } => {
-                        expression.write_all_to_bytecode(bytecode.clone());
-                        bytecode.borrow_mut().push_instruction(
-                            Instruction::Cast(zinc_bytecode::Cast::new(ScalarType::Field)),
-                            Some(location),
-                        );
+                        if let Some(offset) = access.offset {
+                            IntegerConstant::new(
+                                BigInt::from(offset),
+                                false,
+                                crate::BITLENGTH_FIELD,
+                            )
+                            .write_all_to_bytecode(bytecode.clone());
+                        } else {
+                            expression.write_all_to_bytecode(bytecode.clone());
+                            bytecode.borrow_mut().push_instruction(
+                                Instruction::Cast(zinc_bytecode::Cast::new(ScalarType::Field)),
+                                Some(location),
+                            );
+                        }
                         bytecode.borrow_mut().push_instruction(
                             Instruction::Slice(zinc_bytecode::Slice::new(
                                 access.total_size,
@@ -318,7 +327,7 @@ impl Expression {
                         );
                     }
                     Operator::Slice { access } => {
-                        Constant::new_integer(
+                        IntegerConstant::new(
                             BigInt::from(access.offset),
                             false,
                             crate::BITLENGTH_FIELD,

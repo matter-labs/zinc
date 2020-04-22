@@ -9,9 +9,11 @@ use num_bigint::BigInt;
 use crate::error::Error;
 use crate::lexical::token::location::Location;
 use crate::semantic::casting::error::Error as CastingError;
+use crate::semantic::element::constant::array::Array as ArrayConstant;
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
+use crate::semantic::element::constant::tuple::Tuple as TupleConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
@@ -1122,6 +1124,109 @@ fn main() {
         Location::new(3, 17),
         ElementError::Constant(ConstantError::OperatorNegationExpectedInteger {
             found: Constant::Boolean(BooleanConstant::new(true)).to_string(),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_operator_index_1st_operand_expected_array() {
+    let input = r#"
+fn main() {
+    const VALUE: bool = (true, false, true)[1];
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 44),
+        ElementError::Constant(ConstantError::OperatorIndexFirstOperandExpectedArray {
+            found: Constant::Tuple(TupleConstant::new(vec![
+                Constant::Boolean(BooleanConstant::new(true)),
+                Constant::Boolean(BooleanConstant::new(false)),
+                Constant::Boolean(BooleanConstant::new(true)),
+            ]))
+            .to_string(),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_operator_index_2nd_operand_expected_integer_or_range() {
+    let input = r#"
+fn main() {
+    const VALUE: u8 = [1, 2, 3][true];
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 32),
+        ElementError::Constant(
+            ConstantError::OperatorIndexSecondOperandExpectedIntegerOrRange {
+                found: Constant::Boolean(BooleanConstant::new(true)).to_string(),
+            },
+        ),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_operator_field_1st_operand_expected_tuple() {
+    let input = r#"
+fn main() {
+    const VALUE: bool = [true, true, false].1;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 44),
+        ElementError::Constant(ConstantError::OperatorFieldFirstOperandExpectedTuple {
+            found: Constant::Array(ArrayConstant::new(
+                Type::boolean(),
+                vec![
+                    Constant::Boolean(BooleanConstant::new(true)),
+                    Constant::Boolean(BooleanConstant::new(true)),
+                    Constant::Boolean(BooleanConstant::new(false)),
+                ],
+            ))
+            .to_string(),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_operator_field_1st_operand_expected_structure() {
+    let input = r#"
+fn main() {
+    const VALUE: bool = [true, true, false].first;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(3, 44),
+        ElementError::Constant(ConstantError::OperatorFieldFirstOperandExpectedStructure {
+            found: Constant::Array(ArrayConstant::new(
+                Type::boolean(),
+                vec![
+                    Constant::Boolean(BooleanConstant::new(true)),
+                    Constant::Boolean(BooleanConstant::new(true)),
+                    Constant::Boolean(BooleanConstant::new(false)),
+                ],
+            ))
+            .to_string(),
         }),
     )));
 

@@ -1,23 +1,24 @@
 # The Zinc changelog
 
-## Version next
+## Version 0.X.X (2020-XX-XX)
 
 #### Language
 
 - added methods with the by-value `self` instance parameter
 - added the sugar syntax for calling methods via the dot `.` operator
 - allowed the bitwise operations on non-constant and witness values
+- extended constant expressions to include arrays, tuples, structures, blocks, conditionals, and matches
 - implemented simple smart contracts
-- implemented constant array, tuple, and structure expressions
 
 #### Compiler
 
 - fixed the bug where namespace items where resolved from outside the namespace
+- fixed the bug where the type of a match enum variant path pattern was unchecked
 - improved some error messages
 
 #### Zargo
 
-- added the option to create either a circuit or smart contract project
+- generalized for managing smart contract projects
 
 ## Version 0.1.5 (2020-04-07)
 

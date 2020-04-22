@@ -21,8 +21,8 @@ use lazy_static::lazy_static;
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
-use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
+use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
@@ -304,8 +304,8 @@ impl Type {
                 let r#type = Self::from_type_variant(&*inner, scope.clone())?;
 
                 let size_location = size.location;
-                let size = match ExpressionAnalyzer::new(scope)
-                    .analyze(size.to_owned(), TranslationHint::Value)?
+                let size = match ExpressionAnalyzer::new(scope, TranslationRule::Constant)
+                    .analyze(size.to_owned())?
                 {
                     (Element::Constant(Constant::Integer(integer)), _intermediate) => {
                         integer.to_usize().map_err(|error| {
@@ -334,8 +334,8 @@ impl Type {
             }
             TypeVariant::Alias { path } => {
                 let location = path.location;
-                match ExpressionAnalyzer::new(scope)
-                    .analyze(path.to_owned(), TranslationHint::Type)?
+                match ExpressionAnalyzer::new(scope, TranslationRule::Type)
+                    .analyze(path.to_owned())?
                 {
                     (Element::Type(r#type), _intermediate) => r#type,
                     (element, _intermediate) => {

@@ -32,7 +32,7 @@ pub enum Error {
 impl VirtualMachine {
     pub fn run(
         verbosity: usize,
-        circuit_path: &PathBuf,
+        binary_path: &PathBuf,
         witness_path: &PathBuf,
         public_data_path: &PathBuf,
     ) -> Result<(), Error> {
@@ -40,7 +40,7 @@ impl VirtualMachine {
             .args(vec!["-v"; verbosity])
             .arg("run")
             .arg("--circuit")
-            .arg(circuit_path)
+            .arg(binary_path)
             .arg("--input")
             .arg(&witness_path)
             .arg("--output")
@@ -59,7 +59,7 @@ impl VirtualMachine {
 
     pub fn setup(
         verbosity: usize,
-        circuit_path: &PathBuf,
+        binary_path: &PathBuf,
         proving_key_path: &PathBuf,
         verifying_key_path: &PathBuf,
     ) -> Result<(), Error> {
@@ -67,7 +67,7 @@ impl VirtualMachine {
             .args(vec!["-v"; verbosity])
             .arg("setup")
             .arg("--circuit")
-            .arg(&circuit_path)
+            .arg(&binary_path)
             .arg("--proving-key")
             .arg(&proving_key_path)
             .arg("--verifying-key")
@@ -86,7 +86,7 @@ impl VirtualMachine {
 
     pub fn prove(
         verbosity: usize,
-        circuit_path: &PathBuf,
+        binary_path: &PathBuf,
         proving_key_path: &PathBuf,
         witness_path: &PathBuf,
         public_data_path: &PathBuf,
@@ -95,7 +95,7 @@ impl VirtualMachine {
             .args(vec!["-v"; verbosity])
             .arg("prove")
             .arg("--circuit")
-            .arg(&circuit_path)
+            .arg(&binary_path)
             .arg("--proving-key")
             .arg(&proving_key_path)
             .arg("--witness")
@@ -116,7 +116,7 @@ impl VirtualMachine {
 
     pub fn verify(
         verbosity: usize,
-        circuit_path: &PathBuf,
+        binary_path: &PathBuf,
         verifying_key_path: &PathBuf,
         public_data_path: &PathBuf,
     ) -> Result<(), Error> {
@@ -124,7 +124,7 @@ impl VirtualMachine {
             .args(vec!["-v"; verbosity])
             .arg("verify")
             .arg("--circuit")
-            .arg(&circuit_path)
+            .arg(&binary_path)
             .arg("--verifying-key")
             .arg(&verifying_key_path)
             .arg("--public-data")
@@ -143,7 +143,7 @@ impl VirtualMachine {
 
     pub fn prove_and_verify(
         verbosity: usize,
-        circuit_path: &PathBuf,
+        binary_path: &PathBuf,
         witness_path: &PathBuf,
         public_data_path: &PathBuf,
         proving_key_path: &PathBuf,
@@ -153,7 +153,7 @@ impl VirtualMachine {
             .args(vec!["-v"; verbosity])
             .arg("prove")
             .arg("--circuit")
-            .arg(&circuit_path)
+            .arg(&binary_path)
             .arg("--proving-key")
             .arg(&proving_key_path)
             .arg("--witness")
@@ -167,7 +167,7 @@ impl VirtualMachine {
             .args(vec!["-v"; verbosity])
             .arg("verify")
             .arg("--circuit")
-            .arg(&circuit_path)
+            .arg(&binary_path)
             .arg("--verifying-key")
             .arg(&verifying_key_path)
             .arg("--public-data")

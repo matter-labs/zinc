@@ -1,7 +1,8 @@
 //!
-//! The circuit `source` directory.
+//! The project `src` directory.
 //!
 
+pub mod contract;
 pub mod main;
 
 use std::ffi::OsString;

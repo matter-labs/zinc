@@ -305,6 +305,45 @@ fn main() {
 }
 
 #[test]
+fn error_branch_pattern_invalid_enum() {
+    let input = r#"
+enum ListOne {
+    A = 1,
+    B = 2,
+    C = 3,
+}
+
+enum ListTwo {
+    A = 1,
+    B = 2,
+    C = 3,
+}
+
+fn main() {
+    let scrutinee = ListOne::A;
+    let result = match scrutinee {
+        ListOne::A => 10,
+        ListTwo::B => 20,
+        ListOne::C => 30,
+    };
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Expression(
+        ExpressionError::Match(MatchExpressionError::BranchPatternInvalidType {
+            location: Location::new(18, 9),
+            expected: "enum ListOne".to_owned(),
+            found: "enum ListTwo".to_owned(),
+            reference: Location::new(16, 24),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_branch_expression_invalid_type() {
     let input = r#"
 fn main() {

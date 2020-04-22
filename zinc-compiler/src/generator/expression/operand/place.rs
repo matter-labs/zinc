@@ -12,6 +12,7 @@ use zinc_bytecode::data::types::ScalarType;
 use zinc_bytecode::Instruction;
 
 use crate::generator::bytecode::Bytecode;
+use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::expression::operand::constant::Constant;
 use crate::semantic::element::constant::Constant as SemanticConstant;
 use crate::semantic::element::place::element::Element as SemanticPlaceElement;
@@ -29,9 +30,10 @@ pub struct Place {
 impl Place {
     pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
         if !self.elements.is_empty() {
-            Constant::new_integer(BigInt::zero(), false, crate::BITLENGTH_FIELD)
+            IntegerConstant::new(BigInt::zero(), false, crate::BITLENGTH_FIELD)
                 .write_all_to_bytecode(bytecode.clone());
         }
+
         for element in self.elements.into_iter() {
             match element {
                 SemanticPlaceElement::IndexConstant { constant, access } => {
@@ -42,7 +44,7 @@ impl Place {
                         Instruction::Cast(zinc_bytecode::Cast::new(ScalarType::Field)),
                         Some(self.identifier.location),
                     );
-                    Constant::new_integer(
+                    IntegerConstant::new(
                         BigInt::from(access.element_size),
                         false,
                         crate::BITLENGTH_FIELD,
@@ -63,7 +65,7 @@ impl Place {
                         Instruction::Cast(zinc_bytecode::Cast::new(ScalarType::Field)),
                         Some(self.identifier.location),
                     );
-                    Constant::new_integer(
+                    IntegerConstant::new(
                         BigInt::from(access.element_size),
                         false,
                         crate::BITLENGTH_FIELD,
@@ -79,7 +81,7 @@ impl Place {
                     );
                 }
                 SemanticPlaceElement::IndexRange { start, access, .. } => {
-                    Constant::new_integer(
+                    IntegerConstant::new(
                         start * BigInt::from(access.element_size),
                         false,
                         crate::BITLENGTH_FIELD,
@@ -91,7 +93,7 @@ impl Place {
                     );
                 }
                 SemanticPlaceElement::IndexRangeInclusive { start, access, .. } => {
-                    Constant::new_integer(
+                    IntegerConstant::new(
                         start * BigInt::from(access.element_size),
                         false,
                         crate::BITLENGTH_FIELD,
@@ -103,7 +105,7 @@ impl Place {
                     );
                 }
                 SemanticPlaceElement::Field { access } => {
-                    Constant::new_integer(
+                    IntegerConstant::new(
                         BigInt::from(access.offset),
                         false,
                         crate::BITLENGTH_FIELD,

@@ -9,7 +9,8 @@ use std::rc::Rc;
 use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::generator::r#type::Type as GeneratorType;
-use crate::semantic::analyzer::expression::hint::Hint as TranslationHint;
+use crate::semantic::analyzer::expression::error::Error as ExpressionError;
+use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::place::Place;
@@ -23,19 +24,19 @@ pub struct Translator {}
 
 impl Translator {
     ///
-    /// Translates the path expression to a semantic expression type specified in `hint`.
+    /// Translates the path expression to a semantic expression type specified in `rule`.
     ///
     pub fn translate(
         scope: Rc<RefCell<Scope>>,
         path: Path,
-        hint: TranslationHint,
+        rule: TranslationRule,
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
         let location = path.location;
 
         let path_last_identifier = path.last().to_owned();
 
-        match hint {
-            TranslationHint::Place => match Scope::resolve_path(scope, &path)?.variant {
+        match rule {
+            TranslationRule::Place => match Scope::resolve_path(scope, &path)?.variant {
                 ScopeItemVariant::Variable(variable) => Ok((
                     Element::Place(Place::new(
                         path_last_identifier,
@@ -44,13 +45,19 @@ impl Translator {
                     )),
                     None,
                 )),
-                ScopeItemVariant::Constant(constant) => Ok((Element::Constant(constant), None)),
+                ScopeItemVariant::Constant(constant) => {
+                    let intermediate = GeneratorConstant::try_from_semantic(&constant);
+                    Ok((
+                        Element::Constant(constant),
+                        intermediate.map(GeneratorExpressionOperand::Constant),
+                    ))
+                }
                 ScopeItemVariant::Type(r#type) => Ok((Element::Type(r#type), None)),
                 ScopeItemVariant::Module(_) => {
                     Ok((Element::Module(path_last_identifier.name), None))
                 }
             },
-            TranslationHint::Value => match Scope::resolve_path(scope, &path)?.variant {
+            TranslationRule::Value => match Scope::resolve_path(scope, &path)?.variant {
                 ScopeItemVariant::Variable(variable) => {
                     let value = Value::try_from(&variable.r#type)
                         .map_err(ElementError::Value)
@@ -75,13 +82,25 @@ impl Translator {
                     Ok((Element::Module(path_last_identifier.name), None))
                 }
             },
+            TranslationRule::Constant => match Scope::resolve_path(scope, &path)?.variant {
+                ScopeItemVariant::Constant(constant) => {
+                    let intermediate = GeneratorConstant::try_from_semantic(&constant)
+                        .map(GeneratorExpressionOperand::Constant);
+                    let element = Element::Constant(constant);
+                    Ok((element, intermediate))
+                }
+                item => Err(Error::Expression(ExpressionError::NonConstantElement {
+                    location: path.location,
+                    found: item.to_string(),
+                })),
+            },
 
-            TranslationHint::Type => match Scope::resolve_path(scope, &path)?.variant {
+            TranslationRule::Type => match Scope::resolve_path(scope, &path)?.variant {
                 ScopeItemVariant::Type(r#type) => Ok((Element::Type(r#type), None)),
                 _ => Ok((Element::Path(path), None)),
             },
-            TranslationHint::Path => Ok((Element::Path(path), None)),
-            TranslationHint::Field => Ok((Element::Identifier(path_last_identifier), None)),
+            TranslationRule::Path => Ok((Element::Path(path), None)),
+            TranslationRule::Field => Ok((Element::Identifier(path_last_identifier), None)),
         }
     }
 }

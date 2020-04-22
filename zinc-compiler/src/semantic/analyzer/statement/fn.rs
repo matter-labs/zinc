@@ -8,6 +8,7 @@ use std::rc::Rc;
 use crate::generator::statement::function::Statement as GeneratorFunctionStatement;
 use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockAnalyzer;
+use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::function::error::Error as FunctionTypeError;
@@ -32,7 +33,7 @@ impl Analyzer {
     pub fn analyze(
         scope: Rc<RefCell<Scope>>,
         statement: FnStatement,
-    ) -> Result<GeneratorFunctionStatement, Error> {
+    ) -> Result<Option<GeneratorFunctionStatement>, Error> {
         let location = statement.location;
 
         let mut scope_stack = ScopeStack::new(scope);
@@ -138,7 +139,13 @@ impl Analyzer {
                 .map(|statement| statement.location())
                 .unwrap_or(statement.location),
         };
-        let (result, body) = BlockAnalyzer::analyze(scope_stack.top(), statement.body)?;
+
+        let rule = if statement.is_constant {
+            TranslationRule::Constant
+        } else {
+            TranslationRule::Value
+        };
+        let (result, body) = BlockAnalyzer::analyze(scope_stack.top(), statement.body, rule)?;
         scope_stack.pop();
 
         let result_type = Type::from_element(&result, scope_stack.top())?;
@@ -159,15 +166,19 @@ impl Analyzer {
 
         let is_main = statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER;
 
-        Ok(GeneratorFunctionStatement::new(
-            location,
-            statement.identifier.name,
-            arguments,
-            body,
-            expected_type,
-            unique_id,
-            statement.is_public,
-            is_main,
-        ))
+        if statement.is_constant {
+            Err(Error::ForbiddenConstantFunction { location }) // TODO: implement constant functions
+        } else {
+            Ok(Some(GeneratorFunctionStatement::new(
+                location,
+                statement.identifier.name,
+                arguments,
+                body,
+                expected_type,
+                unique_id,
+                statement.is_public,
+                is_main,
+            )))
+        }
     }
 }
