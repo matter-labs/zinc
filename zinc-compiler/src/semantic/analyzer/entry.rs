@@ -54,15 +54,20 @@ impl Analyzer {
             }
         }
 
-        if !self.scope_stack.top().borrow().is_main_function_declared()
-            && self
-                .scope_stack
-                .top()
-                .borrow()
-                .get_contract_location()
-                .is_none()
-        {
+        let main_function_location = self.scope_stack.top().borrow().get_main_location();
+        let contract_definition = self.scope_stack.top().borrow().get_contract_location();
+
+        if main_function_location.is_none() && contract_definition.is_none() {
             return Err(CompilerError::Semantic(Error::EntryPointMissing));
+        }
+
+        if let (Some(main_location), Some(contract_location)) =
+            (main_function_location, contract_definition)
+        {
+            return Err(CompilerError::Semantic(Error::EntryPointAmbiguous {
+                main: main_location,
+                contract: contract_location,
+            }));
         }
 
         Ok(intermediate)

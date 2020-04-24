@@ -3,13 +3,13 @@
 //#     "input": {
 //#         "witness": "25"
 //#     },
-//#     "expect": "136"
+//#     "expect": "131"
 //# } ] }
 
 const CONST: field = 42;
 
 fn main(witness: field) -> field {
-    let local: field = 69;
+    let local: field = 64;
 
     CONST + local + witness
 }

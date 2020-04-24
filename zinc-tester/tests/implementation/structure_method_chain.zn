@@ -7,9 +7,9 @@
 //# }, {
 //#     "case": "second",
 //#     "input": {
-//#         "witness": "69"
+//#         "witness": "64"
 //#     },
-//#     "expect": "1656"
+//#     "expect": "1536"
 //# }, {
 //#     "case": "third",
 //#     "input": {
@@ -40,6 +40,10 @@ impl Data {
     pub fn quadruple(self) -> Self {
         Self { a: self.a * 4 as field }
     }
+
+    pub fn into_inner(self) -> field {
+        self.a
+    }
 }
 
 fn main(witness: field) -> field {
@@ -47,5 +51,5 @@ fn main(witness: field) -> field {
         .double()
         .triple()
         .quadruple()
-        .a
+        .into_inner()
 }

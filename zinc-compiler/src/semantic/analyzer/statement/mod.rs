@@ -34,6 +34,7 @@ use self::module::Analyzer as ModStatementAnalyzer;
 use self::r#const::Analyzer as ConstStatementAnalyzer;
 use self::r#enum::Analyzer as EnumStatementAnalyzer;
 use self::r#fn::Analyzer as FnStatementAnalyzer;
+use self::r#fn::Context as FnStatementAnalyzerContext;
 use self::r#for::Analyzer as ForStatementAnalyzer;
 use self::r#impl::Analyzer as ImplStatementAnalyzer;
 use self::r#let::Analyzer as LetStatementAnalyzer;
@@ -100,11 +101,32 @@ impl Analyzer {
                 EnumStatementAnalyzer::analyze(self.scope_stack.top(), statement)?;
                 Ok(None)
             }
-            ModLocalStatement::Fn(statement) => Ok(FnStatementAnalyzer::analyze(
-                self.scope_stack.top(),
-                statement,
-            )?
-            .map(GeneratorStatement::Function)),
+            ModLocalStatement::Fn(statement) => {
+                if let Context::Module = context {
+                    if statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER {
+                        return Err(Error::FunctionMainBeyondEntry {
+                            location: statement.location,
+                        });
+                    }
+                }
+
+                if let Context::Entry = context {
+                    if statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER
+                        && statement.is_constant
+                    {
+                        return Err(Error::EntryPointConstant {
+                            location: statement.location,
+                        });
+                    }
+                }
+
+                Ok(FnStatementAnalyzer::analyze(
+                    self.scope_stack.top(),
+                    statement,
+                    FnStatementAnalyzerContext::Module,
+                )?
+                .map(GeneratorStatement::Function))
+            }
             ModLocalStatement::Mod(statement) => {
                 ModStatementAnalyzer::analyze(
                     self.scope_stack.top(),
@@ -128,7 +150,9 @@ impl Analyzer {
                         ContractStatementAnalyzer::analyze(self.scope_stack.top(), statement)?;
                     Ok(Some(GeneratorStatement::Contract(intermediate)))
                 }
-                Context::Module => Err(Error::ContractBeyondEntry),
+                Context::Module => Err(Error::ContractBeyondEntry {
+                    location: statement.location,
+                }),
             },
             ModLocalStatement::Empty(_location) => Ok(None),
         }
@@ -177,17 +201,19 @@ impl Analyzer {
     pub fn local_impl(
         &mut self,
         statement: ImplementationLocalStatement,
+        context: FnStatementAnalyzerContext,
     ) -> Result<Option<GeneratorStatement>, Error> {
         match statement {
             ImplementationLocalStatement::Const(statement) => {
                 ConstStatementAnalyzer::analyze(self.scope_stack.top(), statement)?;
                 Ok(None)
             }
-            ImplementationLocalStatement::Fn(statement) => Ok(FnStatementAnalyzer::analyze(
-                self.scope_stack.top(),
-                statement,
-            )?
-            .map(GeneratorStatement::Function)),
+            ImplementationLocalStatement::Fn(statement) => {
+                Ok(
+                    FnStatementAnalyzer::analyze(self.scope_stack.top(), statement, context)?
+                        .map(GeneratorStatement::Function),
+                )
+            }
             ImplementationLocalStatement::Empty(_location) => Ok(None),
         }
     }

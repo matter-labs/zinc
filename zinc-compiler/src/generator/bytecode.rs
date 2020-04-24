@@ -80,8 +80,9 @@ impl Bytecode {
         ));
     }
 
-    pub fn start_main_function(
+    pub fn start_entry_function(
         &mut self,
+        entry_identifier: String,
         unique_id: usize,
         input_arguments: Vec<(String, Type)>,
         output_type: Option<Type>,

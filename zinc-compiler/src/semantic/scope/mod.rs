@@ -153,10 +153,9 @@ impl Scope {
         identifier: Identifier,
         r#type: Type,
     ) -> Result<(), Error> {
-        if let Some((name, location)) = scope.borrow().get_contract_location() {
+        if let Some(location) = scope.borrow().get_contract_location() {
             return Err(Error::ContractRedeclared {
                 location: identifier.location,
-                name,
                 reference: location,
             });
         }
@@ -270,23 +269,25 @@ impl Scope {
     }
 
     ///
-    /// Checks whether the `main` function is declared in the current scope.
+    /// Gets the `main` function location from the current scope.
     ///
-    pub fn is_main_function_declared(&self) -> bool {
-        self.items.contains_key(crate::FUNCTION_MAIN_IDENTIFIER)
+    pub fn get_main_location(&self) -> Option<Location> {
+        self.items
+            .get(crate::FUNCTION_MAIN_IDENTIFIER)
+            .and_then(|main| main.location)
     }
 
     ///
-    /// Checks whether a contract function is declared in the current scope.
+    /// Gets the contract type definition from the current scope.
     ///
-    pub fn get_contract_location(&self) -> Option<(String, Option<Location>)> {
+    pub fn get_contract_location(&self) -> Option<Location> {
         for (_name, item) in self.items.iter() {
             if let Item {
-                variant: ItemVariant::Type(Type::Contract(contract)),
+                variant: ItemVariant::Type(Type::Contract(_)),
                 location,
             } = item
             {
-                return Some((contract.identifier.to_owned(), location.to_owned()));
+                return *location;
             }
         }
 

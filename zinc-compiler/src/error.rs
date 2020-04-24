@@ -1828,16 +1828,12 @@ impl Error {
                     Some("only modules, structures, enumerations, and contracts can contain items within their namespaces"),
                 )
             }
-            Self::Semantic(SemanticError::Scope(ScopeError::ContractRedeclared { location, name, reference })) => {
+            Self::Semantic(SemanticError::Scope(ScopeError::ContractRedeclared { location, reference })) => {
                 Self::format_line_with_reference(
                     context,
-                    format!(
-                        "another contract `{}` is already declared here",
-                        name
-                    )
-                        .as_str(),
+                    "another contract is already declared here",
                     location,
-                    reference,
+                    Some(reference),
                     Some("only one contract may be declared in the project"),
                 )
             }
@@ -2175,13 +2171,40 @@ impl Error {
 
             Self::Semantic(SemanticError::EntryPointMissing) => {
                 Self::format_message(
-                    "function `main` is missing",
-                    Some("create the `main` function in the entry point file `main.zn`"),
+                    "the project entry point is missing",
+                    Some("create the `main` function or a contract definition in the entry point file"),
                 )
             }
-            Self::Semantic(SemanticError::ContractBeyondEntry) => {
-                Self::format_message(
+            Self::Semantic(SemanticError::EntryPointAmbiguous { main, contract }) => {
+                Self::format_line_with_reference(
+                    context,
+                    "the entry file contains both the `main` function and contract definition",
+                    main,
+                    Some(contract),
+                    Some("consider choosing between the circuit and contract project type"),
+                )
+            }
+            Self::Semantic(SemanticError::EntryPointConstant { location }) => {
+                Self::format_line(
+                    context,
+                    "the entry point cannot be constant",
+                    location,
+                    Some("consider removing the `const` modifier"),
+                )
+            }
+            Self::Semantic(SemanticError::FunctionMainBeyondEntry { location }) => {
+                Self::format_line(
+                    context,
+                    "the `main` function is declared beyond the `main.zn` entry file",
+                    location,
+                    Some("the `main` function may be declared only in the entry file"),
+                )
+            }
+            Self::Semantic(SemanticError::ContractBeyondEntry { location }) => {
+                Self::format_line(
+                    context,
                     "contract is declared beyond the entry file",
+                    location,
                     Some("contracts may be declared only once in the entry file"),
                 )
             }

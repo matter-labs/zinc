@@ -52,7 +52,7 @@ struct Data {
 fn main() {
     const DATA: Data = Data {
         a: 42,
-        c: 69,
+        c: 64,
     };
 }
 "#;
@@ -117,7 +117,7 @@ fn main() {
     const DATA: Data = Data {
         a: 42,
         b: 25,
-        c: 69,
+        c: 64,
     };
 }
 "#;

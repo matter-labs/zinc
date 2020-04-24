@@ -3,13 +3,13 @@
 //#     "input": {
 //#         "array": ["1", "2", "3", "4"]
 //#     },
-//#     "expect": "69"
+//#     "expect": "64"
 //# } ] }
 
 const SIZE: u8 = 4;
 
 fn main(mut array: [u8; SIZE]) -> u8 {
-    array[3] = 111;
+    array[3] = 106;
     array[1] = 42;
 
     array[3] - array[1]

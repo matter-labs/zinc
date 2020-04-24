@@ -17,8 +17,22 @@ pub enum Error {
     Scope(ScopeError),
     Expression(ExpressionError),
     Statement(StatementError),
+
     EntryPointMissing,
-    ContractBeyondEntry,
+    EntryPointAmbiguous {
+        main: Location,
+        contract: Location,
+    },
+    EntryPointConstant {
+        location: Location,
+    },
+    FunctionMainBeyondEntry {
+        location: Location,
+    },
+    ContractBeyondEntry {
+        location: Location,
+    },
+
     ForbiddenConstantFunction {
         location: Location, // TODO: implement
     },

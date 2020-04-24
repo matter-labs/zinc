@@ -26,7 +26,7 @@ const B: u8 = 42;
 "#;
 
     let module_3 = r#"
-const C: u8 = 69;
+const C: u8 = 64;
 "#;
 
     let binary = r#"

@@ -12,6 +12,7 @@ use std::rc::Rc;
 
 use crate::generator::statement::Statement as GeneratorStatement;
 use crate::semantic::analyzer::statement::error::Error as StatementError;
+use crate::semantic::analyzer::statement::r#fn::Context as FnStatementAnalyzerContext;
 use crate::semantic::analyzer::statement::r#impl::error::Error as ImplStatementError;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
 use crate::semantic::element::r#type::Type;
@@ -54,7 +55,9 @@ impl Analyzer {
         scope_stack.push_scope(namespace_scope);
         let mut analyzer = StatementAnalyzer::new(scope_stack.top(), HashMap::new());
         for statement in statement.statements.into_iter() {
-            if let Some(statement) = analyzer.local_impl(statement)? {
+            if let Some(statement) =
+                analyzer.local_impl(statement, FnStatementAnalyzerContext::Implementation)?
+            {
                 intermediate.push(statement);
             }
         }

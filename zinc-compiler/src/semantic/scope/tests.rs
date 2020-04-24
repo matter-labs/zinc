@@ -85,7 +85,7 @@ fn error_item_redeclared() {
 fn main() {
     let result = 42;
     {
-        let result = 69;
+        let result = 64;
     }
 }
 "#;
@@ -107,7 +107,7 @@ fn main() {
 fn error_item_undeclared() {
     let input = r#"
 fn main() {
-    result = 69;
+    result = 64;
 }
 "#;
 
@@ -130,7 +130,7 @@ fn main() {
     {
         let result = 42;
     };
-    result = 69;
+    result = 64;
 }
 "#;
 
@@ -257,8 +257,7 @@ contract Multiswap {
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ContractRedeclared {
             location: Location::new(6, 10),
-            name: "Uniswap".to_owned(),
-            reference: Some(Location::new(2, 10)),
+            reference: Location::new(2, 10),
         },
     )));
 

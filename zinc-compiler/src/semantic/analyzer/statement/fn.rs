@@ -24,16 +24,53 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;
 use crate::syntax::tree::statement::r#fn::Statement as FnStatement;
 
+///
+/// The context lets the analyzer know of file type where the analyzed statements are defined.
+///
+pub enum Context {
+    /// The module root namespace.
+    Module,
+    /// The ordinar implementation namespace.
+    Implementation,
+    /// The contract definition namespace.
+    Contract,
+}
+
 pub struct Analyzer {}
 
 impl Analyzer {
     ///
-    /// Analyzes a function statement and returns its IR for the next compiler phase.
+    /// Analyzes the function statement.
     ///
     pub fn analyze(
         scope: Rc<RefCell<Scope>>,
         statement: FnStatement,
+        context: Context,
     ) -> Result<Option<GeneratorFunctionStatement>, Error> {
+        if let Context::Contract = context {
+            if statement.is_public && statement.is_constant {
+                return Err(Error::EntryPointConstant {
+                    location: statement.location,
+                });
+            }
+        }
+
+        if statement.is_constant {
+            Err(Error::ForbiddenConstantFunction {
+                location: statement.location,
+            })
+        } else {
+            Self::runtime(scope, statement).map(Option::Some)
+        }
+    }
+
+    ///
+    /// Analyzes a runtime statement and returns its IR for the next compiler phase.
+    ///
+    fn runtime(
+        scope: Rc<RefCell<Scope>>,
+        statement: FnStatement,
+    ) -> Result<GeneratorFunctionStatement, Error> {
         let location = statement.location;
 
         let mut scope_stack = ScopeStack::new(scope);
@@ -166,19 +203,15 @@ impl Analyzer {
 
         let is_main = statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER;
 
-        if statement.is_constant {
-            Err(Error::ForbiddenConstantFunction { location }) // TODO: implement constant functions
-        } else {
-            Ok(Some(GeneratorFunctionStatement::new(
-                location,
-                statement.identifier.name,
-                arguments,
-                body,
-                expected_type,
-                unique_id,
-                statement.is_public,
-                is_main,
-            )))
-        }
+        Ok(GeneratorFunctionStatement::new(
+            location,
+            statement.identifier.name,
+            arguments,
+            body,
+            expected_type,
+            unique_id,
+            statement.is_public,
+            is_main,
+        ))
     }
 }

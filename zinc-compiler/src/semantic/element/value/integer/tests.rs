@@ -18,7 +18,7 @@ fn error_types_mismatch_equals() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
-    let integer_128: u128 = 69;
+    let integer_128: u128 = 64;
     let value = integer_64 == integer_128;
 }
 "#;
@@ -43,7 +43,7 @@ fn error_types_mismatch_not_equals() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
-    let integer_128: u128 = 69;
+    let integer_128: u128 = 64;
     let value = integer_64 != integer_128;
 }
 "#;
@@ -68,7 +68,7 @@ fn error_types_mismatch_greater_equals() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
-    let integer_128: u128 = 69;
+    let integer_128: u128 = 64;
     let value = integer_64 >= integer_128;
 }
 "#;
@@ -93,7 +93,7 @@ fn error_types_mismatch_lesser_equals() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
-    let integer_128: u128 = 69;
+    let integer_128: u128 = 64;
     let value = integer_64 <= integer_128;
 }
 "#;
@@ -118,7 +118,7 @@ fn error_types_mismatch_greater() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
-    let integer_128: u128 = 69;
+    let integer_128: u128 = 64;
     let value = integer_64 > integer_128;
 }
 "#;
@@ -143,7 +143,7 @@ fn error_types_mismatch_lesser() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
-    let integer_128: u128 = 69;
+    let integer_128: u128 = 64;
     let value = integer_64 < integer_128;
 }
 "#;
@@ -168,7 +168,7 @@ fn error_types_mismatch_bitwise_or() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
-    let integer_128: u128 = 69;
+    let integer_128: u128 = 64;
     let value = integer_64 | integer_128;
 }
 "#;
@@ -193,7 +193,7 @@ fn error_types_mismatch_bitwise_xor() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
-    let integer_128: u128 = 69;
+    let integer_128: u128 = 64;
     let value = integer_64 ^ integer_128;
 }
 "#;
@@ -218,7 +218,7 @@ fn error_types_mismatch_bitwise_and() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
-    let integer_128: u128 = 69;
+    let integer_128: u128 = 64;
     let value = integer_64 & integer_128;
 }
 "#;
@@ -243,7 +243,7 @@ fn error_types_mismatch_addition() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
-    let integer_128: u128 = 69;
+    let integer_128: u128 = 64;
     let value = integer_64 + integer_128;
 }
 "#;
@@ -268,7 +268,7 @@ fn error_types_mismatch_subtraction() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
-    let integer_128: u128 = 69;
+    let integer_128: u128 = 64;
     let value = integer_64 - integer_128;
 }
 "#;
@@ -293,7 +293,7 @@ fn error_types_mismatch_multiplication() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
-    let integer_128: u128 = 69;
+    let integer_128: u128 = 64;
     let value = integer_64 * integer_128;
 }
 "#;
@@ -318,7 +318,7 @@ fn error_types_mismatch_division() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
-    let integer_128: u128 = 69;
+    let integer_128: u128 = 64;
     let value = integer_64 / integer_128;
 }
 "#;
@@ -343,7 +343,7 @@ fn error_types_mismatch_remainder() {
     let input = r#"
 fn main() {
     let integer_64: u64 = 42;
-    let integer_128: u128 = 69;
+    let integer_128: u128 = 64;
     let value = integer_64 % integer_128;
 }
 "#;

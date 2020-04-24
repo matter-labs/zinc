@@ -18,7 +18,7 @@ fn main() -> u8 {
     if true {
         42
     } else {
-        69
+        64
     }
 }
 "#;
@@ -35,7 +35,7 @@ fn main() -> u8 {
     } else if true {
         24
     } else {
-        69
+        64
     }
 }
 "#;
@@ -51,13 +51,13 @@ fn main() -> u8 {
         if true {
         42
         } else {
-            69
+            64
         }
     } else {
         if true {
         42
         } else {
-            69
+            64
         }
     }
 }

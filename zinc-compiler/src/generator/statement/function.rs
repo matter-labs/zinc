@@ -69,7 +69,8 @@ impl Statement {
             .unwrap_or(0);
 
         if self.is_main {
-            bytecode.borrow_mut().start_main_function(
+            bytecode.borrow_mut().start_entry_function(
+                self.identifier,
                 self.unique_id,
                 self.input_arguments.clone(),
                 self.output_type,

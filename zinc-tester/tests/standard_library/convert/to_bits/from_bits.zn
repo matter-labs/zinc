@@ -16,9 +16,9 @@
 //#     "case": "rand",
 //#     "input": {
 //#         "signed": "-42",
-//#         "unsigned": "69"
+//#         "unsigned": "64"
 //#     },
-//#     "expect": ["-42", "69"]
+//#     "expect": ["-42", "64"]
 //# } ] }
 
 use std::convert::to_bits;

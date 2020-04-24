@@ -17,7 +17,7 @@ struct Data {
 }
 
 impl Data {
-    fn sum(self) -> u8 {
+    pub fn sum(self) -> u8 {
         self.a + self.b + self.c
     }
 }

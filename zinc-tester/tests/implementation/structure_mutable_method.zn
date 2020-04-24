@@ -10,7 +10,7 @@
 //#     "expect": {
 //#         "a": "25",
 //#         "b": "42",
-//#         "c": "69"
+//#         "c": "64"
 //#     }
 //# } ] }
 
@@ -21,7 +21,7 @@ struct Data {
 }
 
 impl Data {
-    fn mutate(mut self, values: [u8; 3]) -> Self {
+    pub fn fill(mut self, values: [u8; 3]) -> Self {
         self.a = values[0];
         self.b = values[1];
         self.c = values[2];
@@ -30,5 +30,5 @@ impl Data {
 }
 
 fn main(witness: Data) -> Data {
-    Data::mutate(witness, [25, 42, 69])
+    Data::fill(witness, [25, 42, 64])
 }

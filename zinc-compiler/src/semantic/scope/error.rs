@@ -21,7 +21,6 @@ pub enum Error {
     },
     ContractRedeclared {
         location: Location,
-        name: String,
-        reference: Option<Location>,
+        reference: Location,
     },
 }

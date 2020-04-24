@@ -20,7 +20,7 @@ fn ok_mutating_simple_variable() {
     let input = r#"
 fn main() {
     let mut result = 42;
-    result = 69;
+    result = 64;
 }
 "#;
 
@@ -170,7 +170,7 @@ fn error_mutating_immutable_memory() {
     let input = r#"
 fn main() {
     let result = 42;
-    result = 69;
+    result = 64;
 }
 "#;
 

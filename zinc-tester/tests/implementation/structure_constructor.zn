@@ -7,9 +7,9 @@
 //# }, {
 //#     "case": "second",
 //#     "input": {
-//#         "witness": "69"
+//#         "witness": "64"
 //#     },
-//#     "expect": "69"
+//#     "expect": "64"
 //# }, {
 //#     "case": "third",
 //#     "input": {

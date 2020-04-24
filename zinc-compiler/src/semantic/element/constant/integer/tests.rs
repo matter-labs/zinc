@@ -195,7 +195,7 @@ fn main() {
 fn error_types_mismatch_greater_equals() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 >= 69 as u128;
+    let value = 42 as u64 >= 64 as u128;
 }
 "#;
 
@@ -222,7 +222,7 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value >= 69;
+    let value = Default::Value >= 64;
 }
 "#;
 
@@ -249,7 +249,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -276,7 +276,7 @@ fn main() {
 fn error_types_mismatch_lesser_equals() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 <= 69 as u128;
+    let value = 42 as u64 <= 64 as u128;
 }
 "#;
 
@@ -303,7 +303,7 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value <= 69;
+    let value = Default::Value <= 64;
 }
 "#;
 
@@ -330,7 +330,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -357,7 +357,7 @@ fn main() {
 fn error_types_mismatch_greater() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 > 69 as u128;
+    let value = 42 as u64 > 64 as u128;
 }
 "#;
 
@@ -384,7 +384,7 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value > 69;
+    let value = Default::Value > 64;
 }
 "#;
 
@@ -411,7 +411,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -438,7 +438,7 @@ fn main() {
 fn error_types_mismatch_lesser() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 < 69 as u128;
+    let value = 42 as u64 < 64 as u128;
 }
 "#;
 
@@ -465,7 +465,7 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value < 69;
+    let value = Default::Value < 64;
 }
 "#;
 
@@ -492,7 +492,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -519,7 +519,7 @@ fn main() {
 fn error_types_mismatch_bitwise_or() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 | 69 as u128;
+    let value = 42 as u64 | 64 as u128;
 }
 "#;
 
@@ -546,7 +546,7 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value | 69;
+    let value = Default::Value | 64;
 }
 "#;
 
@@ -573,7 +573,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -600,7 +600,7 @@ fn main() {
 fn error_types_mismatch_bitwise_xor() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 ^ 69 as u128;
+    let value = 42 as u64 ^ 64 as u128;
 }
 "#;
 
@@ -627,7 +627,7 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value ^ 69;
+    let value = Default::Value ^ 64;
 }
 "#;
 
@@ -654,7 +654,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -681,7 +681,7 @@ fn main() {
 fn error_types_mismatch_bitwise_and() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 & 69 as u128;
+    let value = 42 as u64 & 64 as u128;
 }
 "#;
 
@@ -708,7 +708,7 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value & 69;
+    let value = Default::Value & 64;
 }
 "#;
 
@@ -735,7 +735,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -762,7 +762,7 @@ fn main() {
 fn error_types_mismatch_addition() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 + 69 as u128;
+    let value = 42 as u64 + 64 as u128;
 }
 "#;
 
@@ -789,7 +789,7 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value + 69;
+    let value = Default::Value + 64;
 }
 "#;
 
@@ -816,7 +816,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -843,7 +843,7 @@ fn main() {
 fn error_types_mismatch_subtraction() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 - 69 as u128;
+    let value = 42 as u64 - 64 as u128;
 }
 "#;
 
@@ -870,7 +870,7 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value - 69;
+    let value = Default::Value - 64;
 }
 "#;
 
@@ -897,7 +897,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -924,7 +924,7 @@ fn main() {
 fn error_types_mismatch_multiplication() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 * 69 as u128;
+    let value = 42 as u64 * 64 as u128;
 }
 "#;
 
@@ -951,7 +951,7 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value * 69;
+    let value = Default::Value * 64;
 }
 "#;
 
@@ -978,7 +978,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -1005,7 +1005,7 @@ fn main() {
 fn error_types_mismatch_division() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 / 69 as u128;
+    let value = 42 as u64 / 64 as u128;
 }
 "#;
 
@@ -1032,7 +1032,7 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value / 69;
+    let value = Default::Value / 64;
 }
 "#;
 
@@ -1059,7 +1059,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {
@@ -1086,7 +1086,7 @@ fn main() {
 fn error_types_mismatch_remainder() {
     let input = r#"
 fn main() {
-    let value = 42 as u64 % 69 as u128;
+    let value = 42 as u64 % 64 as u128;
 }
 "#;
 
@@ -1113,7 +1113,7 @@ enum Default {
 }
 
 fn main() {
-    let value = Default::Value % 69;
+    let value = Default::Value % 64;
 }
 "#;
 
@@ -1140,7 +1140,7 @@ enum One {
 }
 
 enum Two {
-    Value = 69,
+    Value = 64,
 }
 
 fn main() {

@@ -8,7 +8,7 @@
 
 const SCRUTINEE: u8 = 42;
 
-const CONIDITIONAL: u8 = if SCRUTINEE == 69 {
+const CONIDITIONAL: u8 = if SCRUTINEE == 64 {
     100
 } else {
     200

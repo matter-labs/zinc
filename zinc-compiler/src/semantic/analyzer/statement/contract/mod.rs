@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::generator::statement::Statement as GeneratorStatement;
+use crate::semantic::analyzer::statement::r#fn::Context as FnStatementAnalyzerContext;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::contract::error::Error as ContractTypeError;
@@ -66,7 +67,9 @@ impl Analyzer {
 
         let mut analyzer = StatementAnalyzer::new(scope_stack.top(), HashMap::new());
         for statement in statement.statements.into_iter() {
-            if let Some(statement) = analyzer.local_impl(statement)? {
+            if let Some(statement) =
+                analyzer.local_impl(statement, FnStatementAnalyzerContext::Contract)?
+            {
                 intermediate.push(statement);
             }
         }

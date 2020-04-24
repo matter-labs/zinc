@@ -23,7 +23,7 @@ fn main() -> u8 {
     let condition = true;
     match condition {
         true => 42,
-        false => 69,
+        false => 64,
     }
 }
 "#;

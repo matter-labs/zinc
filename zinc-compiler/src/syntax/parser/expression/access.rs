@@ -284,7 +284,7 @@ mod tests {
 
     #[test]
     fn error_expected_parenthesis_right() {
-        let input = r#"sort(42, 69]"#;
+        let input = r#"sort(42, 64]"#;
 
         let expected: Result<_, Error> = Err(Error::Syntax(SyntaxError::expected_one_of(
             Location::new(1, 12),

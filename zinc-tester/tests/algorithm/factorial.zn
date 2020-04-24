@@ -1,14 +1,28 @@
 //# { "cases": [ {
-//#     "case": "default",
-//#     "input": {},
+//#     "case": "one",
+//#     "input": {
+//#         "n": "5"
+//#     },
 //#     "expect": "120"
+//# }, {
+//#     "case": "two",
+//#     "input": {
+//#         "n": "6"
+//#     },
+//#     "expect": "720"
+//# }, {
+//#     "case": "three",
+//#     "input": {
+//#         "n": "7"
+//#     },
+//#     "expect": "5040"
 //# } ] }
 
-const INDEX: u8 = 6;
+const INDEX: u8 = 8;
 
-fn main() -> field {
+fn main(n: u8) -> field {
     let mut fact: field = 1;
-    for i in 1..INDEX {
+    for i in 1..INDEX while i <= n {
         fact *= i as field;
     }
     fact

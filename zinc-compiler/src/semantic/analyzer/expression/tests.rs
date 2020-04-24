@@ -69,7 +69,7 @@ fn main() {
     const CONSTANT: u8 = if true {
         INNER_1 * INNER_2 + INNER_3 / INNER_4
     } else {
-        69
+        64
     };
 }
 "#;
@@ -88,7 +88,7 @@ fn main() {
 
     const CONSTANT: u8 = match 42 {
         42 => INNER_1 * INNER_2 + INNER_3 / INNER_4,
-        _ => 69,
+        _ => 64,
     };
 }
 "#;
@@ -200,7 +200,7 @@ fn main() {
     const CONSTANT: u8 = if variable == 42 {
         INNER_1 * INNER_2 + INNER_3 / INNER_4
     } else {
-        69
+        64
     };
 }
 "#;
@@ -235,7 +235,7 @@ fn main() {
     const CONSTANT: u8 = if true {
         INNER_1 * INNER_2 + variable - INNER_3 / INNER_4
     } else {
-        69
+        64
     };
 }
 "#;
@@ -268,7 +268,7 @@ fn main() {
     const INNER_4: u8 = 2;
 
     const CONSTANT: u8 = if false {
-        69
+        64
     } else {
         INNER_1 * INNER_2 + variable - INNER_3 / INNER_4
     };
@@ -304,7 +304,7 @@ fn main() {
 
     const CONSTANT: u8 = match variable {
         42 => INNER_1 * INNER_2 + INNER_3 / INNER_4,
-        _ => 69,
+        _ => 64,
     };
 }
 "#;
@@ -338,7 +338,7 @@ fn main() {
 
     const CONSTANT: u8 = match 42 {
         42 => INNER_1 * INNER_2 + variable + INNER_3 / INNER_4,
-        _ => 69,
+        _ => 64,
     };
 }
 "#;
