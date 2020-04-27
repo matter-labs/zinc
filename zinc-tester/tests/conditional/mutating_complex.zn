@@ -24,5 +24,6 @@ fn main(mut witness: Data, condition: bool) -> Data {
     if condition {
         witness = Data { a: true, b: 255, c: 1_000_000 as field };
     };
+
     witness
 }

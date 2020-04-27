@@ -14,8 +14,10 @@
 
 fn main(condition: bool) -> u8 {
     let mut result = 5;
+
     if condition {
         assert!(result != 5);
     };
+
     result
 }

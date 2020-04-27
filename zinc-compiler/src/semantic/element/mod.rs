@@ -1215,6 +1215,41 @@ impl Element {
                                 .map_err(Error::Place),
                         }
                     }
+                    Type::Enumeration(ref enumeration) => {
+                        match Scope::resolve_item(enumeration.scope.to_owned(), &identifier, false)
+                        {
+                            Ok(ScopeItem {
+                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                                ..
+                            }) => Ok((
+                                Element::Type(r#type),
+                                FieldAccessVariant::Method(Self::Place(place)),
+                            )),
+                            _ => place
+                                .field_structure(identifier.name)
+                                .map(|(place, access)| {
+                                    (Element::Place(place), FieldAccessVariant::Field(access))
+                                })
+                                .map_err(Error::Place),
+                        }
+                    }
+                    Type::Contract(ref contract) => {
+                        match Scope::resolve_item(contract.scope.to_owned(), &identifier, false) {
+                            Ok(ScopeItem {
+                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                                ..
+                            }) => Ok((
+                                Element::Type(r#type),
+                                FieldAccessVariant::Method(Self::Place(place)),
+                            )),
+                            _ => place
+                                .field_structure(identifier.name)
+                                .map(|(place, access)| {
+                                    (Element::Place(place), FieldAccessVariant::Field(access))
+                                })
+                                .map_err(Error::Place),
+                        }
+                    }
                     _ => place
                         .field_structure(identifier.name)
                         .map(|(place, access)| {
@@ -1236,6 +1271,41 @@ impl Element {
                 Self::Identifier(identifier) => match value.r#type() {
                     Type::Structure(ref structure) => {
                         match Scope::resolve_item(structure.scope.to_owned(), &identifier, false) {
+                            Ok(ScopeItem {
+                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                                ..
+                            }) => Ok((
+                                Element::Type(r#type),
+                                FieldAccessVariant::Method(Self::Value(value)),
+                            )),
+                            _ => value
+                                .field_structure(identifier.name)
+                                .map(|(value, access)| {
+                                    (Element::Value(value), FieldAccessVariant::Field(access))
+                                })
+                                .map_err(Error::Value),
+                        }
+                    }
+                    Type::Enumeration(ref enumeration) => {
+                        match Scope::resolve_item(enumeration.scope.to_owned(), &identifier, false)
+                        {
+                            Ok(ScopeItem {
+                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                                ..
+                            }) => Ok((
+                                Element::Type(r#type),
+                                FieldAccessVariant::Method(Self::Value(value)),
+                            )),
+                            _ => value
+                                .field_structure(identifier.name)
+                                .map(|(value, access)| {
+                                    (Element::Value(value), FieldAccessVariant::Field(access))
+                                })
+                                .map_err(Error::Value),
+                        }
+                    }
+                    Type::Contract(ref contract) => {
+                        match Scope::resolve_item(contract.scope.to_owned(), &identifier, false) {
                             Ok(ScopeItem {
                                 variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
                                 ..
@@ -1275,6 +1345,47 @@ impl Element {
                 Self::Identifier(identifier) => match constant.r#type() {
                     Type::Structure(ref structure) => {
                         match Scope::resolve_item(structure.scope.to_owned(), &identifier, false) {
+                            Ok(ScopeItem {
+                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                                ..
+                            }) => Ok((
+                                Element::Type(r#type),
+                                FieldAccessVariant::Method(Self::Constant(constant)),
+                            )),
+                            _ => constant
+                                .field_structure(identifier.name)
+                                .map(|(constant, access)| {
+                                    (
+                                        Element::Constant(constant),
+                                        FieldAccessVariant::Field(access),
+                                    )
+                                })
+                                .map_err(Error::Constant),
+                        }
+                    }
+                    Type::Enumeration(ref enumeration) => {
+                        match Scope::resolve_item(enumeration.scope.to_owned(), &identifier, false)
+                        {
+                            Ok(ScopeItem {
+                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                                ..
+                            }) => Ok((
+                                Element::Type(r#type),
+                                FieldAccessVariant::Method(Self::Constant(constant)),
+                            )),
+                            _ => constant
+                                .field_structure(identifier.name)
+                                .map(|(constant, access)| {
+                                    (
+                                        Element::Constant(constant),
+                                        FieldAccessVariant::Field(access),
+                                    )
+                                })
+                                .map_err(Error::Constant),
+                        }
+                    }
+                    Type::Contract(ref contract) => {
+                        match Scope::resolve_item(contract.scope.to_owned(), &identifier, false) {
                             Ok(ScopeItem {
                                 variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
                                 ..

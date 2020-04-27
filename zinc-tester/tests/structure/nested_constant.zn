@@ -1,0 +1,25 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "witness": "3"
+//#     },
+//#     "expect": "15"
+//# } ] }
+
+struct Inner {
+    value: u8,
+}
+
+struct Test {
+    inner: Inner,
+}
+
+const DATA: Test = Test {
+    inner: Inner {
+        value: 5,
+    },
+};
+
+fn main(witness: u8) -> u8 {
+    DATA.inner.value * witness
+}

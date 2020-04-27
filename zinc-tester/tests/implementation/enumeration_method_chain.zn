@@ -1,0 +1,41 @@
+//# { "cases": [ {
+//#     "case": "default",
+//#     "input": {
+//#         "witness": "8"
+//#     },
+//#     "expect": "48"
+//# } ] }
+
+enum List {
+    DEFAULT = 0,
+    FIRST = 1,
+    SECOND = 2,
+    THIRD = 3,
+}
+
+impl List {
+    pub fn new() -> Self {
+        Self::DEFAULT
+    }
+
+    pub fn add_first(self) -> Self {
+        self + Self::FIRST
+    }
+
+    pub fn add_second(self) -> Self {
+        self + Self::SECOND
+    }
+
+    pub fn add_third(self) -> Self {
+        self + Self::THIRD
+    }
+}
+
+fn main(witness: u8) -> u8 {
+    let chained = List::new()
+        .add_first()
+        .add_second()
+        .add_third();
+
+    (chained as u8) * witness
+}
