@@ -41,11 +41,11 @@ pub struct Command {
     manifest_path: PathBuf,
 
     #[structopt(
-        long = "binary",
+        long = "bytecode",
         help = "Path to the binary file",
         default_value = "./build/default.znb"
     )]
-    binary: PathBuf,
+    bytecode: PathBuf,
 
     #[structopt(
         long = "witness",
@@ -115,14 +115,14 @@ impl Command {
             self.verbosity,
             &self.witness,
             &self.public_data,
-            &self.binary,
+            &self.bytecode,
             &source_file_paths,
         )
         .map_err(Error::Compiler)?;
 
         VirtualMachine::run(
             self.verbosity,
-            &self.binary,
+            &self.bytecode,
             &self.witness,
             &self.public_data,
         )
@@ -130,7 +130,7 @@ impl Command {
 
         VirtualMachine::setup(
             self.verbosity,
-            &self.binary,
+            &self.bytecode,
             &self.proving_key,
             &self.verifying_key,
         )
@@ -138,7 +138,7 @@ impl Command {
 
         VirtualMachine::prove_and_verify(
             self.verbosity,
-            &self.binary,
+            &self.bytecode,
             &self.witness,
             &self.public_data,
             &self.proving_key,

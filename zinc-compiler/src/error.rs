@@ -1376,6 +1376,18 @@ impl Error {
                     None,
                 )
             }
+            Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::ContractFieldDoesNotExist { type_identifier, field_name }))) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "field or method `{}` does not exist in contract `{}`",
+                        field_name, type_identifier,
+                    )
+                        .as_str(),
+                    location,
+                    None,
+                )
+            }
             Self::Semantic(SemanticError::Element(location, ElementError::Place(PlaceError::MutatingWithDifferentType { expected, found }))) => {
                 Self::format_line(
                     context,

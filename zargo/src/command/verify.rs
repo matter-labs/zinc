@@ -21,11 +21,11 @@ pub struct Command {
     verbosity: usize,
 
     #[structopt(
-        long = "binary",
+        long = "bytecode",
         help = "Path to the binary file",
         default_value = "./build/default.znb"
     )]
-    binary: PathBuf,
+    bytecode: PathBuf,
 
     #[structopt(
         long = "verifying-key",
@@ -52,7 +52,7 @@ impl Command {
     pub fn execute(self) -> Result<(), Error> {
         VirtualMachine::verify(
             self.verbosity,
-            &self.binary,
+            &self.bytecode,
             &self.verifying_key,
             &self.public_data,
         )

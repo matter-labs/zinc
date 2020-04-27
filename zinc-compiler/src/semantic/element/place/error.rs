@@ -47,4 +47,8 @@ pub enum Error {
         type_identifier: String,
         field_name: String,
     },
+    ContractFieldDoesNotExist {
+        type_identifier: String,
+        field_name: String,
+    },
 }

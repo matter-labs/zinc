@@ -11,6 +11,7 @@ pub mod word;
 use std::collections::VecDeque;
 
 use crate::lexical::error::Error;
+use crate::lexical::token::lexeme::comment::Comment;
 use crate::lexical::token::lexeme::identifier::Identifier;
 use crate::lexical::token::lexeme::literal::string::String as StringLiteral;
 use crate::lexical::token::lexeme::literal::Literal;
@@ -114,9 +115,12 @@ impl<'a> TokenStream<'a> {
 
             if character == '/' {
                 match self::comment::parse(&self.input[self.offset..]) {
-                    Ok((size, lines, column, _comment)) => {
+                    Ok((size, lines, column, comment)) => {
                         self.location.line += lines;
-                        self.location.column = column;
+                        self.location.column = match comment {
+                            Comment::Line { .. } => 1,
+                            Comment::Block { .. } => column,
+                        };
                         self.offset += size;
                         continue;
                     }

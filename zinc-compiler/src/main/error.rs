@@ -19,11 +19,11 @@ impl fmt::Display for Error {
         match self {
             Self::Source(inner) => write!(f, "{}", inner),
             Self::Compiling(inner) => write!(f, "{}", inner),
-            Self::WitnessTemplateOutput(inner) => write!(f, "witness template output {}", inner),
+            Self::WitnessTemplateOutput(inner) => write!(f, "witness template output: {}", inner),
             Self::PublicDataTemplateOutput(inner) => {
-                write!(f, "public data template output {}", inner)
+                write!(f, "public data template output: {}", inner)
             }
-            Self::BytecodeOutput(inner) => write!(f, "bytecode output {}", inner),
+            Self::BytecodeOutput(inner) => write!(f, "bytecode output: {}", inner),
         }
     }
 }
@@ -36,8 +36,8 @@ pub enum OutputError {
 impl fmt::Display for OutputError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Creating(inner) => write!(f, "creating {}", inner),
-            Self::Writing(inner) => write!(f, "writing {}", inner),
+            Self::Creating(inner) => write!(f, "creating: {}", inner),
+            Self::Writing(inner) => write!(f, "writing: {}", inner),
         }
     }
 }

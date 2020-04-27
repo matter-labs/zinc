@@ -214,6 +214,24 @@ impl Place {
                     field_name,
                 })
             }
+            Type::Contract(ref contract) => {
+                for (index, contract_field) in contract.fields.iter().enumerate() {
+                    if contract_field.0 == field_name {
+                        self.r#type = contract_field.1.to_owned();
+
+                        let access =
+                            FieldAccess::new(index, offset, self.r#type.size(), total_size);
+
+                        return Ok((self, access));
+                    }
+                    offset += contract_field.1.size();
+                }
+
+                Err(Error::ContractFieldDoesNotExist {
+                    type_identifier: contract.identifier.to_owned(),
+                    field_name,
+                })
+            }
             ref r#type => Err(Error::OperatorFieldFirstOperandExpectedStructure {
                 found: r#type.to_string(),
             }),

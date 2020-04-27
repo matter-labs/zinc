@@ -425,3 +425,28 @@ fn main() {
 
     assert_eq!(result, expected);
 }
+
+#[test]
+fn error_contract_field_does_not_exist() {
+    let input = r#"
+contract Test {
+    a: u8,
+
+    fn test(self) -> u8 {
+        self.b
+    }
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(6, 13),
+        ElementError::Place(PlaceError::ContractFieldDoesNotExist {
+            type_identifier: "Test".to_owned(),
+            field_name: "b".to_owned(),
+        }),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}

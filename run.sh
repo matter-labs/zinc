@@ -43,9 +43,11 @@ case "${2}" in
         ;;
 esac
 
-export CIRCUIT_DIRECTORY='./zinc-examples/casual/'
-export CIRCUIT_BUILD_DIRECTORY="${CIRCUIT_DIRECTORY}/build/"
-export CIRCUIT_DATA_DIRECTORY="${CIRCUIT_DIRECTORY}/data/"
+export PROJECT_NAME="${3}"
+
+export PROJECT_DIRECTORY="./zinc-examples/${PROJECT_NAME}/"
+export PROJECT_BUILD_DIRECTORY="${PROJECT_DIRECTORY}/build/"
+export PROJECT_DATA_DIRECTORY="${PROJECT_DIRECTORY}/data/"
 
 export ZARGO_PATH="./target/${TARGET_DIRECTORY}/zargo"
 
@@ -56,12 +58,12 @@ cargo test
 cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_LEVEL}
 
 "${ZARGO_PATH}" clean ${LOG_LEVEL} \
-    --manifest-path "${CIRCUIT_DIRECTORY}/Zargo.toml"
+    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml"
 
 "${ZARGO_PATH}" proof-check ${LOG_LEVEL} \
-    --manifest-path "${CIRCUIT_DIRECTORY}/Zargo.toml" \
-    --binary "${CIRCUIT_BUILD_DIRECTORY}/default.znb" \
-    --witness "${CIRCUIT_DATA_DIRECTORY}/witness.json" \
-    --public-data "${CIRCUIT_DATA_DIRECTORY}/public-data.json" \
-    --proving-key "${CIRCUIT_DATA_DIRECTORY}/proving-key" \
-    --verifying-key "${CIRCUIT_DATA_DIRECTORY}/verifying-key.txt"
+    --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml" \
+    --bytecode "${PROJECT_BUILD_DIRECTORY}/default.znb" \
+    --witness "${PROJECT_DATA_DIRECTORY}/witness.json" \
+    --public-data "${PROJECT_DATA_DIRECTORY}/public-data.json" \
+    --proving-key "${PROJECT_DATA_DIRECTORY}/proving-key" \
+    --verifying-key "${PROJECT_DATA_DIRECTORY}/verifying-key.txt"

@@ -5,6 +5,7 @@
 mod tests;
 
 pub mod array;
+pub mod contract;
 pub mod error;
 pub mod integer;
 pub mod structure;
@@ -21,6 +22,7 @@ use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
 
 use self::array::Array;
+use self::contract::Contract;
 use self::error::Error;
 use self::integer::Integer;
 use self::structure::Structure;
@@ -37,6 +39,7 @@ pub enum Value {
     Array(Array),
     Tuple(Tuple),
     Structure(Structure),
+    Contract(Contract),
 }
 
 impl Value {
@@ -48,6 +51,7 @@ impl Value {
             Self::Array(array) => array.r#type(),
             Self::Tuple(tuple) => tuple.r#type(),
             Self::Structure(structure) => structure.r#type(),
+            Self::Contract(contract) => contract.r#type(),
         }
     }
 
@@ -61,6 +65,9 @@ impl Value {
             (Self::Array(value_1), Self::Array(value_2)) => value_1.has_the_same_type_as(value_2),
             (Self::Tuple(value_1), Self::Tuple(value_2)) => value_1.has_the_same_type_as(value_2),
             (Self::Structure(value_1), Self::Structure(value_2)) => {
+                value_1.has_the_same_type_as(value_2)
+            }
+            (Self::Contract(value_1), Self::Contract(value_2)) => {
                 value_1.has_the_same_type_as(value_2)
             }
             _ => false,
@@ -537,6 +544,7 @@ impl TryFrom<&Type> for Value {
                 integer.set_enumeration(enumeration.to_owned());
                 Self::Integer(integer)
             }
+            Type::Contract(contract) => Self::Contract(Contract::new(contract.to_owned())),
             _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         })
     }
@@ -559,6 +567,7 @@ impl fmt::Display for Value {
             Self::Array(inner) => write!(f, "{}", inner),
             Self::Tuple(inner) => write!(f, "{}", inner),
             Self::Structure(inner) => write!(f, "{}", inner),
+            Self::Contract(inner) => write!(f, "{}", inner),
         }
     }
 }
