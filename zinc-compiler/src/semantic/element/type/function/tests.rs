@@ -13,7 +13,7 @@ use crate::semantic::element::Error as ElementError;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
-fn error_argument_count() {
+fn error_argument_count_lesser() {
     let input = r#"
 fn another(x: u8) -> u8 {
     42
@@ -30,6 +30,32 @@ fn main() {
             "another".to_owned(),
             1,
             0,
+        ))),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_argument_count_greater() {
+    let input = r#"
+fn another(x: u8) -> u8 {
+    42
+}
+
+fn main() {
+    let value = another(1, 2);
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(7, 24),
+        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
+            "another".to_owned(),
+            1,
+            2,
         ))),
     )));
 

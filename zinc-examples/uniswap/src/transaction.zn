@@ -1,0 +1,26 @@
+//!
+//! The contract transaction.
+//!
+
+type Address = u160;
+type Integer = u248;
+type Timestamp = u64;
+type Hash = [bool; 256];
+
+struct Block {
+    timestamp: Timestamp,
+}
+
+struct Transaction {
+    from: Address,
+    to: Address,
+    token: u64,
+    value: Integer,
+    fee: Integer,
+    nonce: field,
+
+    block: Block,
+
+    data_hash: Hash,
+    witness_hash: Hash,
+}

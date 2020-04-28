@@ -1,0 +1,57 @@
+//!
+//! The 'Uniswap' utils.
+//!
+
+type Balance = u248;
+
+const ZERO_INTEGER: Balance = 0;
+
+///
+/// Pricing function for converting between ETH and Tokens.
+///
+/// # Arguments
+/// `input_amount` Amount of ETH or Tokens being sold.
+/// `input_reserve` Amount of ETH or Tokens (input type) in exchange reserves.
+/// `output_reserve` Amount of ETH or Tokens (output type) in exchange reserves.
+///
+/// # Returns
+/// Amount of ETH or Tokens bought.
+///
+pub fn get_input_price(
+    input_amount: Balance,
+    input_reserve: Balance,
+    output_reserve: Balance,
+) -> Balance {
+    assert!(input_reserve > ZERO_INTEGER && output_reserve > ZERO_INTEGER);
+
+    let input_amount_with_fee: Balance = input_amount * 997 as Balance;
+
+    let numerator: Balance = input_amount_with_fee * output_reserve;
+    let denominator: Balance = (input_reserve * 1000 as Balance) + input_amount_with_fee;
+
+    numerator / denominator
+}
+
+///
+/// Pricing function for converting between ETH and Tokens.
+///
+/// # Arguments
+/// `output_amount` Amount of ETH or Tokens being bought.
+/// `input_reserve` Amount of ETH or Tokens (input type) in exchange reserves.
+/// `output_reserve` Amount of ETH or Tokens (output type) in exchange reserves.
+///
+/// # Returns
+/// Amount of ETH or Tokens sold.
+///
+pub fn get_output_price(
+    output_amount: Balance,
+    input_reserve: Balance,
+    output_reserve: Balance,
+) -> Balance {
+    assert!(input_reserve > ZERO_INTEGER && output_reserve > ZERO_INTEGER);
+
+    let numerator: Balance = input_reserve * output_amount * 1000 as Balance;
+    let denominator: Balance = (output_reserve - output_amount) * 997 as Balance;
+
+    numerator / denominator + 1 as Balance
+}

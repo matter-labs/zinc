@@ -76,6 +76,14 @@ impl Function {
             actual_params.push((r#type, is_constant));
         }
 
+        if actual_params.len() != self.formal_params.len() {
+            return Err(Error::argument_count(
+                self.identifier.to_owned(),
+                self.formal_params.len(),
+                actual_params.len(),
+            ));
+        }
+
         let formal_params_length = self.formal_params.len();
         for (index, (name, r#type)) in self.formal_params.into_iter().enumerate() {
             match actual_params.get(index) {

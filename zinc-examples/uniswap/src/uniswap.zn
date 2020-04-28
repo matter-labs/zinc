@@ -1,603 +1,815 @@
 //!
-//! The 'Uniswap' contract entry.
+//! Uniswap Exchange Interface V1.
 //!
 
-type UInt256 = u248;
-type UInt256Wei = u248;
+mod factory;
+mod transaction;
+mod utils;
+
+use factory::Factory;
+use transaction::Transaction;
+
+type Balance = u248;
 type Address = u160;
 type Timestamp = u64;
 
 const ZERO_ADDRESS: Address = 0;
-const ZERO_UINT256: UInt256 = 0;
-
-struct Factory {
-    address: Address,
-}
-
-impl Factory {
-    pub fn from_address(address: Address) -> Self {
-        Self {
-            address: address
-        }
-    }
-
-    pub fn get_exchange(self, token_addr: Address) -> Address {
-        self.address
-    }
-}
-
-struct Message {
-    sender: Address,
-    value: UInt256,
-}
-
-struct Block {
-    timestamp: Timestamp,
-}
+const ZERO_BALANCE: Balance = 0;
 
 contract Exchange {
-    name: [u8; 32], // TODO: bits or bytes?
-    symbol: [u8; 32], // TODO: bits or bytes?
-    decimals: UInt256,
-    total_supply: UInt256,
-    balances: bool, // TODO: UInt256[Address]
-    allowances: bool, // TODO: UInt256[Address][Address]
-    token: Address,
+    /// Uniswap V1
+    name: [u8; 32],
+    /// UNI-V1
+    symbol: [u8; 32],
+    /// Interface for the factory that created this contract
     factory: Factory,
 
-    msg: Message, // TODO: decide where to put
-    block: Block, // TODO: decide where to put
+    /// Address of the ERC20 token traded on this contract
+    token_address: Address,
+    /// ETH balance on this contract
+    balance: Balance,
+    /// Total number of UNI in existence
+    total_supply: Balance,
 
-    balance: UInt256, // TODO: probably a bug
+    /// UNI balance of an address
+    balances: [Balance; 0], // TODO: [Balance; 2^160]
+    /// UNI allowance of one address on another
+    allowances: [[Balance; 0]; 0], // TODO: [[Balance; 2^160]; 2^160]
 
-//    pub fn setup(token_addr: Address) -> Self {
-//        assert!(token_addr != ZERO_ADDRESS);
-//
-//        Self {
-//            name: 0x556e697377617020563100000000000000000000000000000000000000000000,
-//            symbols: 0x554e492d56310000000000000000000000000000000000000000000000000000,
-//            decimals: 18 as UInt256,
-//            total_supply: 0 as UInt256,
-//            balances: false, // TODO: UInt256[Address]
-//            allowances: false, // TODO: UInt256[Address][Address]
-//            token: token_addr,
-//            factory: Factory::from_address(msg.sender),
-//        }
-//    }
-
-    pub fn token_address(self) -> Address {
-        self.token
-    }
-
-    pub fn factory_address(self) -> Address {
-        self.factory.address
-    }
-
-    pub fn balance_of(self, _owner : Address) -> UInt256 {
-        // self.balances[_owner] // TODO
-        ZERO_UINT256
+    pub fn balance_of(self, owner: Address) -> Balance {
+        self.balances[owner]
     }
 
     pub fn transfer(
         mut self,
-        _to : Address,
-        _value : UInt256,
+        tx: Transaction,
+        to: Address,
+        value: Balance,
     ) -> bool {
-//        self.balances[self.msg.sender] -= _value; // TODO
-//        self.balances[_to] += _value; // TODO
-
-        // log.Transfer(msg.sender, _to, _value)
+        self.balances[tx.from] -= value;
+        self.balances[to] += value;
 
         true
     }
 
     pub fn transfer_from(
         mut self,
-        _from: Address,
-        _to: Address,
-        _value: UInt256,
+        tx: Transaction,
+        from: Address,
+        to: Address,
+        value: Balance,
     ) -> bool {
-//        self.balances[_from] -= _value; // TODO
-//        self.balances[_to] += _value; // TODO
-//        self.allowances[_from][self.msg.sender] -= _value; // TODO
-
-        // log.Transfer(_from, _to, _value)
+        self.balances[from] -= value;
+        self.balances[to] += value;
+        self.allowances[from][tx.from] -= value;
 
         true
     }
 
     pub fn approve(
         mut self,
-        _spender: Address,
-        _value : UInt256,
+        tx: Transaction,
+        spender: Address,
+        value: Balance
     ) -> bool {
-//        self.allowances[self.msg.sender][_spender] = _value; // TODO
-
-        // log.Approval(msg.sender, _spender, _value)
+        self.allowances[tx.from][spender] = value;
 
         true
     }
 
     pub fn allowance(
         self,
-        _owner: Address,
-        _spender : Address,
-    ) -> UInt256 {
-//        self.allowances[_owner][_spender] // TODO
-
-        ZERO_UINT256
+        owner: Address,
+        spender: Address,
+    ) -> Balance {
+        self.allowances[owner][spender]
     }
 
+    ///
+    /// Deposit ETH and Tokens (self.token_address) at current ratio to mint UNI tokens.
+    ///
+    /// 'min_liquidity' does nothing when total UNI supply is 0.
+    ///
+    /// # Arguments
+    /// `min_liquidity` Minimum number of UNI sender will mint if total UNI supply is greater than 0.
+    /// `max_tokens` Maximum number of tokens deposited. Deposits max amount if total UNI supply is 0.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    ///
+    /// # Returns
+    /// The amount of UNI minted
+    ///
     pub fn add_liquidity(
         mut self,
-        min_liquidity: UInt256,
-        max_tokens: UInt256,
-        deadline: Timestamp
-    ) -> UInt256 {
-        assert!(deadline > self.block.timestamp && max_tokens > ZERO_UINT256 && self.msg.value > ZERO_UINT256);
+        tx: Transaction,
+        min_liquidity: Balance,
+        max_tokens: Balance,
+        deadline: Timestamp,
+    ) -> Balance {
+        assert!(deadline > tx.block.timestamp && max_tokens > ZERO_BALANCE && tx.value > ZERO_BALANCE);
 
-        let total_liquidity: UInt256 = self.total_supply;
+        let total_liquidity: Balance = self.total_supply;
 
-        if total_liquidity > ZERO_UINT256 {
-            assert!(min_liquidity > ZERO_UINT256);
+        if total_liquidity > ZERO_BALANCE {
+            assert!(min_liquidity > ZERO_BALANCE);
 
-            let eth_reserve: UInt256Wei = self.balance - self.msg.value;
-            let token_reserve: UInt256 = self.balance_of(ZERO_ADDRESS); // TODO
-            let token_amount: UInt256 = self.msg.value * token_reserve / eth_reserve + 1 as UInt256;
-            let liquidity_minted: UInt256 = self.msg.value * total_liquidity / eth_reserve;
+            let eth_reserve: Balance = self.balance - tx.value;
+            let token_reserve: Balance = self.balance_of(self.token_address);
+            
+            let token_amount: Balance = tx.value * token_reserve / eth_reserve + 1 as Balance;
+            let liquidity_minted: Balance = tx.value * total_liquidity / eth_reserve;
             assert!(max_tokens >= token_amount && liquidity_minted >= min_liquidity);
 
-//            self.balances[self.msg.sender] += liquidity_minted; // TODO
+            self.balances[tx.from] += liquidity_minted;
             self.total_supply = total_liquidity + liquidity_minted;
-            assert!(self.transfer_from(self.msg.sender, self.token, token_amount));
-
-            // log.AddLiquidity(msg.sender, msg.value, token_amount)
-            // log.Transfer(ZERO_ADDRESS, msg.sender, liquidity_minted)
+            assert!(self.transfer_from(tx, tx.from, self.token_address, token_amount));
 
             liquidity_minted
         } else {
-            assert!(self.factory.address != ZERO_ADDRESS && self.token != ZERO_ADDRESS && self.msg.value >= 1000000000 as UInt256);
-            assert!(self.factory.get_exchange(self.token) == self.token);
+            assert!(self.factory.address != ZERO_ADDRESS && self.token_address != ZERO_ADDRESS && tx.value >= 1000000000 as Balance);
+            assert!(self.factory.get_exchange(self.token_address) == self.token_address);
 
-            let token_amount: UInt256 = max_tokens;
-            let initial_liquidity: UInt256 = self.balance; // TODO: as_unitless_number(self.balance)
+            let token_amount: Balance = max_tokens;
+            let initial_liquidity: Balance = self.balance;
             self.total_supply = initial_liquidity;
-//            self.balances[self.msg.sender] = initial_liquidity; // TODO
-            assert!(self.transfer_from(self.msg.sender, self.token, token_amount));
-
-            // log.AddLiquidity(msg.sender, msg.value, token_amount)
-            // log.Transfer(ZERO_ADDRESS, msg.sender, initial_liquidity)
+            self.balances[tx.from] = initial_liquidity;
+            assert!(self.transfer_from(tx, tx.from, self.token_address, token_amount));
 
             initial_liquidity
         }
     }
 
+    ///
+    /// Burn UNI tokens to withdraw ETH and Tokens at current ratio.
+    ///
+    /// # Arguments
+    /// `amount` Amount of UNI burned.
+    /// `min_eth` Minimum ETH withdrawn.
+    /// `min_tokens` Minimum Tokens withdrawn.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    ///
+    /// # Returns
+    /// The amount of ETH and Tokens withdrawn.
+    ///
     pub fn remove_liquidity(
         mut self,
-        amount: UInt256,
-        min_eth: UInt256Wei,
-        min_tokens: UInt256,
+        tx: Transaction,
+        amount: Balance,
+        min_eth: Balance,
+        min_tokens: Balance,
         deadline: Timestamp,
-    ) -> (UInt256Wei, UInt256) {
-        assert!(amount > ZERO_UINT256 && deadline > self.block.timestamp && min_eth > ZERO_UINT256 && min_tokens > ZERO_UINT256);
-        
-        let total_liquidity: UInt256 = self.total_supply;
-        assert!(total_liquidity > ZERO_UINT256);
-        
-        let token_reserve: UInt256 = self.balance_of(self.token);
-        let eth_amount: UInt256Wei = amount * self.balance / total_liquidity;
-        let token_amount: UInt256 = amount * token_reserve / total_liquidity;
+    ) -> (Balance, Balance) {
+        assert!(amount > ZERO_BALANCE && deadline > tx.block.timestamp && min_eth > ZERO_BALANCE && min_tokens > ZERO_BALANCE);
+
+        let total_liquidity: Balance = self.total_supply;
+        assert!(total_liquidity > ZERO_BALANCE);
+
+        let token_reserve: Balance = self.balance_of(self.token_address);
+        let eth_amount: Balance = amount * self.balance / total_liquidity;
+        let token_amount: Balance = amount * token_reserve / total_liquidity;
         assert!(eth_amount >= min_eth && token_amount >= min_tokens);
-        
-//        self.balances[self.msg.sender] -= amount; // TODO
+
+        self.balances[tx.from] -= amount;
         self.total_supply = total_liquidity - amount;
-//        send(self.msg.sender, eth_amount); // TODO
-        assert!(self.transfer(self.msg.sender, token_amount));
-        
-        // log.RemoveLiquidity(msg.sender, eth_amount, token_amount)
-        // log.Transfer(msg.sender, ZERO_ADDRESS, amount)
-        
+//        send(tx.from, eth_amount); // TODO: external call
+        assert!(self.transfer(tx, tx.from, token_amount));
+
         (eth_amount, token_amount)
     }
-    
-    fn get_input_price(
-        self,
-        input_amount: UInt256,
-        input_reserve: UInt256,
-        output_reserve: UInt256,
-    ) -> UInt256 {
-        assert!(input_reserve > ZERO_UINT256 && output_reserve > ZERO_UINT256);
-        
-        let input_amount_with_fee: UInt256 = input_amount * 997 as UInt256;
-        
-        let numerator: UInt256 = input_amount_with_fee * output_reserve;
-        let denominator: UInt256 = (input_reserve * 1000 as UInt256) + input_amount_with_fee;
-        
-        numerator / denominator
-    }
-    
-    fn get_output_price(
-        self,
-        output_amount: UInt256,
-        input_reserve: UInt256,
-        output_reserve: UInt256,
-    ) -> UInt256 {
-        assert!(input_reserve > ZERO_UINT256 && output_reserve > ZERO_UINT256);
-        
-        let numerator: UInt256 = input_reserve * output_amount * 1000 as UInt256;
-        let denominator: UInt256 = (output_reserve - output_amount) * 997 as UInt256;
-        
-        numerator / denominator + 1 as UInt256
-    }
-    
+
     fn eth_to_token_input(
         self,
-        eth_sold: UInt256Wei,
-        min_tokens: UInt256,
+        tx: Transaction,
+        eth_sold: Balance,
+        min_tokens: Balance,
         deadline: Timestamp,
         buyer: Address,
         recipient: Address,
-    ) -> UInt256 {
-        assert!(deadline >= self.block.timestamp && eth_sold > ZERO_UINT256 && min_tokens > ZERO_UINT256);
-        
-        let token_reserve: UInt256 = self.balance_of(self.token);
-        let tokens_bought: UInt256 = self.get_input_price(eth_sold, self.balance - eth_sold, token_reserve);
+    ) -> Balance {
+        assert!(deadline >= tx.block.timestamp && eth_sold > ZERO_BALANCE && min_tokens > ZERO_BALANCE);
+
+        let token_reserve: Balance = self.balance_of(self.token_address);
+        let tokens_bought: Balance = utils::get_input_price(eth_sold, self.balance - eth_sold, token_reserve);
         assert!(tokens_bought >= min_tokens);
-        assert!(self.transfer(recipient, tokens_bought));
-        
-        // log.TokenPurchase(buyer, eth_sold, tokens_bought)
-        
+        assert!(self.transfer(tx, recipient, tokens_bought));
+
         tokens_bought
     }
-    
-    pub fn __default__(self) -> UInt256 {
-        self.eth_to_token_input(self.msg.value, 1 as UInt256, self.block.timestamp, self.msg.sender, self.msg.sender)
+
+    ///
+    /// Convert ETH to Tokens.
+    ///
+    /// User specifies exact input (tx.value).
+    /// User cannot specify minimum output or deadline.
+    ///
+    pub fn default(self, tx: Transaction) -> Balance {
+        self.eth_to_token_input(tx, tx.value, 1 as Balance, tx.block.timestamp, tx.from, tx.from)
     }
-    
+
+    ///
+    /// Convert ETH to Tokens.
+    ///
+    /// User specifies exact input (tx.value) and minimum output.
+    ///
+    /// # Arguments
+    /// `min_tokens` Minimum Tokens bought.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    ///
+    /// # Returns
+    /// Amount of Tokens bought.
+    ///
     pub fn eth_to_token_swap_input(
         self,
-        min_tokens: UInt256,
+        tx: Transaction,
+        min_tokens: Balance,
         deadline: Timestamp,
-    ) -> UInt256 {
-        self.eth_to_token_input(self.msg.value, min_tokens, deadline, self.msg.sender, self.msg.sender)
+    ) -> Balance {
+        self.eth_to_token_input(tx, tx.value, min_tokens, deadline, tx.from, tx.from)
     }
-    
+
+    ///
+    /// Convert ETH to Tokens and transfers Tokens to recipient.
+    ///
+    /// User specifies exact input (tx.value) and minimum output.
+    ///
+    /// # Arguments
+    /// `min_tokens` Minimum Tokens bought.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    /// `recipient` The address that receives output Tokens.
+    ///
+    /// # Returns
+    /// Amount of Tokens bought.
+    ///
     pub fn eth_to_token_transfer_input(
         self,
-        min_tokens: UInt256,
+        tx: Transaction,
+        min_tokens: Balance,
         deadline: Timestamp,
-        recipient: Address,
-    ) -> UInt256 {
-        assert!(recipient != self.token && recipient != ZERO_ADDRESS);
-        
-        self.eth_to_token_input(self.msg.value, min_tokens, deadline, self.msg.sender, recipient)
+    ) -> Balance {
+        assert!(tx.to != self.token_address && tx.to != ZERO_ADDRESS);
+
+        self.eth_to_token_input(tx, tx.value, min_tokens, deadline, tx.from, tx.to)
     }
-    
+
     fn eth_to_token_output(
         self,
-        tokens_bought: UInt256,
-        max_eth: UInt256Wei,
+        tx: Transaction,
+        tokens_bought: Balance,
+        max_eth: Balance,
         deadline: Timestamp,
         buyer: Address,
-        recipient: Address,
-    ) -> UInt256Wei {
-        assert!(deadline >= self.block.timestamp && tokens_bought > ZERO_UINT256 && max_eth > ZERO_UINT256);
-        
-        let token_reserve: UInt256 = self.balance_of(self.token);
-        let eth_sold: UInt256 = self.get_output_price(tokens_bought, self.balance - max_eth, token_reserve);
-        
+    ) -> Balance {
+        assert!(deadline >= tx.block.timestamp && tokens_bought > ZERO_BALANCE && max_eth > ZERO_BALANCE);
+
+        let token_reserve: Balance = self.balance_of(self.token_address);
+        let eth_sold: Balance = utils::get_output_price(tokens_bought, self.balance - max_eth, token_reserve);
+
         // Throws if eth_sold > max_eth
-        let eth_refund: UInt256Wei = max_eth - eth_sold;
-        if eth_refund > ZERO_UINT256 {
-//            send(buyer, eth_refund); // ?
+        let eth_refund: Balance = max_eth - eth_sold;
+        if eth_refund > ZERO_BALANCE {
+//            send(buyer, eth_refund); // TODO: external call
         };
-        assert!(self.transfer(recipient, tokens_bought));
-        
-        // log.TokenPurchase(buyer, as_wei_value(eth_sold, 'wei'), tokens_bought)
+        assert!(self.transfer(tx, tx.to, tokens_bought));
 
         eth_sold
-        //as_wei_value(eth_sold)
     }
-    
+
+    ///
+    /// Convert ETH to Tokens.
+    ///
+    /// User specifies maximum input (tx.value) and exact output.
+    ///
+    /// # Arguments
+    /// `tokens_bought` Amount of tokens bought.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    ///
+    /// # Returns
+    /// Amount of ETH sold.
+    ///
     pub fn eth_to_token_swap_output(
         self,
-        tokens_bought: UInt256,
+        tx: Transaction,
+        tokens_bought: Balance,
         deadline: Timestamp,
-    ) -> UInt256Wei {
-        self.eth_to_token_output(tokens_bought, self.msg.value, deadline, self.msg.sender, self.msg.sender)
+    ) -> Balance {
+        self.eth_to_token_output(tx, tokens_bought, tx.value, deadline, tx.from)
     }
-    
+
+    ///
+    /// Convert ETH to Tokens and transfers Tokens to recipient.
+    ///
+    /// User specifies maximum input (tx.value) and exact output.
+    ///
+    /// # Arguments
+    /// `tokens_bought` Amount of tokens bought.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    ///
+    /// # Returns
+    /// Amount of ETH sold.
+    ///
     pub fn eth_to_token_transfer_output(
         self,
-        tokens_bought: UInt256,
+        tx: Transaction,
+        tokens_bought: Balance,
         deadline: Timestamp,
-        recipient: Address,
-    ) -> UInt256Wei {
-        assert!(recipient != self.token && recipient != ZERO_ADDRESS);
-        
-        self.eth_to_token_output(tokens_bought, self.msg.value, deadline, self.msg.sender, recipient)
+    ) -> Balance {
+        assert!(tx.to != self.token_address && tx.to != ZERO_ADDRESS);
+
+        self.eth_to_token_output(tx, tokens_bought, tx.value, deadline, tx.to)
     }
 
     fn token_to_eth_input(
         self,
-        tokens_sold: UInt256,
-        min_eth: UInt256Wei,
+        tx: Transaction,
+        tokens_sold: Balance,
+        min_eth: Balance,
         deadline: Timestamp,
         buyer: Address,
-        recipient: Address,
-    ) -> UInt256Wei {
-        assert!(deadline >= self.block.timestamp && tokens_sold > ZERO_UINT256 && min_eth > ZERO_UINT256);
-        
-        let token_reserve: UInt256 = self.balance_of(self.token);
-        let eth_bought: UInt256 = self.get_input_price(tokens_sold, token_reserve, self.balance);
-        let wei_bought: UInt256Wei = eth_bought;
+    ) -> Balance {
+        assert!(deadline >= tx.block.timestamp && tx.value > ZERO_BALANCE && min_eth > ZERO_BALANCE);
+
+        let token_reserve: Balance = self.balance_of(self.token_address);
+        let eth_bought: Balance = utils::get_input_price(tokens_sold, token_reserve, self.balance);
+        let wei_bought: Balance = eth_bought;
         assert!(wei_bought >= min_eth);
-        
-//        send(recipient, wei_bought); // ?
-        
-        assert!(self.transfer_from(buyer, self.token, tokens_sold));
-        
-        // log.EthPurchase(buyer, tokens_sold, wei_bought)
-        
+
+//        send(tx.to, wei_bought); // external function
+
+        assert!(self.transfer_from(tx, buyer, self.token_address, tx.value));
+
         wei_bought
     }
-    
+
+    ///
+    /// Convert Tokens to ETH.
+    ///
+    /// User specifies exact input and minimum output.
+    ///
+    /// # Arguments
+    /// `tokens_sold` Amount of Tokens sold.
+    /// `min_eth` Minimum ETH purchased.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    ///
+    /// # Returns
+    /// Amount of ETH bought.
+    ///
     pub fn token_to_eth_swap_input(
         self,
-        tokens_sold: UInt256,
-        min_eth: UInt256Wei,
+        tx: Transaction,
+        min_eth: Balance,
         deadline: Timestamp,
-    ) -> UInt256Wei {
-        self.token_to_eth_input(tokens_sold, min_eth, deadline, self.msg.sender, self.msg.sender)
+    ) -> Balance {
+        self.token_to_eth_input(tx, tx.value, min_eth, deadline, tx.from)
     }
-    
+
+    ///
+    /// Convert Tokens to ETH and transfers ETH to recipient.
+    ///
+    /// User specifies exact input and minimum output.
+    ///
+    /// # Arguments
+    /// `tokens_sold` Amount of Tokens sold.
+    /// `min_eth` Minimum ETH purchased.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    /// `recipient` The address that receives output ETH.
+    ///
+    /// # Returns
+    /// Amount of ETH bought.
+    ///
     pub fn token_to_eth_transfer_input(
         self,
-        tokens_sold: UInt256,
-        min_eth: UInt256Wei,
+        tx: Transaction,
+        min_eth: Balance,
         deadline: Timestamp,
-        recipient: Address,
-    ) -> UInt256Wei {
-        assert!(recipient != self.token && recipient != ZERO_ADDRESS);
-        
-        self.token_to_eth_input(tokens_sold, min_eth, deadline, self.msg.sender, recipient)
+    ) -> Balance {
+        assert!(tx.to != self.token_address && tx.to != ZERO_ADDRESS);
+
+        self.token_to_eth_input(tx, tx.value, min_eth, deadline, tx.to)
     }
-    
+
     fn token_to_eth_output(
         self,
-        eth_bought: UInt256Wei,
-        max_tokens: UInt256,
+        tx: Transaction,
+        eth_bought: Balance,
+        max_tokens: Balance,
         deadline: Timestamp,
         buyer: Address,
-        recipient: Address
-    ) -> UInt256 {
-        assert!(deadline >= self.block.timestamp && eth_bought > ZERO_UINT256);
-        
-        let token_reserve: UInt256 = self.balance_of(self.token);
-        let tokens_sold: UInt256 = self.get_output_price(eth_bought, token_reserve, self.balance);
+        recipient: Address,
+    ) -> Balance {
+        assert!(deadline >= tx.block.timestamp && eth_bought > ZERO_BALANCE);
+
+        let token_reserve: Balance = self.balance_of(self.token_address);
+        let tokens_sold: Balance = utils::get_output_price(eth_bought, token_reserve, self.total_supply);
         assert!(max_tokens >= tokens_sold, "tokens sold is always > 0");
-        
-//        send(recipient, eth_bought); // ?
-        
-        assert!(self.transfer_from(buyer, self.token, tokens_sold));
-        
-        // log.EthPurchase(buyer, tokens_sold, eth_bought)
-        
+
+//        send(tx.to, eth_bought); // TODO: external call
+
+        assert!(self.transfer_from(tx, buyer, self.token_address, tokens_sold));
+
         tokens_sold
     }
-    
+
+    ///
+    /// Convert Tokens to ETH.
+    ///
+    /// User specifies maximum input and exact output.
+    ///
+    /// # Arguments
+    /// `eth_bought` Amount of ETH purchased.
+    /// `max_tokens` Maximum Tokens sold.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    ///
+    /// # Returns
+    /// Amount of Tokens sold.
+    ///
     pub fn token_to_eth_swap_output(
         self,
-        eth_bought: UInt256Wei,
-        max_tokens: UInt256,
+        tx: Transaction,
+        eth_bought: Balance,
+        max_tokens: Balance,
         deadline: Timestamp,
-    ) -> UInt256 {
-        self.token_to_eth_output(eth_bought, max_tokens, deadline, self.msg.sender, self.msg.sender)
+    ) -> Balance {
+        self.token_to_eth_output(tx, eth_bought, max_tokens, deadline, tx.from, tx.from)
     }
-    
+
+    ///
+    /// Convert Tokens to ETH and transfers ETH to recipient.
+    ///
+    /// User specifies maximum input and exact output.
+    ///
+    /// # Arguments
+    /// `eth_bought` Amount of ETH purchased.
+    /// `max_tokens` Maximum Tokens sold.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    /// `recipient` The address that receives output ETH.
+    ///
+    /// # Returns
+    /// Amount of Tokens sold.
+    ///
     pub fn token_to_eth_transfer_output(
         self,
-        eth_bought: UInt256Wei,
-        max_tokens: UInt256,
+        tx: Transaction,
+        eth_bought: Balance,
+        max_tokens: Balance,
         deadline: Timestamp,
-        recipient: Address,
-    ) -> UInt256 {
-        assert!(recipient != self.token && recipient != ZERO_ADDRESS);
-    
-        self.token_to_eth_output(eth_bought, max_tokens, deadline, self.msg.sender, recipient)
+    ) -> Balance {
+        assert!(tx.to != self.token_address && tx.to != ZERO_ADDRESS);
+
+        self.token_to_eth_output(tx, eth_bought, max_tokens, deadline, tx.from, tx.to)
     }
-    
+
     fn token_to_token_input(
         self,
-        tokens_sold: UInt256,
-        min_tokens_bought: UInt256,
-        min_eth_bought: UInt256Wei,
+        tx: Transaction,
+        tokens_sold: Balance,
+        min_tokens_bought: Balance,
+        min_eth_bought: Balance,
         deadline: Timestamp,
         buyer: Address,
-        recipient: Address,
         exchange_addr: Address,
-    ) -> UInt256 {
-        assert!(deadline >= self.block.timestamp && tokens_sold > ZERO_UINT256 && min_tokens_bought > ZERO_UINT256 && min_eth_bought > ZERO_UINT256);
-        assert!(exchange_addr != self.token && exchange_addr != ZERO_ADDRESS);
-        
-        let token_reserve: UInt256 = self.balance_of(self.token);
-        let eth_bought: UInt256 = self.get_input_price(tokens_sold, token_reserve, self.balance);
-        let wei_bought: UInt256Wei = eth_bought;
+    ) -> Balance {
+        assert!(deadline >= tx.block.timestamp && tokens_sold > ZERO_BALANCE && min_tokens_bought > ZERO_BALANCE && min_eth_bought > ZERO_BALANCE);
+        assert!(exchange_addr != self.token_address && exchange_addr != ZERO_ADDRESS);
+
+        let token_reserve: Balance = self.balance_of(self.token_address);
+        let eth_bought: Balance = utils::get_input_price(tokens_sold, token_reserve, self.balance);
+        let wei_bought: Balance = eth_bought;
         assert!(wei_bought >= min_eth_bought);
-        assert!(self.transfer_from(buyer, self.token, tokens_sold));
-        
-//        let tokens_bought: UInt256 = Exchange(exchange_addr).eth_to_token_transfer_input(min_tokens_bought, deadline, recipient, wei_bought);
-        
-        // log.EthPurchase(buyer, tokens_sold, wei_bought)
-        
-//        tokens_bought
-        ZERO_UINT256
+        assert!(self.transfer_from(tx, buyer, self.token_address, tokens_sold));
+
+//        Exchange(exchange_addr).eth_to_token_transfer_input(min_tokens_bought, deadline, tx.to, wei_bought)
+
+        ZERO_BALANCE
     }
-    
+
+    ///
+    /// Convert Tokens (self.token) to Tokens (token_addr).
+    ///
+    /// User specifies exact input and minimum output.
+    ///
+    /// # Arguments
+    /// `tokens_sold` Amount of Tokens sold.
+    /// `min_tokens_bought` Minimum Tokens (token_addr) purchased.
+    /// `min_eth_bought` Minimum ETH purchased as intermediary.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    /// `token_addr` The address of the token being purchased.
+    ///
+    /// # Returns
+    /// Amount of Tokens (token_addr) bought.
+    ///
     pub fn token_to_token_swap_input(
         self,
-        tokens_sold: UInt256,
-        min_tokens_bought: UInt256,
-        min_eth_bought: UInt256Wei,
+        tx: Transaction,
+        tokens_sold: Balance,
+        min_tokens_bought: Balance,
+        min_eth_bought: Balance,
         deadline: Timestamp,
         token_addr: Address,
-    ) -> UInt256 {
+    ) -> Balance {
         let exchange_addr: Address = self.factory.get_exchange(token_addr);
-        
-        self.token_to_token_input(tokens_sold, min_tokens_bought, min_eth_bought, deadline, self.msg.sender, self.msg.sender, exchange_addr)
+
+        self.token_to_token_input(tx, tokens_sold, min_tokens_bought, min_eth_bought, deadline, tx.from, exchange_addr)
     }
-    
+
+    ///
+    /// Convert Tokens (self.token) to Tokens (token_addr) and transfers Tokens (token_addr) to recipient.
+    ///
+    /// User specifies exact input and minimum output.
+    ///
+    /// # Arguments
+    /// `tokens_sold` Amount of Tokens sold.
+    /// `min_tokens_bought` Minimum Tokens (token_addr) purchased.
+    /// `min_eth_bought` Minimum ETH purchased as intermediary.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    /// `recipient` The address that receives output ETH.
+    /// `token_addr` The address of the token being purchased.
+    ///
+    /// # Returns
+    /// Amount of Tokens (token_addr) bought.
+    ///
     pub fn token_to_token_transfer_input(
         self,
-        tokens_sold: UInt256,
-        min_tokens_bought: UInt256,
-        min_eth_bought: UInt256Wei,
+        tx: Transaction,
+        tokens_sold: Balance,
+        min_tokens_bought: Balance,
+        min_eth_bought: Balance,
         deadline: Timestamp,
-        recipient: Address,
         token_addr: Address,
-    ) -> UInt256 {
+    ) -> Balance {
         let exchange_addr: Address = self.factory.get_exchange(token_addr);
-        
-        self.token_to_token_input(tokens_sold, min_tokens_bought, min_eth_bought, deadline, self.msg.sender, recipient, exchange_addr)
+
+        self.token_to_token_input(tx, tokens_sold, min_tokens_bought, min_eth_bought, deadline, tx.to, exchange_addr)
     }
-    
+
     fn token_to_token_output(
         self,
-        tokens_bought: UInt256,
-        max_tokens_sold: UInt256,
-        max_eth_sold: UInt256Wei,
+        tx: Transaction,
+        tokens_bought: Balance,
+        max_tokens_sold: Balance,
+        max_eth_sold: Balance,
         deadline: Timestamp,
         buyer: Address,
-        recipient: Address,
         exchange_addr: Address
-    ) -> UInt256 {
-        assert!(deadline >= self.block.timestamp && tokens_bought > ZERO_UINT256 && max_eth_sold > ZERO_UINT256);
-        assert!(exchange_addr != self.token && exchange_addr != ZERO_ADDRESS);
-        
-//        let eth_bought: UInt256Wei = Exchange(exchange_addr).getEthToTokenOutputPrice(tokens_bought);
-        let eth_bought: UInt256Wei = ZERO_UINT256;
-        let token_reserve: UInt256 = self.balance_of(self.token);
-        let tokens_sold: UInt256 = self.get_output_price(eth_bought, token_reserve, self.balance);
+    ) -> Balance {
+        assert!(deadline >= tx.block.timestamp && tokens_bought > ZERO_BALANCE && max_eth_sold > ZERO_BALANCE);
+        assert!(exchange_addr != self.token_address && exchange_addr != ZERO_ADDRESS);
+
+//        let eth_bought: Balance = Exchange(exchange_addr).getEthToTokenOutputPrice(tokens_bought);
+        let eth_bought: Balance = ZERO_BALANCE;
+        let token_reserve: Balance = self.balance_of(self.token_address);
+        let tokens_sold: Balance = utils::get_output_price(eth_bought, token_reserve, self.balance);
         assert!(max_tokens_sold >= tokens_sold && max_eth_sold >= eth_bought, "tokens sold is always > 0");
-        assert!(self.transfer_from(buyer, self.token, tokens_sold));
+        assert!(self.transfer_from(tx, buyer, self.token_address, tokens_sold));
 
-//        let eth_sold: UInt256Wei = Exchange(exchange_addr).ethToTokenTransferOutput(tokens_bought, deadline, recipient, value=eth_bought);
-
-        // log.EthPurchase(buyer, tokens_sold, eth_bought)
-
-//        tokens_sold
-        ZERO_UINT256
+//        Exchange(exchange_addr).ethToTokenTransferOutput(tokens_bought, deadline, tx.to, value=eth_bought);
+        ZERO_BALANCE
     }
-    
+
+    ///
+    /// Convert Tokens (self.token) to Tokens (token_addr).
+    ///
+    /// User specifies maximum input and exact output.
+    ///
+    /// # Arguments
+    /// `tokens_bought` Amount of Tokens (token_addr) bought.
+    /// `max_tokens_sold` Maximum Tokens (self.token) sold.
+    /// `max_eth_sold` Maximum ETH purchased as intermediary.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    /// `token_addr` The address of the token being purchased.
+    ///
+    /// # Returns
+    /// Amount of Tokens (self.token) sold.
+    ///
     pub fn token_to_token_swap_output(
         self,
-        tokens_bought: UInt256,
-        max_tokens_sold: UInt256,
-        max_eth_sold: UInt256Wei,
+        tx: Transaction,
+        tokens_bought: Balance,
+        max_tokens_sold: Balance,
+        max_eth_sold: Balance,
         deadline: Timestamp,
         token_addr: Address,
-    ) -> UInt256 {
+    ) -> Balance {
         let exchange_addr: Address = self.factory.get_exchange(token_addr);
-        
-        self.token_to_token_output(tokens_bought, max_tokens_sold, max_eth_sold, deadline, self.msg.sender, self.msg.sender, exchange_addr)
+
+        self.token_to_token_output(tx, tokens_bought, max_tokens_sold, max_eth_sold, deadline, tx.from, exchange_addr)
     }
-    
+
+    ///
+    /// Convert Tokens (self.token_address) to Tokens (token_addr) and transfers Tokens (token_addr) to recipient.
+    ///
+    /// User specifies maximum input and exact output.
+    ///
+    /// # Arguments
+    /// `tokens_bought` Amount of Tokens (token_addr) bought.
+    /// `max_tokens_sold` Maximum Tokens (self.token_address) sold.
+    /// `max_eth_sold` Maximum ETH purchased as intermediary.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    /// `recipient` The address that receives output ETH.
+    /// `token_addr` The address of the token being purchased.
+    ///
+    /// # Returns
+    /// Amount of Tokens sold (self.token_address).
+    ///
     pub fn token_to_token_transfer_output(
         self,
-        tokens_bought: UInt256,
-        max_tokens_sold: UInt256,
-        max_eth_sold: UInt256Wei,
+        tx: Transaction,
+        tokens_bought: Balance,
+        max_tokens_sold: Balance,
+        max_eth_sold: Balance,
         deadline: Timestamp,
-        recipient: Address,
         token_addr: Address,
-    ) -> UInt256 {
+    ) -> Balance {
         let exchange_addr: Address = self.factory.get_exchange(token_addr);
-        
-        self.token_to_token_output(tokens_bought, max_tokens_sold, max_eth_sold, deadline, self.msg.sender, recipient, exchange_addr)
+
+        self.token_to_token_output(tx, tokens_bought, max_tokens_sold, max_eth_sold, deadline, tx.from, exchange_addr)
     }
-    
+
+    ///
+    /// Convert Tokens (self.token) to Tokens (exchange_addr.token).
+    ///
+    /// Allows trades through contracts that were not deployed from the same factory.
+    /// User specifies exact input and minimum output.
+    ///
+    /// # Arguments
+    /// `tokens_sold` Amount of Tokens sold.
+    /// `min_tokens_bought` Minimum Tokens (token_addr) purchased.
+    /// `min_eth_bought` Minimum ETH purchased as intermediary.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    /// `exchange_addr` The address of the exchange for the token being purchased.
+    ///
+    /// # Returns
+    /// Amount of Tokens (exchange_addr.token) bought.
+    ///
     pub fn token_to_exchange_swap_input(
         self,
-        tokens_sold: UInt256,
-        min_tokens_bought: UInt256,
-        min_eth_bought: UInt256Wei,
+        tx: Transaction,
+        tokens_sold: Balance,
+        min_tokens_bought: Balance,
+        min_eth_bought: Balance,
         deadline: Timestamp,
         exchange_addr: Address,
-    ) -> UInt256 {
-        self.token_to_token_input(tokens_sold, min_tokens_bought, min_eth_bought, deadline, self.msg.sender, self.msg.sender, exchange_addr)
+    ) -> Balance {
+        self.token_to_token_input(tx, tokens_sold, min_tokens_bought, min_eth_bought, deadline, tx.from, exchange_addr)
     }
-    
+
+    ///
+    /// Convert Tokens (self.token) to Tokens (exchange_addr.token) and transfers Tokens (exchange_addr.token) to recipient.
+    ///
+    /// Allows trades through contracts that were not deployed from the same factory.
+    /// User specifies exact input and minimum output.
+    ///
+    /// # Arguments
+    /// `tokens_sold` Amount of Tokens sold.
+    /// `min_tokens_bought` Minimum Tokens (token_addr) purchased.
+    /// `min_eth_bought` Minimum ETH purchased as intermediary.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    /// `recipient` The address that receives output ETH.
+    /// `exchange_addr` The address of the exchange for the token being purchased.
+    ///
+    /// # Returns
+    /// Amount of Tokens (exchange_addr.token) bought.
+    ///
     pub fn token_to_exchange_transfer_input(
         self,
-        tokens_sold: UInt256,
-        min_tokens_bought: UInt256,
-        min_eth_bought: UInt256Wei,
+        tx: Transaction,
+        tokens_sold: Balance,
+        min_tokens_bought: Balance,
+        min_eth_bought: Balance,
         deadline: Timestamp,
-        recipient: Address,
         exchange_addr: Address,
-    ) -> UInt256 {
-        assert!(recipient != self.token);
-        
-        self.token_to_token_input(tokens_sold, min_tokens_bought, min_eth_bought, deadline, self.msg.sender, recipient, exchange_addr)
+    ) -> Balance {
+        assert!(tx.to != self.token_address);
+
+        self.token_to_token_input(tx, tokens_sold, min_tokens_bought, min_eth_bought, deadline, tx.to, exchange_addr)
     }
-    
+
+    ///
+    /// Convert Tokens (self.token) to Tokens (exchange_addr.token).
+    ///
+    /// Allows trades through contracts that were not deployed from the same factory.
+    /// User specifies maximum input and exact output.
+    ///
+    /// # Arguments
+    /// `tokens_bought` Amount of Tokens (token_addr) bought.
+    /// `max_tokens_sold` Maximum Tokens (self.token_address) sold.
+    /// `max_eth_sold` Maximum ETH purchased as intermediary.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    /// `exchange_addr` The address of the exchange for the token being purchased.
+    ///
+    /// # Returns
+    /// Amount of Tokens (self.token) sold.
+    ///
     pub fn token_to_exchange_swap_output(
         self,
-        tokens_bought: UInt256,
-        max_tokens_sold: UInt256,
-        max_eth_sold: UInt256Wei,
+        tx: Transaction,
+        tokens_bought: Balance,
+        max_tokens_sold: Balance,
+        max_eth_sold: Balance,
         deadline: Timestamp,
         exchange_addr: Address,
-    ) -> UInt256 {
-        self.token_to_token_output(tokens_bought, max_tokens_sold, max_eth_sold, deadline, self.msg.sender, self.msg.sender, exchange_addr)
+    ) -> Balance {
+        self.token_to_token_output(tx, tokens_bought, max_tokens_sold, max_eth_sold, deadline, tx.from, exchange_addr)
     }
-    
+
+    ///
+    /// Convert Tokens (self.token) to Tokens (exchange_addr.token) and transfers Tokens (exchange_addr.token) to recipient.
+    ///
+    /// Allows trades through contracts that were not deployed from the same factory.
+    /// User specifies maximum input and exact output.
+    ///
+    /// # Arguments
+    /// `tokens_bought` Amount of Tokens (token_addr) bought.
+    /// `max_tokens_sold` Maximum Tokens (self.token) sold.
+    /// `max_eth_sold` Maximum ETH purchased as intermediary.
+    /// `deadline` Time after which this transaction can no longer be executed.
+    /// `recipient` The address that receives output ETH.
+    /// `token_addr` The address of the token being purchased.
+    ///
+    /// # Returns
+    /// Amount of Tokens (self.token) sold.
+    ///
     pub fn token_to_exchange_transfer_output(
         self,
-        tokens_bought: UInt256,
-        max_tokens_sold: UInt256,
-        max_eth_sold: UInt256Wei,
+        tx: Transaction,
+        tokens_bought: Balance,
+        max_tokens_sold: Balance,
+        max_eth_sold: Balance,
         deadline: Timestamp,
-        recipient: Address,
         exchange_addr: Address,
-    ) -> UInt256 {
-        assert!(recipient != self.token);
-        
-        self.token_to_token_output(tokens_bought, max_tokens_sold, max_eth_sold, deadline, self.msg.sender, recipient, exchange_addr)
+    ) -> Balance {
+        assert!(tx.to != self.token_address);
+
+        self.token_to_token_output(tx, tokens_bought, max_tokens_sold, max_eth_sold, deadline, tx.to, exchange_addr)
     }
-    
-    pub fn get_eth_to_token_input_price(self, eth_sold: UInt256Wei) -> UInt256 {
-        assert!(eth_sold > ZERO_UINT256);
-        
-        let token_reserve: UInt256 = self.balance_of(self.token);
-        
-        self.get_input_price(eth_sold, self.balance, token_reserve)
+
+
+    ///
+    /// Public price function for ETH to Token trades with an exact input.
+    ///
+    /// # Arguments
+    /// `eth_sold` Amount of ETH sold.
+    ///
+    /// # Returns
+    /// Amount of Tokens that can be bought with input ETH.
+    ///
+    pub fn get_eth_to_token_input_price(self, eth_sold: Balance) -> Balance {
+        assert!(eth_sold > ZERO_BALANCE);
+
+        let token_reserve: Balance = self.balance_of(self.token_address);
+
+        utils::get_input_price(eth_sold, self.balance, token_reserve)
     }
-    
-    pub fn get_eth_to_token_output_price(self, tokens_bought: UInt256) -> UInt256Wei {
-        assert!(tokens_bought > ZERO_UINT256);
-        
-        let token_reserve: UInt256 = self.balance_of(self.token);
-        
-        let eth_sold: UInt256 = self.get_output_price(tokens_bought, self.balance, token_reserve);
-        
+
+    ///
+    /// Public price function for ETH to Token trades with an exact output.
+    ///
+    /// # Arguments
+    /// `tokens_bought` Amount of Tokens bought.
+    ///
+    /// # Returns
+    /// Amount of ETH needed to buy output Tokens.
+    ///
+    pub fn get_eth_to_token_output_price(self, tokens_bought: Balance) -> Balance {
+        assert!(tokens_bought > ZERO_BALANCE);
+
+        let token_reserve: Balance = self.balance_of(self.token_address);
+
+        let eth_sold: Balance = utils::get_output_price(tokens_bought, self.balance, token_reserve);
+
         eth_sold
     }
-    
-    pub fn get_token_to_eth_input_price(self, tokens_sold: UInt256) -> UInt256Wei {
-        assert!(tokens_sold > ZERO_UINT256);
-        
-        let token_reserve: UInt256 = self.balance_of(self.token);
-        let eth_bought: UInt256 = self.get_input_price(tokens_sold, token_reserve, self.balance);
-        
+
+    ///
+    /// Public price function for Token to ETH trades with an exact input.
+    ///
+    /// # Arguments
+    /// `tokens_sold` Amount of Tokens sold.
+    ///
+    /// # Returns
+    /// Amount of ETH that can be bought with input Tokens.
+    ///
+    pub fn get_token_to_eth_input_price(self, tokens_sold: Balance) -> Balance {
+        assert!(tokens_sold > ZERO_BALANCE);
+
+        let token_reserve: Balance = self.balance_of(self.token_address);
+        let eth_bought: Balance = utils::get_input_price(tokens_sold, token_reserve, self.balance);
+
         eth_bought
     }
-    
-    pub fn get_token_to_eth_output_price(self, eth_bought: UInt256Wei) -> UInt256 {
-        assert!(eth_bought > ZERO_UINT256);
-        
-        let token_reserve: UInt256 = self.balance_of(self.token);
-        
-        self.get_output_price(eth_bought, token_reserve, self.balance)
+
+    ///
+    /// Public price function for Token to ETH trades with an exact output.
+    ///
+    /// # Arguments
+    /// `eth_bought` Amount of output ETH.
+    ///
+    /// # Returns
+    /// Amount of Tokens needed to buy output ETH.
+    ///
+    pub fn get_token_to_eth_output_price(self, eth_bought: Balance) -> Balance {
+        assert!(eth_bought > ZERO_BALANCE);
+
+        let token_reserve: Balance = self.balance_of(self.token_address);
+
+        utils::get_output_price(eth_bought, token_reserve, self.balance)
     }
 }

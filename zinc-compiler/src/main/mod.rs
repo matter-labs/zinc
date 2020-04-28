@@ -52,6 +52,11 @@ fn main_inner() -> Result<(), Error> {
             "Witness template written to {:?}",
             args.witness_template_path
         );
+    } else {
+        log::info!(
+            "Witness template {:?} already exists. Skipping",
+            args.witness_template_path
+        );
     }
 
     File::create(&args.public_data_template_path)
