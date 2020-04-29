@@ -44,6 +44,7 @@ case "${2}" in
 esac
 
 export PROJECT_NAME="${3}"
+export PROJECT_ENTRY="${4}"
 
 export PROJECT_DIRECTORY="./zinc-examples/${PROJECT_NAME}/"
 export PROJECT_BUILD_DIRECTORY="${PROJECT_DIRECTORY}/build/"
@@ -62,8 +63,8 @@ cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_L
 
 "${ZARGO_PATH}" proof-check ${LOG_LEVEL} \
     --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml" \
-    --bytecode "${PROJECT_BUILD_DIRECTORY}/default.znb" \
-    --witness "${PROJECT_DATA_DIRECTORY}/witness.json" \
-    --public-data "${PROJECT_DATA_DIRECTORY}/public-data.json" \
+    --build "${PROJECT_BUILD_DIRECTORY}" \
+    --data "${PROJECT_DATA_DIRECTORY}" \
+    --entry "${PROJECT_ENTRY}" \
     --proving-key "${PROJECT_DATA_DIRECTORY}/proving-key" \
     --verifying-key "${PROJECT_DATA_DIRECTORY}/verifying-key.txt"

@@ -55,12 +55,15 @@ impl ProgramData {
 
         let bytecode = Rc::new(RefCell::new(Bytecode::new()));
         intermediate.write_all_to_bytecode(bytecode.clone());
-        let bytecode = Rc::try_unwrap(bytecode)
+        let mut bytecode = Rc::try_unwrap(bytecode)
             .expect(crate::PANIC_LAST_SHARED_REFERENCE)
             .into_inner();
 
-        let program =
-            Program::from_bytes(bytecode.into_bytes().as_slice()).map_err(Error::Program)?;
+        let entry_id = bytecode
+            .function_name_to_entry_id(zinc_compiler::FUNCTION_MAIN_IDENTIFIER)
+            .expect(crate::PANIC_MAIN_ENTRY_ID);
+        let program = Program::from_bytes(bytecode.entry_to_bytes(entry_id).as_slice())
+            .map_err(Error::Program)?;
 
         Ok(program)
     }

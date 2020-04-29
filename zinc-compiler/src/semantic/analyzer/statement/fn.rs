@@ -60,7 +60,7 @@ impl Analyzer {
                 location: statement.location,
             })
         } else {
-            Self::runtime(scope, statement).map(Option::Some)
+            Self::runtime(scope, statement, context).map(Option::Some)
         }
     }
 
@@ -70,6 +70,7 @@ impl Analyzer {
     fn runtime(
         scope: Rc<RefCell<Scope>>,
         statement: FnStatement,
+        context: Context,
     ) -> Result<GeneratorFunctionStatement, Error> {
         let location = statement.location;
 
@@ -203,6 +204,12 @@ impl Analyzer {
 
         let is_main = statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER;
 
+        let is_contract_entry = if let Context::Contract = context {
+            statement.is_public
+        } else {
+            false
+        };
+
         Ok(GeneratorFunctionStatement::new(
             location,
             statement.identifier.name,
@@ -210,7 +217,7 @@ impl Analyzer {
             body,
             expected_type,
             unique_id,
-            statement.is_public,
+            is_contract_entry,
             is_main,
         ))
     }

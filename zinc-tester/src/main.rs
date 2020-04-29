@@ -37,6 +37,7 @@ static TESTS_DIRECTORY: &str = "zinc-tester/tests/";
 static PANIC_TEST_DIRECTORY_INVALID: &str = "The test files directory must be valid";
 static PANIC_LAST_SHARED_REFERENCE: &str = "There are no other references at this point";
 static PANIC_MUTEX_SYNC: &str = "Mutexes never panic";
+static PANIC_MAIN_ENTRY_ID: &str = "The 'main' entry ID always exists";
 
 fn main() {
     let args = arguments::Arguments::from_args();

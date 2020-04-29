@@ -16,24 +16,19 @@ pub struct Arguments {
     )]
     pub verbosity: usize,
     #[structopt(
-        long = "witness",
+        short = "d",
+        long = "data",
         parse(from_os_str),
-        help = "The witness template output path"
+        help = "The witness and public data directory path"
     )]
-    pub witness_template_path: PathBuf,
-    #[structopt(
-        long = "public-data",
-        parse(from_os_str),
-        help = "The public data template output path"
-    )]
-    pub public_data_template_path: PathBuf,
+    pub data_path: PathBuf,
     #[structopt(
         short = "o",
-        long = "output",
+        long = "build",
         parse(from_os_str),
-        help = "The *.znb bytecode output path"
+        help = "The build directory path"
     )]
-    pub bytecode_output_path: PathBuf,
+    pub build_path: PathBuf,
     #[structopt(parse(from_os_str), help = "The *.zn source file names")]
     pub source_files: Vec<PathBuf>,
 }

@@ -24,7 +24,7 @@ pub struct Statement {
     pub body: Expression,
     pub output_type: Option<Type>,
     pub unique_id: usize,
-    pub is_public: bool,
+    pub is_contract_entry: bool,
     pub is_main: bool,
 }
 
@@ -36,7 +36,7 @@ impl Statement {
         body: Expression,
         output_type: SemanticType,
         unique_id: usize,
-        is_public: bool,
+        is_contract_entry: bool,
         is_main: bool,
     ) -> Self {
         let input_arguments = input_arguments
@@ -56,7 +56,7 @@ impl Statement {
             body,
             output_type,
             unique_id,
-            is_public,
+            is_contract_entry,
             is_main,
         }
     }
@@ -68,7 +68,7 @@ impl Statement {
             .map(|r#type| r#type.size())
             .unwrap_or(0);
 
-        if self.is_main {
+        if self.is_main || self.is_contract_entry {
             bytecode.borrow_mut().start_entry_function(
                 self.identifier,
                 self.unique_id,

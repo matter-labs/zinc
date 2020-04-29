@@ -41,25 +41,25 @@ pub struct Command {
     manifest_path: PathBuf,
 
     #[structopt(
-        long = "bytecode",
-        help = "Path to the binary file",
-        default_value = "./build/default.znb"
+        long = "build",
+        help = "Path to the build directory",
+        default_value = "./build/"
     )]
-    bytecode: PathBuf,
+    build_path: PathBuf,
 
     #[structopt(
-        long = "witness",
-        help = "Path to the witness file",
-        default_value = "./data/witness.json"
+        long = "data",
+        help = "Path to the data directory",
+        default_value = "./data/"
     )]
-    witness: PathBuf,
+    data_path: PathBuf,
 
     #[structopt(
-        long = "public-data",
-        help = "Path to the public data file",
-        default_value = "./data/public-data.json"
+        long = "entry",
+        help = "The bytecode entry name",
+        default_value = "main"
     )]
-    public_data: PathBuf,
+    entry_name: String,
 
     #[structopt(
         long = "proving-key",
@@ -97,7 +97,7 @@ pub enum Error {
 }
 
 impl Command {
-    pub fn execute(self) -> Result<(), Error> {
+    pub fn execute(mut self) -> Result<(), Error> {
         let _manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
         let mut manifest_path = self.manifest_path.clone();
@@ -113,24 +113,31 @@ impl Command {
 
         Compiler::build(
             self.verbosity,
-            &self.witness,
-            &self.public_data,
-            &self.bytecode,
+            &self.data_path,
+            &self.build_path,
             &source_file_paths,
         )
         .map_err(Error::Compiler)?;
 
+        self.build_path.push(format!("{}.znb", self.entry_name));
+
+        let mut witness_path = self.data_path.clone();
+        witness_path.push(format!("{}_witness.json", self.entry_name));
+
+        let mut public_data_path = self.data_path.clone();
+        public_data_path.push(format!("{}_public_data.json", self.entry_name));
+
         VirtualMachine::run(
             self.verbosity,
-            &self.bytecode,
-            &self.witness,
-            &self.public_data,
+            &self.build_path,
+            &witness_path,
+            &public_data_path,
         )
         .map_err(Error::VirtualMachineRun)?;
 
         VirtualMachine::setup(
             self.verbosity,
-            &self.bytecode,
+            &self.build_path,
             &self.proving_key,
             &self.verifying_key,
         )
@@ -138,9 +145,9 @@ impl Command {
 
         VirtualMachine::prove_and_verify(
             self.verbosity,
-            &self.bytecode,
-            &self.witness,
-            &self.public_data,
+            &self.build_path,
+            &witness_path,
+            &public_data_path,
             &self.proving_key,
             &self.verifying_key,
         )

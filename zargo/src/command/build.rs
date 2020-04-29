@@ -37,25 +37,18 @@ pub struct Command {
     manifest_path: PathBuf,
 
     #[structopt(
-        long = "bytecode",
-        help = "Path to the binary file",
-        default_value = "./build/default.znb"
+        long = "build",
+        help = "Path to the build directory",
+        default_value = "./build/"
     )]
-    bytecode: PathBuf,
+    build_path: PathBuf,
 
     #[structopt(
-        long = "witness",
-        help = "Path to the witness JSON file",
-        default_value = "./data/witness.json"
+        long = "data",
+        help = "Path to the data directory",
+        default_value = "./data/"
     )]
-    witness: PathBuf,
-
-    #[structopt(
-        long = "public-data",
-        help = "Path to the public data JSON file to write",
-        default_value = "./data/public-data.json"
-    )]
-    public_data: PathBuf,
+    data_path: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -89,9 +82,8 @@ impl Command {
 
         Compiler::build(
             self.verbosity,
-            &self.witness,
-            &self.public_data,
-            &self.bytecode,
+            &self.data_path,
+            &self.build_path,
             &source_file_paths,
         )
         .map_err(Error::Compiler)?;
