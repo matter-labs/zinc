@@ -75,11 +75,16 @@ impl Analyzer {
 
         scope_stack.push();
 
+        let index_location = statement.index_identifier.location;
         let index_identifier = statement.index_identifier.name.to_owned();
         Scope::declare_variable(
             scope_stack.top(),
             statement.index_identifier,
-            ScopeVariableItem::new(false, Type::scalar(is_index_signed, index_bitlength)),
+            ScopeVariableItem::new(
+                index_location,
+                false,
+                Type::scalar(is_index_signed, index_bitlength),
+            ),
         )?;
 
         let while_condition = if let Some(expression) = statement.while_condition {

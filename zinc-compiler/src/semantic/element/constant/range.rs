@@ -6,6 +6,7 @@ use std::fmt;
 
 use num_bigint::BigInt;
 
+use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type;
 
 ///
@@ -15,6 +16,7 @@ use crate::semantic::element::r#type::Type;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Range {
+    pub location: Location,
     pub start: BigInt,
     pub end: BigInt,
     pub is_signed: bool,
@@ -22,8 +24,15 @@ pub struct Range {
 }
 
 impl Range {
-    pub fn new(start: BigInt, end: BigInt, is_signed: bool, bitlength: usize) -> Self {
+    pub fn new(
+        location: Location,
+        start: BigInt,
+        end: BigInt,
+        is_signed: bool,
+        bitlength: usize,
+    ) -> Self {
         Self {
+            location,
             start,
             end,
             is_signed,

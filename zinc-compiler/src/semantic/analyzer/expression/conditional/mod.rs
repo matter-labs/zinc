@@ -16,6 +16,7 @@ use crate::semantic::analyzer::expression::conditional::error::Error as Conditio
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
+use crate::semantic::element::constant::unit::Unit as UnitConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
@@ -143,6 +144,8 @@ impl Analyzer {
         scope: Rc<RefCell<Scope>>,
         conditional: ConditionalExpression,
     ) -> Result<Element, Error> {
+        let location = conditional.location;
+
         let condition_location = conditional.condition.location;
 
         let main_expression_location = conditional
@@ -225,7 +228,7 @@ impl Analyzer {
 
             (else_type, else_result)
         } else {
-            (Type::Unit, Constant::Unit)
+            (Type::Unit, Constant::Unit(UnitConstant::new(location)))
         };
 
         if main_type != else_type {

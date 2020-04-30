@@ -24,7 +24,13 @@ fn main() {}
     let expected = Err(Error::Semantic(SemanticError::Statement(
         StatementError::Use(UseStatementError::ExpectedPath {
             location: Location::new(2, 5),
-            found: IntegerConstant::new(BigInt::from(5), false, crate::BITLENGTH_BYTE).to_string(),
+            found: IntegerConstant::new(
+                Location::new(2, 5),
+                BigInt::from(5),
+                false,
+                crate::BITLENGTH_BYTE,
+            )
+            .to_string(),
         }),
     )));
 

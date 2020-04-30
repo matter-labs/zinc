@@ -146,7 +146,7 @@ mod tests {
         let expected = Ok((
             ExpressionTree::new(
                 Location::new(1, 1),
-                ExpressionTreeNode::operand(ExpressionOperand::LiteralUnit),
+                ExpressionTreeNode::operand(ExpressionOperand::LiteralUnit(Location::new(1, 1))),
             ),
             None,
         ));

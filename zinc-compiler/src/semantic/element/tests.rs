@@ -30,6 +30,7 @@ fn main() {
         Location::new(3, 7),
         ElementError::OperatorAssignmentFirstOperandExpectedPlace {
             found: Element::Constant(Constant::Integer(IntegerConstant::new(
+                Location::new(3, 5),
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
@@ -78,6 +79,7 @@ fn main() {
         Location::new(3, 7),
         ElementError::OperatorAssignmentBitwiseOrFirstOperandExpectedPlace {
             found: Element::Constant(Constant::Integer(IntegerConstant::new(
+                Location::new(3, 5),
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
@@ -126,6 +128,7 @@ fn main() {
         Location::new(3, 7),
         ElementError::OperatorAssignmentBitwiseXorFirstOperandExpectedPlace {
             found: Element::Constant(Constant::Integer(IntegerConstant::new(
+                Location::new(3, 5),
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
@@ -174,6 +177,7 @@ fn main() {
         Location::new(3, 7),
         ElementError::OperatorAssignmentBitwiseAndFirstOperandExpectedPlace {
             found: Element::Constant(Constant::Integer(IntegerConstant::new(
+                Location::new(3, 5),
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
@@ -222,6 +226,7 @@ fn main() {
         Location::new(3, 7),
         ElementError::OperatorAssignmentBitwiseShiftLeftFirstOperandExpectedPlace {
             found: Element::Constant(Constant::Integer(IntegerConstant::new(
+                Location::new(3, 5),
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
@@ -270,6 +275,7 @@ fn main() {
         Location::new(3, 7),
         ElementError::OperatorAssignmentBitwiseShiftRightFirstOperandExpectedPlace {
             found: Element::Constant(Constant::Integer(IntegerConstant::new(
+                Location::new(3, 5),
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
@@ -318,6 +324,7 @@ fn main() {
         Location::new(3, 7),
         ElementError::OperatorAssignmentAdditionFirstOperandExpectedPlace {
             found: Element::Constant(Constant::Integer(IntegerConstant::new(
+                Location::new(3, 5),
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
@@ -366,6 +373,7 @@ fn main() {
         Location::new(3, 7),
         ElementError::OperatorAssignmentSubtractionFirstOperandExpectedPlace {
             found: Element::Constant(Constant::Integer(IntegerConstant::new(
+                Location::new(3, 5),
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
@@ -414,6 +422,7 @@ fn main() {
         Location::new(3, 7),
         ElementError::OperatorAssignmentMultiplicationFirstOperandExpectedPlace {
             found: Element::Constant(Constant::Integer(IntegerConstant::new(
+                Location::new(3, 5),
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
@@ -462,6 +471,7 @@ fn main() {
         Location::new(3, 7),
         ElementError::OperatorAssignmentDivisionFirstOperandExpectedPlace {
             found: Element::Constant(Constant::Integer(IntegerConstant::new(
+                Location::new(3, 5),
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
@@ -510,6 +520,7 @@ fn main() {
         Location::new(3, 7),
         ElementError::OperatorAssignmentRemainderFirstOperandExpectedPlace {
             found: Element::Constant(Constant::Integer(IntegerConstant::new(
+                Location::new(3, 5),
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
@@ -1642,7 +1653,13 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(3, 18),
         ElementError::OperatorPathFirstOperandExpectedPath {
-            found: IntegerConstant::new(BigInt::from(5), false, crate::BITLENGTH_BYTE).to_string(),
+            found: IntegerConstant::new(
+                Location::new(3, 17),
+                BigInt::from(5),
+                false,
+                crate::BITLENGTH_BYTE,
+            )
+            .to_string(),
         },
     )));
 
@@ -1666,7 +1683,13 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         Location::new(7, 22),
         ElementError::OperatorPathSecondOperandExpectedIdentifier {
-            found: IntegerConstant::new(BigInt::from(5), false, crate::BITLENGTH_BYTE).to_string(),
+            found: IntegerConstant::new(
+                Location::new(7, 24),
+                BigInt::from(5),
+                false,
+                crate::BITLENGTH_BYTE,
+            )
+            .to_string(),
         },
     )));
 

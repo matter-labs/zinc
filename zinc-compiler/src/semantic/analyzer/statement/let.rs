@@ -44,7 +44,11 @@ impl Analyzer {
         Scope::declare_variable(
             scope,
             statement.identifier.clone(),
-            ScopeVariableItem::new(statement.is_mutable, r#type.clone()),
+            ScopeVariableItem::new(
+                statement.identifier.location,
+                statement.is_mutable,
+                r#type.clone(),
+            ),
         )?;
 
         Ok(GeneratorDeclarationStatement::new(

@@ -110,6 +110,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::new(5, 26),
             found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                Location::new(3, 9),
                 false,
                 Type::integer_unsigned(crate::BITLENGTH_BYTE),
             ))
@@ -141,6 +142,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::new(10, 46),
             found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                Location::new(3, 9),
                 false,
                 Type::integer_unsigned(crate::BITLENGTH_BYTE),
             ))
@@ -174,6 +176,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::new(11, 29),
             found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                Location::new(3, 9),
                 false,
                 Type::integer_unsigned(crate::BITLENGTH_BYTE),
             ))
@@ -209,6 +212,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::new(10, 29),
             found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                Location::new(3, 9),
                 false,
                 Type::integer_unsigned(crate::BITLENGTH_BYTE),
             ))
@@ -244,6 +248,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::new(11, 29),
             found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                Location::new(3, 9),
                 false,
                 Type::integer_unsigned(crate::BITLENGTH_BYTE),
             ))
@@ -279,6 +284,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::new(13, 29),
             found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                Location::new(3, 9),
                 false,
                 Type::integer_unsigned(crate::BITLENGTH_BYTE),
             ))
@@ -313,6 +319,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::new(10, 32),
             found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                Location::new(3, 9),
                 false,
                 Type::integer_unsigned(crate::BITLENGTH_BYTE),
             ))
@@ -347,6 +354,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::new(11, 35),
             found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                Location::new(3, 9),
                 false,
                 Type::integer_unsigned(crate::BITLENGTH_BYTE),
             ))
@@ -381,6 +389,7 @@ fn main() {
         ExpressionError::NonConstantElement {
             location: Location::new(12, 34),
             found: ScopeItemVariant::Variable(ScopeVariableItem::new(
+                Location::new(3, 9),
                 false,
                 Type::integer_unsigned(crate::BITLENGTH_BYTE),
             ))

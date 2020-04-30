@@ -132,6 +132,8 @@ impl Analyzer {
                     identifier,
                     is_mutable,
                 } => {
+                    let location = identifier.location;
+
                     let r#type = Type::from_type_variant(
                         &argument_binding.r#type.variant,
                         scope_stack.top(),
@@ -140,7 +142,7 @@ impl Analyzer {
                     Scope::declare_variable(
                         scope_stack.top(),
                         identifier,
-                        ScopeVariableItem::new(is_mutable, r#type),
+                        ScopeVariableItem::new(location, is_mutable, r#type),
                     )?;
                 }
                 BindingPatternVariant::Wildcard => continue,
@@ -157,7 +159,7 @@ impl Analyzer {
                     Scope::declare_variable(
                         scope_stack.top(),
                         identifier,
-                        ScopeVariableItem::new(is_mutable, r#type),
+                        ScopeVariableItem::new(location, is_mutable, r#type),
                     )?;
                 }
             }

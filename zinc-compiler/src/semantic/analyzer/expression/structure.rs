@@ -109,7 +109,7 @@ impl Analyzer {
         structure: StructureExpression,
         r#type: StructureType,
     ) -> Result<Element, Error> {
-        let mut result = StructureConstant::new(r#type);
+        let mut result = StructureConstant::new(structure.location, r#type);
 
         for (identifier, expression) in structure.fields.into_iter() {
             let expression_location = expression.location;

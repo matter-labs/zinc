@@ -1409,6 +1409,7 @@ fn main() -> [u8; 4] {
         ElementError::Type(TypeError::Function(FunctionTypeError::StandardLibrary(
             StandardLibraryFunctionTypeError::array_new_length_invalid(
                 IntegerConstant::new(
+                    Location::new(3, 31),
                     BigInt::from_str("18446744073709551616").expect(crate::panic::TEST_DATA),
                     false,
                     72,

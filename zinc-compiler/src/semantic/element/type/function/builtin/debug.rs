@@ -32,7 +32,9 @@ impl Function {
         for (index, element) in actual_elements.into_iter().enumerate() {
             let (r#type, is_constant, string) = match element {
                 Element::Value(value) => (value.r#type(), false, None),
-                Element::Constant(Constant::String(string)) => (Type::string(), true, Some(string)),
+                Element::Constant(Constant::String(inner)) => {
+                    (inner.r#type(), true, Some(inner.inner))
+                }
                 Element::Constant(constant) => (constant.r#type(), true, None),
                 element => {
                     return Err(Error::argument_not_evaluable(

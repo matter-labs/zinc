@@ -22,6 +22,7 @@ use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
+use crate::semantic::element::constant::unit::Unit as UnitConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
@@ -276,7 +277,7 @@ impl Analyzer {
                     Scope::declare_variable(
                         scope_stack.top(),
                         identifier.clone(),
-                        ScopeVariableItem::new(false, scrutinee_type.clone()),
+                        ScopeVariableItem::new(identifier.location, false, scrutinee_type.clone()),
                     )?;
                     let (result, branch) =
                         ExpressionAnalyzer::new(scope_stack.top(), TranslationRule::Value)
@@ -327,7 +328,7 @@ impl Analyzer {
 
         let element = match match_result.take() {
             Some(result) => result,
-            None => Element::Constant(Constant::Unit),
+            None => Element::Constant(Constant::Unit(UnitConstant::new(location))),
         };
 
         let intermediate = GeneratorExpressionOperand::Match(builder.finish());
@@ -646,7 +647,7 @@ impl Analyzer {
 
         let element = Element::Constant(match match_result.take() {
             Some(result) => result,
-            None => Constant::Unit,
+            None => Constant::Unit(UnitConstant::new(location)),
         });
 
         Ok(element)

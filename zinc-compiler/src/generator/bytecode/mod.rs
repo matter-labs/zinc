@@ -144,7 +144,7 @@ impl Bytecode {
     pub fn entry_name(&self, entry_id: usize) -> &str {
         self.entry_metadata_map
             .get(&entry_id)
-            .expect(crate::panic::VALIDATED_DURING_BYTECODE_GENERATING)
+            .expect(crate::panic::ENSURED_WHILE_RETURNING_ENTRIES)
             .entry_name
             .as_str()
     }
@@ -153,7 +153,7 @@ impl Bytecode {
         let input_type = self
             .entry_metadata_map
             .get(&entry_id)
-            .expect(crate::panic::VALIDATED_DURING_BYTECODE_GENERATING)
+            .expect(crate::panic::ENSURED_WHILE_RETURNING_ENTRIES)
             .input_fields_as_struct()
             .into();
         let input_template_value = TemplateValue::default_from_type(&input_type);
@@ -170,7 +170,7 @@ impl Bytecode {
         let output_bytecode_type = self
             .entry_metadata_map
             .get(&entry_id)
-            .expect(crate::panic::VALIDATED_DURING_BYTECODE_GENERATING)
+            .expect(crate::panic::ENSURED_WHILE_RETURNING_ENTRIES)
             .output_type
             .to_owned()
             .into();
@@ -188,11 +188,11 @@ impl Bytecode {
         let metadata = self
             .entry_metadata_map
             .remove(&entry_id)
-            .expect(crate::panic::VALIDATED_DURING_BYTECODE_GENERATING);
+            .expect(crate::panic::ENSURED_WHILE_RETURNING_ENTRIES);
         let mut instructions = self.instructions.clone();
         let entry_address = self
             .get_function_address(entry_id)
-            .expect(crate::panic::VALIDATED_DURING_BYTECODE_GENERATING);
+            .expect(crate::panic::ENSURED_WHILE_RETURNING_ENTRIES);
         instructions[0] = Instruction::Call(zinc_bytecode::Call::new(
             entry_address,
             metadata.input_size(),

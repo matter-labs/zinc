@@ -19,6 +19,7 @@ use zinc_utils::euclidean;
 
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::lexical::token::lexeme::literal::integer::Integer as LexicalIntegerLiteral;
+use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::range::Range;
 use crate::semantic::element::constant::range_inclusive::RangeInclusive;
@@ -35,6 +36,7 @@ use self::error::Error;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Integer {
+    pub location: Location,
     pub value: BigInt,
     pub is_signed: bool,
     pub bitlength: usize,
@@ -42,8 +44,9 @@ pub struct Integer {
 }
 
 impl Integer {
-    pub fn new(value: BigInt, is_signed: bool, bitlength: usize) -> Self {
+    pub fn new(location: Location, value: BigInt, is_signed: bool, bitlength: usize) -> Self {
         Self {
+            location,
             value,
             is_signed,
             bitlength,
@@ -82,7 +85,9 @@ impl Integer {
             cmp::max(self.bitlength, other.bitlength),
             Self::minimal_bitlength_bigints(&[&self.value, &other.value], is_signed)?,
         );
+
         Ok(RangeInclusive::new(
+            self.location,
             self.value,
             other.value,
             is_signed,
@@ -96,7 +101,9 @@ impl Integer {
             cmp::max(self.bitlength, other.bitlength),
             Self::minimal_bitlength_bigints(&[&self.value, &other.value], is_signed)?,
         );
+
         Ok(Range::new(
+            self.location,
             self.value,
             other.value,
             self.is_signed || other.is_signed,
@@ -115,7 +122,7 @@ impl Integer {
             });
         }
 
-        let result = BooleanConstant::new(self.value == other.value);
+        let result = BooleanConstant::new(self.location, self.value == other.value);
 
         let operator = GeneratorExpressionOperator::Equals;
 
@@ -133,7 +140,7 @@ impl Integer {
             });
         }
 
-        let result = BooleanConstant::new(self.value != other.value);
+        let result = BooleanConstant::new(self.location, self.value != other.value);
 
         let operator = GeneratorExpressionOperator::NotEquals;
 
@@ -151,7 +158,7 @@ impl Integer {
             });
         }
 
-        let result = BooleanConstant::new(self.value >= other.value);
+        let result = BooleanConstant::new(self.location, self.value >= other.value);
 
         let operator = GeneratorExpressionOperator::GreaterEquals;
 
@@ -169,7 +176,7 @@ impl Integer {
             });
         }
 
-        let result = BooleanConstant::new(self.value <= other.value);
+        let result = BooleanConstant::new(self.location, self.value <= other.value);
 
         let operator = GeneratorExpressionOperator::LesserEquals;
 
@@ -187,7 +194,7 @@ impl Integer {
             });
         }
 
-        let result = BooleanConstant::new(self.value > other.value);
+        let result = BooleanConstant::new(self.location, self.value > other.value);
 
         let operator = GeneratorExpressionOperator::Greater;
 
@@ -205,7 +212,7 @@ impl Integer {
             });
         }
 
-        let result = BooleanConstant::new(self.value < other.value);
+        let result = BooleanConstant::new(self.location, self.value < other.value);
 
         let operator = GeneratorExpressionOperator::Lesser;
 
@@ -220,11 +227,16 @@ impl Integer {
             });
         }
 
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise);
+        }
+
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
         }
 
         let result = Self {
+            location: self.location,
             value: self.value | &other.value,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
@@ -244,11 +256,16 @@ impl Integer {
             });
         }
 
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise);
+        }
+
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
         }
 
         let result = Self {
+            location: self.location,
             value: self.value ^ &other.value,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
@@ -268,11 +285,16 @@ impl Integer {
             });
         }
 
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise);
+        }
+
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
         }
 
         let result = Self {
+            location: self.location,
             value: self.value & &other.value,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
@@ -288,6 +310,10 @@ impl Integer {
         self,
         other: Self,
     ) -> Result<(Self, GeneratorExpressionOperator), Error> {
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise);
+        }
+
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
         }
@@ -309,6 +335,7 @@ impl Integer {
             })?;
 
         let result = Self {
+            location: self.location,
             value: self.value << other,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
@@ -324,6 +351,10 @@ impl Integer {
         self,
         other: Self,
     ) -> Result<(Self, GeneratorExpressionOperator), Error> {
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise);
+        }
+
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
         }
@@ -345,6 +376,7 @@ impl Integer {
             })?;
 
         let result = Self {
+            location: self.location,
             value: self.value >> other,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
@@ -380,6 +412,7 @@ impl Integer {
         }
 
         let result = Self {
+            location: self.location,
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
@@ -415,6 +448,7 @@ impl Integer {
         }
 
         let result = Self {
+            location: self.location,
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
@@ -450,6 +484,7 @@ impl Integer {
         }
 
         let result = Self {
+            location: self.location,
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
@@ -490,6 +525,7 @@ impl Integer {
         }
 
         let result = Self {
+            location: self.location,
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
@@ -530,6 +566,7 @@ impl Integer {
         }
 
         let result = Self {
+            location: self.location,
             value: result,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
@@ -542,7 +579,7 @@ impl Integer {
     }
 
     pub fn cast(
-        mut self,
+        self,
         is_signed: bool,
         bitlength: usize,
     ) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
@@ -566,19 +603,28 @@ impl Integer {
             None
         };
 
-        self.is_signed = is_signed;
-        self.bitlength = bitlength;
-        self.enumeration = None;
+        let result = Self {
+            location: self.location,
+            value: self.value,
+            is_signed,
+            bitlength,
+            enumeration: None,
+        };
 
-        Ok((self, operator))
+        Ok((result, operator))
     }
 
     pub fn bitwise_not(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise);
+        }
+
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
         }
 
         let result = Self {
+            location: self.location,
             value: !self.value,
             is_signed: self.is_signed,
             bitlength: self.bitlength,
@@ -606,6 +652,7 @@ impl Integer {
         }
 
         let result = Self {
+            location: self.location,
             value: result,
             is_signed,
             bitlength: self.bitlength,
@@ -722,7 +769,7 @@ impl TryFrom<&IntegerLiteral> for Integer {
             .expect(crate::panic::VALIDATED_DURING_LEXICAL_ANALYSIS);
         let bitlength = Self::minimal_bitlength(&value, false)?;
 
-        Ok(Self::new(value, false, bitlength))
+        Ok(Self::new(literal.location, value, false, bitlength))
     }
 }
 

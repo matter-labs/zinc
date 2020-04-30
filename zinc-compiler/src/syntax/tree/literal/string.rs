@@ -16,3 +16,9 @@ impl Literal {
         Self { location, inner }
     }
 }
+
+impl Into<::std::string::String> for Literal {
+    fn into(self) -> ::std::string::String {
+        self.inner.into()
+    }
+}

@@ -9,6 +9,7 @@ use crate::generator::expression::operand::Operand as GeneratorExpressionOperand
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
 use crate::semantic::element::constant::error::Error as ConstantError;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
+use crate::semantic::element::constant::string::String as StringConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::Element;
@@ -67,6 +68,9 @@ impl Analyzer {
     /// Converts the syntax string literal to a semantic string literal.
     ///
     pub fn string(literal: StringLiteral) -> Result<Element, Error> {
-        Ok(Element::Constant(Constant::String(literal.inner.inner)))
+        Ok(Element::Constant(Constant::String(StringConstant::new(
+            literal.location,
+            literal.into(),
+        ))))
     }
 }

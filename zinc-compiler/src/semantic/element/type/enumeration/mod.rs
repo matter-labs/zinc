@@ -80,7 +80,8 @@ impl Enumeration {
         };
 
         for (identifier, value) in variants_bigint.into_iter() {
-            let mut constant = IntegerConstant::new(value, false, minimal_bitlength);
+            let mut constant =
+                IntegerConstant::new(identifier.location, value, false, minimal_bitlength);
 
             constant.set_enumeration(enumeration.clone());
 

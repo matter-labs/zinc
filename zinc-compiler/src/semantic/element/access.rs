@@ -39,13 +39,13 @@ pub enum FieldVariant {
 
 #[derive(Debug, Clone)]
 pub struct Field {
-    /// The position of the element in tuple
+    /// The position of the element in the tuple or structure
     pub position: usize,
-    /// The offset of the element in tuple
+    /// The offset of the element in the tuple or structure
     pub offset: usize,
-    /// The size of the tuple element
+    /// The size of the tuple or structure element
     pub element_size: usize,
-    /// The total size of the tuple
+    /// The total size of the tuple or structure
     pub total_size: usize,
 }
 

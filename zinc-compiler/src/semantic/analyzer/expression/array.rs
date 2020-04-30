@@ -127,7 +127,7 @@ impl Analyzer {
     /// Returns the constant array semantic element.
     ///
     fn constant(scope: Rc<RefCell<Scope>>, array: ArrayExpression) -> Result<Element, Error> {
-        let mut result = ArrayConstant::default();
+        let mut result = ArrayConstant::new(array.location);
 
         match array.variant {
             ArrayExpressionVariant::List { elements } => {

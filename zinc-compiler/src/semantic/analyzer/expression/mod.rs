@@ -32,6 +32,7 @@ use crate::generator::expression::Expression as GeneratorExpression;
 use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::access::FieldVariant as FieldAccessVariant;
+use crate::semantic::element::constant::unit::Unit as UnitConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::place::element::Element as PlaceElement;
@@ -967,7 +968,10 @@ impl Analyzer {
 
         match element {
             StackElement::NotEvaluated(operand) => match operand {
-                ExpressionOperand::LiteralUnit => Ok((Element::Constant(Constant::Unit), None)),
+                ExpressionOperand::LiteralUnit(location) => Ok((
+                    Element::Constant(Constant::Unit(UnitConstant::new(location))),
+                    None,
+                )),
                 ExpressionOperand::LiteralBoolean(inner) => LiteralAnalyzer::boolean(inner),
                 ExpressionOperand::LiteralInteger(inner) => LiteralAnalyzer::integer(inner),
                 ExpressionOperand::LiteralString(inner) => {

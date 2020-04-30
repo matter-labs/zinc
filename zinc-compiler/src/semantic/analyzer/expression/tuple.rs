@@ -73,7 +73,7 @@ impl Analyzer {
     /// Returns the constant tuple semantic element.
     ///
     fn constant(scope: Rc<RefCell<Scope>>, tuple: TupleExpression) -> Result<Element, Error> {
-        let mut result = TupleConstant::default();
+        let mut result = TupleConstant::new(tuple.location);
 
         for expression in tuple.elements.into_iter() {
             let expression_location = expression.location;

@@ -8,6 +8,7 @@ pub mod error;
 
 use std::fmt;
 
+use crate::lexical::token::location::Location;
 use crate::semantic::element::access::Field as FieldAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::structure::Structure as StructureType;
@@ -20,13 +21,15 @@ use self::error::Error;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Structure {
+    pub location: Location,
     pub r#type: StructureType,
     pub values: Vec<(String, Constant)>,
 }
 
 impl Structure {
-    pub fn new(r#type: StructureType) -> Self {
+    pub fn new(location: Location, r#type: StructureType) -> Self {
         Self {
+            location,
             r#type,
             values: vec![],
         }

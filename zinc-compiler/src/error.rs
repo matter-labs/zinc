@@ -1728,6 +1728,15 @@ impl Error {
                     Some("`field` type values cannot be used to get a remainder"),
                 )
             }
+            Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::ForbiddenSignedBitwise)))) |
+            Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::ForbiddenSignedBitwise)))) => {
+                Self::format_line(
+                    context,
+                    "the bitwise operators are forbidden for the signed integer types",
+                    location,
+                    None,
+                )
+            }
             Self::Semantic(SemanticError::Element(location, ElementError::Value(ValueError::Integer(IntegerValueError::ForbiddenFieldBitwise)))) |
             Self::Semantic(SemanticError::Element(location, ElementError::Constant(ConstantError::Integer(IntegerConstantError::ForbiddenFieldBitwise)))) => {
                 Self::format_line(

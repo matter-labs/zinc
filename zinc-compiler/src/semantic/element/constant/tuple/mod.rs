@@ -8,6 +8,7 @@ pub mod error;
 
 use std::fmt;
 
+use crate::lexical::token::location::Location;
 use crate::semantic::element::access::Field as FieldAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
@@ -17,18 +18,27 @@ use self::error::Error;
 ///
 /// Tuples are collections of elements of different types.
 ///
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Tuple {
+    pub location: Location,
     pub values: Vec<Constant>,
 }
 
 impl Tuple {
-    pub fn new(values: Vec<Constant>) -> Self {
-        Self { values }
+    pub fn new(location: Location) -> Self {
+        Self {
+            location,
+            values: vec![],
+        }
     }
 
-    pub fn with_capacity(capacity: usize) -> Self {
+    pub fn new_with_values(location: Location, values: Vec<Constant>) -> Self {
+        Self { location, values }
+    }
+
+    pub fn with_capacity(location: Location, capacity: usize) -> Self {
         Self {
+            location,
             values: Vec::with_capacity(capacity),
         }
     }

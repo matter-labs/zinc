@@ -142,6 +142,10 @@ impl Integer {
             });
         }
 
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise);
+        }
+
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
         }
@@ -157,6 +161,10 @@ impl Integer {
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
+        }
+
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise);
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
@@ -176,6 +184,10 @@ impl Integer {
             });
         }
 
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise);
+        }
+
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
         }
@@ -189,6 +201,10 @@ impl Integer {
         self,
         other: Self,
     ) -> Result<(Self, GeneratorExpressionOperator), Error> {
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise);
+        }
+
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
         }
@@ -210,6 +226,10 @@ impl Integer {
         self,
         other: Self,
     ) -> Result<(Self, GeneratorExpressionOperator), Error> {
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise);
+        }
+
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
         }
@@ -319,6 +339,10 @@ impl Integer {
     }
 
     pub fn bitwise_not(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
+        if self.is_signed {
+            return Err(Error::ForbiddenSignedBitwise);
+        }
+
         if self.bitlength == crate::BITLENGTH_FIELD {
             return Err(Error::ForbiddenFieldBitwise);
         }

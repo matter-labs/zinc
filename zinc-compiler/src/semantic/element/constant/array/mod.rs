@@ -12,6 +12,7 @@ use num_bigint::BigInt;
 use num_traits::Signed;
 use num_traits::ToPrimitive;
 
+use crate::lexical::token::location::Location;
 use crate::semantic::element::access::Index as IndexAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
@@ -23,22 +24,26 @@ use self::error::Error;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Array {
+    pub location: Location,
     pub r#type: Type,
     pub values: Vec<Constant>,
 }
 
-impl Default for Array {
-    fn default() -> Self {
+impl Array {
+    pub fn new(location: Location) -> Self {
         Self {
+            location,
             r#type: Type::Unit,
             values: vec![],
         }
     }
-}
 
-impl Array {
-    pub fn new(r#type: Type, values: Vec<Constant>) -> Self {
-        Self { r#type, values }
+    pub fn new_with_values(location: Location, r#type: Type, values: Vec<Constant>) -> Self {
+        Self {
+            location,
+            r#type,
+            values,
+        }
     }
 
     pub fn r#type(&self) -> Type {
@@ -147,7 +152,8 @@ impl Array {
         );
 
         Ok((
-            Constant::Array(Self::new(
+            Constant::Array(Self::new_with_values(
+                self.location,
                 self.r#type,
                 self.values.drain(start..end).collect(),
             )),
@@ -200,7 +206,8 @@ impl Array {
         );
 
         Ok((
-            Constant::Array(Self::new(
+            Constant::Array(Self::new_with_values(
+                self.location,
                 self.r#type,
                 self.values.drain(start..=end).collect(),
             )),

@@ -37,7 +37,7 @@ impl Builder {
         if self.elements.is_empty() {
             ExpressionTree::new(
                 location,
-                ExpressionTreeNode::Operand(ExpressionOperand::LiteralUnit),
+                ExpressionTreeNode::Operand(ExpressionOperand::LiteralUnit(location)),
             )
         } else if self.elements.len() > 1 {
             ExpressionTree::new(

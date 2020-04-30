@@ -562,6 +562,28 @@ fn main() {
 }
 
 #[test]
+fn error_forbidden_signed_bitwise_or() {
+    let input = r#"
+fn main() {
+    let signed_1: i8 = 42;
+    let signed_2: i8 = 1;
+    let value = signed_1 | signed_2;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 26),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenSignedBitwise,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_forbidden_field_bitwise_or() {
     let input = r#"
 fn main() {
@@ -575,6 +597,28 @@ fn main() {
         Location::new(5, 25),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::ForbiddenFieldBitwise,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_signed_bitwise_xor() {
+    let input = r#"
+fn main() {
+    let signed_1: i8 = 42;
+    let signed_2: i8 = 1;
+    let value = signed_1 ^ signed_2;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 26),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenSignedBitwise,
         )),
     )));
 
@@ -606,6 +650,28 @@ fn main() {
 }
 
 #[test]
+fn error_forbidden_signed_bitwise_and() {
+    let input = r#"
+fn main() {
+    let signed_1: i8 = 42;
+    let signed_2: i8 = 1;
+    let value = signed_1 & signed_2;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(5, 26),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenSignedBitwise,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_forbidden_field_bitwise_and() {
     let input = r#"
 fn main() {
@@ -619,6 +685,27 @@ fn main() {
         Location::new(5, 25),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::ForbiddenFieldBitwise,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_signed_bitwise_shift_left() {
+    let input = r#"
+fn main() {
+    let signed_1: i8 = 42;
+    let value = signed_1 << 1;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(4, 26),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenSignedBitwise,
         )),
     )));
 
@@ -649,6 +736,27 @@ fn main() {
 }
 
 #[test]
+fn error_forbidden_signed_bitwise_shift_right() {
+    let input = r#"
+fn main() {
+    let signed_1: i8 = 42;
+    let value = signed_1 >> 1;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(4, 26),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenSignedBitwise,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn error_forbidden_field_bitwise_shift_right() {
     let input = r#"
 fn main() {
@@ -661,6 +769,27 @@ fn main() {
         Location::new(4, 25),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::ForbiddenFieldBitwise,
+        )),
+    )));
+
+    let result = crate::semantic::tests::compile_entry(input);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_forbidden_signed_bitwise_not() {
+    let input = r#"
+fn main() {
+    let signed: i8 = 42;
+    let value = ~signed;
+}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::Element(
+        Location::new(4, 17),
+        ElementError::Value(ValueError::Integer(
+            IntegerValueError::ForbiddenSignedBitwise,
         )),
     )));
 

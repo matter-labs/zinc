@@ -6,7 +6,6 @@
 pub static VALIDATED_DURING_LEXICAL_ANALYSIS: &str = "Validated during lexical analysis";
 pub static VALIDATED_DURING_SYNTAX_ANALYSIS: &str = "Validated during syntax analysis";
 pub static VALIDATED_DURING_SEMANTIC_ANALYSIS: &str = "Validated during semantic analysis";
-pub static VALIDATED_DURING_BYTECODE_GENERATING: &str = "Validated during bytecode generating";
 
 // lexical location file path access
 pub static FILE_INDEX: &str = "File record always exists";
@@ -28,6 +27,7 @@ pub static THERE_MUST_ALWAYS_BE_A_SCOPE: &str =
 pub static LAST_SHARED_REFERENCE: &str = "There are no other references at this point";
 pub static MUTEX_SYNC: &str = "Mutexes never panic";
 pub static JSON_TEMPLATE_SERIALIZATION: &str = "JSON serialization never panicks: ";
+pub static ENSURED_WHILE_RETURNING_ENTRIES: &str = "Ensured while returning the entries";
 
 // test
 #[allow(dead_code)]

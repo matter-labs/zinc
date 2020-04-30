@@ -131,7 +131,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Statement(
         StatementError::For(ForStatementError::BoundsExpectedConstantRangeExpression {
             location: Location::new(4, 14),
-            found: Constant::Boolean(BooleanConstant::new(true)).to_string(),
+            found: Constant::Boolean(BooleanConstant::new(Location::new(4, 14), true)).to_string(),
         }),
     )));
 

@@ -243,7 +243,8 @@ fn main() {
         Location::new(4, 22),
         ElementError::Place(
             PlaceError::OperatorIndexSecondOperandExpectedIntegerOrRange {
-                found: Constant::Boolean(BooleanConstant::new(true)).to_string(),
+                found: Constant::Boolean(BooleanConstant::new(Location::new(4, 23), true))
+                    .to_string(),
             },
         ),
     )));

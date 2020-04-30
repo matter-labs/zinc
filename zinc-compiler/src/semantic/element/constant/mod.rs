@@ -10,12 +10,15 @@ pub mod error;
 pub mod integer;
 pub mod range;
 pub mod range_inclusive;
+pub mod string;
 pub mod structure;
 pub mod tuple;
+pub mod unit;
 
 use std::fmt;
 
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
+use crate::lexical::token::location::Location;
 use crate::semantic::casting::Caster;
 use crate::semantic::element::access::Field as FieldAccess;
 use crate::semantic::element::access::Index as IndexAccess;
@@ -27,15 +30,17 @@ use self::error::Error;
 use self::integer::Integer;
 use self::range::Range;
 use self::range_inclusive::RangeInclusive;
+use self::string::String;
 use self::structure::Structure;
 use self::tuple::Tuple;
+use self::unit::Unit;
 
 ///
 /// Constants are parts of a constant expression.
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub enum Constant {
-    Unit,
+    Unit(Unit),
     Boolean(Boolean),
     Integer(Integer),
     Range(Range),
@@ -49,12 +54,12 @@ pub enum Constant {
 impl Constant {
     pub fn r#type(&self) -> Type {
         match self {
-            Self::Unit => Type::unit(),
+            Self::Unit(inner) => inner.r#type(),
             Self::Boolean(inner) => inner.r#type(),
             Self::Integer(inner) => inner.r#type(),
             Self::Range(inner) => inner.r#type(),
             Self::RangeInclusive(inner) => inner.r#type(),
-            Self::String(_) => Type::string(),
+            Self::String(inner) => inner.r#type(),
             Self::Array(inner) => inner.r#type(),
             Self::Tuple(inner) => inner.r#type(),
             Self::Structure(inner) => inner.r#type(),
@@ -63,7 +68,7 @@ impl Constant {
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::Unit, Self::Unit) => true,
+            (Self::Unit(inner_1), Self::Unit(inner_2)) => inner_1.has_the_same_type_as(inner_2),
             (Self::Boolean(inner_1), Self::Boolean(inner_2)) => {
                 inner_1.has_the_same_type_as(inner_2)
             }
@@ -170,11 +175,11 @@ impl Constant {
 
     pub fn equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match (self, other) {
-            (Self::Unit, Self::Unit) => Ok((
-                Self::Boolean(Boolean::new(true)),
+            (Self::Unit(constant_1), Self::Unit(_)) => Ok((
+                Self::Boolean(Boolean::new(constant_1.location, true)),
                 GeneratorExpressionOperator::Equals,
             )),
-            (Self::Unit, constant_2) => Err(Error::OperatorEqualsSecondOperandExpectedUnit {
+            (Self::Unit(_), constant_2) => Err(Error::OperatorEqualsSecondOperandExpectedUnit {
                 found: constant_2.to_string(),
             }),
             (Self::Boolean(constant_1), Self::Boolean(constant_2)) => Ok((
@@ -203,11 +208,11 @@ impl Constant {
 
     pub fn not_equals(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match (self, other) {
-            (Self::Unit, Self::Unit) => Ok((
-                Self::Boolean(Boolean::new(false)),
+            (Self::Unit(constant_1), Self::Unit(_)) => Ok((
+                Self::Boolean(Boolean::new(constant_1.location, false)),
                 GeneratorExpressionOperator::NotEquals,
             )),
-            (Self::Unit, constant_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedUnit {
+            (Self::Unit(_), constant_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedUnit {
                 found: constant_2.to_string(),
             }),
             (Self::Boolean(constant_1), Self::Boolean(constant_2)) => Ok((
@@ -573,7 +578,10 @@ impl Constant {
         }
     }
 
-    pub fn field_structure(self, field_name: String) -> Result<(Self, FieldAccess), Error> {
+    pub fn field_structure(
+        self,
+        field_name: std::string::String,
+    ) -> Result<(Self, FieldAccess), Error> {
         match self {
             Constant::Structure(structure) => structure.slice(field_name).map_err(Error::Structure),
             constant => Err(Error::OperatorFieldFirstOperandExpectedStructure {
@@ -581,17 +589,31 @@ impl Constant {
             }),
         }
     }
+
+    pub fn location(&self) -> Location {
+        match self {
+            Self::Unit(inner) => inner.location,
+            Self::Boolean(inner) => inner.location,
+            Self::Integer(inner) => inner.location,
+            Self::Range(inner) => inner.location,
+            Self::RangeInclusive(inner) => inner.location,
+            Self::String(inner) => inner.location,
+            Self::Array(inner) => inner.location,
+            Self::Tuple(inner) => inner.location,
+            Self::Structure(inner) => inner.location,
+        }
+    }
 }
 
 impl fmt::Display for Constant {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Unit => write!(f, "unit constant '()'"),
+            Self::Unit(inner) => write!(f, "{}", inner),
             Self::Boolean(inner) => write!(f, "{}", inner),
             Self::Integer(inner) => write!(f, "{}", inner),
             Self::Range(inner) => write!(f, "{}", inner),
             Self::RangeInclusive(inner) => write!(f, "{}", inner),
-            Self::String(constant) => write!(f, "string constant '{}'", constant),
+            Self::String(inner) => write!(f, "{}", inner),
             Self::Array(inner) => write!(f, "{}", inner),
             Self::Tuple(inner) => write!(f, "{}", inner),
             Self::Structure(inner) => write!(f, "{}", inner),

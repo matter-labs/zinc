@@ -1063,7 +1063,8 @@ fn main() {
         Location::new(3, 26),
         ElementError::Value(
             ValueError::OperatorIndexSecondOperandExpectedIntegerOrRange {
-                found: Constant::Boolean(BooleanConstant::new(true)).to_string(),
+                found: Constant::Boolean(BooleanConstant::new(Location::new(3, 27), true))
+                    .to_string(),
             },
         ),
     )));
