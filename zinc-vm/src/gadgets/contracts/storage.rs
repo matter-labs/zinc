@@ -14,7 +14,7 @@ pub struct StorageGadget<E: Engine, S: MerkleTreeStorage<E>> {
 impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
     pub fn new<CS>(
         mut cs: CS,
-        storage: &S,
+        storage: S,
     ) -> Result<Self>
     where
         CS: ConstraintSystem<E>,
@@ -29,7 +29,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
             ScalarType::Field,
         );
         Ok(StorageGadget {
-            storage: *storage,
+            storage: storage,
             root_hash: root_hash,
         })
     }
