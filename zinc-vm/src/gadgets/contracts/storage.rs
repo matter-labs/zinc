@@ -6,15 +6,15 @@ use crate::stdlib::bits::signed_to_bits;
 use crate::core::RuntimeError;
 use num_integer::nth_root;
 
-pub struct StorageGadget<'a, E: Engine, S: MerkleTreeStorage<E>> {
-    storage: &'a S,
+pub struct StorageGadget<E: Engine, S: MerkleTreeStorage<E>> {
+    storage: S,
     root_hash: Scalar<E>,
 }
 
-impl<'a, E: Engine, S: MerkleTreeStorage<E>> StorageGadget<'a, E, S> {
+impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
     pub fn new<CS>(
         mut cs: CS,
-        storage: &'a S,
+        storage: &S,
     ) -> Result<Self>
     where
         CS: ConstraintSystem<E>,
@@ -29,8 +29,8 @@ impl<'a, E: Engine, S: MerkleTreeStorage<E>> StorageGadget<'a, E, S> {
             ScalarType::Field,
         );
         Ok(StorageGadget {
-            storage,
-            root_hash
+            storage: *storage,
+            root_hash: root_hash,
         })
     }
 

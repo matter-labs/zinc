@@ -11,7 +11,7 @@ pub mod merkle_tree_storage {
         pub authentication_path: Vec<E::Fr>,
     }
 
-    pub trait MerkleTreeStorage<E: Engine> {
+    pub trait MerkleTreeStorage<E: Engine>: Copy {
         const SHA256_TRUNCATED_BITLENGTH: usize = 248usize;
 
         /// Returns depth of merkle tree
