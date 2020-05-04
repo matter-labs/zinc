@@ -2,49 +2,61 @@ use crate::gadgets::contracts::merkle_tree_storage::{MerkleTreeLeaf, MerkleTreeS
 use crate::gadgets::{IntegerType, Scalar, ScalarType, ScalarTypeExpectation, ScalarVariant};
 use crate::{Engine, Result};
 use franklin_crypto::bellman::ConstraintSystem;
-use crate::stdlib::bits::ToBits::signed_to_bits;
+use crate::stdlib::bits::signed_to_bits;
+use crate::core::RuntimeError;
 
-pub fn load_from_storage<E, CS>(
-    mut cs: CS,
+pub struct StorageGadget<E: Engine> {
     storage: &MerkleTreeStorage<E>,
-    root_hash: &Scalar<E>,
-    index: &Scalar<E>,
-) -> Result<Scalar<E>>
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-{
-    // we believe that index bitlength not greater that storage.depth()
-
-
-//    let mut index_bits = match index.get_type() {
-//        ScalarType::Integer(t) => {
-//            if t.is_signed {
-//                signed_to_bits(cs.namespace(|| "signed_to_bits"), index)?
-//            } else {
-//                index.into_bits_le_fixed(cs.namespace(|| "into_bits_le"), t.bitlength)?
-//            }
-//        }
-//        ScalarType::Boolean => vec![scalar.to_boolean(cs.namespace(|| "to_boolean"))?],
-//        ScalarType::Field => {
-//            expr.into_bits_le_strict(cs.namespace(|| "into_bits_le_strict"))?
-//        }
-//    };
-//
-//    // We use big-endian
-//    bits.reverse();
+    root_hash: Scalar<E>,
 }
 
-pub fn save_to_storage<E, CS>(
-    mut cs: CS,
-    storage: &MerkleTreeStorage<E>,
-    root_hash: &Scalar<E>,
-    index: &Scalar<E>,
-    value: &Scalar<E>,
-) -> Result<Scalar<E>>
-where
-    E: Engine,
-    CS: ConstraintSystem<E>,
-{
-    // we believe that index bitlength not greater that storage.depth()
+impl<E: Engine> StorageGadget<E> {
+    pub fn new<CS>(
+        mut cs: CS,
+        storage: MerkleTreeStorage<E>,
+    ) -> Result<Self>
+    where
+        CS: ConstraintSystem<E>,
+    {
+        let root_hash_value = storage.root_hash();
+        let root_hash = cs
+            .alloc_input(|| "root hash variable", || root_hash_value)
+            .map_err(RuntimeError::SynthesisError)?;
+        Ok(StorageGadget {
+            storage,
+            root_hash
+        })
+    }
+
+    pub fn load<CS>(
+        &self,
+        mut cs: CS,
+        index: &Scalar<E>,
+    ) -> Result<Scalar<E>>
+    where
+        CS: ConstraintSystem<E>,
+    {
+
+    }
+
+    pub fn store<CS>(
+        &mut self,
+        mut cs: CS,
+        index: &Scalar<E>,
+        value: &Scalar<E>,
+    ) -> Result<()>
+    where
+        CS: ConstraintSystem<E>,
+    {
+
+    }
+
+    pub fn root_hash<CS>(
+        &self,
+    ) -> Result<Scalar<E>>
+    where
+        CS: ConstraintSystem<E>,
+    {
+
+    }
 }
