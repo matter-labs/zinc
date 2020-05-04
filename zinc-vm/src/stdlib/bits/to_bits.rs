@@ -49,7 +49,7 @@ impl<E: Engine> NativeFunction<E> for ToBits {
     }
 }
 
-fn signed_to_bits<E, CS>(mut cs: CS, scalar: Scalar<E>) -> Result<Vec<Boolean>>
+pub fn signed_to_bits<E, CS>(mut cs: CS, scalar: Scalar<E>) -> Result<Vec<Boolean>>
 where
     E: Engine,
     CS: ConstraintSystem<E>,

@@ -4,6 +4,7 @@ pub mod auto_const;
 pub mod boolean;
 pub mod comparison;
 mod conditional_select;
+pub mod contracts;
 pub mod types;
 
 pub use arithmetic::*;
@@ -11,6 +12,7 @@ pub use arrays::*;
 pub use boolean::*;
 pub use comparison::*;
 pub use conditional_select::*;
+pub use contracts::*;
 pub use types::*;
 
 mod misc;
