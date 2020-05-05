@@ -7,7 +7,7 @@
 //# } ] }
 
 fn bitwise_shift_right(a: u8) -> u8 {
-    168 >> 2 // TODO
+    168 >> 2
 }
 
 fn main(a: u8) -> u8 {

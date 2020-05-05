@@ -759,24 +759,24 @@ impl Element {
 
     pub fn bitwise_or(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
-            // (Element::Value(value_1), Element::Value(value_2)) => value_1
-            //     .bitwise_or(value_2)
-            //     .map(Self::Value)
-            //     .map_err(Error::Value),
-            // (Element::Value(value_1), Element::Constant(value_2)) => value_1
-            //     .bitwise_or(Value::try_from(value_2).map_err(Error::Value)?)
-            //     .map(Self::Value)
-            //     .map_err(Error::Value),
-            // (Element::Value(_), element_2) => {
-            //     Err(Error::OperatorBitwiseOrSecondOperandExpectedEvaluable {
-            //         found: element_2.to_string(),
-            //     })
-            // }
-            // (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-            //     .map_err(Error::Value)?
-            //     .bitwise_or(value_2)
-            //     .map(Self::Value)
-            //     .map_err(Error::Value),
+            (Element::Value(value_1), Element::Value(value_2)) => value_1
+                .bitwise_or(value_2)
+                .map(Self::Value)
+                .map_err(Error::Value),
+            (Element::Value(value_1), Element::Constant(value_2)) => value_1
+                .bitwise_or(Value::try_from(value_2).map_err(Error::Value)?)
+                .map(Self::Value)
+                .map_err(Error::Value),
+            (Element::Value(_), element_2) => {
+                Err(Error::OperatorBitwiseOrSecondOperandExpectedEvaluable {
+                    found: element_2.to_string(),
+                })
+            },
+            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
+                .map_err(Error::Value)?
+                .bitwise_or(value_2)
+                .map(Self::Value)
+                .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .bitwise_or(value_2)
                 .map(Self::Constant)
@@ -794,24 +794,24 @@ impl Element {
 
     pub fn bitwise_xor(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
-            // (Element::Value(value_1), Element::Value(value_2)) => value_1
-            //     .bitwise_xor(value_2)
-            //     .map(Self::Value)
-            //     .map_err(Error::Value),
-            // (Element::Value(value_1), Element::Constant(value_2)) => value_1
-            //     .bitwise_xor(Value::try_from(value_2).map_err(Error::Value)?)
-            //     .map(Self::Value)
-            //     .map_err(Error::Value),
-            // (Element::Value(_), element_2) => {
-            //     Err(Error::OperatorBitwiseXorSecondOperandExpectedEvaluable {
-            //         found: element_2.to_string(),
-            //     })
-            // }
-            // (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-            //     .map_err(Error::Value)?
-            //     .bitwise_xor(value_2)
-            //     .map(Self::Value)
-            //     .map_err(Error::Value),
+            (Element::Value(value_1), Element::Value(value_2)) => value_1
+                .bitwise_xor(value_2)
+                .map(Self::Value)
+                .map_err(Error::Value),
+            (Element::Value(value_1), Element::Constant(value_2)) => value_1
+                .bitwise_xor(Value::try_from(value_2).map_err(Error::Value)?)
+                .map(Self::Value)
+                .map_err(Error::Value),
+            (Element::Value(_), element_2) => {
+                Err(Error::OperatorBitwiseXorSecondOperandExpectedEvaluable {
+                    found: element_2.to_string(),
+                })
+            },
+            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
+                .map_err(Error::Value)?
+                .bitwise_xor(value_2)
+                .map(Self::Value)
+                .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .bitwise_xor(value_2)
                 .map(Self::Constant)
@@ -829,24 +829,24 @@ impl Element {
 
     pub fn bitwise_and(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
-            // (Element::Value(value_1), Element::Value(value_2)) => value_1
-            //     .bitwise_and(value_2)
-            //     .map(Self::Value)
-            //     .map_err(Error::Value),
-            // (Element::Value(value_1), Element::Constant(value_2)) => value_1
-            //     .bitwise_and(Value::try_from(value_2).map_err(Error::Value)?)
-            //     .map(Self::Value)
-            //     .map_err(Error::Value),
-            // (Element::Value(_), element_2) => {
-            //     Err(Error::OperatorBitwiseAndSecondOperandExpectedEvaluable {
-            //         found: element_2.to_string(),
-            //     })
-            // }
-            // (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-            //     .map_err(Error::Value)?
-            //     .bitwise_and(value_2)
-            //     .map(Self::Value)
-            //     .map_err(Error::Value),
+            (Element::Value(value_1), Element::Value(value_2)) => value_1
+                .bitwise_and(value_2)
+                .map(Self::Value)
+                .map_err(Error::Value),
+            (Element::Value(value_1), Element::Constant(value_2)) => value_1
+                .bitwise_and(Value::try_from(value_2).map_err(Error::Value)?)
+                .map(Self::Value)
+                .map_err(Error::Value),
+            (Element::Value(_), element_2) => {
+                Err(Error::OperatorBitwiseAndSecondOperandExpectedEvaluable {
+                    found: element_2.to_string(),
+                })
+            },
+            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
+                .map_err(Error::Value)?
+                .bitwise_and(value_2)
+                .map(Self::Value)
+                .map_err(Error::Value),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .bitwise_and(value_2)
                 .map(Self::Constant)
@@ -864,15 +864,15 @@ impl Element {
 
     pub fn bitwise_shift_left(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
-            // (Element::Value(value_1), Element::Constant(value_2)) => value_1
-            //     .bitwise_shift_left(Value::try_from(value_2).map_err(Error::Value)?)
-            //     .map(Self::Value)
-            //     .map_err(Error::Value),
-            // (Element::Value(_), element_2) => Err(
-            //     Error::OperatorBitwiseShiftLeftSecondOperandExpectedConstant {
-            //         found: element_2.to_string(),
-            //     },
-            // ),
+            (Element::Value(value_1), Element::Constant(value_2)) => value_1
+                .bitwise_shift_left(Value::try_from(value_2).map_err(Error::Value)?)
+                .map(Self::Value)
+                .map_err(Error::Value),
+            (Element::Value(_), element_2) => Err(
+                Error::OperatorBitwiseShiftLeftSecondOperandExpectedConstant {
+                    found: element_2.to_string(),
+                },
+            ),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .bitwise_shift_left(value_2)
                 .map(Self::Constant)
@@ -892,15 +892,15 @@ impl Element {
 
     pub fn bitwise_shift_right(self, other: Self) -> Result<Self, Error> {
         match (self, other) {
-            // (Element::Value(value_1), Element::Constant(value_2)) => value_1
-            //     .bitwise_shift_right(Value::try_from(value_2).map_err(Error::Value)?)
-            //     .map(Self::Value)
-            //     .map_err(Error::Value),
-            // (Element::Value(_), element_2) => Err(
-            //     Error::OperatorBitwiseShiftRightSecondOperandExpectedConstant {
-            //         found: element_2.to_string(),
-            //     },
-            // ),
+            (Element::Value(value_1), Element::Constant(value_2)) => value_1
+                .bitwise_shift_right(Value::try_from(value_2).map_err(Error::Value)?)
+                .map(Self::Value)
+                .map_err(Error::Value),
+            (Element::Value(_), element_2) => Err(
+                Error::OperatorBitwiseShiftRightSecondOperandExpectedConstant {
+                    found: element_2.to_string(),
+                },
+            ),
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .bitwise_shift_right(value_2)
                 .map(Self::Constant)
@@ -1128,7 +1128,7 @@ impl Element {
 
     pub fn bitwise_not(self) -> Result<Self, Error> {
         match self {
-            // Element::Value(value) => value.bitwise_not().map(Self::Value).map_err(Error::Value),
+            Element::Value(value) => value.bitwise_not().map(Self::Value).map_err(Error::Value),
             Element::Constant(constant) => constant
                 .bitwise_not()
                 .map(Self::Constant)
