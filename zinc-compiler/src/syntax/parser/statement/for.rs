@@ -18,7 +18,7 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#for::builder::Builder as ForStatementBuilder;
 use crate::syntax::tree::statement::r#for::Statement as ForStatement;
 
-static HINT_EXPECTED_INDEX_IDENTIFIER: &str =
+pub static HINT_EXPECTED_INDEX_IDENTIFIER: &str =
     "for-loops must have the index identifier, e.g. `for i in 0..10 { ... }`";
 
 #[derive(Debug, Clone, Copy)]

@@ -16,8 +16,8 @@ use crate::syntax::tree::field::builder::Builder as FieldBuilder;
 use crate::syntax::tree::field::Field;
 use crate::syntax::tree::identifier::Identifier;
 
-static HINT_EXPECTED_IDENTIFIER: &str = "structure field must have an identifier, e.g. `a: u8`";
-static HINT_EXPECTED_TYPE: &str = "structure field must have a type, e.g. `a: u8`";
+pub static HINT_EXPECTED_IDENTIFIER: &str = "structure field must have an identifier, e.g. `a: u8`";
+pub static HINT_EXPECTED_TYPE: &str = "structure field must have a type, e.g. `a: u8`";
 
 #[derive(Default)]
 pub struct Parser {

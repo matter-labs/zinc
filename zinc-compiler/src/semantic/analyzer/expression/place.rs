@@ -2,8 +2,6 @@
 //! The place expression translator.
 //!
 
-use std::convert::TryFrom;
-
 use crate::generator::expression::operand::Operand as GeneratorExpressionOperand;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::error::Error as ElementError;
@@ -24,10 +22,11 @@ impl Translator {
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
         match rule {
             TranslationRule::Value => {
-                let element = Value::try_from(&place.r#type)
+                let element = Value::try_from_place(&place)
                     .map(Element::Value)
                     .map_err(ElementError::Value)
-                    .map_err(|error| Error::Element(place.identifier.location, error))?;
+                    .map_err(Error::Element)?;
+
                 Ok((
                     element,
                     Some(GeneratorExpressionOperand::Place(place.into())),

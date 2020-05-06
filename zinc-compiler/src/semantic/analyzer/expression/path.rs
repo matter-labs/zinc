@@ -3,7 +3,6 @@
 //!
 
 use std::cell::RefCell;
-use std::convert::TryFrom;
 use std::rc::Rc;
 
 use crate::generator::expression::operand::constant::Constant as GeneratorConstant;
@@ -17,7 +16,7 @@ use crate::semantic::element::place::Place;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::variant::Variant as ScopeItemVariant;
+use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
 
 pub struct Translator {}
@@ -32,12 +31,11 @@ impl Translator {
         rule: TranslationRule,
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
         let location = path.location;
-
         let path_last_identifier = path.last().to_owned();
 
         match rule {
-            TranslationRule::Place => match Scope::resolve_path(scope, &path)?.variant {
-                ScopeItemVariant::Variable(variable) => Ok((
+            TranslationRule::Place => match Scope::resolve_path(scope, &path)? {
+                ScopeItem::Variable(variable) => Ok((
                     Element::Place(Place::new(
                         path_last_identifier,
                         variable.r#type,
@@ -45,47 +43,67 @@ impl Translator {
                     )),
                     None,
                 )),
-                ScopeItemVariant::Constant(constant) => {
+                ScopeItem::Constant(constant) => {
+                    let mut constant = constant.into_inner();
+                    constant.set_location(location);
+
                     let intermediate = GeneratorConstant::try_from_semantic(&constant);
+
                     Ok((
                         Element::Constant(constant),
                         intermediate.map(GeneratorExpressionOperand::Constant),
                     ))
                 }
-                ScopeItemVariant::Type(r#type) => Ok((Element::Type(r#type), None)),
-                ScopeItemVariant::Module(_) => {
-                    Ok((Element::Module(path_last_identifier.name), None))
+                ScopeItem::Type(r#type) => {
+                    let mut r#type = r#type.into_inner();
+                    r#type.set_location(location);
+
+                    Ok((Element::Type(r#type), None))
                 }
+                ScopeItem::Module(_) => Ok((Element::Module(path_last_identifier), None)),
             },
-            TranslationRule::Value => match Scope::resolve_path(scope, &path)?.variant {
-                ScopeItemVariant::Variable(variable) => {
-                    let value = Value::try_from(&variable.r#type)
+            TranslationRule::Value => match Scope::resolve_path(scope, &path)? {
+                ScopeItem::Variable(variable) => {
+                    let value = Value::try_from_type(&variable.r#type, Some(location))
                         .map_err(ElementError::Value)
-                        .map_err(|error| Error::Element(location, error))?;
+                        .map_err(Error::Element)?;
                     let r#type = value.r#type();
+                    let element = Element::Value(value);
+
                     let intermediate = GeneratorType::try_from_semantic(&r#type)
                         .map(|_| {
                             Place::new(path_last_identifier, r#type, variable.is_mutable).into()
                         })
                         .map(GeneratorExpressionOperand::Place);
-                    let element = Element::Value(value);
+
                     Ok((element, intermediate))
                 }
-                ScopeItemVariant::Constant(constant) => {
+                ScopeItem::Constant(constant) => {
+                    let mut constant = constant.into_inner();
+                    constant.set_location(location);
+
                     let intermediate = GeneratorConstant::try_from_semantic(&constant)
                         .map(GeneratorExpressionOperand::Constant);
+
                     let element = Element::Constant(constant);
                     Ok((element, intermediate))
                 }
-                ScopeItemVariant::Type(r#type) => Ok((Element::Type(r#type), None)),
-                ScopeItemVariant::Module(_) => {
-                    Ok((Element::Module(path_last_identifier.name), None))
+                ScopeItem::Type(r#type) => {
+                    let mut r#type = r#type.into_inner();
+                    r#type.set_location(location);
+
+                    Ok((Element::Type(r#type), None))
                 }
+                ScopeItem::Module(_) => Ok((Element::Module(path_last_identifier), None)),
             },
-            TranslationRule::Constant => match Scope::resolve_path(scope, &path)?.variant {
-                ScopeItemVariant::Constant(constant) => {
+            TranslationRule::Constant => match Scope::resolve_path(scope, &path)? {
+                ScopeItem::Constant(constant) => {
+                    let mut constant = constant.into_inner();
+                    constant.set_location(location);
+
                     let intermediate = GeneratorConstant::try_from_semantic(&constant)
                         .map(GeneratorExpressionOperand::Constant);
+
                     let element = Element::Constant(constant);
                     Ok((element, intermediate))
                 }
@@ -95,8 +113,13 @@ impl Translator {
                 })),
             },
 
-            TranslationRule::Type => match Scope::resolve_path(scope, &path)?.variant {
-                ScopeItemVariant::Type(r#type) => Ok((Element::Type(r#type), None)),
+            TranslationRule::Type => match Scope::resolve_path(scope, &path)? {
+                ScopeItem::Type(r#type) => {
+                    let mut r#type = r#type.into_inner();
+                    r#type.set_location(location);
+
+                    Ok((Element::Type(r#type), None))
+                }
                 _ => Ok((Element::Path(path), None)),
             },
             TranslationRule::Path => Ok((Element::Path(path), None)),

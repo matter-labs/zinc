@@ -16,7 +16,6 @@ use std::str;
 
 use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::location::Location;
-use crate::semantic::element::constant::Constant;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
@@ -24,8 +23,10 @@ use crate::syntax::tree::identifier::Identifier;
 
 use self::builtin::BuiltInScope;
 use self::error::Error;
-use self::item::variant::variable::Variable as VariableItem;
-use self::item::variant::Variant as ItemVariant;
+use self::item::constant::Constant as ConstantItem;
+use self::item::module::Module as ModuleItem;
+use self::item::r#type::Type as TypeItem;
+use self::item::variable::Variable as VariableItem;
 use self::item::Item;
 
 ///
@@ -72,10 +73,12 @@ impl Scope {
             return Err(Error::ItemRedeclared {
                 location: identifier.location,
                 name: identifier.name,
-                reference: item.location,
+                reference: item.location(),
             });
         }
+
         scope.borrow_mut().items.insert(identifier.name, item);
+
         Ok(())
     }
 
@@ -89,15 +92,17 @@ impl Scope {
     ) -> Result<(), Error> {
         if let Ok(item) = Self::resolve_item(scope.clone(), &identifier, true) {
             return Err(Error::ItemRedeclared {
-                location: identifier.location,
+                location: variable.location,
                 name: identifier.name,
-                reference: item.location,
+                reference: item.location(),
             });
         }
-        scope.borrow_mut().items.insert(
-            identifier.name,
-            Item::new(ItemVariant::Variable(variable), Some(identifier.location)),
-        );
+
+        scope
+            .borrow_mut()
+            .items
+            .insert(identifier.name, Item::Variable(variable));
+
         Ok(())
     }
 
@@ -107,19 +112,21 @@ impl Scope {
     pub fn declare_constant(
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
-        constant: Constant,
+        constant: ConstantItem,
     ) -> Result<(), Error> {
         if let Ok(item) = Self::resolve_item(scope.clone(), &identifier, true) {
             return Err(Error::ItemRedeclared {
-                location: identifier.location,
+                location: constant.location,
                 name: identifier.name,
-                reference: item.location,
+                reference: item.location(),
             });
         }
-        scope.borrow_mut().items.insert(
-            identifier.name,
-            Item::new(ItemVariant::Constant(constant), Some(identifier.location)),
-        );
+
+        scope
+            .borrow_mut()
+            .items
+            .insert(identifier.name, Item::Constant(constant));
+
         Ok(())
     }
 
@@ -129,33 +136,35 @@ impl Scope {
     pub fn declare_type(
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
-        r#type: Type,
+        r#type: TypeItem,
     ) -> Result<(), Error> {
         if let Ok(item) = Self::resolve_item(scope.clone(), &identifier, true) {
             return Err(Error::ItemRedeclared {
-                location: identifier.location,
+                location: r#type.location.unwrap_or(identifier.location),
                 name: identifier.name,
-                reference: item.location,
+                reference: item.location(),
             });
         }
-        scope.borrow_mut().items.insert(
-            identifier.name,
-            Item::new(ItemVariant::Type(r#type), Some(identifier.location)),
-        );
+
+        scope
+            .borrow_mut()
+            .items
+            .insert(identifier.name, Item::Type(r#type));
+
         Ok(())
     }
 
     ///
-    /// Declares a `contract` type, which checks whether it is the only contract in the scope.
+    /// Declares a `contract` type, also checks whether it is the only contract in the scope.
     ///
     pub fn declare_contract(
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
-        r#type: Type,
+        r#type: TypeItem,
     ) -> Result<(), Error> {
         if let Some(location) = scope.borrow().get_contract_location() {
             return Err(Error::ContractRedeclared {
-                location: identifier.location,
+                location: r#type.location.unwrap_or(identifier.location),
                 reference: location,
             });
         }
@@ -175,13 +184,15 @@ impl Scope {
             return Err(Error::ItemRedeclared {
                 location: identifier.location,
                 name: identifier.name,
-                reference: item.location,
+                reference: item.location(),
             });
         }
+
         scope.borrow_mut().items.insert(
             identifier.name,
-            Item::new(ItemVariant::Module(module), Some(identifier.location)),
+            Item::Module(ModuleItem::new(Some(identifier.location), module)),
         );
+
         Ok(())
     }
 
@@ -190,11 +201,9 @@ impl Scope {
     ///
     /// Since `Self` is the reserved keyword, it is not being checked for being already declared.
     ///
-    pub fn declare_self(&mut self, r#type: Type) {
-        self.items.insert(
-            Keyword::SelfUppercase.to_string(),
-            Item::new(ItemVariant::Type(r#type), None),
-        );
+    pub fn declare_self(&mut self, r#type: TypeItem) {
+        self.items
+            .insert(Keyword::SelfUppercase.to_string(), Item::Type(r#type));
     }
 
     ///
@@ -212,11 +221,20 @@ impl Scope {
                 return Ok(item);
             }
 
-            current_scope = match item.variant {
-                ItemVariant::Module(ref inner) => inner.to_owned(),
-                ItemVariant::Type(Type::Enumeration(ref inner)) => inner.scope.to_owned(),
-                ItemVariant::Type(Type::Structure(ref inner)) => inner.scope.to_owned(),
-                ItemVariant::Type(Type::Contract(ref inner)) => inner.scope.to_owned(),
+            current_scope = match item {
+                Item::Module(ref inner) => inner.scope.to_owned(),
+                Item::Type(TypeItem {
+                    inner: Type::Enumeration(ref inner),
+                    ..
+                }) => inner.scope.to_owned(),
+                Item::Type(TypeItem {
+                    inner: Type::Structure(ref inner),
+                    ..
+                }) => inner.scope.to_owned(),
+                Item::Type(TypeItem {
+                    inner: Type::Contract(ref inner),
+                    ..
+                }) => inner.scope.to_owned(),
                 _ => {
                     return Err(SemanticError::Scope(Error::ItemNotNamespace {
                         location: identifier.location,
@@ -274,7 +292,7 @@ impl Scope {
     pub fn get_main_location(&self) -> Option<Location> {
         self.items
             .get(crate::FUNCTION_MAIN_IDENTIFIER)
-            .and_then(|main| main.location)
+            .and_then(|main| main.location())
     }
 
     ///
@@ -282,12 +300,12 @@ impl Scope {
     ///
     pub fn get_contract_location(&self) -> Option<Location> {
         for (_name, item) in self.items.iter() {
-            if let Item {
-                variant: ItemVariant::Type(Type::Contract(_)),
-                location,
-            } = item
+            if let Item::Type(TypeItem {
+                inner: Type::Contract(_),
+                ..
+            }) = item
             {
-                return *location;
+                return item.location();
             }
         }
 
@@ -295,7 +313,7 @@ impl Scope {
     }
 
     ///
-    /// Creates a child scope with the current one as its parent.
+    /// Creates a child scope with `parent` as its parent.
     ///
     pub fn new_child(parent: Rc<RefCell<Scope>>) -> Rc<RefCell<Scope>> {
         Rc::new(RefCell::new(Scope::new(Some(parent))))

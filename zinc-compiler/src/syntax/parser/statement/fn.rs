@@ -18,9 +18,9 @@ use crate::syntax::parser::r#type::Parser as TypeParser;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#fn::builder::Builder as FnStatementBuilder;
 
-static HINT_EXPECTED_IDENTIFIER: &str =
+pub static HINT_EXPECTED_IDENTIFIER: &str =
     "function must have an identifier, e.g. `fn sum(...) { ... }`";
-static HINT_EXPECTED_ARGUMENT_LIST: &str =
+pub static HINT_EXPECTED_ARGUMENT_LIST: &str =
     "function must have the argument list, e.g. `fn sum(a: u8, b: u8) { ... }`";
 
 #[derive(Debug, Clone, Copy)]

@@ -109,7 +109,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::ScrutineeInvalidType {
             location: Location::new(4, 24),
-            found: Type::unit().to_string(),
+            found: Type::unit(None).to_string(),
         }),
     )));
 
@@ -263,7 +263,7 @@ fn main() -> u8 {
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::BranchPatternPathExpectedConstant {
             location: Location::new(7, 17),
-            found: Type::field().to_string(),
+            found: Type::field(None).to_string(),
         }),
     )));
 
@@ -293,8 +293,8 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::BranchPatternInvalidType {
             location: Location::new(5, 9),
-            expected: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            found: Type::boolean().to_string(),
+            expected: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+            found: Type::boolean(None).to_string(),
             reference: Location::new(4, 24),
         }),
     )));
@@ -358,8 +358,8 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Expression(
         ExpressionError::Match(MatchExpressionError::BranchExpressionInvalidType {
             location: Location::new(6, 14),
-            expected: Type::boolean().to_string(),
-            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            expected: Type::boolean(None).to_string(),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             reference: Location::new(5, 14),
         }),
     )));

@@ -28,7 +28,8 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::variant::variable::Variable as ScopeVariableItem;
+use crate::semantic::scope::item::constant::Constant as ScopeConstantItem;
+use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::expression::r#match::Expression as MatchExpression;
@@ -166,10 +167,7 @@ impl Analyzer {
                     let location = integer.location;
 
                     let constant = IntegerConstant::try_from(&integer).map_err(|error| {
-                        Error::Element(
-                            location,
-                            ElementError::Constant(ConstantError::Integer(error)),
-                        )
+                        Error::Element(ElementError::Constant(ConstantError::Integer(error)))
                     })?;
                     let pattern_type = constant.r#type();
                     if pattern_type != scrutinee_type {
@@ -446,10 +444,7 @@ impl Analyzer {
                     let location = integer.location;
 
                     let constant = IntegerConstant::try_from(&integer).map_err(|error| {
-                        Error::Element(
-                            location,
-                            ElementError::Constant(ConstantError::Integer(error)),
-                        )
+                        Error::Element(ElementError::Constant(ConstantError::Integer(error)))
                     })?;
                     let pattern_type = constant.r#type();
                     if pattern_type != scrutinee_type {
@@ -574,7 +569,7 @@ impl Analyzer {
                     Scope::declare_constant(
                         scope_stack.top(),
                         identifier.clone(),
-                        scrutinee_result.clone(),
+                        ScopeConstantItem::new(identifier.location, scrutinee_result.clone()),
                     )?;
                     let expression_location = expression.location;
                     let (result, _) =

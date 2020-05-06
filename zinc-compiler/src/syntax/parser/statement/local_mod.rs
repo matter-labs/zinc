@@ -23,7 +23,7 @@ use crate::syntax::parser::statement::r#type::Parser as TypeStatementParser;
 use crate::syntax::parser::statement::r#use::Parser as UseStatementParser;
 use crate::syntax::tree::statement::local_mod::Statement as ModLocalStatement;
 
-static HINT_ONLY_SOME_STATEMENTS: &str =
+pub static HINT_ONLY_SOME_STATEMENTS: &str =
     "only constants, types, functions, and type implementations may be declared at the module root";
 
 #[derive(Debug, Clone, Copy)]

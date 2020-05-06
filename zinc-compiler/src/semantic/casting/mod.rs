@@ -37,26 +37,27 @@ impl Caster {
         match (from, to) {
             (Type::IntegerUnsigned { .. }, Type::IntegerUnsigned { .. }) => Ok(()),
             (Type::IntegerUnsigned { .. }, Type::IntegerSigned { .. }) => Ok(()),
-            (Type::IntegerUnsigned { .. }, Type::Field) => Ok(()),
-            (from @ Type::IntegerUnsigned { .. }, to) => {
-                Err(Error::casting_to_invalid_type(from, to))
-            }
+            (Type::IntegerUnsigned { .. }, Type::Field(_)) => Ok(()),
             (Type::IntegerSigned { .. }, Type::IntegerSigned { .. }) => Ok(()),
             (Type::IntegerSigned { .. }, Type::IntegerUnsigned { .. }) => Ok(()),
-            (Type::IntegerSigned { .. }, Type::Field) => Ok(()),
-            (from @ Type::IntegerSigned { .. }, to) => {
-                Err(Error::casting_to_invalid_type(from, to))
-            }
+            (Type::IntegerSigned { .. }, Type::Field(_)) => Ok(()),
             (Type::Enumeration(_), Type::IntegerSigned { .. }) => Ok(()),
             (Type::Enumeration(_), Type::IntegerUnsigned { .. }) => Ok(()),
-            (Type::Enumeration(_), Type::Field) => Ok(()),
-            (from, to) => {
-                if from == to {
-                    Ok(())
-                } else {
-                    Err(Error::casting_from_invalid_type(from, to))
-                }
-            }
+            (Type::Enumeration(_), Type::Field(_)) => Ok(()),
+            (from, to) if from == to => Ok(()),
+
+            (from @ Type::IntegerUnsigned { .. }, to) => Err(Error::CastingToInvalidType {
+                from: from.to_string(),
+                to: to.to_string(),
+            }),
+            (from @ Type::IntegerSigned { .. }, to) => Err(Error::CastingToInvalidType {
+                from: from.to_string(),
+                to: to.to_string(),
+            }),
+            (from, to) => Err(Error::CastingFromInvalidType {
+                from: from.to_string(),
+                to: to.to_string(),
+            }),
         }
     }
 }

@@ -194,13 +194,14 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 24),
-        ElementError::Value(ValueError::Casting(
-            CastingError::casting_from_invalid_type(
-                &Type::field(),
-                &Type::integer_unsigned(crate::BITLENGTH_BYTE),
-            ),
-        )),
+        ElementError::Value(ValueError::Casting {
+            location: Location::new(4, 18),
+            inner: CastingError::CastingFromInvalidType {
+                from: Type::field(None).to_string(),
+                to: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+            },
+            reference: Some(Location::new(4, 27)),
+        }),
     )));
 
     let result = crate::semantic::tests::compile_entry(input);
@@ -218,11 +219,14 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 24),
-        ElementError::Value(ValueError::Casting(CastingError::casting_to_invalid_type(
-            &Type::integer_unsigned(crate::BITLENGTH_BYTE),
-            &Type::boolean(),
-        ))),
+        ElementError::Value(ValueError::Casting {
+            location: Location::new(4, 18),
+            inner: CastingError::CastingToInvalidType {
+                from: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+                to: Type::boolean(None).to_string(),
+            },
+            reference: Some(Location::new(4, 27)),
+        }),
     )));
 
     let result = crate::semantic::tests::compile_entry(input);
@@ -240,11 +244,14 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 17),
-        ElementError::Value(ValueError::Casting(CastingError::casting_to_invalid_type(
-            &Type::integer_unsigned(crate::BITLENGTH_BYTE),
-            &Type::boolean(),
-        ))),
+        ElementError::Value(ValueError::Casting {
+            location: Location::new(4, 24),
+            inner: CastingError::CastingToInvalidType {
+                from: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+                to: Type::boolean(None).to_string(),
+            },
+            reference: Some(Location::new(4, 17)),
+        }),
     )));
 
     let result = crate::semantic::tests::compile_entry(input);

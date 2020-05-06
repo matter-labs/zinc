@@ -6,6 +6,7 @@ pub mod r#const;
 pub mod contract;
 pub mod r#enum;
 pub mod error;
+pub mod field;
 pub mod r#fn;
 pub mod r#for;
 pub mod r#impl;
@@ -25,11 +26,13 @@ use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::error::Error;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
+use crate::syntax::tree::statement::local_contract::Statement as ContractLocalStatement;
 use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatement;
 use crate::syntax::tree::statement::local_impl::Statement as ImplementationLocalStatement;
 use crate::syntax::tree::statement::local_mod::Statement as ModLocalStatement;
 
 use self::contract::Analyzer as ContractStatementAnalyzer;
+use self::field::Analyzer as FieldStatementAnalyzer;
 use self::module::Analyzer as ModStatementAnalyzer;
 use self::r#const::Analyzer as ConstStatementAnalyzer;
 use self::r#enum::Analyzer as EnumStatementAnalyzer;
@@ -201,20 +204,47 @@ impl Analyzer {
     pub fn local_impl(
         &mut self,
         statement: ImplementationLocalStatement,
-        context: FnStatementAnalyzerContext,
     ) -> Result<Option<GeneratorStatement>, Error> {
         match statement {
             ImplementationLocalStatement::Const(statement) => {
                 ConstStatementAnalyzer::analyze(self.scope_stack.top(), statement)?;
                 Ok(None)
             }
-            ImplementationLocalStatement::Fn(statement) => {
-                Ok(
-                    FnStatementAnalyzer::analyze(self.scope_stack.top(), statement, context)?
-                        .map(GeneratorStatement::Function),
-                )
-            }
+            ImplementationLocalStatement::Fn(statement) => Ok(FnStatementAnalyzer::analyze(
+                self.scope_stack.top(),
+                statement,
+                FnStatementAnalyzerContext::Implementation,
+            )?
+            .map(GeneratorStatement::Function)),
             ImplementationLocalStatement::Empty(_location) => Ok(None),
+        }
+    }
+
+    ///
+    /// Analyzes a statement local to a contract.
+    ///
+    /// If the statement must be passed to the next compiler phase, yields its IR.
+    ///
+    pub fn local_contract(
+        &mut self,
+        statement: ContractLocalStatement,
+    ) -> Result<Option<GeneratorStatement>, Error> {
+        match statement {
+            ContractLocalStatement::Field(statement) => {
+                FieldStatementAnalyzer::analyze(self.scope_stack.top(), statement)?;
+                Ok(None)
+            }
+            ContractLocalStatement::Const(statement) => {
+                ConstStatementAnalyzer::analyze(self.scope_stack.top(), statement)?;
+                Ok(None)
+            }
+            ContractLocalStatement::Fn(statement) => Ok(FnStatementAnalyzer::analyze(
+                self.scope_stack.top(),
+                statement,
+                FnStatementAnalyzerContext::Contract,
+            )?
+            .map(GeneratorStatement::Function)),
+            ContractLocalStatement::Empty(_location) => Ok(None),
         }
     }
 }

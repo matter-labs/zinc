@@ -12,13 +12,12 @@ use crate::lexical::token::lexeme::symbol::Symbol;
 use crate::lexical::token::lexeme::Lexeme;
 use crate::lexical::token::Token;
 use crate::syntax::error::Error as SyntaxError;
-use crate::syntax::parser::field_list::Parser as FieldListParser;
-use crate::syntax::parser::statement::local_impl::Parser as ImplementationLocalStatementParser;
+use crate::syntax::parser::statement::local_contract::Parser as ContractLocalStatementParser;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::contract::builder::Builder as ContractStatementBuilder;
 use crate::syntax::tree::statement::contract::Statement as ContractStatement;
 
-static HINT_EXPECTED_IDENTIFIER: &str =
+pub static HINT_EXPECTED_IDENTIFIER: &str =
     "contract must have an identifier, e.g. `contract Uniswap { ... }`";
 
 #[derive(Debug, Clone, Copy)]
@@ -26,7 +25,6 @@ pub enum State {
     KeywordContract,
     Identifier,
     BracketCurlyLeftOrEnd,
-    FieldList,
     StatementOrBracketCurlyRight,
 }
 
@@ -104,16 +102,10 @@ impl Parser {
                             lexeme: Lexeme::Symbol(Symbol::BracketCurlyLeft),
                             ..
                         } => {
-                            self.state = State::FieldList;
+                            self.state = State::StatementOrBracketCurlyRight;
                         }
                         token => return Ok((self.builder.finish(), Some(token))),
                     }
-                }
-                State::FieldList => {
-                    let (fields, next) = FieldListParser::default().parse(stream.clone(), None)?;
-                    self.builder.set_fields(fields);
-                    self.next = next;
-                    self.state = State::StatementOrBracketCurlyRight;
                 }
                 State::StatementOrBracketCurlyRight => {
                     match crate::syntax::parser::take_or_next(self.next.take(), stream.clone())? {
@@ -122,7 +114,7 @@ impl Parser {
                             ..
                         } => return Ok((self.builder.finish(), None)),
                         token => {
-                            let (statement, next) = ImplementationLocalStatementParser::default()
+                            let (statement, next) = ContractLocalStatementParser::default()
                                 .parse(stream.clone(), Some(token))?;
                             self.next = next;
                             self.builder.push_statement(statement);
@@ -152,7 +144,6 @@ mod tests {
     use crate::syntax::tree::expression::tree::node::operand::Operand as ExpressionOperand;
     use crate::syntax::tree::expression::tree::node::Node as ExpressionTreeNode;
     use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
-    use crate::syntax::tree::field::Field;
     use crate::syntax::tree::identifier::Identifier;
     use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
     use crate::syntax::tree::pattern_binding::variant::Variant as BindingPatternVariant;
@@ -160,7 +151,8 @@ mod tests {
     use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
     use crate::syntax::tree::r#type::Type;
     use crate::syntax::tree::statement::contract::Statement as ContractStatement;
-    use crate::syntax::tree::statement::local_impl::Statement as ImplementationLocalStatement;
+    use crate::syntax::tree::statement::field::Statement as FieldStatement;
+    use crate::syntax::tree::statement::local_contract::Statement as ContractLocalStatement;
     use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
     use crate::syntax::tree::statement::r#fn::Statement as FnStatement;
 
@@ -174,7 +166,6 @@ mod tests {
             ContractStatement::new(
                 Location::new(2, 5),
                 Identifier::new(Location::new(2, 14), "Test".to_owned()),
-                vec![],
                 vec![],
             ),
             None,
@@ -196,7 +187,6 @@ mod tests {
                 Location::new(2, 5),
                 Identifier::new(Location::new(2, 14), "Test".to_owned()),
                 vec![],
-                vec![],
             ),
             Some(Token::new(
                 Lexeme::Symbol(Symbol::Semicolon),
@@ -213,7 +203,7 @@ mod tests {
     fn ok_single_field() {
         let input = r#"
     contract Test {
-        a: u232,
+        a: u232;
     }
 "#;
 
@@ -221,12 +211,12 @@ mod tests {
             ContractStatement::new(
                 Location::new(2, 5),
                 Identifier::new(Location::new(2, 14), "Test".to_owned()),
-                vec![Field::new(
+                vec![ContractLocalStatement::Field(FieldStatement::new(
                     Location::new(3, 9),
+                    false,
                     Identifier::new(Location::new(3, 9), "a".to_owned()),
                     Type::new(Location::new(3, 12), TypeVariant::integer_unsigned(232)),
-                )],
-                vec![],
+                ))],
             ),
             None,
         ));
@@ -240,9 +230,9 @@ mod tests {
     fn ok_multiple_fields() {
         let input = r#"
     contract Test {
-        a: u232,
-        b: u232,
-        c: u232,
+        a: u232;
+        pub b: u232;
+        pub c: u232;
     }
 "#;
 
@@ -251,23 +241,25 @@ mod tests {
                 Location::new(2, 5),
                 Identifier::new(Location::new(2, 14), "Test".to_owned()),
                 vec![
-                    Field::new(
+                    ContractLocalStatement::Field(FieldStatement::new(
                         Location::new(3, 9),
+                        false,
                         Identifier::new(Location::new(3, 9), "a".to_owned()),
                         Type::new(Location::new(3, 12), TypeVariant::integer_unsigned(232)),
-                    ),
-                    Field::new(
+                    )),
+                    ContractLocalStatement::Field(FieldStatement::new(
                         Location::new(4, 9),
-                        Identifier::new(Location::new(4, 9), "b".to_owned()),
-                        Type::new(Location::new(4, 12), TypeVariant::integer_unsigned(232)),
-                    ),
-                    Field::new(
+                        true,
+                        Identifier::new(Location::new(4, 13), "b".to_owned()),
+                        Type::new(Location::new(4, 16), TypeVariant::integer_unsigned(232)),
+                    )),
+                    ContractLocalStatement::Field(FieldStatement::new(
                         Location::new(5, 9),
-                        Identifier::new(Location::new(5, 9), "c".to_owned()),
-                        Type::new(Location::new(5, 12), TypeVariant::integer_unsigned(232)),
-                    ),
+                        true,
+                        Identifier::new(Location::new(5, 13), "c".to_owned()),
+                        Type::new(Location::new(5, 16), TypeVariant::integer_unsigned(232)),
+                    )),
                 ],
-                vec![],
             ),
             None,
         ));
@@ -289,8 +281,7 @@ mod tests {
             ContractStatement::new(
                 Location::new(2, 5),
                 Identifier::new(Location::new(2, 14), "Test".to_owned()),
-                vec![],
-                vec![ImplementationLocalStatement::Const(ConstStatement::new(
+                vec![ContractLocalStatement::Const(ConstStatement::new(
                     Location::new(3, 9),
                     Identifier::new(Location::new(3, 15), "VALUE".to_owned()),
                     Type::new(Location::new(3, 22), TypeVariant::integer_unsigned(64)),
@@ -327,9 +318,8 @@ mod tests {
             ContractStatement::new(
                 Location::new(2, 5),
                 Identifier::new(Location::new(2, 14), "Test".to_owned()),
-                vec![],
                 vec![
-                    ImplementationLocalStatement::Const(ConstStatement::new(
+                    ContractLocalStatement::Const(ConstStatement::new(
                         Location::new(3, 9),
                         Identifier::new(Location::new(3, 15), "VALUE".to_owned()),
                         Type::new(Location::new(3, 22), TypeVariant::integer_unsigned(64)),
@@ -343,7 +333,7 @@ mod tests {
                             )),
                         ),
                     )),
-                    ImplementationLocalStatement::Const(ConstStatement::new(
+                    ContractLocalStatement::Const(ConstStatement::new(
                         Location::new(4, 9),
                         Identifier::new(Location::new(4, 15), "ANOTHER".to_owned()),
                         Type::new(Location::new(4, 24), TypeVariant::integer_unsigned(64)),
@@ -357,7 +347,7 @@ mod tests {
                             )),
                         ),
                     )),
-                    ImplementationLocalStatement::Const(ConstStatement::new(
+                    ContractLocalStatement::Const(ConstStatement::new(
                         Location::new(5, 9),
                         Identifier::new(Location::new(5, 15), "YET_ANOTHER".to_owned()),
                         Type::new(Location::new(5, 28), TypeVariant::integer_unsigned(64)),
@@ -393,8 +383,7 @@ mod tests {
             ContractStatement::new(
                 Location::new(2, 5),
                 Identifier::new(Location::new(2, 14), "Test".to_owned()),
-                vec![],
-                vec![ImplementationLocalStatement::Fn(FnStatement::new(
+                vec![ContractLocalStatement::Fn(FnStatement::new(
                     Location::new(3, 9),
                     false,
                     false,
@@ -435,9 +424,8 @@ mod tests {
             ContractStatement::new(
                 Location::new(2, 5),
                 Identifier::new(Location::new(2, 14), "Test".to_owned()),
-                vec![],
                 vec![
-                    ImplementationLocalStatement::Fn(FnStatement::new(
+                    ContractLocalStatement::Fn(FnStatement::new(
                         Location::new(3, 9),
                         false,
                         false,
@@ -453,7 +441,7 @@ mod tests {
                         Some(Type::new(Location::new(3, 28), TypeVariant::field())),
                         BlockExpression::new(Location::new(3, 34), vec![], None),
                     )),
-                    ImplementationLocalStatement::Fn(FnStatement::new(
+                    ContractLocalStatement::Fn(FnStatement::new(
                         Location::new(5, 9),
                         false,
                         false,
@@ -469,7 +457,7 @@ mod tests {
                         Some(Type::new(Location::new(5, 28), TypeVariant::field())),
                         BlockExpression::new(Location::new(5, 34), vec![], None),
                     )),
-                    ImplementationLocalStatement::Fn(FnStatement::new(
+                    ContractLocalStatement::Fn(FnStatement::new(
                         Location::new(7, 9),
                         false,
                         false,
@@ -499,7 +487,7 @@ mod tests {
     fn ok_single_field_single_constant_single_function() {
         let input = r#"
     contract Test {
-        a: u232,
+        pub a: u232;
 
         const VALUE: u64 = 42;
 
@@ -511,13 +499,14 @@ mod tests {
             ContractStatement::new(
                 Location::new(2, 5),
                 Identifier::new(Location::new(2, 14), "Test".to_owned()),
-                vec![Field::new(
-                    Location::new(3, 9),
-                    Identifier::new(Location::new(3, 9), "a".to_owned()),
-                    Type::new(Location::new(3, 12), TypeVariant::integer_unsigned(232)),
-                )],
                 vec![
-                    ImplementationLocalStatement::Const(ConstStatement::new(
+                    ContractLocalStatement::Field(FieldStatement::new(
+                        Location::new(3, 9),
+                        true,
+                        Identifier::new(Location::new(3, 13), "a".to_owned()),
+                        Type::new(Location::new(3, 16), TypeVariant::integer_unsigned(232)),
+                    )),
+                    ContractLocalStatement::Const(ConstStatement::new(
                         Location::new(5, 9),
                         Identifier::new(Location::new(5, 15), "VALUE".to_owned()),
                         Type::new(Location::new(5, 22), TypeVariant::integer_unsigned(64)),
@@ -531,7 +520,7 @@ mod tests {
                             )),
                         ),
                     )),
-                    ImplementationLocalStatement::Fn(FnStatement::new(
+                    ContractLocalStatement::Fn(FnStatement::new(
                         Location::new(7, 9),
                         false,
                         false,
@@ -561,9 +550,9 @@ mod tests {
     fn ok_multiple_fields_multiple_constants_multiple_functions() {
         let input = r#"
     contract Test {
-        a: u232,
-        b: u232,
-        c: u232,
+        a: u232;
+        pub b: u232;
+        pub c: u232;
 
         const VALUE: u64 = 42;
         const ANOTHER: u64 = 42;
@@ -582,24 +571,25 @@ mod tests {
                 Location::new(2, 5),
                 Identifier::new(Location::new(2, 14), "Test".to_owned()),
                 vec![
-                    Field::new(
+                    ContractLocalStatement::Field(FieldStatement::new(
                         Location::new(3, 9),
+                        false,
                         Identifier::new(Location::new(3, 9), "a".to_owned()),
                         Type::new(Location::new(3, 12), TypeVariant::integer_unsigned(232)),
-                    ),
-                    Field::new(
+                    )),
+                    ContractLocalStatement::Field(FieldStatement::new(
                         Location::new(4, 9),
-                        Identifier::new(Location::new(4, 9), "b".to_owned()),
-                        Type::new(Location::new(4, 12), TypeVariant::integer_unsigned(232)),
-                    ),
-                    Field::new(
+                        true,
+                        Identifier::new(Location::new(4, 13), "b".to_owned()),
+                        Type::new(Location::new(4, 16), TypeVariant::integer_unsigned(232)),
+                    )),
+                    ContractLocalStatement::Field(FieldStatement::new(
                         Location::new(5, 9),
-                        Identifier::new(Location::new(5, 9), "c".to_owned()),
-                        Type::new(Location::new(5, 12), TypeVariant::integer_unsigned(232)),
-                    ),
-                ],
-                vec![
-                    ImplementationLocalStatement::Const(ConstStatement::new(
+                        true,
+                        Identifier::new(Location::new(5, 13), "c".to_owned()),
+                        Type::new(Location::new(5, 16), TypeVariant::integer_unsigned(232)),
+                    )),
+                    ContractLocalStatement::Const(ConstStatement::new(
                         Location::new(7, 9),
                         Identifier::new(Location::new(7, 15), "VALUE".to_owned()),
                         Type::new(Location::new(7, 22), TypeVariant::integer_unsigned(64)),
@@ -613,7 +603,7 @@ mod tests {
                             )),
                         ),
                     )),
-                    ImplementationLocalStatement::Const(ConstStatement::new(
+                    ContractLocalStatement::Const(ConstStatement::new(
                         Location::new(8, 9),
                         Identifier::new(Location::new(8, 15), "ANOTHER".to_owned()),
                         Type::new(Location::new(8, 24), TypeVariant::integer_unsigned(64)),
@@ -627,7 +617,7 @@ mod tests {
                             )),
                         ),
                     )),
-                    ImplementationLocalStatement::Const(ConstStatement::new(
+                    ContractLocalStatement::Const(ConstStatement::new(
                         Location::new(9, 9),
                         Identifier::new(Location::new(9, 15), "YET_ANOTHER".to_owned()),
                         Type::new(Location::new(9, 28), TypeVariant::integer_unsigned(64)),
@@ -641,7 +631,7 @@ mod tests {
                             )),
                         ),
                     )),
-                    ImplementationLocalStatement::Fn(FnStatement::new(
+                    ContractLocalStatement::Fn(FnStatement::new(
                         Location::new(11, 9),
                         false,
                         false,
@@ -657,7 +647,7 @@ mod tests {
                         Some(Type::new(Location::new(11, 28), TypeVariant::field())),
                         BlockExpression::new(Location::new(11, 34), vec![], None),
                     )),
-                    ImplementationLocalStatement::Fn(FnStatement::new(
+                    ContractLocalStatement::Fn(FnStatement::new(
                         Location::new(13, 9),
                         false,
                         false,
@@ -673,7 +663,7 @@ mod tests {
                         Some(Type::new(Location::new(13, 28), TypeVariant::field())),
                         BlockExpression::new(Location::new(13, 34), vec![], None),
                     )),
-                    ImplementationLocalStatement::Fn(FnStatement::new(
+                    ContractLocalStatement::Fn(FnStatement::new(
                         Location::new(15, 9),
                         false,
                         false,
@@ -716,13 +706,12 @@ mod tests {
 
     #[test]
     fn error_expected_bracket_curly_right() {
-        let input = r#"contract Data { a: u8 );"#;
+        let input = r#"contract Data { a: u8; );"#;
 
-        let expected = Err(Error::Syntax(SyntaxError::expected_one_of(
-            Location::new(1, 23),
-            vec!["const", "fn"],
+        let expected = Err(Error::Syntax(SyntaxError::expected_identifier(
+            Location::new(1, 24),
             Lexeme::Symbol(Symbol::ParenthesisRight),
-            Some(crate::syntax::parser::statement::local_impl::HINT_ONLY_SOME_STATEMENTS),
+            Some(crate::syntax::parser::statement::field::HINT_EXPECTED_IDENTIFIER),
         )));
 
         let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);

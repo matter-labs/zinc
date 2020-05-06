@@ -5,29 +5,33 @@
 mod tests;
 
 pub mod access;
+pub mod argument_list;
 pub mod constant;
 pub mod error;
 pub mod path;
 pub mod place;
+pub mod tuple_index;
 pub mod r#type;
 pub mod value;
 
-use std::convert::TryFrom;
 use std::fmt;
 
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
-use crate::semantic::scope::item::variant::Variant as ScopeItemVariant;
+use crate::lexical::token::location::Location;
+use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::identifier::Identifier;
 
 use self::access::FieldVariant as FieldAccessVariant;
 use self::access::Index as IndexAccess;
+use self::argument_list::ArgumentList;
 use self::constant::Constant;
 use self::error::Error;
 use self::path::Path;
 use self::place::Place;
 use self::r#type::Type;
+use self::tuple_index::TupleIndex;
 use self::value::Value;
 
 ///
@@ -45,18 +49,18 @@ pub enum Element {
     /// The second operand of the casting operator
     Type(Type),
     /// The second operand of the function call operator
-    ArgumentList(Vec<Self>),
+    ArgumentList(ArgumentList),
 
     /// Path to be resolved in the scope
     Path(Path),
     /// Memory descriptor (`lvalue`)
     Place(Place),
     /// Tuple field index
-    TupleIndex(usize),
-    /// Structure field name
+    TupleIndex(TupleIndex),
+    /// Structure field identifier
     Identifier(Identifier),
-    /// Module name
-    Module(String),
+    /// Module identifier
+    Module(Identifier),
 }
 
 impl Element {
@@ -66,6 +70,7 @@ impl Element {
             Self::Constant(_) => {}
             element => {
                 return Err(Error::OperatorAssignmentSecondOperandExpectedEvaluable {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 })
             }
@@ -74,6 +79,7 @@ impl Element {
         match self {
             Self::Place(place) => Ok((place, GeneratorExpressionOperator::None)),
             element => Err(Error::OperatorAssignmentFirstOperandExpectedPlace {
+                location: element.location().unwrap(),
                 found: element.to_string(),
             }),
         }
@@ -85,18 +91,19 @@ impl Element {
     ) -> Result<(Place, GeneratorExpressionOperator), Error> {
         match self {
             Self::Place(place) => {
-                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                let value_1 = Value::try_from_place(&place).map_err(Error::Value)?;
                 match other {
                     Self::Value(value_2) => value_1
                         .bitwise_or(value_2)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     Self::Constant(value_2) => value_1
-                        .bitwise_or(Value::try_from(value_2).map_err(Error::Value)?)
+                        .bitwise_or(Value::try_from_constant(value_2).map_err(Error::Value)?)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentBitwiseOrSecondOperandExpectedEvaluable {
+                            location: element.location().unwrap(),
                             found: element.to_string(),
                         },
                     ),
@@ -104,6 +111,7 @@ impl Element {
             }
             element => Err(
                 Error::OperatorAssignmentBitwiseOrFirstOperandExpectedPlace {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 },
             ),
@@ -116,18 +124,19 @@ impl Element {
     ) -> Result<(Place, GeneratorExpressionOperator), Error> {
         match self {
             Self::Place(place) => {
-                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                let value_1 = Value::try_from_place(&place).map_err(Error::Value)?;
                 match other {
                     Self::Value(value_2) => value_1
                         .bitwise_xor(value_2)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     Self::Constant(value_2) => value_1
-                        .bitwise_xor(Value::try_from(value_2).map_err(Error::Value)?)
+                        .bitwise_xor(Value::try_from_constant(value_2).map_err(Error::Value)?)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentBitwiseXorSecondOperandExpectedEvaluable {
+                            location: element.location().unwrap(),
                             found: element.to_string(),
                         },
                     ),
@@ -135,6 +144,7 @@ impl Element {
             }
             element => Err(
                 Error::OperatorAssignmentBitwiseXorFirstOperandExpectedPlace {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 },
             ),
@@ -147,18 +157,19 @@ impl Element {
     ) -> Result<(Place, GeneratorExpressionOperator), Error> {
         match self {
             Self::Place(place) => {
-                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                let value_1 = Value::try_from_place(&place).map_err(Error::Value)?;
                 match other {
                     Self::Value(value_2) => value_1
                         .bitwise_and(value_2)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     Self::Constant(value_2) => value_1
-                        .bitwise_and(Value::try_from(value_2).map_err(Error::Value)?)
+                        .bitwise_and(Value::try_from_constant(value_2).map_err(Error::Value)?)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentBitwiseAndSecondOperandExpectedEvaluable {
+                            location: element.location().unwrap(),
                             found: element.to_string(),
                         },
                     ),
@@ -166,6 +177,7 @@ impl Element {
             }
             element => Err(
                 Error::OperatorAssignmentBitwiseAndFirstOperandExpectedPlace {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 },
             ),
@@ -178,18 +190,21 @@ impl Element {
     ) -> Result<(Place, GeneratorExpressionOperator), Error> {
         match self {
             Self::Place(place) => {
-                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                let value_1 = Value::try_from_place(&place).map_err(Error::Value)?;
                 match other {
                     Self::Value(value_2) => value_1
                         .bitwise_shift_left(value_2)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     Self::Constant(value_2) => value_1
-                        .bitwise_shift_left(Value::try_from(value_2).map_err(Error::Value)?)
+                        .bitwise_shift_left(
+                            Value::try_from_constant(value_2).map_err(Error::Value)?,
+                        )
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentBitwiseShiftLeftSecondOperandExpectedEvaluable {
+                            location: element.location().unwrap(),
                             found: element.to_string(),
                         },
                     ),
@@ -197,6 +212,7 @@ impl Element {
             }
             element => Err(
                 Error::OperatorAssignmentBitwiseShiftLeftFirstOperandExpectedPlace {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 },
             ),
@@ -209,18 +225,21 @@ impl Element {
     ) -> Result<(Place, GeneratorExpressionOperator), Error> {
         match self {
             Self::Place(place) => {
-                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                let value_1 = Value::try_from_place(&place).map_err(Error::Value)?;
                 match other {
                     Self::Value(value_2) => value_1
                         .bitwise_shift_right(value_2)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     Self::Constant(value_2) => value_1
-                        .bitwise_shift_right(Value::try_from(value_2).map_err(Error::Value)?)
+                        .bitwise_shift_right(
+                            Value::try_from_constant(value_2).map_err(Error::Value)?,
+                        )
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentBitwiseShiftRightSecondOperandExpectedEvaluable {
+                            location: element.location().unwrap(),
                             found: element.to_string(),
                         },
                     ),
@@ -228,6 +247,7 @@ impl Element {
             }
             element => Err(
                 Error::OperatorAssignmentBitwiseShiftRightFirstOperandExpectedPlace {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 },
             ),
@@ -237,24 +257,26 @@ impl Element {
     pub fn assign_add(self, other: Self) -> Result<(Place, GeneratorExpressionOperator), Error> {
         match self {
             Self::Place(place) => {
-                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                let value_1 = Value::try_from_place(&place).map_err(Error::Value)?;
                 match other {
                     Self::Value(value_2) => value_1
                         .add(value_2)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     Self::Constant(value_2) => value_1
-                        .add(Value::try_from(value_2).map_err(Error::Value)?)
+                        .add(Value::try_from_constant(value_2).map_err(Error::Value)?)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentAdditionSecondOperandExpectedEvaluable {
+                            location: element.location().unwrap(),
                             found: element.to_string(),
                         },
                     ),
                 }
             }
             element => Err(Error::OperatorAssignmentAdditionFirstOperandExpectedPlace {
+                location: element.location().unwrap(),
                 found: element.to_string(),
             }),
         }
@@ -266,18 +288,19 @@ impl Element {
     ) -> Result<(Place, GeneratorExpressionOperator), Error> {
         match self {
             Self::Place(place) => {
-                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                let value_1 = Value::try_from_place(&place).map_err(Error::Value)?;
                 match other {
                     Self::Value(value_2) => value_1
                         .subtract(value_2)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     Self::Constant(value_2) => value_1
-                        .subtract(Value::try_from(value_2).map_err(Error::Value)?)
+                        .subtract(Value::try_from_constant(value_2).map_err(Error::Value)?)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentSubtractionSecondOperandExpectedEvaluable {
+                            location: element.location().unwrap(),
                             found: element.to_string(),
                         },
                     ),
@@ -285,6 +308,7 @@ impl Element {
             }
             element => Err(
                 Error::OperatorAssignmentSubtractionFirstOperandExpectedPlace {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 },
             ),
@@ -297,18 +321,19 @@ impl Element {
     ) -> Result<(Place, GeneratorExpressionOperator), Error> {
         match self {
             Self::Place(place) => {
-                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                let value_1 = Value::try_from_place(&place).map_err(Error::Value)?;
                 match other {
                     Self::Value(value_2) => value_1
                         .multiply(value_2)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     Self::Constant(value_2) => value_1
-                        .multiply(Value::try_from(value_2).map_err(Error::Value)?)
+                        .multiply(Value::try_from_constant(value_2).map_err(Error::Value)?)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentMultiplicationSecondOperandExpectedEvaluable {
+                            location: element.location().unwrap(),
                             found: element.to_string(),
                         },
                     ),
@@ -316,6 +341,7 @@ impl Element {
             }
             element => Err(
                 Error::OperatorAssignmentMultiplicationFirstOperandExpectedPlace {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 },
             ),
@@ -325,24 +351,26 @@ impl Element {
     pub fn assign_divide(self, other: Self) -> Result<(Place, GeneratorExpressionOperator), Error> {
         match self {
             Self::Place(place) => {
-                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                let value_1 = Value::try_from_place(&place).map_err(Error::Value)?;
                 match other {
                     Self::Value(value_2) => value_1
                         .divide(value_2)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     Self::Constant(value_2) => value_1
-                        .divide(Value::try_from(value_2).map_err(Error::Value)?)
+                        .divide(Value::try_from_constant(value_2).map_err(Error::Value)?)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentDivisionSecondOperandExpectedEvaluable {
+                            location: element.location().unwrap(),
                             found: element.to_string(),
                         },
                     ),
                 }
             }
             element => Err(Error::OperatorAssignmentDivisionFirstOperandExpectedPlace {
+                location: element.location().unwrap(),
                 found: element.to_string(),
             }),
         }
@@ -354,18 +382,19 @@ impl Element {
     ) -> Result<(Place, GeneratorExpressionOperator), Error> {
         match self {
             Self::Place(place) => {
-                let value_1 = Value::try_from(&place.r#type).map_err(Error::Value)?;
+                let value_1 = Value::try_from_place(&place).map_err(Error::Value)?;
                 match other {
                     Self::Value(value_2) => value_1
                         .remainder(value_2)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     Self::Constant(value_2) => value_1
-                        .remainder(Value::try_from(value_2).map_err(Error::Value)?)
+                        .remainder(Value::try_from_constant(value_2).map_err(Error::Value)?)
                         .map(|(_value, operator)| (place, operator))
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentRemainderSecondOperandExpectedEvaluable {
+                            location: element.location().unwrap(),
                             found: element.to_string(),
                         },
                     ),
@@ -373,6 +402,7 @@ impl Element {
             }
             element => Err(
                 Error::OperatorAssignmentRemainderFirstOperandExpectedPlace {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 },
             ),
@@ -387,10 +417,12 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorRangeInclusiveSecondOperandExpectedConstant {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorRangeInclusiveFirstOperandExpectedConstant {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -404,10 +436,12 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorRangeSecondOperandExpectedConstant {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorRangeFirstOperandExpectedConstant {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -420,29 +454,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .or(Value::try_from(value_2).map_err(Error::Value)?)
+                .or(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorOrSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .or(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .or(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .or(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorOrSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorOrFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -455,29 +494,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .xor(Value::try_from(value_2).map_err(Error::Value)?)
+                .xor(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorXorSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .xor(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .xor(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .xor(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorXorSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorXorFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -490,29 +534,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .and(Value::try_from(value_2).map_err(Error::Value)?)
+                .and(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorAndSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .and(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .and(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .and(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorAndSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorAndFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -525,29 +574,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .equals(Value::try_from(value_2).map_err(Error::Value)?)
+                .equals(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorEqualsSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .equals(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .equals(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .equals(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorEqualsSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorEqualsFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -560,29 +614,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .not_equals(Value::try_from(value_2).map_err(Error::Value)?)
+                .not_equals(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .not_equals(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .not_equals(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .not_equals(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorNotEqualsFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -595,29 +654,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .greater_equals(Value::try_from(value_2).map_err(Error::Value)?)
+                .greater_equals(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorGreaterEqualsSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .greater_equals(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .greater_equals(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .greater_equals(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorGreaterEqualsSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorGreaterEqualsFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -630,29 +694,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .lesser_equals(Value::try_from(value_2).map_err(Error::Value)?)
+                .lesser_equals(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorLesserEqualsSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .lesser_equals(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .lesser_equals(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .lesser_equals(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorLesserEqualsSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorLesserEqualsFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -665,29 +734,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .greater(Value::try_from(value_2).map_err(Error::Value)?)
+                .greater(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorGreaterSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .greater(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .greater(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .greater(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorGreaterSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorGreaterFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -700,29 +774,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .lesser(Value::try_from(value_2).map_err(Error::Value)?)
+                .lesser(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorLesserSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .lesser(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .lesser(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .lesser(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorLesserSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorLesserFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -735,29 +814,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .bitwise_or(Value::try_from(value_2).map_err(Error::Value)?)
+                .bitwise_or(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorBitwiseOrSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .bitwise_or(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .bitwise_or(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .bitwise_or(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorBitwiseOrSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorBitwiseOrFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -770,29 +854,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .bitwise_xor(Value::try_from(value_2).map_err(Error::Value)?)
+                .bitwise_xor(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorBitwiseXorSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .bitwise_xor(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .bitwise_xor(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .bitwise_xor(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorBitwiseXorSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorBitwiseXorFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -805,29 +894,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .bitwise_and(Value::try_from(value_2).map_err(Error::Value)?)
+                .bitwise_and(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorBitwiseAndSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .bitwise_and(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .bitwise_and(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .bitwise_and(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorBitwiseAndSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorBitwiseAndFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -839,11 +933,12 @@ impl Element {
     ) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .bitwise_shift_left(Value::try_from(value_2).map_err(Error::Value)?)
+                .bitwise_shift_left(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => Err(
                 Error::OperatorBitwiseShiftLeftSecondOperandExpectedConstant {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 },
             ),
@@ -853,11 +948,13 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => Err(
                 Error::OperatorBitwiseShiftLeftSecondOperandExpectedConstant {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 },
             ),
             (element_1, _) => Err(
                 Error::OperatorBitwiseShiftLeftFirstOperandExpectedEvaluable {
+                    location: element_1.location().unwrap(),
                     found: element_1.to_string(),
                 },
             ),
@@ -870,11 +967,12 @@ impl Element {
     ) -> Result<(Self, GeneratorExpressionOperator), Error> {
         match (self, other) {
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .bitwise_shift_right(Value::try_from(value_2).map_err(Error::Value)?)
+                .bitwise_shift_right(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => Err(
                 Error::OperatorBitwiseShiftRightSecondOperandExpectedConstant {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 },
             ),
@@ -884,11 +982,13 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => Err(
                 Error::OperatorBitwiseShiftRightSecondOperandExpectedConstant {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 },
             ),
             (element_1, _) => Err(
                 Error::OperatorBitwiseShiftRightFirstOperandExpectedEvaluable {
+                    location: element_1.location().unwrap(),
                     found: element_1.to_string(),
                 },
             ),
@@ -902,29 +1002,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .add(Value::try_from(value_2).map_err(Error::Value)?)
+                .add(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorAdditionSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .add(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .add(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .add(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorAdditionSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorAdditionFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -937,29 +1042,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .subtract(Value::try_from(value_2).map_err(Error::Value)?)
+                .subtract(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorSubtractionSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .subtract(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .subtract(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .subtract(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorSubtractionSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorSubtractionFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -972,29 +1082,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .multiply(Value::try_from(value_2).map_err(Error::Value)?)
+                .multiply(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => Err(
                 Error::OperatorMultiplicationSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 },
             ),
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .multiply(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .multiply(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .multiply(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => Err(
                 Error::OperatorMultiplicationSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 },
             ),
             (element_1, _) => Err(Error::OperatorMultiplicationFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -1007,29 +1122,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .divide(Value::try_from(value_2).map_err(Error::Value)?)
+                .divide(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorDivisionSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .divide(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .divide(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .divide(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorDivisionSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorDivisionFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -1042,29 +1162,34 @@ impl Element {
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(value_1), Element::Constant(value_2)) => value_1
-                .remainder(Value::try_from(value_2).map_err(Error::Value)?)
+                .remainder(Value::try_from_constant(value_2).map_err(Error::Value)?)
                 .map(|(value, operator)| (Self::Value(value), operator))
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorRemainderSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
-            (Element::Constant(value_1), Element::Value(value_2)) => Value::try_from(value_1)
-                .map_err(Error::Value)?
-                .remainder(value_2)
-                .map(|(value, operator)| (Self::Value(value), operator))
-                .map_err(Error::Value),
+            (Element::Constant(value_1), Element::Value(value_2)) => {
+                Value::try_from_constant(value_1)
+                    .map_err(Error::Value)?
+                    .remainder(value_2)
+                    .map(|(value, operator)| (Self::Value(value), operator))
+                    .map_err(Error::Value)
+            }
             (Element::Constant(value_1), Element::Constant(value_2)) => value_1
                 .remainder(value_2)
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorRemainderSecondOperandExpectedEvaluable {
+                    location: element_2.location().unwrap(),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorRemainderFirstOperandExpectedEvaluable {
+                location: element_1.location().unwrap(),
                 found: element_1.to_string(),
             }),
         }
@@ -1075,6 +1200,7 @@ impl Element {
             Self::Type(r#type) => r#type,
             element => {
                 return Err(Error::OperatorCastingSecondOperandExpectedType {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 })
             }
@@ -1090,6 +1216,7 @@ impl Element {
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             element => Err(Error::OperatorCastingFirstOperandExpectedEvaluable {
+                location: element.location().unwrap(),
                 found: element.to_string(),
             }),
         }
@@ -1106,6 +1233,7 @@ impl Element {
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             element => Err(Error::OperatorNotExpectedEvaluable {
+                location: element.location().unwrap(),
                 found: element.to_string(),
             }),
         }
@@ -1122,6 +1250,7 @@ impl Element {
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             element => Err(Error::OperatorBitwiseNotExpectedEvaluable {
+                location: element.location().unwrap(),
                 found: element.to_string(),
             }),
         }
@@ -1138,6 +1267,7 @@ impl Element {
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             element => Err(Error::OperatorNegationExpectedEvaluable {
+                location: element.location().unwrap(),
                 found: element.to_string(),
             }),
         }
@@ -1155,6 +1285,7 @@ impl Element {
                     .map(|(place, access)| (Element::Place(place), access))
                     .map_err(Error::Place),
                 element => Err(Error::OperatorIndexSecondOperandExpectedEvaluable {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 }),
             },
@@ -1168,6 +1299,7 @@ impl Element {
                     .map(|(value, access)| (Element::Value(value), access))
                     .map_err(Error::Value),
                 element => Err(Error::OperatorIndexSecondOperandExpectedEvaluable {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 }),
             },
@@ -1177,10 +1309,12 @@ impl Element {
                     .map(|(constant, access)| (Element::Constant(constant), access))
                     .map_err(Error::Constant),
                 element => Err(Error::OperatorIndexSecondOperandExpectedEvaluable {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 }),
             },
             element => Err(Error::OperatorIndexFirstOperandExpectedPlaceOrEvaluable {
+                location: element.location().unwrap(),
                 found: element.to_string(),
             }),
         }
@@ -1200,15 +1334,15 @@ impl Element {
                 Self::Identifier(identifier) => match place.r#type {
                     Type::Structure(ref structure) => {
                         match Scope::resolve_item(structure.scope.to_owned(), &identifier, false) {
-                            Ok(ScopeItem {
-                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                            Ok(ScopeItem::Type(ScopeTypeItem {
+                                inner: r#type @ Type::Function(_),
                                 ..
-                            }) => Ok((
+                            })) => Ok((
                                 Element::Type(r#type),
                                 FieldAccessVariant::Method(Self::Place(place)),
                             )),
                             _ => place
-                                .field_structure(identifier.name)
+                                .field_structure(identifier)
                                 .map(|(place, access)| {
                                     (Element::Place(place), FieldAccessVariant::Field(access))
                                 })
@@ -1218,15 +1352,15 @@ impl Element {
                     Type::Enumeration(ref enumeration) => {
                         match Scope::resolve_item(enumeration.scope.to_owned(), &identifier, false)
                         {
-                            Ok(ScopeItem {
-                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                            Ok(ScopeItem::Type(ScopeTypeItem {
+                                inner: r#type @ Type::Function(_),
                                 ..
-                            }) => Ok((
+                            })) => Ok((
                                 Element::Type(r#type),
                                 FieldAccessVariant::Method(Self::Place(place)),
                             )),
                             _ => place
-                                .field_structure(identifier.name)
+                                .field_structure(identifier)
                                 .map(|(place, access)| {
                                     (Element::Place(place), FieldAccessVariant::Field(access))
                                 })
@@ -1235,15 +1369,15 @@ impl Element {
                     }
                     Type::Contract(ref contract) => {
                         match Scope::resolve_item(contract.scope.to_owned(), &identifier, false) {
-                            Ok(ScopeItem {
-                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                            Ok(ScopeItem::Type(ScopeTypeItem {
+                                inner: r#type @ Type::Function(_),
                                 ..
-                            }) => Ok((
+                            })) => Ok((
                                 Element::Type(r#type),
                                 FieldAccessVariant::Method(Self::Place(place)),
                             )),
                             _ => place
-                                .field_structure(identifier.name)
+                                .field_structure(identifier)
                                 .map(|(place, access)| {
                                     (Element::Place(place), FieldAccessVariant::Field(access))
                                 })
@@ -1251,13 +1385,14 @@ impl Element {
                         }
                     }
                     _ => place
-                        .field_structure(identifier.name)
+                        .field_structure(identifier)
                         .map(|(place, access)| {
                             (Element::Place(place), FieldAccessVariant::Field(access))
                         })
                         .map_err(Error::Place),
                 },
                 element => Err(Error::OperatorFieldSecondOperandExpectedIdentifier {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 }),
             },
@@ -1271,15 +1406,15 @@ impl Element {
                 Self::Identifier(identifier) => match value.r#type() {
                     Type::Structure(ref structure) => {
                         match Scope::resolve_item(structure.scope.to_owned(), &identifier, false) {
-                            Ok(ScopeItem {
-                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                            Ok(ScopeItem::Type(ScopeTypeItem {
+                                inner: r#type @ Type::Function(_),
                                 ..
-                            }) => Ok((
+                            })) => Ok((
                                 Element::Type(r#type),
                                 FieldAccessVariant::Method(Self::Value(value)),
                             )),
                             _ => value
-                                .field_structure(identifier.name)
+                                .field_structure(identifier)
                                 .map(|(value, access)| {
                                     (Element::Value(value), FieldAccessVariant::Field(access))
                                 })
@@ -1289,15 +1424,15 @@ impl Element {
                     Type::Enumeration(ref enumeration) => {
                         match Scope::resolve_item(enumeration.scope.to_owned(), &identifier, false)
                         {
-                            Ok(ScopeItem {
-                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                            Ok(ScopeItem::Type(ScopeTypeItem {
+                                inner: r#type @ Type::Function(_),
                                 ..
-                            }) => Ok((
+                            })) => Ok((
                                 Element::Type(r#type),
                                 FieldAccessVariant::Method(Self::Value(value)),
                             )),
                             _ => value
-                                .field_structure(identifier.name)
+                                .field_structure(identifier)
                                 .map(|(value, access)| {
                                     (Element::Value(value), FieldAccessVariant::Field(access))
                                 })
@@ -1306,15 +1441,15 @@ impl Element {
                     }
                     Type::Contract(ref contract) => {
                         match Scope::resolve_item(contract.scope.to_owned(), &identifier, false) {
-                            Ok(ScopeItem {
-                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                            Ok(ScopeItem::Type(ScopeTypeItem {
+                                inner: r#type @ Type::Function(_),
                                 ..
-                            }) => Ok((
+                            })) => Ok((
                                 Element::Type(r#type),
                                 FieldAccessVariant::Method(Self::Value(value)),
                             )),
                             _ => value
-                                .field_structure(identifier.name)
+                                .field_structure(identifier)
                                 .map(|(value, access)| {
                                     (Element::Value(value), FieldAccessVariant::Field(access))
                                 })
@@ -1322,13 +1457,14 @@ impl Element {
                         }
                     }
                     _ => value
-                        .field_structure(identifier.name)
+                        .field_structure(identifier)
                         .map(|(value, access)| {
                             (Element::Value(value), FieldAccessVariant::Field(access))
                         })
                         .map_err(Error::Value),
                 },
                 element => Err(Error::OperatorFieldSecondOperandExpectedIdentifier {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 }),
             },
@@ -1345,15 +1481,15 @@ impl Element {
                 Self::Identifier(identifier) => match constant.r#type() {
                     Type::Structure(ref structure) => {
                         match Scope::resolve_item(structure.scope.to_owned(), &identifier, false) {
-                            Ok(ScopeItem {
-                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                            Ok(ScopeItem::Type(ScopeTypeItem {
+                                inner: r#type @ Type::Function(_),
                                 ..
-                            }) => Ok((
+                            })) => Ok((
                                 Element::Type(r#type),
                                 FieldAccessVariant::Method(Self::Constant(constant)),
                             )),
                             _ => constant
-                                .field_structure(identifier.name)
+                                .field_structure(identifier)
                                 .map(|(constant, access)| {
                                     (
                                         Element::Constant(constant),
@@ -1366,15 +1502,15 @@ impl Element {
                     Type::Enumeration(ref enumeration) => {
                         match Scope::resolve_item(enumeration.scope.to_owned(), &identifier, false)
                         {
-                            Ok(ScopeItem {
-                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                            Ok(ScopeItem::Type(ScopeTypeItem {
+                                inner: r#type @ Type::Function(_),
                                 ..
-                            }) => Ok((
+                            })) => Ok((
                                 Element::Type(r#type),
                                 FieldAccessVariant::Method(Self::Constant(constant)),
                             )),
                             _ => constant
-                                .field_structure(identifier.name)
+                                .field_structure(identifier)
                                 .map(|(constant, access)| {
                                     (
                                         Element::Constant(constant),
@@ -1386,15 +1522,15 @@ impl Element {
                     }
                     Type::Contract(ref contract) => {
                         match Scope::resolve_item(contract.scope.to_owned(), &identifier, false) {
-                            Ok(ScopeItem {
-                                variant: ScopeItemVariant::Type(r#type @ Type::Function(_)),
+                            Ok(ScopeItem::Type(ScopeTypeItem {
+                                inner: r#type @ Type::Function(_),
                                 ..
-                            }) => Ok((
+                            })) => Ok((
                                 Element::Type(r#type),
                                 FieldAccessVariant::Method(Self::Constant(constant)),
                             )),
                             _ => constant
-                                .field_structure(identifier.name)
+                                .field_structure(identifier)
                                 .map(|(constant, access)| {
                                     (
                                         Element::Constant(constant),
@@ -1405,7 +1541,7 @@ impl Element {
                         }
                     }
                     _ => constant
-                        .field_structure(identifier.name)
+                        .field_structure(identifier)
                         .map(|(constant, access)| {
                             (
                                 Element::Constant(constant),
@@ -1415,10 +1551,12 @@ impl Element {
                         .map_err(Error::Constant),
                 },
                 element => Err(Error::OperatorFieldSecondOperandExpectedIdentifier {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 }),
             },
             element => Err(Error::OperatorFieldFirstOperandExpectedPlaceOrEvaluable {
+                location: element.location().unwrap(),
                 found: element.to_string(),
             }),
         }
@@ -1429,6 +1567,7 @@ impl Element {
             Self::Path(path) => path,
             element => {
                 return Err(Error::OperatorPathFirstOperandExpectedPath {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 })
             }
@@ -1438,6 +1577,7 @@ impl Element {
             Self::Identifier(identifier) => identifier,
             element => {
                 return Err(Error::OperatorPathSecondOperandExpectedIdentifier {
+                    location: element.location().unwrap(),
                     found: element.to_string(),
                 })
             }
@@ -1447,6 +1587,20 @@ impl Element {
 
         Ok(Self::Path(path))
     }
+
+    pub fn location(&self) -> Option<Location> {
+        match self {
+            Self::Value(inner) => inner.location(),
+            Self::Constant(inner) => Some(inner.location()),
+            Self::Type(inner) => inner.location(),
+            Self::ArgumentList(inner) => Some(inner.location),
+            Self::Path(inner) => Some(inner.location),
+            Self::Place(inner) => Some(inner.identifier.location),
+            Self::TupleIndex(inner) => Some(inner.location),
+            Self::Identifier(inner) => Some(inner.location),
+            Self::Module(inner) => Some(inner.location),
+        }
+    }
 }
 
 impl fmt::Display for Element {
@@ -1455,20 +1609,12 @@ impl fmt::Display for Element {
             Self::Value(inner) => write!(f, "{}", inner),
             Self::Constant(inner) => write!(f, "{}", inner),
             Self::Type(inner) => write!(f, "{}", inner),
-            Self::ArgumentList(inner) => write!(
-                f,
-                "{}",
-                inner
-                    .iter()
-                    .map(|value| value.to_string())
-                    .collect::<Vec<String>>()
-                    .join(", ")
-            ),
+            Self::ArgumentList(inner) => write!(f, "{}", inner),
             Self::Path(inner) => write!(f, "{}", inner),
             Self::Place(inner) => write!(f, "{}", inner),
             Self::TupleIndex(inner) => write!(f, "{}", inner),
             Self::Identifier(inner) => write!(f, "{}", inner.name),
-            Self::Module(inner) => write!(f, "{}", inner),
+            Self::Module(inner) => write!(f, "{}", inner.name),
         }
     }
 }

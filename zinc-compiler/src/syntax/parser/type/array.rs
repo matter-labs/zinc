@@ -73,7 +73,7 @@ impl Parser {
                 State::Type => {
                     let (array_type, next) = TypeParser::default().parse(stream.clone(), None)?;
                     self.next = next;
-                    self.builder.set_array_type_variant(array_type.variant);
+                    self.builder.set_array_type(array_type);
                     self.state = State::Semicolon;
                 }
                 State::Semicolon => {
@@ -151,7 +151,7 @@ mod tests {
             Type::new(
                 Location::new(1, 1),
                 TypeVariant::array(
-                    TypeVariant::field(),
+                    Type::new(Location::new(1, 2), TypeVariant::field()),
                     ExpressionTree::new(
                         Location::new(1, 9),
                         ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
@@ -179,7 +179,7 @@ mod tests {
             Type::new(
                 Location::new(1, 1),
                 TypeVariant::array(
-                    TypeVariant::field(),
+                    Type::new(Location::new(1, 2), TypeVariant::field()),
                     ExpressionTree::new_with_leaves(
                         Location::new(1, 11),
                         ExpressionTreeNode::operator(ExpressionOperator::Multiplication),
@@ -220,16 +220,19 @@ mod tests {
             Type::new(
                 Location::new(1, 1),
                 TypeVariant::array(
-                    TypeVariant::array(
-                        TypeVariant::field(),
-                        ExpressionTree::new(
-                            Location::new(1, 10),
-                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
-                                IntegerLiteral::new(
-                                    Location::new(1, 10),
-                                    LexicalIntegerLiteral::new_decimal("8".to_owned()),
-                                ),
-                            )),
+                    Type::new(
+                        Location::new(1, 2),
+                        TypeVariant::array(
+                            Type::new(Location::new(1, 3), TypeVariant::field()),
+                            ExpressionTree::new(
+                                Location::new(1, 10),
+                                ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                                    IntegerLiteral::new(
+                                        Location::new(1, 10),
+                                        LexicalIntegerLiteral::new_decimal("8".to_owned()),
+                                    ),
+                                )),
+                            ),
                         ),
                     ),
                     ExpressionTree::new(

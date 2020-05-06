@@ -3,6 +3,7 @@
 //!
 
 use crate::syntax::tree::expression::tree::Tree as ExpressionTree;
+use crate::syntax::tree::r#type::Type;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Variant {
@@ -16,11 +17,11 @@ pub enum Variant {
     },
     Field,
     Array {
-        inner: Box<Self>,
+        inner: Box<Type>,
         size: ExpressionTree,
     },
     Tuple {
-        inners: Vec<Self>,
+        inners: Vec<Type>,
     },
     Alias {
         path: ExpressionTree,
@@ -56,14 +57,14 @@ impl Variant {
         Self::Field
     }
 
-    pub fn array(inner: Self, size: ExpressionTree) -> Self {
+    pub fn array(inner: Type, size: ExpressionTree) -> Self {
         Self::Array {
             inner: Box::new(inner),
             size,
         }
     }
 
-    pub fn tuple(inners: Vec<Self>) -> Self {
+    pub fn tuple(inners: Vec<Type>) -> Self {
         Self::Tuple { inners }
     }
 

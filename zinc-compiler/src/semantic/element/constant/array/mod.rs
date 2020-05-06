@@ -8,12 +8,14 @@ pub mod error;
 
 use std::fmt;
 
-use num_bigint::BigInt;
 use num_traits::Signed;
 use num_traits::ToPrimitive;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::access::Index as IndexAccess;
+use crate::semantic::element::constant::integer::Integer as IntegerConstant;
+use crate::semantic::element::constant::range::Range as RangeConstant;
+use crate::semantic::element::constant::range_inclusive::RangeInclusive as RangeInclusiveConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
 
@@ -33,7 +35,7 @@ impl Array {
     pub fn new(location: Location) -> Self {
         Self {
             location,
-            r#type: Type::Unit,
+            r#type: Type::unit(Some(location)),
             values: vec![],
         }
     }
@@ -47,7 +49,11 @@ impl Array {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::array(self.r#type.to_owned(), self.values.len())
+        Type::array(
+            Some(self.location),
+            self.r#type.to_owned(),
+            self.values.len(),
+        )
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
@@ -68,6 +74,7 @@ impl Array {
             self.r#type = r#type;
         } else if r#type != self.r#type {
             return Err(Error::PushingInvalidType {
+                location: value.location(),
                 expected: self.r#type.to_string(),
                 found: r#type.to_string(),
             });
@@ -85,14 +92,24 @@ impl Array {
         Ok(())
     }
 
-    pub fn slice_single(mut self, index: BigInt) -> Result<(Constant, IndexAccess), Error> {
-        let index = index.to_usize().ok_or_else(|| Error::IndexOutOfRange {
-            index: index.to_string(),
-            size: self.values.len(),
-        })?;
+    pub fn slice_single(
+        mut self,
+        index: IntegerConstant,
+    ) -> Result<(Constant, IndexAccess), Error> {
+        let location = index.location;
+
+        let index = index
+            .value
+            .to_usize()
+            .ok_or_else(|| Error::IndexOutOfRange {
+                location,
+                index: index.to_string(),
+                size: self.values.len(),
+            })?;
 
         if index >= self.values.len() {
             return Err(Error::IndexOutOfRange {
+                location,
                 index: index.to_string(),
                 size: self.values.len(),
             });
@@ -107,30 +124,34 @@ impl Array {
         Ok((self.values.remove(index), access))
     }
 
-    pub fn slice_range(
-        mut self,
-        start: BigInt,
-        end: BigInt,
-    ) -> Result<(Constant, IndexAccess), Error> {
-        if start.is_negative() {
+    pub fn slice_range(mut self, range: RangeConstant) -> Result<(Constant, IndexAccess), Error> {
+        if range.start.is_negative() {
             return Err(Error::SliceStartOutOfRange {
-                start: start.to_string(),
+                location: range.location,
+                start: range.start.to_string(),
             });
         }
 
-        let start = start
+        let start = range
+            .start
             .to_usize()
             .ok_or_else(|| Error::SliceStartOutOfRange {
-                start: start.to_string(),
+                location: range.location,
+                start: range.start.to_string(),
             })?;
 
-        let end = end.to_usize().ok_or_else(|| Error::SliceEndOutOfRange {
-            end: end.to_string(),
-            size: self.values.len(),
-        })?;
+        let end = range
+            .end
+            .to_usize()
+            .ok_or_else(|| Error::SliceEndOutOfRange {
+                location: range.location,
+                end: range.end.to_string(),
+                size: self.values.len(),
+            })?;
 
         if end < start {
             return Err(Error::SliceEndLesserThanStart {
+                location: range.location,
                 start: start.to_string(),
                 end: end.to_string(),
             });
@@ -138,6 +159,7 @@ impl Array {
 
         if end > self.values.len() {
             return Err(Error::SliceEndOutOfRange {
+                location: range.location,
                 end: end.to_string(),
                 size: self.values.len(),
             });
@@ -151,40 +173,46 @@ impl Array {
             Some(self.r#type.size() * start),
         );
 
-        Ok((
-            Constant::Array(Self::new_with_values(
-                self.location,
-                self.r#type,
-                self.values.drain(start..end).collect(),
-            )),
-            access,
-        ))
+        let result = Constant::Array(Self::new_with_values(
+            self.location,
+            self.r#type,
+            self.values.drain(start..end).collect(),
+        ));
+
+        Ok((result, access))
     }
 
     pub fn slice_range_inclusive(
         mut self,
-        start: BigInt,
-        end: BigInt,
+        range: RangeInclusiveConstant,
     ) -> Result<(Constant, IndexAccess), Error> {
-        if start.is_negative() {
+        if range.start.is_negative() {
             return Err(Error::SliceStartOutOfRange {
-                start: start.to_string(),
+                location: range.location,
+                start: range.start.to_string(),
             });
         }
 
-        let start = start
+        let start = range
+            .start
             .to_usize()
             .ok_or_else(|| Error::SliceStartOutOfRange {
-                start: start.to_string(),
+                location: range.location,
+                start: range.start.to_string(),
             })?;
 
-        let end = end.to_usize().ok_or_else(|| Error::SliceEndOutOfRange {
-            end: end.to_string(),
-            size: self.values.len(),
-        })?;
+        let end = range
+            .end
+            .to_usize()
+            .ok_or_else(|| Error::SliceEndOutOfRange {
+                location: range.location,
+                end: range.end.to_string(),
+                size: self.values.len(),
+            })?;
 
         if end < start {
             return Err(Error::SliceEndLesserThanStart {
+                location: range.location,
                 start: start.to_string(),
                 end: end.to_string(),
             });
@@ -192,6 +220,7 @@ impl Array {
 
         if end >= self.values.len() {
             return Err(Error::SliceEndOutOfRange {
+                location: range.location,
                 end: end.to_string(),
                 size: self.values.len(),
             });
@@ -205,14 +234,13 @@ impl Array {
             Some(self.r#type.size() * start),
         );
 
-        Ok((
-            Constant::Array(Self::new_with_values(
-                self.location,
-                self.r#type,
-                self.values.drain(start..=end).collect(),
-            )),
-            access,
-        ))
+        let result = Constant::Array(Self::new_with_values(
+            self.location,
+            self.r#type,
+            self.values.drain(start..=end).collect(),
+        ));
+
+        Ok((result, access))
     }
 }
 

@@ -24,11 +24,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::TypesMismatchEquals {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(5, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -49,11 +49,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::TypesMismatchNotEquals {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(5, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -74,11 +74,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::TypesMismatchGreaterEquals {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(5, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -99,11 +99,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::TypesMismatchLesserEquals {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(5, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -124,11 +124,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::TypesMismatchGreater {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(5, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -149,11 +149,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::TypesMismatchLesser {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(5, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -174,11 +174,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::TypesMismatchBitwiseOr {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(5, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -199,11 +199,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::TypesMismatchBitwiseXor {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(5, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -224,11 +224,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::TypesMismatchBitwiseAnd {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(5, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -249,11 +249,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::TypesMismatchAddition {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(5, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -274,11 +274,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::TypesMismatchSubtraction {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(5, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -299,11 +299,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::TypesMismatchMultiplication {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(5, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -324,11 +324,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::TypesMismatchDivision {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(5, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -349,11 +349,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 28),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::TypesMismatchRemainder {
-                first: Type::integer_unsigned(crate::BITLENGTH_BYTE * 8).to_string(),
-                second: Type::integer_unsigned(crate::BITLENGTH_BYTE * 16).to_string(),
+                location: Location::new(5, 17),
+                first: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 8).to_string(),
+                second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE * 16).to_string(),
             },
         )),
     )));
@@ -373,10 +373,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 24),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::OperatorBitwiseShiftLeftSecondOperatorExpectedUnsigned {
-                found: IntegerValue::new(true, crate::BITLENGTH_BYTE).to_string(),
+                location: Location::new(4, 28),
+                found: IntegerValue::new(Some(Location::new(4, 28)), true, crate::BITLENGTH_BYTE)
+                    .to_string(),
             },
         )),
     )));
@@ -396,10 +397,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 24),
         ElementError::Value(ValueError::Integer(
             IntegerValueError::OperatorBitwiseShiftRightSecondOperatorExpectedUnsigned {
-                found: IntegerValue::new(true, crate::BITLENGTH_BYTE).to_string(),
+                location: Location::new(4, 28),
+                found: IntegerValue::new(Some(Location::new(4, 28)), true, crate::BITLENGTH_BYTE)
+                    .to_string(),
             },
         )),
     )));
@@ -420,9 +422,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenFieldDivision,
+            IntegerValueError::ForbiddenFieldDivision {
+                location: Location::new(5, 17),
+            },
         )),
     )));
 
@@ -442,9 +445,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenFieldRemainder,
+            IntegerValueError::ForbiddenFieldRemainder {
+                location: Location::new(5, 17),
+            },
         )),
     )));
 
@@ -464,9 +468,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 13),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenFieldBitwise,
+            IntegerValueError::ForbiddenFieldBitwise {
+                location: Location::new(5, 5),
+            },
         )),
     )));
 
@@ -486,9 +491,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 13),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenFieldBitwise,
+            IntegerValueError::ForbiddenFieldBitwise {
+                location: Location::new(5, 5),
+            },
         )),
     )));
 
@@ -508,9 +514,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 13),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenFieldBitwise,
+            IntegerValueError::ForbiddenFieldBitwise {
+                location: Location::new(5, 5),
+            },
         )),
     )));
 
@@ -529,9 +536,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 13),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenFieldBitwise,
+            IntegerValueError::ForbiddenFieldBitwise {
+                location: Location::new(4, 5),
+            },
         )),
     )));
 
@@ -550,9 +558,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 13),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenFieldBitwise,
+            IntegerValueError::ForbiddenFieldBitwise {
+                location: Location::new(4, 5),
+            },
         )),
     )));
 
@@ -572,9 +581,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 26),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenSignedBitwise,
+            IntegerValueError::ForbiddenSignedBitwise {
+                location: Location::new(5, 17),
+            },
         )),
     )));
 
@@ -594,9 +604,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenFieldBitwise,
+            IntegerValueError::ForbiddenFieldBitwise {
+                location: Location::new(5, 17),
+            },
         )),
     )));
 
@@ -616,9 +627,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 26),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenSignedBitwise,
+            IntegerValueError::ForbiddenSignedBitwise {
+                location: Location::new(5, 17),
+            },
         )),
     )));
 
@@ -638,9 +650,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenFieldBitwise,
+            IntegerValueError::ForbiddenFieldBitwise {
+                location: Location::new(5, 17),
+            },
         )),
     )));
 
@@ -660,9 +673,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 26),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenSignedBitwise,
+            IntegerValueError::ForbiddenSignedBitwise {
+                location: Location::new(5, 17),
+            },
         )),
     )));
 
@@ -682,9 +696,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenFieldBitwise,
+            IntegerValueError::ForbiddenFieldBitwise {
+                location: Location::new(5, 17),
+            },
         )),
     )));
 
@@ -703,9 +718,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 26),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenSignedBitwise,
+            IntegerValueError::ForbiddenSignedBitwise {
+                location: Location::new(4, 17),
+            },
         )),
     )));
 
@@ -724,9 +740,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 25),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenFieldBitwise,
+            IntegerValueError::ForbiddenFieldBitwise {
+                location: Location::new(4, 17),
+            },
         )),
     )));
 
@@ -745,9 +762,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 26),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenSignedBitwise,
+            IntegerValueError::ForbiddenSignedBitwise {
+                location: Location::new(4, 17),
+            },
         )),
     )));
 
@@ -766,9 +784,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 25),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenFieldBitwise,
+            IntegerValueError::ForbiddenFieldBitwise {
+                location: Location::new(4, 17),
+            },
         )),
     )));
 
@@ -787,9 +806,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 17),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenSignedBitwise,
+            IntegerValueError::ForbiddenSignedBitwise {
+                location: Location::new(4, 18),
+            },
         )),
     )));
 
@@ -808,9 +828,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 17),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenFieldBitwise,
+            IntegerValueError::ForbiddenFieldBitwise {
+                location: Location::new(4, 18),
+            },
         )),
     )));
 
@@ -829,9 +850,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 17),
         ElementError::Value(ValueError::Integer(
-            IntegerValueError::ForbiddenFieldNegation,
+            IntegerValueError::ForbiddenFieldNegation {
+                location: Location::new(4, 18),
+            },
         )),
     )));
 

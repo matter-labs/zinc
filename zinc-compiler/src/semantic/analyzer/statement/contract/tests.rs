@@ -17,7 +17,7 @@ contract Uniswap {}
 fn ok_single_field() {
     let input = r#"
 contract Uniswap {
-    a: u8,
+    a: u8;
 }
 "#;
 
@@ -28,9 +28,9 @@ contract Uniswap {
 fn ok_multiple_fields() {
     let input = r#"
 contract Uniswap {
-    a: u8,
-    b: u8,
-    c: u8,
+    a: u8;
+    b: u8;
+    c: u8;
 }
 "#;
 
@@ -117,7 +117,7 @@ contract Uniswap {
 fn ok_single_each() {
     let input = r#"
 contract Uniswap {
-    a: u8,
+    a: u8;
 
     const A: u8 = 42;
 
@@ -134,9 +134,9 @@ contract Uniswap {
 fn ok_multiple_each() {
     let input = r#"
 contract Uniswap {
-    a: u8,
-    b: u8,
-    c: u8,
+    a: u8;
+    b: u8;
+    c: u8;
 
     const A: u8 = 42;
     const B: u8 = 42;

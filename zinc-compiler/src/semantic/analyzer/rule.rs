@@ -29,7 +29,7 @@ pub enum Rule {
 
 impl Rule {
     ///
-    /// Returns the first operand expression type required by `operator`.
+    /// Returns the first operand translation rule required by `operator`.
     ///
     pub fn first(operator: ExpressionOperator, rule: Self) -> Self {
         match operator {
@@ -88,7 +88,7 @@ impl Rule {
     }
 
     ///
-    /// Returns the second operand expression type required by `operator`.
+    /// Returns the second operand translation rule required by `operator`.
     ///
     pub fn second(operator: ExpressionOperator, rule: Self) -> Self {
         match operator {

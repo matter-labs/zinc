@@ -17,9 +17,9 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#type::builder::Builder as TypeStatementBuilder;
 use crate::syntax::tree::statement::r#type::Statement as TypeStatement;
 
-static HINT_EXPECTED_IDENTIFIER: &str =
+pub static HINT_EXPECTED_IDENTIFIER: &str =
     "type alias must have an identifier, e.g. `type Complex = (u8, field);`";
-static HINT_EXPECTED_TYPE: &str =
+pub static HINT_EXPECTED_TYPE: &str =
     "type alias must be initialized, e.g. `type Complex = (u8, field);`";
 
 #[derive(Debug, Clone, Copy)]

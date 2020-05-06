@@ -17,7 +17,7 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#enum::builder::Builder as EnumStatementBuilder;
 use crate::syntax::tree::statement::r#enum::Statement as EnumStatement;
 
-static HINT_EXPECTED_IDENTIFIER: &str =
+pub static HINT_EXPECTED_IDENTIFIER: &str =
     "enumeration type must have an identifier, e.g. `enum List { ... }`";
 
 #[derive(Debug, Clone, Copy)]

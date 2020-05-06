@@ -6,13 +6,14 @@ mod tests;
 
 pub mod error;
 
-use std::convert::TryFrom;
 use std::fmt;
 
+use crate::lexical::token::location::Location;
 use crate::semantic::element::access::Field as FieldAccess;
 use crate::semantic::element::r#type::structure::Structure as StructureType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::Value;
+use crate::syntax::tree::identifier::Identifier;
 
 use self::error::Error;
 
@@ -21,13 +22,15 @@ use self::error::Error;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Structure {
-    r#type: StructureType,
-    field_index: usize,
+    pub location: Option<Location>,
+    pub r#type: StructureType,
+    pub field_index: usize,
 }
 
 impl Structure {
-    pub fn new(r#type: StructureType) -> Self {
+    pub fn new(location: Option<Location>, r#type: StructureType) -> Self {
         Self {
+            location,
             r#type,
             field_index: 0,
         }
@@ -38,23 +41,30 @@ impl Structure {
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        self.r#type.unique_id == other.r#type.unique_id
+        self.r#type == other.r#type
     }
 
-    pub fn push(&mut self, name: String, r#type: Type) -> Result<(), Error> {
+    pub fn push(
+        &mut self,
+        identifier: Identifier,
+        r#type: Type,
+        location: Option<Location>,
+    ) -> Result<(), Error> {
         match self.r#type.fields.get(self.field_index) {
             Some((expected_name, expected_type)) => {
-                if &name != expected_name {
+                if &identifier.name != expected_name {
                     return Err(Error::FieldExpected {
+                        location: identifier.location,
                         type_identifier: self.r#type.identifier.to_owned(),
                         position: self.field_index + 1,
                         expected: expected_name.to_owned(),
-                        found: name,
+                        found: identifier.name,
                     });
                 }
 
                 if &r#type != expected_type {
                     return Err(Error::FieldInvalidType {
+                        location: location.unwrap(),
                         type_identifier: self.r#type.identifier.to_owned(),
                         field_name: expected_name.to_owned(),
                         expected: expected_type.to_string(),
@@ -64,6 +74,7 @@ impl Structure {
             }
             None => {
                 return Err(Error::FieldOutOfRange {
+                    location: identifier.location,
                     type_identifier: self.r#type.identifier.to_owned(),
                     expected: self.r#type.fields.len(),
                     found: self.field_index + 1,
@@ -76,16 +87,17 @@ impl Structure {
         Ok(())
     }
 
-    pub fn slice(self, field_name: String) -> Result<(Value, FieldAccess), Error> {
+    pub fn slice(self, identifier: Identifier) -> Result<(Value, FieldAccess), Error> {
         let mut offset = 0;
         let total_size = self.r#type().size();
 
         for (index, (name, r#type)) in self.r#type.fields.iter().enumerate() {
-            if name == field_name.as_str() {
+            if name == identifier.name.as_str() {
                 let access = FieldAccess::new(index, offset, r#type.size(), total_size);
 
                 return Ok((
-                    Value::try_from(r#type).expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
+                    Value::try_from_type(r#type, self.location)
+                        .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
                     access,
                 ));
             }
@@ -93,8 +105,9 @@ impl Structure {
         }
 
         Err(Error::FieldDoesNotExist {
+            location: identifier.location,
             type_identifier: self.r#type.identifier,
-            field_name,
+            field_name: identifier.name,
         })
     }
 }

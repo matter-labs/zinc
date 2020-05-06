@@ -3,17 +3,15 @@
 //!
 
 use crate::lexical::token::location::Location;
-use crate::syntax::tree::field::Field;
 use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::contract::Statement as ContractStatement;
-use crate::syntax::tree::statement::local_impl::Statement as ImplementationLocalStatement;
+use crate::syntax::tree::statement::local_contract::Statement as ContractLocalStatement;
 
 #[derive(Default)]
 pub struct Builder {
     location: Option<Location>,
     identifier: Option<Identifier>,
-    fields: Vec<Field>,
-    statements: Vec<ImplementationLocalStatement>,
+    statements: Vec<ContractLocalStatement>,
 }
 
 impl Builder {
@@ -25,11 +23,7 @@ impl Builder {
         self.identifier = Some(value);
     }
 
-    pub fn set_fields(&mut self, value: Vec<Field>) {
-        self.fields = value;
-    }
-
-    pub fn push_statement(&mut self, statement: ImplementationLocalStatement) {
+    pub fn push_statement(&mut self, statement: ContractLocalStatement) {
         self.statements.push(statement);
     }
 
@@ -41,7 +35,6 @@ impl Builder {
             self.identifier.take().unwrap_or_else(|| {
                 panic!("{}{}", crate::panic::BUILDER_REQUIRES_VALUE, "identifier")
             }),
-            self.fields,
             self.statements,
         )
     }

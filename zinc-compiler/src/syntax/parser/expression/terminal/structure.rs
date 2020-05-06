@@ -17,9 +17,9 @@ use crate::syntax::tree::expression::structure::builder::Builder as StructureExp
 use crate::syntax::tree::expression::structure::Expression as StructureExpression;
 use crate::syntax::tree::identifier::Identifier;
 
-static HINT_EXPECTED_IDENTIFIER: &str =
+pub static HINT_EXPECTED_IDENTIFIER: &str =
     "structure field must have an identifier, e.g. `Data { a: 42 }`";
-static HINT_EXPECTED_VALUE: &str = "structure field must be initialized, e.g. `Data { a: 42 }`";
+pub static HINT_EXPECTED_VALUE: &str = "structure field must be initialized, e.g. `Data { a: 42 }`";
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {

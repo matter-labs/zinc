@@ -17,7 +17,7 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#impl::builder::Builder as ImplStatementBuilder;
 use crate::syntax::tree::statement::r#impl::Statement as ImplStatement;
 
-static HINT_EXPECTED_IDENTIFIER: &str =
+pub static HINT_EXPECTED_IDENTIFIER: &str =
     "type implementation must have an identifier, e.g. `impl Data { ... }`";
 
 #[derive(Debug, Clone, Copy)]

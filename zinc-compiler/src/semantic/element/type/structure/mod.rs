@@ -10,7 +10,10 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
+use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type;
+use crate::semantic::scope::item::r#type::index::SOFT as TYPE_INDEX_SOFT;
+use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
 use crate::semantic::scope::Scope;
 
 ///
@@ -21,6 +24,7 @@ use crate::semantic::scope::Scope;
 ///
 #[derive(Debug, Clone)]
 pub struct Structure {
+    pub location: Option<Location>,
     pub identifier: String,
     pub unique_id: usize,
     pub fields: Vec<(String, Type)>,
@@ -29,23 +33,26 @@ pub struct Structure {
 
 impl Structure {
     pub fn new(
+        location: Option<Location>,
         identifier: String,
-        unique_id: usize,
         fields: Vec<(String, Type)>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
         let scope = scope.unwrap_or_else(|| Rc::new(RefCell::new(Scope::new(None))));
 
+        let unique_id = TYPE_INDEX_SOFT.next(identifier.clone());
         let structure = Self {
+            location,
             identifier,
             unique_id,
             fields,
             scope: scope.clone(),
         };
 
-        scope
-            .borrow_mut()
-            .declare_self(Type::Structure(structure.clone()));
+        scope.borrow_mut().declare_self(ScopeTypeItem::new(
+            location,
+            Type::Structure(structure.clone()),
+        ));
 
         structure
     }

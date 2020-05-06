@@ -31,7 +31,7 @@ impl Boolean {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::boolean()
+        Type::boolean(None)
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {

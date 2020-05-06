@@ -46,15 +46,10 @@ impl Analyzer {
     pub fn integer(
         literal: IntegerLiteral,
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
-        let location = literal.location;
-
         let constant = IntegerConstant::try_from(&literal)
             .map(Constant::Integer)
             .map_err(|error| {
-                Error::Element(
-                    location,
-                    ElementError::Constant(ConstantError::Integer(error)),
-                )
+                Error::Element(ElementError::Constant(ConstantError::Integer(error)))
             })?;
 
         let intermediate = GeneratorConstant::try_from_semantic(&constant)

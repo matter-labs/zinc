@@ -80,7 +80,7 @@ impl Parser {
                             let (element_type, next) =
                                 TypeParser::default().parse(stream.clone(), Some(token))?;
                             self.next = next;
-                            self.builder.push_tuple_element_type(element_type.variant);
+                            self.builder.push_tuple_element_type(element_type);
                             self.state = State::CommaOrParenthesisRight;
                         }
                     }
@@ -148,7 +148,7 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::tuple(vec![TypeVariant::Field]),
+                TypeVariant::tuple(vec![Type::new(Location::new(1, 2), TypeVariant::Field)]),
             ),
             None,
         ));
@@ -165,7 +165,7 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::tuple(vec![TypeVariant::Field]),
+                TypeVariant::tuple(vec![Type::new(Location::new(1, 2), TypeVariant::Field)]),
             ),
             None,
         ));
@@ -183,18 +183,21 @@ mod tests {
             Type::new(
                 Location::new(1, 1),
                 TypeVariant::tuple(vec![
-                    TypeVariant::Field,
-                    TypeVariant::Unit,
-                    TypeVariant::array(
-                        TypeVariant::integer_unsigned(8),
-                        ExpressionTree::new(
-                            Location::new(1, 18),
-                            ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
-                                IntegerLiteral::new(
-                                    Location::new(1, 18),
-                                    LexicalIntegerLiteral::new_decimal("4".to_owned()),
-                                ),
-                            )),
+                    Type::new(Location::new(1, 2), TypeVariant::Field),
+                    Type::new(Location::new(1, 9), TypeVariant::Unit),
+                    Type::new(
+                        Location::new(1, 13),
+                        TypeVariant::array(
+                            Type::new(Location::new(1, 14), TypeVariant::integer_unsigned(8)),
+                            ExpressionTree::new(
+                                Location::new(1, 18),
+                                ExpressionTreeNode::operand(ExpressionOperand::LiteralInteger(
+                                    IntegerLiteral::new(
+                                        Location::new(1, 18),
+                                        LexicalIntegerLiteral::new_decimal("4".to_owned()),
+                                    ),
+                                )),
+                            ),
                         ),
                     ),
                 ]),
@@ -214,10 +217,13 @@ mod tests {
         let expected = Ok((
             Type::new(
                 Location::new(1, 1),
-                TypeVariant::tuple(vec![TypeVariant::tuple(vec![
-                    TypeVariant::Field,
-                    TypeVariant::Field,
-                ])]),
+                TypeVariant::tuple(vec![Type::new(
+                    Location::new(1, 2),
+                    TypeVariant::tuple(vec![
+                        Type::new(Location::new(1, 3), TypeVariant::Field),
+                        Type::new(Location::new(1, 10), TypeVariant::Field),
+                    ]),
+                )]),
             ),
             None,
         ));

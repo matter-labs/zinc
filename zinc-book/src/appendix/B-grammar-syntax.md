@@ -31,7 +31,16 @@ implementation_local_statement =
   | empty_statement
 ;
 
-type_statement = [ 'pub' ], 'type', identifier, '=', type ;
+contract_local_statement =
+    field_statement
+  | const_statement
+  | fn_statement
+  | empty_statement
+;
+
+field_statement = [ 'pub' ], [ 'const' ], identifier, ':', type, ';' ;
+
+type_statement = [ 'pub' ], 'type', identifier, '=', type, ';' ;
 
 struct_statement = [ 'pub' ], 'struct', '{', field_list, '}' ;
 
@@ -39,19 +48,19 @@ enum_statement = [ 'pub' ], 'enum', '{', variant_list, '}' ;
 
 fn_statement = [ 'pub' ], [ 'const' ], 'fn', identifier, '(', pattern_binding_list, ')', [ '->', type ], block_expression ;
 
-mod_statement = [ 'pub' ], 'mod', identifier ;
+mod_statement = [ 'pub' ], 'mod', identifier, ';' ;
 
-use_statement = [ 'pub' ], 'use', path_expression ;
+use_statement = [ 'pub' ], 'use', path_expression, ';' ;
 
 impl_statement = 'impl', identifier, '{', { implementation_local_statement }, '}' ;
 
-const_statement = [ 'pub' ], 'const', identifier, ':', type, '=', expression ;
+const_statement = [ 'pub' ], 'const', identifier, ':', type, '=', expression, ';' ;
 
-let_statement = 'let', [ 'mut' ], identifier, [ ':', type ], '=', expression ;
+let_statement = 'let', [ 'mut' ], identifier, [ ':', type ], '=', expression, ';' ;
 
 loop_statement = 'for', identifier, 'in', expression, [ 'while', expression ], block_expression ;
 
-contract_statement = 'contract', '{', field_list, { implementation_local_statement }, '}' ;
+contract_statement = 'contract', '{', { contract_local_statement }, '}' ;
 
 empty_statement = ';' ;
 

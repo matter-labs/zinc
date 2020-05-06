@@ -18,9 +18,9 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#let::builder::Builder as LetStatementBuilder;
 use crate::syntax::tree::statement::r#let::Statement as LetStatement;
 
-static HINT_EXPECTED_IDENTIFIER: &str =
+pub static HINT_EXPECTED_IDENTIFIER: &str =
     "variable must have an identifier, e.g. `let value: u8 = 42;`";
-static HINT_EXPECTED_VALUE: &str = "variable must be initialized, e.g. `let value: u8 = 42;`";
+pub static HINT_EXPECTED_VALUE: &str = "variable must be initialized, e.g. `let value: u8 = 42;`";
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {

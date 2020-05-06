@@ -34,7 +34,7 @@ use self::error::Error;
 /// If a constant belongs to an enumeration, the enumeration type is stored in `enumeration`.
 /// Enumeration uniquely defines the constant type, even if the sign and bitlength are the same.
 ///
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct Integer {
     pub location: Location,
     pub value: BigInt,
@@ -65,7 +65,7 @@ impl Integer {
     pub fn r#type(&self) -> Type {
         match self.enumeration {
             Some(ref enumeration) => Type::Enumeration(enumeration.to_owned()),
-            None => Type::scalar(self.is_signed, self.bitlength),
+            None => Type::scalar(Some(self.location), self.is_signed, self.bitlength),
         }
     }
 
@@ -83,7 +83,11 @@ impl Integer {
         let is_signed = self.is_signed || other.is_signed;
         let bitlength = cmp::max(
             cmp::max(self.bitlength, other.bitlength),
-            Self::minimal_bitlength_bigints(&[&self.value, &other.value], is_signed)?,
+            Self::minimal_bitlength_bigints(
+                &[&self.value, &other.value],
+                is_signed,
+                self.location,
+            )?,
         );
 
         Ok(RangeInclusive::new(
@@ -99,7 +103,11 @@ impl Integer {
         let is_signed = self.is_signed || other.is_signed;
         let bitlength = cmp::max(
             cmp::max(self.bitlength, other.bitlength),
-            Self::minimal_bitlength_bigints(&[&self.value, &other.value], is_signed)?,
+            Self::minimal_bitlength_bigints(
+                &[&self.value, &other.value],
+                is_signed,
+                self.location,
+            )?,
         );
 
         Ok(Range::new(
@@ -117,6 +125,7 @@ impl Integer {
     ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchEquals {
+                location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -135,6 +144,7 @@ impl Integer {
     ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchNotEquals {
+                location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -153,6 +163,7 @@ impl Integer {
     ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchGreaterEquals {
+                location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -171,6 +182,7 @@ impl Integer {
     ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchLesserEquals {
+                location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -189,6 +201,7 @@ impl Integer {
     ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchGreater {
+                location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -207,6 +220,7 @@ impl Integer {
     ) -> Result<(BooleanConstant, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchLesser {
+                location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -222,17 +236,22 @@ impl Integer {
     pub fn bitwise_or(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchBitwiseOr {
+                location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise);
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location,
+            });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location,
+            });
         }
 
         let result = Self {
@@ -251,17 +270,22 @@ impl Integer {
     pub fn bitwise_xor(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchBitwiseXor {
+                location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise);
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location,
+            });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location,
+            });
         }
 
         let result = Self {
@@ -280,17 +304,22 @@ impl Integer {
     pub fn bitwise_and(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchBitwiseAnd {
+                location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise);
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location,
+            });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location,
+            });
         }
 
         let result = Self {
@@ -311,16 +340,21 @@ impl Integer {
         other: Self,
     ) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise);
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location,
+            });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location,
+            });
         }
 
         if other.is_signed {
             return Err(
                 Error::OperatorBitwiseShiftLeftSecondOperatorExpectedUnsigned {
+                    location: other.location,
                     found: other.to_string(),
                 },
             );
@@ -330,6 +364,7 @@ impl Integer {
             .value
             .to_usize()
             .ok_or_else(|| Error::IntegerTooLarge {
+                location: other.location,
                 value: other.value,
                 bitlength: self.bitlength,
             })?;
@@ -352,16 +387,21 @@ impl Integer {
         other: Self,
     ) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise);
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location,
+            });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location,
+            });
         }
 
         if other.is_signed {
             return Err(
                 Error::OperatorBitwiseShiftRightSecondOperatorExpectedUnsigned {
+                    location: other.location,
                     found: other.to_string(),
                 },
             );
@@ -371,6 +411,7 @@ impl Integer {
             .value
             .to_usize()
             .ok_or_else(|| Error::IntegerTooLarge {
+                location: other.location,
                 value: other.value,
                 bitlength: self.bitlength,
             })?;
@@ -391,6 +432,7 @@ impl Integer {
     pub fn add(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchAddition {
+                location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -399,15 +441,19 @@ impl Integer {
         let result = self.value + other.value;
         if result.is_negative() && !self.is_signed {
             return Err(Error::OverflowAddition {
+                location: self.location,
                 value: result,
-                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                    .to_string(),
             });
         }
 
-        if Self::minimal_bitlength(&result, self.is_signed)? > self.bitlength {
+        if Self::minimal_bitlength(&result, self.is_signed, self.location)? > self.bitlength {
             return Err(Error::OverflowAddition {
+                location: self.location,
                 value: result,
-                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                    .to_string(),
             });
         }
 
@@ -427,6 +473,7 @@ impl Integer {
     pub fn subtract(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchSubtraction {
+                location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -435,15 +482,19 @@ impl Integer {
         let result = self.value - other.value;
         if result.is_negative() && !self.is_signed {
             return Err(Error::OverflowSubtraction {
+                location: self.location,
                 value: result,
-                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                    .to_string(),
             });
         }
 
-        if Self::minimal_bitlength(&result, self.is_signed)? > self.bitlength {
+        if Self::minimal_bitlength(&result, self.is_signed, self.location)? > self.bitlength {
             return Err(Error::OverflowSubtraction {
+                location: self.location,
                 value: result,
-                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                    .to_string(),
             });
         }
 
@@ -463,6 +514,7 @@ impl Integer {
     pub fn multiply(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchMultiplication {
+                location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -471,15 +523,19 @@ impl Integer {
         let result = self.value * other.value;
         if result.is_negative() && !self.is_signed {
             return Err(Error::OverflowMultiplication {
+                location: self.location,
                 value: result,
-                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                    .to_string(),
             });
         }
 
-        if Self::minimal_bitlength(&result, self.is_signed)? > self.bitlength {
+        if Self::minimal_bitlength(&result, self.is_signed, self.location)? > self.bitlength {
             return Err(Error::OverflowMultiplication {
+                location: self.location,
                 value: result,
-                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                    .to_string(),
             });
         }
 
@@ -499,28 +555,37 @@ impl Integer {
     pub fn divide(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchDivision {
+                location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldDivision);
-        }
-
-        let (result, _remainder) =
-            euclidean::div_rem(&self.value, &other.value).ok_or(Error::ZeroDivision)?;
-        if result.is_negative() && !self.is_signed {
-            return Err(Error::OverflowDivision {
-                value: result,
-                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+            return Err(Error::ForbiddenFieldDivision {
+                location: self.location,
             });
         }
 
-        if Self::minimal_bitlength(&result, self.is_signed)? > self.bitlength {
+        let (result, _remainder) =
+            euclidean::div_rem(&self.value, &other.value).ok_or(Error::ZeroDivision {
+                location: other.location,
+            })?;
+        if result.is_negative() && !self.is_signed {
             return Err(Error::OverflowDivision {
+                location: self.location,
                 value: result,
-                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                    .to_string(),
+            });
+        }
+
+        if Self::minimal_bitlength(&result, self.is_signed, self.location)? > self.bitlength {
+            return Err(Error::OverflowDivision {
+                location: self.location,
+                value: result,
+                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                    .to_string(),
             });
         }
 
@@ -540,28 +605,37 @@ impl Integer {
     pub fn remainder(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchRemainder {
+                location: self.location,
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldRemainder);
-        }
-
-        let (_quotient, result) =
-            euclidean::div_rem(&self.value, &other.value).ok_or(Error::ZeroRemainder)?;
-        if result.is_negative() && !self.is_signed {
-            return Err(Error::OverflowRemainder {
-                value: result,
-                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+            return Err(Error::ForbiddenFieldRemainder {
+                location: self.location,
             });
         }
 
-        if Self::minimal_bitlength(&result, self.is_signed)? > self.bitlength {
+        let (_quotient, result) =
+            euclidean::div_rem(&self.value, &other.value).ok_or(Error::ZeroRemainder {
+                location: other.location,
+            })?;
+        if result.is_negative() && !self.is_signed {
             return Err(Error::OverflowRemainder {
+                location: self.location,
                 value: result,
-                r#type: Type::integer(self.is_signed, self.bitlength).to_string(),
+                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                    .to_string(),
+            });
+        }
+
+        if Self::minimal_bitlength(&result, self.is_signed, self.location)? > self.bitlength {
+            return Err(Error::OverflowRemainder {
+                location: self.location,
+                value: result,
+                r#type: Type::integer(Some(self.location), self.is_signed, self.bitlength)
+                    .to_string(),
             });
         }
 
@@ -585,20 +659,26 @@ impl Integer {
     ) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
         if self.value.is_negative() && !is_signed {
             return Err(Error::OverflowCasting {
+                location: self.location,
                 value: self.value,
-                r#type: Type::integer(is_signed, bitlength).to_string(),
+                r#type: Type::integer(Some(self.location), is_signed, bitlength).to_string(),
             });
         }
 
-        if Self::minimal_bitlength(&self.value, is_signed)? > bitlength {
+        if Self::minimal_bitlength(&self.value, is_signed, self.location)? > bitlength {
             return Err(Error::OverflowCasting {
+                location: self.location,
                 value: self.value,
-                r#type: Type::integer(is_signed, bitlength).to_string(),
+                r#type: Type::integer(Some(self.location), is_signed, bitlength).to_string(),
             });
         }
 
         let operator = if self.is_signed != is_signed || self.bitlength != bitlength {
-            GeneratorExpressionOperator::casting(&Type::scalar(is_signed, bitlength))
+            GeneratorExpressionOperator::casting(&Type::scalar(
+                Some(self.location),
+                is_signed,
+                bitlength,
+            ))
         } else {
             None
         };
@@ -616,11 +696,15 @@ impl Integer {
 
     pub fn bitwise_not(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise);
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location,
+            });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location,
+            });
         }
 
         let result = Self {
@@ -638,16 +722,19 @@ impl Integer {
 
     pub fn negate(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldNegation);
+            return Err(Error::ForbiddenFieldNegation {
+                location: self.location,
+            });
         }
 
         let is_signed = true;
 
         let result = -self.value;
-        if Self::minimal_bitlength(&result, is_signed)? > self.bitlength {
+        if Self::minimal_bitlength(&result, is_signed, self.location)? > self.bitlength {
             return Err(Error::OverflowNegation {
+                location: self.location,
                 value: result,
-                r#type: Type::integer(is_signed, self.bitlength).to_string(),
+                r#type: Type::integer(Some(self.location), is_signed, self.bitlength).to_string(),
             });
         }
 
@@ -666,6 +753,7 @@ impl Integer {
 
     pub fn to_usize(&self) -> Result<usize, Error> {
         self.value.to_usize().ok_or_else(|| Error::IntegerTooLarge {
+            location: self.location,
             value: self.value.to_owned(),
             bitlength: crate::BITLENGTH_INDEX,
         })
@@ -691,11 +779,15 @@ impl Integer {
     /// Calculates the minimal bitlength required to represent each element of `values`
     /// with sign specified as `is_signed`.
     ///
-    pub fn minimal_bitlength_bigints(values: &[&BigInt], is_signed: bool) -> Result<usize, Error> {
+    pub fn minimal_bitlength_bigints(
+        values: &[&BigInt],
+        is_signed: bool,
+        location: Location,
+    ) -> Result<usize, Error> {
         let mut result = crate::BITLENGTH_BYTE;
 
         for value in values.iter() {
-            let bitlength = Self::minimal_bitlength(value, is_signed)?;
+            let bitlength = Self::minimal_bitlength(value, is_signed, location)?;
             if bitlength > result {
                 result = bitlength;
             }
@@ -708,7 +800,11 @@ impl Integer {
     /// Infers the minimal bitlength enough to represent the `value` with sign specified
     /// as `is_signed`.
     ///
-    pub fn minimal_bitlength(value: &BigInt, is_signed: bool) -> Result<usize, Error> {
+    pub fn minimal_bitlength(
+        value: &BigInt,
+        is_signed: bool,
+        location: Location,
+    ) -> Result<usize, Error> {
         let mut bitlength = crate::BITLENGTH_BYTE;
         let mut exponent = BigInt::from(1 << crate::BITLENGTH_BYTE);
 
@@ -728,6 +824,7 @@ impl Integer {
                 bitlength += crate::BITLENGTH_FIELD - crate::BITLENGTH_MAX_INT;
             } else if bitlength == crate::BITLENGTH_FIELD {
                 return Err(Error::IntegerTooLarge {
+                    location,
                     value: value.to_owned(),
                     bitlength: crate::BITLENGTH_FIELD,
                 });
@@ -738,10 +835,7 @@ impl Integer {
         }
 
         if value.is_negative() && !is_signed {
-            return Err(Error::UnsignedNegative {
-                value: value.to_owned(),
-                r#type: Type::integer(is_signed, bitlength).to_string(),
-            });
+            panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);
         }
 
         Ok(bitlength)
@@ -767,9 +861,24 @@ impl TryFrom<&IntegerLiteral> for Integer {
 
         let value = BigInt::from_str_radix(&string, base)
             .expect(crate::panic::VALIDATED_DURING_LEXICAL_ANALYSIS);
-        let bitlength = Self::minimal_bitlength(&value, false)?;
+        let bitlength = Self::minimal_bitlength(&value, false, literal.location)?;
 
         Ok(Self::new(literal.location, value, false, bitlength))
+    }
+}
+
+impl PartialEq<Self> for Integer {
+    fn eq(&self, other: &Self) -> bool {
+        let are_enum_types_equal = match (&self.enumeration, &other.enumeration) {
+            (Some(enum_1), Some(enum_2)) => enum_1.unique_id == enum_2.unique_id,
+            (None, None) => true,
+            (_, _) => false,
+        };
+
+        self.value == other.value
+            && self.is_signed == other.is_signed
+            && self.bitlength == other.bitlength
+            && are_enum_types_equal
     }
 }
 

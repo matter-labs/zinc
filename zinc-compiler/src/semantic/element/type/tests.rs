@@ -9,7 +9,6 @@ use crate::lexical::token::location::Location;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::r#type::error::Error as TypeError;
-use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
 use crate::syntax::tree::identifier::Identifier;
 
@@ -25,16 +24,12 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 16),
-        ElementError::Type(TypeError::AliasDoesNotPointToStructure {
-            found: Path::new(
-                Location::new(5, 16),
-                Identifier::new(Location::new(5, 16), Type::field().to_string()),
-            )
-            .to_string(),
-        }),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::AliasDoesNotPointToStructure {
+            location: Location::new(5, 16),
+            found: "X".to_owned(),
+        },
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -50,16 +45,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 24),
-        ElementError::Type(TypeError::AliasDoesNotPointToType {
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::AliasDoesNotPointToType {
+            location: Location::new(4, 24),
             found: Path::new(
                 Location::new(4, 24),
                 Identifier::new(Location::new(4, 24), "unknown".to_owned()),
             )
             .to_string(),
-        }),
-    )));
+        },
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 

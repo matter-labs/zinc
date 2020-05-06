@@ -84,7 +84,7 @@ impl Analyzer {
             ExpressionAnalyzer::new(scope_stack.top(), TranslationRule::Value)
                 .analyze(*conditional.condition)?;
         match Type::from_element(&condition_result, scope_stack.top())? {
-            Type::Boolean => {}
+            Type::Boolean(_) => {}
             r#type => {
                 return Err(Error::Expression(ExpressionError::Conditional(
                     ConditionalExpressionError::ExpectedBooleanCondition {
@@ -116,7 +116,7 @@ impl Analyzer {
 
             else_type
         } else {
-            Type::Unit
+            Type::unit(None)
         };
 
         if main_type != else_type {
@@ -228,7 +228,10 @@ impl Analyzer {
 
             (else_type, else_result)
         } else {
-            (Type::Unit, Constant::Unit(UnitConstant::new(location)))
+            (
+                Type::unit(None),
+                Constant::Unit(UnitConstant::new(location)),
+            )
         };
 
         if main_type != else_type {

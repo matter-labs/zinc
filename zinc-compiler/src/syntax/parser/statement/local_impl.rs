@@ -17,7 +17,7 @@ use crate::syntax::parser::statement::r#fn::Parser as FnStatementParser;
 use crate::syntax::tree::statement::local_impl::Statement as ImplementationLocalStatement;
 
 pub static HINT_ONLY_SOME_STATEMENTS: &str =
-    "only constants and functions may be declared within a type implementation";
+    "only constants and functions may be declared within a namespace";
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {

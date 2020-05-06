@@ -9,6 +9,7 @@ pub mod error;
 use std::fmt;
 
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
+use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::enumeration::Enumeration;
 use crate::semantic::element::r#type::Type;
 
@@ -21,14 +22,16 @@ use self::error::Error;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Integer {
+    pub location: Option<Location>,
     pub is_signed: bool,
     pub bitlength: usize,
     pub enumeration: Option<Enumeration>,
 }
 
 impl Integer {
-    pub fn new(is_signed: bool, bitlength: usize) -> Self {
+    pub fn new(location: Option<Location>, is_signed: bool, bitlength: usize) -> Self {
         Self {
+            location,
             is_signed,
             bitlength,
             enumeration: None,
@@ -42,7 +45,7 @@ impl Integer {
     pub fn r#type(&self) -> Type {
         match self.enumeration {
             Some(ref enumeration) => Type::Enumeration(enumeration.to_owned()),
-            None => Type::scalar(self.is_signed, self.bitlength),
+            None => Type::scalar(self.location, self.is_signed, self.bitlength),
         }
     }
 
@@ -59,6 +62,7 @@ impl Integer {
     pub fn equals(self, other: Self) -> Result<GeneratorExpressionOperator, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchEquals {
+                location: self.location.unwrap(),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -72,6 +76,7 @@ impl Integer {
     pub fn not_equals(self, other: Self) -> Result<GeneratorExpressionOperator, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchNotEquals {
+                location: self.location.unwrap(),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -85,6 +90,7 @@ impl Integer {
     pub fn greater_equals(self, other: Self) -> Result<GeneratorExpressionOperator, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchGreaterEquals {
+                location: self.location.unwrap(),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -98,6 +104,7 @@ impl Integer {
     pub fn lesser_equals(self, other: Self) -> Result<GeneratorExpressionOperator, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchLesserEquals {
+                location: self.location.unwrap(),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -111,6 +118,7 @@ impl Integer {
     pub fn greater(self, other: Self) -> Result<GeneratorExpressionOperator, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchGreater {
+                location: self.location.unwrap(),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -124,6 +132,7 @@ impl Integer {
     pub fn lesser(self, other: Self) -> Result<GeneratorExpressionOperator, Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchLesser {
+                location: self.location.unwrap(),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -137,17 +146,22 @@ impl Integer {
     pub fn bitwise_or(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchBitwiseOr {
+                location: self.location.unwrap(),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise);
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location.unwrap(),
+            });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location.unwrap(),
+            });
         }
 
         let operator = GeneratorExpressionOperator::BitwiseOr;
@@ -158,17 +172,22 @@ impl Integer {
     pub fn bitwise_xor(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchBitwiseXor {
+                location: self.location.unwrap(),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise);
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location.unwrap(),
+            });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location.unwrap(),
+            });
         }
 
         let operator = GeneratorExpressionOperator::BitwiseXor;
@@ -179,17 +198,22 @@ impl Integer {
     pub fn bitwise_and(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchBitwiseAnd {
+                location: self.location.unwrap(),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise);
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location.unwrap(),
+            });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location.unwrap(),
+            });
         }
 
         let operator = GeneratorExpressionOperator::BitwiseAnd;
@@ -202,16 +226,21 @@ impl Integer {
         other: Self,
     ) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise);
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location.unwrap(),
+            });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location.unwrap(),
+            });
         }
 
         if other.is_signed {
             return Err(
                 Error::OperatorBitwiseShiftLeftSecondOperatorExpectedUnsigned {
+                    location: other.location.unwrap(),
                     found: other.to_string(),
                 },
             );
@@ -227,16 +256,21 @@ impl Integer {
         other: Self,
     ) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise);
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location.unwrap(),
+            });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location.unwrap(),
+            });
         }
 
         if other.is_signed {
             return Err(
                 Error::OperatorBitwiseShiftRightSecondOperatorExpectedUnsigned {
+                    location: other.location.unwrap(),
                     found: other.to_string(),
                 },
             );
@@ -250,6 +284,7 @@ impl Integer {
     pub fn add(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchAddition {
+                location: self.location.unwrap(),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -263,6 +298,7 @@ impl Integer {
     pub fn subtract(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchSubtraction {
+                location: self.location.unwrap(),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -276,6 +312,7 @@ impl Integer {
     pub fn multiply(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchMultiplication {
+                location: self.location.unwrap(),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
@@ -289,13 +326,16 @@ impl Integer {
     pub fn divide(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchDivision {
+                location: self.location.unwrap(),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldDivision);
+            return Err(Error::ForbiddenFieldDivision {
+                location: self.location.unwrap(),
+            });
         }
 
         let operator = GeneratorExpressionOperator::Division;
@@ -306,13 +346,16 @@ impl Integer {
     pub fn remainder(self, other: Self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if !self.has_the_same_type_as(&other) {
             return Err(Error::TypesMismatchRemainder {
+                location: self.location.unwrap(),
                 first: self.r#type().to_string(),
                 second: other.r#type().to_string(),
             });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldRemainder);
+            return Err(Error::ForbiddenFieldRemainder {
+                location: self.location.unwrap(),
+            });
         }
 
         let operator = GeneratorExpressionOperator::Remainder;
@@ -321,30 +364,37 @@ impl Integer {
     }
 
     pub fn cast(
-        mut self,
+        self,
         is_signed: bool,
         bitlength: usize,
     ) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
         let operator = if self.is_signed != is_signed || self.bitlength != bitlength {
-            GeneratorExpressionOperator::casting(&Type::scalar(is_signed, bitlength))
+            GeneratorExpressionOperator::casting(&Type::scalar(self.location, is_signed, bitlength))
         } else {
             None
         };
 
-        self.is_signed = is_signed;
-        self.bitlength = bitlength;
-        self.enumeration = None;
+        let result = Self {
+            location: self.location,
+            is_signed,
+            bitlength,
+            enumeration: None,
+        };
 
-        Ok((self, operator))
+        Ok((result, operator))
     }
 
     pub fn bitwise_not(self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if self.is_signed {
-            return Err(Error::ForbiddenSignedBitwise);
+            return Err(Error::ForbiddenSignedBitwise {
+                location: self.location.unwrap(),
+            });
         }
 
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldBitwise);
+            return Err(Error::ForbiddenFieldBitwise {
+                location: self.location.unwrap(),
+            });
         }
 
         let operator = GeneratorExpressionOperator::BitwiseNot;
@@ -354,7 +404,9 @@ impl Integer {
 
     pub fn negate(mut self) -> Result<(Self, GeneratorExpressionOperator), Error> {
         if self.bitlength == crate::BITLENGTH_FIELD {
-            return Err(Error::ForbiddenFieldNegation);
+            return Err(Error::ForbiddenFieldNegation {
+                location: self.location.unwrap(),
+            });
         }
 
         self.is_signed = true;

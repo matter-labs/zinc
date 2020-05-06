@@ -17,7 +17,7 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::pattern_binding::builder::Builder as BindingPatternBuilder;
 use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
 
-static HINT_EXPECTED_TYPE: &str =
+pub static HINT_EXPECTED_TYPE: &str =
     "function argument must have a type, e.g. `fn sum(a: u8, b: u8) {}`";
 
 #[derive(Debug, Clone, Copy)]

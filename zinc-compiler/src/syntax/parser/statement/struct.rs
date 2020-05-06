@@ -17,7 +17,7 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#struct::builder::Builder as StructStatementBuilder;
 use crate::syntax::tree::statement::r#struct::Statement as StructStatement;
 
-static HINT_EXPECTED_IDENTIFIER: &str =
+pub static HINT_EXPECTED_IDENTIFIER: &str =
     "structure type must have an identifier, e.g. `struct Data { ... }`";
 
 #[derive(Debug, Clone, Copy)]

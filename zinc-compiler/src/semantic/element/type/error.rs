@@ -2,14 +2,15 @@
 //! The semantic analyzer type error.
 //!
 
+use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::contract::error::Error as ContractTypeError;
 use crate::semantic::element::r#type::function::error::Error as FunctionTypeError;
 use crate::semantic::element::r#type::structure::error::Error as StructureTypeError;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    AliasDoesNotPointToType { found: String },
-    AliasDoesNotPointToStructure { found: String },
+    AliasDoesNotPointToType { location: Location, found: String },
+    AliasDoesNotPointToStructure { location: Location, found: String },
 
     Function(FunctionTypeError),
     Structure(StructureTypeError),

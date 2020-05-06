@@ -41,11 +41,11 @@ impl RangeInclusive {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::range_inclusive(self.bounds_type())
+        Type::range_inclusive(Some(self.location), self.bounds_type())
     }
 
     pub fn bounds_type(&self) -> Type {
-        Type::scalar(self.is_signed, self.bitlength)
+        Type::scalar(Some(self.location), self.is_signed, self.bitlength)
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {

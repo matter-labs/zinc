@@ -29,8 +29,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(ConstantError::OperatorRangeFirstOperandExpectedInteger {
+            location: Location::new(3, 17),
             found: Constant::Boolean(BooleanConstant::new(Location::new(3, 17), true)).to_string(),
         }),
     )));
@@ -49,8 +49,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(ConstantError::OperatorRangeSecondOperandExpectedInteger {
+            location: Location::new(3, 23),
             found: Constant::Boolean(BooleanConstant::new(Location::new(3, 23), true)).to_string(),
         }),
     )));
@@ -69,9 +69,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(
             ConstantError::OperatorRangeInclusiveFirstOperandExpectedInteger {
+                location: Location::new(3, 17),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 17), true))
                     .to_string(),
             },
@@ -92,9 +92,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(
             ConstantError::OperatorRangeInclusiveSecondOperandExpectedInteger {
+                location: Location::new(3, 24),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 24), true))
                     .to_string(),
             },
@@ -115,8 +115,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(ConstantError::OperatorOrFirstOperandExpectedBoolean {
+            location: Location::new(3, 17),
             found: Constant::Integer(IntegerConstant::new(
                 Location::new(3, 17),
                 BigInt::from(42),
@@ -141,8 +141,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(ConstantError::OperatorOrSecondOperandExpectedBoolean {
+            location: Location::new(3, 25),
             found: Constant::Integer(IntegerConstant::new(
                 Location::new(3, 25),
                 BigInt::from(42),
@@ -167,8 +167,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(ConstantError::OperatorXorFirstOperandExpectedBoolean {
+            location: Location::new(3, 17),
             found: Constant::Integer(IntegerConstant::new(
                 Location::new(3, 17),
                 BigInt::from(42),
@@ -193,8 +193,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(ConstantError::OperatorXorSecondOperandExpectedBoolean {
+            location: Location::new(3, 25),
             found: Constant::Integer(IntegerConstant::new(
                 Location::new(3, 25),
                 BigInt::from(42),
@@ -219,8 +219,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(ConstantError::OperatorAndFirstOperandExpectedBoolean {
+            location: Location::new(3, 17),
             found: Constant::Integer(IntegerConstant::new(
                 Location::new(3, 17),
                 BigInt::from(42),
@@ -245,8 +245,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(ConstantError::OperatorAndSecondOperandExpectedBoolean {
+            location: Location::new(3, 25),
             found: Constant::Integer(IntegerConstant::new(
                 Location::new(3, 25),
                 BigInt::from(42),
@@ -271,9 +271,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 26),
         ElementError::Constant(
             ConstantError::OperatorEqualsFirstOperandExpectedPrimitiveType {
+                location: Location::new(3, 17),
                 found: StringConstant::new(Location::new(3, 17), "string".to_owned()).to_string(),
             },
         ),
@@ -293,8 +293,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(ConstantError::OperatorEqualsSecondOperandExpectedUnit {
+            location: Location::new(3, 23),
             found: Constant::Integer(IntegerConstant::new(
                 Location::new(3, 23),
                 BigInt::from(42),
@@ -319,8 +319,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(ConstantError::OperatorEqualsSecondOperandExpectedBoolean {
+            location: Location::new(3, 25),
             found: Constant::Integer(IntegerConstant::new(
                 Location::new(3, 25),
                 BigInt::from(42),
@@ -345,8 +345,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(ConstantError::OperatorEqualsSecondOperandExpectedInteger {
+            location: Location::new(3, 23),
             found: Constant::Boolean(BooleanConstant::new(Location::new(3, 23), true)).to_string(),
         }),
     )));
@@ -365,9 +365,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 26),
         ElementError::Constant(
             ConstantError::OperatorNotEqualsFirstOperandExpectedPrimitiveType {
+                location: Location::new(3, 17),
                 found: StringConstant::new(Location::new(3, 17), "string".to_owned()).to_string(),
             },
         ),
@@ -387,8 +387,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(ConstantError::OperatorNotEqualsSecondOperandExpectedUnit {
+            location: Location::new(3, 23),
             found: Constant::Integer(IntegerConstant::new(
                 Location::new(3, 23),
                 BigInt::from(42),
@@ -413,9 +413,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(
             ConstantError::OperatorNotEqualsSecondOperandExpectedBoolean {
+                location: Location::new(3, 25),
                 found: Constant::Integer(IntegerConstant::new(
                     Location::new(3, 25),
                     BigInt::from(42),
@@ -441,9 +441,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(
             ConstantError::OperatorNotEqualsSecondOperandExpectedInteger {
+                location: Location::new(3, 23),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 23), true))
                     .to_string(),
             },
@@ -464,9 +464,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(
             ConstantError::OperatorGreaterEqualsFirstOperandExpectedInteger {
+                location: Location::new(3, 17),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 17), true))
                     .to_string(),
             },
@@ -487,9 +487,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(
             ConstantError::OperatorGreaterEqualsSecondOperandExpectedInteger {
+                location: Location::new(3, 23),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 23), true))
                     .to_string(),
             },
@@ -510,9 +510,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(
             ConstantError::OperatorLesserEqualsFirstOperandExpectedInteger {
+                location: Location::new(3, 17),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 17), true))
                     .to_string(),
             },
@@ -533,9 +533,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(
             ConstantError::OperatorLesserEqualsSecondOperandExpectedInteger {
+                location: Location::new(3, 23),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 23), true))
                     .to_string(),
             },
@@ -556,8 +556,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(ConstantError::OperatorGreaterFirstOperandExpectedInteger {
+            location: Location::new(3, 17),
             found: Constant::Boolean(BooleanConstant::new(Location::new(3, 17), true)).to_string(),
         }),
     )));
@@ -576,8 +576,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(ConstantError::OperatorGreaterSecondOperandExpectedInteger {
+            location: Location::new(3, 22),
             found: Constant::Boolean(BooleanConstant::new(Location::new(3, 22), true)).to_string(),
         }),
     )));
@@ -596,8 +596,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(ConstantError::OperatorLesserFirstOperandExpectedInteger {
+            location: Location::new(3, 17),
             found: Constant::Boolean(BooleanConstant::new(Location::new(3, 17), true)).to_string(),
         }),
     )));
@@ -616,8 +616,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(ConstantError::OperatorLesserSecondOperandExpectedInteger {
+            location: Location::new(3, 22),
             found: Constant::Boolean(BooleanConstant::new(Location::new(3, 22), true)).to_string(),
         }),
     )));
@@ -636,9 +636,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(
             ConstantError::OperatorBitwiseOrFirstOperandExpectedInteger {
+                location: Location::new(3, 17),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 17), true))
                     .to_string(),
             },
@@ -659,9 +659,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(
             ConstantError::OperatorBitwiseOrSecondOperandExpectedInteger {
+                location: Location::new(3, 22),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 22), true))
                     .to_string(),
             },
@@ -682,9 +682,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(
             ConstantError::OperatorBitwiseXorFirstOperandExpectedInteger {
+                location: Location::new(3, 17),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 17), true))
                     .to_string(),
             },
@@ -705,9 +705,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(
             ConstantError::OperatorBitwiseXorSecondOperandExpectedInteger {
+                location: Location::new(3, 22),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 22), true))
                     .to_string(),
             },
@@ -728,9 +728,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(
             ConstantError::OperatorBitwiseAndFirstOperandExpectedInteger {
+                location: Location::new(3, 17),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 17), true))
                     .to_string(),
             },
@@ -751,9 +751,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(
             ConstantError::OperatorBitwiseAndSecondOperandExpectedInteger {
+                location: Location::new(3, 22),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 22), true))
                     .to_string(),
             },
@@ -774,9 +774,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(
             ConstantError::OperatorBitwiseShiftLeftFirstOperandExpectedInteger {
+                location: Location::new(3, 17),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 17), true))
                     .to_string(),
             },
@@ -797,9 +797,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(
             ConstantError::OperatorBitwiseShiftLeftSecondOperandExpectedInteger {
+                location: Location::new(3, 23),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 23), true))
                     .to_string(),
             },
@@ -820,9 +820,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(
             ConstantError::OperatorBitwiseShiftRightFirstOperandExpectedInteger {
+                location: Location::new(3, 17),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 17), true))
                     .to_string(),
             },
@@ -843,9 +843,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(
             ConstantError::OperatorBitwiseShiftRightSecondOperandExpectedInteger {
+                location: Location::new(3, 23),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 23), true))
                     .to_string(),
             },
@@ -866,8 +866,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(ConstantError::OperatorAdditionFirstOperandExpectedInteger {
+            location: Location::new(3, 17),
             found: Constant::Boolean(BooleanConstant::new(Location::new(3, 17), true)).to_string(),
         }),
     )));
@@ -886,9 +886,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(
             ConstantError::OperatorAdditionSecondOperandExpectedInteger {
+                location: Location::new(3, 22),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 22), true))
                     .to_string(),
             },
@@ -909,9 +909,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(
             ConstantError::OperatorSubtractionFirstOperandExpectedInteger {
+                location: Location::new(3, 17),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 17), true))
                     .to_string(),
             },
@@ -932,9 +932,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(
             ConstantError::OperatorSubtractionSecondOperandExpectedInteger {
+                location: Location::new(3, 22),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 22), true))
                     .to_string(),
             },
@@ -955,9 +955,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(
             ConstantError::OperatorMultiplicationFirstOperandExpectedInteger {
+                location: Location::new(3, 17),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 17), true))
                     .to_string(),
             },
@@ -978,9 +978,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(
             ConstantError::OperatorMultiplicationSecondOperandExpectedInteger {
+                location: Location::new(3, 22),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 22), true))
                     .to_string(),
             },
@@ -1001,8 +1001,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(ConstantError::OperatorDivisionFirstOperandExpectedInteger {
+            location: Location::new(3, 17),
             found: Constant::Boolean(BooleanConstant::new(Location::new(3, 17), true)).to_string(),
         }),
     )));
@@ -1021,9 +1021,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(
             ConstantError::OperatorDivisionSecondOperandExpectedInteger {
+                location: Location::new(3, 22),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 22), true))
                     .to_string(),
             },
@@ -1044,9 +1044,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 22),
         ElementError::Constant(
             ConstantError::OperatorRemainderFirstOperandExpectedInteger {
+                location: Location::new(3, 17),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 17), true))
                     .to_string(),
             },
@@ -1067,9 +1067,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
         ElementError::Constant(
             ConstantError::OperatorRemainderSecondOperandExpectedInteger {
+                location: Location::new(3, 22),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 22), true))
                     .to_string(),
             },
@@ -1091,11 +1091,14 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 19),
-        ElementError::Constant(ConstantError::Casting(CastingError::CastingToInvalidType {
-            from: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            to: Type::boolean().to_string(),
-        })),
+        ElementError::Constant(ConstantError::Casting {
+            location: Location::new(4, 26),
+            inner: CastingError::CastingToInvalidType {
+                from: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+                to: Type::boolean(None).to_string(),
+            },
+            reference: Some(Location::new(4, 19)),
+        }),
     )));
 
     let result = crate::semantic::tests::compile_entry(input);
@@ -1112,8 +1115,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 17),
         ElementError::Constant(ConstantError::OperatorNotExpectedBoolean {
+            location: Location::new(3, 18),
             found: Constant::Integer(IntegerConstant::new(
                 Location::new(3, 18),
                 BigInt::from(42),
@@ -1138,8 +1141,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 17),
         ElementError::Constant(ConstantError::OperatorBitwiseNotExpectedInteger {
+            location: Location::new(3, 18),
             found: Constant::Boolean(BooleanConstant::new(Location::new(3, 18), true)).to_string(),
         }),
     )));
@@ -1158,8 +1161,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 17),
         ElementError::Constant(ConstantError::OperatorNegationExpectedInteger {
+            location: Location::new(3, 18),
             found: Constant::Boolean(BooleanConstant::new(Location::new(3, 18), true)).to_string(),
         }),
     )));
@@ -1178,8 +1181,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 44),
         ElementError::Constant(ConstantError::OperatorIndexFirstOperandExpectedArray {
+            location: Location::new(3, 25),
             found: Constant::Tuple(TupleConstant::new_with_values(
                 Location::new(3, 25),
                 vec![
@@ -1206,9 +1209,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 32),
         ElementError::Constant(
             ConstantError::OperatorIndexSecondOperandExpectedIntegerOrRange {
+                location: Location::new(3, 33),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 33), true))
                     .to_string(),
             },
@@ -1229,11 +1232,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 44),
         ElementError::Constant(ConstantError::OperatorFieldFirstOperandExpectedTuple {
+            location: Location::new(3, 25),
             found: Constant::Array(ArrayConstant::new_with_values(
                 Location::new(3, 25),
-                Type::boolean(),
+                Type::boolean(None),
                 vec![
                     Constant::Boolean(BooleanConstant::new(Location::new(3, 26), true)),
                     Constant::Boolean(BooleanConstant::new(Location::new(3, 32), true)),
@@ -1258,11 +1261,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 44),
         ElementError::Constant(ConstantError::OperatorFieldFirstOperandExpectedStructure {
+            location: Location::new(3, 25),
             found: Constant::Array(ArrayConstant::new_with_values(
                 Location::new(3, 25),
-                Type::boolean(),
+                Type::boolean(None),
                 vec![
                     Constant::Boolean(BooleanConstant::new(Location::new(3, 26), true)),
                     Constant::Boolean(BooleanConstant::new(Location::new(3, 32), true)),

@@ -12,6 +12,7 @@ use crate::lexical::token::location::Location;
 use crate::semantic::element::access::Field as FieldAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
+use crate::semantic::element::tuple_index::TupleIndex;
 
 use self::error::Error;
 
@@ -32,10 +33,6 @@ impl Tuple {
         }
     }
 
-    pub fn new_with_values(location: Location, values: Vec<Constant>) -> Self {
-        Self { location, values }
-    }
-
     pub fn with_capacity(location: Location, capacity: usize) -> Self {
         Self {
             location,
@@ -43,8 +40,15 @@ impl Tuple {
         }
     }
 
+    pub fn new_with_values(location: Location, values: Vec<Constant>) -> Self {
+        Self { location, values }
+    }
+
     pub fn r#type(&self) -> Type {
-        Type::tuple(self.values.iter().map(|value| value.r#type()).collect())
+        Type::tuple(
+            Some(self.location),
+            self.values.iter().map(|value| value.r#type()).collect(),
+        )
     }
 
     pub fn len(&self) -> usize {
@@ -63,12 +67,18 @@ impl Tuple {
         self.values.push(value);
     }
 
-    pub fn slice(mut self, index: usize) -> Result<(Constant, FieldAccess), Error> {
+    pub fn slice(mut self, index: TupleIndex) -> Result<(Constant, FieldAccess), Error> {
+        let TupleIndex {
+            location,
+            value: index,
+        } = index;
+
         let mut offset = 0;
         let total_size = self.r#type().size();
 
         if index >= self.values.len() {
             return Err(Error::FieldDoesNotExist {
+                location,
                 type_identifier: self.r#type().to_string(),
                 field_index: index,
             });

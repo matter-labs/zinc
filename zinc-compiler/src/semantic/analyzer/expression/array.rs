@@ -53,24 +53,24 @@ impl Analyzer {
         scope: Rc<RefCell<Scope>>,
         array: ArrayExpression,
     ) -> Result<(Element, GeneratorExpressionOperand), Error> {
-        let mut result = ArrayValue::default();
+        let location = array.location;
+
+        let mut result = ArrayValue::new(Some(location));
+
         let mut builder = GeneratorArrayExpressionBuilder::default();
 
         match array.variant {
             ArrayExpressionVariant::List { elements } => {
                 for expression in elements.into_iter() {
-                    let expression_location = expression.location;
-
                     let (element, expression) =
                         ExpressionAnalyzer::new(scope.clone(), TranslationRule::Value)
                             .analyze(expression)?;
                     let element_type = Type::from_element(&element, scope.clone())?;
-                    result.push(element_type).map_err(|error| {
-                        Error::Element(
-                            expression_location,
-                            ElementError::Value(ValueError::Array(error)),
-                        )
-                    })?;
+                    result
+                        .push(element_type, element.location())
+                        .map_err(|error| {
+                            Error::Element(ElementError::Value(ValueError::Array(error)))
+                        })?;
 
                     builder.push_expression(expression);
                 }
@@ -79,7 +79,6 @@ impl Analyzer {
                 expression,
                 size_expression,
             } => {
-                let expression_location = expression.location;
                 let size_expression_location = size_expression.location;
 
                 let size = match ExpressionAnalyzer::new(scope.clone(), TranslationRule::Constant)
@@ -87,10 +86,7 @@ impl Analyzer {
                 {
                     (Element::Constant(Constant::Integer(integer)), _intermediate) => {
                         integer.to_usize().map_err(|error| {
-                            Error::Element(
-                                size_expression_location,
-                                ElementError::Constant(ConstantError::Integer(error)),
-                            )
+                            Error::Element(ElementError::Constant(ConstantError::Integer(error)))
                         })?
                     }
                     (element, _intermediate) => {
@@ -105,12 +101,11 @@ impl Analyzer {
                     ExpressionAnalyzer::new(scope.clone(), TranslationRule::Value)
                         .analyze(expression)?;
                 let element_type = Type::from_element(&element, scope)?;
-                result.extend(element_type, size).map_err(|error| {
-                    Error::Element(
-                        expression_location,
-                        ElementError::Value(ValueError::Array(error)),
-                    )
-                })?;
+                result
+                    .extend(element_type, size, element.location())
+                    .map_err(|error| {
+                        Error::Element(ElementError::Value(ValueError::Array(error)))
+                    })?;
 
                 builder.push_expression(expression);
                 builder.set_size(size);
@@ -139,10 +134,7 @@ impl Analyzer {
                             .analyze(expression)?;
                     match element {
                         Element::Constant(constant) => result.push(constant).map_err(|error| {
-                            Error::Element(
-                                expression_location,
-                                ElementError::Constant(ConstantError::Array(error)),
-                            )
+                            Error::Element(ElementError::Constant(ConstantError::Array(error)))
                         })?,
                         element => {
                             return Err(Error::Expression(ExpressionError::NonConstantElement {
@@ -165,10 +157,7 @@ impl Analyzer {
                 {
                     (Element::Constant(Constant::Integer(integer)), _intermediate) => {
                         integer.to_usize().map_err(|error| {
-                            Error::Element(
-                                size_expression_location,
-                                ElementError::Constant(ConstantError::Integer(error)),
-                            )
+                            Error::Element(ElementError::Constant(ConstantError::Integer(error)))
                         })?
                     }
                     (element, _intermediate) => {
@@ -184,10 +173,7 @@ impl Analyzer {
                 match element {
                     Element::Constant(constant) => {
                         result.extend(vec![constant; size]).map_err(|error| {
-                            Error::Element(
-                                expression_location,
-                                ElementError::Constant(ConstantError::Array(error)),
-                            )
+                            Error::Element(ElementError::Constant(ConstantError::Array(error)))
                         })?
                     }
                     element => {

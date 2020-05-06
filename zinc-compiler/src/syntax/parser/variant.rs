@@ -17,9 +17,9 @@ use crate::syntax::tree::literal::integer::Literal as IntegerLiteral;
 use crate::syntax::tree::variant::builder::Builder as VariantBuilder;
 use crate::syntax::tree::variant::Variant;
 
-static HINT_EXPECTED_IDENTIFIER: &str =
+pub static HINT_EXPECTED_IDENTIFIER: &str =
     "enumeration variant must have an identifier, e.g. `Value = 42`";
-static HINT_EXPECTED_VALUE: &str = "enumeration variant must be initialized, e.g. `Value = 42`";
+pub static HINT_EXPECTED_VALUE: &str = "enumeration variant must be initialized, e.g. `Value = 42`";
 
 #[derive(Default)]
 pub struct Parser {

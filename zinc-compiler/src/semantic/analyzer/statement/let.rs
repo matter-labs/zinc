@@ -11,7 +11,7 @@ use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::variant::variable::Variable as ScopeVariableItem;
+use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::r#let::Statement as LetStatement;
 
@@ -25,17 +25,14 @@ impl Analyzer {
         scope: Rc<RefCell<Scope>>,
         statement: LetStatement,
     ) -> Result<Option<GeneratorDeclarationStatement>, Error> {
-        let location = statement.location;
-
         let (element, expression) = ExpressionAnalyzer::new(scope.clone(), TranslationRule::Value)
             .analyze(statement.expression)?;
 
         let r#type = if let Some(r#type) = statement.r#type {
-            let type_location = r#type.location;
-            let r#type = Type::from_type_variant(&r#type.variant, scope.clone())?;
+            let r#type = Type::from_syntax_type(r#type, scope.clone())?;
             element
                 .cast(Element::Type(r#type.clone()))
-                .map_err(|error| Error::Element(type_location, error))?;
+                .map_err(Error::Element)?;
             r#type
         } else {
             Type::from_element(&element, scope.clone())?
@@ -52,7 +49,7 @@ impl Analyzer {
         )?;
 
         Ok(GeneratorDeclarationStatement::new(
-            location,
+            statement.location,
             statement.identifier.name,
             r#type,
             expression,

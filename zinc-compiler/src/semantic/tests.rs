@@ -73,8 +73,8 @@ contract Uniswap {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::EntryPointAmbiguous {
-        main: Location::new(2, 4),
-        contract: Location::new(6, 10),
+        main: Location::new(2, 1),
+        contract: Location::new(6, 1),
     }));
 
     let result = crate::semantic::tests::compile_entry(input);

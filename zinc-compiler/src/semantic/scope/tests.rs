@@ -256,8 +256,8 @@ contract Multiswap {
 
     let expected = Err(Error::Semantic(SemanticError::Scope(
         ScopeError::ContractRedeclared {
-            location: Location::new(6, 10),
-            reference: Location::new(2, 10),
+            location: Location::new(6, 1),
+            reference: Location::new(2, 1),
         },
     )));
 

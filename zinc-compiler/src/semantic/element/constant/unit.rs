@@ -21,7 +21,7 @@ impl Unit {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::unit()
+        Type::unit(None)
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {

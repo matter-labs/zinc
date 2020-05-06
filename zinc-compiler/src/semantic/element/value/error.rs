@@ -2,6 +2,7 @@
 //! The semantic analyzer value element error.
 //!
 
+use crate::lexical::token::location::Location;
 use crate::semantic::casting::error::Error as CastingError;
 use crate::semantic::element::value::array::error::Error as ArrayValueError;
 use crate::semantic::element::value::integer::error::Error as IntegerValueError;
@@ -10,82 +11,233 @@ use crate::semantic::element::value::tuple::error::Error as TupleValueError;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    OperatorOrFirstOperandExpectedBoolean { found: String },
-    OperatorOrSecondOperandExpectedBoolean { found: String },
+    OperatorOrFirstOperandExpectedBoolean {
+        location: Location,
+        found: String,
+    },
+    OperatorOrSecondOperandExpectedBoolean {
+        location: Location,
+        found: String,
+    },
 
-    OperatorXorFirstOperandExpectedBoolean { found: String },
-    OperatorXorSecondOperandExpectedBoolean { found: String },
+    OperatorXorFirstOperandExpectedBoolean {
+        location: Location,
+        found: String,
+    },
+    OperatorXorSecondOperandExpectedBoolean {
+        location: Location,
+        found: String,
+    },
 
-    OperatorAndFirstOperandExpectedBoolean { found: String },
-    OperatorAndSecondOperandExpectedBoolean { found: String },
+    OperatorAndFirstOperandExpectedBoolean {
+        location: Location,
+        found: String,
+    },
+    OperatorAndSecondOperandExpectedBoolean {
+        location: Location,
+        found: String,
+    },
 
-    OperatorEqualsSecondOperandExpectedUnit { found: String },
-    OperatorEqualsSecondOperandExpectedBoolean { found: String },
-    OperatorEqualsSecondOperandExpectedInteger { found: String },
-    OperatorEqualsFirstOperandExpectedPrimitiveType { found: String },
+    OperatorEqualsSecondOperandExpectedUnit {
+        location: Location,
+        found: String,
+    },
+    OperatorEqualsSecondOperandExpectedBoolean {
+        location: Location,
+        found: String,
+    },
+    OperatorEqualsSecondOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
+    OperatorEqualsFirstOperandExpectedPrimitiveType {
+        location: Location,
+        found: String,
+    },
 
-    OperatorNotEqualsSecondOperandExpectedUnit { found: String },
-    OperatorNotEqualsSecondOperandExpectedBoolean { found: String },
-    OperatorNotEqualsSecondOperandExpectedInteger { found: String },
-    OperatorNotEqualsFirstOperandExpectedPrimitiveType { found: String },
+    OperatorNotEqualsSecondOperandExpectedUnit {
+        location: Location,
+        found: String,
+    },
+    OperatorNotEqualsSecondOperandExpectedBoolean {
+        location: Location,
+        found: String,
+    },
+    OperatorNotEqualsSecondOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
+    OperatorNotEqualsFirstOperandExpectedPrimitiveType {
+        location: Location,
+        found: String,
+    },
 
-    OperatorGreaterEqualsFirstOperandExpectedInteger { found: String },
-    OperatorGreaterEqualsSecondOperandExpectedInteger { found: String },
+    OperatorGreaterEqualsFirstOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
+    OperatorGreaterEqualsSecondOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
 
-    OperatorLesserEqualsFirstOperandExpectedInteger { found: String },
-    OperatorLesserEqualsSecondOperandExpectedInteger { found: String },
+    OperatorLesserEqualsFirstOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
+    OperatorLesserEqualsSecondOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
 
-    OperatorGreaterFirstOperandExpectedInteger { found: String },
-    OperatorGreaterSecondOperandExpectedInteger { found: String },
+    OperatorGreaterFirstOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
+    OperatorGreaterSecondOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
 
-    OperatorLesserFirstOperandExpectedInteger { found: String },
-    OperatorLesserSecondOperandExpectedInteger { found: String },
+    OperatorLesserFirstOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
+    OperatorLesserSecondOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
 
-    OperatorBitwiseOrFirstOperandExpectedInteger { found: String },
-    OperatorBitwiseOrSecondOperandExpectedInteger { found: String },
+    OperatorBitwiseOrFirstOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
+    OperatorBitwiseOrSecondOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
 
-    OperatorBitwiseXorFirstOperandExpectedInteger { found: String },
-    OperatorBitwiseXorSecondOperandExpectedInteger { found: String },
+    OperatorBitwiseXorFirstOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
+    OperatorBitwiseXorSecondOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
 
-    OperatorBitwiseAndFirstOperandExpectedInteger { found: String },
-    OperatorBitwiseAndSecondOperandExpectedInteger { found: String },
+    OperatorBitwiseAndFirstOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
+    OperatorBitwiseAndSecondOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
 
-    OperatorBitwiseShiftLeftFirstOperandExpectedInteger { found: String },
-    OperatorBitwiseShiftLeftSecondOperandExpectedInteger { found: String },
+    OperatorBitwiseShiftLeftFirstOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
+    OperatorBitwiseShiftLeftSecondOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
 
-    OperatorBitwiseShiftRightFirstOperandExpectedInteger { found: String },
-    OperatorBitwiseShiftRightSecondOperandExpectedInteger { found: String },
+    OperatorBitwiseShiftRightFirstOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
+    OperatorBitwiseShiftRightSecondOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
 
-    OperatorAdditionFirstOperandExpectedInteger { found: String },
-    OperatorAdditionSecondOperandExpectedInteger { found: String },
+    OperatorAdditionFirstOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
+    OperatorAdditionSecondOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
 
-    OperatorSubtractionFirstOperandExpectedInteger { found: String },
-    OperatorSubtractionSecondOperandExpectedInteger { found: String },
+    OperatorSubtractionFirstOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
+    OperatorSubtractionSecondOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
 
-    OperatorMultiplicationFirstOperandExpectedInteger { found: String },
-    OperatorMultiplicationSecondOperandExpectedInteger { found: String },
+    OperatorMultiplicationFirstOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
+    OperatorMultiplicationSecondOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
 
-    OperatorDivisionFirstOperandExpectedInteger { found: String },
-    OperatorDivisionSecondOperandExpectedInteger { found: String },
+    OperatorDivisionFirstOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
+    OperatorDivisionSecondOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
 
-    OperatorRemainderFirstOperandExpectedInteger { found: String },
-    OperatorRemainderSecondOperandExpectedInteger { found: String },
+    OperatorRemainderFirstOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
+    OperatorRemainderSecondOperandExpectedInteger {
+        location: Location,
+        found: String,
+    },
 
-    OperatorNotExpectedBoolean { found: String },
+    OperatorNotExpectedBoolean {
+        location: Location,
+        found: String,
+    },
 
-    OperatorBitwiseNotExpectedInteger { found: String },
+    OperatorBitwiseNotExpectedInteger {
+        location: Location,
+        found: String,
+    },
 
-    OperatorNegationExpectedInteger { found: String },
+    OperatorNegationExpectedInteger {
+        location: Location,
+        found: String,
+    },
 
-    OperatorIndexFirstOperandExpectedArray { found: String },
-    OperatorIndexSecondOperandExpectedIntegerOrRange { found: String },
+    OperatorIndexFirstOperandExpectedArray {
+        location: Location,
+        found: String,
+    },
+    OperatorIndexSecondOperandExpectedIntegerOrRange {
+        location: Location,
+        found: String,
+    },
 
-    OperatorFieldFirstOperandExpectedTuple { found: String },
-    OperatorFieldFirstOperandExpectedStructure { found: String },
+    OperatorFieldFirstOperandExpectedTuple {
+        location: Location,
+        found: String,
+    },
+    OperatorFieldFirstOperandExpectedStructure {
+        location: Location,
+        found: String,
+    },
 
     Integer(IntegerValueError),
     Array(ArrayValueError),
     Tuple(TupleValueError),
     Structure(StructureValueError),
-    Casting(CastingError),
+    Casting {
+        location: Location,
+        inner: CastingError,
+        reference: Option<Location>,
+    },
 }

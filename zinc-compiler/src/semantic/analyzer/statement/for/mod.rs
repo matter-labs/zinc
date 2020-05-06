@@ -25,7 +25,7 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::variant::variable::Variable as ScopeVariableItem;
+use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::r#for::Statement as ForStatement;
@@ -83,7 +83,7 @@ impl Analyzer {
             ScopeVariableItem::new(
                 index_location,
                 false,
-                Type::scalar(is_index_signed, index_bitlength),
+                Type::scalar(Some(index_location), is_index_signed, index_bitlength),
             ),
         )?;
 
@@ -94,7 +94,7 @@ impl Analyzer {
                     .analyze(expression)?;
 
             match Type::from_element(&while_result, scope_stack.top())? {
-                Type::Boolean => {}
+                Type::Boolean(_) => {}
                 r#type => {
                     return Err(Error::Statement(StatementError::For(
                         ForStatementError::WhileExpectedBooleanCondition {
@@ -118,15 +118,16 @@ impl Analyzer {
         let is_reversed = range_start > range_end;
 
         let iterations_count = (range_end - range_start.clone()).abs();
-        let mut iterations_count = iterations_count.to_usize().ok_or(Error::Element(
-            bounds_expression_location,
-            ElementError::Constant(ConstantError::Integer(
-                IntegerConstantError::IntegerTooLarge {
-                    value: iterations_count,
-                    bitlength: index_bitlength,
-                },
-            )),
-        ))?;
+        let mut iterations_count =
+            iterations_count
+                .to_usize()
+                .ok_or(Error::Element(ElementError::Constant(
+                    ConstantError::Integer(IntegerConstantError::IntegerTooLarge {
+                        location: bounds_expression_location,
+                        value: iterations_count,
+                        bitlength: index_bitlength,
+                    }),
+                )))?;
         if is_inclusive {
             iterations_count += 1;
         }

@@ -23,7 +23,7 @@ impl String {
     }
 
     pub fn r#type(&self) -> Type {
-        Type::string()
+        Type::string(Some(self.location))
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {

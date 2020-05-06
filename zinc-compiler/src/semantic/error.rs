@@ -10,10 +10,7 @@ use crate::semantic::scope::error::Error as ScopeError;
 
 #[derive(Debug, PartialEq)]
 pub enum Error {
-    Element(
-        Location, // TODO: move locations inside the expression errors
-        ElementError,
-    ),
+    Element(ElementError),
     Scope(ScopeError),
     Expression(ExpressionError),
     Statement(StatementError),

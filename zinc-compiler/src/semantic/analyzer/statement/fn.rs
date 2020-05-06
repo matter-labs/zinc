@@ -15,9 +15,10 @@ use crate::semantic::element::r#type::function::error::Error as FunctionTypeErro
 use crate::semantic::element::r#type::function::user::Function as UserDefinedFunctionType;
 use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::element::r#type::INDEX as TYPE_INDEX;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::variant::variable::Variable as ScopeVariableItem;
+use crate::semantic::scope::item::r#type::index::SOFT as TYPE_INDEX_SOFT;
+use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
+use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::identifier::Identifier;
@@ -83,16 +84,14 @@ impl Analyzer {
                 BindingPatternVariant::Wildcard => continue,
                 BindingPatternVariant::SelfAlias { .. } => {
                     if index != 0 {
-                        return Err(Error::Element(
-                            statement.identifier.location,
-                            ElementError::Type(TypeError::Function(
-                                FunctionTypeError::function_method_self_not_first(
-                                    statement.identifier.name.clone(),
-                                    index + 1,
-                                    argument_binding.location,
-                                ),
-                            )),
-                        ));
+                        return Err(Error::Element(ElementError::Type(TypeError::Function(
+                            FunctionTypeError::FunctionMethodSelfNotFirst {
+                                location: statement.identifier.location,
+                                function: statement.identifier.name.clone(),
+                                position: index + 1,
+                                reference: argument_binding.location,
+                            },
+                        ))));
                     }
 
                     Keyword::SelfLowercase.to_string()
@@ -101,17 +100,18 @@ impl Analyzer {
 
             arguments.push((
                 identifier,
-                Type::from_type_variant(&argument_binding.r#type.variant, scope_stack.top())?,
+                Type::from_syntax_type(argument_binding.r#type.to_owned(), scope_stack.top())?,
             ));
         }
 
         let expected_type = match statement.return_type {
-            Some(ref r#type) => Type::from_type_variant(&r#type.variant, scope_stack.top())?,
-            None => Type::unit(),
+            Some(ref r#type) => Type::from_syntax_type(r#type.to_owned(), scope_stack.top())?,
+            None => Type::unit(None),
         };
 
-        let unique_id = TYPE_INDEX.read().expect(crate::panic::MUTEX_SYNC).len();
+        let unique_id = TYPE_INDEX_SOFT.next(statement.identifier.name.clone());
         let function_type = UserDefinedFunctionType::new(
+            statement.location,
             statement.identifier.name.clone(),
             unique_id,
             arguments.clone(),
@@ -119,11 +119,11 @@ impl Analyzer {
         );
         let r#type = Type::Function(FunctionType::UserDefined(function_type));
 
-        TYPE_INDEX
-            .write()
-            .expect(crate::panic::MUTEX_SYNC)
-            .insert(unique_id, r#type.to_string());
-        Scope::declare_type(scope_stack.top(), statement.identifier.clone(), r#type)?;
+        Scope::declare_type(
+            scope_stack.top(),
+            statement.identifier.clone(),
+            ScopeTypeItem::new(Some(location), r#type),
+        )?;
 
         scope_stack.push();
         for argument_binding in statement.argument_bindings.into_iter() {
@@ -134,10 +134,8 @@ impl Analyzer {
                 } => {
                     let location = identifier.location;
 
-                    let r#type = Type::from_type_variant(
-                        &argument_binding.r#type.variant,
-                        scope_stack.top(),
-                    )?;
+                    let r#type =
+                        Type::from_syntax_type(argument_binding.r#type, scope_stack.top())?;
 
                     Scope::declare_variable(
                         scope_stack.top(),
@@ -151,10 +149,8 @@ impl Analyzer {
                     is_mutable,
                 } => {
                     let identifier = Identifier::new(location, Keyword::SelfLowercase.to_string());
-                    let r#type = Type::from_type_variant(
-                        &argument_binding.r#type.variant,
-                        scope_stack.top(),
-                    )?;
+                    let r#type =
+                        Type::from_syntax_type(argument_binding.r#type, scope_stack.top())?;
 
                     Scope::declare_variable(
                         scope_stack.top(),
@@ -190,18 +186,18 @@ impl Analyzer {
 
         let result_type = Type::from_element(&result, scope_stack.top())?;
         if expected_type != result_type {
-            return Err(Error::Element(
-                return_expression_location,
-                ElementError::Type(TypeError::Function(FunctionTypeError::return_type(
-                    statement.identifier.name.clone(),
-                    expected_type.to_string(),
-                    result_type.to_string(),
-                    statement
+            return Err(Error::Element(ElementError::Type(TypeError::Function(
+                FunctionTypeError::ReturnType {
+                    location: return_expression_location,
+                    function: statement.identifier.name.clone(),
+                    expected: expected_type.to_string(),
+                    found: result_type.to_string(),
+                    reference: statement
                         .return_type
                         .map(|r#type| r#type.location)
                         .unwrap_or(statement.location),
-                ))),
-            ));
+                },
+            ))));
         }
 
         let is_main = statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER;

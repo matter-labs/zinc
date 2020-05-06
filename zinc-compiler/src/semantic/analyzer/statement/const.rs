@@ -12,6 +12,7 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
+use crate::semantic::scope::item::constant::Constant as ScopeConstantItem;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
 
@@ -22,19 +23,19 @@ impl Analyzer {
     /// Analyzes a compile-time only constant declaration statement.
     ///
     pub fn analyze(scope: Rc<RefCell<Scope>>, statement: ConstStatement) -> Result<(), Error> {
-        let type_location = statement.r#type.location;
+        let identifier_location = statement.identifier.location;
         let expression_location = statement.expression.location;
 
         let (element, _intermediate) =
             ExpressionAnalyzer::new(scope.clone(), TranslationRule::Constant)
                 .analyze(statement.expression)?;
 
-        let const_type = Type::from_type_variant(&statement.r#type.variant, scope.clone())?;
+        let const_type = Type::from_syntax_type(statement.r#type, scope.clone())?;
         let (constant, _intermediate) = match element {
             Element::Constant(constant) => constant
                 .cast(const_type)
                 .map_err(ElementError::Constant)
-                .map_err(|error| Error::Element(type_location, error))?,
+                .map_err(Error::Element)?,
             element => {
                 return Err(Error::Expression(ExpressionError::NonConstantElement {
                     location: expression_location,
@@ -43,7 +44,11 @@ impl Analyzer {
             }
         };
 
-        Scope::declare_constant(scope, statement.identifier, constant)?;
+        Scope::declare_constant(
+            scope,
+            statement.identifier,
+            ScopeConstantItem::new(identifier_location, constant),
+        )?;
 
         Ok(())
     }

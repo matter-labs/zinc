@@ -13,6 +13,7 @@ use crate::semantic::element::access::Field as FieldAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::structure::Structure as StructureType;
 use crate::semantic::element::r#type::Type;
+use crate::syntax::tree::identifier::Identifier;
 
 use self::error::Error;
 
@@ -40,24 +41,26 @@ impl Structure {
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        self.r#type.unique_id == other.r#type.unique_id
+        self.r#type == other.r#type
     }
 
-    pub fn push(&mut self, name: String, value: Constant) -> Result<(), Error> {
+    pub fn push(&mut self, identifier: Identifier, value: Constant) -> Result<(), Error> {
         match self.r#type.fields.get(self.values.len()) {
             Some((expected_name, expected_type)) => {
-                if &name != expected_name {
+                if &identifier.name != expected_name {
                     return Err(Error::FieldExpected {
+                        location: identifier.location,
                         type_identifier: self.r#type.identifier.to_owned(),
                         position: self.values.len() + 1,
                         expected: expected_name.to_owned(),
-                        found: name,
+                        found: identifier.name,
                     });
                 }
 
                 let r#type = value.r#type();
                 if &r#type != expected_type {
                     return Err(Error::FieldInvalidType {
+                        location: value.location(),
                         type_identifier: self.r#type.identifier.to_owned(),
                         field_name: expected_name.to_owned(),
                         expected: expected_type.to_string(),
@@ -67,6 +70,7 @@ impl Structure {
             }
             None => {
                 return Err(Error::FieldOutOfRange {
+                    location: identifier.location,
                     type_identifier: self.r#type.identifier.to_owned(),
                     expected: self.r#type.fields.len(),
                     found: self.values.len() + 1,
@@ -74,19 +78,19 @@ impl Structure {
             }
         }
 
-        self.values.push((name, value));
+        self.values.push((identifier.name, value));
 
         Ok(())
     }
 
-    pub fn slice(self, field_name: String) -> Result<(Constant, FieldAccess), Error> {
+    pub fn slice(self, identifier: Identifier) -> Result<(Constant, FieldAccess), Error> {
         let mut offset = 0;
         let total_size = self.r#type().size();
 
         for (index, (name, value)) in self.values.into_iter().enumerate() {
             let element_size = value.r#type().size();
 
-            if name == field_name.as_str() {
+            if name == identifier.name.as_str() {
                 let access = FieldAccess::new(index, offset, element_size, total_size);
 
                 return Ok((value, access));
@@ -96,8 +100,9 @@ impl Structure {
         }
 
         Err(Error::FieldDoesNotExist {
+            location: identifier.location,
             type_identifier: self.r#type.identifier,
-            field_name,
+            field_name: identifier.name,
         })
     }
 }

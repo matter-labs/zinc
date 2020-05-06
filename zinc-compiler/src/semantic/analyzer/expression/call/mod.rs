@@ -5,7 +5,6 @@
 pub mod r#type;
 
 use std::cell::RefCell;
-use std::convert::TryFrom;
 use std::rc::Rc;
 
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
@@ -20,7 +19,8 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::variant::Variant as ScopeItemVariant;
+use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
+use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
 
 use self::r#type::Type as CallType;
@@ -40,64 +40,71 @@ impl Analyzer {
         mut call_type: CallType,
         location: Location,
     ) -> Result<(Element, GeneratorExpressionOperator), Error> {
+        let function_location = operand_1.location();
+
         let function = match operand_1 {
             Element::Type(Type::Function(function)) => function,
-            Element::Path(path) => match Scope::resolve_path(scope.clone(), &path)?.variant {
-                ScopeItemVariant::Type(Type::Function(function)) => function,
+            Element::Path(path) => match Scope::resolve_path(scope.clone(), &path)? {
+                ScopeItem::Type(ScopeTypeItem {
+                    inner: Type::Function(function),
+                    ..
+                }) => function,
                 item => {
-                    return Err(Error::Element(
-                        location,
-                        ElementError::Type(TypeError::Function(FunctionTypeError::non_callable(
-                            item.to_string(),
-                        ))),
-                    ));
+                    return Err(Error::Element(ElementError::Type(TypeError::Function(
+                        FunctionTypeError::NonCallable {
+                            location: function_location.unwrap_or(location),
+                            name: item.to_string(),
+                        },
+                    ))));
                 }
             },
             operand => {
-                return Err(Error::Element(
-                    location,
-                    ElementError::Type(TypeError::Function(FunctionTypeError::non_callable(
-                        operand.to_string(),
-                    ))),
-                ));
+                return Err(Error::Element(ElementError::Type(TypeError::Function(
+                    FunctionTypeError::NonCallable {
+                        location: function_location.unwrap_or(location),
+                        name: operand.to_string(),
+                    },
+                ))));
             }
         };
 
-        let mut argument_elements = match operand_2 {
+        let mut argument_list = match operand_2 {
             Element::ArgumentList(values) => values,
             _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
         };
+
         match call_type.take() {
-            CallType::Method { instance } => argument_elements.insert(0, instance),
+            CallType::Method { instance } => argument_list.arguments.insert(0, instance),
             another => call_type = another,
         }
+
         let mut input_size = 0;
-        for element in argument_elements.iter() {
+        for element in argument_list.arguments.iter() {
             input_size += Type::from_element(element, scope.clone())?.size();
         }
 
         let (return_type, intermediate) = match function {
-            FunctionType::BuiltInFunction(function) => {
+            FunctionType::BuiltIn(function) => {
                 match call_type {
                     CallType::BuiltIn => {}
                     _ => {
-                        return Err(Error::Element(
-                            location,
-                            ElementError::Type(TypeError::Function(FunctionTypeError::BuiltIn(
-                                BuiltInFunctionTypeError::specifier_missing(function.identifier()),
-                            ))),
-                        ))
+                        return Err(Error::Element(ElementError::Type(TypeError::Function(
+                            FunctionTypeError::BuiltIn(
+                                BuiltInFunctionTypeError::SpecifierMissing {
+                                    location: function_location.unwrap_or(location),
+                                    function: function.identifier(),
+                                },
+                            ),
+                        ))))
                     }
                 }
 
                 match function {
                     BuiltInFunctionType::Debug(function) => {
-                        let (return_type, format, argument_types) =
-                            function.call(argument_elements).map_err(|error| {
-                                Error::Element(
-                                    location,
-                                    ElementError::Type(TypeError::Function(error)),
-                                )
+                        let (return_type, format, argument_types) = function
+                            .call(function_location, argument_list.arguments)
+                            .map_err(|error| {
+                                Error::Element(ElementError::Type(TypeError::Function(error)))
                             })?;
 
                         let intermediate =
@@ -106,12 +113,10 @@ impl Analyzer {
                         (return_type, intermediate)
                     }
                     BuiltInFunctionType::Assert(function) => {
-                        let (return_type, message) =
-                            function.call(argument_elements).map_err(|error| {
-                                Error::Element(
-                                    location,
-                                    ElementError::Type(TypeError::Function(error)),
-                                )
+                        let (return_type, message) = function
+                            .call(function_location, argument_list.arguments)
+                            .map_err(|error| {
+                                Error::Element(ElementError::Type(TypeError::Function(error)))
                             })?;
 
                         let intermediate = GeneratorExpressionOperator::call_assert(message);
@@ -122,19 +127,21 @@ impl Analyzer {
             }
             FunctionType::StandardLibrary(function) => {
                 if let CallType::BuiltIn = call_type {
-                    return Err(Error::Element(
-                        location,
-                        ElementError::Type(TypeError::Function(FunctionTypeError::BuiltIn(
-                            BuiltInFunctionTypeError::unknown(function.identifier().to_owned()),
-                        ))),
-                    ));
+                    return Err(Error::Element(ElementError::Type(TypeError::Function(
+                        FunctionTypeError::BuiltIn(BuiltInFunctionTypeError::Unknown {
+                            location: function_location.unwrap_or(location),
+                            function: function.identifier().to_owned(),
+                        }),
+                    ))));
                 }
 
                 let builtin_identifier = function.builtin_identifier();
 
-                let return_type = function.call(argument_elements).map_err(|error| {
-                    Error::Element(location, ElementError::Type(TypeError::Function(error)))
-                })?;
+                let return_type = function
+                    .call(function_location, argument_list.arguments)
+                    .map_err(|error| {
+                        Error::Element(ElementError::Type(TypeError::Function(error)))
+                    })?;
 
                 let intermediate = GeneratorExpressionOperator::call_std(
                     builtin_identifier,
@@ -146,30 +153,29 @@ impl Analyzer {
             }
             FunctionType::UserDefined(function) => {
                 if let CallType::BuiltIn = call_type {
-                    return Err(Error::Element(
-                        location,
-                        ElementError::Type(TypeError::Function(FunctionTypeError::BuiltIn(
-                            BuiltInFunctionTypeError::unknown(function.identifier().to_owned()),
-                        ))),
-                    ));
+                    return Err(Error::Element(ElementError::Type(TypeError::Function(
+                        FunctionTypeError::BuiltIn(BuiltInFunctionTypeError::Unknown {
+                            location: function_location.unwrap_or(location),
+                            function: function.identifier,
+                        }),
+                    ))));
                 }
 
-                let unique_id = function.unique_id();
+                let intermediate =
+                    GeneratorExpressionOperator::call(function.unique_id, input_size);
 
-                let return_type = function.call(argument_elements).map_err(|error| {
-                    Error::Element(location, ElementError::Type(TypeError::Function(error)))
+                let return_type = function.call(argument_list.arguments).map_err(|error| {
+                    Error::Element(ElementError::Type(TypeError::Function(error)))
                 })?;
-
-                let intermediate = GeneratorExpressionOperator::call(unique_id, input_size);
 
                 (return_type, intermediate)
             }
         };
 
         let element = Element::Value(
-            Value::try_from(&return_type)
+            Value::try_from_type(&return_type, None)
                 .map_err(ElementError::Value)
-                .map_err(|error| Error::Element(location, error))?,
+                .map_err(Error::Element)?,
         );
 
         Ok((element, intermediate))

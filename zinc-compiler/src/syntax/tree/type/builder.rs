@@ -13,9 +13,9 @@ pub struct Builder {
     location: Option<Location>,
     is_unit: bool,
     keyword: Option<Keyword>,
-    array_type_variant: Option<TypeVariant>,
+    array_type: Option<Type>,
     array_size: Option<ExpressionTree>,
-    tuple_element_types: Vec<TypeVariant>,
+    tuple_element_types: Vec<Type>,
     path_expression: Option<ExpressionTree>,
 }
 
@@ -34,15 +34,15 @@ impl Builder {
         self.keyword = Some(value);
     }
 
-    pub fn set_array_type_variant(&mut self, value: TypeVariant) {
-        self.array_type_variant = Some(value);
+    pub fn set_array_type(&mut self, value: Type) {
+        self.array_type = Some(value);
     }
 
     pub fn set_array_size_expression(&mut self, value: ExpressionTree) {
         self.array_size = Some(value);
     }
 
-    pub fn push_tuple_element_type(&mut self, value: TypeVariant) {
+    pub fn push_tuple_element_type(&mut self, value: Type) {
         self.tuple_element_types.push(value)
     }
 
@@ -66,7 +66,7 @@ impl Builder {
                 Keyword::Field => TypeVariant::field(),
                 keyword => panic!("{}{}", crate::panic::BUILDER_TYPE_INVALID_KEYWORD, keyword),
             }
-        } else if let Some(array_type) = self.array_type_variant.take() {
+        } else if let Some(array_type) = self.array_type.take() {
             TypeVariant::array(
                 array_type,
                 self.array_size.take().unwrap_or_else(|| {

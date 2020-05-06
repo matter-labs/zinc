@@ -37,14 +37,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 24),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "sha256".to_owned(),
-            CryptoSha256Function::ARGUMENT_COUNT,
-            CryptoSha256Function::ARGUMENT_COUNT - 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "sha256".to_owned(),
+            expected: CryptoSha256Function::ARGUMENT_COUNT,
+            found: CryptoSha256Function::ARGUMENT_COUNT - 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -59,14 +59,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 24),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "sha256".to_owned(),
-            CryptoSha256Function::ARGUMENT_COUNT,
-            CryptoSha256Function::ARGUMENT_COUNT + 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "sha256".to_owned(),
+            expected: CryptoSha256Function::ARGUMENT_COUNT,
+            found: CryptoSha256Function::ARGUMENT_COUNT + 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -81,16 +81,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 24),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "sha256".to_owned(),
-            "preimage".to_owned(),
-            CryptoSha256Function::ARGUMENT_INDEX_PREIMAGE + 1,
-            format!("[bool; N], N > 0, N % {} == 0", crate::BITLENGTH_BYTE),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 25),
+            function: "sha256".to_owned(),
+            name: "preimage".to_owned(),
+            position: CryptoSha256Function::ARGUMENT_INDEX_PREIMAGE + 1,
+            expected: format!("[bool; N], N > 0, N % {} == 0", crate::BITLENGTH_BYTE),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -105,16 +105,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 24),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "sha256".to_owned(),
-            "preimage".to_owned(),
-            CryptoSha256Function::ARGUMENT_INDEX_PREIMAGE + 1,
-            format!("[bool; N], N > 0, N % {} == 0", crate::BITLENGTH_BYTE),
-            Type::array(Type::boolean(), 0).to_string(),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 25),
+            function: "sha256".to_owned(),
+            name: "preimage".to_owned(),
+            position: CryptoSha256Function::ARGUMENT_INDEX_PREIMAGE + 1,
+            expected: format!("[bool; N], N > 0, N % {} == 0", crate::BITLENGTH_BYTE),
+            found: Type::array(Some(Location::new(3, 25)), Type::boolean(None), 0).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -129,16 +129,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 24),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "sha256".to_owned(),
-            "preimage".to_owned(),
-            CryptoSha256Function::ARGUMENT_INDEX_PREIMAGE + 1,
-            format!("[bool; N], N > 0, N % {} == 0", crate::BITLENGTH_BYTE),
-            Type::array(Type::boolean(), 4).to_string(),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 25),
+            function: "sha256".to_owned(),
+            name: "preimage".to_owned(),
+            position: CryptoSha256Function::ARGUMENT_INDEX_PREIMAGE + 1,
+            expected: format!("[bool; N], N > 0, N % {} == 0", crate::BITLENGTH_BYTE),
+            found: Type::array(Some(Location::new(3, 25)), Type::boolean(None), 4).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -153,14 +153,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 26),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "pedersen".to_owned(),
-            CryptoPedersenFunction::ARGUMENT_COUNT,
-            CryptoPedersenFunction::ARGUMENT_COUNT - 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "pedersen".to_owned(),
+            expected: CryptoPedersenFunction::ARGUMENT_COUNT,
+            found: CryptoPedersenFunction::ARGUMENT_COUNT - 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -175,14 +175,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 26),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "pedersen".to_owned(),
-            CryptoPedersenFunction::ARGUMENT_COUNT,
-            CryptoPedersenFunction::ARGUMENT_COUNT + 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "pedersen".to_owned(),
+            expected: CryptoPedersenFunction::ARGUMENT_COUNT,
+            found: CryptoPedersenFunction::ARGUMENT_COUNT + 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -197,19 +197,19 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 26),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "pedersen".to_owned(),
-            "preimage".to_owned(),
-            CryptoPedersenFunction::ARGUMENT_INDEX_PREIMAGE + 1,
-            format!(
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 27),
+            function: "pedersen".to_owned(),
+            name: "preimage".to_owned(),
+            position: CryptoPedersenFunction::ARGUMENT_INDEX_PREIMAGE + 1,
+            expected: format!(
                 "[bool; N], 0 < N <= {}",
                 crate::LIMIT_PEDERSEN_HASH_INPUT_BITS
             ),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-        ))),
-    )));
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -224,19 +224,19 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 26),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "pedersen".to_owned(),
-            "preimage".to_owned(),
-            CryptoPedersenFunction::ARGUMENT_INDEX_PREIMAGE + 1,
-            format!(
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 27),
+            function: "pedersen".to_owned(),
+            name: "preimage".to_owned(),
+            position: CryptoPedersenFunction::ARGUMENT_INDEX_PREIMAGE + 1,
+            expected: format!(
                 "[bool; N], 0 < N <= {}",
                 crate::LIMIT_PEDERSEN_HASH_INPUT_BITS
             ),
-            Type::array(Type::boolean(), 0).to_string(),
-        ))),
-    )));
+            found: Type::array(Some(Location::new(3, 27)), Type::boolean(None), 0).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -251,19 +251,24 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 26),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "pedersen".to_owned(),
-            "preimage".to_owned(),
-            CryptoPedersenFunction::ARGUMENT_INDEX_PREIMAGE + 1,
-            format!(
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 27),
+            function: "pedersen".to_owned(),
+            name: "preimage".to_owned(),
+            position: CryptoPedersenFunction::ARGUMENT_INDEX_PREIMAGE + 1,
+            expected: format!(
                 "[bool; N], 0 < N <= {}",
                 crate::LIMIT_PEDERSEN_HASH_INPUT_BITS
             ),
-            Type::array(Type::boolean(), crate::LIMIT_PEDERSEN_HASH_INPUT_BITS + 1).to_string(),
-        ))),
-    )));
+            found: Type::array(
+                Some(Location::new(3, 27)),
+                Type::boolean(None),
+                crate::LIMIT_PEDERSEN_HASH_INPUT_BITS + 1,
+            )
+            .to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -288,14 +293,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(13, 22),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "verify".to_owned(),
-            CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT,
-            CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT - 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(13, 5),
+            function: "verify".to_owned(),
+            expected: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT,
+            found: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT - 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -320,14 +325,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(13, 22),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "verify".to_owned(),
-            CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT,
-            CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT + 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(13, 5),
+            function: "verify".to_owned(),
+            expected: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT,
+            found: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_COUNT + 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -345,14 +350,14 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 22),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "verify".to_owned(),
-            "signature".to_owned(),
-            CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_SIGNATURE + 1,
-            "std::crypto::schnorr::Signature { r: std::crypto::ecc::Point, s: field, pk: std::crypto::ecc::Point }".to_owned(),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-        ))),
+        ElementError::Type(TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(5, 23),
+            function: "verify".to_owned(),
+            name: "signature".to_owned(),
+            position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_SIGNATURE + 1,
+            expected: "std::crypto::schnorr::Signature { r: std::crypto::ecc::Point, s: field, pk: std::crypto::ecc::Point }".to_owned(),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+        })),
     )));
 
     let result = crate::semantic::tests::compile_entry(input);
@@ -378,20 +383,20 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(13, 22),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "verify".to_owned(),
-            "message".to_owned(),
-            CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
-            format!(
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(13, 34),
+            function: "verify".to_owned(),
+            name: "message".to_owned(),
+            position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
+            expected: format!(
                 "[bool; N], 0 < N <= {}, N % {} == 0",
                 crate::BITLENGTH_MAX_INT,
                 crate::BITLENGTH_BYTE
             ),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-        ))),
-    )));
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -416,20 +421,20 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(13, 22),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "verify".to_owned(),
-            "message".to_owned(),
-            CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
-            format!(
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(13, 34),
+            function: "verify".to_owned(),
+            name: "message".to_owned(),
+            position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
+            expected: format!(
                 "[bool; N], 0 < N <= {}, N % {} == 0",
                 crate::BITLENGTH_MAX_INT,
                 crate::BITLENGTH_BYTE
             ),
-            Type::array(Type::boolean(), 0).to_string(),
-        ))),
-    )));
+            found: Type::array(Some(Location::new(13, 34)), Type::boolean(None), 0).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -454,24 +459,25 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(13, 22),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "verify".to_owned(),
-            "message".to_owned(),
-            CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
-            format!(
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(13, 34),
+            function: "verify".to_owned(),
+            name: "message".to_owned(),
+            position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
+            expected: format!(
                 "[bool; N], 0 < N <= {}, N % {} == 0",
                 crate::BITLENGTH_MAX_INT,
                 crate::BITLENGTH_BYTE
             ),
-            Type::array(
-                Type::boolean(),
+            found: Type::array(
+                Some(Location::new(13, 34)),
+                Type::boolean(None),
                 crate::LIMIT_SCHNORR_MESSAGE_BITS + crate::BITLENGTH_BYTE,
             )
             .to_string(),
-        ))),
-    )));
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -496,20 +502,20 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(13, 22),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "verify".to_owned(),
-            "message".to_owned(),
-            CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
-            format!(
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(13, 34),
+            function: "verify".to_owned(),
+            name: "message".to_owned(),
+            position: CryptoSchnorrSignatureVerifyFunction::ARGUMENT_INDEX_MESSAGE + 1,
+            expected: format!(
                 "[bool; N], 0 < N <= {}, N % {} == 0",
                 crate::BITLENGTH_MAX_INT,
                 crate::BITLENGTH_BYTE
             ),
-            Type::array(Type::boolean(), 4).to_string(),
-        ))),
-    )));
+            found: Type::array(Some(Location::new(13, 34)), Type::boolean(None), 4).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -524,14 +530,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 37),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "from_bits_unsigned".to_owned(),
-            ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT,
-            ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT - 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "from_bits_unsigned".to_owned(),
+            expected: ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT,
+            found: ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT - 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -546,14 +552,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 37),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "from_bits_unsigned".to_owned(),
-            ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT,
-            ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT + 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "from_bits_unsigned".to_owned(),
+            expected: ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT,
+            found: ConvertFromBitsUnsignedFunction::ARGUMENT_COUNT + 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -568,21 +574,21 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 37),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "from_bits_unsigned".to_owned(),
-            "bits".to_owned(),
-            ConvertFromBitsUnsignedFunction::ARGUMENT_INDEX_BITS + 1,
-            format!(
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 38),
+            function: "from_bits_unsigned".to_owned(),
+            name: "bits".to_owned(),
+            position: ConvertFromBitsUnsignedFunction::ARGUMENT_INDEX_BITS + 1,
+            expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
                 crate::BITLENGTH_BYTE,
                 crate::BITLENGTH_MAX_INT,
                 crate::BITLENGTH_BYTE
             ),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-        ))),
-    )));
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -597,21 +603,21 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 37),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "from_bits_unsigned".to_owned(),
-            "bits".to_owned(),
-            ConvertFromBitsUnsignedFunction::ARGUMENT_INDEX_BITS + 1,
-            format!(
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 38),
+            function: "from_bits_unsigned".to_owned(),
+            name: "bits".to_owned(),
+            position: ConvertFromBitsUnsignedFunction::ARGUMENT_INDEX_BITS + 1,
+            expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
                 crate::BITLENGTH_BYTE,
                 crate::BITLENGTH_MAX_INT,
                 crate::BITLENGTH_BYTE
             ),
-            Type::array(Type::boolean(), 0).to_string(),
-        ))),
-    )));
+            found: Type::array(Some(Location::new(3, 38)), Type::boolean(None), 0).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -626,25 +632,26 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 37),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "from_bits_unsigned".to_owned(),
-            "bits".to_owned(),
-            ConvertFromBitsUnsignedFunction::ARGUMENT_INDEX_BITS + 1,
-            format!(
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 38),
+            function: "from_bits_unsigned".to_owned(),
+            name: "bits".to_owned(),
+            position: ConvertFromBitsUnsignedFunction::ARGUMENT_INDEX_BITS + 1,
+            expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
                 crate::BITLENGTH_BYTE,
                 crate::BITLENGTH_MAX_INT,
                 crate::BITLENGTH_BYTE
             ),
-            Type::array(
-                Type::boolean(),
+            found: Type::array(
+                Some(Location::new(3, 38)),
+                Type::boolean(None),
                 crate::BITLENGTH_MAX_INT + crate::BITLENGTH_BYTE,
             )
             .to_string(),
-        ))),
-    )));
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -659,21 +666,21 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 37),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "from_bits_unsigned".to_owned(),
-            "bits".to_owned(),
-            ConvertFromBitsUnsignedFunction::ARGUMENT_INDEX_BITS + 1,
-            format!(
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 38),
+            function: "from_bits_unsigned".to_owned(),
+            name: "bits".to_owned(),
+            position: ConvertFromBitsUnsignedFunction::ARGUMENT_INDEX_BITS + 1,
+            expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
                 crate::BITLENGTH_BYTE,
                 crate::BITLENGTH_MAX_INT,
                 crate::BITLENGTH_BYTE
             ),
-            Type::array(Type::boolean(), 4).to_string(),
-        ))),
-    )));
+            found: Type::array(Some(Location::new(3, 38)), Type::boolean(None), 4).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -688,14 +695,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 35),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "from_bits_signed".to_owned(),
-            ConvertFromBitsSignedFunction::ARGUMENT_COUNT,
-            ConvertFromBitsSignedFunction::ARGUMENT_COUNT - 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "from_bits_signed".to_owned(),
+            expected: ConvertFromBitsSignedFunction::ARGUMENT_COUNT,
+            found: ConvertFromBitsSignedFunction::ARGUMENT_COUNT - 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -710,14 +717,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 35),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "from_bits_signed".to_owned(),
-            ConvertFromBitsSignedFunction::ARGUMENT_COUNT,
-            ConvertFromBitsSignedFunction::ARGUMENT_COUNT + 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "from_bits_signed".to_owned(),
+            expected: ConvertFromBitsSignedFunction::ARGUMENT_COUNT,
+            found: ConvertFromBitsSignedFunction::ARGUMENT_COUNT + 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -732,21 +739,21 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 35),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "from_bits_signed".to_owned(),
-            "bits".to_owned(),
-            ConvertFromBitsSignedFunction::ARGUMENT_INDEX_BITS + 1,
-            format!(
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 36),
+            function: "from_bits_signed".to_owned(),
+            name: "bits".to_owned(),
+            position: ConvertFromBitsSignedFunction::ARGUMENT_INDEX_BITS + 1,
+            expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
                 crate::BITLENGTH_BYTE,
                 crate::BITLENGTH_MAX_INT,
                 crate::BITLENGTH_BYTE
             ),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-        ))),
-    )));
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -761,21 +768,21 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 35),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "from_bits_signed".to_owned(),
-            "bits".to_owned(),
-            ConvertFromBitsSignedFunction::ARGUMENT_INDEX_BITS + 1,
-            format!(
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 36),
+            function: "from_bits_signed".to_owned(),
+            name: "bits".to_owned(),
+            position: ConvertFromBitsSignedFunction::ARGUMENT_INDEX_BITS + 1,
+            expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
                 crate::BITLENGTH_BYTE,
                 crate::BITLENGTH_MAX_INT,
                 crate::BITLENGTH_BYTE
             ),
-            Type::array(Type::boolean(), 0).to_string(),
-        ))),
-    )));
+            found: Type::array(Some(Location::new(3, 36)), Type::boolean(None), 0).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -790,25 +797,26 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 35),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "from_bits_signed".to_owned(),
-            "bits".to_owned(),
-            ConvertFromBitsSignedFunction::ARGUMENT_INDEX_BITS + 1,
-            format!(
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 36),
+            function: "from_bits_signed".to_owned(),
+            name: "bits".to_owned(),
+            position: ConvertFromBitsSignedFunction::ARGUMENT_INDEX_BITS + 1,
+            expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
                 crate::BITLENGTH_BYTE,
                 crate::BITLENGTH_MAX_INT,
                 crate::BITLENGTH_BYTE
             ),
-            Type::array(
-                Type::boolean(),
+            found: Type::array(
+                Some(Location::new(3, 36)),
+                Type::boolean(None),
                 crate::BITLENGTH_MAX_INT + crate::BITLENGTH_BYTE,
             )
             .to_string(),
-        ))),
-    )));
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -823,21 +831,21 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 35),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "from_bits_signed".to_owned(),
-            "bits".to_owned(),
-            ConvertFromBitsSignedFunction::ARGUMENT_INDEX_BITS + 1,
-            format!(
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 36),
+            function: "from_bits_signed".to_owned(),
+            name: "bits".to_owned(),
+            position: ConvertFromBitsSignedFunction::ARGUMENT_INDEX_BITS + 1,
+            expected: format!(
                 "[bool; N], {} <= N <= {}, N % {} == 0",
                 crate::BITLENGTH_BYTE,
                 crate::BITLENGTH_MAX_INT,
                 crate::BITLENGTH_BYTE
             ),
-            Type::array(Type::boolean(), 4).to_string(),
-        ))),
-    )));
+            found: Type::array(Some(Location::new(3, 36)), Type::boolean(None), 4).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -852,14 +860,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 34),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "from_bits_field".to_owned(),
-            ConvertFromBitsFieldFunction::ARGUMENT_COUNT,
-            ConvertFromBitsFieldFunction::ARGUMENT_COUNT - 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "from_bits_field".to_owned(),
+            expected: ConvertFromBitsFieldFunction::ARGUMENT_COUNT,
+            found: ConvertFromBitsFieldFunction::ARGUMENT_COUNT - 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -874,14 +882,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 34),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "from_bits_field".to_owned(),
-            ConvertFromBitsFieldFunction::ARGUMENT_COUNT,
-            ConvertFromBitsFieldFunction::ARGUMENT_COUNT + 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "from_bits_field".to_owned(),
+            expected: ConvertFromBitsFieldFunction::ARGUMENT_COUNT,
+            found: ConvertFromBitsFieldFunction::ARGUMENT_COUNT + 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -896,16 +904,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 34),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "from_bits_field".to_owned(),
-            "bits".to_owned(),
-            ConvertFromBitsFieldFunction::ARGUMENT_INDEX_BITS + 1,
-            format!("[bool; {}]", crate::BITLENGTH_FIELD),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 35),
+            function: "from_bits_field".to_owned(),
+            name: "bits".to_owned(),
+            position: ConvertFromBitsFieldFunction::ARGUMENT_INDEX_BITS + 1,
+            expected: format!("[bool; {}]", crate::BITLENGTH_FIELD),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -920,16 +928,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 34),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "from_bits_field".to_owned(),
-            "bits".to_owned(),
-            ConvertFromBitsFieldFunction::ARGUMENT_INDEX_BITS + 1,
-            format!("[bool; {}]", crate::BITLENGTH_FIELD),
-            Type::array(Type::boolean(), 0).to_string(),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 35),
+            function: "from_bits_field".to_owned(),
+            name: "bits".to_owned(),
+            position: ConvertFromBitsFieldFunction::ARGUMENT_INDEX_BITS + 1,
+            expected: format!("[bool; {}]", crate::BITLENGTH_FIELD),
+            found: Type::array(Some(Location::new(3, 35)), Type::boolean(None), 0).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -944,16 +952,21 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 34),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "from_bits_field".to_owned(),
-            "bits".to_owned(),
-            ConvertFromBitsFieldFunction::ARGUMENT_INDEX_BITS + 1,
-            format!("[bool; {}]", crate::BITLENGTH_FIELD),
-            Type::array(Type::boolean(), crate::BITLENGTH_MAX_INT).to_string(),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 35),
+            function: "from_bits_field".to_owned(),
+            name: "bits".to_owned(),
+            position: ConvertFromBitsFieldFunction::ARGUMENT_INDEX_BITS + 1,
+            expected: format!("[bool; {}]", crate::BITLENGTH_FIELD),
+            found: Type::array(
+                Some(Location::new(3, 35)),
+                Type::boolean(None),
+                crate::BITLENGTH_MAX_INT,
+            )
+            .to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -968,14 +981,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 26),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "to_bits".to_owned(),
-            ConvertToBitsFunction::ARGUMENT_COUNT,
-            ConvertToBitsFunction::ARGUMENT_COUNT - 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "to_bits".to_owned(),
+            expected: ConvertToBitsFunction::ARGUMENT_COUNT,
+            found: ConvertToBitsFunction::ARGUMENT_COUNT - 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -990,14 +1003,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 26),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "to_bits".to_owned(),
-            ConvertToBitsFunction::ARGUMENT_COUNT,
-            ConvertToBitsFunction::ARGUMENT_COUNT + 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "to_bits".to_owned(),
+            expected: ConvertToBitsFunction::ARGUMENT_COUNT,
+            found: ConvertToBitsFunction::ARGUMENT_COUNT + 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1012,16 +1025,17 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 26),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "to_bits".to_owned(),
-            "value".to_owned(),
-            ConvertToBitsFunction::ARGUMENT_INDEX_VALUE + 1,
-            "{integer}".to_owned(),
-            Type::tuple(vec![Type::boolean(); 4]).to_string(),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 27),
+            function: "to_bits".to_owned(),
+            name: "value".to_owned(),
+            position: ConvertToBitsFunction::ARGUMENT_INDEX_VALUE + 1,
+            expected: "{integer}".to_owned(),
+            found: Type::tuple(Some(Location::new(3, 27)), vec![Type::boolean(None); 4])
+                .to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1036,14 +1050,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 24),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "reverse".to_owned(),
-            ArrayReverseFunction::ARGUMENT_COUNT,
-            ArrayReverseFunction::ARGUMENT_COUNT - 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "reverse".to_owned(),
+            expected: ArrayReverseFunction::ARGUMENT_COUNT,
+            found: ArrayReverseFunction::ARGUMENT_COUNT - 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1058,14 +1072,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 24),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "reverse".to_owned(),
-            ArrayReverseFunction::ARGUMENT_COUNT,
-            ArrayReverseFunction::ARGUMENT_COUNT + 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "reverse".to_owned(),
+            expected: ArrayReverseFunction::ARGUMENT_COUNT,
+            found: ArrayReverseFunction::ARGUMENT_COUNT + 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1080,16 +1094,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 24),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "reverse".to_owned(),
-            "array".to_owned(),
-            ArrayReverseFunction::ARGUMENT_INDEX_ARRAY + 1,
-            "[{scalar}; N]".to_owned(),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 25),
+            function: "reverse".to_owned(),
+            name: "array".to_owned(),
+            position: ArrayReverseFunction::ARGUMENT_INDEX_ARRAY + 1,
+            expected: "[{scalar}; N]".to_owned(),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1104,14 +1118,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 25),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "truncate".to_owned(),
-            ArrayTruncateFunction::ARGUMENT_COUNT,
-            ArrayTruncateFunction::ARGUMENT_COUNT - 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "truncate".to_owned(),
+            expected: ArrayTruncateFunction::ARGUMENT_COUNT,
+            found: ArrayTruncateFunction::ARGUMENT_COUNT - 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1126,14 +1140,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 25),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "truncate".to_owned(),
-            ArrayTruncateFunction::ARGUMENT_COUNT,
-            ArrayTruncateFunction::ARGUMENT_COUNT + 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "truncate".to_owned(),
+            expected: ArrayTruncateFunction::ARGUMENT_COUNT,
+            found: ArrayTruncateFunction::ARGUMENT_COUNT + 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1148,16 +1162,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 25),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "truncate".to_owned(),
-            "array".to_owned(),
-            ArrayTruncateFunction::ARGUMENT_INDEX_ARRAY + 1,
-            "[{scalar}; N]".to_owned(),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 26),
+            function: "truncate".to_owned(),
+            name: "array".to_owned(),
+            position: ArrayTruncateFunction::ARGUMENT_INDEX_ARRAY + 1,
+            expected: "[{scalar}; N]".to_owned(),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1172,16 +1186,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 25),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "truncate".to_owned(),
-            "new_length".to_owned(),
-            ArrayTruncateFunction::ARGUMENT_INDEX_NEW_LENGTH + 1,
-            "{unsigned integer}".to_owned(),
-            Type::boolean().to_string(),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 37),
+            function: "truncate".to_owned(),
+            name: "new_length".to_owned(),
+            position: ArrayTruncateFunction::ARGUMENT_INDEX_NEW_LENGTH + 1,
+            expected: "{unsigned integer}".to_owned(),
+            found: Type::boolean(None).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1197,17 +1211,15 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 25),
-        ElementError::Type(TypeError::Function(
-            FunctionTypeError::argument_constantness(
-                "truncate".to_owned(),
-                "new_length".to_owned(),
-                ArrayTruncateFunction::ARGUMENT_INDEX_NEW_LENGTH + 1,
-                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            ),
-        )),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentConstantness {
+            location: Location::new(4, 37),
+            function: "truncate".to_owned(),
+            name: "new_length".to_owned(),
+            position: ArrayTruncateFunction::ARGUMENT_INDEX_NEW_LENGTH + 1,
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1222,12 +1234,15 @@ fn main() -> [u8; 4] {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 25),
-        ElementError::Type(TypeError::Function(FunctionTypeError::StandardLibrary(
-            StandardLibraryFunctionTypeError::array_truncating_to_bigger_size(2, 4),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::StandardLibrary(
+            StandardLibraryFunctionTypeError::ArrayTruncatingToBiggerSize {
+                location: Location::new(3, 5),
+                from: 2,
+                to: 4,
+            },
+        )),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1242,14 +1257,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "pad".to_owned(),
-            ArrayPadFunction::ARGUMENT_COUNT,
-            ArrayPadFunction::ARGUMENT_COUNT - 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "pad".to_owned(),
+            expected: ArrayPadFunction::ARGUMENT_COUNT,
+            found: ArrayPadFunction::ARGUMENT_COUNT - 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1264,14 +1279,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "pad".to_owned(),
-            ArrayPadFunction::ARGUMENT_COUNT,
-            ArrayPadFunction::ARGUMENT_COUNT + 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "pad".to_owned(),
+            expected: ArrayPadFunction::ARGUMENT_COUNT,
+            found: ArrayPadFunction::ARGUMENT_COUNT + 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1286,16 +1301,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "pad".to_owned(),
-            "array".to_owned(),
-            ArrayPadFunction::ARGUMENT_INDEX_ARRAY + 1,
-            "[{scalar}; N]".to_owned(),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 21),
+            function: "pad".to_owned(),
+            name: "array".to_owned(),
+            position: ArrayPadFunction::ARGUMENT_INDEX_ARRAY + 1,
+            expected: "[{scalar}; N]".to_owned(),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1310,16 +1325,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "pad".to_owned(),
-            "new_length".to_owned(),
-            ArrayPadFunction::ARGUMENT_INDEX_NEW_LENGTH + 1,
-            "{unsigned integer}".to_owned(),
-            Type::boolean().to_string(),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 32),
+            function: "pad".to_owned(),
+            name: "new_length".to_owned(),
+            position: ArrayPadFunction::ARGUMENT_INDEX_NEW_LENGTH + 1,
+            expected: "{unsigned integer}".to_owned(),
+            found: Type::boolean(None).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1335,17 +1350,15 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 20),
-        ElementError::Type(TypeError::Function(
-            FunctionTypeError::argument_constantness(
-                "pad".to_owned(),
-                "new_length".to_owned(),
-                ArrayPadFunction::ARGUMENT_INDEX_NEW_LENGTH + 1,
-                Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-            ),
-        )),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentConstantness {
+            location: Location::new(4, 32),
+            function: "pad".to_owned(),
+            name: "new_length".to_owned(),
+            position: ArrayPadFunction::ARGUMENT_INDEX_NEW_LENGTH + 1,
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1360,16 +1373,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "pad".to_owned(),
-            "fill_value".to_owned(),
-            ArrayPadFunction::ARGUMENT_INDEX_FILL_VALUE + 1,
-            Type::boolean().to_string(),
-            Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 36),
+            function: "pad".to_owned(),
+            name: "fill_value".to_owned(),
+            position: ArrayPadFunction::ARGUMENT_INDEX_FILL_VALUE + 1,
+            expected: Type::boolean(None).to_string(),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1384,12 +1397,15 @@ fn main() -> [u8; 4] {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
-        ElementError::Type(TypeError::Function(FunctionTypeError::StandardLibrary(
-            StandardLibraryFunctionTypeError::array_padding_to_lesser_size(4, 2),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::StandardLibrary(
+            StandardLibraryFunctionTypeError::ArrayPaddingToLesserSize {
+                location: Location::new(3, 5),
+                from: 4,
+                to: 2,
+            },
+        )),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1404,20 +1420,20 @@ fn main() -> [u8; 4] {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 25),
-        ElementError::Type(TypeError::Function(FunctionTypeError::StandardLibrary(
-            StandardLibraryFunctionTypeError::array_new_length_invalid(
-                IntegerConstant::new(
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::StandardLibrary(
+            StandardLibraryFunctionTypeError::ArrayNewLengthInvalid {
+                location: Location::new(3, 31),
+                value: IntegerConstant::new(
                     Location::new(3, 31),
                     BigInt::from_str("18446744073709551616").expect(crate::panic::TEST_DATA),
                     false,
                     72,
                 )
                 .to_string(),
-            ),
-        ))),
-    )));
+            },
+        )),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1432,14 +1448,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "invert".to_owned(),
-            FfInvertFunction::ARGUMENT_COUNT,
-            FfInvertFunction::ARGUMENT_COUNT - 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "invert".to_owned(),
+            expected: FfInvertFunction::ARGUMENT_COUNT,
+            found: FfInvertFunction::ARGUMENT_COUNT - 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1454,14 +1470,14 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_count(
-            "invert".to_owned(),
-            FfInvertFunction::ARGUMENT_COUNT,
-            FfInvertFunction::ARGUMENT_COUNT + 1,
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentCount {
+            location: Location::new(3, 5),
+            function: "invert".to_owned(),
+            expected: FfInvertFunction::ARGUMENT_COUNT,
+            found: FfInvertFunction::ARGUMENT_COUNT + 1,
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 
@@ -1476,16 +1492,16 @@ fn main() {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 20),
-        ElementError::Type(TypeError::Function(FunctionTypeError::argument_type(
-            "invert".to_owned(),
-            "value".to_owned(),
-            FfInvertFunction::ARGUMENT_INDEX_VALUE + 1,
-            Type::field().to_string(),
-            Type::boolean().to_string(),
-        ))),
-    )));
+    let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
+        TypeError::Function(FunctionTypeError::ArgumentType {
+            location: Location::new(3, 21),
+            function: "invert".to_owned(),
+            name: "value".to_owned(),
+            position: FfInvertFunction::ARGUMENT_INDEX_VALUE + 1,
+            expected: Type::field(None).to_string(),
+            found: Type::boolean(None).to_string(),
+        }),
+    ))));
 
     let result = crate::semantic::tests::compile_entry(input);
 

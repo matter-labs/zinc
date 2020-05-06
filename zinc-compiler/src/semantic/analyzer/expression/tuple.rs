@@ -49,7 +49,8 @@ impl Analyzer {
         scope: Rc<RefCell<Scope>>,
         tuple: TupleExpression,
     ) -> Result<(Element, GeneratorExpressionOperand), Error> {
-        let mut result = TupleValue::default();
+        let mut result = TupleValue::new(Some(tuple.location));
+
         let mut builder = GeneratorGroupExpressionBuilder::default();
 
         for expression in tuple.elements.into_iter() {

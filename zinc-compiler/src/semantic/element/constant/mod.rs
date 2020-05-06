@@ -23,6 +23,8 @@ use crate::semantic::casting::Caster;
 use crate::semantic::element::access::Field as FieldAccess;
 use crate::semantic::element::access::Index as IndexAccess;
 use crate::semantic::element::r#type::Type;
+use crate::semantic::element::tuple_index::TupleIndex;
+use crate::syntax::tree::identifier::Identifier;
 
 use self::array::Array;
 use self::boolean::Boolean;
@@ -96,10 +98,12 @@ impl Constant {
                     .map(Self::RangeInclusive)
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorRangeInclusiveSecondOperandExpectedInteger {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorRangeInclusiveFirstOperandExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -113,10 +117,12 @@ impl Constant {
                     .map(Self::Range)
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorRangeSecondOperandExpectedInteger {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorRangeFirstOperandExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -130,10 +136,12 @@ impl Constant {
                     GeneratorExpressionOperator::Or,
                 )),
                 constant => Err(Error::OperatorOrSecondOperandExpectedBoolean {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorOrFirstOperandExpectedBoolean {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -147,10 +155,12 @@ impl Constant {
                     GeneratorExpressionOperator::Xor,
                 )),
                 constant => Err(Error::OperatorXorSecondOperandExpectedBoolean {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorXorFirstOperandExpectedBoolean {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -164,10 +174,12 @@ impl Constant {
                     GeneratorExpressionOperator::And,
                 )),
                 constant => Err(Error::OperatorAndSecondOperandExpectedBoolean {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorAndFirstOperandExpectedBoolean {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -180,6 +192,7 @@ impl Constant {
                 GeneratorExpressionOperator::Equals,
             )),
             (Self::Unit(_), constant_2) => Err(Error::OperatorEqualsSecondOperandExpectedUnit {
+                location: constant_2.location(),
                 found: constant_2.to_string(),
             }),
             (Self::Boolean(constant_1), Self::Boolean(constant_2)) => Ok((
@@ -188,6 +201,7 @@ impl Constant {
             )),
             (Self::Boolean(_), constant_2) => {
                 Err(Error::OperatorEqualsSecondOperandExpectedBoolean {
+                    location: constant_2.location(),
                     found: constant_2.to_string(),
                 })
             }
@@ -197,10 +211,12 @@ impl Constant {
                 .map_err(Error::Integer),
             (Self::Integer(_), constant_2) => {
                 Err(Error::OperatorEqualsSecondOperandExpectedInteger {
+                    location: constant_2.location(),
                     found: constant_2.to_string(),
                 })
             }
             (constant_1, _) => Err(Error::OperatorEqualsFirstOperandExpectedPrimitiveType {
+                location: constant_1.location(),
                 found: constant_1.to_string(),
             }),
         }
@@ -213,6 +229,7 @@ impl Constant {
                 GeneratorExpressionOperator::NotEquals,
             )),
             (Self::Unit(_), constant_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedUnit {
+                location: constant_2.location(),
                 found: constant_2.to_string(),
             }),
             (Self::Boolean(constant_1), Self::Boolean(constant_2)) => Ok((
@@ -221,6 +238,7 @@ impl Constant {
             )),
             (Self::Boolean(_), constant_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedBoolean {
+                    location: constant_2.location(),
                     found: constant_2.to_string(),
                 })
             }
@@ -230,10 +248,12 @@ impl Constant {
                 .map_err(Error::Integer),
             (Self::Integer(_), constant_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedInteger {
+                    location: constant_2.location(),
                     found: constant_2.to_string(),
                 })
             }
             (constant_1, _) => Err(Error::OperatorNotEqualsFirstOperandExpectedPrimitiveType {
+                location: constant_1.location(),
                 found: constant_1.to_string(),
             }),
         }
@@ -247,10 +267,12 @@ impl Constant {
                     .map(|(boolean, operator)| (Self::Boolean(boolean), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorGreaterEqualsSecondOperandExpectedInteger {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorGreaterEqualsFirstOperandExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -264,10 +286,12 @@ impl Constant {
                     .map(|(boolean, operator)| (Self::Boolean(boolean), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorLesserEqualsSecondOperandExpectedInteger {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorLesserEqualsFirstOperandExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -281,10 +305,12 @@ impl Constant {
                     .map(|(boolean, operator)| (Self::Boolean(boolean), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorGreaterSecondOperandExpectedInteger {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorGreaterFirstOperandExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -298,10 +324,12 @@ impl Constant {
                     .map(|(boolean, operator)| (Self::Boolean(boolean), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorLesserSecondOperandExpectedInteger {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorLesserFirstOperandExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -315,10 +343,12 @@ impl Constant {
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorBitwiseOrSecondOperandExpectedInteger {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorBitwiseOrFirstOperandExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -332,10 +362,12 @@ impl Constant {
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorBitwiseXorSecondOperandExpectedInteger {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorBitwiseXorFirstOperandExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -349,10 +381,12 @@ impl Constant {
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorBitwiseAndSecondOperandExpectedInteger {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorBitwiseAndFirstOperandExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -370,11 +404,13 @@ impl Constant {
                     .map_err(Error::Integer),
                 constant => Err(
                     Error::OperatorBitwiseShiftLeftSecondOperandExpectedInteger {
+                        location: constant.location(),
                         found: constant.to_string(),
                     },
                 ),
             },
             constant => Err(Error::OperatorBitwiseShiftLeftFirstOperandExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -392,12 +428,14 @@ impl Constant {
                     .map_err(Error::Integer),
                 constant => Err(
                     Error::OperatorBitwiseShiftRightSecondOperandExpectedInteger {
+                        location: constant.location(),
                         found: constant.to_string(),
                     },
                 ),
             },
             constant => Err(
                 Error::OperatorBitwiseShiftRightFirstOperandExpectedInteger {
+                    location: constant.location(),
                     found: constant.to_string(),
                 },
             ),
@@ -412,10 +450,12 @@ impl Constant {
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorAdditionSecondOperandExpectedInteger {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorAdditionFirstOperandExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -429,10 +469,12 @@ impl Constant {
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorSubtractionSecondOperandExpectedInteger {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorSubtractionFirstOperandExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -446,10 +488,12 @@ impl Constant {
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorMultiplicationSecondOperandExpectedInteger {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorMultiplicationFirstOperandExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -463,10 +507,12 @@ impl Constant {
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorDivisionSecondOperandExpectedInteger {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorDivisionFirstOperandExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -480,10 +526,12 @@ impl Constant {
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 constant => Err(Error::OperatorRemainderSecondOperandExpectedInteger {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorRemainderFirstOperandExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -491,12 +539,16 @@ impl Constant {
 
     pub fn cast(self, to: Type) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
         let from = self.r#type();
-        Caster::cast(&from, &to).map_err(Error::Casting)?;
+        Caster::cast(&from, &to).map_err(|error| Error::Casting {
+            location: self.location(),
+            inner: error,
+            reference: to.location(),
+        })?;
 
         let (is_signed, bitlength) = match to {
-            Type::IntegerUnsigned { bitlength } => (false, bitlength),
-            Type::IntegerSigned { bitlength } => (true, bitlength),
-            Type::Field => (false, crate::BITLENGTH_FIELD),
+            Type::IntegerUnsigned { bitlength, .. } => (false, bitlength),
+            Type::IntegerSigned { bitlength, .. } => (true, bitlength),
+            Type::Field(_) => (false, crate::BITLENGTH_FIELD),
             _ => return Ok((self, None)),
         };
 
@@ -516,6 +568,7 @@ impl Constant {
                 GeneratorExpressionOperator::Not,
             )),
             constant => Err(Error::OperatorNotExpectedBoolean {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -528,6 +581,7 @@ impl Constant {
                 .map(|(integer, operator)| (Self::Integer(integer), operator))
                 .map_err(Error::Integer),
             constant => Err(Error::OperatorBitwiseNotExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -540,6 +594,7 @@ impl Constant {
                 .map(|(integer, operator)| (Self::Integer(integer), operator))
                 .map_err(Error::Integer),
             constant => Err(Error::OperatorNegationExpectedInteger {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
@@ -548,45 +603,58 @@ impl Constant {
     pub fn index(self, other: Constant) -> Result<(Self, IndexAccess), Error> {
         match self {
             Constant::Array(array) => match other {
-                Constant::Integer(integer) => {
-                    array.slice_single(integer.value).map_err(Error::Array)
-                }
+                Constant::Integer(integer) => array.slice_single(integer).map_err(Error::Array),
                 Constant::Range(range) => array
-                    .slice_range(range.start, range.end)
+                    .slice_range(range)
                     .map(|(constant, access)| (constant, access))
                     .map_err(Error::Array),
                 Constant::RangeInclusive(range) => array
-                    .slice_range_inclusive(range.start, range.end)
+                    .slice_range_inclusive(range)
                     .map(|(constant, access)| (constant, access))
                     .map_err(Error::Array),
                 constant => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange {
+                    location: constant.location(),
                     found: constant.to_string(),
                 }),
             },
             constant => Err(Error::OperatorIndexFirstOperandExpectedArray {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
     }
 
-    pub fn field_tuple(self, field_index: usize) -> Result<(Self, FieldAccess), Error> {
+    pub fn field_tuple(self, index: TupleIndex) -> Result<(Self, FieldAccess), Error> {
         match self {
-            Constant::Tuple(tuple) => tuple.slice(field_index).map_err(Error::Tuple),
+            Constant::Tuple(tuple) => tuple.slice(index).map_err(Error::Tuple),
             constant => Err(Error::OperatorFieldFirstOperandExpectedTuple {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
         }
     }
 
-    pub fn field_structure(
-        self,
-        field_name: std::string::String,
-    ) -> Result<(Self, FieldAccess), Error> {
+    pub fn field_structure(self, identifier: Identifier) -> Result<(Self, FieldAccess), Error> {
         match self {
-            Constant::Structure(structure) => structure.slice(field_name).map_err(Error::Structure),
+            Constant::Structure(structure) => structure.slice(identifier).map_err(Error::Structure),
             constant => Err(Error::OperatorFieldFirstOperandExpectedStructure {
+                location: constant.location(),
                 found: constant.to_string(),
             }),
+        }
+    }
+
+    pub fn set_location(&mut self, value: Location) {
+        match self {
+            Self::Unit(inner) => inner.location = value,
+            Self::Boolean(inner) => inner.location = value,
+            Self::Integer(inner) => inner.location = value,
+            Self::Range(inner) => inner.location = value,
+            Self::RangeInclusive(inner) => inner.location = value,
+            Self::String(inner) => inner.location = value,
+            Self::Array(inner) => inner.location = value,
+            Self::Tuple(inner) => inner.location = value,
+            Self::Structure(inner) => inner.location = value,
         }
     }
 

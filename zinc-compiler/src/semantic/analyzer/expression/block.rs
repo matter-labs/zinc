@@ -11,6 +11,7 @@ use crate::generator::expression::operand::block::Expression as GeneratorBlockEx
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
+use crate::semantic::element::value::unit::Unit as UnitValue;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
@@ -51,7 +52,7 @@ impl Analyzer {
                 builder.set_expression(expression);
                 element
             }
-            None => Element::Value(Value::Unit),
+            None => Element::Value(Value::Unit(UnitValue::new(Some(block.location)))),
         };
 
         scope_stack.pop();

@@ -18,10 +18,10 @@ use crate::syntax::tree::identifier::Identifier;
 use crate::syntax::tree::statement::r#const::builder::Builder as ConstStatementBuilder;
 use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
 
-static HINT_EXPECTED_IDENTIFIER: &str =
+pub static HINT_EXPECTED_IDENTIFIER: &str =
     "constant must have an identifier, e.g. `const DATA: u8 = 42;`";
-static HINT_EXPECTED_TYPE: &str = "constant must have a type, e.g. `const DATA: u8 = 42;`";
-static HINT_EXPECTED_VALUE: &str = "constant must be initialized, e.g. `const DATA: u8 = 42;`";
+pub static HINT_EXPECTED_TYPE: &str = "constant must have a type, e.g. `const DATA: u8 = 42;`";
+pub static HINT_EXPECTED_VALUE: &str = "constant must be initialized, e.g. `const DATA: u8 = 42;`";
 
 #[derive(Debug, Clone, Copy)]
 pub enum State {

@@ -4,6 +4,7 @@
 
 use std::fmt;
 
+use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::contract::Contract as ContractType;
 use crate::semantic::element::r#type::Type;
 
@@ -12,16 +13,13 @@ use crate::semantic::element::r#type::Type;
 ///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Contract {
-    r#type: ContractType,
-    field_index: usize,
+    pub location: Option<Location>,
+    pub r#type: ContractType,
 }
 
 impl Contract {
-    pub fn new(r#type: ContractType) -> Self {
-        Self {
-            r#type,
-            field_index: 0,
-        }
+    pub fn new(location: Option<Location>, r#type: ContractType) -> Self {
+        Self { location, r#type }
     }
 
     pub fn r#type(&self) -> Type {
@@ -35,16 +33,6 @@ impl Contract {
 
 impl fmt::Display for Contract {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "<contract> '{}' with fields {}",
-            self.r#type.identifier,
-            self.r#type
-                .fields
-                .iter()
-                .map(|(name, r#type)| format!("'{}' of type '{}'", name, r#type))
-                .collect::<Vec<String>>()
-                .join(", "),
-        )
+        write!(f, "<contract> '{}'", self.r#type.identifier,)
     }
 }

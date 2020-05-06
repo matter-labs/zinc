@@ -4,8 +4,6 @@
 
 #![cfg(test)]
 
-use std::convert::TryFrom;
-
 use crate::error::Error;
 use crate::lexical::token::location::Location;
 use crate::semantic::element::constant::boolean::Boolean as BooleanConstant;
@@ -27,9 +25,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorOrFirstOperandExpectedBoolean {
-            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            location: Location::new(5, 17),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
         }),
     )));
 
@@ -49,9 +47,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorOrSecondOperandExpectedBoolean {
-            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            location: Location::new(5, 28),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
         }),
     )));
 
@@ -71,9 +69,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorXorFirstOperandExpectedBoolean {
-            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            location: Location::new(5, 17),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
         }),
     )));
 
@@ -93,9 +91,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorXorSecondOperandExpectedBoolean {
-            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            location: Location::new(5, 28),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
         }),
     )));
 
@@ -115,9 +113,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorAndFirstOperandExpectedBoolean {
-            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            location: Location::new(5, 17),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
         }),
     )));
 
@@ -137,9 +135,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorAndSecondOperandExpectedBoolean {
-            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            location: Location::new(5, 28),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
         }),
     )));
 
@@ -159,10 +157,15 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 23),
         ElementError::Value(
             ValueError::OperatorEqualsFirstOperandExpectedPrimitiveType {
-                found: Type::array(Type::integer_unsigned(crate::BITLENGTH_BYTE), 3).to_string(),
+                location: Location::new(5, 17),
+                found: Type::array(
+                    Some(Location::new(5, 17)),
+                    Type::integer_unsigned(None, crate::BITLENGTH_BYTE),
+                    3,
+                )
+                .to_string(),
             },
         ),
     )));
@@ -183,9 +186,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 22),
         ElementError::Value(ValueError::OperatorEqualsSecondOperandExpectedUnit {
-            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            location: Location::new(5, 25),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
         }),
     )));
 
@@ -205,9 +208,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorEqualsSecondOperandExpectedBoolean {
-            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            location: Location::new(5, 28),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
         }),
     )));
 
@@ -227,9 +230,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorEqualsSecondOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 28),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -249,10 +252,15 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 23),
         ElementError::Value(
             ValueError::OperatorNotEqualsFirstOperandExpectedPrimitiveType {
-                found: Type::array(Type::integer_unsigned(crate::BITLENGTH_BYTE), 3).to_string(),
+                location: Location::new(5, 17),
+                found: Type::array(
+                    Some(Location::new(5, 17)),
+                    Type::integer_unsigned(None, crate::BITLENGTH_BYTE),
+                    3,
+                )
+                .to_string(),
             },
         ),
     )));
@@ -273,9 +281,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 22),
         ElementError::Value(ValueError::OperatorNotEqualsSecondOperandExpectedUnit {
-            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            location: Location::new(5, 25),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
         }),
     )));
 
@@ -295,9 +303,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorNotEqualsSecondOperandExpectedBoolean {
-            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            location: Location::new(5, 28),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
         }),
     )));
 
@@ -317,9 +325,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorNotEqualsSecondOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 28),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -339,10 +347,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(
             ValueError::OperatorGreaterEqualsFirstOperandExpectedInteger {
-                found: Type::boolean().to_string(),
+                location: Location::new(5, 17),
+                found: Type::boolean(None).to_string(),
             },
         ),
     )));
@@ -363,10 +371,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(
             ValueError::OperatorGreaterEqualsSecondOperandExpectedInteger {
-                found: Type::boolean().to_string(),
+                location: Location::new(5, 28),
+                found: Type::boolean(None).to_string(),
             },
         ),
     )));
@@ -387,10 +395,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(
             ValueError::OperatorLesserEqualsFirstOperandExpectedInteger {
-                found: Type::boolean().to_string(),
+                location: Location::new(5, 17),
+                found: Type::boolean(None).to_string(),
             },
         ),
     )));
@@ -411,10 +419,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(
             ValueError::OperatorLesserEqualsSecondOperandExpectedInteger {
-                found: Type::boolean().to_string(),
+                location: Location::new(5, 28),
+                found: Type::boolean(None).to_string(),
             },
         ),
     )));
@@ -435,9 +443,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorGreaterFirstOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 17),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -457,9 +465,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorGreaterSecondOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 27),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -479,9 +487,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorLesserFirstOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 17),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -501,9 +509,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorLesserSecondOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 27),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -523,9 +531,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorBitwiseOrFirstOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 17),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -545,9 +553,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorBitwiseOrSecondOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 27),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -567,9 +575,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorBitwiseXorFirstOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 17),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -589,9 +597,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorBitwiseXorSecondOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 27),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -611,9 +619,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorBitwiseAndFirstOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 17),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -633,9 +641,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorBitwiseAndSecondOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 27),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -655,10 +663,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(
             ValueError::OperatorBitwiseShiftLeftFirstOperandExpectedInteger {
-                found: Type::boolean().to_string(),
+                location: Location::new(5, 17),
+                found: Type::boolean(None).to_string(),
             },
         ),
     )));
@@ -679,10 +687,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(
             ValueError::OperatorBitwiseShiftLeftSecondOperandExpectedInteger {
-                found: Type::boolean().to_string(),
+                location: Location::new(5, 28),
+                found: Type::boolean(None).to_string(),
             },
         ),
     )));
@@ -703,10 +711,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(
             ValueError::OperatorBitwiseShiftRightFirstOperandExpectedInteger {
-                found: Type::boolean().to_string(),
+                location: Location::new(5, 17),
+                found: Type::boolean(None).to_string(),
             },
         ),
     )));
@@ -727,10 +735,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(
             ValueError::OperatorBitwiseShiftRightSecondOperandExpectedInteger {
-                found: Type::boolean().to_string(),
+                location: Location::new(5, 28),
+                found: Type::boolean(None).to_string(),
             },
         ),
     )));
@@ -751,9 +759,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorAdditionFirstOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 17),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -773,9 +781,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorAdditionSecondOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 27),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -795,9 +803,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorSubtractionFirstOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 17),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -817,10 +825,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(
             ValueError::OperatorSubtractionSecondOperandExpectedInteger {
-                found: Type::boolean().to_string(),
+                location: Location::new(5, 27),
+                found: Type::boolean(None).to_string(),
             },
         ),
     )));
@@ -841,10 +849,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(
             ValueError::OperatorMultiplicationFirstOperandExpectedInteger {
-                found: Type::boolean().to_string(),
+                location: Location::new(5, 17),
+                found: Type::boolean(None).to_string(),
             },
         ),
     )));
@@ -865,10 +873,10 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(
             ValueError::OperatorMultiplicationSecondOperandExpectedInteger {
-                found: Type::boolean().to_string(),
+                location: Location::new(5, 27),
+                found: Type::boolean(None).to_string(),
             },
         ),
     )));
@@ -889,9 +897,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorDivisionFirstOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 17),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -911,9 +919,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorDivisionSecondOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 27),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -933,9 +941,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorRemainderFirstOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 17),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -955,9 +963,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(5, 25),
         ElementError::Value(ValueError::OperatorRemainderSecondOperandExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(5, 27),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -976,9 +984,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 17),
         ElementError::Value(ValueError::OperatorNotExpectedBoolean {
-            found: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
+            location: Location::new(4, 18),
+            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
         }),
     )));
 
@@ -997,9 +1005,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 17),
         ElementError::Value(ValueError::OperatorBitwiseNotExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(4, 18),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -1018,9 +1026,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(4, 17),
         ElementError::Value(ValueError::OperatorNegationExpectedInteger {
-            found: Type::boolean().to_string(),
+            location: Location::new(4, 18),
+            found: Type::boolean(None).to_string(),
         }),
     )));
 
@@ -1038,11 +1046,14 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 36),
         ElementError::Value(ValueError::OperatorIndexFirstOperandExpectedArray {
-            found: Value::try_from(&Type::tuple(vec![Type::boolean(); 3]))
-                .expect(crate::panic::TEST_DATA)
-                .to_string(),
+            location: Location::new(3, 17),
+            found: Value::try_from_type(
+                &Type::tuple(Some(Location::new(3, 17)), vec![Type::boolean(None); 3]),
+                None,
+            )
+            .expect(crate::panic::TEST_DATA)
+            .to_string(),
         }),
     )));
 
@@ -1060,9 +1071,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 26),
         ElementError::Value(
             ValueError::OperatorIndexSecondOperandExpectedIntegerOrRange {
+                location: Location::new(3, 27),
                 found: Constant::Boolean(BooleanConstant::new(Location::new(3, 27), true))
                     .to_string(),
             },
@@ -1083,11 +1094,14 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 36),
         ElementError::Value(ValueError::OperatorFieldFirstOperandExpectedTuple {
-            found: Value::try_from(&Type::array(Type::boolean(), 3))
-                .expect(crate::panic::TEST_DATA)
-                .to_string(),
+            location: Location::new(3, 17),
+            found: Value::try_from_type(
+                &Type::array(Some(Location::new(3, 17)), Type::boolean(None), 3),
+                None,
+            )
+            .expect(crate::panic::TEST_DATA)
+            .to_string(),
         }),
     )));
 
@@ -1105,11 +1119,14 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 36),
         ElementError::Value(ValueError::OperatorFieldFirstOperandExpectedStructure {
-            found: Value::try_from(&Type::array(Type::boolean(), 3))
-                .expect(crate::panic::TEST_DATA)
-                .to_string(),
+            location: Location::new(3, 17),
+            found: Value::try_from_type(
+                &Type::array(Some(Location::new(3, 17)), Type::boolean(None), 3),
+                None,
+            )
+            .expect(crate::panic::TEST_DATA)
+            .to_string(),
         }),
     )));
 

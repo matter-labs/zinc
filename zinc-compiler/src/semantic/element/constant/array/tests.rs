@@ -23,11 +23,11 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 32),
         ElementError::Constant(ConstantError::Array(
             ArrayConstantError::PushingInvalidType {
-                expected: Type::integer_unsigned(crate::BITLENGTH_BYTE).to_string(),
-                found: Type::boolean().to_string(),
+                location: Location::new(3, 32),
+                expected: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+                found: Type::boolean(None).to_string(),
             },
         )),
     )));
@@ -46,8 +46,8 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 38),
         ElementError::Constant(ConstantError::Array(ArrayConstantError::IndexOutOfRange {
+            location: Location::new(3, 39),
             index: BigInt::from(5).to_string(),
             size: 5,
         })),
@@ -67,9 +67,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 43),
         ElementError::Constant(ConstantError::Array(
             ArrayConstantError::SliceStartOutOfRange {
+                location: Location::new(3, 45),
                 start: BigInt::from(-1).to_string(),
             },
         )),
@@ -89,9 +89,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 43),
         ElementError::Constant(ConstantError::Array(
             ArrayConstantError::SliceEndOutOfRange {
+                location: Location::new(3, 44),
                 end: BigInt::from(6).to_string(),
                 size: 5,
             },
@@ -112,9 +112,9 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        Location::new(3, 43),
         ElementError::Constant(ConstantError::Array(
             ArrayConstantError::SliceEndLesserThanStart {
+                location: Location::new(3, 44),
                 start: BigInt::from(2).to_string(),
                 end: BigInt::from(1).to_string(),
             },

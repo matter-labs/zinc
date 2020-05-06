@@ -1,5 +1,5 @@
 //!
-//! The semantic analyzer scope variable item variant.
+//! The semantic analyzer scope variable item.
 //!
 
 use std::fmt;

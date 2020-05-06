@@ -83,8 +83,9 @@ impl<'a> TokenStream<'a> {
             let token = self.advance()?;
             self.look_ahead.push_back(token);
         }
+
         self.look_ahead
-            .back()
+            .get(distance - 1)
             .ok_or_else(|| Error::unexpected_end(self.location))
     }
 
