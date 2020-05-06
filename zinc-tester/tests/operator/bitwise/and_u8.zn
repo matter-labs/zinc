@@ -1,5 +1,5 @@
 //# { "cases": [ {
-//#     "case": "zero_zero", "ignore": true,
+//#     "case": "zero_zero",
 //#     "input": {
 //#         "a": "0",
 //#         "b": "0"
@@ -13,7 +13,7 @@
 //#     },
 //#     "expect": "10"
 //# }, {
-//#     "case": "max_max", "ignore": true,
+//#     "case": "max_max",
 //#     "input": {
 //#         "a": "255",
 //#         "b": "255"
@@ -22,5 +22,5 @@
 //# } ] }
 
 fn main(a: u8, b: u8) -> u8 {
-    42 & 10
+    a & b
 }

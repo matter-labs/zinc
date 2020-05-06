@@ -7,8 +7,9 @@
 - added methods with the by-value `self` instance parameter
 - added the sugar syntax for calling methods via the dot `.` operator
 - allowed the bitwise operations on non-constant and witness values
-- extended constant expressions to include arrays, tuples, structures, blocks, conditionals, and matches
+- extended constant expressions to include arrays, tuples, structures, blocks, conditionals, matches, and functions
 - implemented simple smart contracts
+- forbidden the bitwise operations on signed integers
 
 #### Compiler
 

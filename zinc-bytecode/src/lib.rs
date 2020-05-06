@@ -56,6 +56,10 @@ pub enum Instruction {
     StoreGlobal(StoreGlobal),
     StoreSequenceGlobal(StoreSequenceGlobal),
 
+    // Contract Storage
+    StorageStore(StorageStore),
+    StorageLoad(StorageLoad),
+
     // Arithmetic
     Add(Add),
     Sub(Sub),
@@ -149,6 +153,9 @@ macro_rules! dispatch_instruction {
 
             Instruction::StoreGlobal($pattern) => $expression,
             Instruction::StoreSequenceGlobal($pattern) => $expression,
+
+            Instruction::StorageStore($pattern) => $expression,
+            Instruction::StorageLoad($pattern) => $expression,
 
             Instruction::Add($pattern) => $expression,
             Instruction::Sub($pattern) => $expression,

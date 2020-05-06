@@ -5,13 +5,13 @@
 //#     },
 //#     "expect": "213"
 //# }, {
-//#     "case": "min_to_max", "ignore": true,
+//#     "case": "min_to_max",
 //#     "input": {
 //#         "a": "0"
 //#     },
 //#     "expect": "255"
 //# }, {
-//#     "case": "max_to_min", "ignore": true,
+//#     "case": "max_to_min",
 //#     "input": {
 //#         "a": "255"
 //#     },
@@ -19,5 +19,5 @@
 //# } ] }
 
 fn main(a: u8) -> u8 {
-    ~42
+    ~a
 }

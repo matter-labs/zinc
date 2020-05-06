@@ -5,6 +5,7 @@ pub use zinc_bytecode::scalar::*;
 pub trait ScalarTypeExpectation: Sized {
     fn expect_same(left: Self, right: Self) -> Result<Self, RuntimeError>;
     fn assert_type(&self, expected: Self) -> Result<(), RuntimeError>;
+    fn assert_signed(&self, is_signed: bool) -> Result<(), RuntimeError>;
     fn bit_length<E: Engine>(&self) -> usize;
 }
 
@@ -27,6 +28,22 @@ impl ScalarTypeExpectation for ScalarType {
             Err(RuntimeError::TypeError {
                 expected: expected.to_string(),
                 actual: self.to_string(),
+            })
+        }
+    }
+
+    fn assert_signed(&self, is_signed: bool) -> Result<(), RuntimeError> {
+        let ok = match self {
+            ScalarType::Field | ScalarType::Boolean => false,
+            ScalarType::Integer(int_type) => int_type.is_signed == is_signed,
+        };
+
+        if ok {
+            Ok(())
+        } else {
+            Err(RuntimeError::TypeError {
+                expected: if is_signed { "signed integer".to_string() } else { "unsigned integer".to_string() },
+                actual: self.to_string()
             })
         }
     }
