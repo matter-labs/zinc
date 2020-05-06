@@ -2,11 +2,13 @@ mod builtins;
 mod flow;
 mod markers;
 mod memory;
+mod contracts;
 
 pub use builtins::*;
 pub use flow::*;
 pub use markers::*;
 pub use memory::*;
+pub use contracts::*;
 
 mod assert;
 mod call_buitin;
