@@ -45,7 +45,7 @@ impl Function {
                 Element::Constant(constant) => constant.r#type(),
                 element => {
                     return Err(Error::ArgumentNotEvaluable {
-                        location: location.unwrap(),
+                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         position: index + 1,
                         found: element.to_string(),
@@ -67,7 +67,7 @@ impl Function {
                 }
                 (r#type, size) => {
                     return Err(Error::ArgumentType {
-                        location: location.unwrap(),
+                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         name: "bits".to_owned(),
                         position: Self::ARGUMENT_INDEX_BITS + 1,
@@ -77,13 +77,13 @@ impl Function {
                             crate::BITLENGTH_MAX_INT,
                             crate::BITLENGTH_BYTE
                         ),
-                        found: format!("[{}; {}]", r#type, size),
+                        found: format!("array [{}; {}]", r#type, size),
                     })
                 }
             },
             Some((r#type, location)) => {
                 return Err(Error::ArgumentType {
-                    location: location.unwrap(),
+                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "bits".to_owned(),
                     position: Self::ARGUMENT_INDEX_BITS + 1,
@@ -98,7 +98,7 @@ impl Function {
             }
             None => {
                 return Err(Error::ArgumentCount {
-                    location: location.unwrap(),
+                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     expected: Self::ARGUMENT_COUNT,
                     found: actual_params.len(),
@@ -108,7 +108,7 @@ impl Function {
 
         if actual_params.len() > Self::ARGUMENT_COUNT {
             return Err(Error::ArgumentCount {
-                location: location.unwrap(),
+                location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 function: self.identifier.to_owned(),
                 expected: Self::ARGUMENT_COUNT,
                 found: actual_params.len(),
@@ -121,10 +121,6 @@ impl Function {
 
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "fn std::convert::{}(bits: [bool; N]) -> u{{N}}",
-            self.identifier
-        )
+        write!(f, "convert::{}(bits: [bool; N]) -> u{{N}}", self.identifier)
     }
 }

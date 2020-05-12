@@ -112,6 +112,7 @@ fn main() {
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Location::new(3, 9),
                 false,
+                "variable".to_owned(),
                 Type::integer_unsigned(None, crate::BITLENGTH_BYTE),
             ))
             .to_string(),
@@ -144,6 +145,7 @@ fn main() {
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Location::new(3, 9),
                 false,
+                "variable".to_owned(),
                 Type::integer_unsigned(None, crate::BITLENGTH_BYTE),
             ))
             .to_string(),
@@ -178,6 +180,7 @@ fn main() {
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Location::new(3, 9),
                 false,
+                "variable".to_owned(),
                 Type::integer_unsigned(None, crate::BITLENGTH_BYTE),
             ))
             .to_string(),
@@ -214,6 +217,7 @@ fn main() {
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Location::new(3, 9),
                 false,
+                "variable".to_owned(),
                 Type::integer_unsigned(None, crate::BITLENGTH_BYTE),
             ))
             .to_string(),
@@ -250,6 +254,7 @@ fn main() {
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Location::new(3, 9),
                 false,
+                "variable".to_owned(),
                 Type::integer_unsigned(None, crate::BITLENGTH_BYTE),
             ))
             .to_string(),
@@ -286,6 +291,7 @@ fn main() {
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Location::new(3, 9),
                 false,
+                "variable".to_owned(),
                 Type::integer_unsigned(None, crate::BITLENGTH_BYTE),
             ))
             .to_string(),
@@ -321,6 +327,7 @@ fn main() {
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Location::new(3, 9),
                 false,
+                "variable".to_owned(),
                 Type::integer_unsigned(None, crate::BITLENGTH_BYTE),
             ))
             .to_string(),
@@ -356,6 +363,7 @@ fn main() {
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Location::new(3, 9),
                 false,
+                "variable".to_owned(),
                 Type::integer_unsigned(None, crate::BITLENGTH_BYTE),
             ))
             .to_string(),
@@ -391,6 +399,7 @@ fn main() {
             found: ScopeItem::Variable(ScopeVariableItem::new(
                 Location::new(3, 9),
                 false,
+                "variable".to_owned(),
                 Type::integer_unsigned(None, crate::BITLENGTH_BYTE),
             ))
             .to_string(),

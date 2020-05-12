@@ -9,7 +9,7 @@ pub mod error;
 use std::fmt;
 
 use crate::lexical::token::location::Location;
-use crate::semantic::element::access::Field as FieldAccess;
+use crate::semantic::element::access::field::Field as FieldAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
@@ -102,7 +102,7 @@ impl fmt::Display for Tuple {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "constant tuple ( {} )",
+            "( {} )",
             self.values
                 .iter()
                 .map(|value| value.to_string())

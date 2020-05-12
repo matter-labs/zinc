@@ -14,7 +14,8 @@ use zinc_bytecode::data::values::Value;
 use zinc_bytecode::program::Program;
 use zinc_compiler::Bytecode;
 use zinc_compiler::EntryAnalyzer;
-use zinc_compiler::Parser;
+use zinc_compiler::Error as CompilerError;
+use zinc_compiler::Source;
 
 pub struct ProgramData {
     pub program: Program,
@@ -43,18 +44,17 @@ impl ProgramData {
     pub fn compile(code: &str) -> Result<Program, Error> {
         let lines = code.lines().collect::<Vec<&str>>();
 
-        let syntax_tree = Parser::default()
-            .parse(code, None)
+        let source = Source::test(code, HashMap::new())
             .map_err(|error| error.format(lines.as_slice()))
             .map_err(Error::Compiler)?;
 
-        let intermediate = EntryAnalyzer::new()
-            .compile(syntax_tree, HashMap::new())
+        EntryAnalyzer::analyze(source)
+            .map_err(CompilerError::Semantic)
             .map_err(|error| error.format(lines.as_slice()))
             .map_err(Error::Compiler)?;
 
         let bytecode = Rc::new(RefCell::new(Bytecode::new()));
-        intermediate.write_all_to_bytecode(bytecode.clone());
+        //        intermediate.write_all_to_bytecode(bytecode.clone());
         let mut bytecode = Rc::try_unwrap(bytecode)
             .expect(crate::PANIC_LAST_SHARED_REFERENCE)
             .into_inner();

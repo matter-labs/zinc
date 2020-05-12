@@ -31,6 +31,6 @@ impl Unit {
 
 impl fmt::Display for Unit {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "unit constant '()'")
+        write!(f, "'()'")
     }
 }

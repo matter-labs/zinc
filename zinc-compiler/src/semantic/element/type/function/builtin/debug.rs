@@ -45,7 +45,7 @@ impl Function {
                 Element::Constant(constant) => (constant.r#type(), true, None),
                 element => {
                     return Err(Error::ArgumentNotEvaluable {
-                        location: location.unwrap(),
+                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         position: index + 1,
                         found: element.to_string(),
@@ -60,7 +60,7 @@ impl Function {
             Some((Type::String(_), true, Some(string), _location)) => string.to_owned(),
             Some((r#type, true, _string, location)) => {
                 return Err(Error::ArgumentType {
-                    location: location.unwrap(),
+                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "format".to_owned(),
                     position: Self::ARGUMENT_INDEX_FORMAT_STRING + 1,
@@ -70,7 +70,7 @@ impl Function {
             }
             Some((r#type, false, _string, location)) => {
                 return Err(Error::ArgumentConstantness {
-                    location: location.unwrap(),
+                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "format".to_owned(),
                     position: Self::ARGUMENT_INDEX_FORMAT_STRING + 1,
@@ -79,7 +79,7 @@ impl Function {
             }
             None => {
                 return Err(Error::ArgumentCount {
-                    location: location.unwrap(),
+                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     expected: Self::ARGUMENT_INDEX_FORMAT_STRING + 1,
                     found: actual_params.len(),
@@ -91,7 +91,7 @@ impl Function {
         if arguments_expected_count != actual_params.len() - 1 {
             return Err(Error::BuiltIn(
                 BuiltInFunctionTypeError::DebugArgumentCount {
-                    location: location.unwrap(),
+                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     expected: arguments_expected_count + 1,
                     found: actual_params.len(),
                 },

@@ -43,7 +43,7 @@ impl Statement {
         let size = self.r#type.size();
         let address = bytecode
             .borrow_mut()
-            .declare_variable(Some(self.name), self.r#type.clone());
+            .define_variable(Some(self.name), self.r#type.clone());
 
         self.expression.write_all_to_bytecode(bytecode.clone());
 

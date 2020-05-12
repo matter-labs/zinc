@@ -7,8 +7,8 @@ use std::fmt;
 use num_bigint::BigInt;
 
 use crate::generator::expression::Expression as GeneratorExpression;
-use crate::semantic::element::access::Field as FieldAccess;
-use crate::semantic::element::access::Index as IndexAccess;
+use crate::semantic::element::access::field::Field as FieldAccess;
+use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 
 #[derive(Debug, Clone)]

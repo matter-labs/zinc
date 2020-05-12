@@ -9,7 +9,7 @@ pub mod error;
 use std::fmt;
 
 use crate::lexical::token::location::Location;
-use crate::semantic::element::access::Field as FieldAccess;
+use crate::semantic::element::access::field::Field as FieldAccess;
 use crate::semantic::element::r#type::structure::Structure as StructureType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::Value;
@@ -64,7 +64,7 @@ impl Structure {
 
                 if &r#type != expected_type {
                     return Err(Error::FieldInvalidType {
-                        location: location.unwrap(),
+                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                         type_identifier: self.r#type.identifier.to_owned(),
                         field_name: expected_name.to_owned(),
                         expected: expected_type.to_string(),
@@ -116,7 +116,7 @@ impl fmt::Display for Structure {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "<structure> '{}' with fields {}",
+            "<runtime> '{}' with fields {}",
             self.r#type.identifier,
             self.r#type
                 .fields

@@ -44,7 +44,7 @@ impl Translator {
                     None,
                 )),
                 ScopeItem::Constant(constant) => {
-                    let mut constant = constant.into_inner();
+                    let mut constant = constant.resolve()?;
                     constant.set_location(location);
 
                     let intermediate = GeneratorConstant::try_from_semantic(&constant);
@@ -55,7 +55,7 @@ impl Translator {
                     ))
                 }
                 ScopeItem::Type(r#type) => {
-                    let mut r#type = r#type.into_inner();
+                    let mut r#type = r#type.resolve()?;
                     r#type.set_location(location);
 
                     Ok((Element::Type(r#type), None))
@@ -79,7 +79,7 @@ impl Translator {
                     Ok((element, intermediate))
                 }
                 ScopeItem::Constant(constant) => {
-                    let mut constant = constant.into_inner();
+                    let mut constant = constant.resolve()?;
                     constant.set_location(location);
 
                     let intermediate = GeneratorConstant::try_from_semantic(&constant)
@@ -89,7 +89,7 @@ impl Translator {
                     Ok((element, intermediate))
                 }
                 ScopeItem::Type(r#type) => {
-                    let mut r#type = r#type.into_inner();
+                    let mut r#type = r#type.resolve()?;
                     r#type.set_location(location);
 
                     Ok((Element::Type(r#type), None))
@@ -98,7 +98,7 @@ impl Translator {
             },
             TranslationRule::Constant => match Scope::resolve_path(scope, &path)? {
                 ScopeItem::Constant(constant) => {
-                    let mut constant = constant.into_inner();
+                    let mut constant = constant.resolve()?;
                     constant.set_location(location);
 
                     let intermediate = GeneratorConstant::try_from_semantic(&constant)
@@ -115,7 +115,7 @@ impl Translator {
 
             TranslationRule::Type => match Scope::resolve_path(scope, &path)? {
                 ScopeItem::Type(r#type) => {
-                    let mut r#type = r#type.into_inner();
+                    let mut r#type = r#type.resolve()?;
                     r#type.set_location(location);
 
                     Ok((Element::Type(r#type), None))

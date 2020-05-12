@@ -18,8 +18,8 @@ use std::fmt;
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::lexical::token::location::Location;
 use crate::semantic::casting::Caster;
-use crate::semantic::element::access::Field as FieldAccess;
-use crate::semantic::element::access::Index as IndexAccess;
+use crate::semantic::element::access::field::Field as FieldAccess;
+use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::place::Place;
 use crate::semantic::element::r#type::Type;
@@ -86,12 +86,16 @@ impl Value {
             Self::Boolean(value_1) => match other {
                 Self::Boolean(_) => Ok((Self::Boolean(value_1), GeneratorExpressionOperator::Or)),
                 value => Err(Error::OperatorOrSecondOperandExpectedBoolean {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorOrFirstOperandExpectedBoolean {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -102,12 +106,16 @@ impl Value {
             Self::Boolean(value_1) => match other {
                 Self::Boolean(_) => Ok((Self::Boolean(value_1), GeneratorExpressionOperator::Xor)),
                 value => Err(Error::OperatorXorSecondOperandExpectedBoolean {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorXorFirstOperandExpectedBoolean {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -118,12 +126,16 @@ impl Value {
             Self::Boolean(value_1) => match other {
                 Self::Boolean(_) => Ok((Self::Boolean(value_1), GeneratorExpressionOperator::And)),
                 value => Err(Error::OperatorAndSecondOperandExpectedBoolean {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorAndFirstOperandExpectedBoolean {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -136,14 +148,18 @@ impl Value {
                 GeneratorExpressionOperator::Equals,
             )),
             (Self::Unit(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedUnit {
-                location: value_2.location().unwrap(),
+                location: value_2
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value_2.r#type().to_string(),
             }),
             (Self::Boolean(value_1), Self::Boolean(_)) => {
                 Ok((Self::Boolean(value_1), GeneratorExpressionOperator::Equals))
             }
             (Self::Boolean(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedBoolean {
-                location: value_2.location().unwrap(),
+                location: value_2
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value_2.r#type().to_string(),
             }),
             (Self::Integer(integer_1), Self::Integer(integer_2)) => {
@@ -155,11 +171,15 @@ impl Value {
                     .map_err(Error::Integer)
             }
             (Self::Integer(_), value_2) => Err(Error::OperatorEqualsSecondOperandExpectedInteger {
-                location: value_2.location().unwrap(),
+                location: value_2
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value_2.r#type().to_string(),
             }),
             (value_1, _) => Err(Error::OperatorEqualsFirstOperandExpectedPrimitiveType {
-                location: value_1.location().unwrap(),
+                location: value_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value_1.r#type().to_string(),
             }),
         }
@@ -172,7 +192,9 @@ impl Value {
                 GeneratorExpressionOperator::NotEquals,
             )),
             (Self::Unit(_), value_2) => Err(Error::OperatorNotEqualsSecondOperandExpectedUnit {
-                location: value_2.location().unwrap(),
+                location: value_2
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value_2.r#type().to_string(),
             }),
             (Self::Boolean(value_1), Self::Boolean(_)) => Ok((
@@ -181,7 +203,9 @@ impl Value {
             )),
             (Self::Boolean(_), value_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedBoolean {
-                    location: value_2.location().unwrap(),
+                    location: value_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value_2.r#type().to_string(),
                 })
             }
@@ -195,12 +219,16 @@ impl Value {
             }
             (Self::Integer(_), value_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedInteger {
-                    location: value_2.location().unwrap(),
+                    location: value_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value_2.r#type().to_string(),
                 })
             }
             (value_1, _) => Err(Error::OperatorNotEqualsFirstOperandExpectedPrimitiveType {
-                location: value_1.location().unwrap(),
+                location: value_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value_1.r#type().to_string(),
             }),
         }
@@ -218,12 +246,16 @@ impl Value {
                         .map_err(Error::Integer)
                 }
                 value => Err(Error::OperatorGreaterEqualsSecondOperandExpectedInteger {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorGreaterEqualsFirstOperandExpectedInteger {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -241,12 +273,16 @@ impl Value {
                         .map_err(Error::Integer)
                 }
                 value => Err(Error::OperatorLesserEqualsSecondOperandExpectedInteger {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorLesserEqualsFirstOperandExpectedInteger {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -264,12 +300,16 @@ impl Value {
                         .map_err(Error::Integer)
                 }
                 value => Err(Error::OperatorGreaterSecondOperandExpectedInteger {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorGreaterFirstOperandExpectedInteger {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -287,12 +327,16 @@ impl Value {
                         .map_err(Error::Integer)
                 }
                 value => Err(Error::OperatorLesserSecondOperandExpectedInteger {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorLesserFirstOperandExpectedInteger {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -306,12 +350,16 @@ impl Value {
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorBitwiseOrSecondOperandExpectedInteger {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorBitwiseOrFirstOperandExpectedInteger {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -325,12 +373,16 @@ impl Value {
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorBitwiseXorSecondOperandExpectedInteger {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorBitwiseXorFirstOperandExpectedInteger {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -344,12 +396,16 @@ impl Value {
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorBitwiseAndSecondOperandExpectedInteger {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorBitwiseAndFirstOperandExpectedInteger {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -367,13 +423,17 @@ impl Value {
                     .map_err(Error::Integer),
                 value => Err(
                     Error::OperatorBitwiseShiftLeftSecondOperandExpectedInteger {
-                        location: value.location().unwrap(),
+                        location: value
+                            .location()
+                            .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                         found: value.r#type().to_string(),
                     },
                 ),
             },
             value => Err(Error::OperatorBitwiseShiftLeftFirstOperandExpectedInteger {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -391,14 +451,18 @@ impl Value {
                     .map_err(Error::Integer),
                 value => Err(
                     Error::OperatorBitwiseShiftRightSecondOperandExpectedInteger {
-                        location: value.location().unwrap(),
+                        location: value
+                            .location()
+                            .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                         found: value.r#type().to_string(),
                     },
                 ),
             },
             value => Err(
                 Error::OperatorBitwiseShiftRightFirstOperandExpectedInteger {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 },
             ),
@@ -413,12 +477,16 @@ impl Value {
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorAdditionSecondOperandExpectedInteger {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorAdditionFirstOperandExpectedInteger {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -432,12 +500,16 @@ impl Value {
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorSubtractionSecondOperandExpectedInteger {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorSubtractionFirstOperandExpectedInteger {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -451,12 +523,16 @@ impl Value {
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorMultiplicationSecondOperandExpectedInteger {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorMultiplicationFirstOperandExpectedInteger {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -470,12 +546,16 @@ impl Value {
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorDivisionSecondOperandExpectedInteger {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorDivisionFirstOperandExpectedInteger {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -489,12 +569,16 @@ impl Value {
                     .map(|(integer, operator)| (Self::Integer(integer), operator))
                     .map_err(Error::Integer),
                 value => Err(Error::OperatorRemainderSecondOperandExpectedInteger {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.r#type().to_string(),
                 }),
             },
             value => Err(Error::OperatorRemainderFirstOperandExpectedInteger {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -503,7 +587,7 @@ impl Value {
     pub fn cast(self, to: Type) -> Result<(Self, Option<GeneratorExpressionOperator>), Error> {
         let from = self.r#type();
         Caster::cast(&from, &to).map_err(|error| Error::Casting {
-            location: self.location().unwrap(),
+            location: self.location().expect(crate::panic::LOCATION_ALWAYS_EXISTS),
             inner: error,
             reference: to.location(),
         })?;
@@ -528,7 +612,9 @@ impl Value {
         match self {
             Self::Boolean(inner) => Ok((Self::Boolean(inner), GeneratorExpressionOperator::Not)),
             value => Err(Error::OperatorNotExpectedBoolean {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -541,7 +627,9 @@ impl Value {
                 .map(|(integer, operator)| (Self::Integer(integer), operator))
                 .map_err(Error::Integer),
             value => Err(Error::OperatorBitwiseNotExpectedInteger {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -554,7 +642,9 @@ impl Value {
                 .map(|(integer, operator)| (Self::Integer(integer), operator))
                 .map_err(Error::Integer),
             value => Err(Error::OperatorNegationExpectedInteger {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.r#type().to_string(),
             }),
         }
@@ -565,12 +655,16 @@ impl Value {
             Value::Array(array) => match other {
                 Value::Integer(_) => Ok(array.slice_single()),
                 value => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange {
-                    location: value.location().unwrap(),
+                    location: value
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: value.to_string(),
                 }),
             },
             value => Err(Error::OperatorIndexFirstOperandExpectedArray {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.to_string(),
             }),
         }
@@ -594,7 +688,9 @@ impl Value {
                 }),
             },
             value => Err(Error::OperatorIndexFirstOperandExpectedArray {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.to_string(),
             }),
         }
@@ -604,7 +700,9 @@ impl Value {
         match self {
             Value::Tuple(tuple) => tuple.slice(tuple_index).map_err(Error::Tuple),
             value => Err(Error::OperatorFieldFirstOperandExpectedTuple {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.to_string(),
             }),
         }
@@ -614,7 +712,9 @@ impl Value {
         match self {
             Value::Structure(structure) => structure.slice(identifier).map_err(Error::Structure),
             value => Err(Error::OperatorFieldFirstOperandExpectedStructure {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.to_string(),
             }),
         }
@@ -692,13 +792,13 @@ impl Value {
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Unit(inner) => write!(f, "{}", inner),
-            Self::Boolean(inner) => write!(f, "{}", inner),
-            Self::Integer(inner) => write!(f, "{}", inner),
-            Self::Array(inner) => write!(f, "{}", inner),
-            Self::Tuple(inner) => write!(f, "{}", inner),
-            Self::Structure(inner) => write!(f, "{}", inner),
-            Self::Contract(inner) => write!(f, "{}", inner),
+            Self::Unit(inner) => write!(f, "unit {}", inner),
+            Self::Boolean(inner) => write!(f, "boolean {}", inner),
+            Self::Integer(inner) => write!(f, "integer {}", inner),
+            Self::Array(inner) => write!(f, "array {}", inner),
+            Self::Tuple(inner) => write!(f, "tuple {}", inner),
+            Self::Structure(inner) => write!(f, "structure {}", inner),
+            Self::Contract(inner) => write!(f, "contract {}", inner),
         }
     }
 }

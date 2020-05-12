@@ -4,17 +4,13 @@
 
 mod tests;
 
-pub mod error;
-
 use std::cell::RefCell;
-use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::semantic::analyzer::statement::error::Error as StatementError;
-use crate::semantic::analyzer::statement::module::error::Error as ModStatementError;
+use crate::semantic::analyzer::module::Analyzer as ModuleAnalyzer;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
-use crate::syntax::tree::statement::module::Statement as ModStatement;
+use crate::source::module::Module as SourceModule;
 
 pub struct Analyzer {}
 
@@ -22,25 +18,7 @@ impl Analyzer {
     ///
     /// Analyzes a compile-time only module declaration statement.
     ///
-    pub fn analyze(
-        scope: Rc<RefCell<Scope>>,
-        statement: ModStatement,
-        dependencies: &mut HashMap<String, Rc<RefCell<Scope>>>,
-    ) -> Result<(), Error> {
-        let identifier_location = statement.identifier.location;
-        let module = match dependencies.remove(statement.identifier.name.as_str()) {
-            Some(module) => module,
-            None => {
-                return Err(Error::Statement(StatementError::Mod(
-                    ModStatementError::NotFound {
-                        location: identifier_location,
-                        name: statement.identifier.name,
-                    },
-                )));
-            }
-        };
-        Scope::declare_module(scope, statement.identifier, module)?;
-
-        Ok(())
+    pub fn analyze(module: SourceModule) -> Result<Rc<RefCell<Scope>>, Error> {
+        ModuleAnalyzer::analyze(module)
     }
 }

@@ -18,13 +18,13 @@ use std::fmt;
 
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::lexical::token::location::Location;
-use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
+use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::identifier::Identifier;
 
-use self::access::FieldVariant as FieldAccessVariant;
-use self::access::Index as IndexAccess;
+use self::access::field::Variant as FieldAccessVariant;
+use self::access::index::Index as IndexAccess;
 use self::argument_list::ArgumentList;
 use self::constant::Constant;
 use self::error::Error;
@@ -70,7 +70,9 @@ impl Element {
             Self::Constant(_) => {}
             element => {
                 return Err(Error::OperatorAssignmentSecondOperandExpectedEvaluable {
-                    location: element.location().unwrap(),
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element.to_string(),
                 })
             }
@@ -79,7 +81,9 @@ impl Element {
         match self {
             Self::Place(place) => Ok((place, GeneratorExpressionOperator::None)),
             element => Err(Error::OperatorAssignmentFirstOperandExpectedPlace {
-                location: element.location().unwrap(),
+                location: element
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element.to_string(),
             }),
         }
@@ -103,7 +107,9 @@ impl Element {
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentBitwiseOrSecondOperandExpectedEvaluable {
-                            location: element.location().unwrap(),
+                            location: element
+                                .location()
+                                .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                             found: element.to_string(),
                         },
                     ),
@@ -111,7 +117,9 @@ impl Element {
             }
             element => Err(
                 Error::OperatorAssignmentBitwiseOrFirstOperandExpectedPlace {
-                    location: element.location().unwrap(),
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element.to_string(),
                 },
             ),
@@ -136,7 +144,9 @@ impl Element {
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentBitwiseXorSecondOperandExpectedEvaluable {
-                            location: element.location().unwrap(),
+                            location: element
+                                .location()
+                                .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                             found: element.to_string(),
                         },
                     ),
@@ -144,7 +154,9 @@ impl Element {
             }
             element => Err(
                 Error::OperatorAssignmentBitwiseXorFirstOperandExpectedPlace {
-                    location: element.location().unwrap(),
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element.to_string(),
                 },
             ),
@@ -169,7 +181,9 @@ impl Element {
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentBitwiseAndSecondOperandExpectedEvaluable {
-                            location: element.location().unwrap(),
+                            location: element
+                                .location()
+                                .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                             found: element.to_string(),
                         },
                     ),
@@ -177,7 +191,9 @@ impl Element {
             }
             element => Err(
                 Error::OperatorAssignmentBitwiseAndFirstOperandExpectedPlace {
-                    location: element.location().unwrap(),
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element.to_string(),
                 },
             ),
@@ -204,7 +220,9 @@ impl Element {
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentBitwiseShiftLeftSecondOperandExpectedEvaluable {
-                            location: element.location().unwrap(),
+                            location: element
+                                .location()
+                                .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                             found: element.to_string(),
                         },
                     ),
@@ -212,7 +230,9 @@ impl Element {
             }
             element => Err(
                 Error::OperatorAssignmentBitwiseShiftLeftFirstOperandExpectedPlace {
-                    location: element.location().unwrap(),
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element.to_string(),
                 },
             ),
@@ -239,7 +259,9 @@ impl Element {
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentBitwiseShiftRightSecondOperandExpectedEvaluable {
-                            location: element.location().unwrap(),
+                            location: element
+                                .location()
+                                .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                             found: element.to_string(),
                         },
                     ),
@@ -247,7 +269,9 @@ impl Element {
             }
             element => Err(
                 Error::OperatorAssignmentBitwiseShiftRightFirstOperandExpectedPlace {
-                    location: element.location().unwrap(),
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element.to_string(),
                 },
             ),
@@ -269,14 +293,18 @@ impl Element {
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentAdditionSecondOperandExpectedEvaluable {
-                            location: element.location().unwrap(),
+                            location: element
+                                .location()
+                                .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                             found: element.to_string(),
                         },
                     ),
                 }
             }
             element => Err(Error::OperatorAssignmentAdditionFirstOperandExpectedPlace {
-                location: element.location().unwrap(),
+                location: element
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element.to_string(),
             }),
         }
@@ -300,7 +328,9 @@ impl Element {
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentSubtractionSecondOperandExpectedEvaluable {
-                            location: element.location().unwrap(),
+                            location: element
+                                .location()
+                                .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                             found: element.to_string(),
                         },
                     ),
@@ -308,7 +338,9 @@ impl Element {
             }
             element => Err(
                 Error::OperatorAssignmentSubtractionFirstOperandExpectedPlace {
-                    location: element.location().unwrap(),
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element.to_string(),
                 },
             ),
@@ -333,7 +365,9 @@ impl Element {
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentMultiplicationSecondOperandExpectedEvaluable {
-                            location: element.location().unwrap(),
+                            location: element
+                                .location()
+                                .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                             found: element.to_string(),
                         },
                     ),
@@ -341,7 +375,9 @@ impl Element {
             }
             element => Err(
                 Error::OperatorAssignmentMultiplicationFirstOperandExpectedPlace {
-                    location: element.location().unwrap(),
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element.to_string(),
                 },
             ),
@@ -363,14 +399,18 @@ impl Element {
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentDivisionSecondOperandExpectedEvaluable {
-                            location: element.location().unwrap(),
+                            location: element
+                                .location()
+                                .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                             found: element.to_string(),
                         },
                     ),
                 }
             }
             element => Err(Error::OperatorAssignmentDivisionFirstOperandExpectedPlace {
-                location: element.location().unwrap(),
+                location: element
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element.to_string(),
             }),
         }
@@ -394,7 +434,9 @@ impl Element {
                         .map_err(Error::Value),
                     element => Err(
                         Error::OperatorAssignmentRemainderSecondOperandExpectedEvaluable {
-                            location: element.location().unwrap(),
+                            location: element
+                                .location()
+                                .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                             found: element.to_string(),
                         },
                     ),
@@ -402,7 +444,9 @@ impl Element {
             }
             element => Err(
                 Error::OperatorAssignmentRemainderFirstOperandExpectedPlace {
-                    location: element.location().unwrap(),
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element.to_string(),
                 },
             ),
@@ -417,12 +461,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorRangeInclusiveSecondOperandExpectedConstant {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorRangeInclusiveFirstOperandExpectedConstant {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -436,12 +484,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorRangeSecondOperandExpectedConstant {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorRangeFirstOperandExpectedConstant {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -459,7 +511,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorOrSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
@@ -476,12 +530,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorOrSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorOrFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -499,7 +557,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorXorSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
@@ -516,12 +576,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorXorSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorXorFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -539,7 +603,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorAndSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
@@ -556,12 +622,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorAndSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorAndFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -579,7 +649,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorEqualsSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
@@ -596,12 +668,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorEqualsSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorEqualsFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -619,7 +695,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
@@ -636,12 +714,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorNotEqualsSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorNotEqualsFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -659,7 +741,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorGreaterEqualsSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
@@ -676,12 +760,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorGreaterEqualsSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorGreaterEqualsFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -699,7 +787,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorLesserEqualsSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
@@ -716,12 +806,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorLesserEqualsSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorLesserEqualsFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -739,7 +833,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorGreaterSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
@@ -756,12 +852,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorGreaterSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorGreaterFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -779,7 +879,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorLesserSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
@@ -796,12 +898,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorLesserSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorLesserFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -819,7 +925,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorBitwiseOrSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
@@ -836,12 +944,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorBitwiseOrSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorBitwiseOrFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -859,7 +971,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorBitwiseXorSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
@@ -876,12 +990,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorBitwiseXorSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorBitwiseXorFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -899,7 +1017,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorBitwiseAndSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
@@ -916,12 +1036,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorBitwiseAndSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorBitwiseAndFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -938,7 +1062,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => Err(
                 Error::OperatorBitwiseShiftLeftSecondOperandExpectedConstant {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 },
             ),
@@ -948,13 +1074,17 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => Err(
                 Error::OperatorBitwiseShiftLeftSecondOperandExpectedConstant {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 },
             ),
             (element_1, _) => Err(
                 Error::OperatorBitwiseShiftLeftFirstOperandExpectedEvaluable {
-                    location: element_1.location().unwrap(),
+                    location: element_1
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_1.to_string(),
                 },
             ),
@@ -972,7 +1102,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => Err(
                 Error::OperatorBitwiseShiftRightSecondOperandExpectedConstant {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 },
             ),
@@ -982,13 +1114,17 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => Err(
                 Error::OperatorBitwiseShiftRightSecondOperandExpectedConstant {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 },
             ),
             (element_1, _) => Err(
                 Error::OperatorBitwiseShiftRightFirstOperandExpectedEvaluable {
-                    location: element_1.location().unwrap(),
+                    location: element_1
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_1.to_string(),
                 },
             ),
@@ -1007,7 +1143,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorAdditionSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
@@ -1024,12 +1162,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorAdditionSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorAdditionFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -1047,7 +1189,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorSubtractionSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
@@ -1064,12 +1208,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorSubtractionSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorSubtractionFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -1087,7 +1235,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => Err(
                 Error::OperatorMultiplicationSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 },
             ),
@@ -1104,12 +1254,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => Err(
                 Error::OperatorMultiplicationSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 },
             ),
             (element_1, _) => Err(Error::OperatorMultiplicationFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -1127,7 +1281,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorDivisionSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
@@ -1144,12 +1300,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorDivisionSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorDivisionFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -1167,7 +1327,9 @@ impl Element {
                 .map_err(Error::Value),
             (Element::Value(_), element_2) => {
                 Err(Error::OperatorRemainderSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
@@ -1184,12 +1346,16 @@ impl Element {
                 .map_err(Error::Constant),
             (Element::Constant(_), element_2) => {
                 Err(Error::OperatorRemainderSecondOperandExpectedEvaluable {
-                    location: element_2.location().unwrap(),
+                    location: element_2
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element_2.to_string(),
                 })
             }
             (element_1, _) => Err(Error::OperatorRemainderFirstOperandExpectedEvaluable {
-                location: element_1.location().unwrap(),
+                location: element_1
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element_1.to_string(),
             }),
         }
@@ -1200,7 +1366,9 @@ impl Element {
             Self::Type(r#type) => r#type,
             element => {
                 return Err(Error::OperatorCastingSecondOperandExpectedType {
-                    location: element.location().unwrap(),
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element.to_string(),
                 })
             }
@@ -1216,7 +1384,9 @@ impl Element {
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             element => Err(Error::OperatorCastingFirstOperandExpectedEvaluable {
-                location: element.location().unwrap(),
+                location: element
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element.to_string(),
             }),
         }
@@ -1233,7 +1403,9 @@ impl Element {
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             element => Err(Error::OperatorNotExpectedEvaluable {
-                location: element.location().unwrap(),
+                location: element
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element.to_string(),
             }),
         }
@@ -1250,7 +1422,9 @@ impl Element {
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             element => Err(Error::OperatorBitwiseNotExpectedEvaluable {
-                location: element.location().unwrap(),
+                location: element
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element.to_string(),
             }),
         }
@@ -1267,7 +1441,9 @@ impl Element {
                 .map(|(constant, operator)| (Self::Constant(constant), operator))
                 .map_err(Error::Constant),
             element => Err(Error::OperatorNegationExpectedEvaluable {
-                location: element.location().unwrap(),
+                location: element
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element.to_string(),
             }),
         }
@@ -1285,7 +1461,9 @@ impl Element {
                     .map(|(place, access)| (Element::Place(place), access))
                     .map_err(Error::Place),
                 element => Err(Error::OperatorIndexSecondOperandExpectedEvaluable {
-                    location: element.location().unwrap(),
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element.to_string(),
                 }),
             },
@@ -1299,7 +1477,9 @@ impl Element {
                     .map(|(value, access)| (Element::Value(value), access))
                     .map_err(Error::Value),
                 element => Err(Error::OperatorIndexSecondOperandExpectedEvaluable {
-                    location: element.location().unwrap(),
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element.to_string(),
                 }),
             },
@@ -1309,18 +1489,22 @@ impl Element {
                     .map(|(constant, access)| (Element::Constant(constant), access))
                     .map_err(Error::Constant),
                 element => Err(Error::OperatorIndexSecondOperandExpectedEvaluable {
-                    location: element.location().unwrap(),
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element.to_string(),
                 }),
             },
             element => Err(Error::OperatorIndexFirstOperandExpectedPlaceOrEvaluable {
-                location: element.location().unwrap(),
+                location: element
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: element.to_string(),
             }),
         }
     }
 
-    pub fn field(self, other: Self) -> Result<(Self, FieldAccessVariant), Error> {
+    pub fn field(self, other: Self) -> Result<(Self, FieldAccessVariant), SemanticError> {
         log::trace!("Executing the field operation");
 
         match self {
@@ -1330,71 +1514,49 @@ impl Element {
                     .map(|(place, access)| {
                         (Element::Place(place), FieldAccessVariant::Field(access))
                     })
-                    .map_err(Error::Place),
-                Self::Identifier(identifier) => match place.r#type {
-                    Type::Structure(ref structure) => {
-                        match Scope::resolve_item(structure.scope.to_owned(), &identifier, false) {
-                            Ok(ScopeItem::Type(ScopeTypeItem {
-                                inner: r#type @ Type::Function(_),
-                                ..
-                            })) => Ok((
-                                Element::Type(r#type),
-                                FieldAccessVariant::Method(Self::Place(place)),
-                            )),
-                            _ => place
+                    .map_err(Error::Place)
+                    .map_err(SemanticError::Element),
+                Self::Identifier(identifier) => {
+                    let scope = match place.r#type {
+                        Type::Structure(ref inner) => inner.scope.to_owned(),
+                        Type::Enumeration(ref inner) => inner.scope.to_owned(),
+                        Type::Contract(ref inner) => inner.scope.to_owned(),
+                        _ => {
+                            return place
                                 .field_structure(identifier)
                                 .map(|(place, access)| {
                                     (Element::Place(place), FieldAccessVariant::Field(access))
                                 })
-                                .map_err(Error::Place),
+                                .map_err(Error::Place)
+                                .map_err(SemanticError::Element)
                         }
-                    }
-                    Type::Enumeration(ref enumeration) => {
-                        match Scope::resolve_item(enumeration.scope.to_owned(), &identifier, false)
-                        {
-                            Ok(ScopeItem::Type(ScopeTypeItem {
-                                inner: r#type @ Type::Function(_),
-                                ..
-                            })) => Ok((
+                    };
+
+                    match Scope::resolve_item(scope, &identifier, false) {
+                        Ok(ScopeItem::Type(r#type)) => {
+                            let r#type = r#type.resolve()?;
+                            Ok((
                                 Element::Type(r#type),
                                 FieldAccessVariant::Method(Self::Place(place)),
-                            )),
-                            _ => place
-                                .field_structure(identifier)
-                                .map(|(place, access)| {
-                                    (Element::Place(place), FieldAccessVariant::Field(access))
-                                })
-                                .map_err(Error::Place),
+                            ))
                         }
+                        _ => place
+                            .field_structure(identifier)
+                            .map(|(place, access)| {
+                                (Element::Place(place), FieldAccessVariant::Field(access))
+                            })
+                            .map_err(Error::Place)
+                            .map_err(SemanticError::Element),
                     }
-                    Type::Contract(ref contract) => {
-                        match Scope::resolve_item(contract.scope.to_owned(), &identifier, false) {
-                            Ok(ScopeItem::Type(ScopeTypeItem {
-                                inner: r#type @ Type::Function(_),
-                                ..
-                            })) => Ok((
-                                Element::Type(r#type),
-                                FieldAccessVariant::Method(Self::Place(place)),
-                            )),
-                            _ => place
-                                .field_structure(identifier)
-                                .map(|(place, access)| {
-                                    (Element::Place(place), FieldAccessVariant::Field(access))
-                                })
-                                .map_err(Error::Place),
-                        }
-                    }
-                    _ => place
-                        .field_structure(identifier)
-                        .map(|(place, access)| {
-                            (Element::Place(place), FieldAccessVariant::Field(access))
-                        })
-                        .map_err(Error::Place),
-                },
-                element => Err(Error::OperatorFieldSecondOperandExpectedIdentifier {
-                    location: element.location().unwrap(),
-                    found: element.to_string(),
-                }),
+                }
+                element => Err(SemanticError::Element(
+                    Error::OperatorFieldSecondOperandExpectedIdentifier {
+                        location: element
+                            .location()
+                            .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        found: element.to_string(),
+                    },
+                )),
             },
             Self::Value(value) => match other {
                 Self::TupleIndex(index) => value
@@ -1402,71 +1564,49 @@ impl Element {
                     .map(|(value, access)| {
                         (Element::Value(value), FieldAccessVariant::Field(access))
                     })
-                    .map_err(Error::Value),
-                Self::Identifier(identifier) => match value.r#type() {
-                    Type::Structure(ref structure) => {
-                        match Scope::resolve_item(structure.scope.to_owned(), &identifier, false) {
-                            Ok(ScopeItem::Type(ScopeTypeItem {
-                                inner: r#type @ Type::Function(_),
-                                ..
-                            })) => Ok((
-                                Element::Type(r#type),
-                                FieldAccessVariant::Method(Self::Value(value)),
-                            )),
-                            _ => value
+                    .map_err(Error::Value)
+                    .map_err(SemanticError::Element),
+                Self::Identifier(identifier) => {
+                    let scope = match value.r#type() {
+                        Type::Structure(ref inner) => inner.scope.to_owned(),
+                        Type::Enumeration(ref inner) => inner.scope.to_owned(),
+                        Type::Contract(ref inner) => inner.scope.to_owned(),
+                        _ => {
+                            return value
                                 .field_structure(identifier)
                                 .map(|(value, access)| {
                                     (Element::Value(value), FieldAccessVariant::Field(access))
                                 })
-                                .map_err(Error::Value),
+                                .map_err(Error::Value)
+                                .map_err(SemanticError::Element)
                         }
-                    }
-                    Type::Enumeration(ref enumeration) => {
-                        match Scope::resolve_item(enumeration.scope.to_owned(), &identifier, false)
-                        {
-                            Ok(ScopeItem::Type(ScopeTypeItem {
-                                inner: r#type @ Type::Function(_),
-                                ..
-                            })) => Ok((
+                    };
+
+                    match Scope::resolve_item(scope, &identifier, false) {
+                        Ok(ScopeItem::Type(r#type)) => {
+                            let r#type = r#type.resolve()?;
+                            Ok((
                                 Element::Type(r#type),
                                 FieldAccessVariant::Method(Self::Value(value)),
-                            )),
-                            _ => value
-                                .field_structure(identifier)
-                                .map(|(value, access)| {
-                                    (Element::Value(value), FieldAccessVariant::Field(access))
-                                })
-                                .map_err(Error::Value),
+                            ))
                         }
+                        _ => value
+                            .field_structure(identifier)
+                            .map(|(value, access)| {
+                                (Element::Value(value), FieldAccessVariant::Field(access))
+                            })
+                            .map_err(Error::Value)
+                            .map_err(SemanticError::Element),
                     }
-                    Type::Contract(ref contract) => {
-                        match Scope::resolve_item(contract.scope.to_owned(), &identifier, false) {
-                            Ok(ScopeItem::Type(ScopeTypeItem {
-                                inner: r#type @ Type::Function(_),
-                                ..
-                            })) => Ok((
-                                Element::Type(r#type),
-                                FieldAccessVariant::Method(Self::Value(value)),
-                            )),
-                            _ => value
-                                .field_structure(identifier)
-                                .map(|(value, access)| {
-                                    (Element::Value(value), FieldAccessVariant::Field(access))
-                                })
-                                .map_err(Error::Value),
-                        }
-                    }
-                    _ => value
-                        .field_structure(identifier)
-                        .map(|(value, access)| {
-                            (Element::Value(value), FieldAccessVariant::Field(access))
-                        })
-                        .map_err(Error::Value),
-                },
-                element => Err(Error::OperatorFieldSecondOperandExpectedIdentifier {
-                    location: element.location().unwrap(),
-                    found: element.to_string(),
-                }),
+                }
+                element => Err(SemanticError::Element(
+                    Error::OperatorFieldSecondOperandExpectedIdentifier {
+                        location: element
+                            .location()
+                            .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        found: element.to_string(),
+                    },
+                )),
             },
             Self::Constant(constant) => match other {
                 Self::TupleIndex(index) => constant
@@ -1477,18 +1617,15 @@ impl Element {
                             FieldAccessVariant::Field(access),
                         )
                     })
-                    .map_err(Error::Constant),
-                Self::Identifier(identifier) => match constant.r#type() {
-                    Type::Structure(ref structure) => {
-                        match Scope::resolve_item(structure.scope.to_owned(), &identifier, false) {
-                            Ok(ScopeItem::Type(ScopeTypeItem {
-                                inner: r#type @ Type::Function(_),
-                                ..
-                            })) => Ok((
-                                Element::Type(r#type),
-                                FieldAccessVariant::Method(Self::Constant(constant)),
-                            )),
-                            _ => constant
+                    .map_err(Error::Constant)
+                    .map_err(SemanticError::Element),
+                Self::Identifier(identifier) => {
+                    let scope = match constant.r#type() {
+                        Type::Structure(ref inner) => inner.scope.to_owned(),
+                        Type::Enumeration(ref inner) => inner.scope.to_owned(),
+                        Type::Contract(ref inner) => inner.scope.to_owned(),
+                        _ => {
+                            return constant
                                 .field_structure(identifier)
                                 .map(|(constant, access)| {
                                     (
@@ -1496,69 +1633,48 @@ impl Element {
                                         FieldAccessVariant::Field(access),
                                     )
                                 })
-                                .map_err(Error::Constant),
+                                .map_err(Error::Constant)
+                                .map_err(SemanticError::Element)
                         }
-                    }
-                    Type::Enumeration(ref enumeration) => {
-                        match Scope::resolve_item(enumeration.scope.to_owned(), &identifier, false)
-                        {
-                            Ok(ScopeItem::Type(ScopeTypeItem {
-                                inner: r#type @ Type::Function(_),
-                                ..
-                            })) => Ok((
+                    };
+
+                    match Scope::resolve_item(scope, &identifier, false) {
+                        Ok(ScopeItem::Type(r#type)) => {
+                            let r#type = r#type.resolve()?;
+                            Ok((
                                 Element::Type(r#type),
                                 FieldAccessVariant::Method(Self::Constant(constant)),
-                            )),
-                            _ => constant
-                                .field_structure(identifier)
-                                .map(|(constant, access)| {
-                                    (
-                                        Element::Constant(constant),
-                                        FieldAccessVariant::Field(access),
-                                    )
-                                })
-                                .map_err(Error::Constant),
+                            ))
                         }
+                        _ => constant
+                            .field_structure(identifier)
+                            .map(|(constant, access)| {
+                                (
+                                    Element::Constant(constant),
+                                    FieldAccessVariant::Field(access),
+                                )
+                            })
+                            .map_err(Error::Constant)
+                            .map_err(SemanticError::Element),
                     }
-                    Type::Contract(ref contract) => {
-                        match Scope::resolve_item(contract.scope.to_owned(), &identifier, false) {
-                            Ok(ScopeItem::Type(ScopeTypeItem {
-                                inner: r#type @ Type::Function(_),
-                                ..
-                            })) => Ok((
-                                Element::Type(r#type),
-                                FieldAccessVariant::Method(Self::Constant(constant)),
-                            )),
-                            _ => constant
-                                .field_structure(identifier)
-                                .map(|(constant, access)| {
-                                    (
-                                        Element::Constant(constant),
-                                        FieldAccessVariant::Field(access),
-                                    )
-                                })
-                                .map_err(Error::Constant),
-                        }
-                    }
-                    _ => constant
-                        .field_structure(identifier)
-                        .map(|(constant, access)| {
-                            (
-                                Element::Constant(constant),
-                                FieldAccessVariant::Field(access),
-                            )
-                        })
-                        .map_err(Error::Constant),
-                },
-                element => Err(Error::OperatorFieldSecondOperandExpectedIdentifier {
-                    location: element.location().unwrap(),
-                    found: element.to_string(),
-                }),
+                }
+                element => Err(SemanticError::Element(
+                    Error::OperatorFieldSecondOperandExpectedIdentifier {
+                        location: element
+                            .location()
+                            .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                        found: element.to_string(),
+                    },
+                )),
             },
-            element => Err(Error::OperatorFieldFirstOperandExpectedPlaceOrEvaluable {
-                location: element.location().unwrap(),
-                found: element.to_string(),
-            }),
+            element => Err(SemanticError::Element(
+                Error::OperatorFieldFirstOperandExpectedPlaceOrEvaluable {
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
+                    found: element.to_string(),
+                },
+            )),
         }
     }
 
@@ -1567,7 +1683,9 @@ impl Element {
             Self::Path(path) => path,
             element => {
                 return Err(Error::OperatorPathFirstOperandExpectedPath {
-                    location: element.location().unwrap(),
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element.to_string(),
                 })
             }
@@ -1577,7 +1695,9 @@ impl Element {
             Self::Identifier(identifier) => identifier,
             element => {
                 return Err(Error::OperatorPathSecondOperandExpectedIdentifier {
-                    location: element.location().unwrap(),
+                    location: element
+                        .location()
+                        .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     found: element.to_string(),
                 })
             }
@@ -1606,9 +1726,9 @@ impl Element {
 impl fmt::Display for Element {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Value(inner) => write!(f, "{}", inner),
-            Self::Constant(inner) => write!(f, "{}", inner),
-            Self::Type(inner) => write!(f, "{}", inner),
+            Self::Value(inner) => write!(f, "value {}", inner),
+            Self::Constant(inner) => write!(f, "constant {}", inner),
+            Self::Type(inner) => write!(f, "type {}", inner),
             Self::ArgumentList(inner) => write!(f, "{}", inner),
             Self::Path(inner) => write!(f, "{}", inner),
             Self::Place(inner) => write!(f, "{}", inner),

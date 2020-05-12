@@ -13,6 +13,7 @@ use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::place::error::Error as PlaceError;
 use crate::semantic::element::r#type::Type;
+use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
 
 #[test]
@@ -244,8 +245,11 @@ fn main() {
         ElementError::Place(
             PlaceError::OperatorIndexSecondOperandExpectedIntegerOrRange {
                 location: Location::new(4, 23),
-                found: Constant::Boolean(BooleanConstant::new(Location::new(4, 23), true))
-                    .to_string(),
+                found: Element::Constant(Constant::Boolean(BooleanConstant::new(
+                    Location::new(4, 23),
+                    true,
+                )))
+                .to_string(),
             },
         ),
     )));

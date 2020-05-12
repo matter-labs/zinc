@@ -15,6 +15,9 @@ use crate::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
 use crate::semantic::analyzer::module::Analyzer as ModuleAnalyzer;
 use crate::semantic::error::Error as SemanticError;
 use crate::semantic::scope::Scope;
+use crate::source::module::Module as SourceModule;
+use crate::source::Source;
+use crate::syntax::tree::module::Module as SyntaxModule;
 use crate::Parser;
 
 pub(crate) fn compile_entry(input: &str) -> Result<(), Error> {
@@ -23,24 +26,22 @@ pub(crate) fn compile_entry(input: &str) -> Result<(), Error> {
 
 pub(crate) fn compile_entry_with_dependencies(
     input: &str,
-    dependencies: HashMap<String, Rc<RefCell<Scope>>>,
+    dependencies: HashMap<String, SourceModule>,
 ) -> Result<(), Error> {
-    let _intermediate = EntryAnalyzer::default().compile(
-        Parser::default()
-            .parse(input, None)
-            .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
-        dependencies,
-    )?;
+    EntryAnalyzer::analyze(Source::test(input, dependencies)?)?;
 
     Ok(())
 }
 
 pub(crate) fn compile_module(input: &str) -> Result<Rc<RefCell<Scope>>, Error> {
-    let (scope, _intermediate) = ModuleAnalyzer::new().compile(
-        Parser::default()
-            .parse(input, None)
-            .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
-    )?;
+    compile_module_with_dependencies(input, HashMap::new())
+}
+
+pub(crate) fn compile_module_with_dependencies(
+    input: &str,
+    dependencies: HashMap<String, SourceModule>,
+) -> Result<Rc<RefCell<Scope>>, Error> {
+    let scope = ModuleAnalyzer::analyze(SourceModule::test(input, dependencies)?)?;
 
     Ok(scope)
 }
@@ -124,11 +125,11 @@ fn main() -> u8 {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::FunctionMainBeyondEntry {
+    let expected = Error::Semantic(SemanticError::FunctionMainBeyondEntry {
         location: Location::new(2, 1),
-    }));
+    });
 
-    let result = crate::semantic::tests::compile_module(input);
+    let result = crate::semantic::tests::compile_module(input).unwrap_err();
 
     assert_eq!(result, expected);
 }
@@ -141,11 +142,29 @@ contract Uniswap {
 }
 "#;
 
-    let expected = Err(Error::Semantic(SemanticError::ContractBeyondEntry {
+    let expected = Error::Semantic(SemanticError::ContractBeyondEntry {
         location: Location::new(2, 1),
+    });
+
+    let result = crate::semantic::tests::compile_module(input).unwrap_err();
+
+    assert_eq!(result, expected);
+}
+
+#[test]
+fn error_module_file_not_found() {
+    let input = r#"
+mod unknown;
+
+fn main() {}
+"#;
+
+    let expected = Err(Error::Semantic(SemanticError::ModuleFileNotFound {
+        location: Location::new(2, 5),
+        name: "unknown".to_owned(),
     }));
 
-    let result = crate::semantic::tests::compile_module(input);
+    let result = crate::semantic::tests::compile_entry(input);
 
     assert_eq!(result, expected);
 }

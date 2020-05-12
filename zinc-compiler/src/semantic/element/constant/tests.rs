@@ -274,7 +274,11 @@ fn main() {
         ElementError::Constant(
             ConstantError::OperatorEqualsFirstOperandExpectedPrimitiveType {
                 location: Location::new(3, 17),
-                found: StringConstant::new(Location::new(3, 17), "string".to_owned()).to_string(),
+                found: Constant::String(StringConstant::new(
+                    Location::new(3, 17),
+                    "string".to_owned(),
+                ))
+                .to_string(),
             },
         ),
     )));
@@ -368,7 +372,11 @@ fn main() {
         ElementError::Constant(
             ConstantError::OperatorNotEqualsFirstOperandExpectedPrimitiveType {
                 location: Location::new(3, 17),
-                found: StringConstant::new(Location::new(3, 17), "string".to_owned()).to_string(),
+                found: Constant::String(StringConstant::new(
+                    Location::new(3, 17),
+                    "string".to_owned(),
+                ))
+                .to_string(),
             },
         ),
     )));

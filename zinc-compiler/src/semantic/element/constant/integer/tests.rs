@@ -278,7 +278,7 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreaterEquals {
                 location: Location::new(7, 17),
-                first: "enum Default".to_owned(),
+                first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
@@ -309,8 +309,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreaterEquals {
                 location: Location::new(11, 17),
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -359,7 +359,7 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesserEquals {
                 location: Location::new(7, 17),
-                first: "enum Default".to_owned(),
+                first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
@@ -390,8 +390,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesserEquals {
                 location: Location::new(11, 17),
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -440,7 +440,7 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreater {
                 location: Location::new(7, 17),
-                first: "enum Default".to_owned(),
+                first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
@@ -471,8 +471,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchGreater {
                 location: Location::new(11, 17),
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -521,7 +521,7 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesser {
                 location: Location::new(7, 17),
-                first: "enum Default".to_owned(),
+                first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
@@ -552,8 +552,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchLesser {
                 location: Location::new(11, 17),
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -602,7 +602,7 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseOr {
                 location: Location::new(7, 17),
-                first: "enum Default".to_owned(),
+                first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
@@ -633,8 +633,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseOr {
                 location: Location::new(11, 17),
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -683,7 +683,7 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseXor {
                 location: Location::new(7, 17),
-                first: "enum Default".to_owned(),
+                first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
@@ -714,8 +714,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseXor {
                 location: Location::new(11, 17),
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -764,7 +764,7 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseAnd {
                 location: Location::new(7, 17),
-                first: "enum Default".to_owned(),
+                first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
@@ -795,8 +795,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchBitwiseAnd {
                 location: Location::new(11, 17),
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -845,7 +845,7 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchAddition {
                 location: Location::new(7, 17),
-                first: "enum Default".to_owned(),
+                first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
@@ -876,8 +876,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchAddition {
                 location: Location::new(11, 17),
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -926,7 +926,7 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchSubtraction {
                 location: Location::new(7, 17),
-                first: "enum Default".to_owned(),
+                first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
@@ -941,11 +941,11 @@ fn main() {
 fn error_types_mismatch_subtraction_two_enumerations() {
     let input = r#"
 enum One {
-    Value = 42,
+    Value = 64,
 }
 
 enum Two {
-    Value = 64,
+    Value = 42,
 }
 
 fn main() {
@@ -957,8 +957,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchSubtraction {
                 location: Location::new(11, 17),
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -1007,7 +1007,7 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchMultiplication {
                 location: Location::new(7, 17),
-                first: "enum Default".to_owned(),
+                first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
@@ -1026,7 +1026,7 @@ enum One {
 }
 
 enum Two {
-    Value = 64,
+    Value = 5,
 }
 
 fn main() {
@@ -1038,8 +1038,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchMultiplication {
                 location: Location::new(11, 17),
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -1088,7 +1088,7 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchDivision {
                 location: Location::new(7, 17),
-                first: "enum Default".to_owned(),
+                first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
@@ -1119,8 +1119,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchDivision {
                 location: Location::new(11, 17),
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));
@@ -1169,7 +1169,7 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchRemainder {
                 location: Location::new(7, 17),
-                first: "enum Default".to_owned(),
+                first: "enumeration Default".to_owned(),
                 second: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
             },
         )),
@@ -1200,8 +1200,8 @@ fn main() {
         ElementError::Constant(ConstantError::Integer(
             IntegerConstantError::TypesMismatchRemainder {
                 location: Location::new(11, 17),
-                first: "enum One".to_owned(),
-                second: "enum Two".to_owned(),
+                first: "enumeration One".to_owned(),
+                second: "enumeration Two".to_owned(),
             },
         )),
     )));

@@ -8,11 +8,11 @@ use std::rc::Rc;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
+use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::constant::Constant as ScopeConstantItem;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
 
@@ -22,15 +22,17 @@ impl Analyzer {
     ///
     /// Analyzes a compile-time only constant declaration statement.
     ///
-    pub fn analyze(scope: Rc<RefCell<Scope>>, statement: ConstStatement) -> Result<(), Error> {
-        let identifier_location = statement.identifier.location;
+    pub fn analyze(
+        scope: Rc<RefCell<Scope>>,
+        statement: ConstStatement,
+    ) -> Result<Constant, Error> {
         let expression_location = statement.expression.location;
 
         let (element, _intermediate) =
             ExpressionAnalyzer::new(scope.clone(), TranslationRule::Constant)
                 .analyze(statement.expression)?;
 
-        let const_type = Type::from_syntax_type(statement.r#type, scope.clone())?;
+        let const_type = Type::from_syntax_type(statement.r#type, scope)?;
         let (constant, _intermediate) = match element {
             Element::Constant(constant) => constant
                 .cast(const_type)
@@ -44,12 +46,6 @@ impl Analyzer {
             }
         };
 
-        Scope::declare_constant(
-            scope,
-            statement.identifier,
-            ScopeConstantItem::new(identifier_location, constant),
-        )?;
-
-        Ok(())
+        Ok(constant)
     }
 }

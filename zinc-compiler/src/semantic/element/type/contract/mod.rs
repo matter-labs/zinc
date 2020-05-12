@@ -12,8 +12,6 @@ use std::rc::Rc;
 
 use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::Type;
-use crate::semantic::scope::item::r#type::index::SOFT as TYPE_INDEX_SOFT;
-use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
 use crate::semantic::scope::Scope;
 
 ///
@@ -34,11 +32,11 @@ impl Contract {
     pub fn new(
         location: Option<Location>,
         identifier: String,
+        unique_id: usize,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
-        let scope = scope.unwrap_or_else(|| Rc::new(RefCell::new(Scope::new(None))));
+        let scope = scope.unwrap_or_else(|| Scope::new(None).wrap());
 
-        let unique_id = TYPE_INDEX_SOFT.next(identifier.clone());
         let contract = Self {
             location,
             identifier,
@@ -46,10 +44,9 @@ impl Contract {
             scope: scope.clone(),
         };
 
-        scope.borrow_mut().declare_self(ScopeTypeItem::new(
-            location,
-            Type::Contract(contract.clone()),
-        ));
+        scope
+            .borrow_mut()
+            .define_self(Type::Contract(contract.clone()));
 
         contract
     }
@@ -63,6 +60,6 @@ impl PartialEq<Self> for Contract {
 
 impl fmt::Display for Contract {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "contract {}", self.identifier)
+        write!(f, "{}", self.identifier)
     }
 }

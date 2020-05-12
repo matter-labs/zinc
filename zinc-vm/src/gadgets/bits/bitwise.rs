@@ -3,18 +3,18 @@ use crate::gadgets::auto_const::prelude::*;
 use crate::gadgets::{Scalar, ScalarType, ScalarTypeExpectation};
 use crate::{Engine, Result};
 use franklin_crypto::bellman::{ConstraintSystem, SynthesisError};
-use franklin_crypto::circuit::num::AllocatedNum;
 use franklin_crypto::circuit::boolean::Boolean;
+use franklin_crypto::circuit::num::AllocatedNum;
 
 pub fn bit_and<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
+{
+    fn inner<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
     where
         E: Engine,
         CS: ConstraintSystem<E>,
-{
-    fn inner<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
-        where
-            E: Engine,
-            CS: ConstraintSystem<E>,
     {
         let scalar_type = ScalarType::expect_same(left.get_type(), right.get_type())?;
         scalar_type.assert_signed(false)?;
@@ -51,14 +51,14 @@ pub fn bit_and<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Sca
 }
 
 pub fn bit_or<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
+{
+    fn inner<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
     where
         E: Engine,
         CS: ConstraintSystem<E>,
-{
-    fn inner<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
-        where
-            E: Engine,
-            CS: ConstraintSystem<E>,
     {
         let scalar_type = ScalarType::expect_same(left.get_type(), right.get_type())?;
         scalar_type.assert_signed(false)?;
@@ -99,14 +99,14 @@ pub fn bit_or<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scal
 }
 
 pub fn bit_xor<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
+{
+    fn inner<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
     where
         E: Engine,
         CS: ConstraintSystem<E>,
-{
-    fn inner<E, CS>(mut cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Scalar<E>>
-        where
-            E: Engine,
-            CS: ConstraintSystem<E>,
     {
         let scalar_type = ScalarType::expect_same(left.get_type(), right.get_type())?;
         scalar_type.assert_signed(false)?;
@@ -143,14 +143,14 @@ pub fn bit_xor<E, CS>(cs: CS, left: &Scalar<E>, right: &Scalar<E>) -> Result<Sca
 }
 
 pub fn bit_not<E, CS>(cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
+{
+    fn inner<E, CS>(mut cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
     where
         E: Engine,
         CS: ConstraintSystem<E>,
-{
-    fn inner<E, CS>(mut cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
-        where
-            E: Engine,
-            CS: ConstraintSystem<E>,
     {
         let scalar_type = scalar.get_type();
         scalar_type.assert_signed(false)?;
@@ -161,10 +161,7 @@ pub fn bit_not<E, CS>(cs: CS, scalar: &Scalar<E>) -> Result<Scalar<E>>
             .to_expression::<CS>()
             .into_bits_le_fixed(cs.namespace(|| "left bits"), len)?;
 
-        let result_bits = bits
-            .iter()
-            .map(Boolean::not)
-            .collect::<Vec<_>>();
+        let result_bits = bits.iter().map(Boolean::not).collect::<Vec<_>>();
 
         let result = AllocatedNum::pack_bits_to_element(cs.namespace(|| "result"), &result_bits)?;
 

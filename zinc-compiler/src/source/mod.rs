@@ -3,89 +3,70 @@
 //!
 
 pub mod error;
-pub mod file;
+pub mod module;
 
-use std::cell::RefCell;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::path::PathBuf;
-use std::rc::Rc;
 
-use crate::generator::bytecode::Bytecode;
+use crate::error::Error as CompilerError;
 
 use self::error::Error;
-use self::file::File;
+use self::module::file::File;
+use self::module::Module;
 
 ///
 /// The Zinc project source code, which consists of some modules and the entry point.
 ///
+#[derive(Debug, Clone)]
 pub struct Source {
-    pub modules: Vec<File>,
+    pub path: PathBuf,
     pub entry: File,
+    pub modules: HashMap<String, Module>,
 }
 
-pub static MODULE_MAIN_NAME: &str = "main";
-
 impl Source {
-    pub fn compile(self) -> Result<Bytecode, String> {
-        let bytecode = Rc::new(RefCell::new(Bytecode::new()));
-
-        let mut dependencies = HashMap::with_capacity(self.modules.len());
-        for module in self.modules.into_iter() {
-            log::info!("Compiling module {:?}", module.path);
-            bytecode
-                .borrow_mut()
-                .start_new_file(module.path.to_string_lossy().as_ref());
-
-            dependencies.insert(
-                module.name.clone(),
-                module.try_into_module(bytecode.clone())?,
-            );
-        }
-
-        log::info!("Compiling entry {:?}", self.entry.path);
-        bytecode
-            .borrow_mut()
-            .start_new_file(self.entry.path.to_string_lossy().as_ref());
-
-        self.entry.try_into_entry(bytecode.clone(), dependencies)?;
-
-        let bytecode = Rc::try_unwrap(bytecode)
-            .expect(crate::panic::LAST_SHARED_REFERENCE)
-            .into_inner();
-
-        Ok(bytecode)
+    pub fn test(input: &str, dependencies: HashMap<String, Module>) -> Result<Self, CompilerError> {
+        Ok(Self {
+            path: PathBuf::from("test.zn"),
+            entry: File::test(input)?,
+            modules: dependencies,
+        })
     }
 }
 
-impl TryFrom<Vec<PathBuf>> for Source {
+impl TryFrom<&PathBuf> for Source {
     type Error = Error;
 
-    fn try_from(source_paths: Vec<PathBuf>) -> Result<Self, Self::Error> {
-        let mut modules = Vec::with_capacity(source_paths.len());
-        let mut entry = None;
+    fn try_from(path: &PathBuf) -> Result<Self, Self::Error> {
+        let module = Module::try_from(path).map_err(|error| Error::RootModule {
+            path: path.to_owned().into_os_string(),
+            inner: error,
+        })?;
 
-        let source_paths_count = source_paths.len();
-        for (index, source_file_path) in source_paths.into_iter().enumerate() {
-            let file = File::try_from(&source_file_path)
-                .map_err(|error| Error::File(source_file_path.into_os_string(), error))?;
-
-            if file.name == MODULE_MAIN_NAME {
-                entry = Some(file);
-                continue;
+        match module {
+            Module::File(file) => {
+                if file.is_application_entry() {
+                    Ok(Self {
+                        path: path.to_owned(),
+                        entry: file,
+                        modules: HashMap::new(),
+                    })
+                } else {
+                    Err(Error::EntrySourceFileNotFound)
+                }
             }
+            Module::Directory(directory) => {
+                if !directory.entry.is_application_entry() {
+                    return Err(Error::EntrySourceFileNotFound);
+                }
 
-            if entry.is_none() && index == source_paths_count - 1 {
-                entry = Some(file);
-                continue;
+                Ok(Self {
+                    path: directory.path,
+                    entry: directory.entry,
+                    modules: directory.modules,
+                })
             }
-
-            modules.push(file);
-        }
-
-        match entry.take() {
-            Some(entry) => Ok(Self { modules, entry }),
-            None => Err(Error::EntrySourceFileNotFound),
         }
     }
 }

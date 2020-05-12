@@ -19,7 +19,6 @@ use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
 
@@ -45,10 +44,20 @@ impl Analyzer {
         let function = match operand_1 {
             Element::Type(Type::Function(function)) => function,
             Element::Path(path) => match Scope::resolve_path(scope.clone(), &path)? {
-                ScopeItem::Type(ScopeTypeItem {
-                    inner: Type::Function(function),
-                    ..
-                }) => function,
+                ScopeItem::Type(r#type) => {
+                    let r#type = r#type.resolve()?;
+                    match r#type {
+                        Type::Function(function) => function,
+                        r#type => {
+                            return Err(Error::Element(ElementError::Type(TypeError::Function(
+                                FunctionTypeError::NonCallable {
+                                    location: function_location.unwrap_or(location),
+                                    name: r#type.to_string(),
+                                },
+                            ))))
+                        }
+                    }
+                }
                 item => {
                     return Err(Error::Element(ElementError::Type(TypeError::Function(
                         FunctionTypeError::NonCallable {

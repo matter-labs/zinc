@@ -93,8 +93,8 @@ impl Function {
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::BuiltIn(inner) => write!(f, "{}", inner),
-            Self::StandardLibrary(inner) => write!(f, "{}", inner),
+            Self::BuiltIn(inner) => write!(f, "built-in {}", inner),
+            Self::StandardLibrary(inner) => write!(f, "std::{}", inner),
             Self::UserDefined(inner) => write!(f, "{}", inner),
         }
     }

@@ -49,7 +49,7 @@ impl Function {
                 Element::Constant(constant) => constant.r#type(),
                 element => {
                     return Err(Error::ArgumentNotEvaluable {
-                        location: location.unwrap(),
+                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         position: index + 1,
                         found: element.to_string(),
@@ -65,7 +65,7 @@ impl Function {
                 if structure.unique_id == BuiltInTypeId::StdCryptoSchnorrSignature as usize => {}
             Some((r#type, location)) => {
                 return Err(Error::ArgumentType {
-                    location: location.unwrap(),
+                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "signature".to_owned(),
                     position: Self::ARGUMENT_INDEX_SIGNATURE + 1,
@@ -75,7 +75,7 @@ impl Function {
             },
             None => {
                 return Err(Error::ArgumentCount {
-                        location: location.unwrap(),
+                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     expected: Self::ARGUMENT_COUNT,
                     found: actual_params.len(),
@@ -91,7 +91,7 @@ impl Function {
                         && size <= crate::LIMIT_SCHNORR_MESSAGE_BITS => {}
                 (r#type, size) => {
                     return Err(Error::ArgumentType {
-                        location: location.unwrap(),
+                        location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                         function: self.identifier.to_owned(),
                         name: "message".to_owned(),
                         position: Self::ARGUMENT_INDEX_MESSAGE + 1,
@@ -100,13 +100,13 @@ impl Function {
                             crate::BITLENGTH_MAX_INT,
                             crate::BITLENGTH_BYTE
                         ),
-                        found: format!("[{}; {}]", r#type, size),
+                        found: format!("array [{}; {}]", r#type, size),
                     });
                 }
             },
             Some((r#type, location)) => {
                 return Err(Error::ArgumentType {
-                    location: location.unwrap(),
+                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     name: "message".to_owned(),
                     position: Self::ARGUMENT_INDEX_MESSAGE + 1,
@@ -120,7 +120,7 @@ impl Function {
             }
             None => {
                 return Err(Error::ArgumentCount {
-                    location: location.unwrap(),
+                    location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                     function: self.identifier.to_owned(),
                     expected: Self::ARGUMENT_COUNT,
                     found: actual_params.len(),
@@ -130,7 +130,7 @@ impl Function {
 
         if actual_params.len() > Self::ARGUMENT_COUNT {
             return Err(Error::ArgumentCount {
-                location: location.unwrap(),
+                location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 function: self.identifier.to_owned(),
                 expected: Self::ARGUMENT_COUNT,
                 found: actual_params.len(),
@@ -143,6 +143,6 @@ impl Function {
 
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "fn std::crypto::schnorr::{}(signature: std::crypto::schnorr::Signature, message: [bool; N]) -> bool", self.identifier)
+        write!(f, "crypto::schnorr::{}(signature: std::crypto::schnorr::Signature, message: [bool; N]) -> bool", self.identifier)
     }
 }

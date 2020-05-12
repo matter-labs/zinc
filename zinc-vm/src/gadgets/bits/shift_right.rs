@@ -1,20 +1,19 @@
-use crate::{RuntimeError};
 use crate::gadgets;
 use crate::gadgets::auto_const::prelude::*;
-use crate::gadgets::{Scalar, ScalarType, ScalarTypeExpectation, utils};
+use crate::gadgets::{utils, Scalar, ScalarType, ScalarTypeExpectation};
+use crate::RuntimeError;
 use crate::{Engine, Result};
-use franklin_crypto::bellman::{ConstraintSystem};
-use franklin_crypto::circuit::num::AllocatedNum;
+use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::boolean::Boolean;
+use franklin_crypto::circuit::num::AllocatedNum;
 
-use num_bigint::{BigInt, Sign};
 use crate::gadgets::utils::bigint_to_fr;
-
+use num_bigint::{BigInt, Sign};
 
 pub fn shift_right<E, CS>(cs: CS, num: &Scalar<E>, shift: &Scalar<E>) -> Result<Scalar<E>>
-    where
-        E: Engine,
-        CS: ConstraintSystem<E>,
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
     num.get_type().assert_signed(false)?;
     shift.get_type().assert_signed(false)?;
@@ -34,20 +33,21 @@ pub fn shift_right<E, CS>(cs: CS, num: &Scalar<E>, shift: &Scalar<E>) -> Result<
                 let mut result_value = &num_value >> shift_value;
                 result_value &= &BigInt::from_bytes_le(Sign::Plus, mask.as_slice());
 
-                let result_fr = bigint_to_fr::<E>(&result_value).ok_or(RuntimeError::ValueOverflow {
-                    value: result_value,
-                    scalar_type,
-                })?;
+                let result_fr =
+                    bigint_to_fr::<E>(&result_value).ok_or(RuntimeError::ValueOverflow {
+                        value: result_value,
+                        scalar_type,
+                    })?;
                 Ok(Scalar::new_constant_fr(result_fr, scalar_type))
-            },
+            }
         },
     }
 }
 
 fn variable_shift<E, CS>(mut cs: CS, num: &Scalar<E>, shift: &Scalar<E>) -> Result<Scalar<E>>
-    where
-        E: Engine,
-        CS: ConstraintSystem<E>,
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
     let scalar_type = num.get_type();
     let len = scalar_type.bit_length::<E>();
@@ -63,14 +63,20 @@ fn variable_shift<E, CS>(mut cs: CS, num: &Scalar<E>, shift: &Scalar<E>) -> Resu
     variants.push(num.clone());
 
     for i in 1..len {
-        let variant = AllocatedNum::pack_bits_to_element(cs.namespace(|| format!("offset {}", i)), &padded_bits[len-i..len*2-i])?;
+        let variant = AllocatedNum::pack_bits_to_element(
+            cs.namespace(|| format!("offset {}", i)),
+            &padded_bits[len - i..len * 2 - i],
+        )?;
         variants.push(variant.into());
     }
     variants.push(Scalar::new_constant_int(0, ScalarType::Field)); // offset `len` will clear all bits.
 
     let shift_bits_be = shift
         .to_expression::<CS>()
-        .into_bits_le_fixed(cs.namespace(|| "shift bits"), shift.get_type().bit_length::<E>())?
+        .into_bits_le_fixed(
+            cs.namespace(|| "shift bits"),
+            shift.get_type().bit_length::<E>(),
+        )?
         .into_iter()
         .rev()
         .enumerate()
@@ -83,9 +89,9 @@ fn variable_shift<E, CS>(mut cs: CS, num: &Scalar<E>, shift: &Scalar<E>) -> Resu
 }
 
 fn variable_num<E, CS>(mut cs: CS, num: &Scalar<E>, shift: usize) -> Result<Scalar<E>>
-    where
-        E: Engine,
-        CS: ConstraintSystem<E>,
+where
+    E: Engine,
+    CS: ConstraintSystem<E>,
 {
     let scalar_type = num.get_type();
     let len = scalar_type.bit_length::<E>();
@@ -101,7 +107,8 @@ fn variable_num<E, CS>(mut cs: CS, num: &Scalar<E>, shift: usize) -> Result<Scal
 
     let result = AllocatedNum::pack_bits_to_element(
         cs.namespace(|| "pack result bits"),
-        &bits[shift_clipped..])?;
+        &bits[shift_clipped..],
+    )?;
 
     Ok(Scalar::new_unchecked_variable(
         result.get_value(),

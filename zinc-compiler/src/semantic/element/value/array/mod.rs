@@ -12,7 +12,7 @@ use num_traits::Signed;
 use num_traits::ToPrimitive;
 
 use crate::lexical::token::location::Location;
-use crate::semantic::element::access::Index as IndexAccess;
+use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::constant::range::Range as RangeConstant;
 use crate::semantic::element::constant::range_inclusive::RangeInclusive as RangeInclusiveConstant;
 use crate::semantic::element::r#type::Type;
@@ -68,7 +68,7 @@ impl Array {
             self.r#type = r#type;
         } else if r#type != self.r#type {
             return Err(Error::PushingInvalidType {
-                location: location.unwrap(),
+                location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 expected: self.r#type.to_string(),
                 found: r#type.to_string(),
             });
@@ -88,7 +88,7 @@ impl Array {
             self.r#type = r#type;
         } else if r#type != self.r#type {
             return Err(Error::PushingInvalidType {
-                location: location.unwrap(),
+                location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 expected: self.r#type.to_string(),
                 found: r#type.to_string(),
             });
@@ -213,6 +213,6 @@ impl Array {
 
 impl fmt::Display for Array {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "<array> of '{}'s", self.r#type)
+        write!(f, "<runtime> of '{}'s", self.r#type)
     }
 }

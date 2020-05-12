@@ -8,7 +8,6 @@ use zinc_compiler::SourceError;
 
 pub enum Error {
     Source(SourceError),
-    Compiling(String),
     WitnessTemplateOutput(OutputError),
     PublicDataTemplateOutput(OutputError),
     BytecodeOutput(OutputError),
@@ -18,7 +17,6 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Source(inner) => write!(f, "{}", inner),
-            Self::Compiling(inner) => write!(f, "{}", inner),
             Self::WitnessTemplateOutput(inner) => write!(f, "witness template output: {}", inner),
             Self::PublicDataTemplateOutput(inner) => {
                 write!(f, "public data template output: {}", inner)

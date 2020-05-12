@@ -152,7 +152,7 @@ mod tests {
     use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
     use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
     use crate::syntax::tree::r#type::Type;
-    use crate::syntax::tree::statement::local_impl::Statement as ImplLocalStatement;
+    use crate::syntax::tree::statement::local_impl::Statement as ImplementationLocalStatement;
     use crate::syntax::tree::statement::r#fn::Statement as FnStatement;
 
     #[test]
@@ -160,7 +160,7 @@ mod tests {
         let input = r#"pub fn f(a: field) -> field {}"#;
 
         let expected = Ok((
-            ImplLocalStatement::Fn(FnStatement::new(
+            ImplementationLocalStatement::Fn(FnStatement::new(
                 Location::new(1, 1),
                 true,
                 false,
@@ -189,7 +189,7 @@ mod tests {
         let input = r#"const fn f(a: field) -> field {}"#;
 
         let expected = Ok((
-            ImplLocalStatement::Fn(FnStatement::new(
+            ImplementationLocalStatement::Fn(FnStatement::new(
                 Location::new(1, 1),
                 false,
                 true,
@@ -218,7 +218,7 @@ mod tests {
         let input = r#"pub const fn f(a: field) -> field {}"#;
 
         let expected = Ok((
-            ImplLocalStatement::Fn(FnStatement::new(
+            ImplementationLocalStatement::Fn(FnStatement::new(
                 Location::new(1, 1),
                 true,
                 true,

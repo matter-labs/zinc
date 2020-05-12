@@ -14,17 +14,23 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::str;
 
+use crate::generator::statement::Statement as GeneratorStatement;
 use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::lexical::token::location::Location;
+use crate::semantic::element::constant::Constant;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error as SemanticError;
+use crate::source::module::Module as SourceModule;
 use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::statement::contract::Statement as ContractStatement;
+use crate::syntax::tree::statement::r#const::Statement as ConstStatement;
 
 use self::builtin::BuiltInScope;
 use self::error::Error;
 use self::item::constant::Constant as ConstantItem;
 use self::item::module::Module as ModuleItem;
+use self::item::r#type::statement::Statement as TypeStatementVariant;
 use self::item::r#type::Type as TypeItem;
 use self::item::variable::Variable as VariableItem;
 use self::item::Item;
@@ -34,37 +40,62 @@ use self::item::Item;
 /// The global scope has no parent.
 /// Modules are connected to the program scope hierarchy horizontally, being stored as module items.
 ///
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone)]
 pub struct Scope {
     parent: Option<Rc<RefCell<Self>>>,
     items: HashMap<String, Item>,
 }
 
 impl Scope {
+    const ITEMS_INITIAL_CAPACITY: usize = 1024;
+
     ///
-    /// Initializes a nested scope with an explicit optional parent.
+    /// Initializes a scope with an explicit optional parent.
+    ///
+    /// Beware that if you omit the `parent`, built-in functions and `std` will not be available
+    /// throughout the scope stack. To create a scope with such items available, use `new_global`.
     ///
     pub fn new(parent: Option<Rc<RefCell<Self>>>) -> Self {
         Self {
             parent,
-            items: HashMap::new(),
+            items: HashMap::with_capacity(Self::ITEMS_INITIAL_CAPACITY),
         }
     }
 
     ///
-    /// Initializes a global scope without a parent and with default items.
+    /// Initializes a global scope without the built-in one as its parent.
     ///
     pub fn new_global() -> Self {
         Self {
             parent: Some(Rc::new(RefCell::new(BuiltInScope::initialize()))),
-            items: HashMap::new(),
+            items: HashMap::with_capacity(Self::ITEMS_INITIAL_CAPACITY),
         }
     }
 
     ///
-    /// Declares a general item.
+    /// Wraps the scope into `Rc<RefCell<_>>` simplifying most of initializations.
     ///
-    pub fn declare_item(
+    pub fn wrap(self) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(self))
+    }
+
+    ///
+    /// Internally resolves all the items in the order they have been declared.
+    ///
+    pub fn resolve(&self) -> Result<(), SemanticError> {
+        let mut items: Vec<&Item> = self.items.values().collect();
+        items.sort_by_key(|item| item.item_index_id());
+        for item in items.into_iter() {
+            item.resolve()?;
+        }
+
+        Ok(())
+    }
+
+    ///
+    /// Defines an item of arbitrary type.
+    ///
+    pub fn define_item(
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
         item: Item,
@@ -83,99 +114,195 @@ impl Scope {
     }
 
     ///
-    /// Declares a variable, which is normally a `let` binding or a function actual parameter.
+    /// Defines a variable, which is normally a `let` binding or a function actual parameter.
     ///
-    pub fn declare_variable(
+    pub fn define_variable(
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
-        variable: VariableItem,
+        is_mutable: bool,
+        r#type: Type,
     ) -> Result<(), Error> {
         if let Ok(item) = Self::resolve_item(scope.clone(), &identifier, true) {
             return Err(Error::ItemRedeclared {
-                location: variable.location,
+                location: identifier.location,
                 name: identifier.name,
                 reference: item.location(),
             });
         }
 
-        scope
-            .borrow_mut()
-            .items
-            .insert(identifier.name, Item::Variable(variable));
+        scope.borrow_mut().items.insert(
+            identifier.name.clone(),
+            Item::Variable(VariableItem::new(
+                identifier.location,
+                is_mutable,
+                identifier.name,
+                r#type,
+            )),
+        );
 
         Ok(())
     }
 
     ///
-    /// Declares a constant, which is normally a `const` binding.
+    /// Declares a constant, saving the `const` statement to define itself later during the second
+    /// pass or referencing for the first time.
     ///
     pub fn declare_constant(
         scope: Rc<RefCell<Scope>>,
-        identifier: Identifier,
-        constant: ConstantItem,
+        statement: ConstStatement,
     ) -> Result<(), Error> {
-        if let Ok(item) = Self::resolve_item(scope.clone(), &identifier, true) {
+        if let Ok(item) = Self::resolve_item(scope.clone(), &statement.identifier, true) {
             return Err(Error::ItemRedeclared {
-                location: constant.location,
-                name: identifier.name,
+                location: statement.location,
+                name: statement.identifier.name,
                 reference: item.location(),
             });
         }
 
-        scope
-            .borrow_mut()
-            .items
-            .insert(identifier.name, Item::Constant(constant));
+        scope.borrow_mut().items.insert(
+            statement.identifier.name.clone(),
+            Item::Constant(ConstantItem::new_unresolved(
+                statement.identifier.location,
+                statement,
+                scope.clone(),
+            )),
+        );
 
         Ok(())
     }
 
     ///
-    /// Declares a type, which is normally a `type`, `struct`, or `enum` binding.
+    /// Defines a constant, which has been instantly evaluated.
+    ///
+    pub fn define_constant(
+        scope: Rc<RefCell<Scope>>,
+        identifier: Identifier,
+        constant: Constant,
+    ) -> Result<(), Error> {
+        if let Ok(item) = Self::resolve_item(scope.clone(), &identifier, true) {
+            return Err(Error::ItemRedeclared {
+                location: identifier.location,
+                name: identifier.name,
+                reference: item.location(),
+            });
+        }
+
+        scope.borrow_mut().items.insert(
+            identifier.name,
+            Item::Constant(ConstantItem::new_resolved(identifier.location, constant)),
+        );
+
+        Ok(())
+    }
+
+    ///
+    /// Declares a type, saving the `type`, `struct`, `enum`, `contract` or another statement to
+    /// define itself later during the second pass or referencing for the first time.
     ///
     pub fn declare_type(
         scope: Rc<RefCell<Scope>>,
-        identifier: Identifier,
-        r#type: TypeItem,
+        statement: TypeStatementVariant,
     ) -> Result<(), Error> {
-        if let Ok(item) = Self::resolve_item(scope.clone(), &identifier, true) {
+        if let Ok(item) = Self::resolve_item(scope.clone(), &statement.identifier(), true) {
             return Err(Error::ItemRedeclared {
-                location: r#type.location.unwrap_or(identifier.location),
-                name: identifier.name,
+                location: statement.location(),
+                name: statement.identifier().name.to_owned(),
                 reference: item.location(),
             });
         }
 
-        scope
-            .borrow_mut()
-            .items
-            .insert(identifier.name, Item::Type(r#type));
+        scope.borrow_mut().items.insert(
+            statement.identifier().name.clone(),
+            Item::Type(TypeItem::new_unresolved(
+                Some(statement.location()),
+                statement,
+                scope.clone(),
+            )),
+        );
 
         Ok(())
     }
 
     ///
-    /// Declares a `contract` type, also checks whether it is the only contract in the scope.
+    /// Defines a type, which has been instantly evaluated.
+    ///
+    pub fn define_type(
+        scope: Rc<RefCell<Scope>>,
+        identifier: Identifier,
+        r#type: Type,
+        intermediate: Option<GeneratorStatement>,
+    ) -> Result<(), Error> {
+        if let Ok(item) = Self::resolve_item(scope.clone(), &identifier, true) {
+            return Err(Error::ItemRedeclared {
+                location: r#type.location().unwrap_or(identifier.location),
+                name: identifier.name,
+                reference: item.location(),
+            });
+        }
+
+        scope.borrow_mut().items.insert(
+            identifier.name,
+            Item::Type(TypeItem::new_resolved(
+                Some(identifier.location),
+                r#type,
+                false,
+                intermediate,
+            )),
+        );
+
+        Ok(())
+    }
+
+    ///
+    /// Defines a `contract` type, also checks whether it is the only contract in the scope.
     ///
     pub fn declare_contract(
         scope: Rc<RefCell<Scope>>,
-        identifier: Identifier,
-        r#type: TypeItem,
+        statement: ContractStatement,
     ) -> Result<(), Error> {
         if let Some(location) = scope.borrow().get_contract_location() {
             return Err(Error::ContractRedeclared {
-                location: r#type.location.unwrap_or(identifier.location),
+                location: statement.location,
                 reference: location,
             });
         }
 
-        Self::declare_type(scope, identifier, r#type)
+        Self::declare_type(scope, TypeStatementVariant::Contract(statement))
     }
 
     ///
-    /// Declares a module, which is normally a `mod` binding.
+    /// Declares a modules, saving the its syntax tree to define itself later during the second
+    /// pass or referencing for the first time.
     ///
     pub fn declare_module(
+        scope: Rc<RefCell<Scope>>,
+        identifier: Identifier,
+        module: SourceModule,
+    ) -> Result<(), Error> {
+        if let Ok(item) = Self::resolve_item(scope.clone(), &identifier, true) {
+            return Err(Error::ItemRedeclared {
+                location: identifier.location,
+                name: identifier.name,
+                reference: item.location(),
+            });
+        }
+
+        scope.borrow_mut().items.insert(
+            identifier.name.clone(),
+            Item::Module(ModuleItem::new_unresolved(
+                Some(identifier.location),
+                identifier.name,
+                module,
+            )),
+        );
+
+        Ok(())
+    }
+
+    ///
+    /// Defines a module, which is normally a `mod` binding.
+    ///
+    pub fn define_module(
         scope: Rc<RefCell<Scope>>,
         identifier: Identifier,
         module: Rc<RefCell<Scope>>,
@@ -189,21 +316,32 @@ impl Scope {
         }
 
         scope.borrow_mut().items.insert(
-            identifier.name,
-            Item::Module(ModuleItem::new(Some(identifier.location), module)),
+            identifier.name.clone(),
+            Item::Module(ModuleItem::new_resolved(
+                identifier.location,
+                identifier.name,
+                module,
+            )),
         );
 
         Ok(())
     }
 
     ///
-    /// Declares the `Self` alias within a type implementation.
+    /// Defines the `Self` alias within a type implementation.
     ///
     /// Since `Self` is the reserved keyword, it is not being checked for being already declared.
     ///
-    pub fn declare_self(&mut self, r#type: TypeItem) {
-        self.items
-            .insert(Keyword::SelfUppercase.to_string(), Item::Type(r#type));
+    pub fn define_self(&mut self, r#type: Type) {
+        self.items.insert(
+            Keyword::SelfUppercase.to_string(),
+            Item::Type(TypeItem::new_resolved(
+                r#type.location(),
+                r#type,
+                true,
+                None,
+            )),
+        );
     }
 
     ///
@@ -214,27 +352,28 @@ impl Scope {
         let mut current_scope = scope;
 
         for (index, identifier) in path.elements.iter().enumerate() {
-            let item = Self::resolve_item(current_scope.clone(), identifier, index == 0)
-                .map_err(SemanticError::Scope)?;
+            let item = Self::resolve_item(current_scope.clone(), identifier, index == 0)?;
 
             if index == path.elements.len() - 1 {
                 return Ok(item);
             }
 
             current_scope = match item {
-                Item::Module(ref inner) => inner.scope.to_owned(),
-                Item::Type(TypeItem {
-                    inner: Type::Enumeration(ref inner),
-                    ..
-                }) => inner.scope.to_owned(),
-                Item::Type(TypeItem {
-                    inner: Type::Structure(ref inner),
-                    ..
-                }) => inner.scope.to_owned(),
-                Item::Type(TypeItem {
-                    inner: Type::Contract(ref inner),
-                    ..
-                }) => inner.scope.to_owned(),
+                Item::Module(module) => module.resolve()?,
+                Item::Type(r#type) => {
+                    let r#type = r#type.resolve()?;
+                    match r#type {
+                        Type::Enumeration(ref inner) => inner.scope.to_owned(),
+                        Type::Structure(ref inner) => inner.scope.to_owned(),
+                        Type::Contract(ref inner) => inner.scope.to_owned(),
+                        _ => {
+                            return Err(SemanticError::Scope(Error::ItemNotNamespace {
+                                location: identifier.location,
+                                name: identifier.name.to_owned(),
+                            }))
+                        }
+                    }
+                }
                 _ => {
                     return Err(SemanticError::Scope(Error::ItemNotNamespace {
                         location: identifier.location,
@@ -257,17 +396,20 @@ impl Scope {
         scope: Rc<RefCell<Scope>>,
         identifier: &Identifier,
         recursive: bool,
-    ) -> Result<Item, Error> {
+    ) -> Result<Item, SemanticError> {
         match scope.borrow().items.get(identifier.name.as_str()) {
-            Some(item) => Ok(item.to_owned()),
+            Some(item) => {
+                item.resolve()?;
+                Ok(item.to_owned())
+            }
             None => match scope.borrow().parent {
                 Some(ref parent) if recursive => {
                     Self::resolve_item(parent.to_owned(), identifier, recursive)
                 }
-                Some(_) | None => Err(Error::ItemUndeclared {
+                Some(_) | None => Err(SemanticError::Scope(Error::ItemUndeclared {
                     location: identifier.location,
                     name: identifier.name.to_owned(),
-                }),
+                })),
             },
         }
     }
@@ -300,12 +442,9 @@ impl Scope {
     ///
     pub fn get_contract_location(&self) -> Option<Location> {
         for (_name, item) in self.items.iter() {
-            if let Item::Type(TypeItem {
-                inner: Type::Contract(_),
-                ..
-            }) = item
-            {
-                return item.location();
+            match item {
+                Item::Type(r#type) if r#type.is_contract() => return item.location(),
+                _ => {}
             }
         }
 
@@ -315,7 +454,7 @@ impl Scope {
     ///
     /// Creates a child scope with `parent` as its parent.
     ///
-    pub fn new_child(parent: Rc<RefCell<Scope>>) -> Rc<RefCell<Scope>> {
-        Rc::new(RefCell::new(Scope::new(Some(parent))))
+    pub fn new_child(parent: Rc<RefCell<Scope>>) -> Rc<RefCell<Self>> {
+        Self::new(Some(parent)).wrap()
     }
 }

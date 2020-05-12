@@ -23,4 +23,7 @@ pub enum Error {
         location: Location,
         reference: Location,
     },
+    ReferenceLoop {
+        location: Location,
+    },
 }

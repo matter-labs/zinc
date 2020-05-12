@@ -18,13 +18,13 @@ pub struct Stack {
 }
 
 impl Stack {
-    const STACK_SCOPE_INITIAL_CAPACITY: usize = 16;
+    const ELEMENTS_INITIAL_CAPACITY: usize = 16;
 
     ///
     /// Initializes a nested scope stack with an explicit parent.
     ///
     pub fn new(root: Rc<RefCell<Scope>>) -> Self {
-        let mut elements = Vec::with_capacity(Self::STACK_SCOPE_INITIAL_CAPACITY);
+        let mut elements = Vec::with_capacity(Self::ELEMENTS_INITIAL_CAPACITY);
         elements.push(root);
         Self { elements }
     }
@@ -33,8 +33,8 @@ impl Stack {
     /// Initializes a scope stack starting from the global scope.
     ///
     pub fn new_global() -> Self {
-        let mut elements = Vec::with_capacity(Self::STACK_SCOPE_INITIAL_CAPACITY);
-        elements.push(Rc::new(RefCell::new(Scope::new_global())));
+        let mut elements = Vec::with_capacity(Self::ELEMENTS_INITIAL_CAPACITY);
+        elements.push(Scope::new_global().wrap());
         Self { elements }
     }
 
@@ -53,13 +53,6 @@ impl Stack {
     ///
     pub fn push(&mut self) {
         self.elements.push(Scope::new_child(self.top()));
-    }
-
-    ///
-    /// Pushes the current scope deeper and sets the current one to `scope`.
-    ///
-    pub fn push_scope(&mut self, scope: Rc<RefCell<Scope>>) {
-        self.elements.push(scope);
     }
 
     ///

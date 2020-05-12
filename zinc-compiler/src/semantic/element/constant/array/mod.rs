@@ -12,7 +12,7 @@ use num_traits::Signed;
 use num_traits::ToPrimitive;
 
 use crate::lexical::token::location::Location;
-use crate::semantic::element::access::Index as IndexAccess;
+use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::constant::integer::Integer as IntegerConstant;
 use crate::semantic::element::constant::range::Range as RangeConstant;
 use crate::semantic::element::constant::range_inclusive::RangeInclusive as RangeInclusiveConstant;

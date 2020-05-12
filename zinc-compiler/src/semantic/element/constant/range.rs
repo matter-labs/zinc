@@ -57,7 +57,7 @@ impl fmt::Display for Range {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "range '{} .. {}' of type '{}'",
+            "'{} .. {}' of type '{}'",
             self.start,
             self.end,
             self.bounds_type()

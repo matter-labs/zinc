@@ -9,6 +9,7 @@ use crate::lexical::token::location::Location;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::function::error::Error as FunctionTypeError;
 use crate::semantic::element::r#type::Type;
+use crate::semantic::element::Element;
 use crate::semantic::element::Error as ElementError;
 use crate::semantic::error::Error as SemanticError;
 
@@ -136,7 +137,7 @@ fn main() {
             location: Location::new(9, 25),
             function: "another".to_owned(),
             position: 1,
-            found: Type::integer_unsigned(None, crate::BITLENGTH_BYTE).to_string(),
+            found: Element::Type(Type::integer_unsigned(None, crate::BITLENGTH_BYTE)).to_string(),
         }),
     ))));
 
@@ -185,10 +186,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::Function(FunctionTypeError::NonCallable {
             location: Location::new(5, 17),
-            name: Type::tuple(
+            name: Element::Type(Type::tuple(
                 Some(Location::new(5, 17)),
                 vec![Type::integer_unsigned(None, crate::BITLENGTH_BYTE); 2],
-            )
+            ))
             .to_string(),
         }),
     ))));

@@ -567,9 +567,11 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::OperatorRangeFirstOperandExpectedConstant {
             location: Location::new(4, 5),
-            found: Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
-                .expect(crate::panic::TEST_DATA)
-                .to_string(),
+            found: Element::Value(
+                Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
+                    .expect(crate::panic::TEST_DATA),
+            )
+            .to_string(),
         },
     )));
 
@@ -590,9 +592,11 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::OperatorRangeSecondOperandExpectedConstant {
             location: Location::new(4, 10),
-            found: Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
-                .expect(crate::panic::TEST_DATA)
-                .to_string(),
+            found: Element::Value(
+                Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
+                    .expect(crate::panic::TEST_DATA),
+            )
+            .to_string(),
         },
     )));
 
@@ -613,9 +617,11 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::OperatorRangeInclusiveFirstOperandExpectedConstant {
             location: Location::new(4, 5),
-            found: Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
-                .expect(crate::panic::TEST_DATA)
-                .to_string(),
+            found: Element::Value(
+                Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
+                    .expect(crate::panic::TEST_DATA),
+            )
+            .to_string(),
         },
     )));
 
@@ -636,9 +642,11 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::OperatorRangeInclusiveSecondOperandExpectedConstant {
             location: Location::new(4, 11),
-            found: Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
-                .expect(crate::panic::TEST_DATA)
-                .to_string(),
+            found: Element::Value(
+                Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
+                    .expect(crate::panic::TEST_DATA),
+            )
+            .to_string(),
         },
     )));
 
@@ -1209,9 +1217,11 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::OperatorBitwiseShiftLeftSecondOperandExpectedConstant {
             location: Location::new(4, 23),
-            found: Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
-                .expect(crate::panic::TEST_DATA)
-                .to_string(),
+            found: Element::Value(
+                Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
+                    .expect(crate::panic::TEST_DATA),
+            )
+            .to_string(),
         },
     )));
 
@@ -1254,9 +1264,11 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::OperatorBitwiseShiftRightSecondOperandExpectedConstant {
             location: Location::new(4, 23),
-            found: Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
-                .expect(crate::panic::TEST_DATA)
-                .to_string(),
+            found: Element::Value(
+                Value::try_from_type(&Type::integer_unsigned(None, crate::BITLENGTH_BYTE), None)
+                    .expect(crate::panic::TEST_DATA),
+            )
+            .to_string(),
         },
     )));
 
@@ -1586,7 +1598,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::OperatorIndexFirstOperandExpectedPlaceOrEvaluable {
             location: Location::new(5, 5),
-            found: Type::field(None).to_string(),
+            found: Element::Type(Type::field(None)).to_string(),
         },
     )));
 
@@ -1631,7 +1643,7 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::OperatorFieldFirstOperandExpectedPlaceOrEvaluable {
             location: Location::new(5, 5),
-            found: Type::field(None).to_string(),
+            found: Element::Type(Type::field(None)).to_string(),
         },
     )));
 
@@ -1651,12 +1663,12 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::OperatorPathFirstOperandExpectedPath {
             location: Location::new(3, 17),
-            found: IntegerConstant::new(
+            found: Element::Constant(Constant::Integer(IntegerConstant::new(
                 Location::new(3, 17),
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
-            )
+            )))
             .to_string(),
         },
     )));
@@ -1681,12 +1693,12 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(
         ElementError::OperatorPathSecondOperandExpectedIdentifier {
             location: Location::new(7, 24),
-            found: IntegerConstant::new(
+            found: Element::Constant(Constant::Integer(IntegerConstant::new(
                 Location::new(7, 24),
                 BigInt::from(5),
                 false,
                 crate::BITLENGTH_BYTE,
-            )
+            )))
             .to_string(),
         },
     )));

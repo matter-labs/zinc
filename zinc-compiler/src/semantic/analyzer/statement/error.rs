@@ -2,7 +2,6 @@
 //! The semantic analyzer statement error.
 //!
 
-use crate::semantic::analyzer::statement::module::error::Error as ModStatementError;
 use crate::semantic::analyzer::statement::r#for::error::Error as ForStatementError;
 use crate::semantic::analyzer::statement::r#impl::error::Error as ImplStatementError;
 use crate::semantic::analyzer::statement::r#use::error::Error as UseStatementError;
@@ -11,6 +10,5 @@ use crate::semantic::analyzer::statement::r#use::error::Error as UseStatementErr
 pub enum Error {
     For(ForStatementError),
     Impl(ImplStatementError),
-    Mod(ModStatementError),
     Use(UseStatementError),
 }

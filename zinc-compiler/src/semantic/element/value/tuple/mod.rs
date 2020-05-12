@@ -9,7 +9,7 @@ pub mod error;
 use std::fmt;
 
 use crate::lexical::token::location::Location;
-use crate::semantic::element::access::Field as FieldAccess;
+use crate::semantic::element::access::field::Field as FieldAccess;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
 use crate::semantic::element::value::Value;
@@ -106,7 +106,7 @@ impl fmt::Display for Tuple {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "<tuple> of types {}",
+            "<runtime> of types {}",
             self.element_types
                 .iter()
                 .map(|r#type| format!("'{}'", r#type))

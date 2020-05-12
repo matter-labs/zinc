@@ -22,7 +22,6 @@ use crate::semantic::element::value::structure::Structure as StructureValue;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::expression::structure::Expression as StructureExpression;
@@ -42,14 +41,23 @@ impl Analyzer {
     ) -> Result<(Element, Option<GeneratorExpressionOperand>), Error> {
         let identifier_location = structure.identifier.location;
 
-        let type_item = Scope::resolve_item(scope.clone(), &structure.identifier, true)?;
-        let r#type = match type_item {
-            ScopeItem::Type(ScopeTypeItem {
-                inner: Type::Structure(mut structure),
-                ..
-            }) => {
-                structure.location = Some(identifier_location);
-                structure
+        let r#type = match Scope::resolve_item(scope.clone(), &structure.identifier, true)? {
+            ScopeItem::Type(r#type) => {
+                let r#type = r#type.resolve()?;
+                match r#type {
+                    Type::Structure(mut structure) => {
+                        structure.location = Some(identifier_location);
+                        structure
+                    }
+                    _type => {
+                        return Err(Error::Element(ElementError::Type(
+                            TypeError::AliasDoesNotPointToStructure {
+                                location: identifier_location,
+                                found: structure.identifier.name,
+                            },
+                        )))
+                    }
+                }
             }
             _item => {
                 return Err(Error::Element(ElementError::Type(

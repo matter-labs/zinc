@@ -18,72 +18,23 @@ const ZERO_BALANCE: Balance = 0;
 
 contract Exchange {
     /// Uniswap V1
-    name: [u8; 32],
+    name: [u8; 32];
     /// UNI-V1
-    symbol: [u8; 32],
+    symbol: [u8; 32];
     /// Interface for the factory that created this contract
-    factory: Factory,
+    _factory: Factory;
 
     /// Address of the ERC20 token traded on this contract
-    token_address: Address,
+    token_address: Address;
     /// ETH balance on this contract
-    balance: Balance,
+    balance: Balance;
     /// Total number of UNI in existence
-    total_supply: Balance,
+    total_supply: Balance;
 
     /// UNI balance of an address
-    balances: [Balance; 0], // TODO: [Balance; 2^160]
+    balances: [Balance; 0]; // TODO: [Balance; 2^160]
     /// UNI allowance of one address on another
-    allowances: [[Balance; 0]; 0], // TODO: [[Balance; 2^160]; 2^160]
-
-    pub fn balance_of(self, owner: Address) -> Balance {
-        self.balances[owner]
-    }
-
-    pub fn transfer(
-        mut self,
-        tx: Transaction,
-        to: Address,
-        value: Balance,
-    ) -> bool {
-        self.balances[tx.from] -= value;
-        self.balances[to] += value;
-
-        true
-    }
-
-    pub fn transfer_from(
-        mut self,
-        tx: Transaction,
-        from: Address,
-        to: Address,
-        value: Balance,
-    ) -> bool {
-        self.balances[from] -= value;
-        self.balances[to] += value;
-        self.allowances[from][tx.from] -= value;
-
-        true
-    }
-
-    pub fn approve(
-        mut self,
-        tx: Transaction,
-        spender: Address,
-        value: Balance
-    ) -> bool {
-        self.allowances[tx.from][spender] = value;
-
-        true
-    }
-
-    pub fn allowance(
-        self,
-        owner: Address,
-        spender: Address,
-    ) -> Balance {
-        self.allowances[owner][spender]
-    }
+    allowances: [[Balance; 0]; 0]; // TODO: [[Balance; 2^160]; 2^160]
 
     ///
     /// Deposit ETH and Tokens (self.token_address) at current ratio to mint UNI tokens.
@@ -125,8 +76,8 @@ contract Exchange {
 
             liquidity_minted
         } else {
-            assert!(self.factory.address != ZERO_ADDRESS && self.token_address != ZERO_ADDRESS && tx.value >= 1000000000 as Balance);
-            assert!(self.factory.get_exchange(self.token_address) == self.token_address);
+            assert!(self._factory.address != ZERO_ADDRESS && self.token_address != ZERO_ADDRESS && tx.value >= 1000000000 as Balance);
+            assert!(self._factory.get_exchange(self.token_address) == self.token_address);
 
             let token_amount: Balance = max_tokens;
             let initial_liquidity: Balance = self.balance;
@@ -505,7 +456,7 @@ contract Exchange {
         deadline: Timestamp,
         token_addr: Address,
     ) -> Balance {
-        let exchange_addr: Address = self.factory.get_exchange(token_addr);
+        let exchange_addr: Address = self._factory.get_exchange(token_addr);
 
         self.token_to_token_input(tx, tokens_sold, min_tokens_bought, min_eth_bought, deadline, tx.from, exchange_addr)
     }
@@ -535,7 +486,7 @@ contract Exchange {
         deadline: Timestamp,
         token_addr: Address,
     ) -> Balance {
-        let exchange_addr: Address = self.factory.get_exchange(token_addr);
+        let exchange_addr: Address = self._factory.get_exchange(token_addr);
 
         self.token_to_token_input(tx, tokens_sold, min_tokens_bought, min_eth_bought, deadline, tx.to, exchange_addr)
     }
@@ -588,7 +539,7 @@ contract Exchange {
         deadline: Timestamp,
         token_addr: Address,
     ) -> Balance {
-        let exchange_addr: Address = self.factory.get_exchange(token_addr);
+        let exchange_addr: Address = self._factory.get_exchange(token_addr);
 
         self.token_to_token_output(tx, tokens_bought, max_tokens_sold, max_eth_sold, deadline, tx.from, exchange_addr)
     }
@@ -618,7 +569,7 @@ contract Exchange {
         deadline: Timestamp,
         token_addr: Address,
     ) -> Balance {
-        let exchange_addr: Address = self.factory.get_exchange(token_addr);
+        let exchange_addr: Address = self._factory.get_exchange(token_addr);
 
         self.token_to_token_output(tx, tokens_bought, max_tokens_sold, max_eth_sold, deadline, tx.from, exchange_addr)
     }
@@ -811,5 +762,54 @@ contract Exchange {
         let token_reserve: Balance = self.balance_of(self.token_address);
 
         utils::get_output_price(eth_bought, token_reserve, self.balance)
+    }
+
+    pub fn balance_of(self, owner: Address) -> Balance {
+        self.balances[owner]
+    }
+
+    pub fn transfer(
+        mut self,
+        tx: Transaction,
+        to: Address,
+        value: Balance,
+    ) -> bool {
+        self.balances[tx.from] -= value;
+        self.balances[to] += value;
+
+        true
+    }
+
+    pub fn transfer_from(
+        mut self,
+        tx: Transaction,
+        from: Address,
+        to: Address,
+        value: Balance,
+    ) -> bool {
+        self.balances[from] -= value;
+        self.balances[to] += value;
+        self.allowances[from][tx.from] -= value;
+
+        true
+    }
+
+    pub fn approve(
+        mut self,
+        tx: Transaction,
+        spender: Address,
+        value: Balance
+    ) -> bool {
+        self.allowances[tx.from][spender] = value;
+
+        true
+    }
+
+    pub fn allowance(
+        self,
+        owner: Address,
+        spender: Address,
+    ) -> Balance {
+        self.allowances[owner][spender]
     }
 }

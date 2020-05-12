@@ -28,8 +28,6 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::constant::Constant as ScopeConstantItem;
-use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::expression::r#match::Expression as MatchExpression;
@@ -272,10 +270,11 @@ impl Analyzer {
                     is_exhausted = true;
 
                     scope_stack.push();
-                    Scope::declare_variable(
+                    Scope::define_variable(
                         scope_stack.top(),
                         identifier.clone(),
-                        ScopeVariableItem::new(identifier.location, false, scrutinee_type.clone()),
+                        false,
+                        scrutinee_type.clone(),
                     )?;
                     let (result, branch) =
                         ExpressionAnalyzer::new(scope_stack.top(), TranslationRule::Value)
@@ -566,10 +565,10 @@ impl Analyzer {
                     is_exhausted = true;
 
                     scope_stack.push();
-                    Scope::declare_constant(
+                    Scope::define_constant(
                         scope_stack.top(),
                         identifier.clone(),
-                        ScopeConstantItem::new(identifier.location, scrutinee_result.clone()),
+                        scrutinee_result.clone(),
                     )?;
                     let expression_location = expression.location;
                     let (result, _) =

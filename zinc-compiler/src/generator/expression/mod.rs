@@ -34,11 +34,11 @@ pub struct Expression {
 }
 
 impl Expression {
-    const VECTOR_ELEMENTS_INITIAL_CAPACITY: usize = 16;
+    const ELEMENTS_INITIAL_CAPACITY: usize = 16;
 
     pub fn new() -> Self {
         Self {
-            elements: Vec::with_capacity(Self::VECTOR_ELEMENTS_INITIAL_CAPACITY),
+            elements: Vec::with_capacity(Self::ELEMENTS_INITIAL_CAPACITY),
         }
     }
 

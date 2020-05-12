@@ -21,7 +21,7 @@ use crate::syntax::parser::statement::r#impl::Parser as ImplStatementParser;
 use crate::syntax::parser::statement::r#struct::Parser as StructStatementParser;
 use crate::syntax::parser::statement::r#type::Parser as TypeStatementParser;
 use crate::syntax::parser::statement::r#use::Parser as UseStatementParser;
-use crate::syntax::tree::statement::local_mod::Statement as ModLocalStatement;
+use crate::syntax::tree::statement::local_mod::Statement as ModuleLocalStatement;
 
 pub static HINT_ONLY_SOME_STATEMENTS: &str =
     "only constants, types, functions, and type implementations may be declared at the module root";
@@ -55,7 +55,7 @@ impl Parser {
         mut self,
         stream: Rc<RefCell<TokenStream>>,
         mut initial: Option<Token>,
-    ) -> Result<(ModLocalStatement, Option<Token>), Error> {
+    ) -> Result<(ModuleLocalStatement, Option<Token>), Error> {
         loop {
             match self.state {
                 State::KeywordPubOrNext => {
@@ -91,7 +91,7 @@ impl Parser {
                                 return ConstStatementParser::default()
                                     .parse(stream.clone(), Some(token))
                                     .map(|(statement, next)| {
-                                        (ModLocalStatement::Const(statement), next)
+                                        (ModuleLocalStatement::Const(statement), next)
                                     });
                             }
                         }
@@ -113,7 +113,7 @@ impl Parser {
                             ..
                         } => TypeStatementParser::default()
                             .parse(stream.clone(), Some(token))
-                            .map(|(statement, next)| (ModLocalStatement::Type(statement), next)),
+                            .map(|(statement, next)| (ModuleLocalStatement::Type(statement), next)),
                         token
                         @
                         Token {
@@ -121,7 +121,9 @@ impl Parser {
                             ..
                         } => StructStatementParser::default()
                             .parse(stream.clone(), Some(token))
-                            .map(|(statement, next)| (ModLocalStatement::Struct(statement), next)),
+                            .map(|(statement, next)| {
+                                (ModuleLocalStatement::Struct(statement), next)
+                            }),
                         token
                         @
                         Token {
@@ -129,7 +131,7 @@ impl Parser {
                             ..
                         } => EnumStatementParser::default()
                             .parse(stream.clone(), Some(token))
-                            .map(|(statement, next)| (ModLocalStatement::Enum(statement), next)),
+                            .map(|(statement, next)| (ModuleLocalStatement::Enum(statement), next)),
                         token
                         @
                         Token {
@@ -148,7 +150,7 @@ impl Parser {
                                 builder.set_is_public();
                             }
 
-                            return Ok((ModLocalStatement::Fn(builder.finish()), next));
+                            return Ok((ModuleLocalStatement::Fn(builder.finish()), next));
                         }
                         token
                         @
@@ -157,7 +159,7 @@ impl Parser {
                             ..
                         } => ModStatementParser::default()
                             .parse(stream.clone(), Some(token))
-                            .map(|(statement, next)| (ModLocalStatement::Mod(statement), next)),
+                            .map(|(statement, next)| (ModuleLocalStatement::Mod(statement), next)),
                         token
                         @
                         Token {
@@ -165,7 +167,7 @@ impl Parser {
                             ..
                         } => UseStatementParser::default()
                             .parse(stream.clone(), Some(token))
-                            .map(|(statement, next)| (ModLocalStatement::Use(statement), next)),
+                            .map(|(statement, next)| (ModuleLocalStatement::Use(statement), next)),
                         token
                         @
                         Token {
@@ -173,7 +175,7 @@ impl Parser {
                             ..
                         } => ImplStatementParser::default()
                             .parse(stream.clone(), Some(token))
-                            .map(|(statement, next)| (ModLocalStatement::Impl(statement), next)),
+                            .map(|(statement, next)| (ModuleLocalStatement::Impl(statement), next)),
                         token
                         @
                         Token {
@@ -182,12 +184,12 @@ impl Parser {
                         } => ContractStatementParser::default()
                             .parse(stream.clone(), Some(token))
                             .map(|(statement, next)| {
-                                (ModLocalStatement::Contract(statement), next)
+                                (ModuleLocalStatement::Contract(statement), next)
                             }),
                         Token {
                             lexeme: Lexeme::Symbol(Symbol::Semicolon),
                             location,
-                        } => Ok((ModLocalStatement::Empty(location), None)),
+                        } => Ok((ModuleLocalStatement::Empty(location), None)),
                         Token { lexeme, location } => {
                             Err(Error::Syntax(SyntaxError::expected_one_of(
                                 location,
@@ -219,7 +221,7 @@ mod tests {
     use crate::syntax::tree::pattern_binding::Pattern as BindingPattern;
     use crate::syntax::tree::r#type::variant::Variant as TypeVariant;
     use crate::syntax::tree::r#type::Type;
-    use crate::syntax::tree::statement::local_mod::Statement as ModLocalStatement;
+    use crate::syntax::tree::statement::local_mod::Statement as ModuleLocalStatement;
     use crate::syntax::tree::statement::r#fn::Statement as FnStatement;
 
     #[test]
@@ -227,7 +229,7 @@ mod tests {
         let input = r#"pub fn f(a: field) -> field {}"#;
 
         let expected = Ok((
-            ModLocalStatement::Fn(FnStatement::new(
+            ModuleLocalStatement::Fn(FnStatement::new(
                 Location::new(1, 1),
                 true,
                 false,
@@ -256,7 +258,7 @@ mod tests {
         let input = r#"const fn f(a: field) -> field {}"#;
 
         let expected = Ok((
-            ModLocalStatement::Fn(FnStatement::new(
+            ModuleLocalStatement::Fn(FnStatement::new(
                 Location::new(1, 1),
                 false,
                 true,
@@ -285,7 +287,7 @@ mod tests {
         let input = r#"pub const fn f(a: field) -> field {}"#;
 
         let expected = Ok((
-            ModLocalStatement::Fn(FnStatement::new(
+            ModuleLocalStatement::Fn(FnStatement::new(
                 Location::new(1, 1),
                 true,
                 true,

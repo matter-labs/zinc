@@ -29,8 +29,8 @@ pub struct Arguments {
         help = "The build directory path"
     )]
     pub build_path: PathBuf,
-    #[structopt(parse(from_os_str), help = "The *.zn source file names")]
-    pub source_files: Vec<PathBuf>,
+    #[structopt(parse(from_os_str), help = "The source file or `src` directory path")]
+    pub source_input: PathBuf,
 }
 
 impl Arguments {

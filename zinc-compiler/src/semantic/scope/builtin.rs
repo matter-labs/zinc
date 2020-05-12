@@ -24,10 +24,8 @@ use crate::semantic::scope::Scope;
 pub struct BuiltInScope {}
 
 pub enum BuiltInTypeId {
-    StdCryptoEccPoint,
-    StdCryptoSchnorrSignature,
-
-    Count,
+    StdCryptoEccPoint = 0,
+    StdCryptoSchnorrSignature = 1,
 }
 
 impl BuiltInScope {
@@ -35,29 +33,29 @@ impl BuiltInScope {
         let mut std_scope = Scope::default();
         std_scope.items.insert(
             "crypto".to_owned(),
-            ScopeItem::Module(ScopeModuleItem::new(
-                None,
+            ScopeItem::Module(ScopeModuleItem::new_built_in(
+                "crypto".to_owned(),
                 Rc::new(RefCell::new(Self::module_crypto())),
             )),
         );
         std_scope.items.insert(
             "convert".to_owned(),
-            ScopeItem::Module(ScopeModuleItem::new(
-                None,
+            ScopeItem::Module(ScopeModuleItem::new_built_in(
+                "convert".to_owned(),
                 Rc::new(RefCell::new(Self::module_convert())),
             )),
         );
         std_scope.items.insert(
             "array".to_owned(),
-            ScopeItem::Module(ScopeModuleItem::new(
-                None,
+            ScopeItem::Module(ScopeModuleItem::new_built_in(
+                "array".to_owned(),
                 Rc::new(RefCell::new(Self::module_array())),
             )),
         );
         std_scope.items.insert(
             "ff".to_owned(),
-            ScopeItem::Module(ScopeModuleItem::new(
-                None,
+            ScopeItem::Module(ScopeModuleItem::new_built_in(
+                "ff".to_owned(),
                 Rc::new(RefCell::new(Self::module_ff())),
             )),
         );
@@ -67,24 +65,25 @@ impl BuiltInScope {
         let builtin_function_dbg = FunctionType::new_dbg();
         scope.items.insert(
             builtin_function_dbg.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new(
-                None,
-                Type::Function(builtin_function_dbg),
-            )),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                builtin_function_dbg,
+            ))),
         );
 
         let builtin_function_assert = FunctionType::new_assert();
         scope.items.insert(
             builtin_function_assert.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new(
-                None,
-                Type::Function(builtin_function_assert),
-            )),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                builtin_function_assert,
+            ))),
         );
 
         scope.items.insert(
             "std".to_owned(),
-            ScopeItem::Module(ScopeModuleItem::new(None, Rc::new(RefCell::new(std_scope)))),
+            ScopeItem::Module(ScopeModuleItem::new_built_in(
+                "std".to_owned(),
+                Rc::new(RefCell::new(std_scope)),
+            )),
         );
 
         scope
@@ -102,24 +101,24 @@ impl BuiltInScope {
             FunctionType::new_std(BuiltinIdentifier::CryptoSchnorrSignatureVerify);
         std_crypto_schnorr_signature_scope.items.insert(
             std_crypto_schnorr_verify.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new(
-                None,
-                Type::Function(std_crypto_schnorr_verify),
-            )),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                std_crypto_schnorr_verify,
+            ))),
         );
-        let mut std_crypto_ecc_point = StructureType::new(
+        let std_crypto_ecc_point = StructureType::new(
             None,
             "Point".to_owned(),
+            BuiltInTypeId::StdCryptoEccPoint as usize,
             vec![
                 ("x".to_owned(), Type::field(None)),
                 ("y".to_owned(), Type::field(None)),
             ],
             None,
         );
-        std_crypto_ecc_point.unique_id = BuiltInTypeId::StdCryptoEccPoint as usize;
-        let mut std_crypto_schnorr_signature = StructureType::new(
+        let std_crypto_schnorr_signature = StructureType::new(
             None,
             "Signature".to_owned(),
+            BuiltInTypeId::StdCryptoSchnorrSignature as usize,
             vec![
                 (
                     "r".to_owned(),
@@ -133,46 +132,44 @@ impl BuiltInScope {
             ],
             Some(Rc::new(RefCell::new(std_crypto_schnorr_signature_scope))),
         );
-        std_crypto_schnorr_signature.unique_id = BuiltInTypeId::StdCryptoSchnorrSignature as usize;
         std_crypto_schnorr.items.insert(
             "Signature".to_owned(),
-            ScopeItem::Type(ScopeTypeItem::new(
-                None,
-                Type::Structure(std_crypto_schnorr_signature),
-            )),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Structure(
+                std_crypto_schnorr_signature,
+            ))),
         );
 
         let mut std_crypto_ecc = Scope::default();
         std_crypto_ecc.items.insert(
             "Point".to_owned(),
-            ScopeItem::Type(ScopeTypeItem::new(
-                None,
-                Type::Structure(std_crypto_ecc_point),
-            )),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Structure(
+                std_crypto_ecc_point,
+            ))),
         );
 
         std_crypto_scope.items.insert(
             std_crypto_sha256.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new(None, Type::Function(std_crypto_sha256))),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                std_crypto_sha256,
+            ))),
         );
         std_crypto_scope.items.insert(
             std_crypto_pedersen.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new(
-                None,
-                Type::Function(std_crypto_pedersen),
-            )),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                std_crypto_pedersen,
+            ))),
         );
         std_crypto_scope.items.insert(
             "ecc".to_owned(),
-            ScopeItem::Module(ScopeModuleItem::new(
-                None,
+            ScopeItem::Module(ScopeModuleItem::new_built_in(
+                "ecc".to_owned(),
                 Rc::new(RefCell::new(std_crypto_ecc)),
             )),
         );
         std_crypto_scope.items.insert(
             "schnorr".to_owned(),
-            ScopeItem::Module(ScopeModuleItem::new(
-                None,
+            ScopeItem::Module(ScopeModuleItem::new_built_in(
+                "schnorr".to_owned(),
                 Rc::new(RefCell::new(std_crypto_schnorr)),
             )),
         );
@@ -191,31 +188,27 @@ impl BuiltInScope {
 
         std_convert_scope.items.insert(
             std_convert_to_bits.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new(
-                None,
-                Type::Function(std_convert_to_bits),
-            )),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                std_convert_to_bits,
+            ))),
         );
         std_convert_scope.items.insert(
             std_convert_from_bits_unsigned.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new(
-                None,
-                Type::Function(std_convert_from_bits_unsigned),
-            )),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                std_convert_from_bits_unsigned,
+            ))),
         );
         std_convert_scope.items.insert(
             std_convert_from_bits_signed.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new(
-                None,
-                Type::Function(std_convert_from_bits_signed),
-            )),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                std_convert_from_bits_signed,
+            ))),
         );
         std_convert_scope.items.insert(
             std_convert_from_bits_field.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new(
-                None,
-                Type::Function(std_convert_from_bits_field),
-            )),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                std_convert_from_bits_field,
+            ))),
         );
 
         std_convert_scope
@@ -230,15 +223,19 @@ impl BuiltInScope {
 
         std_array_scope.items.insert(
             std_array_reverse.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new(None, Type::Function(std_array_reverse))),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                std_array_reverse,
+            ))),
         );
         std_array_scope.items.insert(
             std_array_truncate.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new(None, Type::Function(std_array_truncate))),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(
+                std_array_truncate,
+            ))),
         );
         std_array_scope.items.insert(
             std_array_pad.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new(None, Type::Function(std_array_pad))),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(std_array_pad))),
         );
 
         std_array_scope
@@ -251,7 +248,7 @@ impl BuiltInScope {
 
         std_ff_scope.items.insert(
             std_ff_invert.identifier(),
-            ScopeItem::Type(ScopeTypeItem::new(None, Type::Function(std_ff_invert))),
+            ScopeItem::Type(ScopeTypeItem::new_built_in(Type::Function(std_ff_invert))),
         );
 
         std_ff_scope

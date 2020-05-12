@@ -3,7 +3,6 @@
 //!
 
 use std::cell::RefCell;
-use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::generator::expression::operand::block::builder::Builder as GeneratorBlockExpressionBuilder;
@@ -38,8 +37,8 @@ impl Analyzer {
         scope_stack.push();
 
         for statement in block.statements.into_iter() {
-            if let Some(statement) = StatementAnalyzer::new(scope_stack.top(), HashMap::new())
-                .local_fn(statement, rule)?
+            if let Some(statement) =
+                StatementAnalyzer::local_function(statement, scope_stack.top(), rule)?
             {
                 builder.push_statement(statement);
             }

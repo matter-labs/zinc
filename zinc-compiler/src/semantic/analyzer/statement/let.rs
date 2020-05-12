@@ -11,7 +11,6 @@ use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::r#let::Statement as LetStatement;
 
@@ -38,14 +37,11 @@ impl Analyzer {
             Type::from_element(&element, scope.clone())?
         };
 
-        Scope::declare_variable(
+        Scope::define_variable(
             scope,
             statement.identifier.clone(),
-            ScopeVariableItem::new(
-                statement.identifier.location,
-                statement.is_mutable,
-                r#type.clone(),
-            ),
+            statement.is_mutable,
+            r#type.clone(),
         )?;
 
         Ok(GeneratorDeclarationStatement::new(

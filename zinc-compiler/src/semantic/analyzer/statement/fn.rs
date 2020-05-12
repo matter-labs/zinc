@@ -6,19 +6,15 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::generator::statement::function::Statement as GeneratorFunctionStatement;
+use crate::generator::statement::Statement as GeneratorStatement;
 use crate::lexical::token::lexeme::keyword::Keyword;
 use crate::semantic::analyzer::expression::block::Analyzer as BlockAnalyzer;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::function::error::Error as FunctionTypeError;
-use crate::semantic::element::r#type::function::user::Function as UserDefinedFunctionType;
-use crate::semantic::element::r#type::function::Function as FunctionType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::r#type::index::SOFT as TYPE_INDEX_SOFT;
-use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
-use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::identifier::Identifier;
@@ -28,6 +24,7 @@ use crate::syntax::tree::statement::r#fn::Statement as FnStatement;
 ///
 /// The context lets the analyzer know of file type where the analyzed statements are defined.
 ///
+#[derive(Debug, Clone, Copy)]
 pub enum Context {
     /// The module root namespace.
     Module,
@@ -47,7 +44,7 @@ impl Analyzer {
         scope: Rc<RefCell<Scope>>,
         statement: FnStatement,
         context: Context,
-    ) -> Result<Option<GeneratorFunctionStatement>, Error> {
+    ) -> Result<(Type, Option<GeneratorStatement>), Error> {
         if let Context::Contract = context {
             if statement.is_public && statement.is_constant {
                 return Err(Error::EntryPointConstant {
@@ -61,7 +58,9 @@ impl Analyzer {
                 location: statement.location,
             })
         } else {
-            Self::runtime(scope, statement, context).map(Option::Some)
+            Self::runtime(scope, statement, context).map(|(r#type, intermediate)| {
+                (r#type, Some(GeneratorStatement::Function(intermediate)))
+            })
         }
     }
 
@@ -72,7 +71,7 @@ impl Analyzer {
         scope: Rc<RefCell<Scope>>,
         statement: FnStatement,
         context: Context,
-    ) -> Result<GeneratorFunctionStatement, Error> {
+    ) -> Result<(Type, GeneratorFunctionStatement), Error> {
         let location = statement.location;
 
         let mut scope_stack = ScopeStack::new(scope);
@@ -109,22 +108,6 @@ impl Analyzer {
             None => Type::unit(None),
         };
 
-        let unique_id = TYPE_INDEX_SOFT.next(statement.identifier.name.clone());
-        let function_type = UserDefinedFunctionType::new(
-            statement.location,
-            statement.identifier.name.clone(),
-            unique_id,
-            arguments.clone(),
-            expected_type.clone(),
-        );
-        let r#type = Type::Function(FunctionType::UserDefined(function_type));
-
-        Scope::declare_type(
-            scope_stack.top(),
-            statement.identifier.clone(),
-            ScopeTypeItem::new(Some(location), r#type),
-        )?;
-
         scope_stack.push();
         for argument_binding in statement.argument_bindings.into_iter() {
             match argument_binding.variant {
@@ -132,16 +115,10 @@ impl Analyzer {
                     identifier,
                     is_mutable,
                 } => {
-                    let location = identifier.location;
-
                     let r#type =
                         Type::from_syntax_type(argument_binding.r#type, scope_stack.top())?;
 
-                    Scope::declare_variable(
-                        scope_stack.top(),
-                        identifier,
-                        ScopeVariableItem::new(location, is_mutable, r#type),
-                    )?;
+                    Scope::define_variable(scope_stack.top(), identifier, is_mutable, r#type)?;
                 }
                 BindingPatternVariant::Wildcard => continue,
                 BindingPatternVariant::SelfAlias {
@@ -152,11 +129,7 @@ impl Analyzer {
                     let r#type =
                         Type::from_syntax_type(argument_binding.r#type, scope_stack.top())?;
 
-                    Scope::declare_variable(
-                        scope_stack.top(),
-                        identifier,
-                        ScopeVariableItem::new(location, is_mutable, r#type),
-                    )?;
+                    Scope::define_variable(scope_stack.top(), identifier, is_mutable, r#type)?;
                 }
             }
         }
@@ -208,7 +181,14 @@ impl Analyzer {
             false
         };
 
-        Ok(GeneratorFunctionStatement::new(
+        let (r#type, unique_id) = Type::new_user_defined_function(
+            statement.location,
+            statement.identifier.name.clone(),
+            arguments.clone(),
+            expected_type.clone(),
+        );
+
+        let intermediate = GeneratorFunctionStatement::new(
             location,
             statement.identifier.name,
             arguments,
@@ -217,6 +197,8 @@ impl Analyzer {
             unique_id,
             is_contract_entry,
             is_main,
-        ))
+        );
+
+        Ok((r#type, intermediate))
     }
 }

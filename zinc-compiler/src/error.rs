@@ -11,7 +11,6 @@ use crate::semantic::analyzer::expression::conditional::error::Error as Conditio
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::r#match::error::Error as MatchExpressionError;
 use crate::semantic::analyzer::statement::error::Error as StatementError;
-use crate::semantic::analyzer::statement::module::error::Error as ModStatementError;
 use crate::semantic::analyzer::statement::r#for::error::Error as ForStatementError;
 use crate::semantic::analyzer::statement::r#impl::error::Error as ImplStatementError;
 use crate::semantic::analyzer::statement::r#use::error::Error as UseStatementError;
@@ -168,7 +167,7 @@ impl Error {
                 help,
             }) => Self::format_line(
                 context,
-                format!("expected `mut` or identifier, found `{}`", found).as_str(),
+                format!("expected keyword `mut` or identifier, found `{}`", found).as_str(),
                 location,
                 help,
             ),
@@ -1150,7 +1149,7 @@ impl Error {
                         .as_str(),
                     location,
                     reference,
-                    Some("only integer values can be casted to greater or equal bitlength"),
+                    Some("only integer values can be casted to an integer with different bitlength or field element"),
                 )
             }
             Self::Semantic(SemanticError::Element(ElementError::OperatorNotExpectedEvaluable{ location, found })) |
@@ -1354,7 +1353,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "tuple `{}` has no field with index `{}`",
+                        "`{}` has no field with index `{}`",
                         type_identifier, field_index,
                     )
                         .as_str(),
@@ -1369,7 +1368,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "field or method `{}` does not exist in structure `{}`",
+                        "field or method `{}` does not exist in `{}`",
                         field_name, type_identifier,
                     )
                         .as_str(),
@@ -1381,7 +1380,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "field or method `{}` does not exist in contract `{}`",
+                        "field or method `{}` does not exist in `{}`",
                         field_name, type_identifier,
                     )
                         .as_str(),
@@ -1411,7 +1410,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "structure `{}` expected field `{}` at position {}, found `{}`",
+                        "`{}` expected field `{}` at position {}, found `{}`",
                         type_identifier, expected, position, found,
                     )
                         .as_str(),
@@ -1424,7 +1423,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "field `{}` of structure `{}` expected type `{}`, found `{}`",
+                        "field `{}` of `{}` expected type `{}`, found `{}`",
                         field_name, type_identifier, expected, found,
                     )
                         .as_str(),
@@ -1437,7 +1436,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "structure `{}` expected {} fields, found {}",
+                        "`{}` expected {} fields, found {}",
                         type_identifier, expected, found,
                     )
                         .as_str(),
@@ -1775,7 +1774,7 @@ impl Error {
             Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::Integer(IntegerConstantError::IntegerTooLarge { location, value, bitlength })))) => {
                 Self::format_line(
                     context,
-                    format!("integer `{}` is larger than `{}` bits", value, bitlength).as_str(),
+                    format!("`{}` is larger than `{}` bits", value, bitlength).as_str(),
                     location,
                     None,
                 )
@@ -1849,6 +1848,14 @@ impl Error {
                     location,
                     Some(reference),
                     Some("only one contract may be declared in the project"),
+                )
+            }
+            Self::Semantic(SemanticError::Scope(ScopeError::ReferenceLoop { location })) => {
+                Self::format_line(
+                    context,
+                    "reference loop detected",
+                    location,
+                    Some("consider removing circular references between the items"),
                 )
             }
 
@@ -2016,7 +2023,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "structure `{}` has a duplicate field `{}`",
+                        "`{}` has a duplicate field `{}`",
                         type_identifier, field_name,
                     )
                         .as_str(),
@@ -2028,7 +2035,7 @@ impl Error {
                 Self::format_line(
                     context,
                     format!(
-                        "contract `{}` has a duplicate field `{}`",
+                        "`{}` has a duplicate field `{}`",
                         type_identifier, field_name,
                     )
                         .as_str(),
@@ -2146,18 +2153,6 @@ impl Error {
                     Some("only constant ranges allowed, e.g. `for i in 0..42 { ... }`"),
                 )
             }
-            Self::Semantic(SemanticError::Statement(StatementError::Mod(ModStatementError::NotFound { location, name }))) => {
-                Self::format_line(
-                    context,
-                    format!(
-                        "file not found for module `{}`",
-                        name
-                    )
-                        .as_str(),
-                    location,
-                    Some(format!("create a file called `{}.zn` inside the `src` directory", name).as_str()),
-                )
-            }
             Self::Semantic(SemanticError::Statement(StatementError::Use(UseStatementError::ExpectedPath { location, found }))) => {
                 Self::format_line(
                     context,
@@ -2222,6 +2217,19 @@ impl Error {
                     Some("contracts may be declared only once in the entry file"),
                 )
             }
+            Self::Semantic(SemanticError::ModuleFileNotFound { location, name }) => {
+                Self::format_line(
+                    context,
+                    format!(
+                        "file not found for module `{}`",
+                        name
+                    )
+                        .as_str(),
+                    location,
+                    Some(format!("create a file called `{}.zn` inside the `src` directory", name).as_str()), // TODO: src -> nested directory
+                )
+            }
+
             Self::Semantic(SemanticError::ForbiddenConstantFunction { location }) => {
                 Self::format_line(
                     context,

@@ -32,7 +32,7 @@ pub struct TokenStream<'a> {
 }
 
 impl<'a> TokenStream<'a> {
-    const DEQUE_LOOK_AHEAD_INITIAL_CAPACITY: usize = 16;
+    const LOOK_AHEAD_INITIAL_CAPACITY: usize = 16;
 
     ///
     /// Initializes a stream without a file identifier.
@@ -43,7 +43,7 @@ impl<'a> TokenStream<'a> {
             input,
             offset: 0,
             location: Location::new_beginning(None),
-            look_ahead: VecDeque::with_capacity(Self::DEQUE_LOOK_AHEAD_INITIAL_CAPACITY),
+            look_ahead: VecDeque::with_capacity(Self::LOOK_AHEAD_INITIAL_CAPACITY),
         }
     }
 
@@ -56,7 +56,7 @@ impl<'a> TokenStream<'a> {
             input,
             offset: 0,
             location: Location::new_beginning(Some(file)),
-            look_ahead: VecDeque::with_capacity(Self::DEQUE_LOOK_AHEAD_INITIAL_CAPACITY),
+            look_ahead: VecDeque::with_capacity(Self::LOOK_AHEAD_INITIAL_CAPACITY),
         }
     }
 

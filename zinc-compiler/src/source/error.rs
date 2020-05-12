@@ -5,21 +5,26 @@
 use std::ffi::OsString;
 use std::fmt;
 
-use crate::source::file::error::Error as FileError;
+use crate::source::module::error::Error as ModuleError;
 
 #[derive(Debug)]
 pub enum Error {
     EntrySourceFileNotFound,
 
-    File(OsString, FileError),
+    RootModule { path: OsString, inner: ModuleError },
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::EntrySourceFileNotFound => write!(f, "the 'main.zn' source file is missing"),
+            Self::EntrySourceFileNotFound => write!(
+                f,
+                "the entry source file `{}.{}` is missing",
+                crate::APPLICATION_ENTRY_FILE_NAME,
+                crate::SOURCE_FILE_EXTENSION
+            ),
 
-            Self::File(path, inner) => write!(f, "file `{:?}` {}", path, inner),
+            Self::RootModule { path, inner } => write!(f, "root module `{:?}` {}", path, inner),
         }
     }
 }

@@ -29,6 +29,10 @@ pub enum Error {
     ContractBeyondEntry {
         location: Location,
     },
+    ModuleFileNotFound {
+        location: Location,
+        name: String,
+    },
 
     ForbiddenConstantFunction {
         location: Location, // TODO: implement

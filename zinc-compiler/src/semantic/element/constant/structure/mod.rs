@@ -9,7 +9,7 @@ pub mod error;
 use std::fmt;
 
 use crate::lexical::token::location::Location;
-use crate::semantic::element::access::Field as FieldAccess;
+use crate::semantic::element::access::field::Field as FieldAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::structure::Structure as StructureType;
 use crate::semantic::element::r#type::Type;
@@ -111,7 +111,7 @@ impl fmt::Display for Structure {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "constant structure '{}' with fields {{ {} }}",
+            "'{}' with fields {{ {} }}",
             self.r#type.identifier,
             self.values
                 .iter()

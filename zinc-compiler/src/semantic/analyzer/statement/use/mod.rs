@@ -45,7 +45,7 @@ impl Analyzer {
             .elements
             .last()
             .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);
-        Scope::declare_item(scope, path_last_element.to_owned(), item)?;
+        Scope::define_item(scope, path_last_element.to_owned(), item)?;
 
         Ok(())
     }

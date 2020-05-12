@@ -103,7 +103,7 @@ impl Bytecode {
         self.start_function(unique_id, identifier);
     }
 
-    pub fn declare_variable(&mut self, identifier: Option<String>, r#type: Type) -> usize {
+    pub fn define_variable(&mut self, identifier: Option<String>, r#type: Type) -> usize {
         let start_address = self.data_stack_pointer;
         if let Some(identifier) = identifier {
             self.variable_addresses

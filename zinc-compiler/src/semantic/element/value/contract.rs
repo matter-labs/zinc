@@ -33,6 +33,6 @@ impl Contract {
 
 impl fmt::Display for Contract {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "<contract> '{}'", self.r#type.identifier,)
+        write!(f, "'{}'", self.r#type.identifier)
     }
 }

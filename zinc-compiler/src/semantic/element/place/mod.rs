@@ -14,8 +14,8 @@ use num_bigint::BigInt;
 use num_traits::Signed;
 use num_traits::ToPrimitive;
 
-use crate::semantic::element::access::Field as FieldAccess;
-use crate::semantic::element::access::Index as IndexAccess;
+use crate::semantic::element::access::field::Field as FieldAccess;
+use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
@@ -195,7 +195,9 @@ impl Place {
                 Ok((self, access))
             }
             value => Err(Error::OperatorIndexSecondOperandExpectedIntegerOrRange {
-                location: value.location().unwrap(),
+                location: value
+                    .location()
+                    .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
                 found: value.to_string(),
             }),
         }
@@ -265,7 +267,10 @@ impl Place {
                 if let Ok(ScopeItem::Variable(variable)) =
                     Scope::resolve_item(contract.scope.clone(), &identifier, false)
                 {
-                    let access = FieldAccess::new(0, 0, variable.r#type.size(), total_size);
+                    let element_size = variable.r#type.size();
+                    self.r#type = variable.r#type;
+
+                    let access = FieldAccess::new(0, 0, element_size, total_size);
 
                     return Ok((self, access));
                 }

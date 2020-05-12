@@ -16,9 +16,6 @@ use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::constant::Constant as ScopeConstantItem;
-use crate::semantic::scope::item::r#type::index::SOFT as TYPE_INDEX_SOFT;
-use crate::semantic::scope::item::r#type::Type as ScopeTypeItem;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::variant::Variant;
 
@@ -43,10 +40,11 @@ impl Enumeration {
     pub fn new(
         location: Location,
         identifier: String,
+        unique_id: usize,
         variants: Vec<Variant>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Result<Self, Error> {
-        let scope = scope.unwrap_or_else(|| Rc::new(RefCell::new(Scope::new(None))));
+        let scope = scope.unwrap_or_else(|| Scope::new(None).wrap());
 
         let mut variants_bigint = Vec::with_capacity(variants.len());
         for variant in variants.into_iter() {
@@ -68,7 +66,6 @@ impl Enumeration {
         .map_err(|error| Error::Element(ElementError::Constant(ConstantError::Integer(error))))?;
 
         bigints.sort();
-        let unique_id = TYPE_INDEX_SOFT.next(identifier.clone());
         let mut enumeration = Self {
             location: Some(location),
             identifier,
@@ -86,17 +83,12 @@ impl Enumeration {
 
             constant.set_enumeration(enumeration.clone());
 
-            Scope::declare_constant(
-                scope.clone(),
-                identifier,
-                ScopeConstantItem::new(identifier_location, Constant::Integer(constant)),
-            )?;
+            Scope::define_constant(scope.clone(), identifier, Constant::Integer(constant))?;
         }
 
-        scope.borrow_mut().declare_self(ScopeTypeItem::new(
-            Some(location),
-            Type::Enumeration(enumeration.clone()),
-        ));
+        scope
+            .borrow_mut()
+            .define_self(Type::Enumeration(enumeration.clone()));
 
         enumeration.values.sort();
 
@@ -112,6 +104,6 @@ impl PartialEq<Self> for Enumeration {
 
 impl fmt::Display for Enumeration {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "enum {}", self.identifier)
+        write!(f, "{}", self.identifier)
     }
 }

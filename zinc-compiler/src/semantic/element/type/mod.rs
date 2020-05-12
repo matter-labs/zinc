@@ -19,8 +19,6 @@ use std::fmt;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use zinc_bytecode::builtins::BuiltinIdentifier;
-
 use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::expression::error::Error as ExpressionError;
 use crate::semantic::analyzer::expression::Analyzer as ExpressionAnalyzer;
@@ -31,6 +29,7 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
+use crate::semantic::scope::item::r#type::index::INDEX as TYPE_INDEX;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::r#type::variant::Variant as SyntaxTypeVariant;
@@ -160,7 +159,11 @@ impl Type {
         fields: Vec<(String, Self)>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
-        Self::Structure(Structure::new(location, identifier, fields, scope))
+        let unique_id = TYPE_INDEX.next(format!("structure {}", identifier));
+
+        Self::Structure(Structure::new(
+            location, identifier, unique_id, fields, scope,
+        ))
     }
 
     pub fn enumeration(
@@ -169,27 +172,29 @@ impl Type {
         variants: Vec<Variant>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Result<Self, Error> {
-        Enumeration::new(location, identifier, variants, scope).map(Self::Enumeration)
-    }
+        let unique_id = TYPE_INDEX.next(format!("enumeration {}", identifier));
 
-    pub fn new_std_function(builtin_identifier: BuiltinIdentifier) -> Self {
-        Self::Function(Function::new_std(builtin_identifier))
+        Enumeration::new(location, identifier, unique_id, variants, scope).map(Self::Enumeration)
     }
 
     pub fn new_user_defined_function(
         location: Location,
         identifier: String,
-        unique_id: usize,
         arguments: Vec<(String, Self)>,
         return_type: Self,
-    ) -> Self {
-        Self::Function(Function::new_user_defined(
-            location,
-            identifier,
+    ) -> (Self, usize) {
+        let unique_id = TYPE_INDEX.next(format!("function {}", identifier));
+
+        (
+            Self::Function(Function::new_user_defined(
+                location,
+                identifier,
+                unique_id,
+                arguments,
+                return_type,
+            )),
             unique_id,
-            arguments,
-            return_type,
-        ))
+        )
     }
 
     pub fn contract(
@@ -197,7 +202,9 @@ impl Type {
         identifier: String,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
-        Self::Contract(Contract::new(location, identifier, scope))
+        let unique_id = TYPE_INDEX.next(format!("contract {}", identifier));
+
+        Self::Contract(Contract::new(location, identifier, unique_id, scope))
     }
 
     pub fn size(&self) -> usize {
@@ -344,8 +351,9 @@ impl Type {
                     r#type
                 }
                 ScopeItem::Constant(constant) => {
-                    let mut constant = constant.into_inner();
+                    let mut constant = constant.resolve()?;
                     constant.set_location(path.last().location);
+
                     constant.r#type()
                 }
                 _ => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
@@ -439,14 +447,14 @@ impl fmt::Display for Type {
             Self::IntegerSigned { bitlength, .. } => write!(f, "i{}", bitlength),
             Self::Field(_) => write!(f, "field"),
             Self::String(_) => write!(f, "str"),
-            Self::Range(inner) => write!(f, "{}", inner),
-            Self::RangeInclusive(inner) => write!(f, "{}", inner),
-            Self::Array(inner) => write!(f, "{}", inner),
-            Self::Tuple(inner) => write!(f, "{}", inner),
-            Self::Structure(inner) => write!(f, "{}", inner),
-            Self::Enumeration(inner) => write!(f, "{}", inner),
-            Self::Function(inner) => write!(f, "{}", inner),
-            Self::Contract(inner) => write!(f, "{}", inner),
+            Self::Range(inner) => write!(f, "range {}", inner),
+            Self::RangeInclusive(inner) => write!(f, "range inclusive {}", inner),
+            Self::Array(inner) => write!(f, "array {}", inner),
+            Self::Tuple(inner) => write!(f, "tuple {}", inner),
+            Self::Structure(inner) => write!(f, "structure {}", inner),
+            Self::Enumeration(inner) => write!(f, "enumeration {}", inner),
+            Self::Function(inner) => write!(f, "function {}", inner),
+            Self::Contract(inner) => write!(f, "contract {}", inner),
         }
     }
 }

@@ -25,7 +25,6 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
-use crate::semantic::scope::item::variable::Variable as ScopeVariableItem;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::r#for::Statement as ForStatement;
@@ -77,14 +76,11 @@ impl Analyzer {
 
         let index_location = statement.index_identifier.location;
         let index_identifier = statement.index_identifier.name.to_owned();
-        Scope::declare_variable(
+        Scope::define_variable(
             scope_stack.top(),
             statement.index_identifier,
-            ScopeVariableItem::new(
-                index_location,
-                false,
-                Type::scalar(Some(index_location), is_index_signed, index_bitlength),
-            ),
+            false,
+            Type::scalar(Some(index_location), is_index_signed, index_bitlength),
         )?;
 
         let while_condition = if let Some(expression) = statement.while_condition {

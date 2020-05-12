@@ -20,8 +20,8 @@ use std::fmt;
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::lexical::token::location::Location;
 use crate::semantic::casting::Caster;
-use crate::semantic::element::access::Field as FieldAccess;
-use crate::semantic::element::access::Index as IndexAccess;
+use crate::semantic::element::access::field::Field as FieldAccess;
+use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
 use crate::syntax::tree::identifier::Identifier;
@@ -676,15 +676,15 @@ impl Constant {
 impl fmt::Display for Constant {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Unit(inner) => write!(f, "{}", inner),
-            Self::Boolean(inner) => write!(f, "{}", inner),
-            Self::Integer(inner) => write!(f, "{}", inner),
-            Self::Range(inner) => write!(f, "{}", inner),
-            Self::RangeInclusive(inner) => write!(f, "{}", inner),
-            Self::String(inner) => write!(f, "{}", inner),
-            Self::Array(inner) => write!(f, "{}", inner),
-            Self::Tuple(inner) => write!(f, "{}", inner),
-            Self::Structure(inner) => write!(f, "{}", inner),
+            Self::Unit(inner) => write!(f, "unit {}", inner),
+            Self::Boolean(inner) => write!(f, "boolean {}", inner),
+            Self::Integer(inner) => write!(f, "integer {}", inner),
+            Self::Range(inner) => write!(f, "range {}", inner),
+            Self::RangeInclusive(inner) => write!(f, "range inclusive {}", inner),
+            Self::String(inner) => write!(f, "string {}", inner),
+            Self::Array(inner) => write!(f, "array {}", inner),
+            Self::Tuple(inner) => write!(f, "tuple {}", inner),
+            Self::Structure(inner) => write!(f, "structure {}", inner),
         }
     }
 }

@@ -31,6 +31,6 @@ impl Boolean {
 
 impl fmt::Display for Boolean {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "<boolean> value")
+        write!(f, "<runtime>")
     }
 }

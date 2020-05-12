@@ -42,8 +42,12 @@ impl ScalarTypeExpectation for ScalarType {
             Ok(())
         } else {
             Err(RuntimeError::TypeError {
-                expected: if is_signed { "signed integer".to_string() } else { "unsigned integer".to_string() },
-                actual: self.to_string()
+                expected: if is_signed {
+                    "signed integer".to_string()
+                } else {
+                    "unsigned integer".to_string()
+                },
+                actual: self.to_string(),
             })
         }
     }

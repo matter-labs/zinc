@@ -1,3 +1,6 @@
-fn main(witness: u8) -> u8 {
-    witness
+const A: bool = B;
+const B: bool = true;
+
+fn main() -> bool {
+    A
 }
