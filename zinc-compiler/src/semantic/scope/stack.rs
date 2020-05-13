@@ -14,8 +14,21 @@ use crate::semantic::scope::Scope;
 /// to allow shared access.
 ///
 pub struct Stack {
-    elements: Vec<Rc<RefCell<Scope>>>,
+    pub elements: Vec<Rc<RefCell<Scope>>>,
 }
+
+impl Default for Stack {
+    ///
+    /// Initializes a scope stack starting from the global scope.
+    ///
+    fn default() -> Self {
+        let mut elements = Vec::with_capacity(Self::ELEMENTS_INITIAL_CAPACITY);
+        elements.push(Scope::new_global().wrap());
+        Self { elements }
+    }
+}
+
+static THERE_MUST_ALWAYS_BE_A_SCOPE: &str = "Scope stack balance is kept by the evaluation logic";
 
 impl Stack {
     const ELEMENTS_INITIAL_CAPACITY: usize = 16;
@@ -30,22 +43,13 @@ impl Stack {
     }
 
     ///
-    /// Initializes a scope stack starting from the global scope.
-    ///
-    pub fn new_global() -> Self {
-        let mut elements = Vec::with_capacity(Self::ELEMENTS_INITIAL_CAPACITY);
-        elements.push(Scope::new_global().wrap());
-        Self { elements }
-    }
-
-    ///
     /// Returns the deepest scope in the current hierarchy.
     ///
     pub fn top(&self) -> Rc<RefCell<Scope>> {
         self.elements
             .last()
             .cloned()
-            .expect(crate::panic::THERE_MUST_ALWAYS_BE_A_SCOPE)
+            .expect(THERE_MUST_ALWAYS_BE_A_SCOPE)
     }
 
     ///
@@ -59,8 +63,6 @@ impl Stack {
     /// Removes the deepest scope from the current hierarchy.
     ///
     pub fn pop(&mut self) {
-        self.elements
-            .pop()
-            .expect(crate::panic::THERE_MUST_ALWAYS_BE_A_SCOPE);
+        self.elements.pop().expect(THERE_MUST_ALWAYS_BE_A_SCOPE);
     }
 }

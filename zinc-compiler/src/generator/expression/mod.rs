@@ -43,14 +43,10 @@ impl Expression {
     }
 
     pub fn push_operand(&mut self, operand: Operand) {
-        log::trace!("Pushing operand {:?}", operand);
-
         self.elements.push(Element::Operand(operand))
     }
 
     pub fn push_operator(&mut self, location: Location, operator: Operator) {
-        log::trace!("Pushing operator {:?}", operator);
-
         self.elements.push(Element::Operator { location, operator })
     }
 
@@ -343,9 +339,9 @@ impl Expression {
                     }
 
                     Operator::Call {
-                        unique_id,
+                        type_id,
                         input_size,
-                    } => Self::call(bytecode.clone(), unique_id, input_size, location),
+                    } => Self::call(bytecode.clone(), type_id, input_size, location),
                     Operator::CallDebug {
                         format,
                         argument_types,
@@ -480,17 +476,12 @@ impl Expression {
 
     fn call(
         bytecode: Rc<RefCell<Bytecode>>,
-        unique_id: usize,
+        type_id: usize,
         input_size: usize,
         location: Location,
     ) {
-        let address = bytecode
-            .borrow()
-            .get_function_address(unique_id)
-            .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
-
         bytecode.borrow_mut().push_instruction(
-            Instruction::Call(zinc_bytecode::Call::new(address, input_size)),
+            Instruction::Call(zinc_bytecode::Call::new(type_id, input_size)),
             Some(location),
         );
     }

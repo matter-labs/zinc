@@ -13,7 +13,7 @@ use crate::semantic::element::Element;
 pub struct Function {
     pub location: Location,
     pub identifier: String,
-    pub unique_id: usize,
+    pub type_id: usize,
     pub formal_params: Vec<(String, Type)>,
     pub return_type: Box<Type>,
 }
@@ -22,7 +22,7 @@ impl Function {
     pub fn new(
         location: Location,
         identifier: String,
-        unique_id: usize,
+        type_id: usize,
         arguments: Vec<(String, Type)>,
         return_type: Type,
     ) -> Self {
@@ -31,7 +31,7 @@ impl Function {
             identifier,
             formal_params: arguments,
             return_type: Box::new(return_type),
-            unique_id,
+            type_id,
         }
     }
 

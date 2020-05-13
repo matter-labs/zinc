@@ -27,7 +27,7 @@ impl Contract {
     }
 
     pub fn has_the_same_type_as(&self, other: &Self) -> bool {
-        self.r#type.unique_id == other.r#type.unique_id
+        self.r#type.type_id == other.r#type.type_id
     }
 }
 

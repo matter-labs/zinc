@@ -1641,7 +1641,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::OperatorFieldFirstOperandExpectedPlaceOrEvaluable {
+        ElementError::OperatorDotFirstOperandExpectedPlaceOrEvaluable {
             location: Location::new(5, 5),
             found: Element::Type(Type::field(None)).to_string(),
         },

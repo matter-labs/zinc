@@ -320,11 +320,11 @@ pub enum Error {
         found: String,
     },
 
-    OperatorFieldFirstOperandExpectedPlaceOrEvaluable {
+    OperatorDotFirstOperandExpectedPlaceOrEvaluable {
         location: Location,
         found: String,
     },
-    OperatorFieldSecondOperandExpectedIdentifier {
+    OperatorDotSecondOperandExpectedIdentifier {
         location: Location,
         found: String,
     },

@@ -31,7 +31,7 @@ impl Index {
         let mut index = self.inner.write().expect(crate::panic::MUTEX_SYNC);
         let sequence_id = index.len();
 
-        log::debug!("File ID {:03} for {:?}", sequence_id, path);
+        log::debug!("File ID {:06} for {:?}", sequence_id, path);
 
         index.push(path.to_owned());
         sequence_id

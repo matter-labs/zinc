@@ -31,6 +31,8 @@ impl Rule {
     ///
     /// Returns the first operand translation rule required by `operator`.
     ///
+    /// The `rule` arguments contains an initial bias which helps to make the final decision.
+    ///
     pub fn first(operator: ExpressionOperator, rule: Self) -> Self {
         match operator {
             ExpressionOperator::Assignment => Self::Place,
@@ -78,7 +80,7 @@ impl Rule {
             ExpressionOperator::Negation => rule.constant_or_value(),
 
             ExpressionOperator::Index => rule.constant_or_place(),
-            ExpressionOperator::Field => rule.constant_or_place(),
+            ExpressionOperator::Dot => rule.constant_or_place(),
 
             ExpressionOperator::CallBuiltIn => Self::Type,
             ExpressionOperator::Call => Self::Type,
@@ -89,6 +91,8 @@ impl Rule {
 
     ///
     /// Returns the second operand translation rule required by `operator`.
+    ///
+    /// The `rule` arguments contains an initial bias which helps to make the final decision.
     ///
     pub fn second(operator: ExpressionOperator, rule: Self) -> Self {
         match operator {
@@ -139,7 +143,7 @@ impl Rule {
             ExpressionOperator::Negation => panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS),
 
             ExpressionOperator::Index => rule.constant_or_value(),
-            ExpressionOperator::Field => Self::Field,
+            ExpressionOperator::Dot => Self::Field,
 
             ExpressionOperator::CallBuiltIn => {
                 panic!(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS)

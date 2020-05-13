@@ -9,6 +9,7 @@ use crate::lexical::token::location::Location;
 use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::path::Path;
 use crate::semantic::element::r#type::error::Error as TypeError;
+use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
 use crate::syntax::tree::identifier::Identifier;
 
@@ -25,7 +26,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
-        TypeError::AliasDoesNotPointToStructure {
+        TypeError::NotStructure {
             location: Location::new(5, 16),
             found: "X".to_owned(),
         },
@@ -48,10 +49,10 @@ fn main() {
     let expected = Err(Error::Semantic(SemanticError::Element(ElementError::Type(
         TypeError::AliasDoesNotPointToType {
             location: Location::new(4, 24),
-            found: Path::new(
+            found: Element::Path(Path::new(
                 Location::new(4, 24),
                 Identifier::new(Location::new(4, 24), "unknown".to_owned()),
-            )
+            ))
             .to_string(),
         },
     ))));

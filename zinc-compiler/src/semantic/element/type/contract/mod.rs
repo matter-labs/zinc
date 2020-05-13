@@ -17,14 +17,14 @@ use crate::semantic::scope::Scope;
 ///
 /// Describes a contract type.
 ///
-/// Consists of the local contract `identifier` within its scope, global `unique_id`, `fields`,
+/// Consists of the local contract `identifier` within its scope, global `type_id`,
 /// and the implementation `scope`, which contains the reference to its parent scope.
 ///
 #[derive(Debug, Clone)]
 pub struct Contract {
     pub location: Option<Location>,
     pub identifier: String,
-    pub unique_id: usize,
+    pub type_id: usize,
     pub scope: Rc<RefCell<Scope>>,
 }
 
@@ -32,7 +32,7 @@ impl Contract {
     pub fn new(
         location: Option<Location>,
         identifier: String,
-        unique_id: usize,
+        type_id: usize,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
         let scope = scope.unwrap_or_else(|| Scope::new(None).wrap());
@@ -40,7 +40,7 @@ impl Contract {
         let contract = Self {
             location,
             identifier,
-            unique_id,
+            type_id,
             scope: scope.clone(),
         };
 
@@ -54,7 +54,7 @@ impl Contract {
 
 impl PartialEq<Self> for Contract {
     fn eq(&self, other: &Self) -> bool {
-        self.unique_id == other.unique_id
+        self.type_id == other.type_id
     }
 }
 

@@ -275,7 +275,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedTuple {
+        ElementError::Place(PlaceError::OperatorDotFirstOperandExpectedTuple {
             location: Location::new(10, 17),
             found: Type::structure(
                 Some(Location::new(2, 1)),
@@ -305,7 +305,7 @@ fn main() {
 "#;
 
     let expected = Err(Error::Semantic(SemanticError::Element(
-        ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedStructure {
+        ElementError::Place(PlaceError::OperatorDotFirstOperandExpectedStructure {
             location: Location::new(4, 17),
             found: Type::tuple(Some(Location::new(4, 17)), vec![Type::boolean(None); 3])
                 .to_string(),

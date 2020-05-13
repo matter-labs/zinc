@@ -2,7 +2,6 @@
 //! The Zinc tester program.
 //!
 
-use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -11,14 +10,16 @@ use serde_json::Value as JsonValue;
 
 use zinc_bytecode::data::values::JsonValueError;
 use zinc_bytecode::data::values::Value;
-use zinc_bytecode::program::Program;
+use zinc_bytecode::program::Program as BytecodeProgram;
 use zinc_compiler::Bytecode;
 use zinc_compiler::EntryAnalyzer;
 use zinc_compiler::Error as CompilerError;
+use zinc_compiler::Program as IntermediateProgram;
+use zinc_compiler::Scope;
 use zinc_compiler::Source;
 
 pub struct ProgramData {
-    pub program: Program,
+    pub program: BytecodeProgram,
     pub input: Value,
 }
 
@@ -41,28 +42,29 @@ impl ProgramData {
         Ok(Self { program, input })
     }
 
-    pub fn compile(code: &str) -> Result<Program, Error> {
+    pub fn compile(code: &str) -> Result<BytecodeProgram, Error> {
         let lines = code.lines().collect::<Vec<&str>>();
 
         let source = Source::test(code, HashMap::new())
             .map_err(|error| error.format(lines.as_slice()))
             .map_err(Error::Compiler)?;
 
-        EntryAnalyzer::analyze(source)
+        let scope = EntryAnalyzer::analyze(source.entry.tree, source.modules)
             .map_err(CompilerError::Semantic)
             .map_err(|error| error.format(lines.as_slice()))
             .map_err(Error::Compiler)?;
 
-        let bytecode = Rc::new(RefCell::new(Bytecode::new()));
-        //        intermediate.write_all_to_bytecode(bytecode.clone());
+        let bytecode = Bytecode::new().wrap();
+        IntermediateProgram::new(Scope::get_intermediate(scope))
+            .write_all_to_bytecode(bytecode.clone());
         let mut bytecode = Rc::try_unwrap(bytecode)
             .expect(crate::PANIC_LAST_SHARED_REFERENCE)
             .into_inner();
 
         let entry_id = bytecode
-            .function_name_to_entry_id(zinc_compiler::FUNCTION_MAIN_IDENTIFIER)
+            .entry_id(zinc_compiler::FUNCTION_MAIN_IDENTIFIER)
             .expect(crate::PANIC_MAIN_ENTRY_ID);
-        let program = Program::from_bytes(bytecode.entry_to_bytes(entry_id).as_slice())
+        let program = BytecodeProgram::from_bytes(bytecode.entry_to_bytes(entry_id).as_slice())
             .map_err(Error::Program)?;
 
         Ok(program)

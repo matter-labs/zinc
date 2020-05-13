@@ -170,8 +170,7 @@ impl Analyzer {
                     ))));
                 }
 
-                let intermediate =
-                    GeneratorExpressionOperator::call(function.unique_id, input_size);
+                let intermediate = GeneratorExpressionOperator::call(function.type_id, input_size);
 
                 let return_type = function.call(argument_list.arguments).map_err(|error| {
                     Error::Element(ElementError::Type(TypeError::Function(error)))

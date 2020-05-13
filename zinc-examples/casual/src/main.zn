@@ -1,6 +1,23 @@
-const A: bool = B;
-const B: bool = true;
+enum List {
+    FIRST = 1,
+    SECOND = 2,
+    THIRD = 3,
+}
 
-fn main() -> bool {
-    A
+impl List {
+    pub fn first() -> Self {
+        Self::FIRST
+    }
+
+    pub fn second() -> Self {
+        Self::SECOND
+    }
+
+    pub fn third() -> Self {
+        Self::THIRD
+    }
+}
+
+fn main(witness: field) -> field {
+    (List::first() + List::second() + List::third()) as field * witness
 }

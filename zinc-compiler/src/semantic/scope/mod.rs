@@ -67,7 +67,7 @@ impl Scope {
     ///
     pub fn new_global() -> Self {
         Self {
-            parent: Some(Rc::new(RefCell::new(BuiltInScope::initialize()))),
+            parent: Some(BuiltInScope::initialize().wrap()),
             items: HashMap::with_capacity(Self::ITEMS_INITIAL_CAPACITY),
         }
     }
@@ -456,5 +456,15 @@ impl Scope {
     ///
     pub fn new_child(parent: Rc<RefCell<Scope>>) -> Rc<RefCell<Self>> {
         Self::new(Some(parent)).wrap()
+    }
+
+    pub fn get_intermediate(scope: Rc<RefCell<Scope>>) -> Vec<GeneratorStatement> {
+        scope
+            .borrow()
+            .items
+            .iter()
+            .map(|(_name, item)| item.get_intermediate())
+            .flatten()
+            .collect()
     }
 }

@@ -17,7 +17,7 @@ use crate::semantic::scope::builtin::BuiltInTypeId;
 /// The type index considers type aliases equal to the type they point to.
 ///
 pub struct Index {
-    inner: RwLock<HashMap<usize, String>>,
+    pub inner: RwLock<HashMap<usize, String>>,
 }
 
 lazy_static! {
@@ -43,21 +43,17 @@ impl Index {
     }
 
     pub fn next(&self, title: String) -> usize {
-        let mut index = self.inner.write().expect(crate::panic::MUTEX_SYNC);
-        let unique_id = index.len();
+        let type_id = self.inner.write().expect(crate::panic::MUTEX_SYNC).len();
 
-        log::debug!("Type ID {:04} for {}", unique_id, title);
-
-        index.insert(unique_id, title);
-        unique_id
+        self.next_with_id(title, type_id)
     }
 
-    fn next_with_id(&self, title: String, unique_id: usize) -> usize {
+    fn next_with_id(&self, title: String, type_id: usize) -> usize {
         let mut index = self.inner.write().expect(crate::panic::MUTEX_SYNC);
 
-        log::debug!("Type ID {:04} for {}", unique_id, title);
+        log::debug!("Type ID {:06} for {}", type_id, title);
 
-        index.insert(unique_id, title);
-        unique_id
+        index.insert(type_id, title);
+        type_id
     }
 }

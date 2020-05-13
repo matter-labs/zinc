@@ -22,7 +22,7 @@ use crate::syntax::tree::variant::Variant;
 ///
 /// Describes an enumeration type.
 ///
-/// Consists of the local enumeration `identifier` within its scope, global `unique_id`,
+/// Consists of the local enumeration `identifier` within its scope, global `type_id`,
 /// and the implementation `scope`, which contains the enumeration variants and
 /// reference to its parent scope.
 ///
@@ -30,7 +30,7 @@ use crate::syntax::tree::variant::Variant;
 pub struct Enumeration {
     pub location: Option<Location>,
     pub identifier: String,
-    pub unique_id: usize,
+    pub type_id: usize,
     pub bitlength: usize,
     pub values: Vec<BigInt>,
     pub scope: Rc<RefCell<Scope>>,
@@ -40,7 +40,7 @@ impl Enumeration {
     pub fn new(
         location: Location,
         identifier: String,
-        unique_id: usize,
+        type_id: usize,
         variants: Vec<Variant>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Result<Self, Error> {
@@ -69,7 +69,7 @@ impl Enumeration {
         let mut enumeration = Self {
             location: Some(location),
             identifier,
-            unique_id,
+            type_id,
             bitlength: minimal_bitlength,
             values: bigints,
             scope: scope.clone(),
@@ -98,7 +98,7 @@ impl Enumeration {
 
 impl PartialEq<Self> for Enumeration {
     fn eq(&self, other: &Self) -> bool {
-        self.unique_id == other.unique_id
+        self.type_id == other.type_id
     }
 }
 

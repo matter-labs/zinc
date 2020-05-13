@@ -34,6 +34,7 @@ pub struct Type {
     pub location: Option<Location>,
     pub item_id: usize,
     pub state: RefCell<Option<State>>,
+    pub is_self_alias: bool,
 }
 
 impl Type {
@@ -54,6 +55,7 @@ impl Type {
             location,
             item_id,
             state: RefCell::new(Some(State::Unresolved { inner, scope })),
+            is_self_alias: false,
         }
     }
 
@@ -81,6 +83,7 @@ impl Type {
                 inner,
                 intermediate,
             })),
+            is_self_alias,
         }
     }
 
@@ -97,6 +100,7 @@ impl Type {
                 inner,
                 intermediate: None,
             })),
+            is_self_alias: false,
         }
     }
 
@@ -173,6 +177,18 @@ impl Type {
             }) => true,
             _ => false,
         }
+    }
+
+    pub fn get_intermediate(&self) -> Vec<GeneratorStatement> {
+        if self.is_self_alias {
+            return vec![];
+        }
+
+        self.state
+            .borrow()
+            .as_ref()
+            .map(|state| state.get_intermediate())
+            .unwrap_or_default()
     }
 }
 

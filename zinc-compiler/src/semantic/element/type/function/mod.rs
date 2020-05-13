@@ -52,14 +52,14 @@ impl Function {
     pub fn new_user_defined(
         location: Location,
         identifier: String,
-        unique_id: usize,
+        type_id: usize,
         arguments: Vec<(String, Type)>,
         return_type: Type,
     ) -> Self {
         Self::UserDefined(UserFunction::new(
             location,
             identifier,
-            unique_id,
+            type_id,
             arguments,
             return_type,
         ))

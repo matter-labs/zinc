@@ -10,6 +10,7 @@ pub mod variable;
 
 use std::fmt;
 
+use crate::generator::statement::Statement as GeneratorStatement;
 use crate::lexical::token::location::Location;
 use crate::semantic::error::Error;
 
@@ -34,13 +35,16 @@ pub enum Item {
 impl Item {
     pub fn resolve(&self) -> Result<(), Error> {
         match self {
+            Self::Variable(_) => {}
             Self::Constant(inner) => {
                 inner.resolve()?;
             }
             Self::Type(inner) => {
                 inner.resolve()?;
             }
-            _ => {}
+            Self::Module(inner) => {
+                inner.resolve()?;
+            }
         }
 
         Ok(())
@@ -68,6 +72,15 @@ impl Item {
             Self::Constant(inner) => inner.item_id,
             Self::Type(inner) => inner.item_id,
             Self::Module(inner) => inner.item_id,
+        }
+    }
+
+    pub fn get_intermediate(&self) -> Vec<GeneratorStatement> {
+        match self {
+            Self::Variable(_) => vec![],
+            Self::Constant(_) => vec![],
+            Self::Type(inner) => inner.get_intermediate(),
+            Self::Module(inner) => inner.get_intermediate(),
         }
     }
 }

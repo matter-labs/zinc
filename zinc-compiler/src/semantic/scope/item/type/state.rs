@@ -23,3 +23,28 @@ pub enum State {
         intermediate: Option<GeneratorStatement>,
     },
 }
+
+impl State {
+    pub fn get_intermediate(&self) -> Vec<GeneratorStatement> {
+        match self {
+            Self::Resolved {
+                inner,
+                intermediate,
+            } => match inner {
+                TypeElement::Function(_) => match intermediate.to_owned().take() {
+                    Some(intermediate) => vec![intermediate],
+                    None => vec![],
+                },
+                TypeElement::Structure(ref inner) => {
+                    Scope::get_intermediate(inner.scope.to_owned())
+                }
+                TypeElement::Enumeration(ref inner) => {
+                    Scope::get_intermediate(inner.scope.to_owned())
+                }
+                TypeElement::Contract(ref inner) => Scope::get_intermediate(inner.scope.to_owned()),
+                _ => vec![],
+            },
+            Self::Unresolved { .. } => vec![],
+        }
+    }
+}

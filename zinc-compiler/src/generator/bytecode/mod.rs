@@ -4,7 +4,9 @@
 
 pub mod metadata;
 
+use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use zinc_bytecode::data::values::Value as TemplateValue;
 use zinc_bytecode::Instruction;
@@ -43,6 +45,10 @@ impl Bytecode {
     const VARIABLE_ADDRESSES_HASHMAP_INITIAL_SIZE: usize = 16;
     const ENTRY_METADATA_HASHMAP_INITIAL_SIZE: usize = 4;
 
+    ///
+    /// Creates a new bytecode instance with the placeholders for the entry `Call` and
+    /// `Exit` instructions.
+    ///
     pub fn new() -> Self {
         let mut instructions = Vec::with_capacity(Self::INSTRUCTION_VECTOR_INITIAL_SIZE);
         instructions.push(Instruction::NoOperation(zinc_bytecode::NoOperation));
@@ -65,17 +71,34 @@ impl Bytecode {
         }
     }
 
+    ///
+    /// Wraps the bytecode into `Rc<RefCell<_>>` simplifying most of initializations.
+    ///
+    pub fn wrap(self) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(self))
+    }
+
+    ///
+    /// Returns an array of entry IDs, which are actually type IDs of the corresponding functions.
+    ///
     pub fn entries(&self) -> Vec<usize> {
         self.entry_metadata_map.keys().copied().collect()
     }
 
+    ///
+    /// Sets the file name to be written to the bytecode as the location debug information.
+    ///
     pub fn start_new_file(&mut self, name: &str) {
         self.current_file = name.to_owned();
     }
 
-    pub fn start_function(&mut self, unique_id: usize, identifier: String) {
+    ///
+    /// Starts a new function, resetting the data stack pointer and writing the
+    /// function debug information.
+    ///
+    pub fn start_function(&mut self, type_id: usize, identifier: String) {
         let address = self.instructions.len();
-        self.function_addresses.insert(unique_id, address);
+        self.function_addresses.insert(type_id, address);
         self.data_stack_pointer = 0;
 
         self.instructions.push(Instruction::FileMarker(
@@ -86,10 +109,13 @@ impl Bytecode {
         ));
     }
 
+    ///
+    /// Starts an entry functions, saving its metadata and calls the `start_function` method.
+    ///
     pub fn start_entry_function(
         &mut self,
         identifier: String,
-        unique_id: usize,
+        type_id: usize,
         input_arguments: Vec<(String, Type)>,
         output_type: Option<Type>,
     ) {
@@ -98,11 +124,14 @@ impl Bytecode {
             input_arguments,
             output_type.unwrap_or_else(|| Type::structure(vec![])),
         );
-        self.entry_metadata_map.insert(unique_id, metadata);
+        self.entry_metadata_map.insert(type_id, metadata);
 
-        self.start_function(unique_id, identifier);
+        self.start_function(type_id, identifier);
     }
 
+    ///
+    /// Defines a variable, saving its address within the current data stack frame.
+    ///
     pub fn define_variable(&mut self, identifier: Option<String>, r#type: Type) -> usize {
         let start_address = self.data_stack_pointer;
         if let Some(identifier) = identifier {
@@ -113,6 +142,9 @@ impl Bytecode {
         start_address
     }
 
+    ///
+    /// Writes the instruction along with its location debug information.
+    ///
     pub fn push_instruction(&mut self, instruction: Instruction, location: Option<Location>) {
         if let Some(location) = location {
             if self.current_location != location {
@@ -133,14 +165,30 @@ impl Bytecode {
         self.instructions.push(instruction)
     }
 
-    pub fn get_function_address(&self, unique_id: usize) -> Option<usize> {
-        self.function_addresses.get(&unique_id).copied()
+    pub fn get_function_address(&self, type_id: usize) -> Option<usize> {
+        self.function_addresses.get(&type_id).copied()
     }
 
     pub fn get_variable_address(&self, name: &str) -> Option<usize> {
         self.variable_addresses.get(name).copied()
     }
 
+    ///
+    /// Returns the entry ID by its function name.
+    ///
+    pub fn entry_id(&self, name: &str) -> Option<usize> {
+        for (id, metadata) in self.entry_metadata_map.iter() {
+            if name == metadata.entry_name.as_str() {
+                return Some(*id);
+            }
+        }
+
+        None
+    }
+
+    ///
+    /// Returns the entry function name by its ID.
+    ///
     pub fn entry_name(&self, entry_id: usize) -> &str {
         self.entry_metadata_map
             .get(&entry_id)
@@ -149,6 +197,9 @@ impl Bytecode {
             .as_str()
     }
 
+    ///
+    /// Returns the entry's input arguments as a structure initialized with its default values.
+    ///
     pub fn input_template_bytes(&self, entry_id: usize) -> Vec<u8> {
         let input_type = self
             .entry_metadata_map
@@ -166,6 +217,9 @@ impl Bytecode {
         }
     }
 
+    ///
+    /// Returns the entry's output type value initialized with its default value.
+    ///
     pub fn output_template_bytes(&self, entry_id: usize) -> Vec<u8> {
         let output_bytecode_type = self
             .entry_metadata_map
@@ -184,20 +238,36 @@ impl Bytecode {
         }
     }
 
+    ///
+    /// Generates the bytecode for the entry specified with `entry_id`.
+    ///
+    /// Besides that, the function walks through the `Call` instructions and replaces `type_id`s
+    /// of the function stored as `address`es with their actual addresses in the bytecode,
+    /// since the addresses are only known after the functions are written there.
+    ///
     pub fn entry_to_bytes(&mut self, entry_id: usize) -> Vec<u8> {
         let metadata = self
             .entry_metadata_map
             .remove(&entry_id)
             .expect(crate::panic::ENSURED_WHILE_RETURNING_ENTRIES);
+
         let mut instructions = self.instructions.clone();
-        let entry_address = self
-            .get_function_address(entry_id)
-            .expect(crate::panic::ENSURED_WHILE_RETURNING_ENTRIES);
-        instructions[0] = Instruction::Call(zinc_bytecode::Call::new(
-            entry_address,
-            metadata.input_size(),
-        ));
+        instructions[0] =
+            Instruction::Call(zinc_bytecode::Call::new(entry_id, metadata.input_size()));
         instructions[1] = Instruction::Exit(zinc_bytecode::Exit::new(metadata.output_size()));
+
+        for instruction in instructions.iter_mut() {
+            if let Instruction::Call(zinc_bytecode::Call {
+                address: ref mut type_id,
+                ..
+            }) = instruction
+            {
+                let address = self
+                    .get_function_address(*type_id)
+                    .expect(crate::panic::ENSURED_WHILE_RETURNING_ENTRIES);
+                *type_id = address;
+            }
+        }
 
         for (index, instruction) in instructions.iter().enumerate() {
             match instruction {
@@ -217,16 +287,6 @@ impl Bytecode {
             instructions,
         )
         .to_bytes()
-    }
-
-    pub fn function_name_to_entry_id(&self, name: &str) -> Option<usize> {
-        for (id, metadata) in self.entry_metadata_map.iter() {
-            if name == metadata.entry_name.as_str() {
-                return Some(*id);
-            }
-        }
-
-        None
     }
 
     pub fn into_instructions(self) -> Vec<Instruction> {

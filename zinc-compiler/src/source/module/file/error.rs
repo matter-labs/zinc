@@ -29,6 +29,7 @@ impl fmt::Display for Error {
                 write!(f, "file extension `{:?}` is invalid", extension)
             }
             Self::StemNotFound => write!(f, "file name not found"),
+
             Self::Compiling(inner) => write!(f, "compiling: {}", inner),
         }
     }

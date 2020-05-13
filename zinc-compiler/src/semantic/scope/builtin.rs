@@ -2,9 +2,6 @@
 //! The semantic analyzer scope built-in items.
 //!
 
-use std::cell::RefCell;
-use std::rc::Rc;
-
 use zinc_bytecode::builtins::BuiltinIdentifier;
 
 use crate::semantic::element::r#type::function::Function as FunctionType;
@@ -35,28 +32,28 @@ impl BuiltInScope {
             "crypto".to_owned(),
             ScopeItem::Module(ScopeModuleItem::new_built_in(
                 "crypto".to_owned(),
-                Rc::new(RefCell::new(Self::module_crypto())),
+                Self::module_crypto().wrap(),
             )),
         );
         std_scope.items.insert(
             "convert".to_owned(),
             ScopeItem::Module(ScopeModuleItem::new_built_in(
                 "convert".to_owned(),
-                Rc::new(RefCell::new(Self::module_convert())),
+                Self::module_convert().wrap(),
             )),
         );
         std_scope.items.insert(
             "array".to_owned(),
             ScopeItem::Module(ScopeModuleItem::new_built_in(
                 "array".to_owned(),
-                Rc::new(RefCell::new(Self::module_array())),
+                Self::module_array().wrap(),
             )),
         );
         std_scope.items.insert(
             "ff".to_owned(),
             ScopeItem::Module(ScopeModuleItem::new_built_in(
                 "ff".to_owned(),
-                Rc::new(RefCell::new(Self::module_ff())),
+                Self::module_ff().wrap(),
             )),
         );
 
@@ -82,7 +79,7 @@ impl BuiltInScope {
             "std".to_owned(),
             ScopeItem::Module(ScopeModuleItem::new_built_in(
                 "std".to_owned(),
-                Rc::new(RefCell::new(std_scope)),
+                std_scope.wrap(),
             )),
         );
 
@@ -130,7 +127,7 @@ impl BuiltInScope {
                     Type::Structure(std_crypto_ecc_point.clone()),
                 ),
             ],
-            Some(Rc::new(RefCell::new(std_crypto_schnorr_signature_scope))),
+            Some(std_crypto_schnorr_signature_scope.wrap()),
         );
         std_crypto_schnorr.items.insert(
             "Signature".to_owned(),
@@ -163,14 +160,14 @@ impl BuiltInScope {
             "ecc".to_owned(),
             ScopeItem::Module(ScopeModuleItem::new_built_in(
                 "ecc".to_owned(),
-                Rc::new(RefCell::new(std_crypto_ecc)),
+                std_crypto_ecc.wrap(),
             )),
         );
         std_crypto_scope.items.insert(
             "schnorr".to_owned(),
             ScopeItem::Module(ScopeModuleItem::new_built_in(
                 "schnorr".to_owned(),
-                Rc::new(RefCell::new(std_crypto_schnorr)),
+                std_crypto_schnorr.wrap(),
             )),
         );
 

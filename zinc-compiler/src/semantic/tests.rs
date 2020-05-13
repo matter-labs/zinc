@@ -28,7 +28,8 @@ pub(crate) fn compile_entry_with_dependencies(
     input: &str,
     dependencies: HashMap<String, SourceModule>,
 ) -> Result<(), Error> {
-    EntryAnalyzer::analyze(Source::test(input, dependencies)?)?;
+    let source = Source::test(input, dependencies)?;
+    EntryAnalyzer::analyze(source.entry.tree, source.modules)?;
 
     Ok(())
 }

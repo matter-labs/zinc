@@ -27,7 +27,7 @@ use crate::semantic::error::Error;
 use crate::semantic::scope::item::r#type::statement::Statement as TypeStatementVariant;
 use crate::semantic::scope::Scope;
 use crate::source::module::Module as SourceModule;
-use crate::source::Source;
+use crate::syntax::tree::module::Module as SyntaxModule;
 use crate::syntax::tree::statement::contract::Statement as ContractStatement;
 use crate::syntax::tree::statement::local_contract::Statement as ContractLocalStatement;
 use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatement;
@@ -36,6 +36,7 @@ use crate::syntax::tree::statement::local_mod::Statement as ModuleLocalStatement
 use crate::syntax::tree::statement::r#impl::Statement as ImplementationStatement;
 
 use self::field::Analyzer as FieldStatementAnalyzer;
+use self::module::Analyzer as ModStatementAnalyzer;
 use self::r#const::Analyzer as ConstStatementAnalyzer;
 use self::r#fn::Context as FnStatementAnalyzerContext;
 use self::r#for::Analyzer as ForStatementAnalyzer;
@@ -60,206 +61,182 @@ pub enum Context {
 pub struct Analyzer {}
 
 impl Analyzer {
-    pub fn entry(source: Source, scope: Rc<RefCell<Scope>>) -> Result<(), Error> {
-        let (module, mut dependencies) = (source.entry.tree, source.modules);
+    ///
+    /// Analyzes the module or entry with all the inner statements. Works in three phases:
+    ///
+    /// 1. Declares the hoisted items.
+    /// 2. Defines the instant items.
+    /// 3. Resolves the hoisted items forcibly.
+    ///
+    /// `dependencies` contain the modules located in the directory of the module being analyzed.
+    /// If the module is not a directory with `mod.zn`, but a standalone file, the dependency map
+    /// is empty. Each module, declared using a `mod` statement, must have a corresponding file
+    /// `<module>.zn` in the module directory. For example, `mod foo;` will look for file called
+    /// `./foo.zn` and yield an error if it is absent.
+    ///
+    /// `context` specifies whether the current module in the application entry point or an ordinar
+    /// module found elsewhere.
+    ///
+    pub fn module(
+        module: SyntaxModule,
+        mut dependencies: HashMap<String, SourceModule>,
+        context: Context,
+    ) -> Result<Rc<RefCell<Scope>>, Error> {
+        let scope = Scope::new_global().wrap();
 
-        for statement in module.statements.into_iter() {
-            Self::local_module(statement, scope.clone(), Context::Entry, &mut dependencies)?;
+        let mut instant_statements = Vec::with_capacity(module.statements.len());
+        for hoisted_statement in module.statements.into_iter() {
+            match hoisted_statement {
+                ModuleLocalStatement::Const(statement) => {
+                    Scope::declare_constant(scope.clone(), statement)?;
+                }
+                ModuleLocalStatement::Type(statement) => {
+                    Scope::declare_type(scope.clone(), TypeStatementVariant::Type(statement))?;
+                }
+                ModuleLocalStatement::Struct(statement) => {
+                    Scope::declare_type(scope.clone(), TypeStatementVariant::Struct(statement))?;
+                }
+                ModuleLocalStatement::Enum(statement) => {
+                    Scope::declare_type(scope.clone(), TypeStatementVariant::Enum(statement))?;
+                }
+                ModuleLocalStatement::Fn(statement) => {
+                    if let Context::Module = context {
+                        if statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER {
+                            return Err(Error::FunctionMainBeyondEntry {
+                                location: statement.location,
+                            });
+                        }
+                    }
+
+                    if let Context::Entry = context {
+                        if statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER
+                            && statement.is_constant
+                        {
+                            return Err(Error::EntryPointConstant {
+                                location: statement.location,
+                            });
+                        }
+                    }
+
+                    Scope::declare_type(
+                        scope.clone(),
+                        TypeStatementVariant::Fn(statement, FnStatementAnalyzerContext::Module),
+                    )?;
+                }
+                ModuleLocalStatement::Mod(statement) => {
+                    let module = match dependencies.remove(statement.identifier.name.as_str()) {
+                        Some(module) => module,
+                        None => {
+                            return Err(Error::ModuleFileNotFound {
+                                location: statement.identifier.location,
+                                name: statement.identifier.name,
+                            });
+                        }
+                    };
+
+                    let identifier = ModStatementAnalyzer::analyze(statement)?;
+
+                    Scope::declare_module(scope.clone(), identifier, module)?;
+                }
+                ModuleLocalStatement::Contract(statement) => match context {
+                    Context::Entry => {
+                        Scope::declare_contract(scope.clone(), statement)?;
+                    }
+                    Context::Module => {
+                        return Err(Error::ContractBeyondEntry {
+                            location: statement.location,
+                        })
+                    }
+                },
+                ModuleLocalStatement::Empty(_location) => {}
+                statement => instant_statements.push(statement),
+            }
         }
 
-        scope.borrow().resolve()
-    }
-
-    pub fn module(module: SourceModule, scope: Rc<RefCell<Scope>>) -> Result<(), Error> {
-        let (module, mut dependencies) = match module {
-            SourceModule::File(file) => (file.tree, HashMap::new()),
-            SourceModule::Directory(directory) => (directory.entry.tree, directory.modules),
-        };
-
-        for statement in module.statements.into_iter() {
-            Self::local_module(statement, scope.clone(), Context::Module, &mut dependencies)?;
+        for instant_statement in instant_statements.into_iter() {
+            match instant_statement {
+                ModuleLocalStatement::Use(statement) => {
+                    UseStatementAnalyzer::analyze(scope.clone(), statement)?;
+                }
+                ModuleLocalStatement::Impl(statement) => {
+                    ImplStatementAnalyzer::analyze(scope.clone(), statement)?;
+                }
+                _ => {}
+            }
         }
 
-        scope.borrow().resolve()
+        scope.borrow().resolve()?;
+        Ok(scope)
     }
 
+    ///
+    /// Analyzes the `impl` statement with all the inner statements. Works in three phases:
+    ///
+    /// 1. Declares the hoisted items.
+    /// 2. Defines the instant items.
+    /// 3. Resolves the hoisted items forcibly.
+    ///
     pub fn implementation(
         statement: ImplementationStatement,
         scope: Rc<RefCell<Scope>>,
     ) -> Result<(), Error> {
-        for statement in statement.statements.into_iter() {
-            Self::local_implementation(statement, scope.clone())?;
+        for hoisted_statement in statement.statements.into_iter() {
+            match hoisted_statement {
+                ImplementationLocalStatement::Const(statement) => {
+                    Scope::declare_constant(scope.clone(), statement)?;
+                }
+                ImplementationLocalStatement::Fn(statement) => {
+                    Scope::declare_type(
+                        scope.clone(),
+                        TypeStatementVariant::Fn(
+                            statement,
+                            FnStatementAnalyzerContext::Implementation,
+                        ),
+                    )?;
+                }
+                ImplementationLocalStatement::Empty(_location) => {}
+            }
         }
 
         scope.borrow().resolve()
     }
 
+    ///
+    /// Analyzes the `contract` statement with all the inner statements. Works in three phases:
+    ///
+    /// 1. Declares the hoisted items.
+    /// 2. Defines the instant items.
+    /// 3. Resolves the hoisted items forcibly.
+    ///
     pub fn contract(statement: ContractStatement, scope: Rc<RefCell<Scope>>) -> Result<(), Error> {
-        for statement in statement.statements.into_iter() {
-            Self::local_contract(statement, scope.clone())?;
+        let mut instant_statements = Vec::with_capacity(statement.statements.len());
+        for hoisted_statement in statement.statements.into_iter() {
+            match hoisted_statement {
+                ContractLocalStatement::Const(statement) => {
+                    Scope::declare_constant(scope.clone(), statement)?;
+                }
+                ContractLocalStatement::Fn(statement) => {
+                    Scope::declare_type(
+                        scope.clone(),
+                        TypeStatementVariant::Fn(statement, FnStatementAnalyzerContext::Contract),
+                    )?;
+                }
+                ContractLocalStatement::Empty(_location) => {}
+                statement => instant_statements.push(statement),
+            }
+        }
+
+        for instant_statement in instant_statements.into_iter() {
+            #[allow(clippy::single_match)]
+            match instant_statement {
+                ContractLocalStatement::Field(statement) => {
+                    FieldStatementAnalyzer::analyze(scope.clone(), statement)?;
+                }
+                _ => {}
+            }
         }
 
         scope.borrow().resolve()
-    }
-
-    ///
-    /// Analyzes a statement local to a module.
-    ///
-    /// If the statement must be passed to the next compiler phase, yields its IR.
-    ///
-    pub fn local_module(
-        statement: ModuleLocalStatement,
-        scope: Rc<RefCell<Scope>>,
-        context: Context,
-        dependencies: &mut HashMap<String, SourceModule>,
-    ) -> Result<(), Error> {
-        match statement {
-            ModuleLocalStatement::Const(statement) => {
-                Scope::declare_constant(scope, statement)?;
-
-                Ok(())
-            }
-            ModuleLocalStatement::Type(statement) => {
-                Scope::declare_type(scope, TypeStatementVariant::Type(statement))?;
-
-                Ok(())
-            }
-            ModuleLocalStatement::Struct(statement) => {
-                Scope::declare_type(scope, TypeStatementVariant::Struct(statement))?;
-
-                Ok(())
-            }
-            ModuleLocalStatement::Enum(statement) => {
-                Scope::declare_type(scope, TypeStatementVariant::Enum(statement))?;
-
-                Ok(())
-            }
-            ModuleLocalStatement::Fn(statement) => {
-                if let Context::Module = context {
-                    if statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER {
-                        return Err(Error::FunctionMainBeyondEntry {
-                            location: statement.location,
-                        });
-                    }
-                }
-
-                if let Context::Entry = context {
-                    if statement.identifier.name.as_str() == crate::FUNCTION_MAIN_IDENTIFIER
-                        && statement.is_constant
-                    {
-                        return Err(Error::EntryPointConstant {
-                            location: statement.location,
-                        });
-                    }
-                }
-
-                Scope::declare_type(
-                    scope,
-                    TypeStatementVariant::Fn(statement, FnStatementAnalyzerContext::Module),
-                )?;
-
-                Ok(())
-            }
-            ModuleLocalStatement::Mod(statement) => {
-                let module = match dependencies.remove(statement.identifier.name.as_str()) {
-                    Some(module) => module,
-                    None => {
-                        return Err(Error::ModuleFileNotFound {
-                            location: statement.identifier.location,
-                            name: statement.identifier.name,
-                        });
-                    }
-                };
-
-                Scope::declare_module(scope, statement.identifier, module)?;
-
-                Ok(())
-            }
-            ModuleLocalStatement::Use(statement) => {
-                UseStatementAnalyzer::analyze(scope, statement)?;
-
-                Ok(())
-            }
-            ModuleLocalStatement::Impl(statement) => {
-                ImplStatementAnalyzer::analyze(scope, statement)?;
-
-                Ok(())
-            }
-            ModuleLocalStatement::Contract(statement) => match context {
-                Context::Entry => {
-                    Scope::declare_contract(scope, statement)?;
-
-                    Ok(())
-                }
-                Context::Module => Err(Error::ContractBeyondEntry {
-                    location: statement.location,
-                }),
-            },
-            ModuleLocalStatement::Empty(_location) => Ok(()),
-        }
-    }
-
-    ///
-    /// Analyzes a statement local to an implementation.
-    ///
-    /// If the statement must be passed to the next compiler phase, yields its IR.
-    ///
-    pub fn local_implementation(
-        statement: ImplementationLocalStatement,
-        scope: Rc<RefCell<Scope>>,
-    ) -> Result<(), Error> {
-        match statement {
-            ImplementationLocalStatement::Const(statement) => {
-                let identifier = statement.identifier.clone();
-                let constant = ConstStatementAnalyzer::analyze(scope.clone(), statement)?;
-                Scope::define_constant(scope, identifier, constant)?;
-
-                Ok(())
-            }
-            ImplementationLocalStatement::Fn(statement) => {
-                Scope::declare_type(
-                    scope,
-                    TypeStatementVariant::Fn(statement, FnStatementAnalyzerContext::Implementation),
-                )?;
-
-                Ok(())
-            }
-            ImplementationLocalStatement::Empty(_location) => Ok(()),
-        }
-    }
-
-    ///
-    /// Analyzes a statement local to a contract.
-    ///
-    /// If the statement must be passed to the next compiler phase, yields its IR.
-    ///
-    pub fn local_contract(
-        statement: ContractLocalStatement,
-        scope: Rc<RefCell<Scope>>,
-    ) -> Result<(), Error> {
-        match statement {
-            ContractLocalStatement::Field(statement) => {
-                FieldStatementAnalyzer::analyze(scope, statement)?;
-
-                Ok(())
-            }
-            ContractLocalStatement::Const(statement) => {
-                let identifier = statement.identifier.clone();
-                let constant = ConstStatementAnalyzer::analyze(scope.clone(), statement)?;
-                Scope::define_constant(scope, identifier, constant)?;
-
-                Ok(())
-            }
-            ContractLocalStatement::Fn(statement) => {
-                Scope::declare_type(
-                    scope,
-                    TypeStatementVariant::Fn(statement, FnStatementAnalyzerContext::Contract),
-                )?;
-
-                Ok(())
-            }
-            ContractLocalStatement::Empty(_location) => Ok(()),
-        }
     }
 
     ///
@@ -274,7 +251,7 @@ impl Analyzer {
     ) -> Result<Option<GeneratorStatement>, Error> {
         match statement {
             FunctionLocalStatement::Let(statement) => {
-                let intermediate = LetStatementAnalyzer::analyze(scope.clone(), statement)?;
+                let intermediate = LetStatementAnalyzer::analyze(scope, statement)?;
                 Ok(intermediate.map(GeneratorStatement::Declaration))
             }
             FunctionLocalStatement::Const(statement) => {

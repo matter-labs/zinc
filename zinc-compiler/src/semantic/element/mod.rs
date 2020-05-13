@@ -23,7 +23,7 @@ use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::identifier::Identifier;
 
-use self::access::field::Variant as FieldAccessVariant;
+use self::access::dot::Dot as FieldAccessVariant;
 use self::access::index::Index as IndexAccess;
 use self::argument_list::ArgumentList;
 use self::constant::Constant;
@@ -1504,13 +1504,13 @@ impl Element {
         }
     }
 
-    pub fn field(self, other: Self) -> Result<(Self, FieldAccessVariant), SemanticError> {
-        log::trace!("Executing the field operation");
+    pub fn dot(self, other: Self) -> Result<(Self, FieldAccessVariant), SemanticError> {
+        log::trace!("Executing the dot operation");
 
         match self {
             Self::Place(place) => match other {
                 Self::TupleIndex(index) => place
-                    .field_tuple(index)
+                    .tuple_field(index)
                     .map(|(place, access)| {
                         (Element::Place(place), FieldAccessVariant::Field(access))
                     })
@@ -1523,7 +1523,7 @@ impl Element {
                         Type::Contract(ref inner) => inner.scope.to_owned(),
                         _ => {
                             return place
-                                .field_structure(identifier)
+                                .structure_field(identifier)
                                 .map(|(place, access)| {
                                     (Element::Place(place), FieldAccessVariant::Field(access))
                                 })
@@ -1537,11 +1537,13 @@ impl Element {
                             let r#type = r#type.resolve()?;
                             Ok((
                                 Element::Type(r#type),
-                                FieldAccessVariant::Method(Self::Place(place)),
+                                FieldAccessVariant::Method {
+                                    instance: Self::Place(place),
+                                },
                             ))
                         }
                         _ => place
-                            .field_structure(identifier)
+                            .structure_field(identifier)
                             .map(|(place, access)| {
                                 (Element::Place(place), FieldAccessVariant::Field(access))
                             })
@@ -1550,7 +1552,7 @@ impl Element {
                     }
                 }
                 element => Err(SemanticError::Element(
-                    Error::OperatorFieldSecondOperandExpectedIdentifier {
+                    Error::OperatorDotSecondOperandExpectedIdentifier {
                         location: element
                             .location()
                             .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
@@ -1560,7 +1562,7 @@ impl Element {
             },
             Self::Value(value) => match other {
                 Self::TupleIndex(index) => value
-                    .field_tuple(index)
+                    .tuple_field(index)
                     .map(|(value, access)| {
                         (Element::Value(value), FieldAccessVariant::Field(access))
                     })
@@ -1573,7 +1575,7 @@ impl Element {
                         Type::Contract(ref inner) => inner.scope.to_owned(),
                         _ => {
                             return value
-                                .field_structure(identifier)
+                                .structure_field(identifier)
                                 .map(|(value, access)| {
                                     (Element::Value(value), FieldAccessVariant::Field(access))
                                 })
@@ -1587,11 +1589,13 @@ impl Element {
                             let r#type = r#type.resolve()?;
                             Ok((
                                 Element::Type(r#type),
-                                FieldAccessVariant::Method(Self::Value(value)),
+                                FieldAccessVariant::Method {
+                                    instance: Self::Value(value),
+                                },
                             ))
                         }
                         _ => value
-                            .field_structure(identifier)
+                            .structure_field(identifier)
                             .map(|(value, access)| {
                                 (Element::Value(value), FieldAccessVariant::Field(access))
                             })
@@ -1600,7 +1604,7 @@ impl Element {
                     }
                 }
                 element => Err(SemanticError::Element(
-                    Error::OperatorFieldSecondOperandExpectedIdentifier {
+                    Error::OperatorDotSecondOperandExpectedIdentifier {
                         location: element
                             .location()
                             .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
@@ -1610,7 +1614,7 @@ impl Element {
             },
             Self::Constant(constant) => match other {
                 Self::TupleIndex(index) => constant
-                    .field_tuple(index)
+                    .tuple_field(index)
                     .map(|(constant, access)| {
                         (
                             Element::Constant(constant),
@@ -1626,7 +1630,7 @@ impl Element {
                         Type::Contract(ref inner) => inner.scope.to_owned(),
                         _ => {
                             return constant
-                                .field_structure(identifier)
+                                .structure_field(identifier)
                                 .map(|(constant, access)| {
                                     (
                                         Element::Constant(constant),
@@ -1643,11 +1647,13 @@ impl Element {
                             let r#type = r#type.resolve()?;
                             Ok((
                                 Element::Type(r#type),
-                                FieldAccessVariant::Method(Self::Constant(constant)),
+                                FieldAccessVariant::Method {
+                                    instance: Self::Constant(constant),
+                                },
                             ))
                         }
                         _ => constant
-                            .field_structure(identifier)
+                            .structure_field(identifier)
                             .map(|(constant, access)| {
                                 (
                                     Element::Constant(constant),
@@ -1659,7 +1665,7 @@ impl Element {
                     }
                 }
                 element => Err(SemanticError::Element(
-                    Error::OperatorFieldSecondOperandExpectedIdentifier {
+                    Error::OperatorDotSecondOperandExpectedIdentifier {
                         location: element
                             .location()
                             .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
@@ -1668,7 +1674,7 @@ impl Element {
                 )),
             },
             element => Err(SemanticError::Element(
-                Error::OperatorFieldFirstOperandExpectedPlaceOrEvaluable {
+                Error::OperatorDotFirstOperandExpectedPlaceOrEvaluable {
                     location: element
                         .location()
                         .expect(crate::panic::LOCATION_ALWAYS_EXISTS),
@@ -1729,12 +1735,12 @@ impl fmt::Display for Element {
             Self::Value(inner) => write!(f, "value {}", inner),
             Self::Constant(inner) => write!(f, "constant {}", inner),
             Self::Type(inner) => write!(f, "type {}", inner),
-            Self::ArgumentList(inner) => write!(f, "{}", inner),
-            Self::Path(inner) => write!(f, "{}", inner),
-            Self::Place(inner) => write!(f, "{}", inner),
-            Self::TupleIndex(inner) => write!(f, "{}", inner),
-            Self::Identifier(inner) => write!(f, "{}", inner.name),
-            Self::Module(inner) => write!(f, "{}", inner.name),
+            Self::ArgumentList(inner) => write!(f, "argument list {}", inner),
+            Self::Path(inner) => write!(f, "path {}", inner),
+            Self::Place(inner) => write!(f, "place {}", inner),
+            Self::TupleIndex(inner) => write!(f, "tuple field {}", inner),
+            Self::Identifier(inner) => write!(f, "structure field {}", inner.name),
+            Self::Module(inner) => write!(f, "module {}", inner.name),
         }
     }
 }

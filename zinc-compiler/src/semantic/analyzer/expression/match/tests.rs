@@ -4,9 +4,7 @@
 
 #![cfg(test)]
 
-use std::cell::RefCell;
 use std::collections::HashMap;
-use std::rc::Rc;
 
 use crate::error::Error;
 use crate::lexical::token::location::Location;
@@ -15,7 +13,6 @@ use crate::semantic::analyzer::expression::r#match::error::Error as MatchExpress
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error as SemanticError;
-use crate::semantic::scope::Scope;
 use crate::source::module::Module as SourceModule;
 
 #[test]

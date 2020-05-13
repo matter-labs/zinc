@@ -1224,13 +1224,13 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::OperatorFieldFirstOperandExpectedPlaceOrEvaluable{ location, found })) |
-            Self::Semantic(SemanticError::Element(ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedTuple{ location, found }))) |
-            Self::Semantic(SemanticError::Element(ElementError::Place(PlaceError::OperatorFieldFirstOperandExpectedStructure{ location, found }))) |
-            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::OperatorFieldFirstOperandExpectedTuple{ location, found }))) |
-            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::OperatorFieldFirstOperandExpectedStructure{ location, found }))) |
-            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::OperatorFieldFirstOperandExpectedTuple{ location, found }))) |
-            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::OperatorFieldFirstOperandExpectedStructure{ location, found }))) => {
+            Self::Semantic(SemanticError::Element(ElementError::OperatorDotFirstOperandExpectedPlaceOrEvaluable{ location, found })) |
+            Self::Semantic(SemanticError::Element(ElementError::Place(PlaceError::OperatorDotFirstOperandExpectedTuple{ location, found }))) |
+            Self::Semantic(SemanticError::Element(ElementError::Place(PlaceError::OperatorDotFirstOperandExpectedStructure{ location, found }))) |
+            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::OperatorDotFirstOperandExpectedTuple{ location, found }))) |
+            Self::Semantic(SemanticError::Element(ElementError::Value(ValueError::OperatorDotFirstOperandExpectedStructure{ location, found }))) |
+            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::OperatorDotFirstOperandExpectedTuple{ location, found }))) |
+            Self::Semantic(SemanticError::Element(ElementError::Constant(ConstantError::OperatorDotFirstOperandExpectedStructure{ location, found }))) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1242,7 +1242,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::OperatorFieldSecondOperandExpectedIdentifier { location, found })) => {
+            Self::Semantic(SemanticError::Element(ElementError::OperatorDotSecondOperandExpectedIdentifier { location, found })) => {
                 Self::format_line(
                     context,
                     format!(
@@ -1791,7 +1791,7 @@ impl Error {
                     None,
                 )
             }
-            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::AliasDoesNotPointToStructure { location, found }))) => {
+            Self::Semantic(SemanticError::Element(ElementError::Type(TypeError::NotStructure { location, found }))) => {
                 Self::format_line(
                     context,
                     format!(

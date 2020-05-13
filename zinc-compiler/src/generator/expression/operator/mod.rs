@@ -7,7 +7,7 @@ use zinc_bytecode::builtins::BuiltinIdentifier;
 use crate::generator::expression::operand::place::Place;
 use crate::generator::expression::Expression;
 use crate::generator::r#type::Type;
-use crate::semantic::element::access::field::Field as FieldAccess;
+use crate::semantic::element::access::dot::field::Field as FieldAccess;
 use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::r#type::Type as SemanticType;
 
@@ -128,7 +128,7 @@ pub enum Operator {
 
     // call
     Call {
-        unique_id: usize,
+        type_id: usize,
         input_size: usize,
     },
     CallDebug {
@@ -158,9 +158,9 @@ impl Operator {
         Self::Slice { access }
     }
 
-    pub fn call(unique_id: usize, input_size: usize) -> Self {
+    pub fn call(type_id: usize, input_size: usize) -> Self {
         Self::Call {
-            unique_id,
+            type_id,
             input_size,
         }
     }

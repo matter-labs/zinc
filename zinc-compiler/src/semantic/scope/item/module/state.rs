@@ -5,6 +5,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::generator::statement::Statement as GeneratorStatement;
 use crate::semantic::scope::Scope;
 use crate::source::module::Module as SourceModule;
 
@@ -14,4 +15,13 @@ pub enum State {
     Unresolved { inner: SourceModule },
     /// Resolved element ready to be used from anywhere
     Resolved { inner: Rc<RefCell<Scope>> },
+}
+
+impl State {
+    pub fn get_intermediate(&self) -> Vec<GeneratorStatement> {
+        match self {
+            Self::Resolved { inner } => Scope::get_intermediate(inner.to_owned()),
+            _ => panic!("BANG"),
+        }
+    }
 }

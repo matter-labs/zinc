@@ -62,7 +62,7 @@ impl Function {
 
         match actual_params.get(Self::ARGUMENT_INDEX_SIGNATURE) {
             Some((Type::Structure(structure), _location))
-                if structure.unique_id == BuiltInTypeId::StdCryptoSchnorrSignature as usize => {}
+                if structure.type_id == BuiltInTypeId::StdCryptoSchnorrSignature as usize => {}
             Some((r#type, location)) => {
                 return Err(Error::ArgumentType {
                     location: location.expect(crate::panic::LOCATION_ALWAYS_EXISTS),

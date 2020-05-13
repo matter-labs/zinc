@@ -8,6 +8,7 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
+use crate::generator::statement::Statement as GeneratorStatement;
 use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::module::Analyzer as ModuleAnalyzer;
 use crate::semantic::error::Error;
@@ -111,6 +112,14 @@ impl Module {
             Some(State::Resolved { .. }) => true,
             _ => false,
         }
+    }
+
+    pub fn get_intermediate(&self) -> Vec<GeneratorStatement> {
+        self.state
+            .borrow()
+            .as_ref()
+            .map(|state| state.get_intermediate())
+            .unwrap_or_default()
     }
 }
 

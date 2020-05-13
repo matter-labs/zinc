@@ -19,6 +19,11 @@ pub struct Builder {
     path_expression: Option<ExpressionTree>,
 }
 
+static BUILDER_TYPE_INVALID_KEYWORD: &str =
+    "The type builder has got an unexpected non-type keyword: ";
+static VALIDATED_BY_THE_TYPE_PARSER: &str =
+    "Unreachable as long as the type parser works correctly";
+
 impl Builder {
     pub fn set_location(&mut self, value: Location) {
         self.location = Some(value);
@@ -64,7 +69,7 @@ impl Builder {
                 Keyword::IntegerUnsigned { bitlength } => TypeVariant::integer_unsigned(bitlength),
                 Keyword::IntegerSigned { bitlength } => TypeVariant::integer_signed(bitlength),
                 Keyword::Field => TypeVariant::field(),
-                keyword => panic!("{}{}", crate::panic::BUILDER_TYPE_INVALID_KEYWORD, keyword),
+                keyword => panic!("{}{}", BUILDER_TYPE_INVALID_KEYWORD, keyword),
             }
         } else if let Some(array_type) = self.array_type.take() {
             TypeVariant::array(
@@ -78,7 +83,7 @@ impl Builder {
         } else if self.is_unit {
             TypeVariant::unit()
         } else {
-            panic!(crate::panic::VALIDATED_BY_THE_TYPE_PARSER);
+            panic!(VALIDATED_BY_THE_TYPE_PARSER);
         };
 
         Type::new(location, variant)

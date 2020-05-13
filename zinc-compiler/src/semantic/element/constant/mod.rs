@@ -20,7 +20,7 @@ use std::fmt;
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::lexical::token::location::Location;
 use crate::semantic::casting::Caster;
-use crate::semantic::element::access::field::Field as FieldAccess;
+use crate::semantic::element::access::dot::field::Field as FieldAccess;
 use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
@@ -624,20 +624,20 @@ impl Constant {
         }
     }
 
-    pub fn field_tuple(self, index: TupleIndex) -> Result<(Self, FieldAccess), Error> {
+    pub fn tuple_field(self, index: TupleIndex) -> Result<(Self, FieldAccess), Error> {
         match self {
             Constant::Tuple(tuple) => tuple.slice(index).map_err(Error::Tuple),
-            constant => Err(Error::OperatorFieldFirstOperandExpectedTuple {
+            constant => Err(Error::OperatorDotFirstOperandExpectedTuple {
                 location: constant.location(),
                 found: constant.to_string(),
             }),
         }
     }
 
-    pub fn field_structure(self, identifier: Identifier) -> Result<(Self, FieldAccess), Error> {
+    pub fn structure_field(self, identifier: Identifier) -> Result<(Self, FieldAccess), Error> {
         match self {
             Constant::Structure(structure) => structure.slice(identifier).map_err(Error::Structure),
-            constant => Err(Error::OperatorFieldFirstOperandExpectedStructure {
+            constant => Err(Error::OperatorDotFirstOperandExpectedStructure {
                 location: constant.location(),
                 found: constant.to_string(),
             }),

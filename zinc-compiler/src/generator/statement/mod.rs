@@ -20,31 +20,19 @@ use crate::generator::statement::loop_for::Statement as ForLoopStatement;
 ///
 #[derive(Debug, Clone)]
 pub enum Statement {
-    Expression(Expression),
+    Function(FunctionStatement),
     Declaration(DeclarationStatement),
     Loop(ForLoopStatement),
-    Function(FunctionStatement),
-    Implementation(Vec<Self>),
-    Contract(Vec<Self>),
+    Expression(Expression),
 }
 
 impl Statement {
     pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
         match self {
-            Self::Expression(inner) => inner.write_all_to_bytecode(bytecode),
+            Self::Function(inner) => inner.write_all_to_bytecode(bytecode),
             Self::Declaration(inner) => inner.write_all_to_bytecode(bytecode),
             Self::Loop(inner) => inner.write_all_to_bytecode(bytecode),
-            Self::Function(inner) => inner.write_all_to_bytecode(bytecode),
-            Self::Implementation(inner) => {
-                for element in inner.into_iter() {
-                    element.write_all_to_bytecode(bytecode.clone());
-                }
-            }
-            Self::Contract(inner) => {
-                for element in inner.into_iter() {
-                    element.write_all_to_bytecode(bytecode.clone());
-                }
-            }
+            Self::Expression(inner) => inner.write_all_to_bytecode(bytecode),
         }
     }
 }

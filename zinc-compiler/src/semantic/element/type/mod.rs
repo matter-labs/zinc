@@ -159,11 +159,9 @@ impl Type {
         fields: Vec<(String, Self)>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
-        let unique_id = TYPE_INDEX.next(format!("structure {}", identifier));
+        let type_id = TYPE_INDEX.next(format!("structure {}", identifier));
 
-        Self::Structure(Structure::new(
-            location, identifier, unique_id, fields, scope,
-        ))
+        Self::Structure(Structure::new(location, identifier, type_id, fields, scope))
     }
 
     pub fn enumeration(
@@ -172,9 +170,9 @@ impl Type {
         variants: Vec<Variant>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Result<Self, Error> {
-        let unique_id = TYPE_INDEX.next(format!("enumeration {}", identifier));
+        let type_id = TYPE_INDEX.next(format!("enumeration {}", identifier));
 
-        Enumeration::new(location, identifier, unique_id, variants, scope).map(Self::Enumeration)
+        Enumeration::new(location, identifier, type_id, variants, scope).map(Self::Enumeration)
     }
 
     pub fn new_user_defined_function(
@@ -183,17 +181,17 @@ impl Type {
         arguments: Vec<(String, Self)>,
         return_type: Self,
     ) -> (Self, usize) {
-        let unique_id = TYPE_INDEX.next(format!("function {}", identifier));
+        let type_id = TYPE_INDEX.next(format!("function {}", identifier));
 
         (
             Self::Function(Function::new_user_defined(
                 location,
                 identifier,
-                unique_id,
+                type_id,
                 arguments,
                 return_type,
             )),
-            unique_id,
+            type_id,
         )
     }
 
@@ -202,9 +200,9 @@ impl Type {
         identifier: String,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
-        let unique_id = TYPE_INDEX.next(format!("contract {}", identifier));
+        let type_id = TYPE_INDEX.next(format!("contract {}", identifier));
 
-        Self::Contract(Contract::new(location, identifier, unique_id, scope))
+        Self::Contract(Contract::new(location, identifier, type_id, scope))
     }
 
     pub fn size(&self) -> usize {

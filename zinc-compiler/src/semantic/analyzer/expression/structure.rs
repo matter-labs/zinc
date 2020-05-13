@@ -51,7 +51,7 @@ impl Analyzer {
                     }
                     _type => {
                         return Err(Error::Element(ElementError::Type(
-                            TypeError::AliasDoesNotPointToStructure {
+                            TypeError::NotStructure {
                                 location: identifier_location,
                                 found: structure.identifier.name,
                             },
@@ -61,7 +61,7 @@ impl Analyzer {
             }
             _item => {
                 return Err(Error::Element(ElementError::Type(
-                    TypeError::AliasDoesNotPointToStructure {
+                    TypeError::NotStructure {
                         location: identifier_location,
                         found: structure.identifier.name,
                     },

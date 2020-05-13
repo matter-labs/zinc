@@ -17,14 +17,14 @@ use crate::semantic::scope::Scope;
 ///
 /// Describes a structure type.
 ///
-/// Consists of the local structure `identifier` within its scope, global `unique_id`, `fields`,
+/// Consists of the local structure `identifier` within its scope, global `type_id`, `fields`,
 /// and the implementation `scope`, which contains the reference to its parent scope.
 ///
 #[derive(Debug, Clone)]
 pub struct Structure {
     pub location: Option<Location>,
     pub identifier: String,
-    pub unique_id: usize,
+    pub type_id: usize,
     pub fields: Vec<(String, Type)>,
     pub scope: Rc<RefCell<Scope>>,
 }
@@ -33,7 +33,7 @@ impl Structure {
     pub fn new(
         location: Option<Location>,
         identifier: String,
-        unique_id: usize,
+        type_id: usize,
         fields: Vec<(String, Type)>,
         scope: Option<Rc<RefCell<Scope>>>,
     ) -> Self {
@@ -42,7 +42,7 @@ impl Structure {
         let structure = Self {
             location,
             identifier,
-            unique_id,
+            type_id,
             fields,
             scope: scope.clone(),
         };
@@ -57,7 +57,7 @@ impl Structure {
 
 impl PartialEq<Self> for Structure {
     fn eq(&self, other: &Self) -> bool {
-        self.unique_id == other.unique_id
+        self.type_id == other.type_id
     }
 }
 

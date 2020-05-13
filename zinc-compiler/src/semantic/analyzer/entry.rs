@@ -2,10 +2,16 @@
 //! The entry point semantic analyzer.
 //!
 
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::rc::Rc;
+
 use crate::semantic::analyzer::statement::Analyzer as StatementAnalyzer;
+use crate::semantic::analyzer::statement::Context as StatementAnalyzerContext;
 use crate::semantic::error::Error;
 use crate::semantic::scope::Scope;
-use crate::source::Source;
+use crate::source::module::Module as SourceModule;
+use crate::syntax::tree::module::Module as SyntaxModule;
 
 ///
 /// Analyzes the project entry, which must be located in the `main.zn` file.
@@ -15,10 +21,12 @@ use crate::source::Source;
 pub struct Analyzer {}
 
 impl Analyzer {
-    pub fn analyze(source: Source) -> Result<(), Error> {
-        let scope = Scope::new_global().wrap();
-
-        StatementAnalyzer::entry(source, scope.clone())?;
+    pub fn analyze(
+        module: SyntaxModule,
+        dependencies: HashMap<String, SourceModule>,
+    ) -> Result<Rc<RefCell<Scope>>, Error> {
+        let scope =
+            StatementAnalyzer::module(module, dependencies, StatementAnalyzerContext::Entry)?;
 
         let main_function_location = scope.borrow().get_main_location();
         let contract_location = scope.borrow().get_contract_location();
@@ -36,6 +44,6 @@ impl Analyzer {
             });
         }
 
-        Ok(())
+        Ok(scope)
     }
 }

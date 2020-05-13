@@ -25,11 +25,11 @@ pub enum Error {
         location: Location,
         found: String,
     },
-    OperatorFieldFirstOperandExpectedTuple {
+    OperatorDotFirstOperandExpectedTuple {
         location: Location,
         found: String,
     },
-    OperatorFieldFirstOperandExpectedStructure {
+    OperatorDotFirstOperandExpectedStructure {
         location: Location,
         found: String,
     },

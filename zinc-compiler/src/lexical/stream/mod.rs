@@ -8,7 +8,9 @@ pub mod string;
 pub mod symbol;
 pub mod word;
 
+use std::cell::RefCell;
 use std::collections::VecDeque;
+use std::rc::Rc;
 
 use crate::lexical::error::Error;
 use crate::lexical::token::lexeme::comment::Comment;
@@ -45,6 +47,10 @@ impl<'a> TokenStream<'a> {
             location: Location::new_beginning(None),
             look_ahead: VecDeque::with_capacity(Self::LOOK_AHEAD_INITIAL_CAPACITY),
         }
+    }
+
+    pub fn wrap(self) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(self))
     }
 
     ///

@@ -1,18 +1,6 @@
 //!
-//! The semantic analyzer element field access.
+//! The semantic analyzer element dot field access.
 //!
-
-use crate::semantic::element::Element;
-
-///
-/// Tuple or structure field, or namespace method access data.
-///
-pub enum Variant {
-    /// Field access via the dot `.` operator
-    Field(Field),
-    /// Method call via the dot `.` operator
-    Method(Element),
-}
 
 #[derive(Debug, Clone)]
 pub struct Field {

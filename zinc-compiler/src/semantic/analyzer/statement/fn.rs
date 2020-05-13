@@ -181,7 +181,7 @@ impl Analyzer {
             false
         };
 
-        let (r#type, unique_id) = Type::new_user_defined_function(
+        let (r#type, type_id) = Type::new_user_defined_function(
             statement.location,
             statement.identifier.name.clone(),
             arguments.clone(),
@@ -194,7 +194,7 @@ impl Analyzer {
             arguments,
             body,
             expected_type,
-            unique_id,
+            type_id,
             is_contract_entry,
             is_main,
         );

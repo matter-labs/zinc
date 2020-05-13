@@ -31,7 +31,7 @@ use crate::generator::expression::operator::Operator as GeneratorExpressionOpera
 use crate::generator::expression::Expression as GeneratorExpression;
 use crate::lexical::token::location::Location;
 use crate::semantic::analyzer::rule::Rule as TranslationRule;
-use crate::semantic::element::access::field::Variant as FieldAccessVariant;
+use crate::semantic::element::access::dot::Dot as DotAccess;
 use crate::semantic::element::constant::unit::Unit as UnitConstant;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::error::Error as ElementError;
@@ -452,12 +452,12 @@ impl Analyzer {
                         }
                     }
 
-                    ExpressionOperator::Field => {
-                        log::trace!("Traversing an expression tree operator field");
+                    ExpressionOperator::Dot => {
+                        log::trace!("Traversing an expression tree operator dot");
 
                         self.left_local(tree.left, operator, rule)?;
                         self.right_local(tree.right, operator, rule)?;
-                        let intermediate = self.field()?;
+                        let intermediate = self.dot()?;
                         if let Some(intermediate) = intermediate {
                             self.intermediate.push_operator(tree.location, intermediate);
                         }
@@ -505,8 +505,6 @@ impl Analyzer {
     ) -> Result<(), Error> {
         match left {
             Some(left) => {
-                log::trace!("Analyzing a left operand locally: {:?}", left);
-
                 let rule = TranslationRule::first(operator, rule);
                 let (element, intermediate) = self.traverse(*left, rule)?;
 
@@ -534,8 +532,6 @@ impl Analyzer {
     ) -> Result<(), Error> {
         match right {
             Some(right) => {
-                log::trace!("Analyzing a right operand locally: {:?}", right);
-
                 let rule = TranslationRule::second(operator, rule);
                 let (element, intermediate) = self.traverse(*right, rule)?;
 
@@ -561,8 +557,6 @@ impl Analyzer {
         operator: ExpressionOperator,
         rule: TranslationRule,
     ) -> Result<GeneratorExpression, Error> {
-        log::trace!("Analyzing a left operand separately: {:?}", left);
-
         let rule = TranslationRule::first(operator, rule);
         let (element, intermediate) = match left {
             Some(left) => Self::new(self.scope_stack.top(), rule).analyze(*left)?,
@@ -583,8 +577,6 @@ impl Analyzer {
         operator: ExpressionOperator,
         rule: TranslationRule,
     ) -> Result<GeneratorExpression, Error> {
-        log::trace!("Analyzing a right operand separately: {:?}", right);
-
         let rule = TranslationRule::second(operator, rule);
         let (element, intermediate) = match right {
             Some(left) => Self::new(self.scope_stack.top(), rule).analyze(*left)?,
@@ -825,8 +817,8 @@ impl Analyzer {
     ///
     /// Analyzes the tuple or structure field access operation.
     ///
-    fn field(&mut self) -> Result<Option<GeneratorExpressionOperator>, Error> {
-        log::trace!("Analyzing field");
+    fn dot(&mut self) -> Result<Option<GeneratorExpressionOperator>, Error> {
+        log::trace!("Analyzing dot");
 
         let (operand_2, _) = Self::evaluate(
             self.scope_stack.top(),
@@ -839,10 +831,10 @@ impl Analyzer {
             TranslationRule::Place,
         )?;
 
-        let (result, access) = Element::field(operand_1, operand_2)?;
+        let (result, access) = Element::dot(operand_1, operand_2)?;
 
         match access {
-            FieldAccessVariant::Field(access) => match result {
+            DotAccess::Field(access) => match result {
                 Element::Place(mut place) => {
                     place.push_element(PlaceElement::Field { access });
 
@@ -857,7 +849,7 @@ impl Analyzer {
                     Ok(Some(GeneratorExpressionOperator::slice(access)))
                 }
             },
-            FieldAccessVariant::Method(instance) => {
+            DotAccess::Method { instance } => {
                 let instance = if let Element::Place(instance) = instance {
                     let (instance, intermedidate) = Self::evaluate(
                         self.scope_stack.top(),

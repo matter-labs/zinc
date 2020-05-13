@@ -37,11 +37,7 @@ impl Contract {
             if !path.ends_with(super::DIRECTORY_NAME_DEFAULT) {
                 path.push(PathBuf::from(super::DIRECTORY_NAME_DEFAULT));
             }
-            let file_name = format!(
-                "{}.{}",
-                name,
-                crate::directory::source::SOURCE_FILE_EXTENSION_DEFAULT
-            );
+            let file_name = format!("{}.{}", name, super::SOURCE_FILE_EXTENSION_DEFAULT);
             path.push(PathBuf::from(file_name));
         }
         path.exists()
@@ -53,11 +49,7 @@ impl Contract {
             if !path.ends_with(super::DIRECTORY_NAME_DEFAULT) {
                 path.push(PathBuf::from(super::DIRECTORY_NAME_DEFAULT));
             }
-            let file_name = format!(
-                "{}.{}",
-                self.name,
-                crate::directory::source::SOURCE_FILE_EXTENSION_DEFAULT
-            );
+            let file_name = format!("{}.{}", self.name, super::SOURCE_FILE_EXTENSION_DEFAULT);
             path.push(PathBuf::from(file_name));
         }
 

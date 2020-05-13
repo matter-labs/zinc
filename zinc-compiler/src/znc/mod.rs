@@ -12,7 +12,6 @@ use std::fs::File;
 use std::io::Write;
 use std::process;
 
-use zinc_compiler::Bytecode;
 use zinc_compiler::Source;
 
 use self::arguments::Arguments;
@@ -39,8 +38,10 @@ fn main_inner() -> Result<(), Error> {
 
     zinc_utils::logger::init_logger(BINARY_NAME, args.verbosity);
 
-    let mut source = Source::try_from(&args.source_input).map_err(Error::Source)?;
-    let mut bytecode = Bytecode::new();
+    let mut bytecode = Source::try_from(&args.source_path)
+        .map_err(Error::Source)?
+        .compile()
+        .map_err(Error::Source)?;
 
     for entry_id in bytecode.entries() {
         let entry_name = bytecode.entry_name(entry_id);

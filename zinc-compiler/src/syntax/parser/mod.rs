@@ -36,8 +36,8 @@ impl Parser {
         let stream = match file {
             Some(file) => TokenStream::new_with_file(input, file),
             None => TokenStream::new(input),
-        };
-        let stream = Rc::new(RefCell::new(stream));
+        }
+        .wrap();
 
         let mut statements = Vec::new();
         loop {

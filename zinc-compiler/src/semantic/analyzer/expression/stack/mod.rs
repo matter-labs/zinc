@@ -14,6 +14,9 @@ pub struct Stack {
     elements: Vec<Element>,
 }
 
+static THERE_MUST_ALWAYS_BE_AN_OPERAND: &str =
+    "Operand stack balance is kept by the evaluation logic";
+
 impl Stack {
     const ELEMENTS_INITIAL_CAPACITY: usize = 16;
 
@@ -28,8 +31,6 @@ impl Stack {
     }
 
     pub fn pop(&mut self) -> Element {
-        self.elements
-            .pop()
-            .expect(crate::panic::THERE_MUST_ALWAYS_BE_AN_OPERAND)
+        self.elements.pop().expect(THERE_MUST_ALWAYS_BE_AN_OPERAND)
     }
 }

@@ -74,9 +74,6 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-    use std::rc::Rc;
-
     use super::Parser;
     use crate::lexical::stream::TokenStream;
     use crate::lexical::token::lexeme::literal::boolean::Boolean as LexicalBooleanLiteral;
@@ -113,7 +110,7 @@ mod tests {
             Some(Token::new(Lexeme::Eof, Location::new(1, 14))),
         ));
 
-        let result = Parser::default().parse(Rc::new(RefCell::new(TokenStream::new(input))), None);
+        let result = Parser::default().parse(TokenStream::new(input).wrap(), None);
 
         assert_eq!(result, expected);
     }

@@ -13,7 +13,6 @@ use crate::directory::build::Error as BuildDirectoryError;
 use crate::directory::data::Directory as DataDirectory;
 use crate::directory::data::Error as DataDirectoryError;
 use crate::directory::source::Directory as SourceDirectory;
-use crate::directory::source::Error as SourceDirectoryError;
 use crate::executable::compiler::Compiler;
 use crate::executable::compiler::Error as CompilerError;
 use crate::manifest::Error as ManifestError;
@@ -59,8 +58,6 @@ pub enum Error {
     BuildDirectory(BuildDirectoryError),
     #[fail(display = "data directory {}", _0)]
     DataDirectory(DataDirectoryError),
-    #[fail(display = "source directory {}", _0)]
-    SourceDirectory(SourceDirectoryError),
     #[fail(display = "compiler {}", _0)]
     Compiler(CompilerError),
 }
@@ -74,8 +71,7 @@ impl Command {
             manifest_path.pop();
         }
 
-        let source_file_paths =
-            SourceDirectory::files(&manifest_path).map_err(Error::SourceDirectory)?;
+        let source_path = SourceDirectory::path(&manifest_path);
 
         BuildDirectory::create(&manifest_path).map_err(Error::BuildDirectory)?;
         DataDirectory::create(&manifest_path).map_err(Error::DataDirectory)?;
@@ -84,7 +80,7 @@ impl Command {
             self.verbosity,
             &self.data_path,
             &self.build_path,
-            &source_file_paths,
+            &source_path,
         )
         .map_err(Error::Compiler)?;
 

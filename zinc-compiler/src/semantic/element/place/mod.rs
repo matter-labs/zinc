@@ -14,7 +14,7 @@ use num_bigint::BigInt;
 use num_traits::Signed;
 use num_traits::ToPrimitive;
 
-use crate::semantic::element::access::field::Field as FieldAccess;
+use crate::semantic::element::access::dot::field::Field as FieldAccess;
 use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
@@ -203,7 +203,7 @@ impl Place {
         }
     }
 
-    pub fn field_tuple(mut self, index: TupleIndex) -> Result<(Self, FieldAccess), Error> {
+    pub fn tuple_field(mut self, index: TupleIndex) -> Result<(Self, FieldAccess), Error> {
         let TupleIndex {
             location,
             value: index,
@@ -233,14 +233,14 @@ impl Place {
 
                 Ok((self, access))
             }
-            ref r#type => Err(Error::OperatorFieldFirstOperandExpectedTuple {
+            ref r#type => Err(Error::OperatorDotFirstOperandExpectedTuple {
                 location: self.identifier.location,
                 found: r#type.to_string(),
             }),
         }
     }
 
-    pub fn field_structure(mut self, identifier: Identifier) -> Result<(Self, FieldAccess), Error> {
+    pub fn structure_field(mut self, identifier: Identifier) -> Result<(Self, FieldAccess), Error> {
         let mut offset = 0;
         let total_size = self.r#type.size();
         match self.r#type {
@@ -281,7 +281,7 @@ impl Place {
                     field_name: identifier.name,
                 })
             }
-            ref r#type => Err(Error::OperatorFieldFirstOperandExpectedStructure {
+            ref r#type => Err(Error::OperatorDotFirstOperandExpectedStructure {
                 location: self.identifier.location,
                 found: r#type.to_string(),
             }),

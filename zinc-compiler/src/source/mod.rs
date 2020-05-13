@@ -8,8 +8,13 @@ pub mod module;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::path::PathBuf;
+use std::rc::Rc;
 
 use crate::error::Error as CompilerError;
+use crate::generator::bytecode::Bytecode;
+use crate::generator::program::Program;
+use crate::semantic::analyzer::entry::Analyzer as EntryAnalyzer;
+use crate::semantic::scope::Scope;
 
 use self::error::Error;
 use self::module::file::File;
@@ -25,7 +30,26 @@ pub struct Source {
     pub modules: HashMap<String, Module>,
 }
 
+static BYTECODE_LAST_REFERENCE: &str = "There are no other bytecode references at this point";
+
 impl Source {
+    pub fn compile(self) -> Result<Bytecode, Error> {
+        let lines: Vec<&str> = self.entry.code.lines().collect();
+
+        let scope = EntryAnalyzer::analyze(self.entry.tree, self.modules)
+            .map_err(CompilerError::Semantic)
+            .map_err(|error| error.format(lines.as_slice()))
+            .map_err(Error::Compiling)?;
+
+        let bytecode = Bytecode::new().wrap();
+        Program::new(Scope::get_intermediate(scope)).write_all_to_bytecode(bytecode.clone());
+        let bytecode = Rc::try_unwrap(bytecode)
+            .expect(BYTECODE_LAST_REFERENCE)
+            .into_inner();
+
+        Ok(bytecode)
+    }
+
     pub fn test(input: &str, dependencies: HashMap<String, Module>) -> Result<Self, CompilerError> {
         Ok(Self {
             path: PathBuf::from("test.zn"),

@@ -62,7 +62,7 @@ pub enum Operator {
 
     // runtime access
     Index,
-    Field,
+    Dot,
 
     // call
     CallBuiltIn,

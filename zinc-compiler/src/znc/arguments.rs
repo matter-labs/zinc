@@ -30,7 +30,7 @@ pub struct Arguments {
     )]
     pub build_path: PathBuf,
     #[structopt(parse(from_os_str), help = "The source file or `src` directory path")]
-    pub source_input: PathBuf,
+    pub source_path: PathBuf,
 }
 
 impl Arguments {

@@ -4,13 +4,9 @@
 
 mod tests;
 
-use std::cell::RefCell;
-use std::rc::Rc;
-
-use crate::semantic::analyzer::module::Analyzer as ModuleAnalyzer;
 use crate::semantic::error::Error;
-use crate::semantic::scope::Scope;
-use crate::source::module::Module as SourceModule;
+use crate::syntax::tree::identifier::Identifier;
+use crate::syntax::tree::statement::module::Statement as ModStatement;
 
 pub struct Analyzer {}
 
@@ -18,7 +14,7 @@ impl Analyzer {
     ///
     /// Analyzes a compile-time only module declaration statement.
     ///
-    pub fn analyze(module: SourceModule) -> Result<Rc<RefCell<Scope>>, Error> {
-        ModuleAnalyzer::analyze(module)
+    pub fn analyze(statement: ModStatement) -> Result<Identifier, Error> {
+        Ok(statement.identifier)
     }
 }

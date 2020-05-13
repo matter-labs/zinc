@@ -2,5 +2,5 @@
 //! The semantic analyzer element access.
 //!
 
-pub mod field;
+pub mod dot;
 pub mod index;

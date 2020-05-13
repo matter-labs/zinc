@@ -12,6 +12,7 @@ pub enum Error {
     EntrySourceFileNotFound,
 
     RootModule { path: OsString, inner: ModuleError },
+    Compiling(String),
 }
 
 impl fmt::Display for Error {
@@ -25,6 +26,7 @@ impl fmt::Display for Error {
             ),
 
             Self::RootModule { path, inner } => write!(f, "root module `{:?}` {}", path, inner),
+            Self::Compiling(inner) => write!(f, "compiling: {}", inner),
         }
     }
 }

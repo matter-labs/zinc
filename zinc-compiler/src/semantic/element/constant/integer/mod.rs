@@ -870,7 +870,7 @@ impl TryFrom<&IntegerLiteral> for Integer {
 impl PartialEq<Self> for Integer {
     fn eq(&self, other: &Self) -> bool {
         let are_enum_types_equal = match (&self.enumeration, &other.enumeration) {
-            (Some(enum_1), Some(enum_2)) => enum_1.unique_id == enum_2.unique_id,
+            (Some(enum_1), Some(enum_2)) => enum_1.type_id == enum_2.type_id,
             (None, None) => true,
             (_, _) => false,
         };

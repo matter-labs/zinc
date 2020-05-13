@@ -27,33 +27,32 @@ impl Analyzer {
     pub fn analyze(scope: Rc<RefCell<Scope>>, statement: ImplStatement) -> Result<Type, Error> {
         let identifier_location = statement.identifier.location;
 
-        let (r#type, type_scope) =
-            match Scope::resolve_item(scope.clone(), &statement.identifier, true)? {
-                ScopeItem::Type(r#type) => {
-                    let r#type = r#type.resolve()?;
-                    let scope = match r#type {
-                        Type::Structure(ref inner) => inner.scope.to_owned(),
-                        Type::Enumeration(ref inner) => inner.scope.to_owned(),
-                        _type => {
-                            return Err(Error::Statement(StatementError::Impl(
-                                ImplStatementError::ExpectedStructureOrEnumeration {
-                                    location: identifier_location,
-                                    found: statement.identifier.name,
-                                },
-                            )))
-                        }
-                    };
-                    (r#type, scope)
-                }
-                _item => {
-                    return Err(Error::Statement(StatementError::Impl(
-                        ImplStatementError::ExpectedStructureOrEnumeration {
-                            location: identifier_location,
-                            found: statement.identifier.name,
-                        },
-                    )));
-                }
-            };
+        let (r#type, type_scope) = match Scope::resolve_item(scope, &statement.identifier, true)? {
+            ScopeItem::Type(r#type) => {
+                let r#type = r#type.resolve()?;
+                let scope = match r#type {
+                    Type::Structure(ref inner) => inner.scope.to_owned(),
+                    Type::Enumeration(ref inner) => inner.scope.to_owned(),
+                    _type => {
+                        return Err(Error::Statement(StatementError::Impl(
+                            ImplStatementError::ExpectedStructureOrEnumeration {
+                                location: identifier_location,
+                                found: statement.identifier.name,
+                            },
+                        )))
+                    }
+                };
+                (r#type, scope)
+            }
+            _item => {
+                return Err(Error::Statement(StatementError::Impl(
+                    ImplStatementError::ExpectedStructureOrEnumeration {
+                        location: identifier_location,
+                        found: statement.identifier.name,
+                    },
+                )));
+            }
+        };
 
         StatementAnalyzer::implementation(statement, type_scope)?;
 
