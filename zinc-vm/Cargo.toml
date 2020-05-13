@@ -33,7 +33,7 @@ num-bigint = "0.2.3"
 num-traits = "0.2.8"
 num-integer = "0.1.41"
 
-primitive-types = "0.7.1"
+sha2 = "0.8.1"
 
 zinc-bytecode = { path = "../zinc-bytecode" }
 zinc-utils = { path = "../zinc-utils" }
