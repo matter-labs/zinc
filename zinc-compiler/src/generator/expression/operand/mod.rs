@@ -51,13 +51,13 @@ impl Operand {
                 MemoryType::Stack => {
                     let location = inner.identifier.location;
                     let element_size = inner.element_size;
-                    let is_indexed = !inner.elements.is_empty();
                     let total_size = inner.total_size;
-
                     let address = bytecode
                         .borrow()
                         .get_variable_address(inner.identifier.name.as_str())
                         .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
+
+                    let is_indexed = !inner.elements.is_empty();
 
                     if is_indexed {
                         inner.write_all_to_bytecode(bytecode.clone());

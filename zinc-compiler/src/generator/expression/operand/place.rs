@@ -31,7 +31,7 @@ pub struct Place {
 }
 
 impl Place {
-    pub fn load_storage(&mut self, bytecode: Rc<RefCell<Bytecode>>) {
+    pub fn load_storage(&mut self, bytecode: Rc<RefCell<Bytecode>>) -> usize {
         if let Some(SemanticPlaceElement::ContractField {
             access:
                 ContractFieldAccess {
@@ -40,7 +40,9 @@ impl Place {
                 },
         }) = self.elements.first()
         {
-            IntegerConstant::new(BigInt::from(*position), false, crate::BITLENGTH_FIELD)
+            let position = *position;
+
+            IntegerConstant::new(BigInt::from(position), false, crate::BITLENGTH_FIELD)
                 .write_all_to_bytecode(bytecode.clone());
             bytecode.borrow_mut().push_instruction(
                 Instruction::StorageLoad(zinc_bytecode::StorageLoad::new(*element_size)),
@@ -48,6 +50,10 @@ impl Place {
             );
 
             self.elements.remove(0);
+
+            position
+        } else {
+            panic!(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS)
         }
     }
 

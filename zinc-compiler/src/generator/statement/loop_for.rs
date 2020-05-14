@@ -65,7 +65,7 @@ impl Statement {
         let index_size = index_type.size();
         let index_address = bytecode
             .borrow_mut()
-            .define_variable(Some(self.index_variable_name), index_type);
+            .define_variable(Some(self.index_variable_name), index_size);
         IntegerConstant::new(
             self.initial_value.clone(),
             self.index_variable_is_signed,
@@ -82,8 +82,9 @@ impl Statement {
 
         let while_allowed_address = if self.while_condition.is_some() {
             let while_allowed = BooleanConstant::new(true);
-            let while_allowed_address =
-                bytecode.borrow_mut().define_variable(None, Type::boolean());
+            let while_allowed_address = bytecode
+                .borrow_mut()
+                .define_variable(None, Type::boolean().size());
             while_allowed.write_all_to_bytecode(bytecode.clone());
             bytecode.borrow_mut().push_instruction(
                 Instruction::Store(zinc_bytecode::Store::new(while_allowed_address)),

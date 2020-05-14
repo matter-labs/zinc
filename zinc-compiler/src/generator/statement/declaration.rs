@@ -41,9 +41,7 @@ impl Statement {
 
     pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
         let size = self.r#type.size();
-        let address = bytecode
-            .borrow_mut()
-            .define_variable(Some(self.name), self.r#type.clone());
+        let address = bytecode.borrow_mut().define_variable(Some(self.name), size);
 
         self.expression.write_all_to_bytecode(bytecode.clone());
 

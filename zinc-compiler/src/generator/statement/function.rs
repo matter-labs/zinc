@@ -85,7 +85,7 @@ impl Statement {
         for (argument_name, argument_type) in self.input_arguments.into_iter() {
             bytecode
                 .borrow_mut()
-                .define_variable(Some(argument_name), argument_type);
+                .define_variable(Some(argument_name), argument_type.size());
         }
 
         self.body.write_all_to_bytecode(bytecode.clone());

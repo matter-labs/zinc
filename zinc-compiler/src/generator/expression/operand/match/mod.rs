@@ -58,7 +58,7 @@ impl Expression {
 
         let scrutinee_address = bytecode
             .borrow_mut()
-            .define_variable(binding_name, self.scrutinee_type);
+            .define_variable(binding_name, scrutinee_size);
 
         self.scrutinee.write_all_to_bytecode(bytecode.clone());
         bytecode.borrow_mut().push_instruction(

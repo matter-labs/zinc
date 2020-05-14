@@ -130,13 +130,13 @@ impl Bytecode {
     ///
     /// Defines a variable, saving its address within the current data stack frame.
     ///
-    pub fn define_variable(&mut self, identifier: Option<String>, r#type: Type) -> usize {
+    pub fn define_variable(&mut self, identifier: Option<String>, size: usize) -> usize {
         let start_address = self.data_stack_pointer;
         if let Some(identifier) = identifier {
             self.variable_addresses
                 .insert(identifier, self.data_stack_pointer);
         }
-        self.data_stack_pointer += r#type.size();
+        self.data_stack_pointer += size;
         start_address
     }
 
