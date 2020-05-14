@@ -1,23 +1,9 @@
-enum List {
-    FIRST = 1,
-    SECOND = 2,
-    THIRD = 3,
-}
+contract Test {
+    data: [[[[u8; 8]; 8]; 8]; 8];
 
-impl List {
-    pub fn first() -> Self {
-        Self::FIRST
+    const TEST: u8 = 42;
+
+    pub fn main(self, arg: u8) -> u8 {
+        arg + Self::TEST + self.data[7][7][7][7]
     }
-
-    pub fn second() -> Self {
-        Self::SECOND
-    }
-
-    pub fn third() -> Self {
-        Self::THIRD
-    }
-}
-
-fn main(witness: field) -> field {
-    (List::first() + List::second() + List::third()) as field * witness
 }

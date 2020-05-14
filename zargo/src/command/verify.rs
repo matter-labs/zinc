@@ -20,26 +20,14 @@ pub struct Command {
     )]
     verbosity: usize,
 
-    #[structopt(
-        long = "bytecode",
-        help = "Path to the binary file",
-        default_value = "./build/default.znb"
-    )]
-    bytecode: PathBuf,
+    #[structopt(long = "build", help = "Path to the build binary file")]
+    binary_path: PathBuf,
 
-    #[structopt(
-        long = "verifying-key",
-        help = "Path to the verifying key file",
-        default_value = "./data/verifying-key.txt"
-    )]
-    verifying_key: PathBuf,
+    #[structopt(long = "public-data", help = "Path to the public data JSON file")]
+    public_data_path: PathBuf,
 
-    #[structopt(
-        long = "public-data",
-        help = "Path to the program's public data JSON file",
-        default_value = "./data/public-data.json"
-    )]
-    public_data: PathBuf,
+    #[structopt(long = "verifying-key", help = "Path to the verifying key file")]
+    verifying_key_path: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -52,9 +40,9 @@ impl Command {
     pub fn execute(self) -> Result<(), Error> {
         VirtualMachine::verify(
             self.verbosity,
-            &self.bytecode,
-            &self.verifying_key,
-            &self.public_data,
+            &self.binary_path,
+            &self.verifying_key_path,
+            &self.public_data_path,
         )
         .map_err(Error::VirtualMachine)?;
 

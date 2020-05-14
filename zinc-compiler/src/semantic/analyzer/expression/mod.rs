@@ -798,9 +798,9 @@ impl Analyzer {
         let (result, access) = Element::dot(operand_1, operand_2)?;
 
         match access {
-            DotAccess::Field(access) => match result {
+            DotAccess::StackField(access) => match result {
                 Element::Place(mut place) => {
-                    place.push_element(PlaceElement::Field { access });
+                    place.push_element(PlaceElement::StackField { access });
 
                     self.evaluation_stack
                         .push(StackElement::Evaluated(Element::Place(place)));
@@ -811,6 +811,21 @@ impl Analyzer {
                     self.evaluation_stack.push(StackElement::Evaluated(element));
 
                     Ok(Some(GeneratorExpressionOperator::slice(access)))
+                }
+            },
+            DotAccess::ContractField(access) => match result {
+                Element::Place(mut place) => {
+                    place.push_element(PlaceElement::ContractField { access });
+
+                    self.evaluation_stack
+                        .push(StackElement::Evaluated(Element::Place(place)));
+
+                    Ok(None)
+                }
+                element => {
+                    self.evaluation_stack.push(StackElement::Evaluated(element));
+
+                    Ok(None)
                 }
             },
             DotAccess::Method { instance } => {

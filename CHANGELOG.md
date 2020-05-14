@@ -10,6 +10,8 @@
 - extended constant expressions to include arrays, tuples, structures, blocks, conditionals, matches, and functions
 - implemented simple smart contracts
 - forbidden the bitwise operations on signed integers
+- allowed to declare constants, types, functions, and modules in arbitrary order
+- implemented nested modules with the access to the root module
 
 #### Compiler
 

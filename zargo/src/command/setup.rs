@@ -20,26 +20,14 @@ pub struct Command {
     )]
     verbosity: usize,
 
-    #[structopt(
-        long = "bytecode",
-        help = "Path to the binary file",
-        default_value = "./build/default.znb"
-    )]
-    bytecode: PathBuf,
+    #[structopt(long = "build", help = "Path to the binary data file")]
+    binary_path: PathBuf,
 
-    #[structopt(
-        long = "proving-key",
-        help = "Path to the proving key file to generate",
-        default_value = "./data/proving-key"
-    )]
-    proving_key: PathBuf,
+    #[structopt(long = "proving-key", help = "Path to the proving key file")]
+    proving_key_path: PathBuf,
 
-    #[structopt(
-        long = "verifying-key",
-        help = "Path to the verifying key file to generate",
-        default_value = "./data/verifying-key.txt"
-    )]
-    verifying_key: PathBuf,
+    #[structopt(long = "verifying-key", help = "Path to the verifying key file")]
+    verifying_key_path: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -52,9 +40,9 @@ impl Command {
     pub fn execute(self) -> Result<(), Error> {
         VirtualMachine::setup(
             self.verbosity,
-            &self.bytecode,
-            &self.proving_key,
-            &self.verifying_key,
+            &self.binary_path,
+            &self.proving_key_path,
+            &self.verifying_key_path,
         )
         .map_err(Error::VirtualMachine)?;
 

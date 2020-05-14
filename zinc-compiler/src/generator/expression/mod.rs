@@ -20,6 +20,7 @@ use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::expression::operand::place::Place;
 use crate::lexical::token::location::Location;
+use crate::semantic::element::place::memory_type::MemoryType;
 
 use self::element::Element;
 use self::operand::Operand;
@@ -375,91 +376,149 @@ impl Expression {
 
     fn assignment(
         bytecode: Rc<RefCell<Bytecode>>,
-        place: Place,
+        mut place: Place,
         expression: Self,
         location: Location,
     ) {
-        let is_place_indexed = !place.elements.is_empty();
-        let address = bytecode
-            .borrow()
-            .get_variable_address(place.identifier.name.as_str())
-            .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
-        let element_size = place.element_size;
-        let total_size = place.total_size;
+        match place.memory_type {
+            MemoryType::Stack => {
+                let is_place_indexed = !place.elements.is_empty();
+                let address = bytecode
+                    .borrow()
+                    .get_variable_address(place.identifier.name.as_str())
+                    .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
+                let element_size = place.element_size;
+                let total_size = place.total_size;
 
-        if is_place_indexed {
-            place.write_all_to_bytecode(bytecode.clone());
+                if is_place_indexed {
+                    place.write_all_to_bytecode(bytecode.clone());
+                }
+
+                expression.write_all_to_bytecode(bytecode.clone());
+
+                bytecode.borrow_mut().push_instruction(
+                    if is_place_indexed {
+                        Instruction::StoreSequenceByIndex(zinc_bytecode::StoreSequenceByIndex::new(
+                            address,
+                            total_size,
+                            element_size,
+                        ))
+                    } else {
+                        Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
+                            address, total_size,
+                        ))
+                    },
+                    Some(location),
+                );
+            }
+            MemoryType::ContractStorage => {
+                place.load_storage(bytecode.clone());
+
+                // TODO: slice by index before mutated
+
+                expression.write_all_to_bytecode(bytecode);
+
+                // TODO: slice by index after mutated
+
+                // TODO: store
+            }
         }
-
-        expression.write_all_to_bytecode(bytecode.clone());
-
-        bytecode.borrow_mut().push_instruction(
-            if is_place_indexed {
-                Instruction::StoreSequenceByIndex(zinc_bytecode::StoreSequenceByIndex::new(
-                    address,
-                    total_size,
-                    element_size,
-                ))
-            } else {
-                Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(address, total_size))
-            },
-            Some(location),
-        );
     }
 
     fn assignment_with_operation(
         bytecode: Rc<RefCell<Bytecode>>,
-        place: Place,
+        mut place: Place,
         expression: Self,
         operation: Instruction,
         location: Location,
     ) {
-        let is_place_indexed = !place.elements.is_empty();
-        let address = bytecode
-            .borrow()
-            .get_variable_address(place.identifier.name.as_str())
-            .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
-        let element_size = place.element_size;
-        let total_size = place.total_size;
+        match place.memory_type {
+            MemoryType::Stack => {
+                let is_place_indexed = !place.elements.is_empty();
+                let address = bytecode
+                    .borrow()
+                    .get_variable_address(place.identifier.name.as_str())
+                    .expect(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS);
+                let element_size = place.element_size;
+                let total_size = place.total_size;
 
-        if is_place_indexed {
-            place.write_all_to_bytecode(bytecode.clone());
-            bytecode
-                .borrow_mut()
-                .push_instruction(Instruction::Tee(zinc_bytecode::Tee), Some(location));
+                if is_place_indexed {
+                    place.write_all_to_bytecode(bytecode.clone());
+                    bytecode
+                        .borrow_mut()
+                        .push_instruction(Instruction::Tee(zinc_bytecode::Tee), Some(location));
+                }
+
+                bytecode.borrow_mut().push_instruction(
+                    if is_place_indexed {
+                        Instruction::LoadSequenceByIndex(zinc_bytecode::LoadSequenceByIndex::new(
+                            address,
+                            total_size,
+                            element_size,
+                        ))
+                    } else {
+                        Instruction::LoadSequence(zinc_bytecode::LoadSequence::new(
+                            address, total_size,
+                        ))
+                    },
+                    Some(location),
+                );
+
+                expression.write_all_to_bytecode(bytecode.clone());
+
+                bytecode
+                    .borrow_mut()
+                    .push_instruction(operation, Some(location));
+
+                bytecode.borrow_mut().push_instruction(
+                    if is_place_indexed {
+                        Instruction::StoreSequenceByIndex(zinc_bytecode::StoreSequenceByIndex::new(
+                            address,
+                            total_size,
+                            element_size,
+                        ))
+                    } else {
+                        Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(
+                            address, total_size,
+                        ))
+                    },
+                    Some(location),
+                );
+            }
+            MemoryType::ContractStorage => {
+                let location = place.identifier.location;
+                let element_size = place.element_size;
+                let total_size = place.total_size;
+
+                let mut place_inner_value = place.clone();
+
+                place.load_storage(bytecode.clone());
+
+                // TODO: slice by index before mutated
+
+                place_inner_value.load_storage(bytecode.clone());
+
+                let is_indexed = !place_inner_value.elements.is_empty();
+
+                if is_indexed {
+                    place_inner_value.write_all_to_bytecode(bytecode.clone());
+                    bytecode.borrow_mut().push_instruction(
+                        Instruction::Slice(zinc_bytecode::Slice::new(total_size, element_size)),
+                        Some(location),
+                    );
+                }
+
+                expression.write_all_to_bytecode(bytecode.clone());
+
+                bytecode
+                    .borrow_mut()
+                    .push_instruction(operation, Some(location));
+
+                // TODO: slice by index after mutated
+
+                // TODO: store
+            }
         }
-
-        bytecode.borrow_mut().push_instruction(
-            if is_place_indexed {
-                Instruction::LoadSequenceByIndex(zinc_bytecode::LoadSequenceByIndex::new(
-                    address,
-                    total_size,
-                    element_size,
-                ))
-            } else {
-                Instruction::LoadSequence(zinc_bytecode::LoadSequence::new(address, total_size))
-            },
-            Some(location),
-        );
-
-        expression.write_all_to_bytecode(bytecode.clone());
-
-        bytecode
-            .borrow_mut()
-            .push_instruction(operation, Some(location));
-
-        bytecode.borrow_mut().push_instruction(
-            if is_place_indexed {
-                Instruction::StoreSequenceByIndex(zinc_bytecode::StoreSequenceByIndex::new(
-                    address,
-                    total_size,
-                    element_size,
-                ))
-            } else {
-                Instruction::StoreSequence(zinc_bytecode::StoreSequence::new(address, total_size))
-            },
-            Some(location),
-        );
     }
 
     fn binary(bytecode: Rc<RefCell<Bytecode>>, instruction: Instruction, location: Location) {

@@ -9,7 +9,7 @@ pub mod error;
 use std::fmt;
 
 use crate::lexical::token::location::Location;
-use crate::semantic::element::access::dot::field::Field as FieldAccess;
+use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
 use crate::semantic::element::r#type::structure::Structure as StructureType;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::value::Value;
@@ -87,13 +87,13 @@ impl Structure {
         Ok(())
     }
 
-    pub fn slice(self, identifier: Identifier) -> Result<(Value, FieldAccess), Error> {
+    pub fn slice(self, identifier: Identifier) -> Result<(Value, StackFieldAccess), Error> {
         let mut offset = 0;
         let total_size = self.r#type().size();
 
         for (index, (name, r#type)) in self.r#type.fields.iter().enumerate() {
             if name == identifier.name.as_str() {
-                let access = FieldAccess::new(index, offset, r#type.size(), total_size);
+                let access = StackFieldAccess::new(index, offset, r#type.size(), total_size);
 
                 return Ok((
                     Value::try_from_type(r#type, self.location)

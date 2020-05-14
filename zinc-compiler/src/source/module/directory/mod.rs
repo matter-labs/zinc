@@ -17,7 +17,7 @@ use crate::source::module::Module;
 use self::error::Error;
 
 ///
-/// The Zinc source code directory, which consists of its path and modules.
+/// The Zinc source code directory, which consists of its path, root module, and dependency modules.
 ///
 #[derive(Debug, Clone)]
 pub struct Directory {

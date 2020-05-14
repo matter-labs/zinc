@@ -11,6 +11,7 @@ use crate::semantic::analyzer::rule::Rule as TranslationRule;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
+use crate::semantic::scope::item::variable::memory_type::MemoryType;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::r#let::Statement as LetStatement;
 
@@ -42,6 +43,7 @@ impl Analyzer {
             statement.identifier.clone(),
             statement.is_mutable,
             r#type.clone(),
+            MemoryType::Stack,
         )?;
 
         Ok(GeneratorDeclarationStatement::new(

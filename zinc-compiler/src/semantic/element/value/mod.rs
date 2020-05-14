@@ -18,7 +18,7 @@ use std::fmt;
 use crate::generator::expression::operator::Operator as GeneratorExpressionOperator;
 use crate::lexical::token::location::Location;
 use crate::semantic::casting::Caster;
-use crate::semantic::element::access::dot::field::Field as FieldAccess;
+use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
 use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::place::Place;
@@ -696,7 +696,7 @@ impl Value {
         }
     }
 
-    pub fn tuple_field(self, tuple_index: TupleIndex) -> Result<(Self, FieldAccess), Error> {
+    pub fn tuple_field(self, tuple_index: TupleIndex) -> Result<(Self, StackFieldAccess), Error> {
         match self {
             Value::Tuple(tuple) => tuple.slice(tuple_index).map_err(Error::Tuple),
             value => Err(Error::OperatorDotFirstOperandExpectedTuple {
@@ -708,7 +708,10 @@ impl Value {
         }
     }
 
-    pub fn structure_field(self, identifier: Identifier) -> Result<(Self, FieldAccess), Error> {
+    pub fn structure_field(
+        self,
+        identifier: Identifier,
+    ) -> Result<(Self, StackFieldAccess), Error> {
         match self {
             Value::Structure(structure) => structure.slice(identifier).map_err(Error::Structure),
             value => Err(Error::OperatorDotFirstOperandExpectedStructure {

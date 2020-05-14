@@ -22,7 +22,7 @@ use self::module::file::File;
 use self::module::Module;
 
 ///
-/// The Zinc project source code, which consists of some modules and the entry point.
+/// The Zinc project source code, which consists of the entry root module and dependency modules.
 ///
 #[derive(Debug, Clone)]
 pub struct Source {

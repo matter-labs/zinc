@@ -28,14 +28,11 @@ use crate::semantic::scope::item::r#type::statement::Statement as TypeStatementV
 use crate::semantic::scope::Scope;
 use crate::source::module::Module as SourceModule;
 use crate::syntax::tree::module::Module as SyntaxModule;
-use crate::syntax::tree::statement::contract::Statement as ContractStatement;
-use crate::syntax::tree::statement::local_contract::Statement as ContractLocalStatement;
 use crate::syntax::tree::statement::local_fn::Statement as FunctionLocalStatement;
 use crate::syntax::tree::statement::local_impl::Statement as ImplementationLocalStatement;
 use crate::syntax::tree::statement::local_mod::Statement as ModuleLocalStatement;
 use crate::syntax::tree::statement::r#impl::Statement as ImplementationStatement;
 
-use self::field::Analyzer as FieldStatementAnalyzer;
 use self::module::Analyzer as ModStatementAnalyzer;
 use self::r#const::Analyzer as ConstStatementAnalyzer;
 use self::r#fn::Context as FnStatementAnalyzerContext;
@@ -195,44 +192,6 @@ impl Analyzer {
                     )?;
                 }
                 ImplementationLocalStatement::Empty(_location) => {}
-            }
-        }
-
-        scope.borrow().resolve()
-    }
-
-    ///
-    /// Analyzes the `contract` statement with all the inner statements. Works in three phases:
-    ///
-    /// 1. Declares the hoisted items.
-    /// 2. Defines the instant items.
-    /// 3. Resolves the hoisted items forcibly.
-    ///
-    pub fn contract(statement: ContractStatement, scope: Rc<RefCell<Scope>>) -> Result<(), Error> {
-        let mut instant_statements = Vec::with_capacity(statement.statements.len());
-        for hoisted_statement in statement.statements.into_iter() {
-            match hoisted_statement {
-                ContractLocalStatement::Const(statement) => {
-                    Scope::declare_constant(scope.clone(), statement)?;
-                }
-                ContractLocalStatement::Fn(statement) => {
-                    Scope::declare_type(
-                        scope.clone(),
-                        TypeStatementVariant::Fn(statement, FnStatementAnalyzerContext::Contract),
-                    )?;
-                }
-                ContractLocalStatement::Empty(_location) => {}
-                statement => instant_statements.push(statement),
-            }
-        }
-
-        for instant_statement in instant_statements.into_iter() {
-            #[allow(clippy::single_match)]
-            match instant_statement {
-                ContractLocalStatement::Field(statement) => {
-                    FieldStatementAnalyzer::analyze(scope.clone(), statement)?;
-                }
-                _ => {}
             }
         }
 

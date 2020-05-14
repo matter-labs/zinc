@@ -34,20 +34,6 @@ pub struct Command {
         default_value = "./Zargo.toml"
     )]
     manifest_path: PathBuf,
-
-    #[structopt(
-        long = "build",
-        help = "Path to the build directory",
-        default_value = "./build/"
-    )]
-    build_path: PathBuf,
-
-    #[structopt(
-        long = "data",
-        help = "Path to the data directory",
-        default_value = "./data/"
-    )]
-    data_path: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -71,16 +57,18 @@ impl Command {
             manifest_path.pop();
         }
 
-        let source_path = SourceDirectory::path(&manifest_path);
+        let source_directory_path = SourceDirectory::path(&manifest_path);
+        let build_directory_path = BuildDirectory::path(&manifest_path);
+        let data_directory_path = DataDirectory::path(&manifest_path);
 
         BuildDirectory::create(&manifest_path).map_err(Error::BuildDirectory)?;
         DataDirectory::create(&manifest_path).map_err(Error::DataDirectory)?;
 
         Compiler::build(
             self.verbosity,
-            &self.data_path,
-            &self.build_path,
-            &source_path,
+            &data_directory_path,
+            &build_directory_path,
+            &source_directory_path,
         )
         .map_err(Error::Compiler)?;
 

@@ -39,40 +39,20 @@ pub struct Command {
     )]
     manifest_path: PathBuf,
 
-    #[structopt(
-        long = "build",
-        help = "Path to the build directory",
-        default_value = "./build/"
-    )]
-    build_path: PathBuf,
+    #[structopt(long = "build", help = "Path to the binary data file")]
+    binary_path: PathBuf,
 
-    #[structopt(
-        long = "data",
-        help = "Path to the data directory",
-        default_value = "./data/"
-    )]
-    data_path: PathBuf,
+    #[structopt(long = "witness", help = "Path to the witness JSON file")]
+    witness_path: PathBuf,
 
-    #[structopt(
-        long = "entry",
-        help = "The bytecode entry name",
-        default_value = "main"
-    )]
-    entry_name: String,
+    #[structopt(long = "public-data", help = "Path to the public data JSON file")]
+    public_data_path: PathBuf,
 
-    #[structopt(
-        long = "proving-key",
-        help = "Path to the proving key file",
-        default_value = "./data/proving-key"
-    )]
-    proving_key: PathBuf,
+    #[structopt(long = "proving-key", help = "Path to the proving key file")]
+    proving_key_path: PathBuf,
 
-    #[structopt(
-        long = "verifying-key",
-        help = "Path to the verifying key file",
-        default_value = "./data/verifying-key.txt"
-    )]
-    verifying_key: PathBuf,
+    #[structopt(long = "verifying-key", help = "Path to the verifying key file")]
+    verifying_key_path: PathBuf,
 }
 
 #[derive(Debug, Fail)]
@@ -94,7 +74,7 @@ pub enum Error {
 }
 
 impl Command {
-    pub fn execute(mut self) -> Result<(), Error> {
+    pub fn execute(self) -> Result<(), Error> {
         let _manifest = Manifest::try_from(&self.manifest_path).map_err(Error::ManifestFile)?;
 
         let mut manifest_path = self.manifest_path.clone();
@@ -102,50 +82,44 @@ impl Command {
             manifest_path.pop();
         }
 
-        let source_path = SourceDirectory::path(&manifest_path);
+        let source_directory_path = SourceDirectory::path(&manifest_path);
+        let build_directory_path = BuildDirectory::path(&manifest_path);
+        let data_directory_path = DataDirectory::path(&manifest_path);
 
         BuildDirectory::create(&manifest_path).map_err(Error::BuildDirectory)?;
         DataDirectory::create(&manifest_path).map_err(Error::DataDirectory)?;
 
         Compiler::build(
             self.verbosity,
-            &self.data_path,
-            &self.build_path,
-            &source_path,
+            &data_directory_path,
+            &build_directory_path,
+            &source_directory_path,
         )
         .map_err(Error::Compiler)?;
 
-        self.build_path.push(format!("{}.znb", self.entry_name));
-
-        let mut witness_path = self.data_path.clone();
-        witness_path.push(format!("{}_witness.json", self.entry_name));
-
-        let mut public_data_path = self.data_path.clone();
-        public_data_path.push(format!("{}_public_data.json", self.entry_name));
-
         VirtualMachine::run(
             self.verbosity,
-            &self.build_path,
-            &witness_path,
-            &public_data_path,
+            &self.binary_path,
+            &self.witness_path,
+            &self.public_data_path,
         )
         .map_err(Error::VirtualMachineRun)?;
 
         VirtualMachine::setup(
             self.verbosity,
-            &self.build_path,
-            &self.proving_key,
-            &self.verifying_key,
+            &self.binary_path,
+            &self.proving_key_path,
+            &self.verifying_key_path,
         )
         .map_err(Error::VirtualMachineSetup)?;
 
         VirtualMachine::prove_and_verify(
             self.verbosity,
-            &self.build_path,
-            &witness_path,
-            &public_data_path,
-            &self.proving_key,
-            &self.verifying_key,
+            &self.binary_path,
+            &self.witness_path,
+            &self.public_data_path,
+            &self.proving_key_path,
+            &self.verifying_key_path,
         )
         .map_err(Error::VirtualMachineProveAndVerify)?;
 

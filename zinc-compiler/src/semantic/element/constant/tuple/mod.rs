@@ -9,7 +9,7 @@ pub mod error;
 use std::fmt;
 
 use crate::lexical::token::location::Location;
-use crate::semantic::element::access::dot::field::Field as FieldAccess;
+use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
@@ -67,7 +67,7 @@ impl Tuple {
         self.values.push(value);
     }
 
-    pub fn slice(mut self, index: TupleIndex) -> Result<(Constant, FieldAccess), Error> {
+    pub fn slice(mut self, index: TupleIndex) -> Result<(Constant, StackFieldAccess), Error> {
         let TupleIndex {
             location,
             value: index,
@@ -92,7 +92,7 @@ impl Tuple {
 
         let element_size = self.values[tuple_index].r#type().size();
 
-        let access = FieldAccess::new(index, offset, element_size, total_size);
+        let access = StackFieldAccess::new(index, offset, element_size, total_size);
 
         Ok((self.values.remove(index), access))
     }

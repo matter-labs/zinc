@@ -25,6 +25,7 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
+use crate::semantic::scope::item::variable::memory_type::MemoryType;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::statement::r#for::Statement as ForStatement;
@@ -81,6 +82,7 @@ impl Analyzer {
             statement.index_identifier,
             false,
             Type::scalar(Some(index_location), is_index_signed, index_bitlength),
+            MemoryType::Stack,
         )?;
 
         let while_condition = if let Some(expression) = statement.while_condition {

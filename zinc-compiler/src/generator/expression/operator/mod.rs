@@ -7,7 +7,7 @@ use zinc_bytecode::builtins::BuiltinIdentifier;
 use crate::generator::expression::operand::place::Place;
 use crate::generator::expression::Expression;
 use crate::generator::r#type::Type;
-use crate::semantic::element::access::dot::field::Field as FieldAccess;
+use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
 use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::r#type::Type as SemanticType;
 
@@ -123,7 +123,7 @@ pub enum Operator {
 
     // tuple or structure slice
     Slice {
-        access: FieldAccess,
+        access: StackFieldAccess,
     },
 
     // call
@@ -154,7 +154,7 @@ impl Operator {
         Self::Index { expression, access }
     }
 
-    pub fn slice(access: FieldAccess) -> Self {
+    pub fn slice(access: StackFieldAccess) -> Self {
         Self::Slice { access }
     }
 

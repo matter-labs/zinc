@@ -23,7 +23,7 @@ use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::identifier::Identifier;
 
-use self::access::dot::Dot as FieldAccessVariant;
+use self::access::dot::Dot as DotAccessVariant;
 use self::access::index::Index as IndexAccess;
 use self::argument_list::ArgumentList;
 use self::constant::Constant;
@@ -1504,16 +1504,14 @@ impl Element {
         }
     }
 
-    pub fn dot(self, other: Self) -> Result<(Self, FieldAccessVariant), SemanticError> {
+    pub fn dot(self, other: Self) -> Result<(Self, DotAccessVariant), SemanticError> {
         log::trace!("Executing the dot operation");
 
         match self {
             Self::Place(place) => match other {
                 Self::TupleIndex(index) => place
                     .tuple_field(index)
-                    .map(|(place, access)| {
-                        (Element::Place(place), FieldAccessVariant::Field(access))
-                    })
+                    .map(|(place, access)| (Element::Place(place), access))
                     .map_err(Error::Place)
                     .map_err(SemanticError::Element),
                 Self::Identifier(identifier) => {
@@ -1524,9 +1522,7 @@ impl Element {
                         _ => {
                             return place
                                 .structure_field(identifier)
-                                .map(|(place, access)| {
-                                    (Element::Place(place), FieldAccessVariant::Field(access))
-                                })
+                                .map(|(place, access)| (Element::Place(place), access))
                                 .map_err(Error::Place)
                                 .map_err(SemanticError::Element)
                         }
@@ -1537,16 +1533,14 @@ impl Element {
                             let r#type = r#type.resolve()?;
                             Ok((
                                 Element::Type(r#type),
-                                FieldAccessVariant::Method {
+                                DotAccessVariant::Method {
                                     instance: Self::Place(place),
                                 },
                             ))
                         }
                         _ => place
                             .structure_field(identifier)
-                            .map(|(place, access)| {
-                                (Element::Place(place), FieldAccessVariant::Field(access))
-                            })
+                            .map(|(place, access)| (Element::Place(place), access))
                             .map_err(Error::Place)
                             .map_err(SemanticError::Element),
                     }
@@ -1564,7 +1558,7 @@ impl Element {
                 Self::TupleIndex(index) => value
                     .tuple_field(index)
                     .map(|(value, access)| {
-                        (Element::Value(value), FieldAccessVariant::Field(access))
+                        (Element::Value(value), DotAccessVariant::StackField(access))
                     })
                     .map_err(Error::Value)
                     .map_err(SemanticError::Element),
@@ -1577,7 +1571,7 @@ impl Element {
                             return value
                                 .structure_field(identifier)
                                 .map(|(value, access)| {
-                                    (Element::Value(value), FieldAccessVariant::Field(access))
+                                    (Element::Value(value), DotAccessVariant::StackField(access))
                                 })
                                 .map_err(Error::Value)
                                 .map_err(SemanticError::Element)
@@ -1589,7 +1583,7 @@ impl Element {
                             let r#type = r#type.resolve()?;
                             Ok((
                                 Element::Type(r#type),
-                                FieldAccessVariant::Method {
+                                DotAccessVariant::Method {
                                     instance: Self::Value(value),
                                 },
                             ))
@@ -1597,7 +1591,7 @@ impl Element {
                         _ => value
                             .structure_field(identifier)
                             .map(|(value, access)| {
-                                (Element::Value(value), FieldAccessVariant::Field(access))
+                                (Element::Value(value), DotAccessVariant::StackField(access))
                             })
                             .map_err(Error::Value)
                             .map_err(SemanticError::Element),
@@ -1618,7 +1612,7 @@ impl Element {
                     .map(|(constant, access)| {
                         (
                             Element::Constant(constant),
-                            FieldAccessVariant::Field(access),
+                            DotAccessVariant::StackField(access),
                         )
                     })
                     .map_err(Error::Constant)
@@ -1634,7 +1628,7 @@ impl Element {
                                 .map(|(constant, access)| {
                                     (
                                         Element::Constant(constant),
-                                        FieldAccessVariant::Field(access),
+                                        DotAccessVariant::StackField(access),
                                     )
                                 })
                                 .map_err(Error::Constant)
@@ -1647,7 +1641,7 @@ impl Element {
                             let r#type = r#type.resolve()?;
                             Ok((
                                 Element::Type(r#type),
-                                FieldAccessVariant::Method {
+                                DotAccessVariant::Method {
                                     instance: Self::Constant(constant),
                                 },
                             ))
@@ -1657,7 +1651,7 @@ impl Element {
                             .map(|(constant, access)| {
                                 (
                                     Element::Constant(constant),
-                                    FieldAccessVariant::Field(access),
+                                    DotAccessVariant::StackField(access),
                                 )
                             })
                             .map_err(Error::Constant)

@@ -32,11 +32,6 @@ impl Directory {
     }
 
     pub fn create(path: &PathBuf) -> Result<(), Error> {
-        let mut path = path.to_owned();
-        if path.is_dir() && !path.ends_with(DIRECTORY_NAME_DEFAULT) {
-            path.push(PathBuf::from(DIRECTORY_NAME_DEFAULT));
-        }
-
-        fs::create_dir_all(&path).map_err(Error::Creating)
+        fs::create_dir_all(&Self::path(path)).map_err(Error::Creating)
     }
 }

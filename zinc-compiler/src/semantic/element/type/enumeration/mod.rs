@@ -55,7 +55,7 @@ impl Enumeration {
         }
         let mut bigints: Vec<BigInt> = variants_bigint
             .iter()
-            .map(|variant| variant.1.to_owned())
+            .map(|(_identifier, value)| value.to_owned())
             .collect();
 
         let minimal_bitlength = IntegerConstant::minimal_bitlength_bigints(

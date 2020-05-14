@@ -15,6 +15,7 @@ use crate::semantic::element::r#type::error::Error as TypeError;
 use crate::semantic::element::r#type::function::error::Error as FunctionTypeError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::error::Error;
+use crate::semantic::scope::item::variable::memory_type::MemoryType;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::identifier::Identifier;
@@ -118,7 +119,13 @@ impl Analyzer {
                     let r#type =
                         Type::from_syntax_type(argument_binding.r#type, scope_stack.top())?;
 
-                    Scope::define_variable(scope_stack.top(), identifier, is_mutable, r#type)?;
+                    Scope::define_variable(
+                        scope_stack.top(),
+                        identifier,
+                        is_mutable,
+                        r#type,
+                        MemoryType::Stack,
+                    )?;
                 }
                 BindingPatternVariant::Wildcard => continue,
                 BindingPatternVariant::SelfAlias {
@@ -129,7 +136,19 @@ impl Analyzer {
                     let r#type =
                         Type::from_syntax_type(argument_binding.r#type, scope_stack.top())?;
 
-                    Scope::define_variable(scope_stack.top(), identifier, is_mutable, r#type)?;
+                    let memory_type = match context {
+                        Context::Contract => MemoryType::ContractInstance,
+                        Context::Module => MemoryType::Stack,
+                        Context::Implementation => MemoryType::Stack,
+                    };
+
+                    Scope::define_variable(
+                        scope_stack.top(),
+                        identifier,
+                        is_mutable,
+                        r#type,
+                        memory_type,
+                    )?;
                 }
             }
         }

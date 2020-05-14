@@ -1,9 +1,9 @@
 //!
-//! The semantic analyzer element dot field access.
+//! The semantic analyzer element dot stack data field access.
 //!
 
 #[derive(Debug, Clone)]
-pub struct Field {
+pub struct StackField {
     /// The position of the element in the tuple or structure
     pub position: usize,
     /// The offset of the element in the tuple or structure
@@ -14,7 +14,7 @@ pub struct Field {
     pub total_size: usize,
 }
 
-impl Field {
+impl StackField {
     pub fn new(position: usize, offset: usize, element_size: usize, total_size: usize) -> Self {
         Self {
             position,

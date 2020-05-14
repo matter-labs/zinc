@@ -14,8 +14,10 @@ use zinc_bytecode::Instruction;
 use crate::generator::bytecode::Bytecode;
 use crate::generator::expression::operand::constant::integer::Integer as IntegerConstant;
 use crate::generator::expression::operand::constant::Constant;
+use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;
 use crate::semantic::element::constant::Constant as SemanticConstant;
 use crate::semantic::element::place::element::Element as SemanticPlaceElement;
+use crate::semantic::element::place::memory_type::MemoryType;
 use crate::semantic::element::place::Place as SemanticPlace;
 use crate::syntax::tree::identifier::Identifier;
 
@@ -25,9 +27,30 @@ pub struct Place {
     pub element_size: usize,
     pub total_size: usize,
     pub elements: Vec<SemanticPlaceElement>,
+    pub memory_type: MemoryType,
 }
 
 impl Place {
+    pub fn load_storage(&mut self, bytecode: Rc<RefCell<Bytecode>>) {
+        if let Some(SemanticPlaceElement::ContractField {
+            access:
+                ContractFieldAccess {
+                    position,
+                    element_size,
+                },
+        }) = self.elements.first()
+        {
+            IntegerConstant::new(BigInt::from(*position), false, crate::BITLENGTH_FIELD)
+                .write_all_to_bytecode(bytecode.clone());
+            bytecode.borrow_mut().push_instruction(
+                Instruction::StorageLoad(zinc_bytecode::StorageLoad::new(*element_size)),
+                Some(self.identifier.location),
+            );
+
+            self.elements.remove(0);
+        }
+    }
+
     pub fn write_all_to_bytecode(self, bytecode: Rc<RefCell<Bytecode>>) {
         if !self.elements.is_empty() {
             IntegerConstant::new(BigInt::zero(), false, crate::BITLENGTH_FIELD)
@@ -104,7 +127,7 @@ impl Place {
                         Some(self.identifier.location),
                     );
                 }
-                SemanticPlaceElement::Field { access } => {
+                SemanticPlaceElement::StackField { access } => {
                     IntegerConstant::new(
                         BigInt::from(access.offset),
                         false,
@@ -116,6 +139,7 @@ impl Place {
                         Some(self.identifier.location),
                     );
                 }
+                SemanticPlaceElement::ContractField { .. } => {}
             }
         }
     }
@@ -128,6 +152,7 @@ impl From<SemanticPlace> for Place {
             element_size: place.r#type.size(),
             total_size: place.total_size,
             elements: place.elements,
+            memory_type: place.memory_type,
         }
     }
 }

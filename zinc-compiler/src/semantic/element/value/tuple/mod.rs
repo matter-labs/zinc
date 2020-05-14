@@ -9,7 +9,7 @@ pub mod error;
 use std::fmt;
 
 use crate::lexical::token::location::Location;
-use crate::semantic::element::access::dot::field::Field as FieldAccess;
+use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
 use crate::semantic::element::value::Value;
@@ -67,7 +67,7 @@ impl Tuple {
         self.element_types.push(r#type);
     }
 
-    pub fn slice(self, index: TupleIndex) -> Result<(Value, FieldAccess), Error> {
+    pub fn slice(self, index: TupleIndex) -> Result<(Value, StackFieldAccess), Error> {
         let TupleIndex {
             location,
             value: index,
@@ -93,7 +93,7 @@ impl Tuple {
         let sliced_type = self.element_types[tuple_index].clone();
         let element_size = sliced_type.size();
 
-        let access = FieldAccess::new(index, offset, element_size, total_size);
+        let access = StackFieldAccess::new(index, offset, element_size, total_size);
 
         let result = Value::try_from_type(&sliced_type, self.location)
             .expect(crate::panic::VALIDATED_DURING_SYNTAX_ANALYSIS);

@@ -28,6 +28,7 @@ use crate::semantic::element::error::Error as ElementError;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::Element;
 use crate::semantic::error::Error;
+use crate::semantic::scope::item::variable::memory_type::MemoryType;
 use crate::semantic::scope::stack::Stack as ScopeStack;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::expression::r#match::Expression as MatchExpression;
@@ -275,6 +276,7 @@ impl Analyzer {
                         identifier.clone(),
                         false,
                         scrutinee_type.clone(),
+                        MemoryType::Stack,
                     )?;
                     let (result, branch) =
                         ExpressionAnalyzer::new(scope_stack.top(), TranslationRule::Value)

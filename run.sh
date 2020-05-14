@@ -63,8 +63,8 @@ cargo run ${CARGO_LOG_LEVEL} ${RELEASE_MODE_FLAG} --bin 'zinc-tester' -- ${LOG_L
 
 "${ZARGO_PATH}" proof-check ${LOG_LEVEL} \
     --manifest-path "${PROJECT_DIRECTORY}/Zargo.toml" \
-    --build "${PROJECT_BUILD_DIRECTORY}" \
-    --data "${PROJECT_DATA_DIRECTORY}" \
-    --entry "${PROJECT_ENTRY}" \
+    --build "${PROJECT_BUILD_DIRECTORY}/${PROJECT_ENTRY}.znb" \
+    --witness "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_witness.json" \
+    --public-data "${PROJECT_DATA_DIRECTORY}/${PROJECT_ENTRY}_public_data.json" \
     --proving-key "${PROJECT_DATA_DIRECTORY}/proving-key" \
     --verifying-key "${PROJECT_DATA_DIRECTORY}/verifying-key.txt"

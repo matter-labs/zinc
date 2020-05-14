@@ -19,8 +19,7 @@ use self::error::Error;
 use self::index::INDEX;
 
 ///
-/// The Zinc source code file, which consists of its path and the code.
-/// The code is used to be passed to the syntax analyzer and to provide context for error messages.
+/// The Zinc source code file, which consists of its path, the text source code, and parsed syntax tree.
 ///
 #[derive(Debug, Clone)]
 pub struct File {

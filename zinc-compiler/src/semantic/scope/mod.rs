@@ -32,6 +32,7 @@ use self::item::constant::Constant as ConstantItem;
 use self::item::module::Module as ModuleItem;
 use self::item::r#type::statement::Statement as TypeStatementVariant;
 use self::item::r#type::Type as TypeItem;
+use self::item::variable::memory_type::MemoryType;
 use self::item::variable::Variable as VariableItem;
 use self::item::Item;
 
@@ -121,6 +122,7 @@ impl Scope {
         identifier: Identifier,
         is_mutable: bool,
         r#type: Type,
+        memory_type: MemoryType,
     ) -> Result<(), Error> {
         if let Ok(item) = Self::resolve_item(scope.clone(), &identifier, true) {
             return Err(Error::ItemRedeclared {
@@ -137,6 +139,7 @@ impl Scope {
                 is_mutable,
                 identifier.name,
                 r#type,
+                memory_type,
             )),
         );
 

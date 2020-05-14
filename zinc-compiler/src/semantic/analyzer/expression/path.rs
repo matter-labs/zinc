@@ -40,6 +40,7 @@ impl Translator {
                         path_last_identifier,
                         variable.r#type,
                         variable.is_mutable,
+                        variable.memory_type.into(),
                     )),
                     None,
                 )),
@@ -72,7 +73,13 @@ impl Translator {
 
                     let intermediate = GeneratorType::try_from_semantic(&r#type)
                         .map(|_| {
-                            Place::new(path_last_identifier, r#type, variable.is_mutable).into()
+                            Place::new(
+                                path_last_identifier,
+                                r#type,
+                                variable.is_mutable,
+                                variable.memory_type.into(),
+                            )
+                            .into()
                         })
                         .map(GeneratorExpressionOperand::Place);
 

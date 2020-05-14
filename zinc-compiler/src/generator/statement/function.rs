@@ -66,7 +66,7 @@ impl Statement {
             .output_type
             .as_ref()
             .map(|r#type| r#type.size())
-            .unwrap_or(0);
+            .unwrap_or_default();
 
         if self.is_main || self.is_contract_entry {
             bytecode.borrow_mut().start_entry_function(

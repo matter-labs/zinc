@@ -127,6 +127,16 @@ contract Exchange {
         (eth_amount, token_amount)
     }
 
+    ///
+    /// Convert ETH to Tokens.
+    ///
+    /// User specifies exact input (tx.value).
+    /// User cannot specify minimum output or deadline.
+    ///
+    pub fn default(self, tx: Transaction) -> Balance {
+        self.eth_to_token_input(tx, tx.value, 1 as Balance, tx.block.timestamp, tx.from, tx.from)
+    }
+
     fn eth_to_token_input(
         self,
         tx: Transaction,
@@ -144,16 +154,6 @@ contract Exchange {
         assert!(self.transfer(tx, recipient, tokens_bought));
 
         tokens_bought
-    }
-
-    ///
-    /// Convert ETH to Tokens.
-    ///
-    /// User specifies exact input (tx.value).
-    /// User cannot specify minimum output or deadline.
-    ///
-    pub fn default(self, tx: Transaction) -> Balance {
-        self.eth_to_token_input(tx, tx.value, 1 as Balance, tx.block.timestamp, tx.from, tx.from)
     }
 
     ///

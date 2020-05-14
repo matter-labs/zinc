@@ -23,12 +23,12 @@ use self::metadata::Metadata;
 ///
 #[derive(Debug, PartialEq)]
 pub struct Bytecode {
-    entry_metadata_map: HashMap<usize, Metadata>,
     instructions: Vec<Instruction>,
 
-    data_stack_pointer: usize,
+    entry_metadata: HashMap<usize, Metadata>,
     variable_addresses: HashMap<String, usize>,
     function_addresses: HashMap<usize, usize>,
+    data_stack_pointer: usize,
 
     current_location: Location,
 }
@@ -57,16 +57,16 @@ impl Bytecode {
         instructions.push(Instruction::NoOperation(zinc_bytecode::NoOperation));
 
         Self {
-            entry_metadata_map: HashMap::with_capacity(Self::ENTRY_METADATA_HASHMAP_INITIAL_SIZE),
             instructions,
 
-            data_stack_pointer: 0,
+            entry_metadata: HashMap::with_capacity(Self::ENTRY_METADATA_HASHMAP_INITIAL_SIZE),
             variable_addresses: HashMap::with_capacity(
                 Self::VARIABLE_ADDRESSES_HASHMAP_INITIAL_SIZE,
             ),
             function_addresses: HashMap::with_capacity(
                 Self::FUNCTION_ADDRESSES_HASHMAP_INITIAL_SIZE,
             ),
+            data_stack_pointer: 0,
 
             current_location: Location::new_beginning(None),
         }
@@ -83,7 +83,7 @@ impl Bytecode {
     /// Returns an array of entry IDs, which are actually type IDs of the corresponding functions.
     ///
     pub fn entries(&self) -> Vec<usize> {
-        self.entry_metadata_map.keys().copied().collect()
+        self.entry_metadata.keys().copied().collect()
     }
 
     ///
@@ -122,7 +122,7 @@ impl Bytecode {
             input_arguments,
             output_type.unwrap_or_else(|| Type::structure(vec![])),
         );
-        self.entry_metadata_map.insert(type_id, metadata);
+        self.entry_metadata.insert(type_id, metadata);
 
         self.start_function(location, type_id, identifier);
     }
@@ -175,7 +175,7 @@ impl Bytecode {
     /// Returns the entry ID by its function name.
     ///
     pub fn entry_id(&self, name: &str) -> Option<usize> {
-        for (id, metadata) in self.entry_metadata_map.iter() {
+        for (id, metadata) in self.entry_metadata.iter() {
             if name == metadata.entry_name.as_str() {
                 return Some(*id);
             }
@@ -188,7 +188,7 @@ impl Bytecode {
     /// Returns the entry function name by its ID.
     ///
     pub fn entry_name(&self, entry_id: usize) -> &str {
-        self.entry_metadata_map
+        self.entry_metadata
             .get(&entry_id)
             .expect(ENSURED_WHILE_RETURNING_ENTRIES)
             .entry_name
@@ -200,7 +200,7 @@ impl Bytecode {
     ///
     pub fn input_template_bytes(&self, entry_id: usize) -> Vec<u8> {
         let input_type = self
-            .entry_metadata_map
+            .entry_metadata
             .get(&entry_id)
             .expect(ENSURED_WHILE_RETURNING_ENTRIES)
             .input_fields_as_struct()
@@ -220,7 +220,7 @@ impl Bytecode {
     ///
     pub fn output_template_bytes(&self, entry_id: usize) -> Vec<u8> {
         let output_bytecode_type = self
-            .entry_metadata_map
+            .entry_metadata
             .get(&entry_id)
             .expect(ENSURED_WHILE_RETURNING_ENTRIES)
             .output_type
@@ -241,11 +241,11 @@ impl Bytecode {
     ///
     /// Besides that, the function walks through the `Call` instructions and replaces `type_id`s
     /// of the function stored as `address`es with their actual addresses in the bytecode,
-    /// since the addresses are only known after the functions are written there.
+    /// since the addresses are only known after the functions are written thereto.
     ///
     pub fn to_bytes(&self, entry_id: usize) -> Vec<u8> {
         let metadata = self
-            .entry_metadata_map
+            .entry_metadata
             .get(&entry_id)
             .expect(ENSURED_WHILE_RETURNING_ENTRIES);
 

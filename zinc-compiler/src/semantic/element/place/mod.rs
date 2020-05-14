@@ -6,6 +6,7 @@ mod tests;
 
 pub mod element;
 pub mod error;
+pub mod memory_type;
 
 use std::fmt;
 use std::ops::Deref;
@@ -14,19 +15,23 @@ use num_bigint::BigInt;
 use num_traits::Signed;
 use num_traits::ToPrimitive;
 
-use crate::semantic::element::access::dot::field::Field as FieldAccess;
+use crate::semantic::element::access::dot::contract_field::ContractField as ContractFieldAccess;
+use crate::semantic::element::access::dot::stack_field::StackField as StackFieldAccess;
+use crate::semantic::element::access::dot::Dot as DotAccessVariant;
 use crate::semantic::element::access::index::Index as IndexAccess;
 use crate::semantic::element::constant::Constant;
 use crate::semantic::element::r#type::Type;
 use crate::semantic::element::tuple_index::TupleIndex;
 use crate::semantic::element::value::Value;
 use crate::semantic::element::Element;
+use crate::semantic::scope::item::variable::memory_type::MemoryType as VariableItemMemoryType;
 use crate::semantic::scope::item::Item as ScopeItem;
 use crate::semantic::scope::Scope;
 use crate::syntax::tree::identifier::Identifier;
 
 use self::element::Element as PlaceElement;
 use self::error::Error;
+use self::memory_type::MemoryType;
 
 #[derive(Debug, Clone)]
 pub struct Place {
@@ -34,11 +39,17 @@ pub struct Place {
     pub r#type: Type,
     pub total_size: usize,
     pub is_mutable: bool,
+    pub memory_type: MemoryType,
     pub elements: Vec<PlaceElement>,
 }
 
 impl Place {
-    pub fn new(identifier: Identifier, mut r#type: Type, is_mutable: bool) -> Self {
+    pub fn new(
+        identifier: Identifier,
+        mut r#type: Type,
+        is_mutable: bool,
+        memory_type: MemoryType,
+    ) -> Self {
         r#type.set_location(identifier.location);
         let total_size = r#type.size();
 
@@ -47,7 +58,7 @@ impl Place {
             r#type,
             total_size,
             is_mutable,
-
+            memory_type,
             elements: vec![],
         }
     }
@@ -69,16 +80,16 @@ impl Place {
         let inner_type_size = inner_type.size();
         match index_value {
             Element::Value(Value::Integer(..)) => {
-                self.r#type = inner_type;
-
                 let access = IndexAccess::new(inner_type_size, array_size, None);
+
+                self.r#type = inner_type;
 
                 Ok((self, access))
             }
             Element::Constant(Constant::Integer(_integer)) => {
-                self.r#type = inner_type;
-
                 let access = IndexAccess::new(inner_type_size, array_size, None);
+
+                self.r#type = inner_type;
 
                 Ok((self, access))
             }
@@ -132,9 +143,9 @@ impl Place {
                     }
                 })?;
 
-                self.r#type = Type::array(Some(self.identifier.location), inner_type, length);
-
                 let access = IndexAccess::new(inner_type_size, array_size, None);
+
+                self.r#type = Type::array(Some(self.identifier.location), inner_type, length);
 
                 Ok((self, access))
             }
@@ -188,9 +199,9 @@ impl Place {
                     }
                 })?;
 
-                self.r#type = Type::array(Some(self.identifier.location), inner_type, length);
-
                 let access = IndexAccess::new(inner_type_size, array_size, None);
+
+                self.r#type = Type::array(Some(self.identifier.location), inner_type, length);
 
                 Ok((self, access))
             }
@@ -203,7 +214,7 @@ impl Place {
         }
     }
 
-    pub fn tuple_field(mut self, index: TupleIndex) -> Result<(Self, FieldAccess), Error> {
+    pub fn tuple_field(mut self, index: TupleIndex) -> Result<(Self, DotAccessVariant), Error> {
         let TupleIndex {
             location,
             value: index,
@@ -227,9 +238,15 @@ impl Place {
                     tuple_index += 1;
                 }
 
-                self.r#type = tuple.types[tuple_index].to_owned();
+                let element_size = tuple.types[tuple_index].size();
+                let access = DotAccessVariant::StackField(StackFieldAccess::new(
+                    index,
+                    offset,
+                    element_size,
+                    total_size,
+                ));
 
-                let access = FieldAccess::new(index, offset, self.r#type.size(), total_size);
+                self.r#type = tuple.types[tuple_index].to_owned();
 
                 Ok((self, access))
             }
@@ -240,21 +257,31 @@ impl Place {
         }
     }
 
-    pub fn structure_field(mut self, identifier: Identifier) -> Result<(Self, FieldAccess), Error> {
+    pub fn structure_field(
+        mut self,
+        identifier: Identifier,
+    ) -> Result<(Self, DotAccessVariant), Error> {
         let mut offset = 0;
         let total_size = self.r#type.size();
+
         match self.r#type {
             Type::Structure(ref structure) => {
-                for (index, structure_field) in structure.fields.iter().enumerate() {
-                    if structure_field.0 == identifier.name {
-                        self.r#type = structure_field.1.to_owned();
+                for (index, (field_name, field_type)) in structure.fields.iter().enumerate() {
+                    let element_size = field_type.size();
 
-                        let access =
-                            FieldAccess::new(index, offset, self.r#type.size(), total_size);
+                    if field_name == &identifier.name {
+                        let access = DotAccessVariant::StackField(StackFieldAccess::new(
+                            index,
+                            offset,
+                            element_size,
+                            total_size,
+                        ));
+
+                        self.r#type = field_type.to_owned();
 
                         return Ok((self, access));
                     }
-                    offset += structure_field.1.size();
+                    offset += element_size;
                 }
 
                 Err(Error::StructureFieldDoesNotExist {
@@ -267,10 +294,18 @@ impl Place {
                 if let Ok(ScopeItem::Variable(variable)) =
                     Scope::resolve_item(contract.scope.clone(), &identifier, false)
                 {
+                    let position = match variable.memory_type {
+                        VariableItemMemoryType::ContractStorage { index } => index,
+                        _ => panic!(crate::panic::VALIDATED_DURING_SEMANTIC_ANALYSIS),
+                    };
                     let element_size = variable.r#type.size();
-                    self.r#type = variable.r#type;
+                    let access = DotAccessVariant::ContractField(ContractFieldAccess::new(
+                        position,
+                        element_size,
+                    ));
 
-                    let access = FieldAccess::new(0, 0, element_size, total_size);
+                    self.r#type = variable.r#type;
+                    self.total_size = self.r#type.size();
 
                     return Ok((self, access));
                 }
