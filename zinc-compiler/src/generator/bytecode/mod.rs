@@ -14,6 +14,7 @@ use zinc_bytecode::Program;
 
 use crate::generator::r#type::Type;
 use crate::lexical::token::location::Location;
+use crate::source::module::file::index::INDEX as FILE_INDEX;
 
 use self::metadata::Metadata;
 
@@ -29,9 +30,10 @@ pub struct Bytecode {
     variable_addresses: HashMap<String, usize>,
     function_addresses: HashMap<usize, usize>,
 
-    current_file: String,
     current_location: Location,
 }
+
+static ENSURED_WHILE_RETURNING_ENTRIES: &str = "Ensured while returning the entries";
 
 impl Default for Bytecode {
     fn default() -> Self {
@@ -66,7 +68,6 @@ impl Bytecode {
                 Self::FUNCTION_ADDRESSES_HASHMAP_INITIAL_SIZE,
             ),
 
-            current_file: String::new(),
             current_location: Location::new_beginning(None),
         }
     }
@@ -86,24 +87,20 @@ impl Bytecode {
     }
 
     ///
-    /// Sets the file name to be written to the bytecode as the location debug information.
-    ///
-    pub fn start_new_file(&mut self, name: &str) {
-        self.current_file = name.to_owned();
-    }
-
-    ///
     /// Starts a new function, resetting the data stack pointer and writing the
     /// function debug information.
     ///
-    pub fn start_function(&mut self, type_id: usize, identifier: String) {
+    pub fn start_function(&mut self, location: Location, type_id: usize, identifier: String) {
         let address = self.instructions.len();
         self.function_addresses.insert(type_id, address);
         self.data_stack_pointer = 0;
 
-        self.instructions.push(Instruction::FileMarker(
-            zinc_bytecode::instructions::FileMarker::new(self.current_file.clone()),
-        ));
+        if let Some(file_index) = location.file_index {
+            let file_path = FILE_INDEX.get(file_index).to_string_lossy().to_string();
+            self.instructions.push(Instruction::FileMarker(
+                zinc_bytecode::instructions::FileMarker::new(file_path),
+            ));
+        }
         self.instructions.push(Instruction::FunctionMarker(
             zinc_bytecode::FunctionMarker::new(identifier),
         ));
@@ -114,6 +111,7 @@ impl Bytecode {
     ///
     pub fn start_entry_function(
         &mut self,
+        location: Location,
         identifier: String,
         type_id: usize,
         input_arguments: Vec<(String, Type)>,
@@ -126,7 +124,7 @@ impl Bytecode {
         );
         self.entry_metadata_map.insert(type_id, metadata);
 
-        self.start_function(type_id, identifier);
+        self.start_function(location, type_id, identifier);
     }
 
     ///
@@ -192,7 +190,7 @@ impl Bytecode {
     pub fn entry_name(&self, entry_id: usize) -> &str {
         self.entry_metadata_map
             .get(&entry_id)
-            .expect(crate::panic::ENSURED_WHILE_RETURNING_ENTRIES)
+            .expect(ENSURED_WHILE_RETURNING_ENTRIES)
             .entry_name
             .as_str()
     }
@@ -204,7 +202,7 @@ impl Bytecode {
         let input_type = self
             .entry_metadata_map
             .get(&entry_id)
-            .expect(crate::panic::ENSURED_WHILE_RETURNING_ENTRIES)
+            .expect(ENSURED_WHILE_RETURNING_ENTRIES)
             .input_fields_as_struct()
             .into();
         let input_template_value = TemplateValue::default_from_type(&input_type);
@@ -224,7 +222,7 @@ impl Bytecode {
         let output_bytecode_type = self
             .entry_metadata_map
             .get(&entry_id)
-            .expect(crate::panic::ENSURED_WHILE_RETURNING_ENTRIES)
+            .expect(ENSURED_WHILE_RETURNING_ENTRIES)
             .output_type
             .to_owned()
             .into();
@@ -245,11 +243,11 @@ impl Bytecode {
     /// of the function stored as `address`es with their actual addresses in the bytecode,
     /// since the addresses are only known after the functions are written there.
     ///
-    pub fn entry_to_bytes(&mut self, entry_id: usize) -> Vec<u8> {
+    pub fn to_bytes(&self, entry_id: usize) -> Vec<u8> {
         let metadata = self
             .entry_metadata_map
-            .remove(&entry_id)
-            .expect(crate::panic::ENSURED_WHILE_RETURNING_ENTRIES);
+            .get(&entry_id)
+            .expect(ENSURED_WHILE_RETURNING_ENTRIES);
 
         let mut instructions = self.instructions.clone();
         instructions[0] =
@@ -264,7 +262,7 @@ impl Bytecode {
             {
                 let address = self
                     .get_function_address(*type_id)
-                    .expect(crate::panic::ENSURED_WHILE_RETURNING_ENTRIES);
+                    .expect(ENSURED_WHILE_RETURNING_ENTRIES);
                 *type_id = address;
             }
         }
@@ -283,13 +281,9 @@ impl Bytecode {
 
         Program::new(
             metadata.input_fields_as_struct().into(),
-            metadata.output_type.into(),
+            metadata.output_type.to_owned().into(),
             instructions,
         )
         .to_bytes()
-    }
-
-    pub fn into_instructions(self) -> Vec<Instruction> {
-        self.instructions
     }
 }

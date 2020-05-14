@@ -70,6 +70,7 @@ impl Statement {
 
         if self.is_main || self.is_contract_entry {
             bytecode.borrow_mut().start_entry_function(
+                self.location,
                 self.identifier,
                 self.type_id,
                 self.input_arguments.clone(),
@@ -78,7 +79,7 @@ impl Statement {
         } else {
             bytecode
                 .borrow_mut()
-                .start_function(self.type_id, self.identifier);
+                .start_function(self.location, self.type_id, self.identifier);
         }
 
         for (argument_name, argument_type) in self.input_arguments.into_iter() {

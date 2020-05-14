@@ -5,6 +5,7 @@
 pub mod error;
 pub mod module;
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::path::PathBuf;
@@ -30,10 +31,8 @@ pub struct Source {
     pub modules: HashMap<String, Module>,
 }
 
-static BYTECODE_LAST_REFERENCE: &str = "There are no other bytecode references at this point";
-
 impl Source {
-    pub fn compile(self) -> Result<Bytecode, Error> {
+    pub fn compile(self) -> Result<Rc<RefCell<Bytecode>>, Error> {
         let lines: Vec<&str> = self.entry.code.lines().collect();
 
         let scope = EntryAnalyzer::analyze(self.entry.tree, self.modules)
@@ -43,9 +42,6 @@ impl Source {
 
         let bytecode = Bytecode::new().wrap();
         Program::new(Scope::get_intermediate(scope)).write_all_to_bytecode(bytecode.clone());
-        let bytecode = Rc::try_unwrap(bytecode)
-            .expect(BYTECODE_LAST_REFERENCE)
-            .into_inner();
 
         Ok(bytecode)
     }

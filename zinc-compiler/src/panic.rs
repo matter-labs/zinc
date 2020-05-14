@@ -12,9 +12,6 @@ pub static VALIDATED_DURING_SEMANTIC_ANALYSIS: &str = "Validated during semantic
 pub static MUTEX_SYNC: &str = "Mutexes never panic";
 pub static JSON_TEMPLATE_SERIALIZATION: &str = "JSON serialization never panicks: ";
 pub static BUILDER_REQUIRES_VALUE: &str = "The builder requires a value: ";
-
-// TODO
-pub static ENSURED_WHILE_RETURNING_ENTRIES: &str = "Ensured while returning the entries";
 pub static LOCATION_ALWAYS_EXISTS: &str = "Location always exists";
 
 // test

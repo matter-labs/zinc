@@ -38,13 +38,13 @@ fn main_inner() -> Result<(), Error> {
 
     zinc_utils::logger::init_logger(BINARY_NAME, args.verbosity);
 
-    let mut bytecode = Source::try_from(&args.source_path)
+    let bytecode = Source::try_from(&args.source_path)
         .map_err(Error::Source)?
         .compile()
         .map_err(Error::Source)?;
 
-    for entry_id in bytecode.entries() {
-        let entry_name = bytecode.entry_name(entry_id);
+    for entry_id in bytecode.borrow().entries() {
+        let entry_name = bytecode.borrow().entry_name(entry_id).to_owned();
 
         let mut bytecode_path = args.build_path.clone();
         bytecode_path.push(format!("{}.znb", entry_name));
@@ -59,7 +59,7 @@ fn main_inner() -> Result<(), Error> {
             File::create(&witness_template_path)
                 .map_err(OutputError::Creating)
                 .map_err(Error::WitnessTemplateOutput)?
-                .write_all(bytecode.input_template_bytes(entry_id).as_slice())
+                .write_all(bytecode.borrow().input_template_bytes(entry_id).as_slice())
                 .map_err(OutputError::Writing)
                 .map_err(Error::WitnessTemplateOutput)?;
             log::info!("Witness template written to {:?}", witness_template_path);
@@ -73,7 +73,7 @@ fn main_inner() -> Result<(), Error> {
         File::create(&public_data_template_path)
             .map_err(OutputError::Creating)
             .map_err(Error::PublicDataTemplateOutput)?
-            .write_all(bytecode.output_template_bytes(entry_id).as_slice())
+            .write_all(bytecode.borrow().output_template_bytes(entry_id).as_slice())
             .map_err(OutputError::Writing)
             .map_err(Error::PublicDataTemplateOutput)?;
         log::info!(
@@ -84,7 +84,7 @@ fn main_inner() -> Result<(), Error> {
         File::create(&bytecode_path)
             .map_err(OutputError::Creating)
             .map_err(Error::BytecodeOutput)?
-            .write_all(bytecode.entry_to_bytes(entry_id).as_slice())
+            .write_all(bytecode.borrow().to_bytes(entry_id).as_slice())
             .map_err(OutputError::Writing)
             .map_err(Error::BytecodeOutput)?;
         log::info!("Compiled to {:?}", bytecode_path);

@@ -57,14 +57,14 @@ impl ProgramData {
         let bytecode = Bytecode::new().wrap();
         IntermediateProgram::new(Scope::get_intermediate(scope))
             .write_all_to_bytecode(bytecode.clone());
-        let mut bytecode = Rc::try_unwrap(bytecode)
+        let bytecode = Rc::try_unwrap(bytecode)
             .expect(crate::PANIC_LAST_SHARED_REFERENCE)
             .into_inner();
 
         let entry_id = bytecode
             .entry_id(zinc_compiler::FUNCTION_MAIN_IDENTIFIER)
             .expect(crate::PANIC_MAIN_ENTRY_ID);
-        let program = BytecodeProgram::from_bytes(bytecode.entry_to_bytes(entry_id).as_slice())
+        let program = BytecodeProgram::from_bytes(bytecode.to_bytes(entry_id).as_slice())
             .map_err(Error::Program)?;
 
         Ok(program)
