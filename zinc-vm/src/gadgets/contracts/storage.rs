@@ -58,7 +58,7 @@ where
                     index
                 )
             }),
-            preimage.as_ref(),
+            &preimage,
         )?;
     }
 
