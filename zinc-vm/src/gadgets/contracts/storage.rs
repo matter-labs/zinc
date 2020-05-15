@@ -131,9 +131,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
         CS: ConstraintSystem<E>,
     {
         let root_hash_value = storage.root_hash()?;
-        let root_hash_variable = cs
-            .alloc_input(|| "root hash variable", || Ok(root_hash_value))
-            .map_err(RuntimeError::SynthesisError)?;
+        let root_hash_variable = cs.alloc_input(|| "root hash variable", || Ok(root_hash_value))?;
         let root_hash = Scalar::<E>::new_unchecked_variable(
             Some(root_hash_value),
             root_hash_variable,
