@@ -4,7 +4,39 @@ pub use self::storage::*;
 
 pub mod merkle_tree_storage {
     use crate::{Engine, Result};
+    use franklin_crypto::bellman::ConstraintSystem;
+    use franklin_crypto::circuit::boolean::Boolean;
+    use franklin_crypto::circuit::sha256::sha256;
     use num_bigint::BigInt;
+
+    pub mod merkle_tree_hash {
+        use super::*;
+        use zinc_bytecode::data::values::ScalarValue::Bool;
+
+        pub trait MerkleTreeHash<E: Engine>: Sized {
+            fn execute<CS>(&self, cs: CS, preimage: &[Boolean]) -> Result<Vec<Boolean>>
+            where
+                CS: ConstraintSystem<E>;
+        }
+
+        pub struct Sha256Hasher;
+
+        impl<E: Engine> MerkleTreeHash<E> for Sha256Hasher {
+            fn execute<CS>(&self, mut cs: CS, preimage: &[Boolean]) -> Result<Vec<Boolean>>
+            where
+                CS: ConstraintSystem<E>,
+            {
+                let mut preimage = preimage
+                    .iter()
+                    .map(|boolean| boolean.clone())
+                    .collect::<Vec<Boolean>>();
+                while (preimage.len() % 8 != 0) {
+                    preimage.push(Boolean::Constant(false));
+                }
+                Ok(sha256(cs.namespace(|| "sha256 hash"), &preimage)?)
+            }
+        }
+    }
 
     pub struct MerkleTreeLeaf<E: Engine> {
         pub leaf_value: Vec<Option<E::Fr>>,

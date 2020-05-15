@@ -1,13 +1,14 @@
 use crate::gadgets::comparison::eq;
 use crate::gadgets::conditional_select;
-use crate::gadgets::contracts::merkle_tree_storage::{MerkleTreeStorage, ROOT_HASH_TRUNCATED_BITS};
+use crate::gadgets::contracts::merkle_tree_storage::{
+    merkle_tree_hash::MerkleTreeHash, MerkleTreeStorage, ROOT_HASH_TRUNCATED_BITS,
+};
 use crate::gadgets::utils::fr_to_bigint_unsigned;
 use crate::gadgets::{Scalar, ScalarType};
 use crate::{Engine, Result};
 use franklin_crypto::bellman::ConstraintSystem;
 use franklin_crypto::circuit::boolean::{AllocatedBit, Boolean};
 use franklin_crypto::circuit::num::AllocatedNum;
-use franklin_crypto::circuit::sha256::sha256;
 use franklin_crypto::circuit::Assignment;
 
 pub struct StorageGadget<E: Engine, S: MerkleTreeStorage<E>> {
@@ -67,10 +68,15 @@ where
     Ok((leaf, authentication_path))
 }
 
-fn enfoce_leaf_value_hash<E, CS>(mut cs: CS, leaf_value: &[Scalar<E>]) -> Result<Vec<Boolean>>
+fn enfoce_leaf_value_hash<E, CS, H>(
+    mut cs: CS,
+    hasher: &H,
+    leaf_value: &[Scalar<E>],
+) -> Result<Vec<Boolean>>
 where
     E: Engine,
     CS: ConstraintSystem<E>,
+    H: MerkleTreeHash<E>,
 {
     let mut leaf_value_hash: Vec<Boolean> = Vec::new();
 
@@ -78,13 +84,12 @@ where
         let mut field_bits = field.to_expression::<CS>().into_bits_le_strict(
             cs.namespace(|| format!("{} field of leaf value to bits", index)),
         )?;
-        field_bits.resize(256, Boolean::Constant(false));
 
         let mut preimage = Vec::new();
         preimage.append(&mut leaf_value_hash);
         preimage.append(&mut field_bits);
 
-        leaf_value_hash = sha256(
+        leaf_value_hash = hasher.execute(
             cs.namespace(|| {
                 format!(
                     "hash of previous leaf value hash with next field (index {})",
@@ -102,9 +107,10 @@ where
 /// Returns root hash variable
 ///
 /// **Note**: index bits are in **little-endian**.
-fn enforce_merkle_tree_path<E, CS>(
+fn enforce_merkle_tree_path<E, CS, H>(
     mut cs: CS,
     depth: usize,
+    hasher: &H,
     index_bits: &[Scalar<E>],
     leaf_value: &[Scalar<E>],
     authentication_path: &Vec<Vec<Scalar<E>>>,
@@ -112,19 +118,20 @@ fn enforce_merkle_tree_path<E, CS>(
 where
     E: Engine,
     CS: ConstraintSystem<E>,
+    H: MerkleTreeHash<E>,
 {
     assert!(leaf_value.len() != 0);
     assert_eq!(index_bits.len(), depth);
     assert_eq!(authentication_path.len(), depth);
-    for i in authentication_path {
-        assert_eq!(i.len(), 256);
-    }
 
-    let mut current_hash = enfoce_leaf_value_hash(cs.namespace(|| "leaf value hash"), leaf_value)?;
+    let mut current_hash =
+        enfoce_leaf_value_hash(cs.namespace(|| "leaf value hash"), hasher, leaf_value)?;
+
+    let hash_width = current_hash.len();
 
     for (index, (vertex_hash, index_bit)) in authentication_path.iter().zip(index_bits).enumerate()
     {
-        let mut hash_preimage = vec![Boolean::Constant(false); 512];
+        let mut hash_preimage = vec![Boolean::Constant(false); hash_width * 2];
 
         for (bit_id, (current_hash_bit, vertex_hash_bit_scalar)) in
             current_hash.into_iter().zip(vertex_hash).enumerate()
@@ -153,11 +160,11 @@ where
                     &current_hash_bit_scalar,
                 )?.to_boolean(cs.namespace(|| format!("vertex hash preimage: left part to boolean: {} bit (deep equals {})", bit_id, depth - 1 - index)))?;
 
-            hash_preimage[256 + bit_id] = conditional_select(
+            hash_preimage[hash_width + bit_id] = conditional_select(
                     cs.namespace(|| {
                         format!(
                             "vertex hash preimage: right part conditional select: {} bit (deep equals {})",
-                            256 + bit_id,
+                            hash_width + bit_id,
                             depth - 1 - index
                         )
                     }),
@@ -167,7 +174,7 @@ where
                 )?.to_boolean(cs.namespace(|| format!("vertex hash preimage: right part to boolean: {} bit (deep equals {})", bit_id, depth - 1 - index)))?;
         }
 
-        current_hash = sha256(
+        current_hash = hasher.execute(
             cs.namespace(|| format!("vertex hash (deep equals {})", depth - 1 - index)),
             &hash_preimage,
         )?;
@@ -202,9 +209,10 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
         })
     }
 
-    pub fn load<CS>(&self, mut cs: CS, index: &Scalar<E>) -> Result<Vec<Scalar<E>>>
+    pub fn load<CS, H>(&self, mut cs: CS, hasher: &H, index: &Scalar<E>) -> Result<Vec<Scalar<E>>>
     where
         CS: ConstraintSystem<E>,
+        H: MerkleTreeHash<E>,
     {
         let depth = self.storage.depth();
         let mut index_bits = index.get_bits_le(cs.namespace(|| "index into bits"))?;
@@ -224,6 +232,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
         let authorized_root_hash = enforce_merkle_tree_path(
             cs.namespace(|| "enforce merkle tree path"),
             depth,
+            hasher,
             &index_bits,
             &leaf,
             &authentication_path,
@@ -244,12 +253,18 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
         Ok(leaf)
     }
 
-    pub fn store<CS>(&mut self, mut cs: CS, index: &Scalar<E>, value: &[Scalar<E>]) -> Result<()>
+    pub fn store<CS, H>(
+        &mut self,
+        mut cs: CS,
+        hasher: &H,
+        index: &Scalar<E>,
+        value: &[Scalar<E>],
+    ) -> Result<()>
     where
         CS: ConstraintSystem<E>,
+        H: MerkleTreeHash<E>,
     {
         let depth = self.storage.depth();
-        let fields = value.len();
         let mut index_bits = index.get_bits_le(cs.namespace(|| "index into bits"))?;
         index_bits.truncate(depth);
 
@@ -271,6 +286,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
         let authorized_root_hash = enforce_merkle_tree_path(
             cs.namespace(|| "enforce merkle tree path (loading value)"),
             depth,
+            hasher,
             &index_bits,
             &leaf,
             &authentication_path,
@@ -291,6 +307,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
         self.root_hash = enforce_merkle_tree_path(
             cs.namespace(|| "enforce merkle tree path (storing value)"),
             depth,
+            hasher,
             &index_bits,
             &value,
             &authentication_path,
@@ -311,6 +328,7 @@ impl<E: Engine, S: MerkleTreeStorage<E>> StorageGadget<E, S> {
 mod tests {
     use super::StorageGadget;
     use super::*;
+    use crate::gadgets::contracts::merkle_tree_storage::merkle_tree_hash::Sha256Hasher;
     use crate::gadgets::contracts::merkle_tree_storage::{MerkleTreeLeaf, MerkleTreeStorage};
     use crate::gadgets::{Scalar, ScalarType};
     use crate::{Engine, Result};
@@ -518,6 +536,8 @@ mod tests {
         let mut storage_gadget =
             StorageGadget::new(cs.namespace(|| "gadget creation"), storage_test_dummy).unwrap();
 
+        let hasher = Sha256Hasher;
+
         for iter in (0..=1) {
             let mut cs = cs.namespace(|| format!("iter :: {}", iter));
             for i in (0..(1 << DEPTH_OF_TEST_TREE)) {
@@ -538,6 +558,7 @@ mod tests {
                 storage_gadget
                     .store(
                         cs.namespace(|| format!("store :: index({})", i)),
+                        &hasher,
                         &Scalar::<Bn256>::new_constant_fr(
                             Fr::from_str(&i.to_string()).unwrap(),
                             ScalarType::Field,
@@ -549,6 +570,7 @@ mod tests {
                 let loaded_result = storage_gadget
                     .load(
                         cs.namespace(|| format!("load :: index({})", i)),
+                        &hasher,
                         &Scalar::<Bn256>::new_constant_fr(
                             Fr::from_str(&i.to_string()).unwrap(),
                             ScalarType::Field,
